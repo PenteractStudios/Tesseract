@@ -14,6 +14,7 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleTime.h"
+#include "Modules/ModuleAudio.h"
 
 #include "SDL_timer.h"
 #include <windows.h>
@@ -28,6 +29,7 @@ Application::Application() {
 	modules.push_back(files = new ModuleFiles());
 	modules.push_back(resources = new ModuleResources());
 	modules.push_back(programs = new ModulePrograms());
+	modules.push_back(audio = new ModuleAudio());
 
 	modules.push_back(time = new ModuleTime());
 	modules.push_back(input = new ModuleInput());

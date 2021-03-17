@@ -11,6 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Modules\ModuleAudio.h" />
+    <ClInclude Include="Source\Utils\alcErrors.h" />
+    <ClInclude Include="Source\Utils\alErrors.h" />
     <ClInclude Include="Source\Utils\FileDialog.h" />
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
     <ClInclude Include="Libs\imgui\IconsForkAwesome.h" />
@@ -162,6 +165,7 @@
     <ClInclude Include="Source\Utils\VectorMap.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Modules\ModuleAudio.cpp" />
     <ClCompile Include="Source\Utils\FileDialog.cpp" />
     <ClCompile Include="Libs\PhysicsFS\physfs.c" />
     <ClCompile Include="Libs\PhysicsFS\physfs_archiver_7z.c" />
@@ -341,14 +345,14 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\PhysicsFS; $(ProjectDir)/Libs\ImGuizmo; $(ProjectDir)/Libs\rapidjson/include; $(ProjectDir)/Libs\brofiler/include; $(ProjectDir)/Libs\assimp/include; $(ProjectDir)/Libs\DeviL/include; $(ProjectDir)/Libs\DebugDraw; $(ProjectDir)/Libs\imgui; $(ProjectDir)/Libs\MathGeoLib; $(ProjectDir)/Libs\SDL/include; $(ProjectDir)/Libs\glew-2.1.0/include; $(ProjectDir)/Source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Source;$(ProjectDir)/Libs\OpenAL/include;$(ProjectDir)/Libs\sndfile/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS; _MBCS; %(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>$(ProjectDir)/Libs\brofiler/lib; $(ProjectDir)/Libs\assimp/lib; $(ProjectDir)/Libs\DeviL/lib; $(ProjectDir)/Libs\SDL/lib; $(ProjectDir)/Libs\glew-2.1.0/lib;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ProfilerCore32.lib; assimp-vc141-mt.lib; DeviL.lib; ILU.lib; ILUT.lib; SDL2.lib; SDL2main.lib; glew32.lib; opengl32.lib; kernel32.lib; user32.lib; gdi32.lib; winspool.lib; comdlg32.lib; advapi32.lib; shell32.lib; ole32.lib; oleaut32.lib; uuid.lib; odbc32.lib; odbccp32.lib; %(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)/Libs\brofiler/lib;$(ProjectDir)/Libs\assimp/lib;$(ProjectDir)/Libs\DeviL/lib;$(ProjectDir)/Libs\SDL/lib;$(ProjectDir)/Libs\glew-2.1.0/lib;$(ProjectDir)/Libs\OpenAL/lib;$(ProjectDir)/Libs\sndfile/lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ProfilerCore32.lib;assimp-vc141-mt.lib;DeviL.lib;ILU.lib;ILUT.lib;SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;OpenAL32.lib;sndfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

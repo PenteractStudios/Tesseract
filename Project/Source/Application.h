@@ -20,6 +20,7 @@ class ModulePrograms;
 class ModuleDebugDraw;
 class ModuleScene;
 class ModuleTime;
+class ModuleAudio;
 
 class Application {
 public:
@@ -47,6 +48,7 @@ public:
 	ModuleDebugDraw* debugDraw = nullptr;
 	ModuleScene* scene = nullptr;
 	ModuleTime* time = nullptr;
+	ModuleAudio* audio = nullptr;
 
 	// - Application Configuration - //
 	char appName[20] = "Tesseract";
