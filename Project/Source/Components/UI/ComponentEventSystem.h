@@ -26,10 +26,12 @@ public:
 	void ExitedPointerOnSelectable(ComponentSelectable* newUnHoveredComponent); //Interface implementation
 	ComponentSelectable* GetCurrentSelected() const;							//Returns currently selected ComponentSelectable
 	ComponentSelectable* GetCurrentlyHovered() const;							//Returns last Selectable that was hovered over with mouse
+	void SetClickedGameObject(GameObject* clickedObj_);
+	GameObject* GetClickedGameObject();
 
 private:
 	UID selectedId = 0; //Currently selected SelectableComponent*
-
+	GameObject* clickedObj = nullptr;
 	std::vector<UID> hoveredSelectableIds; //vector of SelectableComponents* it updates (adding/removing) with mouse events
 
 public:

@@ -104,9 +104,13 @@ void ModuleUserInterface::ReceiveEvent(const Event& e) {
 					IMouseClickHandler* mouseClickHandler = dynamic_cast<IMouseClickHandler*>(lastHoveredSelectable->GetSelectableComponent());
 
 					if (mouseClickHandler != nullptr) {
-						mouseClickHandler->OnClicked();
+						mouseClickHandler->OnClickedInternal();
+						currentEvSys->SetClickedGameObject(&lastHoveredSelectable->GetOwner());
 					}
 				}
+			} else {
+				//Set selected to null
+				currentEvSys->SetSelected(0);
 			}
 		}
 		break;
@@ -115,7 +119,13 @@ void ModuleUserInterface::ReceiveEvent(const Event& e) {
 		if (currentEvSys != nullptr) {
 			ComponentSelectable* lastHoveredSelectable = currentEvSys->GetCurrentlyHovered();
 			if (lastHoveredSelectable != nullptr) {
-				lastHoveredSelectable->OnDeselect();
+				if (&lastHoveredSelectable->GetOwner() == currentEvSys->GetClickedGameObject()) {
+					IMouseClickHandler* mouseClickHandler = dynamic_cast<IMouseClickHandler*>(lastHoveredSelectable->GetSelectableComponent());
+					if (mouseClickHandler != nullptr) {
+						mouseClickHandler->OnClicked();
+						currentEvSys->SetClickedGameObject(&lastHoveredSelectable->GetOwner());
+					}
+				}
 			}
 		}
 

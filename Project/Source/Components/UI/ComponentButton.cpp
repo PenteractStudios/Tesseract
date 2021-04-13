@@ -39,10 +39,12 @@ void ComponentButton::Load(JsonValue jComponent) {
 	colorClicked.Set(jColorClick[0], jColorClick[1], jColorClick[2], jColorClick[3]);
 }
 
-void ComponentButton::OnClicked() {
+void ComponentButton::OnClickedInternal() {
 	clicked = true;
 	App->userInterface->GetCurrentEventSystem()->SetSelected(GetOwner().GetComponent<ComponentSelectable>()->GetID());
+}
 
+void ComponentButton::OnClicked() {
 	std::vector<ComponentScript*> scriptComponents = GetOwner().GetComponents<ComponentScript>();
 	for (ComponentScript* scriptComponent : scriptComponents) {
 		Resource* scriptResource = App->resources->GetResource(scriptComponent->GetScriptID());

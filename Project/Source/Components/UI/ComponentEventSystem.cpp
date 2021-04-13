@@ -88,10 +88,12 @@ void ComponentEventSystem::SetSelected(UID newSelectableComponentId) {
 	}
 	selectedId = newSelectableComponentId;
 
-	ComponentSelectable* newSelectableComponent = GetOwner().scene->GetComponent<ComponentSelectable>(newSelectableComponentId);
+	if (newSelectableComponentId != 0) {
+		ComponentSelectable* newSelectableComponent = GetOwner().scene->GetComponent<ComponentSelectable>(newSelectableComponentId);
 
-	if (newSelectableComponent != nullptr) {
-		newSelectableComponent->OnSelect();
+		if (newSelectableComponent != nullptr) {
+			newSelectableComponent->OnSelect();
+		}
 	}
 }
 
@@ -133,4 +135,12 @@ ComponentSelectable* ComponentEventSystem::GetCurrentSelected() const {
 ComponentSelectable* ComponentEventSystem::GetCurrentlyHovered() const {
 	if (hoveredSelectableIds.size() == 0) return nullptr;
 	return GetOwner().scene->GetComponent<ComponentSelectable>(hoveredSelectableIds.front());
+}
+
+void ComponentEventSystem::SetClickedGameObject(GameObject* clickedObj_) {
+	clickedObj = clickedObj_;
+}
+
+GameObject* ComponentEventSystem::GetClickedGameObject() {
+	return clickedObj;
 }
