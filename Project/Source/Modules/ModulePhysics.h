@@ -1,10 +1,12 @@
 #pragma once
 #include "Module.h"
 
-#include "debugdraw.h"
+#include "Math/float4x4.h"
 #include "btBulletDynamicsCommon.h"
+#include "debugdraw.h"
 
 class DebugDrawer;
+class MotionState;
 
 class ModulePhysics : public Module {
 
@@ -14,9 +16,11 @@ public:
 	//bool Start();
 	UpdateStatus PreUpdate();
 	UpdateStatus Update();
-	UpdateStatus PostUpdate();
+	//UpdateStatus PostUpdate();
 	bool CleanUp();
 	//void ReceiveEvent(TesseractEvent& e);
+
+	btRigidBody* AddSphereBody(MotionState* myMotionState, float radius, float mass);
 
 public:
 	float gravity = 9.81f;
@@ -31,7 +35,7 @@ private:
 	
 	DebugDrawer* debugDrawer;
 
-	bool debug = false;
+	bool debug = true;
 
 	/*p2List<btCollisionShape*> shapes;
 	p2List<PhysBody3D*> bodies;
@@ -42,6 +46,7 @@ private:
 
 class DebugDrawer : public btIDebugDraw {
 public:
+	DebugDrawer() {}
 	void drawLine(const btVector3& from, const btVector3& to, const btVector3& color);
 	void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color);
 	void reportErrorWarning(const char* warningString);
@@ -50,4 +55,5 @@ public:
 	int getDebugMode() const;
 	
 	DebugDrawModes mode; // How to initialise this enum?
+
 };

@@ -31,6 +31,7 @@ Scene::Scene(unsigned numGameObjects) {
 	animationComponents.Allocate(numGameObjects);
 	audioSourceComponents.Allocate(numGameObjects);
 	audioListenerComponents.Allocate(numGameObjects);
+	sphereColliderComponents.Allocate(numGameObjects);
 }
 
 void Scene::ClearScene() {
@@ -152,6 +153,8 @@ Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 		return audioSourceComponents.Find(componentId);
 	case ComponentType::AUDIO_LISTENER:
 		return audioListenerComponents.Find(componentId);
+	case ComponentType::SPHERE_COLLIDER:
+		return sphereColliderComponents.Find(componentId);
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::GetComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -201,6 +204,8 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 		return audioSourceComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::AUDIO_LISTENER:
 		return audioListenerComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::SPHERE_COLLIDER:
+		return sphereColliderComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::CreateComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -269,6 +274,9 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		break;
 	case ComponentType::AUDIO_LISTENER:
 		audioListenerComponents.Release(componentId);
+		break;
+	case ComponentType::SPHERE_COLLIDER:
+		sphereColliderComponents.Release(componentId);
 		break;
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::RemoveComponentByTypeAndId.", (unsigned) type);

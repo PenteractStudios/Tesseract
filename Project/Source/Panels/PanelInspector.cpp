@@ -18,6 +18,7 @@
 #include "Components/UI/ComponentSelectable.h"
 #include "Components/UI/ComponentText.h"
 #include "Components/UI/ComponentTransform2D.h"
+#include "Components/Physics/ComponentSphereCollider.h"
 #include "Application.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleUserInterface.h"
@@ -134,6 +135,9 @@ void PanelInspector::Update() {
 				case ComponentType::AUDIO_LISTENER:
 					cName = "Audio Listener";
 					break;
+				case ComponentType::SPHERE_COLLIDER:
+					cName = "Sphere Collider";
+					break;
 				default:
 					cName = "";
 					break;
@@ -230,8 +234,7 @@ void PanelInspector::Update() {
 					ComponentAudioSource* audioSource = selected->CreateComponent<ComponentAudioSource>();
 					if (audioSource != nullptr) {
 						audioSource->Init();
-					}
-					else {
+					} else {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
 				}
@@ -239,14 +242,15 @@ void PanelInspector::Update() {
 					ComponentAudioListener* audioListener = selected->CreateComponent<ComponentAudioListener>();
 					if (audioListener != nullptr) {
 						audioListener->Init();
-					}
-					else {
+					} else {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
 				}
 				// TRANSFORM is always there, cannot add a new one.
 
 				AddUIComponentsOptions(selected);
+
+				AddColliderComponentsOptions(selected);
 
 				ImGui::EndPopup();
 			}
@@ -349,6 +353,21 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 				}
 			}
 		}
+		ImGui::EndMenu();
+	}
+}
+
+void PanelInspector::AddColliderComponentsOptions(GameObject* selected) {
+	if (ImGui::BeginMenu("Collider")) {
+		if (ImGui::MenuItem("Sphere Collider")) {
+			ComponentSphereCollider* audioListener = selected->CreateComponent<ComponentSphereCollider>();
+			if (audioListener != nullptr) {
+				audioListener->Init();
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS; // TODO: Control other colliders exists.
+			}
+		}
+
 		ImGui::EndMenu();
 	}
 }

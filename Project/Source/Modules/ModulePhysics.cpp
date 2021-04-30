@@ -3,13 +3,13 @@
 #include "ModulePhysics.h"
 #include "ModuleTime.h"
 #include "ModuleInput.h"
+#include "Components/Component.h"
+#include "Components/Physics/ComponentSphereCollider.h"
 
-#include "Utils/Collider.h"
-
+#include "Utils/MotionState.h"
 #include "Utils/Logging.h"
 
 bool ModulePhysics::Init() {
-
 	LOG("Creating Physics environment using Bullet Physics.");
 
 	collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -21,11 +21,22 @@ bool ModulePhysics::Init() {
 	world = new btDiscreteDynamicsWorld(dispatcher, broadPhase, constraintSolver, collisionConfiguration);
 	world->setDebugDrawer(debugDrawer);
 	world->setGravity(btVector3(0.f, gravity, 0.f));
+
+	// TODO: Remove this hardcode
+	// Big plane as ground
+	{
+		btCollisionShape* colShape = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
+
+		btDefaultMotionState* myMotionState = new btDefaultMotionState();
+		btRigidBody::btRigidBodyConstructionInfo rbInfo(0.0f, myMotionState, colShape);
+
+		btRigidBody* body = new btRigidBody(rbInfo);
+		world->addRigidBody(body);
+	}
 	return true;
 }
 
 UpdateStatus ModulePhysics::PreUpdate() {
-
 	world->stepSimulation(App->time->GetDeltaTime(), 15);
 
 	int numManifolds = world->getDispatcher()->getNumManifolds();
@@ -36,13 +47,32 @@ UpdateStatus ModulePhysics::PreUpdate() {
 
 		int numContacts = contactManifold->getNumContacts();
 		if (numContacts > 0) {
-			Collider* pbodyA = (Collider*) obA->getUserPointer();	// Component?
-			Collider* pbodyB = (Collider*) obB->getUserPointer();	// Component?
+			Component* pbodyA = (Component*) obA->getUserPointer();
+			Component* pbodyB = (Component*) obB->getUserPointer();
 
 			if (pbodyA && pbodyB) {
+				switch (pbodyA->GetType()) {
+				case ComponentType::SPHERE_COLLIDER:
+					((ComponentSphereCollider*) pbodyA)->OnCollision();
+					break;
+				//case
+				//case
+							 
 				
-				pbodyA->OnCollision();
-				pbodyB->OnCollision();
+				default:
+					break;
+				}
+
+				switch (pbodyB->GetType()) {
+				case ComponentType::SPHERE_COLLIDER:
+					((ComponentSphereCollider*) pbodyB)->OnCollision();
+					break;
+					//case
+					//case
+
+				default:
+					break;
+				}
 			}
 		}
 	}
@@ -50,8 +80,8 @@ UpdateStatus ModulePhysics::PreUpdate() {
 }
 
 UpdateStatus ModulePhysics::Update() {
-	if (App->input->GetKey(SDL_SCANCODE_F1) == KS_DOWN) //TODO: DOnt do it by keyboard!!
-		debug = !debug;
+	/*if (App->input->GetKey(SDL_SCANCODE_F1) == KS_DOWN) //TODO: DOnt do it by keyboard!!
+		debug = !debug;*/
 
 	if (debug == true) {
 		world->debugDrawWorld();
@@ -59,19 +89,44 @@ UpdateStatus ModulePhysics::Update() {
 	return UpdateStatus::CONTINUE;
 }
 
-
-
 bool ModulePhysics::CleanUp() {
-
 	// TODO: clean necessary module lists/vectors
+	// Remove from the world all collision bodies
+	for (int i = world->getNumCollisionObjects() - 1; i >= 0; i--) {
+		btCollisionObject* obj = world->getCollisionObjectArray()[i];
+		world->removeCollisionObject(obj);
+	}
+
+	RELEASE(world);
 
 	RELEASE(debugDrawer);
 	RELEASE(constraintSolver);
 	RELEASE(broadPhase);
 	RELEASE(dispatcher);
 	RELEASE(collisionConfiguration);
+	// world
 
 	return true;
+}
+
+btRigidBody* ModulePhysics::AddSphereBody(MotionState* myMotionState, float radius, float mass) {
+	btCollisionShape* colShape = new btSphereShape(radius);
+
+	btVector3 localInertia(0, 0, 0);
+	if (mass != 0.f)
+		colShape->calculateLocalInertia(mass, localInertia);
+
+	//motions.add(myMotionState);
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
+
+	btRigidBody* body = new btRigidBody(rbInfo);
+	//PhysBody3D* pbody = new PhysBody3D(body);
+
+	//body->setUserPointer(pbody);
+	world->addRigidBody(body);
+	//bodies.add(pbody);
+
+	return body;
 }
 
 // =================== DEBUG CALLBACKS ==========================

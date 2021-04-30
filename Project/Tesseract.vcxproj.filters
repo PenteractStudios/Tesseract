@@ -165,7 +165,8 @@
     <ClCompile Include="Source\Resources\ResourceAudioClip.cpp" />
     <ClCompile Include="Source\FileSystem\AudioImporter.cpp" />
     <ClCompile Include="Source\Modules\ModulePhysics.cpp" />
-    <ClCompile Include="Source\Utils\Collider.cpp" />
+    <ClCompile Include="Source\Components\Physics\ComponentSphereCollider.cpp" />
+    <ClCompile Include="Source\Utils\MotionState.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -427,7 +428,8 @@
     <ClInclude Include="Source\Utils\PoolMap.h" />
     <ClInclude Include="Source\FileSystem\PrefabImporter.h" />
     <ClInclude Include="Source\Modules\ModulePhysics.h" />
-    <ClInclude Include="Source\Utils\Collider.h" />
+    <ClInclude Include="Source\Components\Physics\ComponentSphereCollider.h" />
+    <ClInclude Include="Source\Utils\MotionState.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />
