@@ -167,6 +167,7 @@
     <ClCompile Include="Libs\imgui\imgui_tables.cpp" />
     <ClCompile Include="Source\Utils\ImGuiUtils.cpp" />
     <ClCompile Include="Source\Scripting\Member.cpp" />
+    <ClCompile Include="Source\Modules\ModuleNavigation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -428,6 +429,7 @@
     <ClInclude Include="Source\Utils\PoolMap.h" />
     <ClInclude Include="Source\FileSystem\PrefabImporter.h" />
     <ClInclude Include="Source\Scripting\Member.h" />
+    <ClInclude Include="Source\Modules\ModuleNavigation.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />
