@@ -3,6 +3,8 @@
 #include "Components/Component.h"
 #include "Utils/MotionState.h"
 
+#include "Math/float3.h";
+
 class btRigidBody;
 class ComponentSphereCollider : public Component {
 public:
@@ -11,8 +13,8 @@ public:
 	// ------- Core Functions ------ //
 	void Init() override;
 	//void Update() override;
-	//void DrawGizmos() override;
-	//void OnEditorUpdate() override;
+	void DrawGizmos() override;
+	void OnEditorUpdate() override;
 	//void Save(JsonValue jComponent) const override;
 	//void Load(JsonValue jComponent) override;
 	//void DuplicateComponent(GameObject& owner) override;
@@ -20,9 +22,10 @@ public:
 	// ----- Collider Functions ---- //
 	void OnCollision();
 
-private:
-	MotionState motionState = 0;
+public:
 	btRigidBody* rigidBody = nullptr;
+	MotionState motionState;
 	float mass = 1.f;
 	float radius = 1.f;
+	float3 centerOffset = float3(0, 0, 0); // TODO: imgui slider settings
 };

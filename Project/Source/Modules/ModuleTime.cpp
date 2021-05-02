@@ -8,6 +8,7 @@
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleEvents.h"
+#include "Modules/ModulePhysics.h"
 #include "SDL_timer.h"
 #include "Brofiler.h"
 #include <ctime>
@@ -139,6 +140,7 @@ void ModuleTime::StartGame() {
 	SceneImporter::SaveScene(TEMP_SCENE_FILE_NAME);
 #endif
 
+	//TODO: this goes inside !GAME?
 	if (App->camera->GetGameCamera()) {
 		// Set the Game Camera as active
 		App->camera->ChangeActiveCamera(App->camera->GetGameCamera(), true);
@@ -146,6 +148,8 @@ void ModuleTime::StartGame() {
 	} else {
 		// TODO: Modal window. Warning - camera not set.
 	}
+
+	App->physics->InitializeRigidBodies();
 	
 	gameStarted = true;
 	gameRunning = true;
@@ -158,10 +162,12 @@ void ModuleTime::StopGame() {
 	SceneImporter::LoadScene(TEMP_SCENE_FILE_NAME);
 	App->files->Erase(TEMP_SCENE_FILE_NAME);
 #endif
-
+	//TODO: this goes inside !GAME?
 	// Reset to the Engine camera
 	App->camera->ChangeActiveCamera(nullptr, false);
 	App->camera->ChangeCullingCamera(nullptr, false);
+
+	App->physics->ClearPhysicBodies();
 
 	gameStarted = false;
 	gameRunning = false;

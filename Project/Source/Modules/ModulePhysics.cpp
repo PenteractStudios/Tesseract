@@ -3,8 +3,11 @@
 #include "ModulePhysics.h"
 #include "ModuleTime.h"
 #include "ModuleInput.h"
+#include "ModuleScene.h"
 #include "Components/Component.h"
 #include "Components/Physics/ComponentSphereCollider.h"
+#include "Scene.h"
+#include "Utils/MotionState.h"
 
 #include "Utils/MotionState.h"
 #include "Utils/Logging.h"
@@ -22,56 +25,46 @@ bool ModulePhysics::Init() {
 	world->setDebugDrawer(debugDrawer);
 	world->setGravity(btVector3(0.f, gravity, 0.f));
 
-	// TODO: Remove this hardcode
-	// Big plane as ground
-	{
-		btCollisionShape* colShape = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
-
-		btDefaultMotionState* myMotionState = new btDefaultMotionState();
-		btRigidBody::btRigidBodyConstructionInfo rbInfo(0.0f, myMotionState, colShape);
-
-		btRigidBody* body = new btRigidBody(rbInfo);
-		world->addRigidBody(body);
-	}
 	return true;
 }
 
 UpdateStatus ModulePhysics::PreUpdate() {
-	world->stepSimulation(App->time->GetDeltaTime(), 15);
+	if (App->time->IsGameRunning()) {
+		world->stepSimulation(App->time->GetDeltaTime(), 15);
 
-	int numManifolds = world->getDispatcher()->getNumManifolds();
-	for (int i = 0; i < numManifolds; i++) {
-		btPersistentManifold* contactManifold = world->getDispatcher()->getManifoldByIndexInternal(i);
-		btCollisionObject* obA = (btCollisionObject*) (contactManifold->getBody0());
-		btCollisionObject* obB = (btCollisionObject*) (contactManifold->getBody1());
+		int numManifolds = world->getDispatcher()->getNumManifolds();
+		for (int i = 0; i < numManifolds; i++) {
+			btPersistentManifold* contactManifold = world->getDispatcher()->getManifoldByIndexInternal(i);
+			btCollisionObject* obA = (btCollisionObject*) (contactManifold->getBody0());
+			btCollisionObject* obB = (btCollisionObject*) (contactManifold->getBody1());
 
-		int numContacts = contactManifold->getNumContacts();
-		if (numContacts > 0) {
-			Component* pbodyA = (Component*) obA->getUserPointer();
-			Component* pbodyB = (Component*) obB->getUserPointer();
+			int numContacts = contactManifold->getNumContacts();
+			if (numContacts > 0) {
+				Component* pbodyA = (Component*) obA->getUserPointer();
+				Component* pbodyB = (Component*) obB->getUserPointer();
 
-			if (pbodyA && pbodyB) {
-				switch (pbodyA->GetType()) {
-				case ComponentType::SPHERE_COLLIDER:
-					((ComponentSphereCollider*) pbodyA)->OnCollision();
-					break;
-				//case
-				//case
-							 
-				
-				default:
-					break;
-				}
+				if (pbodyA && pbodyB) {
+					switch (pbodyA->GetType()) {
+					case ComponentType::SPHERE_COLLIDER:
+						((ComponentSphereCollider*) pbodyA)->OnCollision();
+						break;
+						//case
+						//case
 
-				switch (pbodyB->GetType()) {
-				case ComponentType::SPHERE_COLLIDER:
-					((ComponentSphereCollider*) pbodyB)->OnCollision();
-					break;
-					//case
-					//case
+					default:
+						break;
+					}
 
-				default:
-					break;
+					switch (pbodyB->GetType()) {
+					case ComponentType::SPHERE_COLLIDER:
+						((ComponentSphereCollider*) pbodyB)->OnCollision();
+						break;
+						//case
+						//case
+
+					default:
+						break;
+					}
 				}
 			}
 		}
@@ -80,22 +73,36 @@ UpdateStatus ModulePhysics::PreUpdate() {
 }
 
 UpdateStatus ModulePhysics::Update() {
-	/*if (App->input->GetKey(SDL_SCANCODE_F1) == KS_DOWN) //TODO: DOnt do it by keyboard!!
+	if (App->time->IsGameRunning()) {
+		/*if (App->input->GetKey(SDL_SCANCODE_F1) == KS_DOWN) //TODO: DOnt do it by keyboard!!
 		debug = !debug;*/
 
-	if (debug == true) {
-		world->debugDrawWorld();
+		if (debug == true) {
+			world->debugDrawWorld();
+		}
+
+		if (App->input->GetKey(SDL_SCANCODE_SPACE) == KS_DOWN) {
+			/*AddSphereBody(new MotionState(), 10, 2)
+			
+			
+			
+			
+			Sphere bullet;
+			bullet.color = Green;
+			bullet.radius = 1.0f;
+			bullet.SetPos(App->camera->Position.x, App->camera->Position.y, App->camera->Position.z);
+
+			App->physics->AddBody(bullet)->Push(-App->camera->Z.x * 20.0f, -App->camera->Z.y * 20.0f, -App->camera->Z.z * 20.0f);*/
+		}
+
+
 	}
 	return UpdateStatus::CONTINUE;
 }
 
 bool ModulePhysics::CleanUp() {
 	// TODO: clean necessary module lists/vectors
-	// Remove from the world all collision bodies
-	for (int i = world->getNumCollisionObjects() - 1; i >= 0; i--) {
-		btCollisionObject* obj = world->getCollisionObjectArray()[i];
-		world->removeCollisionObject(obj);
-	}
+	ClearPhysicBodies();
 
 	RELEASE(world);
 
@@ -107,6 +114,34 @@ bool ModulePhysics::CleanUp() {
 	// world
 
 	return true;
+}
+
+void ModulePhysics::InitializeRigidBodies() {
+
+	// TODO: Remove this hardcode
+	// Big plane as ground
+	{
+		btCollisionShape* colShape = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
+
+		btDefaultMotionState* myMotionState = new btDefaultMotionState();
+		btRigidBody::btRigidBodyConstructionInfo rbInfo(0.0f, myMotionState, colShape);
+
+		btRigidBody* body = new btRigidBody(rbInfo);
+		world->addRigidBody(body);
+	}
+
+	for (ComponentSphereCollider& sphereCollider : App->scene->scene->sphereColliderComponents) {
+		sphereCollider.motionState = MotionState(&sphereCollider, sphereCollider.centerOffset);
+		sphereCollider.rigidBody = App->physics->AddSphereBody(&sphereCollider.motionState, sphereCollider.radius, sphereCollider.mass);
+		world->addRigidBody(sphereCollider.rigidBody);
+	}
+}
+
+void ModulePhysics::ClearPhysicBodies() {
+	for (int i = world->getNumCollisionObjects() - 1; i >= 0; i--) {
+		btCollisionObject* obj = world->getCollisionObjectArray()[i];
+		world->removeCollisionObject(obj);
+	}
 }
 
 btRigidBody* ModulePhysics::AddSphereBody(MotionState* myMotionState, float radius, float mass) {
@@ -123,7 +158,7 @@ btRigidBody* ModulePhysics::AddSphereBody(MotionState* myMotionState, float radi
 	//PhysBody3D* pbody = new PhysBody3D(body);
 
 	//body->setUserPointer(pbody);
-	world->addRigidBody(body);
+	//world->addRigidBody(body);
 	//bodies.add(pbody);
 
 	return body;

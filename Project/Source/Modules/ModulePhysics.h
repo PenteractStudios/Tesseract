@@ -20,10 +20,12 @@ public:
 	bool CleanUp();
 	//void ReceiveEvent(TesseractEvent& e);
 
+	void InitializeRigidBodies();
+	void ClearPhysicBodies();
 	btRigidBody* AddSphereBody(MotionState* myMotionState, float radius, float mass);
 
 public:
-	float gravity = 9.81f;
+	float gravity = -9.81f;
 
 private:
 	btDiscreteDynamicsWorld* world = nullptr;
