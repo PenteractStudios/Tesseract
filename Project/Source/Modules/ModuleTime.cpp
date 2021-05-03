@@ -25,7 +25,7 @@ bool ModuleTime::Start() {
 	App->events->AddObserverToEvent(TesseractEventType::PRESSED_RESUME, this);
 	App->events->AddObserverToEvent(TesseractEventType::PRESSED_STEP, this);
 	App->events->AddObserverToEvent(TesseractEventType::PRESSED_STOP, this);
-	
+
 	return true;
 }
 
@@ -150,13 +150,18 @@ void ModuleTime::StartGame() {
 	}
 
 	App->physics->InitializeRigidBodies();
-	
+
 	gameStarted = true;
 	gameRunning = true;
 }
 
 void ModuleTime::StopGame() {
 	if (!gameStarted) return;
+
+	gameStarted = false;
+	gameRunning = false;
+
+	timeLastMs = 0;
 
 #if !GAME
 	SceneImporter::LoadScene(TEMP_SCENE_FILE_NAME);
@@ -168,11 +173,6 @@ void ModuleTime::StopGame() {
 	App->camera->ChangeCullingCamera(nullptr, false);
 
 	App->physics->ClearPhysicBodies();
-
-	gameStarted = false;
-	gameRunning = false;
-
-	timeLastMs = 0;
 }
 
 void ModuleTime::PauseGame() {

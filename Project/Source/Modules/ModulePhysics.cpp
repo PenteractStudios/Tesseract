@@ -11,6 +11,10 @@
 #include "Utils/MotionState.h"
 #include "Utils/Logging.h"
 
+#include "ModuleCamera.h" // Remove this
+#include "Components/ComponentCamera.h"
+#include "GameObject.h"
+
 bool ModulePhysics::Init() {
 	LOG("Creating Physics environment using Bullet Physics.");
 
@@ -41,7 +45,7 @@ UpdateStatus ModulePhysics::PreUpdate() {
 			if (numContacts > 0) {
 				Component* pbodyA = (Component*) obA->getUserPointer();
 				Component* pbodyB = (Component*) obB->getUserPointer();
-				
+
 				if (pbodyA && pbodyB) {
 					switch (pbodyA->GetType()) {
 					case ComponentType::SPHERE_COLLIDER:
@@ -81,11 +85,23 @@ UpdateStatus ModulePhysics::Update() {
 		}
 
 		if (App->input->GetKey(SDL_SCANCODE_SPACE) == KS_DOWN) {
-			/*AddSphereBody(new MotionState(), 10, 2)
-			
-			
-			
-			
+			btCollisionShape* colShape = new btSphereShape(2.f);
+			btVector3 localInertia(0, 0, 0);
+			colShape->calculateLocalInertia(3.0f, localInertia);
+
+			float3 position = App->camera->GetEngineCamera()->frustum.Pos();
+			btDefaultMotionState* myMotionState = new btDefaultMotionState(btTransform(btQuaternion::getIdentity(),
+				btVector3(position.x, position.y, position.z)));
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(3.0f, myMotionState, colShape, localInertia);
+			btRigidBody* body = new btRigidBody(rbInfo);
+			world->addRigidBody(body);
+			float3 f = App->camera->GetEngineCamera()->frustum.Front();
+			body->applyCentralImpulse(btVector3(f.x * 73.f, f.y * 73.f, f.z * 73.f));
+
+			/*
+
+
+
 			Sphere bullet;
 			bullet.color = Green;
 			bullet.radius = 1.0f;
@@ -124,6 +140,7 @@ void ModulePhysics::CreateSphereRigidbody(ComponentSphereCollider* sphereCollide
 
 void ModulePhysics::RemoveSphereRigidbody(ComponentSphereCollider* sphereCollider) {
 	world->removeCollisionObject(sphereCollider->rigidBody);
+	RELEASE(sphereCollider->rigidBody);
 }
 
 void ModulePhysics::UpdateSphereRigidbody(ComponentSphereCollider* sphereCollider) {
@@ -154,6 +171,7 @@ void ModulePhysics::ClearPhysicBodies() {
 	for (int i = world->getNumCollisionObjects() - 1; i >= 0; i--) {
 		btCollisionObject* obj = world->getCollisionObjectArray()[i];
 		world->removeCollisionObject(obj);
+		RELEASE(obj);
 	}
 }
 
