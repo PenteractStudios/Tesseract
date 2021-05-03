@@ -8,7 +8,6 @@
 
 class MotionState : public btMotionState {
 public:
-	MotionState() {}
 	MotionState(Component* componentCollider, float3 centerOffset);
 	~MotionState();
 

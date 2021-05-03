@@ -5,7 +5,6 @@
 #include "ModuleInput.h"
 #include "ModuleScene.h"
 #include "Components/Component.h"
-#include "Components/Physics/ComponentSphereCollider.h"
 #include "Scene.h"
 #include "Utils/MotionState.h"
 
@@ -42,7 +41,7 @@ UpdateStatus ModulePhysics::PreUpdate() {
 			if (numContacts > 0) {
 				Component* pbodyA = (Component*) obA->getUserPointer();
 				Component* pbodyB = (Component*) obB->getUserPointer();
-
+				
 				if (pbodyA && pbodyB) {
 					switch (pbodyA->GetType()) {
 					case ComponentType::SPHERE_COLLIDER:
@@ -116,6 +115,22 @@ bool ModulePhysics::CleanUp() {
 	return true;
 }
 
+void ModulePhysics::CreateSphereRigidbody(ComponentSphereCollider* sphereCollider) {
+	sphereCollider->motionState = MotionState(sphereCollider, sphereCollider->centerOffset);
+	sphereCollider->rigidBody = App->physics->AddSphereBody(&sphereCollider->motionState, sphereCollider->radius, sphereCollider->mass);
+	sphereCollider->rigidBody->setUserPointer(sphereCollider);
+	world->addRigidBody(sphereCollider->rigidBody);
+}
+
+void ModulePhysics::RemoveSphereRigidbody(ComponentSphereCollider* sphereCollider) {
+	world->removeCollisionObject(sphereCollider->rigidBody);
+}
+
+void ModulePhysics::UpdateSphereRigidbody(ComponentSphereCollider* sphereCollider) {
+	RemoveSphereRigidbody(sphereCollider);
+	CreateSphereRigidbody(sphereCollider);
+}
+
 void ModulePhysics::InitializeRigidBodies() {
 
 	// TODO: Remove this hardcode
@@ -131,9 +146,7 @@ void ModulePhysics::InitializeRigidBodies() {
 	}
 
 	for (ComponentSphereCollider& sphereCollider : App->scene->scene->sphereColliderComponents) {
-		sphereCollider.motionState = MotionState(&sphereCollider, sphereCollider.centerOffset);
-		sphereCollider.rigidBody = App->physics->AddSphereBody(&sphereCollider.motionState, sphereCollider.radius, sphereCollider.mass);
-		world->addRigidBody(sphereCollider.rigidBody);
+		if (!sphereCollider.rigidBody) CreateSphereRigidbody(&sphereCollider);
 	}
 }
 

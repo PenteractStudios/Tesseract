@@ -24,8 +24,8 @@ public:
 
 public:
 	btRigidBody* rigidBody = nullptr;
-	MotionState motionState;
+	MotionState motionState = MotionState(nullptr, float3(0,0,0));
 	float mass = 1.f;
 	float radius = 1.f;
-	float3 centerOffset = float3(0, 0, 0); // TODO: imgui slider settings
+	float3 centerOffset = float3(0, 0, 0);
 };

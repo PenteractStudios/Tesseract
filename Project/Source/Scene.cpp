@@ -3,6 +3,8 @@
 #include "GameObject.h"
 #include "Application.h"
 #include "Modules/ModuleResources.h"
+#include "Modules/ModulePhysics.h"
+#include "Modules/ModuleTime.h"
 #include "Resources/ResourceMesh.h"
 #include "Utils/Logging.h"
 
@@ -276,6 +278,7 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		audioListenerComponents.Release(componentId);
 		break;
 	case ComponentType::SPHERE_COLLIDER:
+		if (App->time->IsGameRunning()) App->physics->RemoveSphereRigidbody(sphereColliderComponents.Find(componentId));
 		sphereColliderComponents.Release(componentId);
 		break;
 	default:

@@ -1,5 +1,6 @@
 #pragma once
 #include "Module.h"
+#include "Components/Physics/ComponentSphereCollider.h"
 
 #include "Math/float4x4.h"
 #include "btBulletDynamicsCommon.h"
@@ -19,6 +20,11 @@ public:
 	//UpdateStatus PostUpdate();
 	bool CleanUp();
 	//void ReceiveEvent(TesseractEvent& e);
+
+	// ------ Add/Remove Body ------ //
+	void CreateSphereRigidbody(ComponentSphereCollider* sphereCollider);
+	void RemoveSphereRigidbody(ComponentSphereCollider* sphereCollider);
+	void UpdateSphereRigidbody(ComponentSphereCollider* sphereCollider);
 
 	void InitializeRigidBodies();
 	void ClearPhysicBodies();
@@ -57,5 +63,4 @@ public:
 	int getDebugMode() const;
 	
 	DebugDrawModes mode; // How to initialise this enum?
-
 };
