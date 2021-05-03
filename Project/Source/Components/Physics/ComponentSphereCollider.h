@@ -3,7 +3,7 @@
 #include "Components/Component.h"
 #include "Utils/MotionState.h"
 
-#include "Math/float3.h";
+#include "Math/float3.h"
 
 class btRigidBody;
 class ComponentSphereCollider : public Component {

@@ -10,6 +10,7 @@
 #include "IL/il.h"
 #include "assimp/version.h"
 #include "Brofiler.h"
+#include "LinearMath/btScalar.h"
 
 #include "Utils/Leaks.h"
 
@@ -21,6 +22,7 @@ bool ModuleHardwareInfo::Start() {
 	sprintf_s(sdlVersion, "%i.%i.%i", sdlVersionStruct.major, sdlVersionStruct.minor, sdlVersionStruct.patch);
 	sprintf_s(assimpVersion, "%i.%i.%i", aiGetVersionMajor(), aiGetVersionMinor(), aiGetVersionRevision());
 	sprintf_s(devilVersion, "%i.%i.%i", IL_VERSION / 100, (IL_VERSION % 100) / 10, IL_VERSION % 10);
+	sprintf_s(bulletVersion, "%i.%i", btGetVersion() / 100, (btGetVersion() % 100));
 
 	cpuCount = SDL_GetCPUCount();
 	cacheSizeKb = SDL_GetCPUCacheLineSize();

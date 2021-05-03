@@ -164,19 +164,17 @@ btRigidBody* ModulePhysics::AddSphereBody(MotionState* myMotionState, float radi
 	if (mass != 0.f)
 		colShape->calculateLocalInertia(mass, localInertia);
 
-	//motions.add(myMotionState);
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
-
 	btRigidBody* body = new btRigidBody(rbInfo);
-	//PhysBody3D* pbody = new PhysBody3D(body);
-
-	//body->setUserPointer(pbody);
-	//world->addRigidBody(body);
-	//bodies.add(pbody);
 
 	return body;
 }
 
+void ModulePhysics::SetGravity(float newGravity) {
+	world->setGravity(btVector3(0.f, newGravity, 0.f));
+}
+
+// TODO: Remove Bullet Debug
 // =================== DEBUG CALLBACKS ==========================
 void DebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color) {
 	dd::line((ddVec3) from, (ddVec3) to, (ddVec3) color); // TODO: Test if this actually works

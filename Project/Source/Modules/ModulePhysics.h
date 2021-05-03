@@ -30,6 +30,9 @@ public:
 	void ClearPhysicBodies();
 	btRigidBody* AddSphereBody(MotionState* myMotionState, float radius, float mass);
 
+	// ----------- Setters --------- //
+	void SetGravity(float newGravity);
+
 public:
 	float gravity = -9.81f;
 

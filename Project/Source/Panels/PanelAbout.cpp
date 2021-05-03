@@ -22,7 +22,7 @@ void PanelAbout::Update() {
 		ImGui::Text("Engine licensed under the MIT License.");
 		ImGui::Separator();
 
-		ImVec2 childSize = ImVec2(0, ImGui::GetTextLineHeightWithSpacing() * 6);
+		ImVec2 childSize = ImVec2(0, ImGui::GetTextLineHeightWithSpacing() * 7);
 
 		ImGui::Checkbox("Libraries", &showLibrary);
 		if (showLibrary) {
@@ -33,6 +33,7 @@ void PanelAbout::Update() {
 			ImGui::Text("OpenGL Extension Wrangler Library 2.1.0");
 			ImGui::Text("DevIL 1.8.0");
 			ImGui::Text("Assimp 1.4.1");
+			ImGui::Text("Bullet Physics 2.84");
 
 			ImGui::EndChildFrame();
 		}
