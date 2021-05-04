@@ -26,13 +26,34 @@ enum class UpdateStatus {
 #define SCENES_PATH "Assets/Scenes"
 #define AUDIO_PATH "Assets/Audio"
 #define MATERIALS_PATH "Assets/Materials"
+
+#define JPG_TEXTURE_EXTENSION ".jpg"
+#define PNG_TEXTURE_EXTENSION ".png"
+#define TIF_TEXTURE_EXTENSION ".tif"
+#define DDS_TEXTURE_EXTENSION ".dds"
+#define TGA_TEXTURE_EXTENSION ".tga"
+
 #define PREFABS_PATH "Assets/Prefabs"
 
-#define TEXTURE_EXTENSION ".dds"
 #define MATERIAL_EXTENSION ".mat"
 #define SCENE_EXTENSION ".scene"
 #define PREFAB_EXTENSION ".prefab"
 #define META_EXTENSION ".meta"
+
+#define FRAGMENT_SHADER_EXTENSION ".frag"
+#define VERTEX_SHADER_EXTENSION ".vert"
+#define DEFAULT_SHADER_EXTENSION ".glsl"
+
+#define DEFAULT_MODEL_EXTENSION ".fbx"
+#define OBJ_MODEL_EXTENSION ".obj"
+
+#define SKYBOX_EXTENSION ".fbx"
+
+#define FONT_EXTENSION ".ttf"
+#define SCRIPT_EXTENSION ".h"
+
+#define WAV_AUDIO_EXTENSION ".wav"
+#define OGG_AUDIO_EXTENSION ".ogg"
 
 #define TEMP_SCENE_FILE_NAME "_scene_snapshot.temp"
 

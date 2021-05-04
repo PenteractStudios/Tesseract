@@ -5,6 +5,7 @@
 #include "Utils/UID.h"
 #include "Resources/Resource.h"
 #include "Utils/AssetFile.h"
+#include "FileSystem/JsonValue.h"
 
 #include <vector>
 #include <memory>
@@ -20,7 +21,7 @@ public:
 	bool CleanUp() override;
 	void ReceiveEvent(TesseractEvent& e) override;
 
-	std::vector<UID> ImportAsset(const char* filePath);
+	std::vector<UID> ImportAssetResources(const char* filePath);
 
 	template<typename T> T* GetResource(UID id) const;
 	AssetFolder* GetRootFolder() const;
@@ -41,6 +42,10 @@ private:
 
 	Resource* CreateResourceByType(ResourceType type, const char* assetFilePath, UID id);
 	void SendAddResourceEvent(Resource* resource);
+
+	void ValidateAssetResources(JsonValue jMeta, bool& validResourceFiles);
+	void ReimportResources(JsonValue jMeta, const char* filePath);
+	bool ImportAssetByExtension(JsonValue jMeta, const char* filePath);
 
 public:
 	std::unordered_set<std::string> assetsToNotUpdate;

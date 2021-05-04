@@ -459,14 +459,14 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 			// Try to load from the path given in the model file
 			LOG("Trying to import diffuse texture...");
-			std::vector<UID>& textureResourceIds = App->resources->ImportAsset(materialFilePath.C_Str());
+			std::vector<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
 
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to model folder...");
 				std::string modelFolderPath = FileDialog::GetFileFolder(filePath);
 				std::string modelFolderMaterialFilePath = modelFolderPath + "/" + materialFilePath.C_Str();
-				textureResourceIds = App->resources->ImportAsset(modelFolderMaterialFilePath.c_str());
+				textureResourceIds = App->resources->ImportAssetResources(modelFolderMaterialFilePath.c_str());
 			}
 
 			// Try to load relative to the textures folder
@@ -474,7 +474,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 				LOG("Trying to import texture relative to textures folder...");
 				std::string materialFile = FileDialog::GetFileNameAndExtension(materialFilePath.C_Str());
 				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFile;
-				textureResourceIds = App->resources->ImportAsset(texturesFolderMaterialFileDir.c_str());
+				textureResourceIds = App->resources->ImportAssetResources(texturesFolderMaterialFileDir.c_str());
 			}
 
 			if (textureResourceIds.empty()) {
@@ -494,22 +494,22 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 			// Try to load from the path given in the model file
 			LOG("Trying to import specular texture...");
-			std::vector<UID>& textureResourceIds = App->resources->ImportAsset(materialFilePath.C_Str());
+			std::vector<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
 
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to model folder...");
 				std::string modelFolderPath = FileDialog::GetFileFolder(filePath);
 				std::string modelFolderMaterialFilePath = modelFolderPath + "/" + materialFilePath.C_Str();
-				textureResourceIds = App->resources->ImportAsset(modelFolderMaterialFilePath.c_str());
+				textureResourceIds = App->resources->ImportAssetResources(modelFolderMaterialFilePath.c_str());
 			}
 
 			// Try to load relative to the textures folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to textures folder...");
 				std::string materialFileName = FileDialog::GetFileName(materialFilePath.C_Str());
-				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFileName + TEXTURE_EXTENSION;
-				textureResourceIds = App->resources->ImportAsset(texturesFolderMaterialFileDir.c_str());
+				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFileName + DDS_TEXTURE_EXTENSION;
+				textureResourceIds = App->resources->ImportAssetResources(texturesFolderMaterialFileDir.c_str());
 			}
 
 			if (textureResourceIds.empty()) {
@@ -529,22 +529,22 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 			// Try to load from the path given in the model file
 			LOG("Trying to import metalness texture...");
-			std::vector<UID>& textureResourceIds = App->resources->ImportAsset(materialFilePath.C_Str());
+			std::vector<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
 
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to model folder...");
 				std::string modelFolderPath = FileDialog::GetFileFolder(filePath);
 				std::string modelFolderMaterialFilePath = modelFolderPath + "/" + materialFilePath.C_Str();
-				textureResourceIds = App->resources->ImportAsset(modelFolderMaterialFilePath.c_str());
+				textureResourceIds = App->resources->ImportAssetResources(modelFolderMaterialFilePath.c_str());
 			}
 
 			// Try to load relative to the textures folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to textures folder...");
 				std::string materialFileName = FileDialog::GetFileName(materialFilePath.C_Str());
-				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFileName + TEXTURE_EXTENSION;
-				textureResourceIds = App->resources->ImportAsset(texturesFolderMaterialFileDir.c_str());
+				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFileName + DDS_TEXTURE_EXTENSION;
+				textureResourceIds = App->resources->ImportAssetResources(texturesFolderMaterialFileDir.c_str());
 			}
 
 			if (textureResourceIds.empty()) {
@@ -564,22 +564,22 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 			// Try to load from the path given in the model file
 			LOG("Trying to import normals texture...");
-			std::vector<UID>& textureResourceIds = App->resources->ImportAsset(materialFilePath.C_Str());
+			std::vector<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
 
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to model folder...");
 				std::string modelFolderPath = FileDialog::GetFileFolder(filePath);
 				std::string modelFolderMaterialFilePath = modelFolderPath + "/" + materialFilePath.C_Str();
-				textureResourceIds = App->resources->ImportAsset(modelFolderMaterialFilePath.c_str());
+				textureResourceIds = App->resources->ImportAssetResources(modelFolderMaterialFilePath.c_str());
 			}
 
 			// Try to load relative to the textures folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to textures folder...");
 				std::string materialFileName = FileDialog::GetFileName(materialFilePath.C_Str());
-				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFileName + TEXTURE_EXTENSION;
-				textureResourceIds = App->resources->ImportAsset(texturesFolderMaterialFileDir.c_str());
+				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFileName + DDS_TEXTURE_EXTENSION;
+				textureResourceIds = App->resources->ImportAssetResources(texturesFolderMaterialFileDir.c_str());
 			}
 
 			if (textureResourceIds.empty()) {
