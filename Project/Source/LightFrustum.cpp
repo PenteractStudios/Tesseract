@@ -37,8 +37,4 @@ void LightFrustum::ReconstructFrustum() {
 	frustum.SetOrthographic((maxPoint.x - minPoint.z), (maxPoint.y - minPoint.y));
 	frustum.SetPos(lightOrientation * position);
 	frustum.SetViewPlaneDistances(0, maxPoint.z - minPoint.z);
-	
-	
-
-
 }

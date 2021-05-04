@@ -12,7 +12,4 @@ public:
 private:
 
 	Frustum frustum;
-	float3 position;
-	
-
 };

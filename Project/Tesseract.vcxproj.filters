@@ -167,6 +167,7 @@
     <ClCompile Include="Libs\imgui\imgui_tables.cpp" />
     <ClCompile Include="Source\Utils\ImGuiUtils.cpp" />
     <ClCompile Include="Source\Scripting\Member.cpp" />
+    <ClCompile Include="Source\LightFrustum.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -429,6 +430,7 @@
     <ClInclude Include="Source\FileSystem\PrefabImporter.h" />
     <ClInclude Include="Source\Scripting\Member.h" />
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
+    <ClInclude Include="Source\LightFrustum.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />
@@ -443,16 +445,6 @@
     <None Include="Libs\MathGeoLib\Geometry\TriangleMesh_IntersectRay_SSE.inl" />
     <None Include="Libs\MathGeoLib\Math\float2.inl" />
     <None Include="Libs\MathGeoLib\Math\Matrix.inl" />
-    <None Include="..\Game\Shaders\default_fragment.glsl" />
-    <None Include="..\Game\Shaders\default_vertex.glsl" />
-    <None Include="..\Game\Shaders\phong_fragment.glsl" />
-    <None Include="..\Game\Shaders\phong_pbr_fragment.glsl" />
-    <None Include="..\Game\Shaders\phong_pbr_vertex.glsl" />
-    <None Include="..\Game\Shaders\phong_vertex.glsl" />
-    <None Include="..\Game\Shaders\skybox_fragment.glsl" />
-    <None Include="..\Game\Shaders\skybox_vertex.glsl" />
-    <None Include="..\Game\Shaders\ui_fragment.glsl" />
-    <None Include="..\Game\Shaders\ui_vertex.glsl" />
     <None Include="Debugging.props" />
   </ItemGroup>
   <ItemGroup>
