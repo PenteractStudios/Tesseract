@@ -6,7 +6,10 @@
 #include <vector>
 
 namespace FileDialog {
-	void Init(const std::string& title, bool editMode = false, AllowedExtensionsFlag ext = AllowedExtensionsFlag::ALL, const std::string& defaultPath = "");
+	void CreateContext();
+	void DestroyContext();
+
+	void Init(const std::string& title, bool editMode = false, AllowedExtensionsFlag ext = AllowedExtensionsFlag::ALL);
 	bool OpenDialog(const std::string& title, std::string& selectedPath);
 	bool OverrideAlertDialog(const std::string& file);
 	bool IsDirectory(const char* path);

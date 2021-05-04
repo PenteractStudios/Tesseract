@@ -137,6 +137,7 @@ void ModuleTime::StartGame() {
 
 #if !GAME
 	SceneImporter::SaveScene(TEMP_SCENE_FILE_NAME);
+	App->scene->sceneLoaded = false;
 #endif // !GAME
 
 	if (App->camera->GetGameCamera()) {

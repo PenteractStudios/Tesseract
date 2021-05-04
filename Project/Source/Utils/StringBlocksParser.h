@@ -215,8 +215,7 @@ void parsb_add_blocks(parsb_context* context, const char* blob, int buffer_size)
 }
 
 void parsb_add_block(parsb_context* context, const char* name, const char* body) {
-	char* dup = _strdup(body);
-	parsb__add_or_replace(context, name, dup, 1 + strlen(body), 0);
+	parsb__add_or_replace(context, name, body, 1 + strlen(body), 0);
 }
 
 const char* parsb_get_blocks(parsb_context* context, const char* block_names) {

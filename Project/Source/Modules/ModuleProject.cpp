@@ -306,6 +306,8 @@ namespace Tesseract {
 } // namespace Tesseract
 
 bool ModuleProject::Init() {
+	Factory::CreateContext();
+
 #if GAME
 	UnloadGameCodeDLL();
 	if (!LoadLibrary("Penteract.dll")) {
@@ -332,6 +334,7 @@ UpdateStatus ModuleProject::Update() {
 
 bool ModuleProject::CleanUp() {
 	UnloadGameCodeDLL();
+	Factory::DestroyContext();
 	return true;
 }
 

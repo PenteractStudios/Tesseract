@@ -27,6 +27,8 @@
 
 Application::Application() {
 	// Order matters: they will Init/start/update in this order
+	modules.push_back(events = new ModuleEvents());
+
 	modules.push_back(hardware = new ModuleHardwareInfo());
 	modules.push_back(window = new ModuleWindow());
 	modules.push_back(files = new ModuleFiles());
@@ -45,7 +47,6 @@ Application::Application() {
 	modules.push_back(debugDraw = new ModuleDebugDraw());
 
 	modules.push_back(renderer = new ModuleRender());
-	modules.push_back(events = new ModuleEvents());
 }
 
 Application::~Application() {

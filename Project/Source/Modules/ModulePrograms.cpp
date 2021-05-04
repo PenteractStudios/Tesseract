@@ -14,7 +14,7 @@
 #include "Utils/Leaks.h"
 
 static unsigned CompileShader(unsigned type, const char* filePath, const char* snippets) {
-	LOG("Creating shader from file: \"%s\"...", filePath);
+	LOG("Creating shader from snippets: \"%s\"...", snippets);
 
 	parsb_options options;
 	options.line_directives = false;
@@ -23,10 +23,12 @@ static unsigned CompileShader(unsigned type, const char* filePath, const char* s
 		parsb_destroy_context(blocks);
 	};
 	parsb_add_blocks_from_file(blocks, filePath);
+
 	// Add version
-	parsb_add_block(blocks, "prefix", "#version 460\n");
+	parsb_add_block(blocks, "prefix", GLSL_VERSION "\n");
 	std::string s = snippets;
 	std::string finalSnippet = "prefix " + s;
+
 	// Concatenate
 	const char* shaderData = parsb_get_blocks(blocks, finalSnippet.c_str());
 	if (shaderData == nullptr) {
@@ -56,7 +58,7 @@ static unsigned CompileShader(unsigned type, const char* filePath, const char* s
 		return 0;
 	}
 
-	LOG("Shaders created successfully.");
+	LOG("Shader created successfully.");
 	return shaderId;
 }
 

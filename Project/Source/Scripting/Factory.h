@@ -1,23 +1,17 @@
 #pragma once
 
-#include <string>
-#include <map>
+#include "Globals.h"
 
-#if defined(TESSERACT_ENGINE_API)
-/* do nothing. */
-#elif defined(_MSC_VER)
-#define TESSERACT_ENGINE_API __declspec(dllexport)
-#endif
+#include <string>
 
 class Script;
 class Creator;
 class GameObject;
 
-class TESSERACT_ENGINE_API Factory {
-public:
-	static Script* Create(const std::string& className, GameObject* owner);
-	static void RegisterScript(const std::string& classname, Creator* creator);
+namespace Factory {
+	void CreateContext();
+	void DestroyContext();
 
-private:
-	static std::map<std::string, Creator*>& GetTable();
+	TESSERACT_ENGINE_API Script* Create(const std::string& className, GameObject* owner);
+	TESSERACT_ENGINE_API void RegisterScript(const std::string& classname, Creator* creator);
 };
