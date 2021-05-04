@@ -132,7 +132,7 @@ bool ModulePhysics::CleanUp() {
 }
 
 void ModulePhysics::CreateSphereRigidbody(ComponentSphereCollider* sphereCollider) {
-	sphereCollider->motionState = MotionState(sphereCollider, sphereCollider->centerOffset);
+	sphereCollider->motionState = MotionState(sphereCollider, sphereCollider->centerOffset, sphereCollider->freezeRotation);
 	sphereCollider->rigidBody = App->physics->AddSphereBody(&sphereCollider->motionState, sphereCollider->radius, sphereCollider->mass);
 	sphereCollider->rigidBody->setUserPointer(sphereCollider);
 	world->addRigidBody(sphereCollider->rigidBody);

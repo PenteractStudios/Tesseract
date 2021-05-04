@@ -29,15 +29,16 @@ void ComponentSphereCollider::OnEditorUpdate() {
 	}
 	if (ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed3f, 0.0f, inf) && App->time->IsGameRunning()) {
 		((btSphereShape*) rigidBody->getCollisionShape())->setUnscaledRadius(radius);
-		//App->physics->UpdateSphereRigidbody(this);
 	}
 	if (ImGui::DragFloat3("Center Offset", centerOffset.ptr(), App->editor->dragSpeed2f, -inf, inf) && App->time->IsGameRunning()) {
 		float3 position = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		Quat rotation = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation();
-		rigidBody->setCenterOfMassTransform( btTransform(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w), btVector3(position.x, position.y, position.z))
-			* btTransform(btQuaternion::getIdentity(), btVector3(centerOffset.x, centerOffset.y, centerOffset.z)));
-		//App->physics->UpdateSphereRigidbody(this);
+		rigidBody->setCenterOfMassTransform(btTransform(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w), btVector3(position.x, position.y, position.z)) * btTransform(btQuaternion::getIdentity(), btVector3(centerOffset.x, centerOffset.y, centerOffset.z)));
 	}
+	if (ImGui::Checkbox("Freeze rotation", &freezeRotation) && App->time->IsGameRunning()) {
+		motionState.freezeRotation = freezeRotation;
+	}
+
 }
 
 void ComponentSphereCollider::OnCollision() {

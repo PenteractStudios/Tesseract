@@ -8,14 +8,16 @@
 
 class MotionState : public btMotionState {
 public:
-	MotionState(Component* componentCollider, float3 centerOffset);
+	MotionState(Component* componentCollider, float3 centerOffset, bool freezeRot);
 	~MotionState();
 
 	void getWorldTransform(btTransform& centerOfMassWorldTrans) const;
 	void setWorldTransform(const btTransform& centerOfMassWorldTrans);
 
+public:
+	bool freezeRotation = false;
+
 private:
 	Component* collider = nullptr;
-	bool freezeRotation = false;
 	btTransform massCenterOffset = btTransform::getIdentity();
 };
