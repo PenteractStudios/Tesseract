@@ -5,6 +5,7 @@
 
 #include "MathGeoLibFwd.h"
 #include "Math/float3.h"
+#include "LightFrustum.h"
 
 class GameObject;
 
@@ -42,8 +43,10 @@ public:
 
 	// - Render Buffer GL pointers - //
 	unsigned renderTexture = 0;
-	unsigned depthRenderbuffer = 0;
+	unsigned renderBuffer = 0;
 	unsigned framebuffer = 0;
+	unsigned depthMap = 0;
+	unsigned depthMapBuffer = 0;
 
 	// ------- Viewport Updated ------- //
 	bool viewportUpdated = true;
@@ -63,6 +66,7 @@ public:
 	float3 clearColor = {0.1f, 0.1f, 0.1f};	  // Color of the viewport between frames
 
 private:
+
 	void DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb); // Draws the quadrtee nodes if 'drawQuadtree' is set to true.
 	void DrawSceneRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb);	// ??
 	bool CheckIfInsideFrustum(const AABB& aabb, const OBB& obb);							// ??
@@ -76,5 +80,5 @@ private:
 private:
 	// ------- Viewport Size ------- //
 	float2 viewportSize = float2::zero;
-	Frustum* lightFrustum;
+	LightFrustum lightFrustum;
 };

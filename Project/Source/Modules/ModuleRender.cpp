@@ -34,6 +34,9 @@
 #include "Utils/Leaks.h"
 #include <string>
 
+constexpr int shadowWidth = 1024;
+constexpr int shadowheight = 1024;
+
 #if _DEBUG
 static void __stdcall OurOpenGLErrorFunction(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
 	const char *tmpSource = "", *tmpType = "", *tmpSeverity = "";
@@ -129,8 +132,23 @@ bool ModuleRender::Init() {
 #endif
 
 	glGenFramebuffers(1, &framebuffer);
-	glGenRenderbuffers(1, &depthRenderbuffer);
+	glGenRenderbuffers(1, &renderBuffer);
 	glGenTextures(1, &renderTexture);
+
+	glGenFramebuffers(1, &depthMapBuffer);
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, viewportSize.x, viewportSize.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindTexture(GL_FRAMEBUFFER, depthMapBuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	ViewportResized(200, 200);
 	UpdateFramebuffer();
@@ -234,7 +252,7 @@ UpdateStatus ModuleRender::PostUpdate() {
 
 bool ModuleRender::CleanUp() {
 	glDeleteTextures(1, &renderTexture);
-	glDeleteRenderbuffers(1, &depthRenderbuffer);
+	glDeleteRenderbuffers(1, &renderBuffer);
 	glDeleteFramebuffers(1, &framebuffer);
 
 	return true;
@@ -256,9 +274,9 @@ void ModuleRender::UpdateFramebuffer() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTexture, 0);
 
-	glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, viewportSize.x, viewportSize.y);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		LOG("ERROR: Framebuffer is not complete!");

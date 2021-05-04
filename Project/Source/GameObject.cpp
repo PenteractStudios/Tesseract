@@ -127,6 +127,14 @@ GameObject* GameObject::GetRootBone() const {
 	return rootBoneHierarchy;
 }
 
+void GameObject::AddLayerMask(LayerMask mask_) {
+	layerMask |= static_cast<int>(mask_);
+}
+
+int GameObject::GetLayerMask() const {
+	return layerMask;
+}
+
 void GameObject::AddChild(GameObject* gameObject) {
 	gameObject->SetParent(this);
 }
