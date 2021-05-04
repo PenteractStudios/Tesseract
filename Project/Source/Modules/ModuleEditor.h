@@ -10,6 +10,7 @@
 #include "Panels/PanelHierarchy.h"
 #include "Panels/PanelAbout.h"
 #include "Panels/PanelControlEditor.h"
+#include "Panels/PanelNavigation.h"
 
 #include "imgui.h"
 #include <vector>
@@ -61,6 +62,7 @@ public:
 	PanelHierarchy panelHierarchy;
 	PanelAbout panelAbout;
 	PanelControlEditor panelControlEditor;
+	PanelNavigation panelNavigation;
 
 	GameObject* selectedGameObject = nullptr;			   // Pointer to the GameObject that will be shown in the inspector.
 	ImVec4 titleColor = ImVec4(0.35f, 0.69f, 0.87f, 1.0f); // Color used for the titles in ImGui

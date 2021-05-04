@@ -15,6 +15,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Navigation\NavMesh.h" />
+    <ClInclude Include="Source\Panels\PanelNavigation.h" />
     <ClInclude Include="Source\Modules\ModuleNavigation.h" />
     <ClInclude Include="Source\FileSystem\AudioImporter.h" />
     <ClInclude Include="Libs\imgui\imgui_stdlib.h" />
@@ -278,6 +280,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Libs\imgui\imgui_tables.cpp" />
+    <ClCompile Include="Source\Navigation\NavMesh.cpp" />
+    <ClCompile Include="Source\Panels\PanelNavigation.cpp" />
     <ClCompile Include="Source\Modules\ModuleNavigation.cpp" />
     <ClCompile Include="Source\FileSystem\AudioImporter.cpp" />
     <ClCompile Include="Libs\imgui\imgui_stdlib.cpp" />

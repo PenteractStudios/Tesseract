@@ -18,6 +18,7 @@
 #include "Modules/ModuleProject.h"
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleUserInterface.h"
+#include "Modules/ModuleNavigation.h"
 
 #include "SDL_timer.h"
 #include <windows.h>
@@ -41,6 +42,7 @@ Application::Application() {
 
 	modules.push_back(scene = new ModuleScene());
 	modules.push_back(userInterface = new ModuleUserInterface());
+	modules.push_back(navigation = new ModuleNavigation());
 	modules.push_back(editor = new ModuleEditor());
 	modules.push_back(debugDraw = new ModuleDebugDraw());
 
