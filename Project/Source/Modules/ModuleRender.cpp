@@ -132,7 +132,6 @@ bool ModuleRender::Init() {
 	glGenRenderbuffers(1, &depthRenderbuffer);
 	glGenTextures(1, &renderTexture);
 
-
 	ViewportResized(200, 200);
 	UpdateFramebuffer();
 
@@ -277,6 +276,7 @@ void ModuleRender::ToggleDebugMode() {
 void ModuleRender::ToggleDebugDraw() {
 	drawDebugDraw = !drawDebugDraw;
 }
+
 void ModuleRender::ToggleDrawQuadtree() {
 	drawQuadtree = !drawQuadtree;
 }

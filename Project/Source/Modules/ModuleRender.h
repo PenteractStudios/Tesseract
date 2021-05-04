@@ -76,4 +76,5 @@ private:
 private:
 	// ------- Viewport Size ------- //
 	float2 viewportSize = float2::zero;
+	Frustum* lightFrustum;
 };
