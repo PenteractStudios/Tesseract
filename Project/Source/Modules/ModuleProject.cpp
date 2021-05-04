@@ -518,7 +518,6 @@ void ModuleProject::CompileProject(Configuration config) {
 		}
 	}
 
-
 	std::string logFile = buildPath + name + ".log";
 	Buffer<char> buffer = App->files->Load(logFile.c_str());
 	std::string logContent = "";
@@ -563,6 +562,13 @@ bool ModuleProject::LoadGameCodeDLL(const char* path) {
 }
 
 bool ModuleProject::UnloadGameCodeDLL() {
+	Scene* scene = App->scene->scene;
+	if (scene != nullptr) {
+		for (ComponentScript& scriptComponent : scene->scriptComponents) {
+			scriptComponent.ReleaseScriptInstance();
+		}
+	}
+
 	if (!gameCodeDLL) {
 		LOG("No DLL to unload.");
 		return false;

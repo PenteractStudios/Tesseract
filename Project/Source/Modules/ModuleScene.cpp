@@ -144,7 +144,7 @@ void ModuleScene::ReceiveEvent(TesseractEvent& e) {
 		break;
 	case TesseractEventType::COMPILATION_FINISHED:
 		for (ComponentScript& script : scene->scriptComponents) {
-			script.Invalidate();
+			script.CreateScriptInstance();
 		}
 		break;
 	}
