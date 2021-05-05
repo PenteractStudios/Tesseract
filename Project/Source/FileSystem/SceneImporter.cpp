@@ -151,7 +151,9 @@ bool SceneImporter::SaveScene(const char* filePath) {
 	jScene[JSON_TAG_QUADTREE_MAX_DEPTH] = scene->quadtreeMaxDepth;
 	jScene[JSON_TAG_QUADTREE_ELEMENTS_PER_NODE] = scene->quadtreeElementsPerNode;
 
-	jScene[JSON_TAG_GAME_CAMERA] = App->camera->GetGameCamera()->GetID();
+	if (App->camera->GetGameCamera()) {
+		jScene[JSON_TAG_GAME_CAMERA] = App->camera->GetGameCamera()->GetID();
+	}
 
 	JsonValue ambientLight = jScene[JSON_TAG_AMBIENTLIGHT];
 	ambientLight[0] = App->renderer->ambientColor.x;

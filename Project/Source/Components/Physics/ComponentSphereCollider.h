@@ -15,8 +15,8 @@ public:
 	//void Update() override;
 	void DrawGizmos() override;
 	void OnEditorUpdate() override;
-	//void Save(JsonValue jComponent) const override;
-	//void Load(JsonValue jComponent) override;
+	void Save(JsonValue jComponent) const override;
+	void Load(JsonValue jComponent) override;
 	//void DuplicateComponent(GameObject& owner) override;
 
 	// ----- Collider Functions ---- //
@@ -27,7 +27,7 @@ public:
 	MotionState motionState = MotionState(nullptr, float3(0,0,0), false);
 	float mass = 1.f;
 	float radius = 1.f;
-	float3 centerOffset = float3(0, 0, 0);
+	float3 centerOffset = float3::inf;
 	bool freezeRotation = false;
 	bool isTrigger = false;
 

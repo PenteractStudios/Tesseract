@@ -7,11 +7,19 @@
 #include "Modules/ModuleTime.h"
 #include "Components/ComponentBoundingBox.h"
 
+#define JSON_TAG_MASS "mass"
+#define JSON_TAG_RADIUS "radius"
+#define JSON_TAG_CENTER_OFFSET "centerOffset"
+#define JSON_TAG_FREEZE_ROTATION "freezeRotation"
+#define JSON_TAG_IS_TRIGGER "isTrigger"
+
 void ComponentSphereCollider::Init() {
-	ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();
-	if (boundingBox) {
-		radius = boundingBox->GetWorldOBB().HalfSize().MaxElement();
-		centerOffset = boundingBox->GetWorldOBB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+	if (!centerOffset.IsFinite()) {
+		ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();
+		if (boundingBox) {
+			radius = boundingBox->GetWorldOBB().HalfSize().MaxElement();
+			centerOffset = boundingBox->GetWorldOBB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+		}
 	}
 	if (App->time->IsGameRunning() && !rigidBody) App->physics->CreateSphereRigidbody(this);
 }
@@ -45,6 +53,42 @@ void ComponentSphereCollider::OnEditorUpdate() {
 		motionState.freezeRotation = freezeRotation;
 	}
 
+}
+
+void ComponentSphereCollider::Save(JsonValue jComponent) const {
+	JsonValue jMass = jComponent[JSON_TAG_MASS];
+	jMass = mass;
+
+	JsonValue jRadius = jComponent[JSON_TAG_RADIUS];
+	jRadius = radius;
+
+	JsonValue jCenterOffset = jComponent[JSON_TAG_CENTER_OFFSET];
+	jCenterOffset[0] = centerOffset.x;
+	jCenterOffset[1] = centerOffset.y;
+	jCenterOffset[2] = centerOffset.z;
+
+	JsonValue jFreeze = jComponent[JSON_TAG_FREEZE_ROTATION];
+	jFreeze = freezeRotation;
+
+	JsonValue jIsTrigger = jComponent[JSON_TAG_IS_TRIGGER];
+	jIsTrigger = isTrigger;
+}
+
+void ComponentSphereCollider::Load(JsonValue jComponent) {
+	JsonValue jMass = jComponent[JSON_TAG_MASS];
+	mass = jMass;
+
+	JsonValue jRadius = jComponent[JSON_TAG_RADIUS];
+	radius = jRadius;
+
+	JsonValue jCenterOffset = jComponent[JSON_TAG_CENTER_OFFSET];
+	centerOffset = float3(jCenterOffset[0], jCenterOffset[1], jCenterOffset[2]);
+
+	JsonValue jFreeze = jComponent[JSON_TAG_FREEZE_ROTATION];
+	freezeRotation = jFreeze;
+
+	JsonValue jIsTrigger = jComponent[JSON_TAG_IS_TRIGGER];
+	isTrigger = jIsTrigger;
 }
 
 void ComponentSphereCollider::OnCollision() {
