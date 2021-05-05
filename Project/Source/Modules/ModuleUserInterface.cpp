@@ -34,6 +34,7 @@ bool ModuleUserInterface::Init() {
 
 bool ModuleUserInterface::Start() {
 	CreateQuadVBO();
+	App->events->AddObserverToEvent(TesseractEventType::SCREEN_RESIZED, this);
 	App->events->AddObserverToEvent(TesseractEventType::MOUSE_CLICKED, this);
 	App->events->AddObserverToEvent(TesseractEventType::MOUSE_RELEASED, this);
 	return true;
@@ -69,6 +70,10 @@ bool ModuleUserInterface::CleanUp() {
 void ModuleUserInterface::ReceiveEvent(TesseractEvent& e) {
 	ComponentEventSystem* eventSystem = GetCurrentEventSystem();
 	switch (e.type) {
+	case TesseractEventType::SCREEN_RESIZED:
+		ViewportResized();
+		break;
+
 	case TesseractEventType::MOUSE_CLICKED:
 		if (!App->time->IsGameRunning()) break;
 		if (eventSystem != nullptr) {
@@ -199,5 +204,13 @@ ComponentEventSystem* ModuleUserInterface::GetCurrentEventSystem() {
 void ModuleUserInterface::ViewportResized() {
 	for (ComponentCanvas& canvas : App->scene->scene->canvasComponents) {
 		canvas.SetDirty(true);
+	}
+
+	for (ComponentTransform2D& transform : App->scene->scene->transform2DComponents) {
+		transform.InvalidateHierarchy();
+	}
+
+	for (ComponentText& text : App->scene->scene->textComponents) {
+		text.RecalculcateVertices();
 	}
 }

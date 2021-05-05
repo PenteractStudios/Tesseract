@@ -229,6 +229,8 @@ void ComponentTransform2D::CalculateGlobalMatrix() {
 		} else {
 			globalMatrix = localMatrix;
 		}
+
+		dirty = false;
 	}
 }
 

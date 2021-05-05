@@ -43,6 +43,7 @@ void ComponentText::Init() {
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	RecalculcateVertices();
 }
 
 void ComponentText::OnEditorUpdate() {
@@ -66,27 +67,24 @@ void ComponentText::OnEditorUpdate() {
 		mustRecalculateVertices = true;
 	}
 
-	int type = static_cast<int>(textAlignment);
-	ImGui::RadioButton("Left", &type, 0);
+	mustRecalculateVertices |= ImGui::RadioButton("Left", &textAlignment, 0);
 	ImGui::SameLine();
-	ImGui::RadioButton("Center", &type, 1);
+	mustRecalculateVertices |= ImGui::RadioButton("Center", &textAlignment, 1);
 	ImGui::SameLine();
-	ImGui::RadioButton("Right", &type, 2);
-	textAlignment = static_cast<TextAlignment>(type);
+	mustRecalculateVertices |= ImGui::RadioButton("Right", &textAlignment, 2);
 
 	ImGui::ColorEdit4("Color##", color.ptr());
 
 	if (mustRecalculateVertices) {
 		RecalculcateVertices();
 	}
-
 }
 
 void ComponentText::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_TEXT_FONTID] = fontID;
 	jComponent[JSON_TAG_TEXT_FONTSIZE] = fontSize;
 	jComponent[JSON_TAG_TEXT_LINEHEIGHT] = lineHeight;
-	jComponent[JSON_TAG_TEXT_ALIGNMENT] = static_cast<int>(textAlignment);
+	jComponent[JSON_TAG_TEXT_ALIGNMENT] = textAlignment;
 
 	jComponent[JSON_TAG_TEXT_VALUE] = text.c_str();
 
@@ -105,14 +103,12 @@ void ComponentText::Load(JsonValue jComponent) {
 
 	lineHeight = jComponent[JSON_TAG_TEXT_LINEHEIGHT];
 
-	textAlignment = static_cast<TextAlignment>((int) jComponent[JSON_TAG_TEXT_ALIGNMENT]);
+	textAlignment = jComponent[JSON_TAG_TEXT_ALIGNMENT];
 
 	text = jComponent[JSON_TAG_TEXT_VALUE];
 
 	JsonValue jColor = jComponent[JSON_TAG_COLOR];
 	color.Set(jColor[0], jColor[1], jColor[2], jColor[3]);
-
-	RecalculcateVertices();
 }
 
 void ComponentText::DuplicateComponent(GameObject& owner) {

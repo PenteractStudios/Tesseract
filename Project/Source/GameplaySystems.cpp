@@ -140,6 +140,10 @@ const float2& Input::GetMouseMotion() {
 	return App->input->GetMouseMotion();
 }
 
+float2 Input::GetMousePosition() {
+	return App->input->GetMousePosition(true);
+}
+
 bool Input::GetKeyCodeDown(KEYCODE keycode) {
 	return App->input->GetKeyboard()[keycode] == KS_DOWN;
 }

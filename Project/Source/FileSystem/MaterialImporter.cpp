@@ -96,7 +96,7 @@ bool MaterialImporter::CreateAndSaveMaterial(const char* filePath) {
 	JsonValue jMaterial(document, document);
 
 	// Save JSON values
-	jMaterial[JSON_TAG_SHADER] = 0;
+	jMaterial[JSON_TAG_SHADER] = (int) MaterialShader::STANDARD;
 
 	jMaterial[JSON_TAG_HAS_DIFFUSE_MAP] = false;
 	JsonValue jDiffuseColor = jMaterial[JSON_TAG_DIFFUSE_COLOR];
@@ -108,13 +108,13 @@ bool MaterialImporter::CreateAndSaveMaterial(const char* filePath) {
 
 	jMaterial[JSON_TAG_HAS_SPECULAR_MAP] = false;
 	JsonValue jSpecularColor = jMaterial[JSON_TAG_SPECULAR_COLOR];
-	jSpecularColor[0] = 0.0f;
-	jSpecularColor[1] = 0.0f;
-	jSpecularColor[2] = 0.0f;
-	jSpecularColor[3] = 0.0f;
+	jSpecularColor[0] = 0.15f;
+	jSpecularColor[1] = 0.15f;
+	jSpecularColor[2] = 0.15f;
+	jSpecularColor[3] = 1.f;
 	jMaterial[JSON_TAG_SPECULAR_MAP] = 0;
 
-	jMaterial[JSON_TAG_METALLIC] = 1.0f;
+	jMaterial[JSON_TAG_METALLIC] = 0.0f;
 	jMaterial[JSON_TAG_METALLIC_MAP] = 0;
 	jMaterial[JSON_TAG_NORMAL_MAP] = 0;
 

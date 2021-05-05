@@ -18,12 +18,12 @@ public:
 	unsigned skybox = 0;
 
 	// Ilumination Shaders
-	unsigned phongSkinning = 0;
-	unsigned phongNotSkinning = 0;
-	unsigned standardSkinning = 0;
-	unsigned standardNotSkinning = 0;
-	unsigned specularSkinning = 0;
-	unsigned specularNotSkinning = 0;
+	unsigned phongNormal = 0;
+	unsigned phongNotNormal = 0;
+	unsigned standardNormal = 0;
+	unsigned standardNotNormal = 0;
+	unsigned specularNormal = 0;
+	unsigned specularNotNormal = 0;
 
 	//UI Shaders
 	unsigned textUI = 0;

@@ -227,24 +227,9 @@ void PanelInspector::Update() {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
 				}
-				if (ImGui::MenuItem("Audio Source")) {
-					ComponentAudioSource* audioSource = selected->CreateComponent<ComponentAudioSource>();
-					if (audioSource != nullptr) {
-						audioSource->Init();
-					} else {
-						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
-					}
-				}
-				if (ImGui::MenuItem("Audio Listener")) {
-					ComponentAudioListener* audioListener = selected->CreateComponent<ComponentAudioListener>();
-					if (audioListener != nullptr) {
-						audioListener->Init();
-					} else {
-						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
-					}
-				}
 				// TRANSFORM is always there, cannot add a new one.
 
+				AddAudioComponentsOptions(selected);
 				AddUIComponentsOptions(selected);
 
 				ImGui::EndPopup();
@@ -260,6 +245,28 @@ Component* PanelInspector::GetComponentToDelete() const {
 
 void PanelInspector::SetComponentToDelete(Component* comp) {
 	componentToDelete = comp;
+}
+
+void PanelInspector::AddAudioComponentsOptions(GameObject* selected) {
+	if (ImGui::BeginMenu("Audio")) {
+		if (ImGui::MenuItem("Audio Source")) {
+			ComponentAudioSource* audioSource = selected->CreateComponent<ComponentAudioSource>();
+			if (audioSource != nullptr) {
+				audioSource->Init();
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+			}
+		}
+		if (ImGui::MenuItem("Audio Listener")) {
+			ComponentAudioListener* audioListener = selected->CreateComponent<ComponentAudioListener>();
+			if (audioListener != nullptr) {
+				audioListener->Init();
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+			}
+		}
+		ImGui::EndMenu();
+	}
 }
 
 void PanelInspector::AddUIComponentsOptions(GameObject* selected) {

@@ -11,6 +11,7 @@
 #include "Utils/Leaks.h"
 
 void ComponentCanvas::Init() {
+	
 }
 
 void ComponentCanvas::Save(JsonValue jComponent) const {
@@ -24,6 +25,8 @@ void ComponentCanvas::Update() {
 }
 
 void ComponentCanvas::Load(JsonValue jComponent) {
+	// Needs to be called before Init, otherwise other components that use the screen factor, won't have it
+	RecalculateScreenFactor();
 }
 
 void ComponentCanvas::DuplicateComponent(GameObject& owner) {

@@ -127,19 +127,19 @@ bool ModulePrograms::Start() {
 	skybox = CreateProgram(filePath, "vertSkybox", "fragSkybox");
 
 	//General shaders
-	phongNotSkinning = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragMainPhong");
-	phongSkinning = CreateProgram(filePath, "vertVarCommon vertVarSkinning vertMainSkinning", "fragVarStandard fragVarSpecular fragMainPhong");
-	standardNotSkinning = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic");
-	standardSkinning = CreateProgram(filePath, "vertVarCommon vertVarSkinning vertMainSkinning", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic");
-	specularNotSkinning = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
-	specularSkinning = CreateProgram(filePath, "vertVarCommon vertVarSkinning vertMainSkinning", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
+	phongNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragMainPhong");
+	phongNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragMainPhong");
+	standardNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic");
+	standardNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic");
+	specularNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
+	specularNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
 
 	//UI shaders
 	textUI = CreateProgram(filePath, "vertTextUI", "fragTextUI");
 	imageUI = CreateProgram(filePath, "vertImageUI", "fragImageUI");
 
 	unsigned timeMs = timer.Stop();
-	LOG("Shader loaded in %ums", timeMs);
+	LOG("Shaders loaded in %ums", timeMs);
 
 	return true;
 }
@@ -150,12 +150,12 @@ void ModulePrograms::DeleteProgram(unsigned int IdProgram) {
 
 bool ModulePrograms::CleanUp() {
 	glDeleteProgram(skybox);
-	glDeleteProgram(phongSkinning);
-	glDeleteProgram(phongNotSkinning);
-	glDeleteProgram(standardSkinning);
-	glDeleteProgram(standardNotSkinning);
-	glDeleteProgram(specularSkinning);
-	glDeleteProgram(specularNotSkinning);
+	glDeleteProgram(phongNormal);
+	glDeleteProgram(phongNotNormal);
+	glDeleteProgram(standardNormal);
+	glDeleteProgram(standardNotNormal);
+	glDeleteProgram(specularNormal);
+	glDeleteProgram(specularNotNormal);
 	glDeleteProgram(textUI);
 	glDeleteProgram(imageUI);
 

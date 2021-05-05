@@ -1,8 +1,13 @@
 --- fragMainPhong
 
 void main() {
-    vec3 fragN = normalize(fragNormal);
+
     vec3 viewN = normalize(viewPos - fragPos);
+    vec3 normal = fragNormal;
+    if (hasNormalMap)
+    {
+	    normal = GetNormal(normalMap, uv, TBN, normalStrength);
+    }
 
     // diffuse
     vec4 colorDiffuse = hasDiffuseMap * pow(texture(diffuseMap, uv), vec4(2.2)) * vec4(diffuseColor, 1.0) + (1 - hasDiffuseMap) * vec4(diffuseColor, 1.0);
@@ -22,9 +27,9 @@ void main() {
     // Directional Light
     if (light.directional.isActive == 1) {
         vec3 directionalDir = normalize(light.directional.direction);
-        float NL = max(dot(fragN, -directionalDir), 0.0);
+        float NL = max(dot(normal, - directionalDir), 0.0);
 
-        vec3 reflectDir = reflect(directionalDir, fragN);
+        vec3 reflectDir = reflect(directionalDir, normal);
         float VRn = pow(max(dot(viewN, reflectDir), 0.0), shininess);
 
 
@@ -41,9 +46,9 @@ void main() {
         float distAttenuation = 1.0 / (light.points[i].kc + light.points[i].kl * pointDistance + light.points[i].kq * pointDistance * pointDistance);
 
         vec3 pointDir = normalize(fragPos - light.points[i].pos);
-        float NL = max(dot(fragN, -pointDir), 0.0);
+        float NL = max(dot(normal, -pointDir), 0.0);
 
-        vec3 reflectDir = reflect(pointDir, fragN);
+        vec3 reflectDir = reflect(pointDir, normal);
         float VRn = pow(max(dot(viewN, reflectDir), 0.0), shininess);
 
         vec3 Rf = Rf0 + (1 - Rf0) * pow(1 - NL, 5);
@@ -71,9 +76,9 @@ void main() {
             cAttenuation = (C - cosOuter) / (cosInner - cosOuter);
         }
 
-        float NL = max(dot(fragN, -spotDir), 0.0);
+        float NL = max(dot(normal, -spotDir), 0.0);
 
-        vec3 reflectDir = reflect(spotDir, fragN);
+        vec3 reflectDir = reflect(spotDir, normal);
         float VRn = pow(max(dot(viewN, reflectDir), 0.0), shininess);
 
         vec3 Rf = Rf0 + (1 - Rf0) * pow(1 - NL, 5);

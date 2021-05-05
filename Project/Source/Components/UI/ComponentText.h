@@ -33,7 +33,7 @@ private:
 	float SubstringWidth(const char* substring, float scale);		// Returns the advanced width of the substring until it reaches the end of line or new line character ('\0' or '\n').
 
 private:
-	enum class TextAlignment {
+	enum TextAlignment {
 		LEFT,
 		CENTER,
 		RIGHT
@@ -45,7 +45,7 @@ private:
 	float fontSize = 24.0f;									// Font size
 	float4 color = float4::one;								// Color of the font
 	float lineHeight = 16.0f;								// Line height
-	TextAlignment textAlignment = TextAlignment::LEFT;		// Horizontal Alignment
+	int textAlignment = TextAlignment::LEFT;				// Horizontal Alignment
 
 	unsigned int vbo = 0; // VBO of the text
 	unsigned int vao = 0; // VAO of the text

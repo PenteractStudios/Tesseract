@@ -58,6 +58,7 @@ void ResourceMaterial::Load() {
 	metallic = jMaterial[JSON_TAG_METALLIC];
 	metallicMapId = jMaterial[JSON_TAG_METALLIC_MAP];
 	App->resources->IncreaseReferenceCount(metallicMapId);
+
 	normalMapId = jMaterial[JSON_TAG_NORMAL_MAP];
 	App->resources->IncreaseReferenceCount(normalMapId);
 
