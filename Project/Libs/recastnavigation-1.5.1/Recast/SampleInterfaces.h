@@ -22,15 +22,11 @@
 #include "DebugUtils/DebugDraw.h"
 #include "Recast.h"
 #include "DebugUtils/RecastDump.h"
-#include "PerfTimer.h"
 
 // These are example implementations of various interfaces used in Recast and Detour.
 
 /// Recast build context.
-class BuildContext : public rcContext
-{
-	TimeVal m_startTime[RC_MAX_TIMERS];
-	TimeVal m_accTime[RC_MAX_TIMERS];
+class BuildContext : public rcContext {
 
 	static const int MAX_MESSAGES = 1000;
 	const char* m_messages[MAX_MESSAGES];

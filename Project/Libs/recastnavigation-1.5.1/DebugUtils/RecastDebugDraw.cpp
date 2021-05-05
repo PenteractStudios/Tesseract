@@ -20,7 +20,7 @@
 #include <math.h>
 #include "DebugDraw.h"
 #include "RecastDebugDraw.h"
-#include "Recast.h"
+#include "Recast/Recast.h"
 
 void duDebugDrawTriMesh(duDebugDraw* dd, const float* verts, int /*nverts*/,
 						const int* tris, const float* normals, int ntris,

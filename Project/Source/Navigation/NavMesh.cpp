@@ -164,161 +164,161 @@ struct RasterizationContext {
 };
 
 
-//static int rasterizeTileLayers(BuildContext* ctx, InputGeom* geom, const int tx, const int ty, const rcConfig& cfg, TileCacheData* tiles, const int maxTiles) {
-//	if (!geom || !geom->getMesh() || !geom->getChunkyMesh()) {
-//		ctx->log(RC_LOG_ERROR, "buildTile: Input mesh is not specified.");
-//		return 0;
-//	}
-//
-//	FastLZCompressor comp;
-//	RasterizationContext rc;
-//
-//	const float* verts = geom->getMesh()->getVerts();
-//	const int nverts = geom->getMesh()->getVertCount();
-//	const rcChunkyTriMesh* chunkyMesh = geom->getChunkyMesh();
-//
-//	// Tile bounds.
-//	const float tcs = cfg.tileSize * cfg.cs;
-//
-//	rcConfig tcfg;
-//	memcpy(&tcfg, &cfg, sizeof(tcfg));
-//
-//	tcfg.bmin[0] = cfg.bmin[0] + tx * tcs;
-//	tcfg.bmin[1] = cfg.bmin[1];
-//	tcfg.bmin[2] = cfg.bmin[2] + ty * tcs;
-//	tcfg.bmax[0] = cfg.bmin[0] + (tx + 1) * tcs;
-//	tcfg.bmax[1] = cfg.bmax[1];
-//	tcfg.bmax[2] = cfg.bmin[2] + (ty + 1) * tcs;
-//	tcfg.bmin[0] -= tcfg.borderSize * tcfg.cs;
-//	tcfg.bmin[2] -= tcfg.borderSize * tcfg.cs;
-//	tcfg.bmax[0] += tcfg.borderSize * tcfg.cs;
-//	tcfg.bmax[2] += tcfg.borderSize * tcfg.cs;
-//
-//	// Allocate voxel heightfield where we rasterize our input data to.
-//	rc.solid = rcAllocHeightfield();
-//	if (!rc.solid) {
-//		ctx->log(RC_LOG_ERROR, "buildNavigation: Out of memory 'solid'.");
-//		return 0;
-//	}
-//	if (!rcCreateHeightfield(ctx, *rc.solid, tcfg.width, tcfg.height, tcfg.bmin, tcfg.bmax, tcfg.cs, tcfg.ch)) {
-//		ctx->log(RC_LOG_ERROR, "buildNavigation: Could not create solid heightfield.");
-//		return 0;
-//	}
-//
-//	// Allocate array that can hold triangle flags.
-//	// If you have multiple meshes you need to process, allocate
-//	// and array which can hold the max number of triangles you need to process.
-//	rc.triareas = new unsigned char[chunkyMesh->maxTrisPerChunk];
-//	if (!rc.triareas) {
-//		ctx->log(RC_LOG_ERROR, "buildNavigation: Out of memory 'm_triareas' (%d).", chunkyMesh->maxTrisPerChunk);
-//		return 0;
-//	}
-//
-//	float tbmin[2], tbmax[2];
-//	tbmin[0] = tcfg.bmin[0];
-//	tbmin[1] = tcfg.bmin[2];
-//	tbmax[0] = tcfg.bmax[0];
-//	tbmax[1] = tcfg.bmax[2];
-//	int cid[512]; // TODO: Make grow when returning too many items.
-//	const int ncid = rcGetChunksOverlappingRect(chunkyMesh, tbmin, tbmax, cid, 512);
-//	if (!ncid) {
-//		return 0; // empty
-//	}
-//
-//	for (int i = 0; i < ncid; ++i) {
-//		const rcChunkyTriMeshNode& node = chunkyMesh->nodes[cid[i]];
-//		const int* tris = &chunkyMesh->tris[node.i * 3];
-//		const int ntris = node.n;
-//
-//		memset(rc.triareas, 0, ntris * sizeof(unsigned char));
-//		rcMarkWalkableTriangles(ctx, tcfg.walkableSlopeAngle, verts, nverts, tris, ntris, rc.triareas);
-//
-//		if (!rcRasterizeTriangles(ctx, verts, nverts, tris, rc.triareas, ntris, *rc.solid, tcfg.walkableClimb))
-//			return 0;
-//	}
-//
-//	// Once all geometry is rasterized, we do initial pass of filtering to
-//	// remove unwanted overhangs caused by the conservative rasterization
-//	// as well as filter spans where the character cannot possibly stand.
-//	rcFilterLowHangingWalkableObstacles(ctx, tcfg.walkableClimb, *rc.solid);
-//	rcFilterLedgeSpans(ctx, tcfg.walkableHeight, tcfg.walkableClimb, *rc.solid);
-//	rcFilterWalkableLowHeightSpans(ctx, tcfg.walkableHeight, *rc.solid);
-//
-//	rc.chf = rcAllocCompactHeightfield();
-//	if (!rc.chf) {
-//		ctx->log(RC_LOG_ERROR, "buildNavigation: Out of memory 'chf'.");
-//		return 0;
-//	}
-//	if (!rcBuildCompactHeightfield(ctx, tcfg.walkableHeight, tcfg.walkableClimb, *rc.solid, *rc.chf)) {
-//		ctx->log(RC_LOG_ERROR, "buildNavigation: Could not build compact data.");
-//		return 0;
-//	}
-//
-//	// Erode the walkable area by agent radius.
-//	if (!rcErodeWalkableArea(ctx, tcfg.walkableRadius, *rc.chf)) {
-//		ctx->log(RC_LOG_ERROR, "buildNavigation: Could not erode.");
-//		return 0;
-//	}
-//
-//	// (Optional) Mark areas.
-//	const ConvexVolume* vols = geom->getConvexVolumes();
-//	for (int i = 0; i < geom->getConvexVolumeCount(); ++i) {
-//		rcMarkConvexPolyArea(ctx, vols[i].verts, vols[i].nverts, vols[i].hmin, vols[i].hmax, (unsigned char) vols[i].area, *rc.chf);
-//	}
-//
-//	rc.lset = rcAllocHeightfieldLayerSet();
-//	if (!rc.lset) {
-//		ctx->log(RC_LOG_ERROR, "buildNavigation: Out of memory 'lset'.");
-//		return 0;
-//	}
-//	if (!rcBuildHeightfieldLayers(ctx, *rc.chf, tcfg.borderSize, tcfg.walkableHeight, *rc.lset)) {
-//		ctx->log(RC_LOG_ERROR, "buildNavigation: Could not build heighfield layers.");
-//		return 0;
-//	}
-//
-//	rc.ntiles = 0;
-//	for (int i = 0; i < rcMin(rc.lset->nlayers, MAX_LAYERS); ++i) {
-//		TileCacheData* tile = &rc.tiles[rc.ntiles++];
-//		const rcHeightfieldLayer* layer = &rc.lset->layers[i];
-//
-//		// Store header
-//		dtTileCacheLayerHeader header;
-//		header.magic = DT_TILECACHE_MAGIC;
-//		header.version = DT_TILECACHE_VERSION;
-//
-//		// Tile layer location in the navmesh.
-//		header.tx = tx;
-//		header.ty = ty;
-//		header.tlayer = i;
-//		dtVcopy(header.bmin, layer->bmin);
-//		dtVcopy(header.bmax, layer->bmax);
-//
-//		// Tile info.
-//		header.width = (unsigned char) layer->width;
-//		header.height = (unsigned char) layer->height;
-//		header.minx = (unsigned char) layer->minx;
-//		header.maxx = (unsigned char) layer->maxx;
-//		header.miny = (unsigned char) layer->miny;
-//		header.maxy = (unsigned char) layer->maxy;
-//		header.hmin = (unsigned short) layer->hmin;
-//		header.hmax = (unsigned short) layer->hmax;
-//
-//		dtStatus status = dtBuildTileCacheLayer(&comp, &header, layer->heights, layer->areas, layer->cons, &tile->data, &tile->dataSize);
-//		if (dtStatusFailed(status)) {
-//			return 0;
-//		}
-//	}
-//
-//	// Transfer ownsership of tile data from build context to the caller.
-//	int n = 0;
-//	for (int i = 0; i < rcMin(rc.ntiles, maxTiles); ++i) {
-//		tiles[n++] = rc.tiles[i];
-//		rc.tiles[i].data = 0;
-//		rc.tiles[i].dataSize = 0;
-//	}
-//
-//	return n;
-//}
+static int rasterizeTileLayers(BuildContext* ctx, InputGeom* geom, const int tx, const int ty, const rcConfig& cfg, TileCacheData* tiles, const int maxTiles) {
+	if (!geom || !geom->getMesh() || !geom->getChunkyMesh()) {
+		ctx->log(RC_LOG_ERROR, "buildTile: Input mesh is not specified.");
+		return 0;
+	}
+
+	FastLZCompressor comp;
+	RasterizationContext rc;
+
+	const float* verts = geom->getMesh()->getVerts();
+	const int nverts = geom->getMesh()->getVertCount();
+	const rcChunkyTriMesh* chunkyMesh = geom->getChunkyMesh();
+
+	// Tile bounds.
+	const float tcs = cfg.tileSize * cfg.cs;
+
+	rcConfig tcfg;
+	memcpy(&tcfg, &cfg, sizeof(tcfg));
+
+	tcfg.bmin[0] = cfg.bmin[0] + tx * tcs;
+	tcfg.bmin[1] = cfg.bmin[1];
+	tcfg.bmin[2] = cfg.bmin[2] + ty * tcs;
+	tcfg.bmax[0] = cfg.bmin[0] + (tx + 1) * tcs;
+	tcfg.bmax[1] = cfg.bmax[1];
+	tcfg.bmax[2] = cfg.bmin[2] + (ty + 1) * tcs;
+	tcfg.bmin[0] -= tcfg.borderSize * tcfg.cs;
+	tcfg.bmin[2] -= tcfg.borderSize * tcfg.cs;
+	tcfg.bmax[0] += tcfg.borderSize * tcfg.cs;
+	tcfg.bmax[2] += tcfg.borderSize * tcfg.cs;
+
+	// Allocate voxel heightfield where we rasterize our input data to.
+	rc.solid = rcAllocHeightfield();
+	if (!rc.solid) {
+		ctx->log(RC_LOG_ERROR, "buildNavigation: Out of memory 'solid'.");
+		return 0;
+	}
+	if (!rcCreateHeightfield(ctx, *rc.solid, tcfg.width, tcfg.height, tcfg.bmin, tcfg.bmax, tcfg.cs, tcfg.ch)) {
+		ctx->log(RC_LOG_ERROR, "buildNavigation: Could not create solid heightfield.");
+		return 0;
+	}
+
+	// Allocate array that can hold triangle flags.
+	// If you have multiple meshes you need to process, allocate
+	// and array which can hold the max number of triangles you need to process.
+	rc.triareas = new unsigned char[chunkyMesh->maxTrisPerChunk];
+	if (!rc.triareas) {
+		ctx->log(RC_LOG_ERROR, "buildNavigation: Out of memory 'm_triareas' (%d).", chunkyMesh->maxTrisPerChunk);
+		return 0;
+	}
+
+	float tbmin[2], tbmax[2];
+	tbmin[0] = tcfg.bmin[0];
+	tbmin[1] = tcfg.bmin[2];
+	tbmax[0] = tcfg.bmax[0];
+	tbmax[1] = tcfg.bmax[2];
+	int cid[512]; // TODO: Make grow when returning too many items.
+	const int ncid = rcGetChunksOverlappingRect(chunkyMesh, tbmin, tbmax, cid, 512);
+	if (!ncid) {
+		return 0; // empty
+	}
+
+	for (int i = 0; i < ncid; ++i) {
+		const rcChunkyTriMeshNode& node = chunkyMesh->nodes[cid[i]];
+		const int* tris = &chunkyMesh->tris[node.i * 3];
+		const int ntris = node.n;
+
+		memset(rc.triareas, 0, ntris * sizeof(unsigned char));
+		rcMarkWalkableTriangles(ctx, tcfg.walkableSlopeAngle, verts, nverts, tris, ntris, rc.triareas);
+
+		if (!rcRasterizeTriangles(ctx, verts, nverts, tris, rc.triareas, ntris, *rc.solid, tcfg.walkableClimb))
+			return 0;
+	}
+
+	// Once all geometry is rasterized, we do initial pass of filtering to
+	// remove unwanted overhangs caused by the conservative rasterization
+	// as well as filter spans where the character cannot possibly stand.
+	rcFilterLowHangingWalkableObstacles(ctx, tcfg.walkableClimb, *rc.solid);
+	rcFilterLedgeSpans(ctx, tcfg.walkableHeight, tcfg.walkableClimb, *rc.solid);
+	rcFilterWalkableLowHeightSpans(ctx, tcfg.walkableHeight, *rc.solid);
+
+	rc.chf = rcAllocCompactHeightfield();
+	if (!rc.chf) {
+		ctx->log(RC_LOG_ERROR, "buildNavigation: Out of memory 'chf'.");
+		return 0;
+	}
+	if (!rcBuildCompactHeightfield(ctx, tcfg.walkableHeight, tcfg.walkableClimb, *rc.solid, *rc.chf)) {
+		ctx->log(RC_LOG_ERROR, "buildNavigation: Could not build compact data.");
+		return 0;
+	}
+
+	// Erode the walkable area by agent radius.
+	if (!rcErodeWalkableArea(ctx, tcfg.walkableRadius, *rc.chf)) {
+		ctx->log(RC_LOG_ERROR, "buildNavigation: Could not erode.");
+		return 0;
+	}
+
+	// (Optional) Mark areas.
+	const ConvexVolume* vols = geom->getConvexVolumes();
+	for (int i = 0; i < geom->getConvexVolumeCount(); ++i) {
+		rcMarkConvexPolyArea(ctx, vols[i].verts, vols[i].nverts, vols[i].hmin, vols[i].hmax, (unsigned char) vols[i].area, *rc.chf);
+	}
+
+	rc.lset = rcAllocHeightfieldLayerSet();
+	if (!rc.lset) {
+		ctx->log(RC_LOG_ERROR, "buildNavigation: Out of memory 'lset'.");
+		return 0;
+	}
+	if (!rcBuildHeightfieldLayers(ctx, *rc.chf, tcfg.borderSize, tcfg.walkableHeight, *rc.lset)) {
+		ctx->log(RC_LOG_ERROR, "buildNavigation: Could not build heighfield layers.");
+		return 0;
+	}
+
+	rc.ntiles = 0;
+	for (int i = 0; i < rcMin(rc.lset->nlayers, MAX_LAYERS); ++i) {
+		TileCacheData* tile = &rc.tiles[rc.ntiles++];
+		const rcHeightfieldLayer* layer = &rc.lset->layers[i];
+
+		// Store header
+		dtTileCacheLayerHeader header;
+		header.magic = DT_TILECACHE_MAGIC;
+		header.version = DT_TILECACHE_VERSION;
+
+		// Tile layer location in the navmesh.
+		header.tx = tx;
+		header.ty = ty;
+		header.tlayer = i;
+		dtVcopy(header.bmin, layer->bmin);
+		dtVcopy(header.bmax, layer->bmax);
+
+		// Tile info.
+		header.width = (unsigned char) layer->width;
+		header.height = (unsigned char) layer->height;
+		header.minx = (unsigned char) layer->minx;
+		header.maxx = (unsigned char) layer->maxx;
+		header.miny = (unsigned char) layer->miny;
+		header.maxy = (unsigned char) layer->maxy;
+		header.hmin = (unsigned short) layer->hmin;
+		header.hmax = (unsigned short) layer->hmax;
+
+		dtStatus status = dtBuildTileCacheLayer(&comp, &header, layer->heights, layer->areas, layer->cons, &tile->data, &tile->dataSize);
+		if (dtStatusFailed(status)) {
+			return 0;
+		}
+	}
+
+	// Transfer ownsership of tile data from build context to the caller.
+	int n = 0;
+	for (int i = 0; i < rcMin(rc.ntiles, maxTiles); ++i) {
+		tiles[n++] = rc.tiles[i];
+		rc.tiles[i].data = 0;
+		rc.tiles[i].dataSize = 0;
+	}
+
+	return n;
+}
 
 static int calcLayerBufferSize(const int gridWidth, const int gridHeight) {
 	const int headerSize = dtAlign4(sizeof(dtTileCacheLayerHeader));

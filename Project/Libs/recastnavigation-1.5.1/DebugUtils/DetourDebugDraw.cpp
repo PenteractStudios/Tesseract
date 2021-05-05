@@ -18,9 +18,9 @@
 
 #include "DebugDraw.h"
 #include "DetourDebugDraw.h"
-#include "DetourNavMesh.h"
-#include "DetourCommon.h"
-#include "DetourNode.h"
+#include "Detour/DetourNavMesh.h"
+#include "Detour/DetourCommon.h"
+#include "Detour/DetourNode.h"
 
 
 static float distancePtLine2d(const float* pt, const float* p, const float* q)

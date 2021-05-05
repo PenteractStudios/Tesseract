@@ -19,9 +19,9 @@
 #include <float.h>
 #include <string.h>
 #include "DetourLocalBoundary.h"
-#include "DetourNavMeshQuery.h"
-#include "DetourCommon.h"
-#include "DetourAssert.h"
+#include "Detour/DetourNavMeshQuery.h"
+#include "Detour/DetourCommon.h"
+#include "Detour/DetourAssert.h"
 
 
 dtLocalBoundary::dtLocalBoundary() :
