@@ -23,7 +23,7 @@ void PanelNavigation::Update() {
 	std::string windowName = std::string(ICON_FA_MAP " ") + name;
 	std::string optionsSymbol = std::string(ICON_FK_COG);
 	if (ImGui::Begin(windowName.c_str(), &enabled)) {
-		ImGui::ShowDemoWindow();
+		//ImGui::ShowDemoWindow();
 
 		NavMesh& navMesh = App->navigation->GetNavMesh();
 
@@ -73,7 +73,7 @@ void PanelNavigation::Update() {
 				ImGui::Checkbox("Keep Intermediate Results", &navMesh.keepInterResults);
 				ImGui::Text("");
 				
-				ImGui::DragInt("Tile Size", &navMesh.tileSize, 16, 0, 128);
+				ImGui::DragInt("Tile Size", &navMesh.tileSize, 8, 0, 128);
 				ImGui::Text("");
 
 				if (ImGui::Button("Bake")) {
