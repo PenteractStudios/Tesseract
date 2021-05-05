@@ -29,5 +29,6 @@ public:
 	float radius = 1.f;
 	float3 centerOffset = float3(0, 0, 0);
 	bool freezeRotation = false;
+	bool isTrigger = false;
 
 };

@@ -135,6 +135,10 @@ void ModulePhysics::CreateSphereRigidbody(ComponentSphereCollider* sphereCollide
 	sphereCollider->motionState = MotionState(sphereCollider, sphereCollider->centerOffset, sphereCollider->freezeRotation);
 	sphereCollider->rigidBody = App->physics->AddSphereBody(&sphereCollider->motionState, sphereCollider->radius, sphereCollider->mass);
 	sphereCollider->rigidBody->setUserPointer(sphereCollider);
+	if (sphereCollider->isTrigger) {
+		sphereCollider->rigidBody->setMassProps(0.f, sphereCollider->rigidBody->getLocalInertia());
+		sphereCollider->rigidBody->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE);
+	}
 	world->addRigidBody(sphereCollider->rigidBody);
 }
 

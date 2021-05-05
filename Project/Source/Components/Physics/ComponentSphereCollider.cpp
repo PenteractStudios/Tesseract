@@ -24,8 +24,14 @@ void ComponentSphereCollider::DrawGizmos() {
 }
 
 void ComponentSphereCollider::OnEditorUpdate() {
-	if (ImGui::DragFloat("Mass", &mass, App->editor->dragSpeed3f, 0.0f, 100.f) && App->time->IsGameRunning()) {
-		rigidBody->setMassProps(mass, btVector3(0, 0, 0));
+	if (ImGui::Checkbox("Is Trigger", &isTrigger) && App->time->IsGameRunning()) {
+		rigidBody->setCollisionFlags(isTrigger ? btCollisionObject::CF_NO_CONTACT_RESPONSE : 0);
+		rigidBody->setMassProps(isTrigger ? 0.f : mass, rigidBody->getLocalInertia());
+	}
+	if (!isTrigger) {
+		if (ImGui::DragFloat("Mass", &mass, App->editor->dragSpeed3f, 0.0f, 100.f) && App->time->IsGameRunning()) {
+			rigidBody->setMassProps(mass, btVector3(0, 0, 0));
+		}
 	}
 	if (ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed3f, 0.0f, inf) && App->time->IsGameRunning()) {
 		((btSphereShape*) rigidBody->getCollisionShape())->setUnscaledRadius(radius);
