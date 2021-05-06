@@ -27,13 +27,14 @@ public:
 	void RemoveSphereRigidbody(ComponentSphereCollider* sphereCollider);
 	void UpdateSphereRigidbody(ComponentSphereCollider* sphereCollider);
 
-	void CreateCapsuleRigidBody(ComponentCapsuleCollider* capsuleCollider);
-	void RemoveCapsuleRigidBody(ComponentCapsuleCollider* capsuleCollider);
-	void UpdateCapsuleRigidBody(ComponentCapsuleCollider* capsuleCollider);
+	void CreateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider);
+	void RemoveCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider);
+	void UpdateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider);
 
 	void InitializeRigidBodies();
 	void ClearPhysicBodies();
 	btRigidBody* AddSphereBody(MotionState* myMotionState, float radius, float mass);
+	btRigidBody* AddCapsuleBody(MotionState* myMotionState, float radius, float height, float mass);
 
 	// ----------- Setters --------- //
 	void SetGravity(float newGravity);

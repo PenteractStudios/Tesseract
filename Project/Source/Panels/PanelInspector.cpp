@@ -138,6 +138,9 @@ void PanelInspector::Update() {
 				case ComponentType::SPHERE_COLLIDER:
 					cName = "Sphere Collider";
 					break;
+				case ComponentType::CAPSULE_COLLIDER:
+					cName = "Capsule Collider";
+					break;
 				default:
 					cName = "";
 					break;
