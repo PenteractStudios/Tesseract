@@ -1,5 +1,10 @@
 #include "NavMesh.h"
 
+#include "Application.h"
+#include "Modules/ModuleScene.h"
+#include "Scene.h"
+#include "Components/ComponentMeshRenderer.h"
+
 #include "Recast/Recast.h"
 #include "Detour/DetourStatus.h"
 #include "Detour/DetourNavMesh.h"
@@ -165,10 +170,10 @@ struct RasterizationContext {
 
 
 static int rasterizeTileLayers(BuildContext* ctx, InputGeom* geom, const int tx, const int ty, const rcConfig& cfg, TileCacheData* tiles, const int maxTiles) {
-	if (!geom || !geom->getMesh() || !geom->getChunkyMesh()) {
-		ctx->log(RC_LOG_ERROR, "buildTile: Input mesh is not specified.");
-		return 0;
-	}
+	//if (!geom || !geom->getMesh() || !geom->getChunkyMesh()) {
+	//	ctx->log(RC_LOG_ERROR, "buildTile: Input mesh is not specified.");
+	//	return 0;
+	//}
 
 	FastLZCompressor comp;
 	RasterizationContext rc;
@@ -326,22 +331,92 @@ static int calcLayerBufferSize(const int gridWidth, const int gridHeight) {
 	return headerSize + gridSize * 4;
 }
 
-NavMesh::NavMesh() {
+NavMesh::NavMesh() :
+	// SAMPLE INIT
+	geom(0),
+	navMesh(0),
+	navQuery(0),
+	crowd(0),
+	//navMeshDrawFlags(DU_DRAWNAVMESH_OFFMESHCONS|DU_DRAWNAVMESH_CLOSEDLIST),
+	//tool(0),
+	ctx(0),
+
+	// SAMPLE OBSTACLE INIT
+	keepInterResults(false),
+	tileCache(0),
+	cacheBuildTimeMs(0),
+	cacheCompressedSize(0),
+	cacheRawSize(0),
+	cacheLayerCount(0),
+	cacheBuildMemUsage(0),
+	//drawMode(DRAWMODE_NAVMESH),
+	maxTiles(0),
+	maxPolysPerTile(0),
+	tileSize(48) {
+
+	// SAMPLE INIT
+	//resetCommonSettings();
+	navQuery = dtAllocNavMeshQuery();
+	//crowd = dtAllocCrowd();
+
+	//for (int i = 0; i < MAX_TOOLS; i++)
+	//	m_toolStates[i] = 0;
+
+	// SAMPLE OBSTACLE INIT
+
+	//resetCommonSettings();
+
+	talloc = new LinearAllocator(32000);
+	tcomp = new FastLZCompressor;
+	tmproc = new MeshProcess;
+
+	//setTool(new TempObstacleCreateTool);
+
+}
+
+NavMesh::~NavMesh() {
+	dtFreeNavMesh(navMesh);
+	navMesh = 0;
+	dtFreeTileCache(tileCache);
 }
 
 bool NavMesh::Build() {
 	dtStatus status;
 
-	if (!geom || !geom->getMesh()) {
+	// SHOULD NEED THIS
+	dtFreeNavMesh(navMesh);
+	dtFreeTileCache(tileCache);
+	//loadAll("all_tiles_tilecache.bin");
+	navQuery->init(navMesh, 2048);
+
+	// THIS SHOULD NOT BE NEEDED
+	/*if (!geom || !geom->getMesh()) {
 		LOG("buildTiledNavigation: No vertices and triangles.");
 		return false;
 	}
 
-	tmproc->init(geom);
+	tmproc->init(geom);*/
 
 	// Init cache
-	const float* bmin = geom->getNavMeshBoundsMin();
-	const float* bmax = geom->getNavMeshBoundsMax();
+	//const float* bmin = geom->getNavMeshBoundsMin();
+	//const float* bmax = geom->getNavMeshBoundsMax();
+	
+	float bmin[3] = {INT_MAX, INT_MAX, INT_MAX};
+	float bmax[3] = {INT_MIN, INT_MIN, INT_MIN};
+
+	for (ComponentBoundingBox boundingBox : App->scene->scene->boundingBoxComponents) {
+		AABB currentBB = boundingBox.GetWorldAABB();
+		float3 currentBBMin = currentBB.minPoint;
+		float3 currentBBMax = currentBB.maxPoint;
+		bmin[0] = currentBBMin.x < bmin[0] ? currentBBMin.x : bmin[0];
+		bmin[1] = currentBBMin.y < bmin[1] ? currentBBMin.y : bmin[1];
+		bmin[2] = currentBBMin.z < bmin[2] ? currentBBMin.z : bmin[2];
+
+		bmax[0] = currentBBMax.x > bmax[0] ? currentBBMax.x : bmax[0];
+		bmax[1] = currentBBMax.y > bmax[1] ? currentBBMax.y : bmax[1];
+		bmax[2] = currentBBMax.z > bmax[2] ? currentBBMax.z : bmax[2];
+	}
+
 	int gw = 0, gh = 0;
 	rcCalcGridSize(bmin, bmax, cellSize, &gw, &gh);
 	const int ts = (int) tileSize;
@@ -429,7 +504,7 @@ bool NavMesh::Build() {
 
 	// Preprocess tiles.
 
-	ctx->resetTimers();		// can be commented
+	//ctx->resetTimers();		// can be commented
 
 	cacheLayerCount = 0;
 	cacheCompressedSize = 0;
@@ -439,8 +514,8 @@ bool NavMesh::Build() {
 		for (int x = 0; x < tw; ++x) {
 			TileCacheData tiles[MAX_LAYERS];
 			memset(tiles, 0, sizeof(tiles));
-			int ntiles = 1;
-			//int ntiles = rasterizeTileLayers(ctx, geom, x, y, cfg, tiles, MAX_LAYERS);
+			//int ntiles = 1;
+			int ntiles = rasterizeTileLayers(ctx, geom, x, y, cfg, tiles, MAX_LAYERS);
 
 			for (int i = 0; i < ntiles; ++i) {
 				TileCacheData* tile = &tiles[i];
@@ -459,13 +534,13 @@ bool NavMesh::Build() {
 	}
 
 	// Build initial meshes
-	ctx->startTimer(RC_TIMER_TOTAL);		// Can be commented
+	//ctx->startTimer(RC_TIMER_TOTAL);		// Can be commented
 	for (int y = 0; y < th; ++y)
 		for (int x = 0; x < tw; ++x)
 			tileCache->buildNavMeshTilesAt(x, y, navMesh);
-	ctx->stopTimer(RC_TIMER_TOTAL);		// Can be commented
+	//ctx->stopTimer(RC_TIMER_TOTAL);		// Can be commented
 
-	cacheBuildTimeMs = ctx->getAccumulatedTime(RC_TIMER_TOTAL) / 1000.0f;		// Can be commented
+	//cacheBuildTimeMs = ctx->getAccumulatedTime(RC_TIMER_TOTAL) / 1000.0f;		// Can be commented
 	cacheBuildMemUsage = talloc->high;
 
 	const dtNavMesh* nav = navMesh;

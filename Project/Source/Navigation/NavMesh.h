@@ -25,6 +25,7 @@ enum SamplePolyFlags {
 class NavMesh {
 public:
 	NavMesh();
+	~NavMesh();
 
 	bool Build();
 
