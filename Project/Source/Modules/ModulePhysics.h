@@ -1,6 +1,7 @@
 #pragma once
 #include "Module.h"
 #include "Components/Physics/ComponentSphereCollider.h"
+#include "Components/Physics/ComponentCapsuleCollider.h"
 
 #include "Math/float4x4.h"
 #include "btBulletDynamicsCommon.h"
@@ -25,6 +26,10 @@ public:
 	void CreateSphereRigidbody(ComponentSphereCollider* sphereCollider);
 	void RemoveSphereRigidbody(ComponentSphereCollider* sphereCollider);
 	void UpdateSphereRigidbody(ComponentSphereCollider* sphereCollider);
+
+	void CreateCapsuleRigidBody(ComponentCapsuleCollider* capsuleCollider);
+	void RemoveCapsuleRigidBody(ComponentCapsuleCollider* capsuleCollider);
+	void UpdateCapsuleRigidBody(ComponentCapsuleCollider* capsuleCollider);
 
 	void InitializeRigidBodies();
 	void ClearPhysicBodies();

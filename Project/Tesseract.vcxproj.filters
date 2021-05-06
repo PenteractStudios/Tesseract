@@ -167,6 +167,7 @@
     <ClCompile Include="Source\Modules\ModulePhysics.cpp" />
     <ClCompile Include="Source\Components\Physics\ComponentSphereCollider.cpp" />
     <ClCompile Include="Source\Utils\MotionState.cpp" />
+    <ClCompile Include="Source\Components\Physics\ComponentCapsuleCollider.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -430,6 +431,7 @@
     <ClInclude Include="Source\Modules\ModulePhysics.h" />
     <ClInclude Include="Source\Components\Physics\ComponentSphereCollider.h" />
     <ClInclude Include="Source\Utils\MotionState.h" />
+    <ClInclude Include="Source\Components\Physics\ComponentCapsuleCollider.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />
