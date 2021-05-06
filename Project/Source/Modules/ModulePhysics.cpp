@@ -152,6 +152,27 @@ void ModulePhysics::UpdateSphereRigidbody(ComponentSphereCollider* sphereCollide
 	CreateSphereRigidbody(sphereCollider);
 }
 
+void ModulePhysics::CreateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider) {
+	capsuleCollider->motionState = MotionState(capsuleCollider, capsuleCollider->centerOffset, capsuleCollider->freezeRotation);
+	capsuleCollider->rigidBody = App->physics->AddCapsuleBody(&capsuleCollider->motionState, capsuleCollider->radius, capsuleCollider->height, capsuleCollider->mass);
+	capsuleCollider->rigidBody->setUserPointer(capsuleCollider);
+	if (capsuleCollider->isTrigger) {
+		capsuleCollider->rigidBody->setMassProps(0.f, capsuleCollider->rigidBody->getLocalInertia());
+		capsuleCollider->rigidBody->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE);
+	}
+	world->addRigidBody(capsuleCollider->rigidBody);
+}
+
+void ModulePhysics::RemoveCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider) {
+	world->removeCollisionObject(capsuleCollider->rigidBody);
+	RELEASE(capsuleCollider->rigidBody);
+}
+
+void ModulePhysics::UpdateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider) {
+	RemoveCapsuleRigidbody(capsuleCollider);
+	CreateCapsuleRigidbody(capsuleCollider);
+}
+
 void ModulePhysics::InitializeRigidBodies() {
 
 	// TODO: Remove this hardcode
@@ -169,6 +190,10 @@ void ModulePhysics::InitializeRigidBodies() {
 	for (ComponentSphereCollider& sphereCollider : App->scene->scene->sphereColliderComponents) {
 		if (!sphereCollider.rigidBody) CreateSphereRigidbody(&sphereCollider);
 	}
+
+	for (ComponentCapsuleCollider& capsuleCollider : App->scene->scene->capsuleColliderComponents) {
+		if (!capsuleCollider.rigidBody) CreateCapsuleRigidbody(&capsuleCollider);
+	}
 }
 
 void ModulePhysics::ClearPhysicBodies() {
@@ -181,6 +206,19 @@ void ModulePhysics::ClearPhysicBodies() {
 
 btRigidBody* ModulePhysics::AddSphereBody(MotionState* myMotionState, float radius, float mass) {
 	btCollisionShape* colShape = new btSphereShape(radius);
+
+	btVector3 localInertia(0, 0, 0);
+	if (mass != 0.f)
+		colShape->calculateLocalInertia(mass, localInertia);
+
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
+	btRigidBody* body = new btRigidBody(rbInfo);
+
+	return body;
+}
+
+btRigidBody* ModulePhysics::AddCapsuleBody(MotionState* myMotionState, float radius, float height, float mass) {
+	btCollisionShape* colShape = new btCapsuleShape(radius, height);
 
 	btVector3 localInertia(0, 0, 0);
 	if (mass != 0.f)
