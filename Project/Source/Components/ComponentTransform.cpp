@@ -4,7 +4,6 @@
 #include "Application.h"
 #include "GameObject.h"
 #include "Components/ComponentCamera.h"
-#include "Components/ComponentBoundingBox.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleInput.h"
 #include "Modules/ModuleCamera.h"
@@ -88,9 +87,6 @@ void ComponentTransform::InvalidateHierarchy() {
 		dirty = true;
 		ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();
 		if (boundingBox) boundingBox->Invalidate();
-
-		ComponentBoxCollider* boxCollider = GetOwner().GetComponent<ComponentBoxCollider>();
-		if (boxCollider) boxCollider->Invalidate();
 
 		for (GameObject* child : GetOwner().GetChildren()) {
 			ComponentTransform* childTransform = child->GetComponent<ComponentTransform>();

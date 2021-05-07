@@ -15,26 +15,24 @@
 
 void ComponentBoxCollider::Init() {
 	if (!centerOffset.IsFinite()) {
-		localAABB = (AABB(float3(-0.5f), float3(0.5f)));
-		CalculateWorldBoundingBox();
-		size = worldAABB.Size();
-		centerOffset = worldOBB.CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+		ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();
+		if (boundingBox) {
+			size = boundingBox->GetWorldOBB().Size();
+			centerOffset = boundingBox->GetWorldOBB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+		}
 	}
+
+	localAABB.SetFromCenterAndSize(centerOffset, size);
 
 	if (App->time->IsGameRunning() && !rigidBody) App->physics->CreateBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::DrawGizmos() {
 	if (IsActiveInHierarchy()) {
-		//ComponentTransform* ownerTransform = GetOwner().GetComponent<ComponentTransform>();
-		ComponentBoundingBox* bb = GetOwner().GetComponent<ComponentBoundingBox>();
-
 		float3 points[8];
 		CalculateWorldBoundingBox();
 		worldOBB.GetCornerPoints(points);
-		//bb->GetWorldOBB().GetCornerPoints(points);
 
-		// Reorder points for drawing
 		float3 aux;
 		aux = points[2];
 		points[2] = points[3];
@@ -44,9 +42,6 @@ void ComponentBoxCollider::DrawGizmos() {
 		points[7] = aux;
 
 		dd::box(points, dd::colors::White);
-
-		//TODO draw box
-		//dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset, dd::colors::Green, radius);
 	}
 }
 
@@ -61,14 +56,20 @@ void ComponentBoxCollider::OnEditorUpdate() {
 		}
 	}
 
-	if (ImGui::DragFloat3("Size", size.ptr(), App->editor->dragSpeed3f, 0.0f, inf) && App->time->IsGameRunning()) {
-		((btBoxShape*) rigidBody->getCollisionShape())->setLocalScaling(btVector3(size.x, size.y, size.z));
+	if (ImGui::DragFloat3("Size", size.ptr(), App->editor->dragSpeed3f, 0.0f, inf)) {
+		if (App->time->IsGameRunning()) {
+			((btBoxShape*) rigidBody->getCollisionShape())->setLocalScaling(btVector3(size.x, size.y, size.z));
+		}
+		localAABB.SetFromCenterAndSize(centerOffset, size);
 	}
 
-	if (ImGui::DragFloat3("Center Offset", centerOffset.ptr(), App->editor->dragSpeed2f, -inf, inf) && App->time->IsGameRunning()) {
-		float3 position = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
-		Quat rotation = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation();
-		rigidBody->setCenterOfMassTransform(btTransform(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w), btVector3(position.x, position.y, position.z)) * btTransform(btQuaternion::getIdentity(), btVector3(centerOffset.x, centerOffset.y, centerOffset.z)));
+	if (ImGui::DragFloat3("Center Offset", centerOffset.ptr(), App->editor->dragSpeed2f, -inf, inf)) {
+		if (App->time->IsGameRunning()) {
+			float3 position = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+			Quat rotation = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation();
+			rigidBody->setCenterOfMassTransform(btTransform(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w), btVector3(position.x, position.y, position.z)) * btTransform(btQuaternion::getIdentity(), btVector3(centerOffset.x, centerOffset.y, centerOffset.z)));
+		}
+		localAABB.SetFromCenterAndSize(centerOffset, size);
 	}
 
 	if (ImGui::Checkbox("Freeze rotation", &freezeRotation) && App->time->IsGameRunning()) {
@@ -119,18 +120,6 @@ void ComponentBoxCollider::OnCollision() {
 }
 
 void ComponentBoxCollider::CalculateWorldBoundingBox() {
-	if (dirty) {
-		GameObject& owner = GetOwner();
-		ComponentTransform* transform = owner.GetComponent<ComponentTransform>();
-		worldOBB = OBB(localAABB);
-		worldOBB.Transform(transform->GetGlobalMatrix());
-		worldAABB = worldOBB.MinimalEnclosingAABB();
-		dirty = false;
-	}
-}
-
-void ComponentBoxCollider::Invalidate() {
-	dirty = true;
-
-	//TODO Set physical rb position and rotation to Transform position rotation
+	worldOBB = OBB(localAABB);
+	worldOBB.Transform(GetOwner().GetComponent<ComponentTransform>()->GetGlobalMatrix());
 }

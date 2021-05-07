@@ -24,20 +24,16 @@ public:
 	// ----- Collider Functions ---- //
 	void OnCollision();
 	void CalculateWorldBoundingBox();
-	void Invalidate();
 
 public:
 	btRigidBody* rigidBody = nullptr;
 	MotionState motionState = MotionState(nullptr, float3(0, 0, 0), false);
 	float mass = 1.f;
-	//float radius = 1.f;
 	float3 size = float3(1, 1, 1);
 	float3 centerOffset = float3::inf;
 	bool freezeRotation = false;
 	bool isTrigger = false;
 
-	bool dirty = true;
-	AABB localAABB = {{0, 0, 0}, {0, 0, 0}}; // Axis Aligned Bounding Box, local to the GameObject
-	AABB worldAABB = {{0, 0, 0}, {0, 0, 0}}; // Axis Aligned Bounding Box in world coordinates. Used for Culling and other camera calculations.
-	OBB worldOBB = {worldAABB};
+	AABB localAABB = {float3(0.5f), float3(0.5f)}; // Axis Aligned Bounding Box, local to the GameObject
+	OBB worldOBB = {localAABB};
 };
