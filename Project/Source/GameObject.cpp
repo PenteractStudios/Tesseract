@@ -214,6 +214,15 @@ void GameObject::Load(JsonValue jGameObject) {
 		Component* component = scene->CreateComponentByTypeAndId(this, type, componentId);
 		components.push_back(component);
 		component->Load(jComponent);
+
+		// Save in the Scene the GameObject with the directional light
+		if (type == ComponentType::LIGHT) {
+			ComponentLight* light = static_cast<ComponentLight*>(component);
+			if (light && light->lightType == LightType::DIRECTIONAL) {
+				scene->directionalLight = this;
+			}
+		}
+
 	}
 
 	JsonValue jChildren = jGameObject[JSON_TAG_CHILDREN];

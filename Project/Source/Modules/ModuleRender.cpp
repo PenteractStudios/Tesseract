@@ -135,19 +135,24 @@ bool ModuleRender::Init() {
 	glGenRenderbuffers(1, &renderBuffer);
 	glGenTextures(1, &renderTexture);
 
+	// Shadow Mapping buffer / texture configuration
+
 	glGenFramebuffers(1, &depthMapBuffer);
 	glGenTextures(1, &depthMap);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, viewportSize.x, viewportSize.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	float borderColor[] = {1.0, 1.0, 1.0, 1.0};
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-	//glBindTexture(GL_FRAMEBUFFER, depthMapBuffer);
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-	//glDrawBuffer(GL_NONE);
-	//glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapBuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	ViewportResized(200, 200);
 	UpdateFramebuffer();
@@ -155,8 +160,55 @@ bool ModuleRender::Init() {
 	return true;
 }
 
+void ModuleRender::ShadowMapPass() {
+	// TODO: Change the viewport
+	// glViewport(..., shadow_size)
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapBuffer);
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	DrawScene(true);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void ModuleRender::RenderPass() {
+
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	DrawScene(false);
+}
+
+void ModuleRender::DrawScene(bool shadowPass) {
+	// Draw the scene
+	App->camera->CalculateFrustumPlanes();
+	Scene* scene = App->scene->scene;
+	for (ComponentBoundingBox& boundingBox : scene->boundingBoxComponents) {
+		GameObject& gameObject = boundingBox.GetOwner();
+		gameObject.flag = false;
+		if (gameObject.isInQuadtree) continue;
+
+		const AABB& gameObjectAABB = boundingBox.GetWorldAABB();
+		const OBB& gameObjectOBB = boundingBox.GetWorldOBB();
+		if (CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
+			if (shadowPass) {
+				DrawGameObjectShadowPass(&gameObject);
+			} else {
+				DrawGameObject(&gameObject);
+			}
+		}
+	}
+
+	if (scene->quadtree.IsOperative()) {
+		DrawSceneRecursive(scene->quadtree.root, scene->quadtree.bounds);
+	}
+}
+
 UpdateStatus ModuleRender::PreUpdate() {
 	BROFILER_CATEGORY("ModuleRender - PreUpdate", Profiler::Color::Green)
+
+	lightFrustum.ReconstructFrustum();
 
 #if !GAME
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -180,23 +232,13 @@ UpdateStatus ModuleRender::Update() {
 #endif
 	culledTriangles = 0;
 
-	// Draw the scene
-	App->camera->CalculateFrustumPlanes();
-	Scene* scene = App->scene->scene;
-	for (ComponentBoundingBox& boundingBox : scene->boundingBoxComponents) {
-		GameObject& gameObject = boundingBox.GetOwner();
-		gameObject.flag = false;
-		if (gameObject.isInQuadtree) continue;
+	// Pass 1. Build the depth map
+	ShadowMapPass();
 
-		const AABB& gameObjectAABB = boundingBox.GetWorldAABB();
-		const OBB& gameObjectOBB = boundingBox.GetWorldOBB();
-		if (CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
-			DrawGameObject(&gameObject);
-		}
-	}
-	if (scene->quadtree.IsOperative()) {
-		DrawSceneRecursive(scene->quadtree.root, scene->quadtree.bounds);
-	}
+	// Pass 2. Draw the scene with the depth map
+	RenderPass();
+
+	Scene* scene = App->scene->scene;
 
 	// Draw Gizmos
 	if (App->camera->IsEngineCameraActive() || debugMode) {
@@ -277,9 +319,18 @@ void ModuleRender::UpdateFramebuffer() {
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, viewportSize.x, viewportSize.y);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
 
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, depthMapBuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		LOG("ERROR: Framebuffer is not complete!");
 	}
+
+
+
 }
 
 void ModuleRender::SetVSync(bool vsync) {
@@ -321,9 +372,21 @@ void ModuleRender::ToggleDrawLightGizmos() {
 void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 	if (strcmp(shadingMode, "Shaded") == 0) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		shadowing = false;
 	} else if (strcmp(shadingMode, "Wireframe") == 0) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		shadowing = false;
+	} else if (strcmp(shadingMode, "Depth") == 0) {
+		shadowing = true;
 	}
+}
+
+float4x4 ModuleRender::GetLightViewMatrix() const {
+	return lightFrustum.GetFrustum().ViewMatrix();
+}
+
+float4x4 ModuleRender::GetLightProjectionMatrix() const {
+	return lightFrustum.GetFrustum().ProjectionMatrix();
 }
 
 int ModuleRender::GetCulledTriangles() const {
@@ -466,6 +529,16 @@ void ModuleRender::DrawGameObject(GameObject* gameObject) {
 		if (resourceMesh != nullptr) {
 			culledTriangles += resourceMesh->numIndices / 3;
 		}
+	}
+}
+
+void ModuleRender::DrawGameObjectShadowPass(GameObject* gameObject) {
+	ComponentView<ComponentMeshRenderer> meshes = gameObject->GetComponents<ComponentMeshRenderer>();
+	ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
+	assert(transform);
+
+	for (ComponentMeshRenderer& mesh : meshes) {
+		mesh.DrawShadow(transform->GetGlobalMatrix());
 	}
 }
 

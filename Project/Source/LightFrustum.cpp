@@ -9,9 +9,20 @@
 
 void LightFrustum::ReconstructFrustum() {
 
-	float3 lightDir = float3::unitZ;
-	float3 lightUp = float3::unitY;
-	Quat lightOrientation = Quat::LookAt(-float3::unitZ, lightDir, float3::unitY, lightUp);
+	if (!dirty) return;
+
+	dirty = false;
+
+	GameObject* light = App->scene->scene->directionalLight;
+	if (!light) {
+		dirty = true;
+		return;
+	}
+
+	ComponentTransform* transform = light->GetComponent<ComponentTransform>();
+	assert(transform);
+
+	Quat lightOrientation = Quat::LookAt(-float3::unitZ, transform->GetFront(), float3::unitY, transform->GetUp());
 
 	AABB lightAABB;
 	lightAABB.SetNegativeInfinity();
@@ -37,4 +48,9 @@ void LightFrustum::ReconstructFrustum() {
 	frustum.SetOrthographic((maxPoint.x - minPoint.z), (maxPoint.y - minPoint.y));
 	frustum.SetPos(lightOrientation * position);
 	frustum.SetViewPlaneDistances(0, maxPoint.z - minPoint.z);
+
+}
+
+Frustum LightFrustum::GetFrustum() const {
+	return frustum;
 }

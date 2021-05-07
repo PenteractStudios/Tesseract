@@ -19,6 +19,7 @@ public:
 	void DuplicateComponent(GameObject& owner) override;
 
 	void Draw(const float4x4& modelMatrix) const;
+	void DrawShadow(const float4x4& modelMatrix) const;
 
 public:
 	UID meshId = 0;

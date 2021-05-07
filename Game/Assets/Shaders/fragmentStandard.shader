@@ -1,4 +1,4 @@
---- fragVarStandard
+-- - fragVarStandard
 
 #define PI 3.1415926538
 #define EPSILON 1e-5
@@ -7,7 +7,11 @@ in vec3 fragNormal;
 in mat3 TBN;
 in vec3 fragPos;
 in vec2 uv;
+in vec4 fragPosLight;
 out vec4 outColor;
+
+// Depth Map
+uniform sample2D depthMap;
 
 uniform vec3 viewPos;
 
@@ -23,252 +27,282 @@ uniform int hasSmoothnessAlpha; // Generic used for Specular and Metallic
 
 struct AmbientLight
 {
-    vec3 color;
+	vec3 color;
 };
 
 struct DirLight
 {
-    vec3 direction;
-    vec3 color;
-    float intensity;
-    int isActive;
+	vec3 direction;
+	vec3 color;
+	float intensity;
+	int isActive;
 };
 
 struct PointLight
 {
-    vec3 pos;
-    vec3 color;
-    float intensity;
-    float kc;
-    float kl;
-    float kq;
+	vec3 pos;
+	vec3 color;
+	float intensity;
+	float kc;
+	float kl;
+	float kq;
 };
 
 struct SpotLight
 {
-    vec3 pos;
-    vec3 direction;
-    vec3 color;
-    float intensity;
-    float kc;
-    float kl;
-    float kq;
-    float innerAngle;
-    float outerAngle;
+	vec3 pos;
+	vec3 direction;
+	vec3 color;
+	float intensity;
+	float kc;
+	float kl;
+	float kq;
+	float innerAngle;
+	float outerAngle;
 };
 
 struct Light
 {
-    AmbientLight ambient;
-    DirLight directional;
-    PointLight points[8];
-    int numPoints;
-    SpotLight spots[8];
-    int numSpots;
+	AmbientLight ambient;
+	DirLight directional;
+	PointLight points[8];
+	int numPoints;
+	SpotLight spots[8];
+	int numSpots;
 };
 
 uniform Light light;
 
 float Pow2(float a)
 {
-    return a * a;
+	return a * a;
 }
 
 vec3 GetNormal(sampler2D normalMap, vec2 uv, mat3 TBN, float normalStrength)
 {
-    vec3 normal = texture(normalMap, uv).rgb;
-    normal = normal * 2.0 - 1.0;
-    normal.xy *= normalStrength;
-    normal = normalize(normal);
-    return normalize(TBN * normal);
+	vec3 normal = texture(normalMap, uv).rgb;
+	normal = normal * 2.0 - 1.0;
+	normal.xy *= normalStrength;
+	normal = normalize(normal);
+	return normalize(TBN * normal);
 }
 
---- fragVarMetallic
+float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection) {
+
+	vec3 projCoords = lightPos.xyz / lightPos.w;
+	projCoords = projCoords * 0.5 + 0.5;
+
+	float closestDepth = texture(depthMap, projCoords).r;
+	float currentDepth - projCoords.z;
+
+	vec3 normal = normalize(normal);
+	vec3 lightDir = normalize(lightDirection);
+	float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+	float shadow = 0.0;
+	vec2 texelSize = 1.0 / textureSize(depthMap, 0);
+	for (int x = -1; x <= 1; ++x) {
+		for (int y = -1; y <= 1; ++y) {
+			float pcfDepth = texture(depthMap, projCoords.xy + vec2(x, y) * texelSize).r;
+			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+		}
+	}
+
+	shadow /= 9.0;
+
+	if (projCoords.z > 1.0) shadow = 0.0;
+
+	return shadow;
+}
+
+-- - fragVarMetallic
 
 uniform float metalness;
 uniform sampler2D metallicMap;
 uniform int hasMetallicMap;
 
---- fragVarSpecular
+-- - fragVarSpecular
 
 uniform vec3 specularColor;
 uniform sampler2D specularMap;
 uniform int hasSpecularMap;
 
---- fragFunctionLight
+-- - fragFunctionLight
 
 float GGXNormalDistribution(float NH, float roughness)
 {
-    return roughness * roughness / (PI * Pow2(NH * NH * (roughness * roughness - 1) + 1));
+	return roughness * roughness / (PI * Pow2(NH * NH * (roughness * roughness - 1) + 1));
 }
 
 vec3 SchlickFresnel(vec3 F0, float LH)
 {
-    return F0 + (1 - F0) * pow(1 - LH, 5); 
+	return F0 + (1 - F0) * pow(1 - LH, 5);
 }
 
 float SmithVisibility(float NL, float NV, float roughness)
 {
-    return 0.5 / (NL * (NV * (1 - roughness) + roughness) + NV * (NL * (1 - roughness) + roughness));
+	return 0.5 / (NL * (NV * (1 - roughness) + roughness) + NV * (NL * (1 - roughness) + roughness));
 }
 
 vec3 ProcessDirectionalLight(DirLight directional, vec3 fragNormal, vec3 viewDir, vec3 Cd, vec3 F0, float roughness)
 {
-    vec3 directionalDir = - normalize(directional.direction);
+	vec3 directionalDir = -normalize(directional.direction);
 
-    float NL = max(dot(fragNormal, directionalDir), 0.0);
-    float NV = max(dot(fragNormal, viewDir), 0.0)  + EPSILON;
-    vec3 H = (directionalDir + viewDir) / length(directionalDir + viewDir);
-    float NH = max(dot(fragNormal, H), 0.0);
-    float LH = max(dot(directionalDir, H), 0.0);
+	float NL = max(dot(fragNormal, directionalDir), 0.0);
+	float NV = max(dot(fragNormal, viewDir), 0.0) + EPSILON;
+	vec3 H = (directionalDir + viewDir) / length(directionalDir + viewDir);
+	float NH = max(dot(fragNormal, H), 0.0);
+	float LH = max(dot(directionalDir, H), 0.0);
 
-    vec3 Fn = SchlickFresnel(F0, LH); 
-    float V = SmithVisibility(NL, NV, roughness);
-    float NDF = GGXNormalDistribution(NH, roughness);
+	vec3 Fn = SchlickFresnel(F0, LH);
+	float V = SmithVisibility(NL, NV, roughness);
+	float NDF = GGXNormalDistribution(NH, roughness);
 
-   	// Cook-Torrance BRDF
-    return (Cd * (1 - F0) + 0.25 * Fn * V * NDF) * directional.color * directional.intensity * NL;
+	// Cook-Torrance BRDF
+	return (Cd * (1 - F0) + 0.25 * Fn * V * NDF) * directional.color * directional.intensity * NL;
 }
 
 vec3 ProcessPointLight(PointLight point, vec3 fragNormal, vec3 fragPos, vec3 viewDir, vec3 Cd, vec3 F0, float roughness)
 {
-    float pointDistance = length(point.pos - fragPos);
-    float distAttenuation = 1.0 / (point.kc + point.kl * pointDistance + point.kq * pointDistance * pointDistance);
+	float pointDistance = length(point.pos - fragPos);
+	float distAttenuation = 1.0 / (point.kc + point.kl * pointDistance + point.kq * pointDistance * pointDistance);
 
-    vec3 pointDir = normalize(point.pos - fragPos);
+	vec3 pointDir = normalize(point.pos - fragPos);
 
-    float NL = max(dot(fragNormal, pointDir), 0.0);
-    float NV = max(dot(fragNormal, viewDir), 0.0) + EPSILON;
-    vec3 H = (pointDir + viewDir) / length(pointDir + viewDir);
-    float NH = max(dot(fragNormal, H), 0.0);
-    float LH = max(dot(pointDir, H), 0.0);
+	float NL = max(dot(fragNormal, pointDir), 0.0);
+	float NV = max(dot(fragNormal, viewDir), 0.0) + EPSILON;
+	vec3 H = (pointDir + viewDir) / length(pointDir + viewDir);
+	float NH = max(dot(fragNormal, H), 0.0);
+	float LH = max(dot(pointDir, H), 0.0);
 
-    vec3 Fn = SchlickFresnel(F0, LH); 
-    float V = SmithVisibility(NL, NV, roughness);
-    float NDF = GGXNormalDistribution(NH, roughness);
+	vec3 Fn = SchlickFresnel(F0, LH);
+	float V = SmithVisibility(NL, NV, roughness);
+	float NDF = GGXNormalDistribution(NH, roughness);
 
-   	// Cook-Torrance BRDF
-    return (Cd * (1 - F0) + 0.25 * Fn * V * NDF) * point.color * point.intensity * distAttenuation * NL;
+	// Cook-Torrance BRDF
+	return (Cd * (1 - F0) + 0.25 * Fn * V * NDF) * point.color * point.intensity * distAttenuation * NL;
 }
 
 vec3 ProcessSpotLight(SpotLight spot, vec3 fragNormal, vec3 fragPos, vec3 viewDir, vec3 Cd, vec3 F0, float roughness)
 {
-    float spotDistance = length(spot.pos - fragPos);
+	float spotDistance = length(spot.pos - fragPos);
 	float distAttenuation = 1.0 / (spot.kc + spot.kl * spotDistance + spot.kq * spotDistance * spotDistance);
 
-    vec3 spotDir = normalize(spot.pos - fragPos);
+	vec3 spotDir = normalize(spot.pos - fragPos);
 
-    vec3 aimDir = normalize(spot.direction);
-    float C = dot( aimDir , -spotDir);
-    float cAttenuation = 0;
-    float cosInner = cos(spot.innerAngle);
-    float cosOuter = cos(spot.outerAngle);
-    if ( C > cosInner)
-    {
-        cAttenuation = 1;
-    }
-    else if (cosInner > C && C > cosOuter)
-    {
-    	cAttenuation = (C - cosOuter) / (cosInner - cosOuter);
-    }
+	vec3 aimDir = normalize(spot.direction);
+	float C = dot(aimDir, -spotDir);
+	float cAttenuation = 0;
+	float cosInner = cos(spot.innerAngle);
+	float cosOuter = cos(spot.outerAngle);
+	if (C > cosInner)
+	{
+		cAttenuation = 1;
+	}
+	else if (cosInner > C && C > cosOuter)
+	{
+		cAttenuation = (C - cosOuter) / (cosInner - cosOuter);
+	}
 
-    float NL = max(dot(fragNormal, spotDir), 0.0);
-    float NV = max(dot(fragNormal, viewDir), 0.0) + EPSILON;
-    vec3 H = (spotDir + viewDir) / length(spotDir + viewDir);
-    float NH = max(dot(fragNormal, H), 0.0);
-    float LH = max(dot(spotDir, H), 0.0);
+	float NL = max(dot(fragNormal, spotDir), 0.0);
+	float NV = max(dot(fragNormal, viewDir), 0.0) + EPSILON;
+	vec3 H = (spotDir + viewDir) / length(spotDir + viewDir);
+	float NH = max(dot(fragNormal, H), 0.0);
+	float LH = max(dot(spotDir, H), 0.0);
 
-    vec3 Fn = SchlickFresnel(F0, LH); 
-    float V = SmithVisibility(NL, NV, roughness);
-    float NDF = GGXNormalDistribution(NH, roughness);
+	vec3 Fn = SchlickFresnel(F0, LH);
+	float V = SmithVisibility(NL, NV, roughness);
+	float NDF = GGXNormalDistribution(NH, roughness);
 
-   	// Cook-Torrance BRDF
-    return (Cd * (1 - F0) + 0.25 * Fn * V * NDF) * spot.color * spot.intensity * distAttenuation * cAttenuation * NL;
+	// Cook-Torrance BRDF
+	return (Cd * (1 - F0) + 0.25 * Fn * V * NDF) * spot.color * spot.intensity * distAttenuation * cAttenuation * NL;
 }
 
---- fragMainMetallic
+-- - fragMainMetallic
 
 void main()
-{    
-    vec3 viewDir = normalize(viewPos - fragPos);
-    vec3 normal = fragNormal;
-    if (hasNormalMap)
-    {
-	    normal = GetNormal(normalMap, uv, TBN, normalStrength);
-    }
+{
 
-    vec4 colorDiffuse = hasDiffuseMap * pow(texture(diffuseMap, uv), vec4(2.2)) * vec4(diffuseColor, 1.0) + (1 - hasDiffuseMap) * vec4(diffuseColor, 1.0);
-    vec4 colorMetallic = pow(texture(metallicMap, uv), vec4(2.2));
-    float metalnessMask = hasMetallicMap * colorMetallic.r + (1 - hasMetallicMap) * metalness;
+	vec3 viewDir = normalize(viewPos - fragPos);
+	vec3 normal = fragNormal;
+	if (hasNormalMap)
+	{
+		normal = GetNormal(normalMap, uv, TBN, normalStrength);
+	}
 
-    float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorMetallic.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
+	vec4 colorDiffuse = hasDiffuseMap * pow(texture(diffuseMap, uv), vec4(2.2)) * vec4(diffuseColor, 1.0) + (1 - hasDiffuseMap) * vec4(diffuseColor, 1.0);
+	vec4 colorMetallic = pow(texture(metallicMap, uv), vec4(2.2));
+	float metalnessMask = hasMetallicMap * colorMetallic.r + (1 - hasMetallicMap) * metalness;
 
-    vec3 colorAccumulative = colorDiffuse.rgb * light.ambient.color;
+	float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorMetallic.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
 
-    // Schlick Fresnel
-    vec3 Cd = colorDiffuse.rgb * (1 - metalnessMask);
-    vec3 F0 = mix(vec3(0.04), colorDiffuse.rgb, metalnessMask);
+	vec3 colorAccumulative = colorDiffuse.rgb * light.ambient.color;
 
-    // Directional Light
-    if (light.directional.isActive == 1)
-    {
-    	colorAccumulative += ProcessDirectionalLight(light.directional, normal, viewDir, Cd, F0, roughness);
-    }
+	// Schlick Fresnel
+	vec3 Cd = colorDiffuse.rgb * (1 - metalnessMask);
+	vec3 F0 = mix(vec3(0.04), colorDiffuse.rgb, metalnessMask);
+
+	// Directional Light
+	if (light.directional.isActive == 1)
+	{
+		colorAccumulative += ProcessDirectionalLight(light.directional, normal, viewDir, Cd, F0, roughness);
+	}
 
 	// Point Light
 	for (int i = 0; i < light.numPoints; i++)
 	{
-    	colorAccumulative += ProcessPointLight(light.points[i], normal, fragPos, viewDir, Cd, F0, roughness);
+		colorAccumulative += ProcessPointLight(light.points[i], normal, fragPos, viewDir, Cd, F0, roughness);
 	}
 
-    // Spot Light
+	// Spot Light
 	for (int i = 0; i < light.numSpots; i++)
 	{
-    	colorAccumulative += ProcessSpotLight(light.spots[i], normal, fragPos, viewDir, Cd, F0, roughness);
+		colorAccumulative += ProcessSpotLight(light.spots[i], normal, fragPos, viewDir, Cd, F0, roughness);
 	}
 
-    vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
-	ldr = pow(ldr, vec3(1/2.2)); // gamma correction
+	vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
+	ldr = pow(ldr, vec3(1 / 2.2)); // gamma correction
 	outColor = vec4(ldr, 1.0);
+
 }
 
---- fragMainSpecular
+-- - fragMainSpecular
 
 void main()
-{    
-    vec3 viewDir = normalize(viewPos - fragPos);
-    vec3 normal = fragNormal;
-    if (hasNormalMap)
-    {
-	    normal = GetNormal(normalMap, uv, TBN, normalStrength);
-    }
-	
-    vec4 colorDiffuse = hasDiffuseMap * pow(texture(diffuseMap, uv), vec4(2.2)) * vec4(diffuseColor, 1.0) + (1 - hasDiffuseMap) * vec4(diffuseColor, 1.0);
-    vec4 colorSpecular = hasSpecularMap * pow(texture(specularMap, uv), vec4(2.2)) + (1 - hasSpecularMap) * vec4(specularColor, 1.0);
+{
 
-    float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorSpecular.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
+	vec3 viewDir = normalize(viewPos - fragPos);
+	vec3 normal = fragNormal;
+	if (hasNormalMap)
+	{
+		normal = GetNormal(normalMap, uv, TBN, normalStrength);
+	}
 
-    vec3 colorAccumulative = colorDiffuse.rgb * light.ambient.color;
+	vec4 colorDiffuse = hasDiffuseMap * pow(texture(diffuseMap, uv), vec4(2.2)) * vec4(diffuseColor, 1.0) + (1 - hasDiffuseMap) * vec4(diffuseColor, 1.0);
+	vec4 colorSpecular = hasSpecularMap * pow(texture(specularMap, uv), vec4(2.2)) + (1 - hasSpecularMap) * vec4(specularColor, 1.0);
 
-    // Directional Light
-    if (light.directional.isActive == 1)
-    {
-        colorAccumulative += ProcessDirectionalLight(light.directional, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
-    }
+	float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorSpecular.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
+
+	vec3 colorAccumulative = colorDiffuse.rgb * light.ambient.color;
+
+	// Directional Light
+	if (light.directional.isActive == 1)
+	{
+		colorAccumulative += ProcessDirectionalLight(light.directional, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+	}
 
 	// Point Light
-    for(int i = 0; i < light.numPoints; i++)
-    {
-        colorAccumulative += ProcessPointLight(light.points[i], normal, fragPos, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
-    }
+	for (int i = 0; i < light.numPoints; i++)
+	{
+		colorAccumulative += ProcessPointLight(light.points[i], normal, fragPos, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+	}
 
-    // Spot Light
-    for(int i = 0; i < light.numSpots; i++)
-    {
-        colorAccumulative += ProcessSpotLight(light.spots[i], normal, fragPos, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
-    }
+	// Spot Light
+	for (int i = 0; i < light.numSpots; i++)
+	{
+		colorAccumulative += ProcessSpotLight(light.spots[i], normal, fragPos, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+	}
 
-    vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
-    ldr = pow(ldr, vec3(1/2.2)); // gamma correction
-    outColor = vec4(ldr, 1.0);
+	vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
+	ldr = pow(ldr, vec3(1 / 2.2)); // gamma correction
+	outColor = vec4(ldr, 1.0);
 }

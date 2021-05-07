@@ -9,6 +9,12 @@ public:
 	~LightFrustum() {}
 	void ReconstructFrustum();
 
+	Frustum GetFrustum() const;
+
+public:
+
+	bool dirty = true;
+
 private:
 
 	Frustum frustum;

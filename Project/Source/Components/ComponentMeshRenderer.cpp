@@ -513,6 +513,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glTextureNormal = normal ? normal->glTexture : 0;
 	int hasNormalMap = normal ? 1 : 0;
 
+	unsigned glDepthMap = App->renderer->depthMap;
+
 	if (material->shaderType == MaterialShader::PHONG) {
 		// Phong-specific settings
 		unsigned glTextureSpecular = 0;
@@ -549,6 +551,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		} else {
 			program = App->programs->specularNotNormal;
 		}
+
 		glUseProgram(program);
 
 		glUniform3fv(glGetUniformLocation(program, "specularColor"), 1, material->specularColor.ptr());
@@ -571,6 +574,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		} else {
 			program = App->programs->standardNotNormal;
 		}
+
 		glUseProgram(program);
 
 		glUniform1f(glGetUniformLocation(program, "metalness"), material->metallic);
@@ -588,9 +592,11 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, modelMatrix.ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, viewMatrix.ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, projMatrix.ptr());
+
 	if (palette.size() > 0) {
 		glUniformMatrix4fv(glGetUniformLocation(program, "palette"), palette.size(), GL_TRUE, palette[0].ptr());
 	}
+
 	glUniform1i(glGetUniformLocation(program, "hasBones"), goBones.size());
 
 	glUniform1i(glGetUniformLocation(program, "light.numSpots"), spotLightsArraySize);
@@ -612,6 +618,10 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform1f(glGetUniformLocation(program, "normalStrength"), material->normalStrength);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, glTextureNormal);
+
+	glUniform1i(glGetUniformLocation(program, "depthMap"), 3);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, glDepthMap);
 
 	// Lights uniforms settings
 	glUniform3fv(glGetUniformLocation(program, "light.ambient.color"), 1, App->renderer->ambientColor.ptr());
@@ -781,4 +791,17 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
+}
+
+void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix) const {
+	unsigned program = App->programs->shadowMap;
+	float4x4 viewMatrix = App->renderer->GetLightViewMatrix();
+	float4x4 projMatrix = App->renderer->GetLightProjectionMatrix();
+
+	glUseProgram(program);
+
+	// Common uniform settings
+	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, modelMatrix.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, viewMatrix.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, projMatrix.ptr());
 }

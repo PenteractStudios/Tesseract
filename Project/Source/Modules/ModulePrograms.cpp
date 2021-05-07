@@ -134,6 +134,9 @@ bool ModulePrograms::Start() {
 	specularNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
 	specularNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
 
+	// Shadow Shaders
+	shadowMap = CreateProgram(filePath, "vertShadow", "fragShadow");
+
 	//UI shaders
 	textUI = CreateProgram(filePath, "vertTextUI", "fragTextUI");
 	imageUI = CreateProgram(filePath, "vertImageUI", "fragImageUI");

@@ -188,3 +188,15 @@ const float4x4& ComponentTransform::GetGlobalMatrix() {
 	CalculateGlobalMatrix();
 	return globalMatrix;
 }
+
+float3 ComponentTransform::GetFront() const {
+	return rotation * float3::unitZ;
+}
+
+float3 ComponentTransform::GetRight() const {
+	return Cross(GetFront(), GetUp());
+}
+
+float3 ComponentTransform::GetUp() const {
+	return rotation * float3::unitY;
+}

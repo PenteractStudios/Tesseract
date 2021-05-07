@@ -20,6 +20,10 @@ public:
 
 	void ViewportResized(int width, int height); // Updates the viewport aspect ratio with the new one given by parameters. It will set 'viewportUpdated' to true, to regenerate the framebuffer to its new size using UpdateFramebuffer().
 	void UpdateFramebuffer();					 // Generates the rendering framebuffer on Init(). If 'viewportUpdated' was set to true, it will be also called at PostUpdate().
+	void DrawScene(bool shadowPass);							 // Draw the Scene
+
+	void ShadowMapPass();
+	void RenderPass();
 
 	void SetVSync(bool vsync);
 
@@ -34,6 +38,11 @@ public:
 	TESSERACT_ENGINE_API void ToggleDrawLightGizmos();
 
 	void UpdateShadingMode(const char* shadingMode);
+
+	bool IsShadowing() const;
+
+	float4x4 GetLightViewMatrix() const;
+	float4x4 GetLightProjectionMatrix() const;
 
 	int GetCulledTriangles() const;
 	const float2 GetViewportSize();
@@ -71,6 +80,7 @@ private:
 	void DrawSceneRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb);	// ??
 	bool CheckIfInsideFrustum(const AABB& aabb, const OBB& obb);							// ??
 	void DrawGameObject(GameObject* gameObject);											// ??
+	void DrawGameObjectShadowPass(GameObject* gameObject);
 	void DrawSkyBox();																		// Draws a default skybox if 'skyboxActive' is set to true.
 	void DrawAnimation(const GameObject* gameObject, bool hasAnimation = false);
 	void RenderUI();
@@ -81,4 +91,5 @@ private:
 	// ------- Viewport Size ------- //
 	float2 viewportSize = float2::zero;
 	LightFrustum lightFrustum;
+	bool shadowing = false;
 };

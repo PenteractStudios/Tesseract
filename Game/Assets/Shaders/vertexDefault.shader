@@ -13,10 +13,14 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
 
+uniform mat4 viewLight;
+uniform mat4 projLight;
+
 out vec3 fragNormal;
 out mat3 TBN;
 out vec3 fragPos;
 out vec2 uv;
+out vec4 fragPosLight;
 
 uniform mat4 palette[MAX_BONES];
 uniform bool hasBones;
@@ -41,6 +45,7 @@ void main()
     fragPos = vec3(model * position);
     fragNormal = normalize(transpose(inverse(mat3(model))) * normal.xyz);
     uv = uvs;
+    fragPosLight = lightProj * lightView * model * position;
 }
 
 --- vertMainNormal
@@ -69,4 +74,5 @@ void main()
     fragNormal = N;
     TBN = mat3(T, B, N);
     uv = uvs;
+    fragPosLight = lightProj * lightView * model * position;
 }
