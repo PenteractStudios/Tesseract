@@ -50,6 +50,8 @@ const char* GetComponentTypeName(ComponentType type) {
 		return "AudioSource";
 	case ComponentType::SPHERE_COLLIDER:
 		return "SphereCollider";
+	case ComponentType::BOX_COLLIDER:
+		return "BoxCollider";
 	default:
 		LOG("Component of type %i hasn't been registered in GetComponentTypeName.", (unsigned) type);
 		assert(false); // ERROR: Component type not registered
@@ -100,6 +102,8 @@ ComponentType GetComponentTypeFromName(const char* name) {
 		return ComponentType::AUDIO_SOURCE;
 	} else if (strcmp(name, "SphereCollider") == 0) {
 		return ComponentType::SPHERE_COLLIDER;
+	} else if (strcmp(name, "BoxCollider") == 0) {
+		return ComponentType::BOX_COLLIDER;
 	} else {
 		LOG("No component of name %s exists.", (unsigned) name);
 		assert(false); // ERROR: Invalid name

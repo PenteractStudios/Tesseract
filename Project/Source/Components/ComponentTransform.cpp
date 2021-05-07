@@ -89,6 +89,9 @@ void ComponentTransform::InvalidateHierarchy() {
 		ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();
 		if (boundingBox) boundingBox->Invalidate();
 
+		ComponentBoxCollider* boxCollider = GetOwner().GetComponent<ComponentBoxCollider>();
+		if (boxCollider) boxCollider->Invalidate();
+
 		for (GameObject* child : GetOwner().GetChildren()) {
 			ComponentTransform* childTransform = child->GetComponent<ComponentTransform>();
 			if (childTransform != nullptr) {
@@ -108,7 +111,7 @@ void ComponentTransform::CalculateGlobalMatrix(bool force) {
 
 			parentTransform->CalculateGlobalMatrix();
 			globalMatrix = parentTransform->globalMatrix * localMatrix;
-			globalMatrix.Orthogonalize3();	// Solution for non-uniform scaled objects
+			globalMatrix.Orthogonalize3(); // Solution for non-uniform scaled objects
 		} else {
 			globalMatrix = localMatrix;
 		}

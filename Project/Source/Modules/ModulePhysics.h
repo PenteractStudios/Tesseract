@@ -1,6 +1,5 @@
 #pragma once
 #include "Module.h"
-#include "Components/Physics/ComponentSphereCollider.h"
 
 #include "Math/float4x4.h"
 #include "btBulletDynamicsCommon.h"
@@ -8,9 +7,11 @@
 
 class DebugDrawer;
 class MotionState;
+class ComponentSphereCollider;
+class ComponentBoxCollider;
+class btBroadphaseInterface;
 
 class ModulePhysics : public Module {
-
 public:
 	// ------- Core Functions ------ //
 	bool Init() override;
@@ -21,14 +22,19 @@ public:
 	bool CleanUp();
 	//void ReceiveEvent(TesseractEvent& e);
 
-	// ------ Add/Remove Body ------ //
+	// ------ Add/Remove Sphere Body ------ //
 	void CreateSphereRigidbody(ComponentSphereCollider* sphereCollider);
 	void RemoveSphereRigidbody(ComponentSphereCollider* sphereCollider);
 	void UpdateSphereRigidbody(ComponentSphereCollider* sphereCollider);
+	// ------ Add/Remove Box Body ------ //
+	void CreateBoxRigidbody(ComponentBoxCollider* boxCollider);
+	void RemoveBoxRigidbody(ComponentBoxCollider* boxCollider);
+	void UpdateBoxRigidbody(ComponentBoxCollider* boxCollider);
 
 	void InitializeRigidBodies();
 	void ClearPhysicBodies();
 	btRigidBody* AddSphereBody(MotionState* myMotionState, float radius, float mass);
+	btRigidBody* AddBoxBody(MotionState* myMotionState, float3 size, float mass);
 
 	// ----------- Setters --------- //
 	void SetGravity(float newGravity);
@@ -43,7 +49,7 @@ private:
 	btCollisionDispatcher* dispatcher = nullptr;
 	btBroadphaseInterface* broadPhase = nullptr;
 	btSequentialImpulseConstraintSolver* constraintSolver = nullptr;
-	
+
 	DebugDrawer* debugDrawer;
 
 	bool debug = true;
@@ -54,7 +60,6 @@ private:
 	p2List<btTypedConstraint*> constraints;*/
 };
 
-
 class DebugDrawer : public btIDebugDraw {
 public:
 	DebugDrawer() {}
@@ -64,6 +69,6 @@ public:
 	void draw3dText(const btVector3& location, const char* textString);
 	void setDebugMode(int debugMode);
 	int getDebugMode() const;
-	
+
 	DebugDrawModes mode; // How to initialise this enum?
 };

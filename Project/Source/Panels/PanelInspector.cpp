@@ -19,6 +19,7 @@
 #include "Components/UI/ComponentText.h"
 #include "Components/UI/ComponentTransform2D.h"
 #include "Components/Physics/ComponentSphereCollider.h"
+#include "Components/Physics/ComponentBoxCollider.h"
 #include "Application.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleUserInterface.h"
@@ -137,6 +138,9 @@ void PanelInspector::Update() {
 					break;
 				case ComponentType::SPHERE_COLLIDER:
 					cName = "Sphere Collider";
+					break;
+				case ComponentType::BOX_COLLIDER:
+					cName = "Box Collider";
 					break;
 				default:
 					cName = "";
@@ -363,6 +367,15 @@ void PanelInspector::AddColliderComponentsOptions(GameObject* selected) {
 			ComponentSphereCollider* audioListener = selected->CreateComponent<ComponentSphereCollider>();
 			if (audioListener != nullptr) {
 				audioListener->Init();
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS; // TODO: Control other colliders exists.
+			}
+		}
+
+		if (ImGui::MenuItem("Box Collider")) {
+			ComponentBoxCollider* boxCollider = selected->CreateComponent<ComponentBoxCollider>();
+			if (boxCollider != nullptr) {
+				boxCollider->Init();
 			} else {
 				App->editor->modalToOpen = Modal::COMPONENT_EXISTS; // TODO: Control other colliders exists.
 			}

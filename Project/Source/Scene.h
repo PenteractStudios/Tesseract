@@ -23,6 +23,7 @@
 #include "Components/ComponentAudioListener.h"
 #include "Components/ComponentAudioSource.h"
 #include "Components/Physics/ComponentSphereCollider.h"
+#include "Components/Physics/ComponentBoxCollider.h"
 
 class GameObject;
 
@@ -76,6 +77,7 @@ public:
 	PoolMap<UID, ComponentAudioSource> audioSourceComponents;
 	PoolMap<UID, ComponentAudioListener> audioListenerComponents;
 	PoolMap<UID, ComponentSphereCollider> sphereColliderComponents;
+	PoolMap<UID, ComponentBoxCollider> boxColliderComponents;
 
 	// ---- Quadtree Parameters ---- //
 	Quadtree<GameObject> quadtree;
