@@ -136,6 +136,9 @@ unsigned int ModuleTime::GetFrameCount() const {
 void ModuleTime::StartGame() {
 	if (gameStarted) return;
 
+	gameStarted = true;
+	gameRunning = true;
+
 #if !GAME
 	SceneImporter::SaveScene(TEMP_SCENE_FILE_NAME);
 #endif
@@ -150,9 +153,6 @@ void ModuleTime::StartGame() {
 	}
 
 	App->physics->InitializeRigidBodies();
-
-	gameStarted = true;
-	gameRunning = true;
 }
 
 void ModuleTime::StopGame() {
