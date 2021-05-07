@@ -233,7 +233,7 @@ UpdateStatus ModuleRender::Update() {
 	culledTriangles = 0;
 
 	// Pass 1. Build the depth map
-	ShadowMapPass();
+	//ShadowMapPass();
 
 	// Pass 2. Draw the scene with the depth map
 	RenderPass();
