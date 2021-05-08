@@ -135,6 +135,7 @@ void ModuleScene::ReceiveEvent(TesseractEvent& e) {
 		if (App->time->IsGameRunning() && !sceneLoaded) {
 			sceneLoaded = true;
 			for (ComponentScript& script : scene->scriptComponents) {
+				script.CreateScriptInstance();
 				Script* scriptInstance = script.GetScriptInstance();
 				if (scriptInstance != nullptr) {
 					scriptInstance->Start();

@@ -24,6 +24,8 @@ uniform bool hasNormalMap;
 uniform float normalStrength;
 uniform float smoothness;
 uniform int hasSmoothnessAlpha; // Generic used for Specular and Metallic
+uniform vec2 tiling;
+uniform vec2 offset;
 
 struct AmbientLight
 {
@@ -78,13 +80,23 @@ float Pow2(float a)
 	return a * a;
 }
 
+vec2 GetTiledUVs(vec2 uv, vec2 tiling, vec2 offset)
+{
+    return uv * tiling + offset; 
+}
+
+vec4 GetDiffuse(sampler2D diffuseMap, vec2 uv, vec3 diffuseColor, int hasDiffuseMap)
+{
+    return hasDiffuseMap * pow(texture(diffuseMap, uv), vec4(2.2)) * vec4(diffuseColor, 1.0) + (1 - hasDiffuseMap) * vec4(diffuseColor, 1.0);
+}
+
 vec3 GetNormal(sampler2D normalMap, vec2 uv, mat3 TBN, float normalStrength)
 {
-	vec3 normal = texture(normalMap, uv).rgb;
-	normal = normal * 2.0 - 1.0;
-	normal.xy *= normalStrength;
-	normal = normalize(normal);
-	return normalize(TBN * normal);
+    vec3 normal = texture(normalMap, uv).rgb;
+    normal = normal * 2.0 - 1.0;
+    normal.xy *= normalStrength;
+    normal = normalize(normal);
+    return normalize(TBN * normal);
 }
 
 float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection) {
@@ -220,18 +232,19 @@ vec3 ProcessSpotLight(SpotLight spot, vec3 fragNormal, vec3 fragPos, vec3 viewDi
 -- - fragMainMetallic
 
 void main()
-{
+{    
+    vec3 viewDir = normalize(viewPos - fragPos);
+    vec2 tiledUV = GetTiledUVs(uv, tiling, offset); 
+    vec3 normal = fragNormal;
 
-	vec3 viewDir = normalize(viewPos - fragPos);
-	vec3 normal = fragNormal;
-	if (hasNormalMap)
-	{
-		normal = GetNormal(normalMap, uv, TBN, normalStrength);
-	}
+    if (hasNormalMap)
+    {
+	    normal = GetNormal(normalMap, tiledUV, TBN, normalStrength);
+    }
 
-	vec4 colorDiffuse = hasDiffuseMap * pow(texture(diffuseMap, uv), vec4(2.2)) * vec4(diffuseColor, 1.0) + (1 - hasDiffuseMap) * vec4(diffuseColor, 1.0);
-	vec4 colorMetallic = pow(texture(metallicMap, uv), vec4(2.2));
-	float metalnessMask = hasMetallicMap * colorMetallic.r + (1 - hasMetallicMap) * metalness;
+    vec4 colorDiffuse = GetDiffuse(diffuseMap, tiledUV, diffuseColor, hasDiffuseMap);
+    vec4 colorMetallic = pow(texture(metallicMap, tiledUV), vec4(2.2));
+    float metalnessMask = hasMetallicMap * colorMetallic.r + (1 - hasMetallicMap) * metalness;
 
 	float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorMetallic.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
 
@@ -268,27 +281,28 @@ void main()
 -- - fragMainSpecular
 
 void main()
-{
+{    
+    vec3 viewDir = normalize(viewPos - fragPos);
+    vec2 tiledUV = GetTiledUVs(uv, tiling, offset); 
+    vec3 normal = fragNormal;
 
-	vec3 viewDir = normalize(viewPos - fragPos);
-	vec3 normal = fragNormal;
-	if (hasNormalMap)
-	{
-		normal = GetNormal(normalMap, uv, TBN, normalStrength);
-	}
+    if (hasNormalMap)
+    {
+	    normal = GetNormal(normalMap, tiledUV, TBN, normalStrength);
+    }
+	
+    vec4 colorDiffuse = GetDiffuse(diffuseMap, tiledUV, diffuseColor, hasDiffuseMap);
+    vec4 colorSpecular = hasSpecularMap * pow(texture(specularMap, tiledUV), vec4(2.2)) + (1 - hasSpecularMap) * vec4(specularColor, 1.0);
 
-	vec4 colorDiffuse = hasDiffuseMap * pow(texture(diffuseMap, uv), vec4(2.2)) * vec4(diffuseColor, 1.0) + (1 - hasDiffuseMap) * vec4(diffuseColor, 1.0);
-	vec4 colorSpecular = hasSpecularMap * pow(texture(specularMap, uv), vec4(2.2)) + (1 - hasSpecularMap) * vec4(specularColor, 1.0);
+    float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorSpecular.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
 
-	float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorSpecular.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
+    vec3 colorAccumulative = colorDiffuse.rgb * light.ambient.color;
 
-	vec3 colorAccumulative = colorDiffuse.rgb * light.ambient.color;
-
-	// Directional Light
-	if (light.directional.isActive == 1)
-	{
-		colorAccumulative += ProcessDirectionalLight(light.directional, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
-	}
+    // Directional Light
+    if (light.directional.isActive == 1)
+    {
+        colorAccumulative += ProcessDirectionalLight(light.directional, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+    }
 
 	// Point Light
 	for (int i = 0; i < light.numPoints; i++)

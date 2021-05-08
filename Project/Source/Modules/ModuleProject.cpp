@@ -310,10 +310,11 @@ bool ModuleProject::Init() {
 
 #if GAME
 	UnloadGameCodeDLL();
-	if (!LoadLibrary("Penteract.dll")) {
+	if (!LoadGameCodeDLL("Penteract.dll")) {
 		LOG("%s", GetLastErrorStdStr().c_str());
 	}
 #else
+
 	LoadProject("Penteract/Penteract.sln");
 #endif
 	return true;
@@ -322,9 +323,11 @@ bool ModuleProject::Init() {
 UpdateStatus ModuleProject::Update() {
 	for (ComponentScript& script : App->scene->scene->scriptComponents) {
 		if (App->time->HasGameStarted() && App->scene->sceneLoaded) {
-			Script* scriptInstance = script.GetScriptInstance();
-			if (scriptInstance != nullptr) {
-				scriptInstance->Update();
+			if (script.IsActiveInHierarchy()) {
+				Script* scriptInstance = script.GetScriptInstance();
+				if (scriptInstance != nullptr) {
+					scriptInstance->Update();
+				}
 			}
 		}
 	}
@@ -559,7 +562,7 @@ bool ModuleProject::LoadGameCodeDLL(const char* path) {
 		return false;
 	}
 
-	gameCodeDLL = LoadLibraryA(path);
+	gameCodeDLL = LoadLibrary(path);
 
 	return gameCodeDLL ? true : false;
 }

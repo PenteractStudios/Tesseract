@@ -36,6 +36,7 @@
     <ClCompile Include="Source\Panels\PanelInspector.cpp" />
     <ClCompile Include="Source\Panels\PanelScene.cpp" />
     <ClCompile Include="Source\Panels\PanelControlEditor.cpp" />
+    <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Libs\ImGuizmo\ImCurveEdit.cpp" />
     <ClCompile Include="Libs\ImGuizmo\ImGradient.cpp" />
     <ClCompile Include="Libs\ImGuizmo\ImGuizmo.cpp" />
@@ -113,6 +114,7 @@
     <ClCompile Include="Libs\PhysicsFS\physfs_platform_winrt.cpp" />
     <ClCompile Include="Libs\PhysicsFS\physfs_unicode.c" />
     <ClCompile Include="Source\Components\ComponentMeshRenderer.cpp" />
+    <ClCompile Include="Source\Resources\ResourceStateMachine.cpp" />
     <ClCompile Include="Source\Modules\ModuleAudio.cpp" />
     <ClCompile Include="Source\Panels\PanelProject.cpp" />
     <ClCompile Include="Source\Resources\ResourceType.cpp" />
@@ -157,6 +159,9 @@
     <ClCompile Include="Source\GameplaySystems.cpp" />
     <ClCompile Include="Source\Utils\AssetFile.cpp" />
     <ClCompile Include="Source\Modules\ModuleEvents.cpp" />
+    <ClCompile Include="Source\FileSystem\StateMachineImporter.cpp" />
+    <ClCompile Include="Source\Resources\ResourceClip.cpp" />
+    <ClCompile Include="Source\FileSystem\ClipImporter.cpp" />
     <ClCompile Include="Source\Components\ComponentType.cpp" />
     <ClCompile Include="Source\TesseractEvent.cpp" />
     <ClCompile Include="Source\FileSystem\PrefabImporter.cpp" />
@@ -213,6 +218,7 @@
     <ClInclude Include="Source\Panels\PanelInspector.h" />
     <ClInclude Include="Source\Panels\PanelScene.h" />
     <ClInclude Include="Source\Panels\PanelControlEditor.h" />
+    <ClCompile Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Libs\DebugDraw\debugdraw.h" />
     <ClInclude Include="Libs\DebugDraw\debug_draw.hpp" />
     <ClInclude Include="Libs\ImGuizmo\ImCurveEdit.h" />
@@ -314,6 +320,7 @@
     <ClInclude Include="Libs\PhysicsFS\physfs_miniz.h" />
     <ClInclude Include="Libs\PhysicsFS\physfs_platforms.h" />
     <ClInclude Include="Source\Components\ComponentMeshRenderer.h" />
+    <ClInclude Include="Source\Resources\ResourceStateMachine.h" />
     <ClInclude Include="Source\Panels\PanelProject.h" />
     <ClInclude Include="Source\Resources\ResourceType.h" />
     <ClInclude Include="Source\Scene.h" />
@@ -422,6 +429,13 @@
     <ClInclude Include="Source\FileSystem\SkyboxImporter.h" />
     <ClInclude Include="Source\Utils\AssetFile.h" />
     <ClInclude Include="Source\Modules\ModuleEvents.h" />
+    <ClInclude Include="Source\FileSystem\StateMachineImporter.h" />
+    <ClInclude Include="Source\Resources\ResourceClip.h" />
+    <ClInclude Include="Source\Transition.h" />
+    <ClInclude Include="Source\AnimationInterpolation.h" />
+    <ClInclude Include="Source\FileSystem\ClipImporter.h" />
+    <ClInclude Include="Source\Utils\VectorMap.h" />
+    <ClInclude Include="Source\State.h" />
     <ClInclude Include="Source\Components\ComponentAudioListener.h" />
     <ClInclude Include="Source\Components\ComponentAudioSource.h" />
     <ClInclude Include="Source\Resources\ResourceAudioClip.h" />

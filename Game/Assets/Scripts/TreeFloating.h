@@ -16,9 +16,10 @@ public:
 	void Update() override;
 
 public:
-	GameObject* gameObject = nullptr;
+	UID treesUID;
 
 private:
+	GameObject* trees = nullptr;
 	float offset = 0.f;
 	float3 initialPosition = float3(0,0,0);
 	ComponentTransform* transform = nullptr;

@@ -307,7 +307,11 @@ void ModuleRender::ViewportResized(int width, int height) {
 }
 
 void ModuleRender::UpdateFramebuffer() {
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	#if GAME
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	#else
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	#endif
 
 	glBindTexture(GL_TEXTURE_2D, renderTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, viewportSize.x, viewportSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);

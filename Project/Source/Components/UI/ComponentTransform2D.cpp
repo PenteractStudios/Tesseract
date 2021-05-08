@@ -7,6 +7,7 @@
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleDebugDraw.h"
 #include "Modules/ModuleTime.h"
+#include "Panels/PanelControlEditor.h"
 
 #include "debugdraw.h"
 #include "imgui.h"
@@ -19,6 +20,7 @@
 #define JSON_TAG_SCALE "Scale"
 #define JSON_TAG_LOCAL_EULER_ANGLES "LocalEulerAngles"
 #define JSON_TAG_PIVOT "Pivot"
+#define JSON_TAG_PIVOT_POSITION "PivotPosition"
 #define JSON_TAG_SIZE "Size"
 #define JSON_TAG_ANCHOR_X "AnchorX"
 #define JSON_TAG_ANCHOR_Y "AnchorY"
@@ -30,25 +32,9 @@ void ComponentTransform2D::Update() {
 void ComponentTransform2D::OnEditorUpdate() {
 	float3 editorPos = position;
 
-	ImGui::TextColored(App->editor->titleColor, "Position (X,Y,Z)");
+	ImGui::TextColored(App->editor->titleColor, "Transformation (X,Y,Z)");
 	if (ImGui::DragFloat3("Position", editorPos.ptr(), App->editor->dragSpeed2f, -inf, inf)) {
 		SetPosition(editorPos);
-	}
-
-	float2 editorSize = size;
-	ImGui::TextColored(App->editor->titleColor, "Size (Width,Height)");
-	if (ImGui::DragFloat2("Size", editorSize.ptr(), App->editor->dragSpeed2f, 0, inf)) {
-		SetSize(editorSize);
-	}
-
-	float2 anchX = anchorX;
-	float2 anchY = anchorY;
-	ImGui::TextColored(App->editor->titleColor, "Anchors");
-	if (ImGui::DragFloat2("Anchor X (Min, Max)", anchX.ptr(), App->editor->dragSpeed2f, 0, 1)) {
-		SetAnchorX(anchX);
-	}
-	if (ImGui::DragFloat2("Anchor Y (Min, Max)", anchY.ptr(), App->editor->dragSpeed2f, 0, 1)) {
-		SetAnchorY(anchY);
 	}
 
 	float3 scl = scale;
@@ -57,9 +43,33 @@ void ComponentTransform2D::OnEditorUpdate() {
 	}
 
 	float3 rot = localEulerAngles;
-	if (ImGui::DragFloat3("Rotation", rot.ptr(), App->editor->dragSpeed2f, -inf, inf)) {
+	if (ImGui::DragFloat("Rotation (Z)", &rot.z, App->editor->dragSpeed2f, -inf, inf)) {
 		SetRotation(rot);
 	}
+
+	float2 editorSize = size;
+	ImGui::TextColored(App->editor->titleColor, "Size (Width,Height)");
+	if (ImGui::DragFloat2("Size", editorSize.ptr(), App->editor->dragSpeed2f, 0, inf)) {
+		SetSize(editorSize);
+	}
+
+	float2 anchMin = anchorMin;
+	float2 anchMax = anchorMax;
+	ImGui::TextColored(App->editor->titleColor, "Anchors");
+	if (ImGui::DragFloat2("Min (X, Y)", anchMin.ptr(), App->editor->dragSpeed2f, 0, 1)) {
+		SetAnchorMin(anchMin);
+	}
+	if (ImGui::DragFloat2("Max (X, Y)", anchMax.ptr(), App->editor->dragSpeed2f, 0, 1)) {
+		SetAnchorMax(anchMax);
+	}
+
+	float2 piv = pivot;
+	float3 pivPos = pivotPosition;
+	ImGui::TextColored(App->editor->titleColor, "Pivot");
+	if (ImGui::DragFloat2("Pivot (X, Y)", piv.ptr(), App->editor->dragSpeed2f, -inf, inf)) {
+		SetPivot(piv);
+	}
+	ImGui::InputFloat3("Pivot World Position (X,Y,Z)", pivPos.ptr(), "%.3f", ImGuiInputTextFlags_ReadOnly);
 
 	UpdateUIElements();
 
@@ -92,17 +102,23 @@ void ComponentTransform2D::Save(JsonValue jComponent) const {
 	jPivot[0] = pivot.x;
 	jPivot[1] = pivot.y;
 
+	JsonValue jPivotPosition = jComponent[JSON_TAG_PIVOT_POSITION];
+	jPosition[0] = pivotPosition.x;
+	jPosition[1] = pivotPosition.y;
+	jPosition[2] = pivotPosition.z;
+
+
 	JsonValue jSize = jComponent[JSON_TAG_SIZE];
 	jSize[0] = size.x;
 	jSize[1] = size.y;
 
 	JsonValue jAnchorX = jComponent[JSON_TAG_ANCHOR_X];
-	jAnchorX[0] = anchorX.x;
-	jAnchorX[1] = anchorX.y;
+	jAnchorX[0] = anchorMin.x;
+	jAnchorX[1] = anchorMin.y;
 
 	JsonValue jAnchorY = jComponent[JSON_TAG_ANCHOR_Y];
-	jAnchorY[0] = anchorY.x;
-	jAnchorY[1] = anchorY.y;
+	jAnchorY[0] = anchorMax.x;
+	jAnchorY[1] = anchorMax.y;
 }
 
 void ComponentTransform2D::Load(JsonValue jComponent) {
@@ -121,21 +137,29 @@ void ComponentTransform2D::Load(JsonValue jComponent) {
 	JsonValue jPivot = jComponent[JSON_TAG_PIVOT];
 	pivot.Set(jPivot[0], jPivot[1]);
 
+	JsonValue jPivotPosition = jComponent[JSON_TAG_PIVOT_POSITION];
+	pivotPosition.Set(jPivotPosition[0], jPivotPosition[1], jPivotPosition[2]);
+
 	JsonValue jSize = jComponent[JSON_TAG_SIZE];
 	size.Set(jSize[0], jSize[1]);
 
 	JsonValue jAnchorX = jComponent[JSON_TAG_ANCHOR_X];
-	anchorX.Set(jAnchorX[0], jAnchorX[1]);
+	anchorMin.Set(jAnchorX[0], jAnchorX[1]);
 
 	JsonValue jAnchorY = jComponent[JSON_TAG_ANCHOR_Y];
-	anchorY.Set(jAnchorY[0], jAnchorY[1]);
+	anchorMax.Set(jAnchorY[0], jAnchorY[1]);
 
 	dirty = true;
 }
 
 void ComponentTransform2D::DrawGizmos() {
+	ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
+	float factor = canvasRenderer->GetCanvasScreenFactor();
 	if (!App->time->IsGameRunning()) {
 		dd::box(GetPosition(), dd::colors::Yellow, size.x * scale.x / 100, size.y * scale.y / 100, 0);
+		float3 pivotPosFactor = float3(GetPivotPosition().x / 100, GetPivotPosition().y / 100, GetPivotPosition().z / 100);
+		dd::box(pivotPosFactor, dd::colors::OrangeRed, 0.1, 0.1, 0);
+
 	}
 }
 
@@ -157,16 +181,28 @@ bool ComponentTransform2D::HasAnyUIElementsInChildren(const GameObject* obj) con
 
 void ComponentTransform2D::SetPosition(float3 position_) {
 	position = position_;
+	// Update the new pivot position
+	UpdatePivotPosition();
 	InvalidateHierarchy();
 }
 
 void ComponentTransform2D::SetPivot(float2 pivot_) {
 	pivot = pivot_;
+	// Update the new pivot position
+	UpdatePivotPosition();
+	InvalidateHierarchy();
+}
+
+void ComponentTransform2D::UpdatePivotPosition() {
+	pivotPosition.x = (size.x * pivot.x - size.x * 0.5) * scale.x + position.x;
+	pivotPosition.y = (size.y * pivot.y - size.y * 0.5) * scale.y + position.y;
 	InvalidateHierarchy();
 }
 
 void ComponentTransform2D::SetSize(float2 size_) {
 	size = size_;
+	// Update the new pivot position
+	UpdatePivotPosition();
 	InvalidateHierarchy();
 }
 
@@ -180,21 +216,24 @@ void ComponentTransform2D::SetRotation(Quat rotation_) {
 void ComponentTransform2D::SetRotation(float3 rotation_) {
 	rotation = Quat::FromEulerXYZ(rotation_.x * DEGTORAD, rotation_.y * DEGTORAD, rotation_.z * DEGTORAD);
 	localEulerAngles = rotation_;
+
 	InvalidateHierarchy();
 }
 
 void ComponentTransform2D::SetScale(float3 scale_) {
 	scale = scale_;
+	// Update the new pivot position
+	UpdatePivotPosition();
 	InvalidateHierarchy();
 }
 
-void ComponentTransform2D::SetAnchorX(float2 anchorX_) {
-	anchorX = anchorX_;
+void ComponentTransform2D::SetAnchorMin(float2 anchorMin_) {
+	anchorMin = anchorMin_;
 	InvalidateHierarchy();
 }
 
-void ComponentTransform2D::SetAnchorY(float2 anchorY_) {
-	anchorY = anchorY_;
+void ComponentTransform2D::SetAnchorMax(float2 anchorMax_) {
+	anchorMax = anchorMax_;
 	InvalidateHierarchy();
 }
 
@@ -202,20 +241,33 @@ const float4x4 ComponentTransform2D::GetGlobalMatrix() const {
 	return globalMatrix;
 }
 
-const float4x4 ComponentTransform2D::GetGlobalMatrixWithSize(bool view3DActive) const {
+const float4x4 ComponentTransform2D::GetGlobalScaledMatrix(bool scaleFactored, bool view3DActive) const {
+	ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
+
+	float factor = 1.0f;
+
+	if (scaleFactored) {
+		if (canvasRenderer) {
+			factor = canvasRenderer->GetCanvasScreenFactor();
+		}
+	}
+
 	if (view3DActive) {
 		return globalMatrix * float4x4::Scale(size.x / 100.0f, size.y / 100.0f, 0);
 	}
-	return globalMatrix * float4x4::Scale(size.x, size.y, 0);
+	return globalMatrix * float4x4::Scale(size.x * factor, size.y * factor, 0);
 }
 
 void ComponentTransform2D::CalculateGlobalMatrix() {
-	ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
-	float factor = canvasRenderer ? canvasRenderer->GetCanvasScreenFactor() : 1;
+	bool isPivotMode = App->editor->panelControlEditor.GetRectTool();
+
 	if (dirty) {
-		localMatrix = float4x4::FromTRS(position * factor, rotation, scale * factor);
+		ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
+		float factor = canvasRenderer ? canvasRenderer->GetCanvasScreenFactor() : 1;
+		localMatrix = float4x4::FromTRS(position * factor, rotation, scale);
 
 		GameObject* parent = GetOwner().GetParent();
+
 		if (parent != nullptr) {
 			ComponentTransform2D* parentTransform = parent->GetComponent<ComponentTransform2D>();
 
@@ -223,9 +275,19 @@ void ComponentTransform2D::CalculateGlobalMatrix() {
 				parentTransform->CalculateGlobalMatrix();
 				globalMatrix = parentTransform->globalMatrix * localMatrix;
 			} else {
-				globalMatrix = localMatrix;
+				if (isPivotMode) {
+					bool isUsing2D = App->editor->panelScene.IsUsing2D();
+					if (isUsing2D) {
+						localMatrix = float4x4::FromQuat(rotation, pivotPosition * factor);
+						globalMatrix = localMatrix * float4x4::Translate(position * factor) * float4x4::Scale(scale);
+					} else {
+						localMatrix = float4x4::FromQuat(rotation, pivotPosition / 100);
+						globalMatrix = localMatrix * float4x4::Translate(position * factor / 100) * float4x4::Scale(scale);
+					}
+				} else {
+					globalMatrix = localMatrix;
+				}
 			}
-
 		} else {
 			globalMatrix = localMatrix;
 		}
@@ -255,6 +317,10 @@ float3 ComponentTransform2D::GetScale() const {
 	return scale;
 }
 
+float3 ComponentTransform2D::GetPivotPosition() const {
+	return pivotPosition;
+}
+
 void ComponentTransform2D::InvalidateHierarchy() {
 	Invalidate();
 
@@ -281,7 +347,7 @@ void ComponentTransform2D::DuplicateComponent(GameObject& owner) {
 	component->SetPosition(position);
 	component->SetRotation(rotation);
 	component->SetScale(scale);
-	component->SetAnchorX(anchorX);
-	component->SetAnchorY(anchorX);
+	component->SetAnchorMin(anchorMin);
+	component->SetAnchorMax(anchorMax);
 	component->dirty = true;
 }

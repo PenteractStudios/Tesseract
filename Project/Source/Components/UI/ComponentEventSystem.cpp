@@ -12,7 +12,7 @@
 #include "Utils/Logging.h"
 
 #include "Utils/Leaks.h"
-	
+
 #define JSON_TAG_FIRST_SELECTED_ID "FirstSelectedId"
 
 ComponentEventSystem ::~ComponentEventSystem() {

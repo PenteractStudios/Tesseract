@@ -14,6 +14,10 @@ public:
 	void Start() override;
 	void Update() override;
 
+public:
+	UID fangUID;
+	UID canvasUID;
+
 private:
 	GameObject* canvas = nullptr;
 	GameObject* player = nullptr;

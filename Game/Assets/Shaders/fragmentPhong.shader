@@ -3,17 +3,19 @@
 void main() {
 
     vec3 viewN = normalize(viewPos - fragPos);
+    vec2 tiledUV = GetTiledUVs(uv, tiling, offset); 
     vec3 normal = fragNormal;
+
     if (hasNormalMap)
     {
-	    normal = GetNormal(normalMap, uv, TBN, normalStrength);
+	    normal = GetNormal(normalMap, tiledUV, TBN, normalStrength);
     }
 
     // diffuse
-    vec4 colorDiffuse = hasDiffuseMap * pow(texture(diffuseMap, uv), vec4(2.2)) * vec4(diffuseColor, 1.0) + (1 - hasDiffuseMap) * vec4(diffuseColor, 1.0);
+    vec4 colorDiffuse = GetDiffuse(diffuseMap, tiledUV, diffuseColor, hasDiffuseMap);
 
     // specular
-    vec4 colorSpecular = hasSpecularMap * pow(texture(specularMap, uv), vec4(2.2)) + (1 - hasSpecularMap) * vec4(specularColor, 1.0);
+    vec4 colorSpecular = hasSpecularMap * pow(texture(specularMap, tiledUV), vec4(2.2)) + (1 - hasSpecularMap) * vec4(specularColor, 1.0);
     vec3 Rf0 = colorSpecular.rgb;
 
     // shininess

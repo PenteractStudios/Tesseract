@@ -5,21 +5,22 @@
 
 EXPOSE_MEMBERS(FangMovement) {
 	// Add members here to expose them to the engine. Example:
-	// MEMBER(MemberType::BOOL, exampleMember1),
-	// MEMBER(MemberType::PREFAB_RESOURCE_UID, exampleMember2),
-	// MEMBER(MemberType::GAME_OBJECT_UID, exampleMember3)
+	MEMBER(MemberType::GAME_OBJECT_UID, fangUID),
+	MEMBER(MemberType::GAME_OBJECT_UID, cameraUID),
+	MEMBER(MemberType::INT, speed),
+	MEMBER(MemberType::FLOAT, cameraXPosition)
 };
 
 GENERATE_BODY_IMPL(FangMovement);
 
 void FangMovement::Start() {
-	gameObject = GameplaySystems::GetGameObject("Fang");
-	camera = GameplaySystems::GetGameObject("Game Camera");
+	fang = GameplaySystems::GetGameObject(fangUID);
+	camera = GameplaySystems::GetGameObject(cameraUID);
 	Debug::Log("Fang movement Start Log");
 }
 
 void FangMovement::Update() {
-	if (!gameObject) return;
+	if (!fang) return;
 	if (!camera) return;
 
 	ComponentTransform* cameraTransform = camera->GetComponent<ComponentTransform>();
@@ -30,7 +31,7 @@ void FangMovement::Update() {
 				modifier = 2.0f;
 			}
 			if (Input::GetKeyCode(Input::KEYCODE::KEY_W)) {
-				ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
+				ComponentTransform* transform = fang->GetComponent<ComponentTransform>();
 				if (transform) {
 					float3 newPosition = transform->GetPosition();
 					newPosition.z -= speed * Time::GetDeltaTime() * modifier;
@@ -38,7 +39,7 @@ void FangMovement::Update() {
 				}
 			}
 			if (Input::GetKeyCode(Input::KEYCODE::KEY_A)) {
-				ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
+				ComponentTransform* transform = fang->GetComponent<ComponentTransform>();
 				if (transform) {
 					float3 newPosition = transform->GetPosition();
 					newPosition.x -= speed * Time::GetDeltaTime() * modifier;
@@ -46,7 +47,7 @@ void FangMovement::Update() {
 				}
 			}
 			if (Input::GetKeyCode(Input::KEYCODE::KEY_S)) {
-				ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
+				ComponentTransform* transform = fang->GetComponent<ComponentTransform>();
 				if (transform) {
 					float3 newPosition = transform->GetPosition();
 					newPosition.z += speed * Time::GetDeltaTime() * modifier;
@@ -54,7 +55,7 @@ void FangMovement::Update() {
 				}
 			}
 			if (Input::GetKeyCode(Input::KEYCODE::KEY_D)) {
-				ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
+				ComponentTransform* transform = fang->GetComponent<ComponentTransform>();
 				if (transform) {
 					float3 newPosition = transform->GetPosition();
 					newPosition.x += speed * Time::GetDeltaTime() * modifier;

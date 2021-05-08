@@ -1,0 +1,8 @@
+{
+    "Name": "Spawn",
+    "AnimationUID": 14070918630652862611,
+    "BeginIndex": 0,
+    "EndIndex": 60,
+    "Loop": false,
+    "Speed": 1.0
+}

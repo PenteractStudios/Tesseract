@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -15,9 +15,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\LightFrustum.h" />
+    <ClInclude Include="Source\FileSystem\ClipImporter.h" />
+    <ClInclude Include="Source\FileSystem\StateMachineImporter.h" />
+    <ClInclude Include="Source\AnimationInterpolation.h" />
+    <ClInclude Include="Source\Resources\ResourceClip.h" />
+    <ClInclude Include="Source\State.h" />
+    <ClInclude Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Source\FileSystem\AudioImporter.h" />
     <ClInclude Include="Libs\imgui\imgui_stdlib.h" />
-    <ClInclude Include="Source\LightFrustum.h" />
     <ClInclude Include="Source\Resources\ResourceAudioClip.h" />
     <ClInclude Include="Source\Components\UI\ComponentText.h" />
     <ClInclude Include="Source\Components\UI\ComponentToggle.h" />
@@ -133,6 +139,7 @@
     <ClInclude Include="Source\Resources\Resource.h" />
     <ClInclude Include="Source\Globals.h" />
     <ClInclude Include="Source\Application.h" />
+    <ClInclude Include="Source\Resources\ResourceStateMachine.h" />
     <ClInclude Include="Source\Components\UI\ComponentEventSystem.h" />
     <ClInclude Include="Source\Modules\ModuleUserInterface.h" />
     <ClInclude Include="Source\Components\UI\ComponentButton.h" />
@@ -274,14 +281,20 @@
     <ClInclude Include="Libs\MathGeoLib\Math\TransformOps.h" />
     <ClInclude Include="Libs\MathGeoLib\Math\vec2d.h" />
     <ClInclude Include="Libs\MathGeoLib\Time\Clock.h" />
+    <ClInclude Include="Source\Transition.h" />
+    <ClInclude Include="Source\Utils\VectorMap.h" />
     <ClInclude Include="Source\Utils\PoolMap.h" />
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\LightFrustum.cpp" />
+    <ClCompile Include="Source\FileSystem\ClipImporter.cpp" />
+    <ClCompile Include="Source\FileSystem\StateMachineImporter.cpp" />
+    <ClCompile Include="Source\Resources\ResourceClip.cpp" />
     <ClCompile Include="Libs\imgui\imgui_tables.cpp" />
+    <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Source\FileSystem\AudioImporter.cpp" />
     <ClCompile Include="Libs\imgui\imgui_stdlib.cpp" />
-    <ClCompile Include="Source\LightFrustum.cpp" />
     <ClCompile Include="Source\Resources\ResourceAudioClip.cpp" />
     <ClCompile Include="Source\Components\ComponentType.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentText.cpp" />
@@ -346,6 +359,7 @@
     <ClCompile Include="Source\Resources\Resource.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\Application.cpp" />
+    <ClCompile Include="Source\Resources\ResourceStateMachine.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentEventSystem.cpp" />
     <ClCompile Include="Source\Modules\ModuleUserInterface.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentButton.cpp" />

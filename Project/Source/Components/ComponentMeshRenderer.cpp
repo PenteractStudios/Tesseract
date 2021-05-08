@@ -23,29 +23,12 @@
 
 #include "assimp/mesh.h"
 #include "GL/glew.h"
-#include "imgui_internal.h"
 #include "imgui.h"
 
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_MESH_ID "MeshID"
 #define JSON_TAG_MATERIAL_ID "MaterialID"
-
-// TODO: Move to Material Importer class
-
-#define JSON_TAG_MATERIAL "Material"
-#define JSON_TAG_HAS_DIFFUSE_MAP "HasDiffuseMap"
-#define JSON_TAG_DIFFUSE_COLOR "DiffuseColor"
-#define JSON_TAG_DIFFUSE_MAP_FILE_NAME "DiffuseMapFileName"
-#define JSON_TAG_HAS_SPECULAR_MAP "HasSpecularMap"
-#define JSON_TAG_SPECULAR_COLOR "SpecularColor"
-#define JSON_TAG_HAS_SPECULAR_MAP_FILE_NAME "SpecularMapFileName"
-#define JSON_TAG_SHININESS "Shininess"
-#define JSON_TAG_HAS_SHININESS_IN_ALPHA_CHANNEL "HasShininessInAlphaChannel"
-#define JSON_TAG_SMOOTHNESS "Smoothness"
-#define JSON_TAG_HAS_SMOOTHNESS_IN_ALPHA_CHANNEL "HasSmoothnessInAlphaChannel"
-#define JSON_TAG_METALLIC_MAP_FILE_NAME "MetallicMapFileName"
-#define JSON_TAG_METALLIC "Metallic"
 
 void ComponentMeshRenderer::OnEditorUpdate() {
 	bool active = IsActive();
@@ -101,226 +84,7 @@ void ComponentMeshRenderer::OnEditorUpdate() {
 	if (ImGui::TreeNode("Material")) {
 		ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
 		if (material != nullptr) {
-			ImGui::TextColored(App->editor->titleColor, "Shader");
-			ImGui::TextUnformatted("Change type:");
-			ImGui::SameLine();
-			// Shader types
-			const char* shaderTypes[] = {"[Legacy] Phong", "Standard (specular settings)", "Standard"};
-			const char* shaderTypesCurrent = shaderTypes[(int) material->shaderType];
-			if (ImGui::BeginCombo("Type", shaderTypesCurrent)) {
-				for (int n = 0; n < IM_ARRAYSIZE(shaderTypes); ++n) {
-					bool isSelected = (shaderTypesCurrent == shaderTypes[n]);
-					if (ImGui::Selectable(shaderTypes[n], isSelected)) {
-						material->shaderType = (MaterialShader) n;
-					}
-					if (isSelected) {
-						ImGui::SetItemDefaultFocus();
-					}
-				}
-				ImGui::EndCombo();
-				ImGui::Text("");
-			}
-
-			//Diffuse
-			ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-			{
-				// TODO: Hint image of texture
-				ImGui::ResourceSlot<ResourceTexture>("Diffuse Texture", &material->diffuseMapId);
-				if (ImGui::Button("No map##diffuse")) {
-					if (material->diffuseMapId != 0) {
-						App->resources->DecreaseReferenceCount(material->diffuseMapId);
-						material->diffuseMapId = 0;
-					}
-				}
-			}
-			ImGui::NextColumn();
-			{
-				std::string id_cd("##color_d");
-				ImGui::PushID(id_cd.c_str());
-				ImGui::ColorEdit4("", material->diffuseColor.ptr(), ImGuiColorEditFlags_NoInputs);
-				ImGui::PopID();
-			}
-			ImGui::EndColumns();
-
-			if (material->shaderType == MaterialShader::PHONG) {
-				// Specular Options
-				ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-				{
-					ImGui::ResourceSlot<ResourceTexture>("Specular Texture", &material->specularMapId);
-					if (ImGui::Button("No map##specular")) {
-						if (material->specularMapId != 0) {
-							App->resources->DecreaseReferenceCount(material->specularMapId);
-							material->specularMapId = 0;
-						}
-					}
-				}
-				ImGui::NextColumn();
-				{
-					if (material->specularMapId == 0) {
-						std::string id_cs("##color_s");
-						ImGui::PushID(id_cs.c_str());
-						ImGui::ColorEdit4("", material->specularColor.ptr(), ImGuiColorEditFlags_NoInputs);
-						ImGui::PopID();
-					}
-				}
-				ImGui::EndColumns();
-
-				// Shininess Options
-				ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-				{
-					const char* shininessItems[] = {"Shininess Value", "Shininess Alpha"};
-					const char* shininessItemCurrent = shininessItems[material->hasSmoothnessInAlphaChannel];
-					if (ImGui::BeginCombo("##shininess", shininessItemCurrent)) {
-						for (int n = 0; n < IM_ARRAYSIZE(shininessItems); ++n) {
-							bool isSelected = (shininessItemCurrent == shininessItems[n]);
-							if (ImGui::Selectable(shininessItems[n], isSelected)) {
-								material->hasSmoothnessInAlphaChannel = n ? 1 : 0;
-							}
-							if (isSelected) {
-								ImGui::SetItemDefaultFocus();
-							}
-						}
-						ImGui::EndCombo();
-					}
-				}
-				ImGui::NextColumn();
-				{
-					if (!material->hasSmoothnessInAlphaChannel) {
-						std::string id_s("##shininess_");
-						ImGui::PushID(id_s.c_str());
-						ImGui::DragFloat(id_s.c_str(), &material->smoothness, App->editor->dragSpeed1f, 0, 1000);
-						ImGui::PopID();
-					}
-				}
-				ImGui::EndColumns();
-
-			} else if (material->shaderType == MaterialShader::STANDARD_SPECULAR) {
-				// Specular Options
-				ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-				{
-					ImGui::ResourceSlot<ResourceTexture>("Specular Texture", &material->specularMapId);
-					if (ImGui::Button("No map##specular")) {
-						if (material->specularMapId != 0) {
-							App->resources->DecreaseReferenceCount(material->specularMapId);
-							material->specularMapId = 0;
-						}
-					}
-				}
-				ImGui::NextColumn();
-				{
-					if (material->specularMapId == 0) {
-						std::string id_cs("##color_s");
-						ImGui::PushID(id_cs.c_str());
-						ImGui::ColorEdit4("", material->specularColor.ptr(), ImGuiColorEditFlags_NoInputs);
-						ImGui::PopID();
-					}
-				}
-				ImGui::EndColumns();
-
-				// Smoothness Options
-				ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-				{
-					ImGui::Text("Smoothness");
-
-					const char* smoothnessItems[] = {"Diffuse Alpha", "Specular Alpha"};
-					const char* smoothnessItemCurrent = smoothnessItems[material->hasSmoothnessInAlphaChannel];
-					if (ImGui::BeginCombo("##smoothness", smoothnessItemCurrent)) {
-						for (int n = 0; n < IM_ARRAYSIZE(smoothnessItems); ++n) {
-							bool isSelected = (smoothnessItemCurrent == smoothnessItems[n]);
-							if (ImGui::Selectable(smoothnessItems[n], isSelected)) {
-								material->hasSmoothnessInAlphaChannel = n;
-							}
-							if (isSelected) {
-								ImGui::SetItemDefaultFocus();
-							}
-						}
-						ImGui::EndCombo();
-					}
-				}
-				ImGui::NextColumn();
-				{
-					ImGui::NewLine();
-					std::string id_s("##smooth_");
-					ImGui::PushID(id_s.c_str());
-					ImGui::SliderFloat(id_s.c_str(), &material->smoothness, 0.0, 1.0);
-					ImGui::PopID();
-				}
-				ImGui::EndColumns();
-
-			} else if (material->shaderType == MaterialShader::STANDARD) {
-				// Metallic Options
-				ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-				{
-					ImGui::ResourceSlot<ResourceTexture>("Metallic Texture", &material->metallicMapId);
-					if (ImGui::Button("No map##metallic")) {
-						if (material->metallicMapId != 0) {
-							App->resources->DecreaseReferenceCount(material->metallicMapId);
-							material->metallicMapId = 0;
-						}
-					}
-				}
-				ImGui::NextColumn();
-				{
-					if (material->metallicMapId == 0) {
-						std::string id_m("##metalness");
-						ImGui::PushID(id_m.c_str());
-						ImGui::SliderFloat("", &material->metallic, 0.0, 1.0);
-						ImGui::PopID();
-					}
-				}
-				ImGui::EndColumns();
-
-				// Smoothness Options
-				ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-				{
-					ImGui::Text("Smoothness");
-					const char* smoothnessItems[] = {"Diffuse Alpha", "Metallic Alpha"};
-					const char* smoothnessItemCurrent = smoothnessItems[material->hasSmoothnessInAlphaChannel];
-					if (ImGui::BeginCombo("##smoothness", smoothnessItemCurrent)) {
-						for (int n = 0; n < IM_ARRAYSIZE(smoothnessItems); ++n) {
-							bool isSelected = (smoothnessItemCurrent == smoothnessItems[n]);
-							if (ImGui::Selectable(smoothnessItems[n], isSelected)) {
-								material->hasSmoothnessInAlphaChannel = n;
-							}
-							if (isSelected) {
-								ImGui::SetItemDefaultFocus();
-							}
-						}
-						ImGui::EndCombo();
-					}
-				}
-				ImGui::NextColumn();
-				{
-					ImGui::NewLine();
-					std::string id_s("##smooth_");
-					ImGui::PushID(id_s.c_str());
-					ImGui::SliderFloat(id_s.c_str(), &material->smoothness, 0.0, 1.0);
-					ImGui::PopID();
-				}
-				ImGui::EndColumns();
-			}
-
-			// Normal Options
-			ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-			{
-				ImGui::ResourceSlot<ResourceTexture>("Normal Texture", &material->normalMapId);
-				if (ImGui::Button("No map##normal")) {
-					if (material->normalMapId != 0) {
-						App->resources->DecreaseReferenceCount(material->normalMapId);
-						material->normalMapId = 0;
-					}
-				}
-			}
-			ImGui::NextColumn();
-			{
-				if (material->normalMapId != 0) {
-					std::string id_m("##strength");
-					ImGui::PushID(id_m.c_str());
-					ImGui::SliderFloat("", &material->normalStrength, 0.0, 10.0);
-					ImGui::PopID();
-				}
-			}
-			ImGui::EndColumns();
+			material->OnEditorUpdate();
 		}
 		ImGui::TreePop();
 	}
@@ -352,8 +116,8 @@ void ComponentMeshRenderer::Update() {
 	const GameObject* parent = GetOwner().GetParent();
 	const GameObject* rootBone = parent->GetRootBone();
 	if (rootBone != nullptr) {
-		const GameObject* rootBoneParent = parent->GetRootBone()->GetParent();
-		const float4x4& invertedRootBoneTransform = (rootBoneParent != nullptr) ? rootBoneParent->GetComponent<ComponentTransform>()->GetGlobalMatrix().Inverted() : float4x4::identity;
+		const GameObject* rootBoneParent = rootBone->GetParent();
+		const float4x4& invertedRootBoneTransform = rootBoneParent ? rootBoneParent->GetComponent<ComponentTransform>()->GetGlobalMatrix().Inverted() : float4x4::identity;
 
 		for (unsigned i = 0; i < mesh->numBones; ++i) {
 			const GameObject* bone = goBones.at(mesh->bones[i].boneName);
@@ -619,9 +383,14 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, glTextureNormal);
 
+	// Depth Map
 	glUniform1i(glGetUniformLocation(program, "depthMap"), 3);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, glDepthMap);
+
+	// Tilling settings
+	glUniform2fv(glGetUniformLocation(program, "tiling"), 1, material->tiling.ptr());
+	glUniform2fv(glGetUniformLocation(program, "offset"), 1, material->offset.ptr());
 
 	// Lights uniforms settings
 	glUniform3fv(glGetUniformLocation(program, "light.ambient.color"), 1, App->renderer->ambientColor.ptr());

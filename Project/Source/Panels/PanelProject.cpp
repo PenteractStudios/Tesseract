@@ -111,7 +111,9 @@ void PanelProject::UpdateResourcesRecursive(const AssetFolder& folder) {
 
 				ImGuiSelectableFlags flags = ImGuiSelectableFlags_None;
 				ImGui::PushID(resourceName.c_str());
-				ImGui::Selectable(name.c_str(), flags);
+				if (ImGui::Selectable(name.c_str(), flags)) {
+					App->editor->selectedResource = resource;
+				}
 				ImGui::PopID();
 
 				if (ImGui::BeginDragDropSource()) {

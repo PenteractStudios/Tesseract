@@ -208,7 +208,7 @@ void ComponentText::RecalculcateVertices() {
 
 	float x = position.x * screenFactor;
 	float y = position.y * screenFactor;
-	
+
 	float dy = 0;		// additional y shifting
 	int j = 0;			// index of row
 

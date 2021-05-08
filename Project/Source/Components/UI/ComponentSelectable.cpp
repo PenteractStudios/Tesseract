@@ -335,6 +335,8 @@ void ComponentSelectable::TryToClickOn() const {
 			((ComponentButton*) componentToPress)->OnClicked();
 			break;
 		case ComponentType::TOGGLE:
+			componentToPress = GetOwner().GetComponent<ComponentToggle>();
+			((ComponentToggle*) componentToPress)->OnClicked();
 			break;
 		default:
 			assert("This is not supposed to ever happen");

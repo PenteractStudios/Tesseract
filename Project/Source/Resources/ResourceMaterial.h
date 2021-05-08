@@ -4,6 +4,7 @@
 #include "Resources/Resource.h"
 
 #include "Math/float4.h"
+#include "Math/float2.h"
 
 enum class MaterialShader {
 	PHONG,
@@ -17,6 +18,7 @@ public:
 
 	void Load() override;
 	void Unload() override;
+	void OnEditorUpdate() override;
 
 	void SaveToFile(const char* filePath);
 
@@ -43,4 +45,8 @@ public:
 	// Smoothness
 	float smoothness = 1;
 	bool hasSmoothnessInAlphaChannel = false;
+
+	// Tilling
+	float2 tiling = {1.f, 1.f};
+	float2 offset = {0.f, 0.f};
 };
