@@ -46,11 +46,11 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 	}
 
 	if (ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed3f, 0.0f, inf) && App->time->IsGameRunning()) {
-		((btCapsuleShape*) rigidBody->getCollisionShape())->setImplicitShapeDimensions(btVector3(radius, height, 0));
+		App->physics->UpdateCapsuleRigidbody(this);
 	}
 
 	if (ImGui::DragFloat("Height", &height, App->editor->dragSpeed3f, 0.0f, inf) && App->time->IsGameRunning()) {
-		((btCapsuleShape*) rigidBody->getCollisionShape())->setImplicitShapeDimensions(btVector3(radius, height, 0));
+		App->physics->UpdateCapsuleRigidbody(this);
 	}
 
 	// TODO: Selector upAxis
