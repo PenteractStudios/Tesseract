@@ -50,7 +50,13 @@ void ComponentBoxCollider::OnEditorUpdate() {
 		rigidBody->setCollisionFlags(isTrigger ? btCollisionObject::CF_NO_CONTACT_RESPONSE : 0);
 		rigidBody->setMassProps(isTrigger ? 0.f : mass, rigidBody->getLocalInertia());
 	}
-	if (!isTrigger) {
+	if (ImGui::Checkbox("Is Kinematic", &isKinematic) && App->time->IsGameRunning()) {
+		rigidBody->setCollisionFlags(isKinematic ? btCollisionObject::CF_KINEMATIC_OBJECT : 0);
+		rigidBody->setActivationState(DISABLE_DEACTIVATION);
+		rigidBody->setMassProps(isTrigger ? 0.f : mass, rigidBody->getLocalInertia());
+	}
+
+	if (!isTrigger && !isKinematic) {
 		if (ImGui::DragFloat("Mass", &mass, App->editor->dragSpeed3f, 0.0f, 100.f) && App->time->IsGameRunning()) {
 			rigidBody->setMassProps(mass, btVector3(0, 0, 0));
 		}

@@ -27,16 +27,52 @@ void ComponentSphereCollider::Init() {
 void ComponentSphereCollider::DrawGizmos() {
 	if (IsActiveInHierarchy()) {
 		ComponentTransform* ownerTransform = GetOwner().GetComponent<ComponentTransform>();
-		dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation()*centerOffset, dd::colors::Green, radius);
+		dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset, dd::colors::Green, radius);
 	}
 }
 
 void ComponentSphereCollider::OnEditorUpdate() {
 	if (ImGui::Checkbox("Is Trigger", &isTrigger) && App->time->IsGameRunning()) {
 		rigidBody->setCollisionFlags(isTrigger ? btCollisionObject::CF_NO_CONTACT_RESPONSE : 0);
-		rigidBody->setMassProps(isTrigger ? 0.f : mass, rigidBody->getLocalInertia());
+		//rigidBody->setMassProps(isTrigger ? 0.f : mass, rigidBody->getLocalInertia());
 	}
-	if (!isTrigger) {
+
+	// Collider Type combo box
+	//TODO: Control if rigidbody
+	const char* colliderTypeItems[] = {"Dynamic", "Static", "Kinematic", "Trigger"};
+	const char* colliderCurrent = colliderTypeItems[(int) colliderType];
+	if (ImGui::BeginCombo("Collider Mode", colliderCurrent)) {
+		for (int n = 0; n < IM_ARRAYSIZE(colliderTypeItems); ++n) {
+			if (ImGui::Selectable(colliderTypeItems[n])) {
+				colliderType = ColliderType(n);
+				switch (colliderType) {
+				case ColliderType::DYNAMIC:
+					rigidBody->setCollisionFlags(0);
+					rigidBody->setActivationState(WANTS_DEACTIVATION);
+					rigidBody->setMassProps(mass, rigidBody->getLocalInertia());
+					break;
+				case ColliderType::STATIC:
+					rigidBody->setCollisionFlags(0);
+					rigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
+					rigidBody->setActivationState(WANTS_DEACTIVATION);
+					rigidBody->setMassProps(0, rigidBody->getLocalInertia());
+					break;
+				case ColliderType::KINEMATIC:
+					rigidBody->setCollisionFlags(0);
+					rigidBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
+					rigidBody->setActivationState(DISABLE_DEACTIVATION);
+					rigidBody->setMassProps(0, rigidBody->getLocalInertia());
+					break;
+				case ColliderType::TRIGGER:
+					//rigidBody->setMassProps(isTrigger ? 0.f : mass, rigidBody->getLocalInertia());
+					break;
+				}
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	if (colliderType == ColliderType::DYNAMIC) {
 		if (ImGui::DragFloat("Mass", &mass, App->editor->dragSpeed3f, 0.0f, 100.f) && App->time->IsGameRunning()) {
 			rigidBody->setMassProps(mass, btVector3(0, 0, 0));
 		}
@@ -52,7 +88,6 @@ void ComponentSphereCollider::OnEditorUpdate() {
 	if (ImGui::Checkbox("Freeze rotation", &freezeRotation) && App->time->IsGameRunning()) {
 		motionState.freezeRotation = freezeRotation;
 	}
-
 }
 
 void ComponentSphereCollider::Save(JsonValue jComponent) const {

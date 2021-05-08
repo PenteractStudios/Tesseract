@@ -33,6 +33,7 @@ public:
 	float3 centerOffset = float3::inf;
 	bool freezeRotation = false;
 	bool isTrigger = false;
+	bool isKinematic = false;
 
 	AABB localAABB = {float3(0.5f), float3(0.5f)}; // Axis Aligned Bounding Box, local to the GameObject
 	OBB worldOBB = {localAABB};
