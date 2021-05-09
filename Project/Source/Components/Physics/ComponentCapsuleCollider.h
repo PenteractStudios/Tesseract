@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Components/Component.h"
+#include "Modules/ModulePhysics.h"
 #include "Utils/MotionState.h"
 
 #include "Math/float3.h"
@@ -32,12 +33,12 @@ public:
 public:
 	btRigidBody* rigidBody = nullptr;
 	MotionState motionState = MotionState(nullptr, float3(0, 0, 0), false);
+	ColliderType colliderType = ColliderType::DYNAMIC;
 	float mass = 1.f;
 	float radius = 1.f;
 	float height = 1.f;
 	float3 centerOffset = float3::inf;
 	bool freezeRotation = false;
-	bool isTrigger = false;
 	CapsuleType type = CapsuleType::Y;
 
 };

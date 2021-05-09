@@ -224,44 +224,32 @@ void ModulePhysics::UpdateBoxRigidbody(ComponentBoxCollider* boxCollider) {
 	CreateBoxRigidbody(boxCollider);
 }
 
-void ModulePhysics::InitializeRigidBodies() {
-	// TODO: Remove this hardcode
-	// Big plane as ground
-	{
-		btCollisionShape* colShape = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
-
-		btDefaultMotionState* myMotionState = new btDefaultMotionState();
-		btRigidBody::btRigidBodyConstructionInfo rbInfo(0.0f, myMotionState, colShape);
-
-		btRigidBody* body = new btRigidBody(rbInfo);
-		world->addRigidBody(body);
+void ModulePhysics::CreateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider) {
+	capsuleCollider->motionState = MotionState(capsuleCollider, capsuleCollider->centerOffset, capsuleCollider->freezeRotation);
+	capsuleCollider->rigidBody = App->physics->AddCapsuleBody(&capsuleCollider->motionState, capsuleCollider->radius, capsuleCollider->height, capsuleCollider->type, capsuleCollider->colliderType == ColliderType::DYNAMIC ? capsuleCollider->mass : 0);
+	
+	switch (capsuleCollider->colliderType) {
+	case ColliderType::STATIC:
+		capsuleCollider->rigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
+		break;
+	case ColliderType::KINEMATIC:
+		capsuleCollider->rigidBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
+		capsuleCollider->rigidBody->setActivationState(DISABLE_DEACTIVATION);
+		break;
+	case ColliderType::TRIGGER:
+		capsuleCollider->rigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+		break;
+	default:
+		break;
 	}
 
-	for (ComponentSphereCollider& sphereCollider : App->scene->scene->sphereColliderComponents) {
-		if (!sphereCollider.rigidBody) CreateSphereRigidbody(&sphereCollider);
-	}
-
-	for (ComponentBoxCollider& boxCollider : App->scene->scene->boxColliderComponents) {
-		if (!boxCollider.rigidBody) CreateBoxRigidbody(&boxCollider);
-	}
-}
-
-	for (ComponentCapsuleCollider& capsuleCollider : App->scene->scene->capsuleColliderComponents) {
-		if (!capsuleCollider.rigidBody) CreateCapsuleRigidbody(&capsuleCollider);
-	}
-}
-
-void ModulePhysics::ClearPhysicBodies() {
-	for (int i = world->getNumCollisionObjects() - 1; i >= 0; i--) {
-		btCollisionObject* obj = world->getCollisionObjectArray()[i];
-		world->removeCollisionObject(obj);
-		RELEASE(obj);
-	}
+	capsuleCollider->rigidBody->setUserPointer(capsuleCollider);
+	world->addRigidBody(capsuleCollider->rigidBody);
 }
 
 btRigidBody* ModulePhysics::AddCapsuleBody(MotionState* myMotionState, float radius, float height, CapsuleType type, float mass) {
 	btCollisionShape* colShape = nullptr;
-	
+
 	switch (type) {
 	case CapsuleType::X:
 		colShape = new btCapsuleShapeX(radius, height);
@@ -282,6 +270,50 @@ btRigidBody* ModulePhysics::AddCapsuleBody(MotionState* myMotionState, float rad
 	btRigidBody* body = new btRigidBody(rbInfo);
 
 	return body;
+}
+
+void ModulePhysics::RemoveCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider) {
+	world->removeCollisionObject(capsuleCollider->rigidBody);
+	RELEASE(capsuleCollider->rigidBody);
+}
+
+void ModulePhysics::UpdateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider) {
+	RemoveCapsuleRigidbody(capsuleCollider);
+	CreateCapsuleRigidbody(capsuleCollider);
+}
+
+void ModulePhysics::InitializeRigidBodies() {
+	// TODO: Remove this hardcode
+	// Big plane as ground
+	{
+		btCollisionShape* colShape = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
+
+		btDefaultMotionState* myMotionState = new btDefaultMotionState();
+		btRigidBody::btRigidBodyConstructionInfo rbInfo(0.0f, myMotionState, colShape);
+
+		btRigidBody* body = new btRigidBody(rbInfo);
+		world->addRigidBody(body);
+	}
+
+	for (ComponentSphereCollider& sphereCollider : App->scene->scene->sphereColliderComponents) {
+		if (!sphereCollider.rigidBody) CreateSphereRigidbody(&sphereCollider);
+	}
+
+	for (ComponentBoxCollider& boxCollider : App->scene->scene->boxColliderComponents) {
+		if (!boxCollider.rigidBody) CreateBoxRigidbody(&boxCollider);
+	}
+
+	for (ComponentCapsuleCollider& capsuleCollider : App->scene->scene->capsuleColliderComponents) {
+		if (!capsuleCollider.rigidBody) CreateCapsuleRigidbody(&capsuleCollider);
+	}
+}
+
+void ModulePhysics::ClearPhysicBodies() {
+	for (int i = world->getNumCollisionObjects() - 1; i >= 0; i--) {
+		btCollisionObject* obj = world->getCollisionObjectArray()[i];
+		world->removeCollisionObject(obj);
+		RELEASE(obj);
+	}
 }
 
 void ModulePhysics::SetGravity(float newGravity) {

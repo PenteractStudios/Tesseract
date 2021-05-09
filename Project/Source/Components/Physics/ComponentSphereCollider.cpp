@@ -11,7 +11,6 @@
 #define JSON_TAG_RADIUS "radius"
 #define JSON_TAG_CENTER_OFFSET "centerOffset"
 #define JSON_TAG_FREEZE_ROTATION "freezeRotation"
-#define JSON_TAG_IS_TRIGGER "isTrigger"
 #define JSON_TAG_COLLIDER_TYPE "colliderType"
 
 void ComponentSphereCollider::Init() {
