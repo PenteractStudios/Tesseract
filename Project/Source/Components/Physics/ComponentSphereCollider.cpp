@@ -7,6 +7,8 @@
 #include "Modules/ModuleTime.h"
 #include "Components/ComponentBoundingBox.h"
 
+#include "Utils/Logging.h"
+
 #define JSON_TAG_MASS "mass"
 #define JSON_TAG_RADIUS "radius"
 #define JSON_TAG_CENTER_OFFSET "centerOffset"
@@ -19,6 +21,9 @@ void ComponentSphereCollider::Init() {
 		if (boundingBox) {
 			radius = boundingBox->GetWorldOBB().HalfSize().MaxElement();
 			centerOffset = boundingBox->GetWorldOBB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+		} else {
+			radius = 1.f;
+			centerOffset = float3::one;
 		}
 	}
 	if (App->time->IsGameRunning() && !rigidBody) App->physics->CreateSphereRigidbody(this);
@@ -32,10 +37,10 @@ void ComponentSphereCollider::DrawGizmos() {
 }
 
 void ComponentSphereCollider::OnEditorUpdate() {
-	if (ImGui::Checkbox("Is Trigger", &isTrigger) && App->time->IsGameRunning()) {
+	/*if (ImGui::Checkbox("Is Trigger", &isTrigger) && App->time->IsGameRunning()) {
 		rigidBody->setCollisionFlags(isTrigger ? btCollisionObject::CF_NO_CONTACT_RESPONSE : 0);
 		//rigidBody->setMassProps(isTrigger ? 0.f : mass, rigidBody->getLocalInertia());
-	}
+	}*/
 
 	// Collider Type combo box
 	//TODO: Control if rigidbody
@@ -45,38 +50,45 @@ void ComponentSphereCollider::OnEditorUpdate() {
 		for (int n = 0; n < IM_ARRAYSIZE(colliderTypeItems); ++n) {
 			if (ImGui::Selectable(colliderTypeItems[n])) {
 				colliderType = ColliderType(n);
-				switch (colliderType) {
-				case ColliderType::DYNAMIC:
-					rigidBody->setCollisionFlags(0);
-					rigidBody->setActivationState(WANTS_DEACTIVATION);
-					rigidBody->setMassProps(mass, rigidBody->getLocalInertia());
-					break;
-				case ColliderType::STATIC:
-					rigidBody->setCollisionFlags(0);
-					rigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
-					rigidBody->setActivationState(WANTS_DEACTIVATION);
-					rigidBody->setMassProps(0, rigidBody->getLocalInertia());
-					break;
-				case ColliderType::KINEMATIC:
-					rigidBody->setCollisionFlags(0);
-					rigidBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
-					rigidBody->setActivationState(DISABLE_DEACTIVATION);
-					rigidBody->setMassProps(0, rigidBody->getLocalInertia());
-					break;
-				case ColliderType::TRIGGER:
-					//rigidBody->setMassProps(isTrigger ? 0.f : mass, rigidBody->getLocalInertia());
-					break;
+				if (App->time->IsGameRunning()) {
+					switch (colliderType) {
+					case ColliderType::DYNAMIC:
+						rigidBody->setCollisionFlags(0);
+						//rigidBody->setActivationState(0);
+						rigidBody->setMassProps(mass, rigidBody->getLocalInertia());
+						//rigi
+						break;
+					case ColliderType::STATIC:
+						rigidBody->setCollisionFlags(0);
+						rigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
+						//rigidBody->setActivationState(0);
+						rigidBody->setMassProps(0, rigidBody->getLocalInertia());
+						break;
+					case ColliderType::KINEMATIC:
+						rigidBody->setCollisionFlags(0);
+						rigidBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
+						rigidBody->setActivationState(WANTS_DEACTIVATION);
+						rigidBody->setMassProps(0, rigidBody->getLocalInertia());
+						break;
+					case ColliderType::TRIGGER:
+						rigidBody->setCollisionFlags(0);
+						rigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+						//rigidBody->setActivationState(0);
+						rigidBody->setMassProps(0, rigidBody->getLocalInertia());
+						break;
+					}
 				}
 			}
 		}
+		LOG("%d", rigidBody->getCollisionFlags());
 		ImGui::EndCombo();
 	}
 
-	if (colliderType == ColliderType::DYNAMIC) {
+	/*if (colliderType == ColliderType::DYNAMIC) {
 		if (ImGui::DragFloat("Mass", &mass, App->editor->dragSpeed3f, 0.0f, 100.f) && App->time->IsGameRunning()) {
 			rigidBody->setMassProps(mass, btVector3(0, 0, 0));
 		}
-	}
+	}*/
 	if (ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed3f, 0.0f, inf) && App->time->IsGameRunning()) {
 		((btSphereShape*) rigidBody->getCollisionShape())->setUnscaledRadius(radius);
 	}

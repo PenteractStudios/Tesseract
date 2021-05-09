@@ -27,9 +27,9 @@ public:
 
 public:
 	btRigidBody* rigidBody = nullptr;
-	MotionState motionState = MotionState(nullptr, float3(0, 0, 0), false);
+	MotionState motionState = MotionState(nullptr, float3::zero, false);
 	float mass = 1.f;
-	float3 size = float3(1, 1, 1);
+	float3 size = float3::one;
 	float3 centerOffset = float3::inf;
 	bool freezeRotation = false;
 	bool isTrigger = false;

@@ -19,6 +19,9 @@ void ComponentBoxCollider::Init() {
 		if (boundingBox) {
 			size = boundingBox->GetWorldOBB().Size();
 			centerOffset = boundingBox->GetWorldOBB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+		} else {
+			size = float3::one;
+			centerOffset = float3::one;
 		}
 	}
 
@@ -30,7 +33,9 @@ void ComponentBoxCollider::Init() {
 void ComponentBoxCollider::DrawGizmos() {
 	if (IsActiveInHierarchy()) {
 		float3 points[8];
+		// TODO: dirty{
 		CalculateWorldBoundingBox();
+		//}
 		worldOBB.GetCornerPoints(points);
 
 		float3 aux;
