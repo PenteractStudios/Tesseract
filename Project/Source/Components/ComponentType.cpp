@@ -50,6 +50,8 @@ const char* GetComponentTypeName(ComponentType type) {
 		return "AudioSource";
 	case ComponentType::SPHERE_COLLIDER:
 		return "SphereCollider";
+	case ComponentType::BOX_COLLIDER:
+		return "BoxCollider";
 	case ComponentType::CAPSULE_COLLIDER:
 		return "CapsuleCollider";
 	default:
@@ -102,6 +104,8 @@ ComponentType GetComponentTypeFromName(const char* name) {
 		return ComponentType::AUDIO_SOURCE;
 	} else if (strcmp(name, "SphereCollider") == 0) {
 		return ComponentType::SPHERE_COLLIDER;
+	} else if (strcmp(name, "BoxCollider") == 0) {
+		return ComponentType::BOX_COLLIDER;
 	} else if (strcmp(name, "CapsuleCollider") == 0) {
 		return ComponentType::CAPSULE_COLLIDER;
 	} else {

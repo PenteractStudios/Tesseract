@@ -15,6 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Components\Physics\ComponentBoxCollider.h" />
     <ClInclude Include="Source\Components\Physics\ComponentCapsuleCollider.h" />
     <ClInclude Include="Source\Utils\MotionState.h" />
     <ClInclude Include="Source\Components\Physics\ComponentSphereCollider.h" />
@@ -279,6 +280,7 @@
     <ClInclude Include="Source\Utils\PoolMap.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Components\Physics\ComponentBoxCollider.cpp" />
     <ClCompile Include="Source\Components\Physics\ComponentCapsuleCollider.cpp" />
     <ClCompile Include="Source\Utils\MotionState.cpp" />
     <ClCompile Include="Source\Components\Physics\ComponentSphereCollider.cpp" />
