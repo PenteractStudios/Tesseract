@@ -20,6 +20,7 @@ void ComponentCapsuleCollider::Init() {
 		if (boundingBox) {
 			radius = (boundingBox->GetWorldOBB().HalfSize().x > boundingBox->GetWorldOBB().HalfSize().z) ? boundingBox->GetWorldOBB().HalfSize().x : boundingBox->GetWorldOBB().HalfSize().z;
 			height = boundingBox->GetWorldOBB().Size().MaxElement() - 2*radius;
+			if (height < 0) height = 1;
 			centerOffset = boundingBox->GetWorldOBB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		}
 	}
