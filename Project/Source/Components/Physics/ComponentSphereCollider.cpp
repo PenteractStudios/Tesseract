@@ -23,7 +23,7 @@ void ComponentSphereCollider::Init() {
 			centerOffset = boundingBox->GetWorldOBB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		} else {
 			radius = 1.f;
-			centerOffset = float3::one;
+			centerOffset = float3::zero;
 		}
 	}
 	if (App->time->IsGameRunning() && !rigidBody) App->physics->CreateSphereRigidbody(this);
@@ -56,7 +56,6 @@ void ComponentSphereCollider::OnEditorUpdate() {
 						rigidBody->setCollisionFlags(0);
 						//rigidBody->setActivationState(0);
 						rigidBody->setMassProps(mass, rigidBody->getLocalInertia());
-						//rigi
 						break;
 					case ColliderType::STATIC:
 						rigidBody->setCollisionFlags(0);
