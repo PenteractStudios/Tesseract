@@ -371,6 +371,15 @@ void PanelInspector::AddColliderComponentsOptions(GameObject* selected) {
 			}
 		}
 
+		if (ImGui::MenuItem("Capsule Collider")) {
+			ComponentCapsuleCollider* capsuleComponent = selected->CreateComponent<ComponentCapsuleCollider>();
+			if (capsuleComponent != nullptr) {
+				capsuleComponent->Init();
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS; // TODO: Control other colliders exists.
+			}
+		}
+
 		ImGui::EndMenu();
 	}
 }

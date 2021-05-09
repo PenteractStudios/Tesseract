@@ -18,8 +18,8 @@ void ComponentCapsuleCollider::Init() {
 	if (!centerOffset.IsFinite()) {
 		ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();
 		if (boundingBox) {
-			radius = boundingBox->GetWorldOBB().HalfSize().MaxElement();
-			height = 2 * radius;
+			radius = (boundingBox->GetWorldOBB().HalfSize().x > boundingBox->GetWorldOBB().HalfSize().z) ? boundingBox->GetWorldOBB().HalfSize().x : boundingBox->GetWorldOBB().HalfSize().z;
+			height = boundingBox->GetWorldOBB().Size().MaxElement() - 2*radius;
 			centerOffset = boundingBox->GetWorldOBB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		}
 	}
@@ -30,6 +30,9 @@ void ComponentCapsuleCollider::DrawGizmos() {
 	if (IsActiveInHierarchy()) {
 		ComponentTransform* ownerTransform = GetOwner().GetComponent<ComponentTransform>();	
 		// TODO: Find how to draw a capsule.
+		dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), float3(0, height, 0), dd::colors::Green, radius, radius);
+		dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, height / 2, 0), dd::colors::Green, radius);
+		dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), dd::colors::Green, radius);
 	}
 }
 
