@@ -11,7 +11,21 @@ class ComponentSphereCollider;
 class ComponentBoxCollider;
 class btBroadphaseInterface;
 
+/* --- Collider Type ---
+	DYNAMIC = the object will respond to collisions, but not to user input (Such as modifying the transform)
+	STATIC = the object will never move
+	KINEMATIC = the object will not respond to collisions, but ilt will to user input
+	TRIGGER = It is like static, but the collisions against it have no physical effect to the colliding object.
+	*/
+enum class ColliderType {
+	DYNAMIC,
+	STATIC,
+	KINEMATIC,
+	TRIGGER
+};
+
 class ModulePhysics : public Module {
+
 public:
 	// ------- Core Functions ------ //
 	bool Init() override;
@@ -24,17 +38,17 @@ public:
 
 	// ------ Add/Remove Sphere Body ------ //
 	void CreateSphereRigidbody(ComponentSphereCollider* sphereCollider);
+	btRigidBody* AddSphereBody(MotionState* myMotionState, float radius, float mass);
 	void RemoveSphereRigidbody(ComponentSphereCollider* sphereCollider);
 	void UpdateSphereRigidbody(ComponentSphereCollider* sphereCollider);
 	// ------ Add/Remove Box Body ------ //
 	void CreateBoxRigidbody(ComponentBoxCollider* boxCollider);
+	btRigidBody* AddBoxBody(MotionState* myMotionState, float3 size, float mass);
 	void RemoveBoxRigidbody(ComponentBoxCollider* boxCollider);
 	void UpdateBoxRigidbody(ComponentBoxCollider* boxCollider);
 
 	void InitializeRigidBodies();
 	void ClearPhysicBodies();
-	btRigidBody* AddSphereBody(MotionState* myMotionState, float radius, float mass);
-	btRigidBody* AddBoxBody(MotionState* myMotionState, float3 size, float mass);
 
 	// ----------- Setters --------- //
 	void SetGravity(float newGravity);

@@ -7,13 +7,12 @@
 #include "Modules/ModuleTime.h"
 #include "Components/ComponentBoundingBox.h"
 
-#include "Utils/Logging.h"
-
 #define JSON_TAG_MASS "mass"
 #define JSON_TAG_RADIUS "radius"
 #define JSON_TAG_CENTER_OFFSET "centerOffset"
 #define JSON_TAG_FREEZE_ROTATION "freezeRotation"
 #define JSON_TAG_IS_TRIGGER "isTrigger"
+#define JSON_TAG_COLLIDER_TYPE "colliderType"
 
 void ComponentSphereCollider::Init() {
 	if (!centerOffset.IsFinite()) {
@@ -22,7 +21,6 @@ void ComponentSphereCollider::Init() {
 			radius = boundingBox->GetWorldOBB().HalfSize().MaxElement();
 			centerOffset = boundingBox->GetWorldOBB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		} else {
-			radius = 1.f;
 			centerOffset = float3::zero;
 		}
 	}
@@ -37,13 +35,7 @@ void ComponentSphereCollider::DrawGizmos() {
 }
 
 void ComponentSphereCollider::OnEditorUpdate() {
-	/*if (ImGui::Checkbox("Is Trigger", &isTrigger) && App->time->IsGameRunning()) {
-		rigidBody->setCollisionFlags(isTrigger ? btCollisionObject::CF_NO_CONTACT_RESPONSE : 0);
-		//rigidBody->setMassProps(isTrigger ? 0.f : mass, rigidBody->getLocalInertia());
-	}*/
-
 	// Collider Type combo box
-	//TODO: Control if rigidbody
 	const char* colliderTypeItems[] = {"Dynamic", "Static", "Kinematic", "Trigger"};
 	const char* colliderCurrent = colliderTypeItems[(int) colliderType];
 	if (ImGui::BeginCombo("Collider Mode", colliderCurrent)) {
@@ -51,43 +43,18 @@ void ComponentSphereCollider::OnEditorUpdate() {
 			if (ImGui::Selectable(colliderTypeItems[n])) {
 				colliderType = ColliderType(n);
 				if (App->time->IsGameRunning()) {
-					switch (colliderType) {
-					case ColliderType::DYNAMIC:
-						rigidBody->setCollisionFlags(0);
-						//rigidBody->setActivationState(0);
-						rigidBody->setMassProps(mass, rigidBody->getLocalInertia());
-						break;
-					case ColliderType::STATIC:
-						rigidBody->setCollisionFlags(0);
-						rigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
-						//rigidBody->setActivationState(0);
-						rigidBody->setMassProps(0, rigidBody->getLocalInertia());
-						break;
-					case ColliderType::KINEMATIC:
-						rigidBody->setCollisionFlags(0);
-						rigidBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
-						rigidBody->setActivationState(WANTS_DEACTIVATION);
-						rigidBody->setMassProps(0, rigidBody->getLocalInertia());
-						break;
-					case ColliderType::TRIGGER:
-						rigidBody->setCollisionFlags(0);
-						rigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT | btCollisionObject::CF_NO_CONTACT_RESPONSE);
-						//rigidBody->setActivationState(0);
-						rigidBody->setMassProps(0, rigidBody->getLocalInertia());
-						break;
-					}
+					App->physics->UpdateSphereRigidbody(this);
 				}
 			}
 		}
-		LOG("%d", rigidBody->getCollisionFlags());
 		ImGui::EndCombo();
 	}
 
-	/*if (colliderType == ColliderType::DYNAMIC) {
+	if (colliderType == ColliderType::DYNAMIC) { // Mass is only available when the collider is dynamic
 		if (ImGui::DragFloat("Mass", &mass, App->editor->dragSpeed3f, 0.0f, 100.f) && App->time->IsGameRunning()) {
-			rigidBody->setMassProps(mass, btVector3(0, 0, 0));
+			rigidBody->setMassProps(mass, rigidBody->getLocalInertia());
 		}
-	}*/
+	}
 	if (ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed3f, 0.0f, inf) && App->time->IsGameRunning()) {
 		((btSphereShape*) rigidBody->getCollisionShape())->setUnscaledRadius(radius);
 	}
@@ -102,6 +69,9 @@ void ComponentSphereCollider::OnEditorUpdate() {
 }
 
 void ComponentSphereCollider::Save(JsonValue jComponent) const {
+	JsonValue jColliderType = jComponent[JSON_TAG_COLLIDER_TYPE];
+	jColliderType = (int) colliderType;
+
 	JsonValue jMass = jComponent[JSON_TAG_MASS];
 	jMass = mass;
 
@@ -115,12 +85,12 @@ void ComponentSphereCollider::Save(JsonValue jComponent) const {
 
 	JsonValue jFreeze = jComponent[JSON_TAG_FREEZE_ROTATION];
 	jFreeze = freezeRotation;
-
-	JsonValue jIsTrigger = jComponent[JSON_TAG_IS_TRIGGER];
-	jIsTrigger = isTrigger;
 }
 
 void ComponentSphereCollider::Load(JsonValue jComponent) {
+	JsonValue jColliderType = jComponent[JSON_TAG_COLLIDER_TYPE];
+	colliderType = (ColliderType)(int) jColliderType;
+
 	JsonValue jMass = jComponent[JSON_TAG_MASS];
 	mass = jMass;
 
@@ -132,9 +102,6 @@ void ComponentSphereCollider::Load(JsonValue jComponent) {
 
 	JsonValue jFreeze = jComponent[JSON_TAG_FREEZE_ROTATION];
 	freezeRotation = jFreeze;
-
-	JsonValue jIsTrigger = jComponent[JSON_TAG_IS_TRIGGER];
-	isTrigger = jIsTrigger;
 }
 
 void ComponentSphereCollider::OnCollision() {

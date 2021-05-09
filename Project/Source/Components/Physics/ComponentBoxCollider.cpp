@@ -12,6 +12,7 @@
 #define JSON_TAG_CENTER_OFFSET "centerOffset"
 #define JSON_TAG_FREEZE_ROTATION "freezeRotation"
 #define JSON_TAG_IS_TRIGGER "isTrigger"
+#define JSON_TAG_COLLIDER_TYPE "colliderType"
 
 void ComponentBoxCollider::Init() {
 	if (!centerOffset.IsFinite()) {
@@ -20,7 +21,6 @@ void ComponentBoxCollider::Init() {
 			size = boundingBox->GetWorldOBB().Size();
 			centerOffset = boundingBox->GetWorldOBB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		} else {
-			size = float3::one;
 			centerOffset = float3::zero;
 		}
 	}
@@ -51,17 +51,22 @@ void ComponentBoxCollider::DrawGizmos() {
 }
 
 void ComponentBoxCollider::OnEditorUpdate() {
-	if (ImGui::Checkbox("Is Trigger", &isTrigger) && App->time->IsGameRunning()) {
-		rigidBody->setCollisionFlags(isTrigger ? btCollisionObject::CF_NO_CONTACT_RESPONSE : 0);
-		rigidBody->setMassProps(isTrigger ? 0.f : mass, rigidBody->getLocalInertia());
-	}
-	if (ImGui::Checkbox("Is Kinematic", &isKinematic) && App->time->IsGameRunning()) {
-		rigidBody->setCollisionFlags(isKinematic ? btCollisionObject::CF_KINEMATIC_OBJECT : 0);
-		rigidBody->setActivationState(DISABLE_DEACTIVATION);
-		rigidBody->setMassProps(isTrigger ? 0.f : mass, rigidBody->getLocalInertia());
+	// Collider Type combo box
+	const char* colliderTypeItems[] = {"Dynamic", "Static", "Kinematic", "Trigger"};
+	const char* colliderCurrent = colliderTypeItems[(int) colliderType];
+	if (ImGui::BeginCombo("Collider Mode", colliderCurrent)) {
+		for (int n = 0; n < IM_ARRAYSIZE(colliderTypeItems); ++n) {
+			if (ImGui::Selectable(colliderTypeItems[n])) {
+				colliderType = ColliderType(n);
+				if (App->time->IsGameRunning()) {
+					App->physics->UpdateBoxRigidbody(this);
+				}
+			}
+		}
+		ImGui::EndCombo();
 	}
 
-	if (!isTrigger && !isKinematic) {
+	if (colliderType == ColliderType::DYNAMIC) { // Mass is only available when the collider is dynamic
 		if (ImGui::DragFloat("Mass", &mass, App->editor->dragSpeed3f, 0.0f, 100.f) && App->time->IsGameRunning()) {
 			rigidBody->setMassProps(mass, btVector3(0, 0, 0));
 		}
@@ -89,6 +94,9 @@ void ComponentBoxCollider::OnEditorUpdate() {
 }
 
 void ComponentBoxCollider::Save(JsonValue jComponent) const {
+	JsonValue jColliderType = jComponent[JSON_TAG_COLLIDER_TYPE];
+	jColliderType = (int) colliderType;
+
 	JsonValue jMass = jComponent[JSON_TAG_MASS];
 	jMass = mass;
 
@@ -105,11 +113,12 @@ void ComponentBoxCollider::Save(JsonValue jComponent) const {
 	JsonValue jFreeze = jComponent[JSON_TAG_FREEZE_ROTATION];
 	jFreeze = freezeRotation;
 
-	JsonValue jIsTrigger = jComponent[JSON_TAG_IS_TRIGGER];
-	jIsTrigger = isTrigger;
 }
 
 void ComponentBoxCollider::Load(JsonValue jComponent) {
+	JsonValue jColliderType = jComponent[JSON_TAG_COLLIDER_TYPE];
+	colliderType = (ColliderType)(int) jColliderType;
+
 	JsonValue jMass = jComponent[JSON_TAG_MASS];
 	mass = jMass;
 
@@ -121,9 +130,6 @@ void ComponentBoxCollider::Load(JsonValue jComponent) {
 
 	JsonValue jFreeze = jComponent[JSON_TAG_FREEZE_ROTATION];
 	freezeRotation = jFreeze;
-
-	JsonValue jIsTrigger = jComponent[JSON_TAG_IS_TRIGGER];
-	isTrigger = jIsTrigger;
 }
 
 void ComponentBoxCollider::OnCollision() {
