@@ -10,6 +10,7 @@
 #define JSON_TAG_MASS "mass"
 #define JSON_TAG_RADIUS "radius"
 #define JSON_TAG_HEIGHT "height"
+#define JSON_TAG_TYPE "type"
 #define JSON_TAG_CENTER_OFFSET "centerOffset"
 #define JSON_TAG_FREEZE_ROTATION "freezeRotation"
 #define JSON_TAG_IS_TRIGGER "isTrigger"
@@ -20,7 +21,6 @@ void ComponentCapsuleCollider::Init() {
 		if (boundingBox) {
 			radius = (boundingBox->GetWorldOBB().HalfSize().x > boundingBox->GetWorldOBB().HalfSize().z) ? boundingBox->GetWorldOBB().HalfSize().x : boundingBox->GetWorldOBB().HalfSize().z;
 			height = boundingBox->GetWorldOBB().Size().MaxElement() - 2*radius;
-			if (height < 0) height = 1;
 			centerOffset = boundingBox->GetWorldOBB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		}
 	}
@@ -29,11 +29,24 @@ void ComponentCapsuleCollider::Init() {
 
 void ComponentCapsuleCollider::DrawGizmos() {
 	if (IsActiveInHierarchy()) {
-		ComponentTransform* ownerTransform = GetOwner().GetComponent<ComponentTransform>();	
-		// TODO: Find how to draw a capsule.
-		dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), float3(0, height, 0), dd::colors::Green, radius, radius);
-		dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, height / 2, 0), dd::colors::Green, radius);
-		dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), dd::colors::Green, radius);
+		ComponentTransform* ownerTransform = GetOwner().GetComponent<ComponentTransform>();
+		switch (type) {
+		case CapsuleType::X:
+			dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), float3(height, 0, 0), dd::colors::Green, radius, radius);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(height / 2, 0, 0), dd::colors::Green, radius);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), dd::colors::Green, radius);
+			break;
+		case CapsuleType::Y:
+			dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), float3(0, height, 0), dd::colors::Green, radius, radius);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, height / 2, 0), dd::colors::Green, radius);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), dd::colors::Green, radius);
+			break;
+		case CapsuleType::Z:
+			dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), float3(0, 0, height), dd::colors::Green, radius, radius);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, 0, height / 2), dd::colors::Green, radius);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), dd::colors::Green, radius);
+			break;
+		}
 	}
 }
 
@@ -57,7 +70,42 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 		App->physics->UpdateCapsuleRigidbody(this);
 	}
 
-	// TODO: Selector upAxis
+	const char* types[] = {"X", "Y", "Z"};
+	const char* currentType = types[(int) type];
+	if (ImGui::BeginCombo("Capsule Type Orientation", currentType)) {
+		for (int n = 0; n < IM_ARRAYSIZE(types); ++n) {
+			bool isSelected = (currentType == types[n]);
+			if (ImGui::Selectable(types[n], isSelected)) {
+				type = CapsuleType(n);
+				ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();		
+				switch (type){
+				case CapsuleType::X:
+					if (boundingBox) {
+						radius = (boundingBox->GetWorldOBB().HalfSize().y > boundingBox->GetWorldOBB().HalfSize().z) ? boundingBox->GetWorldOBB().HalfSize().y : boundingBox->GetWorldOBB().HalfSize().z;
+						height = boundingBox->GetWorldOBB().Size().MaxElement() - 2 * radius;
+					}
+				break;
+				case CapsuleType::Y:
+					if (boundingBox) {
+					radius = (boundingBox->GetWorldOBB().HalfSize().x > boundingBox->GetWorldOBB().HalfSize().z) ? boundingBox->GetWorldOBB().HalfSize().x : boundingBox->GetWorldOBB().HalfSize().z;
+					height = boundingBox->GetWorldOBB().Size().MaxElement() - 2 * radius;
+				}
+				break;
+				case CapsuleType::Z:
+					if (boundingBox) {
+					radius = (boundingBox->GetWorldOBB().HalfSize().x > boundingBox->GetWorldOBB().HalfSize().y) ? boundingBox->GetWorldOBB().HalfSize().x : boundingBox->GetWorldOBB().HalfSize().y;
+					height = boundingBox->GetWorldOBB().Size().MaxElement() - 2 * radius;
+				}
+				break;
+			}
+
+				if (App->time->IsGameRunning()) {
+					App->physics->UpdateCapsuleRigidbody(this);
+				}
+			}
+		}
+		ImGui::EndCombo();
+	}
 
 	if (ImGui::DragFloat3("Center Offset", centerOffset.ptr(), App->editor->dragSpeed2f, -inf, inf) && App->time->IsGameRunning()) {
 		float3 position = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
@@ -80,6 +128,9 @@ void ComponentCapsuleCollider::Save(JsonValue jComponent) const {
 	JsonValue jHeight = jComponent[JSON_TAG_HEIGHT];
 	jHeight = height;
 
+	JsonValue jType = jComponent[JSON_TAG_TYPE];
+	jType = (int) type;
+
 	JsonValue jCenterOffset = jComponent[JSON_TAG_CENTER_OFFSET];
 	jCenterOffset[0] = centerOffset.x;
 	jCenterOffset[1] = centerOffset.y;
@@ -101,6 +152,9 @@ void ComponentCapsuleCollider::Load(JsonValue jComponent) {
 
 	JsonValue jHeight = jComponent[JSON_TAG_HEIGHT];
 	height = jHeight;
+
+	JsonValue jType = jComponent[JSON_TAG_TYPE];
+	type = CapsuleType((int)jType);
 
 	JsonValue jCenterOffset = jComponent[JSON_TAG_CENTER_OFFSET];
 	centerOffset = float3(jCenterOffset[0], jCenterOffset[1], jCenterOffset[2]);

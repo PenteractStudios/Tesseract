@@ -154,7 +154,7 @@ void ModulePhysics::UpdateSphereRigidbody(ComponentSphereCollider* sphereCollide
 
 void ModulePhysics::CreateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider) {
 	capsuleCollider->motionState = MotionState(capsuleCollider, capsuleCollider->centerOffset, capsuleCollider->freezeRotation);
-	capsuleCollider->rigidBody = App->physics->AddCapsuleBody(&capsuleCollider->motionState, capsuleCollider->radius, capsuleCollider->height, capsuleCollider->mass);
+	capsuleCollider->rigidBody = App->physics->AddCapsuleBody(&capsuleCollider->motionState, capsuleCollider->radius, capsuleCollider->height, capsuleCollider->type, capsuleCollider->mass);
 	capsuleCollider->rigidBody->setUserPointer(capsuleCollider);
 	if (capsuleCollider->isTrigger) {
 		capsuleCollider->rigidBody->setMassProps(0.f, capsuleCollider->rigidBody->getLocalInertia());
@@ -217,8 +217,20 @@ btRigidBody* ModulePhysics::AddSphereBody(MotionState* myMotionState, float radi
 	return body;
 }
 
-btRigidBody* ModulePhysics::AddCapsuleBody(MotionState* myMotionState, float radius, float height, float mass) {
-	btCollisionShape* colShape = new btCapsuleShape(radius, height);
+btRigidBody* ModulePhysics::AddCapsuleBody(MotionState* myMotionState, float radius, float height, CapsuleType type, float mass) {
+	btCollisionShape* colShape = nullptr;
+	
+	switch (type) {
+	case CapsuleType::X:
+		colShape = new btCapsuleShapeX(radius, height);
+		break;
+	case CapsuleType::Y:
+		colShape = new btCapsuleShape(radius, height);
+		break;
+	case CapsuleType::Z:
+		colShape = new btCapsuleShapeZ(radius, height);
+		break;
+	}
 
 	btVector3 localInertia(0, 0, 0);
 	if (mass != 0.f)

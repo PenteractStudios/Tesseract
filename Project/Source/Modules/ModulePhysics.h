@@ -34,7 +34,7 @@ public:
 	void InitializeRigidBodies();
 	void ClearPhysicBodies();
 	btRigidBody* AddSphereBody(MotionState* myMotionState, float radius, float mass);
-	btRigidBody* AddCapsuleBody(MotionState* myMotionState, float radius, float height, float mass);
+	btRigidBody* AddCapsuleBody(MotionState* myMotionState, float radius, float height, CapsuleType type, float mass);
 
 	// ----------- Setters --------- //
 	void SetGravity(float newGravity);

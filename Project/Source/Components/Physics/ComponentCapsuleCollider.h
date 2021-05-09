@@ -7,6 +7,12 @@
 
 class btRigidBody;
 
+enum class CapsuleType {
+	X,
+	Y,
+	Z
+};
+
 class ComponentCapsuleCollider : public Component {
 public:
 	REGISTER_COMPONENT(ComponentCapsuleCollider, ComponentType::CAPSULE_COLLIDER, false); // Refer to ComponentType for the Constructor
@@ -32,7 +38,6 @@ public:
 	float3 centerOffset = float3::inf;
 	bool freezeRotation = false;
 	bool isTrigger = false;
-
-
+	CapsuleType type = CapsuleType::Y;
 
 };
