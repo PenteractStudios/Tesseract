@@ -71,7 +71,11 @@ void PanelScene::Update() {
 			}
 
 			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-			ImGui::Checkbox("2D", &view2D);
+			if (ImGui::Checkbox("2D", &App->userInterface->view2DInternal)) {
+				for (ComponentTransform2D& transform2D : App->scene->scene->transform2DComponents) {
+					transform2D.Invalidate();
+				};
+			};
 			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 
 			std::string camera = std::string(ICON_FA_VIDEO);
@@ -153,8 +157,8 @@ void PanelScene::Update() {
 		if (App->renderer->GetViewportSize().x != size.x || App->renderer->GetViewportSize().y != size.y) {
 			// TODO, These should use the EVENT SCREEN_RESIZED
 			App->camera->ViewportResized((int) size.x, (int) size.y);
-			App->userInterface->ViewportResized();
 			App->renderer->ViewportResized((int) size.x, (int) size.y);
+			App->userInterface->ViewportResized();
 			framebufferSize = {
 				size.x,
 				size.y,
@@ -270,10 +274,6 @@ void PanelScene::Update() {
 		ImGui::End();
 		ImGui::PopStyleVar();
 	}
-}
-
-bool PanelScene::IsUsing2D() const {
-	return view2D;
 }
 
 const float2& PanelScene::GetMousePosOnScene() const {

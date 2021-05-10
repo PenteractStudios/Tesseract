@@ -18,6 +18,7 @@ private:
 	GameObject* CreateUIImage(GameObject* gameObject);
 	GameObject* CreateUIText(GameObject* gameObject);
 	GameObject* CreateUIButton(GameObject* gameObject);
+	GameObject* CreateUISlider(GameObject* gameObject);
 	GameObject* CreateUIToggle(GameObject* gameObject);
 
 private:

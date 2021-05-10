@@ -7,7 +7,7 @@
     ],
     "QuadtreeMaxDepth": 4,
     "QuadtreeElementsPerNode": 200,
-    "GameCamera": 17861992510762443093,
+    "GameCamera": 8714473313920391581,
     "AmbientLight": [
         0.0,
         0.0,
@@ -17,6 +17,7 @@
         "Id": 194309276776170818,
         "Name": "Scene",
         "Active": true,
+        "ActiveHierarchy": true,
         "RootBoneId": 0,
         "Components": [
             {
@@ -51,6 +52,7 @@
                 "Id": 12727170744992204091,
                 "Name": "Directional Light",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 0,
                 "Components": [
                     {
@@ -102,6 +104,7 @@
                 "Id": 11044185724007205807,
                 "Name": "Game Camera",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 0,
                 "Components": [
                     {
@@ -176,6 +179,7 @@
                 "Id": 11534994294951010284,
                 "Name": "Canvas",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 0,
                 "Components": [
                     {
@@ -215,6 +219,7 @@
                         "Id": 5735011669754720972,
                         "Name": "Text",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -272,6 +277,7 @@
                                     0.5,
                                     0.5
                                 ],
+                                "PivotPosition": null,
                                 "Size": [
                                     200.0,
                                     200.0
@@ -315,6 +321,7 @@
                 "Id": 14091285918118769684,
                 "Name": "Fang",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 6934782612536071553,
                 "Components": [
                     {
@@ -347,8 +354,8 @@
                         "Type": "Animation",
                         "Id": 6698318959606090018,
                         "Active": true,
-                        "AnimationId": 9395568639086041306,
-                        "Controller": true
+                        "StateMachineId": 0,
+                        "InitalState": 0
                     }
                 ],
                 "Children": [
@@ -356,6 +363,7 @@
                         "Id": 3097107541714921324,
                         "Name": "Zombunny",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -418,6 +426,7 @@
                         "Id": 9857195811614305487,
                         "Name": "Ctrl_Grp",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -452,6 +461,7 @@
                                 "Id": 6934782612536071553,
                                 "Name": "Root",
                                 "Active": true,
+                                "ActiveHierarchy": true,
                                 "RootBoneId": 0,
                                 "Components": [
                                     {
@@ -486,6 +496,7 @@
                                         "Id": 17350441503514123654,
                                         "Name": "Hips",
                                         "Active": true,
+                                        "ActiveHierarchy": true,
                                         "RootBoneId": 0,
                                         "Components": [
                                             {
@@ -520,6 +531,7 @@
                                                 "Id": 12340384211622183114,
                                                 "Name": "Spine",
                                                 "Active": true,
+                                                "ActiveHierarchy": true,
                                                 "RootBoneId": 0,
                                                 "Components": [
                                                     {
@@ -554,6 +566,7 @@
                                                         "Id": 1536810935711876045,
                                                         "Name": "Head",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -588,6 +601,7 @@
                                                                 "Id": 15295649474372129960,
                                                                 "Name": "HeadEnd",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -623,6 +637,7 @@
                                                                 "Id": 972909737602328046,
                                                                 "Name": "LeftEar",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -657,6 +672,7 @@
                                                                         "Id": 1869864186700323488,
                                                                         "Name": "LeftEarEnd",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -694,6 +710,7 @@
                                                                 "Id": 9983915562856451979,
                                                                 "Name": "RightEar",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -728,6 +745,7 @@
                                                                         "Id": 13416293869325848126,
                                                                         "Name": "RightEarEnd",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -767,6 +785,7 @@
                                                         "Id": 2941460136221109962,
                                                         "Name": "LeftUpperArm",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -801,6 +820,7 @@
                                                                 "Id": 7843552731344410174,
                                                                 "Name": "LeftLowerArm",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -835,6 +855,7 @@
                                                                         "Id": 14600232449251923280,
                                                                         "Name": "LeftWrist",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -869,6 +890,7 @@
                                                                                 "Id": 14782343330982534979,
                                                                                 "Name": "LeftWristEnd",
                                                                                 "Active": true,
+                                                                                "ActiveHierarchy": true,
                                                                                 "RootBoneId": 0,
                                                                                 "Components": [
                                                                                     {
@@ -910,6 +932,7 @@
                                                         "Id": 13664830999533826076,
                                                         "Name": "LeftUpperArmFK",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -944,6 +967,7 @@
                                                                 "Id": 2432543761067162994,
                                                                 "Name": "LeftLowerArmFK",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -978,6 +1002,7 @@
                                                                         "Id": 7407132184059385473,
                                                                         "Name": "LeftWristFK",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -1017,6 +1042,7 @@
                                                         "Id": 13974728974559185947,
                                                         "Name": "LeftUpperArmIK",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -1051,6 +1077,7 @@
                                                                 "Id": 13038840130780695584,
                                                                 "Name": "LeftLowerArmIK",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -1085,6 +1112,7 @@
                                                                         "Id": 17886499805172634610,
                                                                         "Name": "LeftWristIK",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -1124,6 +1152,7 @@
                                                         "Id": 3581293641040776630,
                                                         "Name": "RightUpperArm",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -1158,6 +1187,7 @@
                                                                 "Id": 3408323825171777732,
                                                                 "Name": "RightLowerArm",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -1192,6 +1222,7 @@
                                                                         "Id": 6162882194839433718,
                                                                         "Name": "RightWrist",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -1226,6 +1257,7 @@
                                                                                 "Id": 7606712107872565653,
                                                                                 "Name": "RightWristEnd",
                                                                                 "Active": true,
+                                                                                "ActiveHierarchy": true,
                                                                                 "RootBoneId": 0,
                                                                                 "Components": [
                                                                                     {
@@ -1267,6 +1299,7 @@
                                                         "Id": 8447422771542588689,
                                                         "Name": "RightUpperArmFK",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -1301,6 +1334,7 @@
                                                                 "Id": 3911614386985331908,
                                                                 "Name": "RightLowerArmFK",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -1335,6 +1369,7 @@
                                                                         "Id": 15183277085567112120,
                                                                         "Name": "RightWristFK",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -1374,6 +1409,7 @@
                                                         "Id": 14680446601748540127,
                                                         "Name": "RightUpperArmIK",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -1408,6 +1444,7 @@
                                                                 "Id": 11934126084167760621,
                                                                 "Name": "RightLowerArmIK",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -1442,6 +1479,7 @@
                                                                         "Id": 16795847725164151169,
                                                                         "Name": "RightWristIK",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -1483,6 +1521,7 @@
                                                 "Id": 8890201330091790350,
                                                 "Name": "LeftLeg",
                                                 "Active": true,
+                                                "ActiveHierarchy": true,
                                                 "RootBoneId": 0,
                                                 "Components": [
                                                     {
@@ -1517,6 +1556,7 @@
                                                         "Id": 1772995398755724068,
                                                         "Name": "LeftFoot",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -1551,6 +1591,7 @@
                                                                 "Id": 14713366454177976596,
                                                                 "Name": "LeftFootEnd",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -1590,6 +1631,7 @@
                                                 "Id": 17070871154977998221,
                                                 "Name": "RightLeg",
                                                 "Active": true,
+                                                "ActiveHierarchy": true,
                                                 "RootBoneId": 0,
                                                 "Components": [
                                                     {
@@ -1624,6 +1666,7 @@
                                                         "Id": 14228550364169570296,
                                                         "Name": "RightFoot",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -1658,6 +1701,7 @@
                                                                 "Id": 18011583911183865158,
                                                                 "Name": "RightFootEnd",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -1705,6 +1749,7 @@
                 "Id": 606907587767583581,
                 "Name": "Robot",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 13714630199878932010,
                 "Components": [
                     {
@@ -1737,8 +1782,8 @@
                         "Type": "Animation",
                         "Id": 608693776914128372,
                         "Active": true,
-                        "AnimationId": 9395568639086041306,
-                        "Controller": true
+                        "StateMachineId": 0,
+                        "InitalState": 0
                     }
                 ],
                 "Children": [
@@ -1746,6 +1791,7 @@
                         "Id": 17209266059558902628,
                         "Name": "Zombunny",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -1808,6 +1854,7 @@
                         "Id": 2492768593694616640,
                         "Name": "Ctrl_Grp",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -1842,6 +1889,7 @@
                                 "Id": 13714630199878932010,
                                 "Name": "Root",
                                 "Active": true,
+                                "ActiveHierarchy": true,
                                 "RootBoneId": 0,
                                 "Components": [
                                     {
@@ -1876,6 +1924,7 @@
                                         "Id": 14577093011666428758,
                                         "Name": "Hips",
                                         "Active": true,
+                                        "ActiveHierarchy": true,
                                         "RootBoneId": 0,
                                         "Components": [
                                             {
@@ -1910,6 +1959,7 @@
                                                 "Id": 3331182487170254504,
                                                 "Name": "Spine",
                                                 "Active": true,
+                                                "ActiveHierarchy": true,
                                                 "RootBoneId": 0,
                                                 "Components": [
                                                     {
@@ -1944,6 +1994,7 @@
                                                         "Id": 5098747966488911350,
                                                         "Name": "Head",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -1978,6 +2029,7 @@
                                                                 "Id": 10167255137161634209,
                                                                 "Name": "HeadEnd",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -2013,6 +2065,7 @@
                                                                 "Id": 8717502042386246385,
                                                                 "Name": "LeftEar",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -2047,6 +2100,7 @@
                                                                         "Id": 4250693530167419706,
                                                                         "Name": "LeftEarEnd",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -2084,6 +2138,7 @@
                                                                 "Id": 5827749541322112897,
                                                                 "Name": "RightEar",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -2118,6 +2173,7 @@
                                                                         "Id": 2032081803075838725,
                                                                         "Name": "RightEarEnd",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -2157,6 +2213,7 @@
                                                         "Id": 10815605897765746462,
                                                         "Name": "LeftUpperArm",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -2191,6 +2248,7 @@
                                                                 "Id": 11973498487897424955,
                                                                 "Name": "LeftLowerArm",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -2225,6 +2283,7 @@
                                                                         "Id": 4939979082894867327,
                                                                         "Name": "LeftWrist",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -2259,6 +2318,7 @@
                                                                                 "Id": 8742690612372531740,
                                                                                 "Name": "LeftWristEnd",
                                                                                 "Active": true,
+                                                                                "ActiveHierarchy": true,
                                                                                 "RootBoneId": 0,
                                                                                 "Components": [
                                                                                     {
@@ -2300,6 +2360,7 @@
                                                         "Id": 17620994564752769814,
                                                         "Name": "LeftUpperArmFK",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -2334,6 +2395,7 @@
                                                                 "Id": 3546870707728328871,
                                                                 "Name": "LeftLowerArmFK",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -2368,6 +2430,7 @@
                                                                         "Id": 14043488223412711896,
                                                                         "Name": "LeftWristFK",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -2407,6 +2470,7 @@
                                                         "Id": 2718796171311927175,
                                                         "Name": "LeftUpperArmIK",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -2441,6 +2505,7 @@
                                                                 "Id": 17608266314721703533,
                                                                 "Name": "LeftLowerArmIK",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -2475,6 +2540,7 @@
                                                                         "Id": 9168941110458436411,
                                                                         "Name": "LeftWristIK",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -2514,6 +2580,7 @@
                                                         "Id": 9869676407685924388,
                                                         "Name": "RightUpperArm",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -2548,6 +2615,7 @@
                                                                 "Id": 14193621950371967199,
                                                                 "Name": "RightLowerArm",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -2582,6 +2650,7 @@
                                                                         "Id": 16825042668605350254,
                                                                         "Name": "RightWrist",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -2616,6 +2685,7 @@
                                                                                 "Id": 3792737927871666368,
                                                                                 "Name": "RightWristEnd",
                                                                                 "Active": true,
+                                                                                "ActiveHierarchy": true,
                                                                                 "RootBoneId": 0,
                                                                                 "Components": [
                                                                                     {
@@ -2657,6 +2727,7 @@
                                                         "Id": 17698317506530402198,
                                                         "Name": "RightUpperArmFK",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -2691,6 +2762,7 @@
                                                                 "Id": 1657846089833315138,
                                                                 "Name": "RightLowerArmFK",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -2725,6 +2797,7 @@
                                                                         "Id": 3320311465902708036,
                                                                         "Name": "RightWristFK",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -2764,6 +2837,7 @@
                                                         "Id": 3769172284503082886,
                                                         "Name": "RightUpperArmIK",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -2798,6 +2872,7 @@
                                                                 "Id": 13311738610477091010,
                                                                 "Name": "RightLowerArmIK",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -2832,6 +2907,7 @@
                                                                         "Id": 3122292858053607236,
                                                                         "Name": "RightWristIK",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -2873,6 +2949,7 @@
                                                 "Id": 9807360943210325464,
                                                 "Name": "LeftLeg",
                                                 "Active": true,
+                                                "ActiveHierarchy": true,
                                                 "RootBoneId": 0,
                                                 "Components": [
                                                     {
@@ -2907,6 +2984,7 @@
                                                         "Id": 14667157217087670951,
                                                         "Name": "LeftFoot",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -2941,6 +3019,7 @@
                                                                 "Id": 7606804692255603798,
                                                                 "Name": "LeftFootEnd",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -2980,6 +3059,7 @@
                                                 "Id": 6013316806408093596,
                                                 "Name": "RightLeg",
                                                 "Active": true,
+                                                "ActiveHierarchy": true,
                                                 "RootBoneId": 0,
                                                 "Components": [
                                                     {
@@ -3014,6 +3094,7 @@
                                                         "Id": 4859616926890298583,
                                                         "Name": "RightFoot",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -3048,6 +3129,7 @@
                                                                 "Id": 284159862842723823,
                                                                 "Name": "RightFootEnd",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -3095,6 +3177,7 @@
                 "Id": 14780299465129253649,
                 "Name": "Changing Character",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 0,
                 "Components": [
                     {
@@ -3130,14 +3213,14 @@
                         "Script": 1764127008680550608,
                         "Values": [
                             {
-                                "Name": "fangUID",
-                                "Type": "GameObjectUID",
-                                "Value": 14091285918118769684
-                            },
-                            {
                                 "Name": "robotUID",
                                 "Type": "GameObjectUID",
                                 "Value": 606907587767583581
+                            },
+                            {
+                                "Name": "fangUID",
+                                "Type": "GameObjectUID",
+                                "Value": 14091285918118769684
                             },
                             {
                                 "Name": "canvasUID",

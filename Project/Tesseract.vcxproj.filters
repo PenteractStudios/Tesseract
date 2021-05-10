@@ -135,7 +135,7 @@
     <ClCompile Include="Source\Resources\ResourceFont.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentToggle.cpp" />
     <ClCompile Include="Source\Components\ComponentBoundingBox2D.cpp" />
-    <ClCompile Include="Source\UI\FontImporter.cpp" />
+    <ClCompile Include="Source\FileSystem\FontImporter.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentImage.cpp" />
     <ClCompile Include="Source\Modules\ModuleUserInterface.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentButton.cpp" />
@@ -170,6 +170,7 @@
     <ClCompile Include="Source\Resources\ResourceAudioClip.cpp" />
     <ClCompile Include="Source\FileSystem\AudioImporter.cpp" />
     <ClCompile Include="Libs\imgui\imgui_tables.cpp" />
+    <ClCompile Include="Source\Components\UI\ComponentSlider.cpp" />
     <ClCompile Include="Source\Utils\ImGuiUtils.cpp" />
     <ClCompile Include="Source\Scripting\Member.cpp" />
     <ClCompile Include="Source\LightFrustum.cpp" />
@@ -218,7 +219,6 @@
     <ClInclude Include="Source\Panels\PanelInspector.h" />
     <ClInclude Include="Source\Panels\PanelScene.h" />
     <ClInclude Include="Source\Panels\PanelControlEditor.h" />
-    <ClCompile Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Libs\DebugDraw\debugdraw.h" />
     <ClInclude Include="Libs\DebugDraw\debug_draw.hpp" />
     <ClInclude Include="Libs\ImGuizmo\ImCurveEdit.h" />
@@ -393,7 +393,7 @@
     <ClInclude Include="Source\UI\Interfaces\IMouseClickHandler.h" />
     <ClInclude Include="Source\UI\Interfaces\IPointerEnterHandler.h" />
     <ClInclude Include="Source\UI\Interfaces\IPointerExitHandler.h" />
-    <ClInclude Include="Source\UI\FontImporter.h" />
+    <ClInclude Include="Source\FileSystem\FontImporter.h" />
     <ClInclude Include="Source\Components\UI\ComponentImage.h" />
     <ClInclude Include="Source\Modules\ModuleUserInterface.h" />
     <ClInclude Include="Source\Components\UI\ComponentButton.h" />
@@ -442,9 +442,11 @@
     <ClInclude Include="Source\FileSystem\AudioImporter.h" />
     <ClInclude Include="Source\Utils\PoolMap.h" />
     <ClInclude Include="Source\FileSystem\PrefabImporter.h" />
+    <ClInclude Include="Source\Components\UI\ComponentSlider.h" />
     <ClInclude Include="Source\Scripting\Member.h" />
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
     <ClInclude Include="Source\LightFrustum.h" />
+    <ClInclude Include="Source\Panels\PanelResource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />
@@ -460,6 +462,7 @@
     <None Include="Libs\MathGeoLib\Math\float2.inl" />
     <None Include="Libs\MathGeoLib\Math\Matrix.inl" />
     <None Include="Debugging.props" />
+    <None Include="Source\Utils\dte80a.tlh" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />

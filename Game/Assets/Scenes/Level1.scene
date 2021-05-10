@@ -17,6 +17,7 @@
         "Id": 15211107778966353853,
         "Name": "Scene",
         "Active": true,
+        "ActiveHierarchy": true,
         "RootBoneId": 0,
         "Components": [
             {
@@ -51,6 +52,7 @@
                 "Id": 3289657990518912328,
                 "Name": "Directional Light",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 0,
                 "Components": [
                     {
@@ -102,6 +104,7 @@
                 "Id": 9025679401819048470,
                 "Name": "Event System",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 0,
                 "Components": [
                     {
@@ -143,6 +146,7 @@
                 "Id": 16946159852043739972,
                 "Name": "Fang",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 11388600944646547689,
                 "Components": [
                     {
@@ -175,7 +179,8 @@
                         "Type": "Script",
                         "Id": 5869657962254012141,
                         "Active": true,
-                        "Script": 11409832638087102569
+                        "Script": 11409832638087102569,
+                        "Values": null
                     }
                 ],
                 "Children": [
@@ -183,6 +188,7 @@
                         "Id": 4774775713659343812,
                         "Name": "PapaBones",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -218,6 +224,7 @@
                         "Id": 8655111412621302106,
                         "Name": "Adamito2Obj:AdamRig",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -273,6 +280,7 @@
                         "Id": 11388600944646547689,
                         "Name": "Center",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -307,6 +315,7 @@
                                 "Id": 8888900184296104660,
                                 "Name": "Torso",
                                 "Active": true,
+                                "ActiveHierarchy": true,
                                 "RootBoneId": 0,
                                 "Components": [
                                     {
@@ -341,6 +350,7 @@
                                         "Id": 4885338117901243150,
                                         "Name": "Neck",
                                         "Active": true,
+                                        "ActiveHierarchy": true,
                                         "RootBoneId": 0,
                                         "Components": [
                                             {
@@ -375,6 +385,7 @@
                                                 "Id": 4260114510625641765,
                                                 "Name": "Head",
                                                 "Active": true,
+                                                "ActiveHierarchy": true,
                                                 "RootBoneId": 0,
                                                 "Components": [
                                                     {
@@ -412,6 +423,7 @@
                                         "Id": 14401279522840806606,
                                         "Name": "LeftCollar",
                                         "Active": true,
+                                        "ActiveHierarchy": true,
                                         "RootBoneId": 0,
                                         "Components": [
                                             {
@@ -446,6 +458,7 @@
                                                 "Id": 2044306556491491894,
                                                 "Name": "LeftShoulder",
                                                 "Active": true,
+                                                "ActiveHierarchy": true,
                                                 "RootBoneId": 0,
                                                 "Components": [
                                                     {
@@ -480,6 +493,7 @@
                                                         "Id": 6584382047376338017,
                                                         "Name": "LeftElbow",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -514,6 +528,7 @@
                                                                 "Id": 3050777434010788142,
                                                                 "Name": "LeftHand",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -555,6 +570,7 @@
                                         "Id": 6511945212755197254,
                                         "Name": "RightCollar",
                                         "Active": true,
+                                        "ActiveHierarchy": true,
                                         "RootBoneId": 0,
                                         "Components": [
                                             {
@@ -589,6 +605,7 @@
                                                 "Id": 12725027290831063586,
                                                 "Name": "RightShoulder",
                                                 "Active": true,
+                                                "ActiveHierarchy": true,
                                                 "RootBoneId": 0,
                                                 "Components": [
                                                     {
@@ -623,6 +640,7 @@
                                                         "Id": 4745388355447437738,
                                                         "Name": "RightElbow",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -657,6 +675,7 @@
                                                                 "Id": 15810042652921845811,
                                                                 "Name": "RightHand",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -700,6 +719,7 @@
                                 "Id": 17677383033177574575,
                                 "Name": "LeftHip",
                                 "Active": true,
+                                "ActiveHierarchy": true,
                                 "RootBoneId": 0,
                                 "Components": [
                                     {
@@ -734,6 +754,7 @@
                                         "Id": 116154827797976339,
                                         "Name": "LeftKnee",
                                         "Active": true,
+                                        "ActiveHierarchy": true,
                                         "RootBoneId": 0,
                                         "Components": [
                                             {
@@ -768,6 +789,7 @@
                                                 "Id": 2701253101971618114,
                                                 "Name": "LeftFoot",
                                                 "Active": true,
+                                                "ActiveHierarchy": true,
                                                 "RootBoneId": 0,
                                                 "Components": [
                                                     {
@@ -807,6 +829,7 @@
                                 "Id": 3698011259814991693,
                                 "Name": "RightHip",
                                 "Active": true,
+                                "ActiveHierarchy": true,
                                 "RootBoneId": 0,
                                 "Components": [
                                     {
@@ -841,6 +864,7 @@
                                         "Id": 5972875226973303584,
                                         "Name": "RightKnee",
                                         "Active": true,
+                                        "ActiveHierarchy": true,
                                         "RootBoneId": 0,
                                         "Components": [
                                             {
@@ -875,6 +899,7 @@
                                                 "Id": 440393520112728723,
                                                 "Name": "RightFoot",
                                                 "Active": true,
+                                                "ActiveHierarchy": true,
                                                 "RootBoneId": 0,
                                                 "Components": [
                                                     {
@@ -916,6 +941,7 @@
                         "Id": 680618938873982628,
                         "Name": "Game Camera",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -986,6 +1012,7 @@
                 "Id": 6148482990756077018,
                 "Name": "Game Controler",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 0,
                 "Components": [
                     {
@@ -1018,13 +1045,15 @@
                         "Type": "Script",
                         "Id": 16058183949657632834,
                         "Active": true,
-                        "Script": 992608944476897018
+                        "Script": 992608944476897018,
+                        "Values": null
                     },
                     {
                         "Type": "Script",
                         "Id": 7171011586092336427,
                         "Active": true,
-                        "Script": 4240581393573860681
+                        "Script": 4240581393573860681,
+                        "Values": null
                     }
                 ],
                 "Children": null
@@ -1033,6 +1062,7 @@
                 "Id": 5035480018265416016,
                 "Name": "God Camera",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 0,
                 "Components": [
                     {
@@ -1094,6 +1124,7 @@
                 "Id": 3640826057516209614,
                 "Name": "WinCon",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 1385565630243669831,
                 "Components": [
                     {
@@ -1126,8 +1157,8 @@
                         "Type": "Animation",
                         "Id": 12732916558169418802,
                         "Active": true,
-                        "AnimationId": 9395568639086041306,
-                        "Controller": true
+                        "StateMachineId": 0,
+                        "InitalState": 0
                     }
                 ],
                 "Children": [
@@ -1135,6 +1166,7 @@
                         "Id": 14783710604777884828,
                         "Name": "Zombunny",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -1197,6 +1229,7 @@
                         "Id": 6468366303273662416,
                         "Name": "Ctrl_Grp",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -1231,6 +1264,7 @@
                                 "Id": 1385565630243669831,
                                 "Name": "Root",
                                 "Active": true,
+                                "ActiveHierarchy": true,
                                 "RootBoneId": 0,
                                 "Components": [
                                     {
@@ -1265,6 +1299,7 @@
                                         "Id": 3777631301753759229,
                                         "Name": "Hips",
                                         "Active": true,
+                                        "ActiveHierarchy": true,
                                         "RootBoneId": 0,
                                         "Components": [
                                             {
@@ -1299,6 +1334,7 @@
                                                 "Id": 8012591066876485138,
                                                 "Name": "Spine",
                                                 "Active": true,
+                                                "ActiveHierarchy": true,
                                                 "RootBoneId": 0,
                                                 "Components": [
                                                     {
@@ -1333,6 +1369,7 @@
                                                         "Id": 10232244217910671777,
                                                         "Name": "Head",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -1367,6 +1404,7 @@
                                                                 "Id": 7929345856744014554,
                                                                 "Name": "HeadEnd",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -1402,6 +1440,7 @@
                                                                 "Id": 17392513801979950110,
                                                                 "Name": "LeftEar",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -1436,6 +1475,7 @@
                                                                         "Id": 13905835869139747460,
                                                                         "Name": "LeftEarEnd",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -1473,6 +1513,7 @@
                                                                 "Id": 3779943340426933387,
                                                                 "Name": "RightEar",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -1507,6 +1548,7 @@
                                                                         "Id": 18199971296934484377,
                                                                         "Name": "RightEarEnd",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -1546,6 +1588,7 @@
                                                         "Id": 7249826547041857746,
                                                         "Name": "LeftUpperArm",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -1580,6 +1623,7 @@
                                                                 "Id": 6166985024066079401,
                                                                 "Name": "LeftLowerArm",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -1614,6 +1658,7 @@
                                                                         "Id": 3168189816835065440,
                                                                         "Name": "LeftWrist",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -1648,6 +1693,7 @@
                                                                                 "Id": 13409565050306199638,
                                                                                 "Name": "LeftWristEnd",
                                                                                 "Active": true,
+                                                                                "ActiveHierarchy": true,
                                                                                 "RootBoneId": 0,
                                                                                 "Components": [
                                                                                     {
@@ -1689,6 +1735,7 @@
                                                         "Id": 8377415521991417474,
                                                         "Name": "LeftUpperArmFK",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -1723,6 +1770,7 @@
                                                                 "Id": 6025831466236798832,
                                                                 "Name": "LeftLowerArmFK",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -1757,6 +1805,7 @@
                                                                         "Id": 3332327026048645273,
                                                                         "Name": "LeftWristFK",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -1796,6 +1845,7 @@
                                                         "Id": 6410116377433629617,
                                                         "Name": "LeftUpperArmIK",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -1830,6 +1880,7 @@
                                                                 "Id": 10803974277985574737,
                                                                 "Name": "LeftLowerArmIK",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -1864,6 +1915,7 @@
                                                                         "Id": 5296976425908578124,
                                                                         "Name": "LeftWristIK",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -1903,6 +1955,7 @@
                                                         "Id": 8829033921846812342,
                                                         "Name": "RightUpperArm",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -1937,6 +1990,7 @@
                                                                 "Id": 7510971593154681672,
                                                                 "Name": "RightLowerArm",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -1971,6 +2025,7 @@
                                                                         "Id": 9899030831943415490,
                                                                         "Name": "RightWrist",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -2005,6 +2060,7 @@
                                                                                 "Id": 8176178249794683190,
                                                                                 "Name": "RightWristEnd",
                                                                                 "Active": true,
+                                                                                "ActiveHierarchy": true,
                                                                                 "RootBoneId": 0,
                                                                                 "Components": [
                                                                                     {
@@ -2046,6 +2102,7 @@
                                                         "Id": 16773808881176188645,
                                                         "Name": "RightUpperArmFK",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -2080,6 +2137,7 @@
                                                                 "Id": 15808308171793400168,
                                                                 "Name": "RightLowerArmFK",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -2114,6 +2172,7 @@
                                                                         "Id": 4702573058667925772,
                                                                         "Name": "RightWristFK",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -2153,6 +2212,7 @@
                                                         "Id": 6837234157181082241,
                                                         "Name": "RightUpperArmIK",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -2187,6 +2247,7 @@
                                                                 "Id": 17604953248276019411,
                                                                 "Name": "RightLowerArmIK",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -2221,6 +2282,7 @@
                                                                         "Id": 52039673384250851,
                                                                         "Name": "RightWristIK",
                                                                         "Active": true,
+                                                                        "ActiveHierarchy": true,
                                                                         "RootBoneId": 0,
                                                                         "Components": [
                                                                             {
@@ -2262,6 +2324,7 @@
                                                 "Id": 5235028522482248818,
                                                 "Name": "LeftLeg",
                                                 "Active": true,
+                                                "ActiveHierarchy": true,
                                                 "RootBoneId": 0,
                                                 "Components": [
                                                     {
@@ -2296,6 +2359,7 @@
                                                         "Id": 11082889299572301594,
                                                         "Name": "LeftFoot",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -2330,6 +2394,7 @@
                                                                 "Id": 4421279564585995053,
                                                                 "Name": "LeftFootEnd",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -2369,6 +2434,7 @@
                                                 "Id": 1875578048291804371,
                                                 "Name": "RightLeg",
                                                 "Active": true,
+                                                "ActiveHierarchy": true,
                                                 "RootBoneId": 0,
                                                 "Components": [
                                                     {
@@ -2403,6 +2469,7 @@
                                                         "Id": 9166821370338416527,
                                                         "Name": "RightFoot",
                                                         "Active": true,
+                                                        "ActiveHierarchy": true,
                                                         "RootBoneId": 0,
                                                         "Components": [
                                                             {
@@ -2437,6 +2504,7 @@
                                                                 "Id": 669389678124459645,
                                                                 "Name": "RightFootEnd",
                                                                 "Active": true,
+                                                                "ActiveHierarchy": true,
                                                                 "RootBoneId": 0,
                                                                 "Components": [
                                                                     {
@@ -2484,6 +2552,7 @@
                 "Id": 9728239158609902811,
                 "Name": "StaticCameras",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 0,
                 "Components": [
                     {
@@ -2518,6 +2587,7 @@
                         "Id": 12105576063853642556,
                         "Name": "staticCamera1",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -2579,6 +2649,7 @@
                         "Id": 3685415630762953669,
                         "Name": "staticCamera2",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -2640,6 +2711,7 @@
                         "Id": 16730460715818442581,
                         "Name": "staticCamera3",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -2701,6 +2773,7 @@
                         "Id": 2655070040425404295,
                         "Name": "staticCamera4",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -2764,6 +2837,7 @@
                 "Id": 10947842727108977625,
                 "Name": "Canvas",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 0,
                 "Components": [
                     {
@@ -2801,7 +2875,8 @@
                         "Type": "Script",
                         "Id": 14555317840427266082,
                         "Active": true,
-                        "Script": 17015016752615233255
+                        "Script": 17015016752615233255,
+                        "Values": null
                     }
                 ],
                 "Children": [
@@ -2809,6 +2884,7 @@
                         "Id": 785729227217495477,
                         "Name": "CanvasStats",
                         "Active": false,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -2848,6 +2924,7 @@
                                 "Id": 12549060448785125058,
                                 "Name": "FPSText",
                                 "Active": true,
+                                "ActiveHierarchy": false,
                                 "RootBoneId": 0,
                                 "Components": [
                                     {
@@ -2881,8 +2958,8 @@
                                         "Id": 13546948296920621052,
                                         "Active": true,
                                         "Position": [
-                                            -300.0,
-                                            212.0,
+                                            0.0,
+                                            0.0,
                                             0.0
                                         ],
                                         "Rotation": [
@@ -2905,6 +2982,7 @@
                                             0.5,
                                             0.5
                                         ],
+                                        "PivotPosition": null,
                                         "Size": [
                                             200.0,
                                             200.0
@@ -2927,9 +3005,10 @@
                                         "Type": "Text",
                                         "Id": 5954824395275177100,
                                         "Active": true,
-                                        "ShaderID": 11491631887187473428,
                                         "FontID": 4141231996896904961,
                                         "FontSize": 12.0,
+                                        "LineHeight": 0.0,
+                                        "Alignment": 0,
                                         "Value": "FPS Text",
                                         "Color": [
                                             1.0,
@@ -2945,6 +3024,7 @@
                                 "Id": 15573601526949842655,
                                 "Name": "TRIGText",
                                 "Active": true,
+                                "ActiveHierarchy": false,
                                 "RootBoneId": 0,
                                 "Components": [
                                     {
@@ -2978,8 +3058,8 @@
                                         "Id": 9529921652384480788,
                                         "Active": true,
                                         "Position": [
-                                            -300.0,
-                                            184.0,
+                                            0.0,
+                                            0.0,
                                             0.0
                                         ],
                                         "Rotation": [
@@ -3002,6 +3082,7 @@
                                             0.5,
                                             0.5
                                         ],
+                                        "PivotPosition": null,
                                         "Size": [
                                             200.0,
                                             200.0
@@ -3024,9 +3105,10 @@
                                         "Type": "Text",
                                         "Id": 5381722780058343527,
                                         "Active": true,
-                                        "ShaderID": 11491631887187473428,
                                         "FontID": 4141231996896904961,
                                         "FontSize": 12.0,
+                                        "LineHeight": 0.0,
+                                        "Alignment": 0,
                                         "Value": "Trig Text",
                                         "Color": [
                                             1.0,
@@ -3042,6 +3124,7 @@
                                 "Id": 16220460064811142097,
                                 "Name": "PlayerPositionText",
                                 "Active": true,
+                                "ActiveHierarchy": false,
                                 "RootBoneId": 0,
                                 "Components": [
                                     {
@@ -3075,8 +3158,8 @@
                                         "Id": 8294586359558888128,
                                         "Active": true,
                                         "Position": [
-                                            -300.0,
-                                            156.0,
+                                            0.0,
+                                            0.0,
                                             0.0
                                         ],
                                         "Rotation": [
@@ -3099,6 +3182,7 @@
                                             0.5,
                                             0.5
                                         ],
+                                        "PivotPosition": null,
                                         "Size": [
                                             200.0,
                                             200.0
@@ -3121,9 +3205,10 @@
                                         "Type": "Text",
                                         "Id": 15380252127932391323,
                                         "Active": true,
-                                        "ShaderID": 11491631887187473428,
                                         "FontID": 4141231996896904961,
                                         "FontSize": 12.0,
+                                        "LineHeight": 0.0,
+                                        "Alignment": 0,
                                         "Value": "Player Position",
                                         "Color": [
                                             1.0,
@@ -3139,6 +3224,7 @@
                                 "Id": 15974121720816847373,
                                 "Name": "CameraDirectionText",
                                 "Active": true,
+                                "ActiveHierarchy": false,
                                 "RootBoneId": 0,
                                 "Components": [
                                     {
@@ -3172,8 +3258,8 @@
                                         "Id": 4422357878133977688,
                                         "Active": true,
                                         "Position": [
-                                            -300.0,
-                                            128.0,
+                                            0.0,
+                                            0.0,
                                             0.0
                                         ],
                                         "Rotation": [
@@ -3196,6 +3282,7 @@
                                             0.5,
                                             0.5
                                         ],
+                                        "PivotPosition": null,
                                         "Size": [
                                             200.0,
                                             200.0
@@ -3218,9 +3305,10 @@
                                         "Type": "Text",
                                         "Id": 3458783121672531287,
                                         "Active": true,
-                                        "ShaderID": 11491631887187473428,
                                         "FontID": 4141231996896904961,
                                         "FontSize": 12.0,
+                                        "LineHeight": 0.0,
+                                        "Alignment": 0,
                                         "Value": "Camera Direction",
                                         "Color": [
                                             1.0,
@@ -3240,6 +3328,7 @@
                 "Id": 18391603178320864918,
                 "Name": "Level1Map",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 0,
                 "Components": [
                     {
@@ -3274,6 +3363,7 @@
                         "Id": 6954490073445542004,
                         "Name": "OfficeTower",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -3329,6 +3419,7 @@
                         "Id": 12933293902560799645,
                         "Name": "TransportationPlatformGround",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -3384,6 +3475,7 @@
                         "Id": 14250305518671341945,
                         "Name": "CafeteriaGround",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -3439,6 +3531,7 @@
                         "Id": 4729122279136677563,
                         "Name": "Statues",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -3494,6 +3587,7 @@
                         "Id": 653287253698137120,
                         "Name": "Collectables",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -3549,6 +3643,7 @@
                         "Id": 14904197580146421759,
                         "Name": "BushPots",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -3604,6 +3699,7 @@
                         "Id": 17285167205842509244,
                         "Name": "Shop",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -3659,6 +3755,7 @@
                         "Id": 5831135100231291902,
                         "Name": "CurveBenches",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -3714,6 +3811,7 @@
                         "Id": 12536053036417820190,
                         "Name": "EnergyDoors",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -3769,6 +3867,7 @@
                         "Id": 17086273926635440234,
                         "Name": "BridgeWalls",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -3824,6 +3923,7 @@
                         "Id": 12443421169328837197,
                         "Name": "OilStains",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -3879,6 +3979,7 @@
                         "Id": 464249395647957722,
                         "Name": "Coolers",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -3934,6 +4035,7 @@
                         "Id": 1450547624736410587,
                         "Name": "MainSquareGround",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -3989,6 +4091,7 @@
                         "Id": 507304031309641037,
                         "Name": "CentralAisle",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -4044,6 +4147,7 @@
                         "Id": 18320594066917098878,
                         "Name": "PhoneBooths",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -4099,6 +4203,7 @@
                         "Id": 12470282441739221855,
                         "Name": "BeamsBridge",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -4154,6 +4259,7 @@
                         "Id": 7215241179224170462,
                         "Name": "PreSecurityGround",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -4209,6 +4315,7 @@
                         "Id": 253824875518804696,
                         "Name": "AisleSecurity",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -4264,6 +4371,7 @@
                         "Id": 9955938483952655850,
                         "Name": "SecurityGround",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -4319,6 +4427,7 @@
                         "Id": 9638706441289963572,
                         "Name": "LaserBeam",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -4373,6 +4482,7 @@
                                 "Id": 10268953955889279985,
                                 "Name": "InnerLaserBeam",
                                 "Active": true,
+                                "ActiveHierarchy": true,
                                 "RootBoneId": 0,
                                 "Components": [
                                     {
@@ -4430,6 +4540,7 @@
                         "Id": 18329709181854505375,
                         "Name": "BigPipes",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -4485,6 +4596,7 @@
                         "Id": 4480864467527401217,
                         "Name": "EnergyTank",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -4540,6 +4652,7 @@
                         "Id": 10260804074855126182,
                         "Name": "Factory",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -4595,6 +4708,7 @@
                         "Id": 14056455541905693001,
                         "Name": "Door",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -4649,6 +4763,7 @@
                                 "Id": 17556571172646993516,
                                 "Name": "DoorLock",
                                 "Active": true,
+                                "ActiveHierarchy": true,
                                 "RootBoneId": 0,
                                 "Components": [
                                     {
@@ -4704,6 +4819,7 @@
                                 "Id": 12141203069192748120,
                                 "Name": "EyeSphere",
                                 "Active": true,
+                                "ActiveHierarchy": true,
                                 "RootBoneId": 0,
                                 "Components": [
                                     {
@@ -4761,6 +4877,7 @@
                         "Id": 1856784657427412280,
                         "Name": "BGTube",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -4816,6 +4933,7 @@
                         "Id": 3187036729058074327,
                         "Name": "HeavyPlanks",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -4871,6 +4989,7 @@
                         "Id": 3551788358122898610,
                         "Name": "LaserGates",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -4926,6 +5045,7 @@
                         "Id": 8098329630582501100,
                         "Name": "AmmoBoxes",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -4981,6 +5101,7 @@
                         "Id": 123885015111596306,
                         "Name": "StandardBenches",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5043,6 +5164,7 @@
                         "Id": 12556361097111613621,
                         "Name": "VendingMachines",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5098,6 +5220,7 @@
                         "Id": 13848315879903655384,
                         "Name": "Fuse",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5153,6 +5276,7 @@
                         "Id": 14153719114902032335,
                         "Name": "Cable",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5208,6 +5332,7 @@
                         "Id": 1796727293602637701,
                         "Name": "Antennas3",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5263,6 +5388,7 @@
                         "Id": 6381986471627845217,
                         "Name": "Antennas2",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5318,6 +5444,7 @@
                         "Id": 1541539654020265231,
                         "Name": "Gardens",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5373,6 +5500,7 @@
                         "Id": 3124798122256505292,
                         "Name": "Doors",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5428,6 +5556,7 @@
                         "Id": 12926704976315163024,
                         "Name": "TransportationRailings",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5483,6 +5612,7 @@
                         "Id": 3408960101753909366,
                         "Name": "TransportSmallBridges",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5538,6 +5668,7 @@
                         "Id": 3589088608677550183,
                         "Name": "BridgeRailings",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5593,6 +5724,7 @@
                         "Id": 18093600466798376120,
                         "Name": "EnergyCells",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5648,6 +5780,7 @@
                         "Id": 7862201869780133950,
                         "Name": "SmallPipes",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5703,6 +5836,7 @@
                         "Id": 15039325187931937534,
                         "Name": "Advertisements",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5758,6 +5892,7 @@
                         "Id": 15297212595164210523,
                         "Name": "Boosters",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5813,6 +5948,7 @@
                         "Id": 6014477602431391281,
                         "Name": "Vehicles",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5868,6 +6004,7 @@
                         "Id": 842858745828092631,
                         "Name": "OilCanisters",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5930,6 +6067,7 @@
                         "Id": 12737002053662405027,
                         "Name": "Trees",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -5982,7 +6120,8 @@
                                 "Type": "Script",
                                 "Id": 17971741759443032383,
                                 "Active": true,
-                                "Script": 11157839368394672630
+                                "Script": 11157839368394672630,
+                                "Values": null
                             }
                         ],
                         "Children": [
@@ -5990,6 +6129,7 @@
                                 "Id": 1108990954059139989,
                                 "Name": "LoseCon",
                                 "Active": true,
+                                "ActiveHierarchy": true,
                                 "RootBoneId": 0,
                                 "Components": [
                                     {
@@ -6024,6 +6164,7 @@
                                         "Id": 867440158746410482,
                                         "Name": "SkullLP",
                                         "Active": true,
+                                        "ActiveHierarchy": true,
                                         "RootBoneId": 0,
                                         "Components": [
                                             {
@@ -6083,6 +6224,7 @@
                         "Id": 2074887013172210100,
                         "Name": "Warehouses",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -6138,6 +6280,7 @@
                         "Id": 14209641122269615405,
                         "Name": "Antennas1",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -6193,6 +6336,7 @@
                         "Id": 1767011441766231354,
                         "Name": "Plants",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -6248,6 +6392,7 @@
                         "Id": 6504501729668039839,
                         "Name": "Trashcans",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -6303,6 +6448,7 @@
                         "Id": 6601930386391871155,
                         "Name": "Tables",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -6358,6 +6504,7 @@
                         "Id": 8716955245703771533,
                         "Name": "TransportationWalls",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -6413,6 +6560,7 @@
                         "Id": 958837057032469824,
                         "Name": "TransportGround",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -6468,6 +6616,7 @@
                         "Id": 1955536421969593623,
                         "Name": "TurretSpheres",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -6523,6 +6672,7 @@
                         "Id": 2458109175867990032,
                         "Name": "TurretInterior",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -6577,6 +6727,7 @@
                                 "Id": 256859991171932166,
                                 "Name": "TurretShields",
                                 "Active": true,
+                                "ActiveHierarchy": true,
                                 "RootBoneId": 0,
                                 "Components": [
                                     {
@@ -6634,6 +6785,7 @@
                         "Id": 3471809455103977472,
                         "Name": "TurretBases",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -6689,6 +6841,7 @@
                         "Id": 5452460172619500288,
                         "Name": "HeavyBoxOBJLP041",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -6746,6 +6899,7 @@
                 "Id": 17858013908038134214,
                 "Name": "Lights",
                 "Active": true,
+                "ActiveHierarchy": true,
                 "RootBoneId": 0,
                 "Components": [
                     {
@@ -6780,6 +6934,7 @@
                         "Id": 12213240563406658047,
                         "Name": "Dispenser",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -6831,6 +6986,7 @@
                         "Id": 6968712876730810159,
                         "Name": "Dispenser2",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -6882,6 +7038,7 @@
                         "Id": 3698851379390721907,
                         "Name": "Dispenser3",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -6933,6 +7090,7 @@
                         "Id": 2927260309655834254,
                         "Name": "Cube",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {
@@ -6984,6 +7142,7 @@
                         "Id": 7067464940835200567,
                         "Name": "Cube2",
                         "Active": true,
+                        "ActiveHierarchy": true,
                         "RootBoneId": 0,
                         "Components": [
                             {

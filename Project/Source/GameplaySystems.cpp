@@ -175,9 +175,9 @@ void SceneManager::ExitGame() {
 }
 
 float Screen::GetScreenWitdh() {
-	return App->window->GetWidth();
+	return static_cast<float>(App->window->GetWidth());
 }
 
 float Screen::GetScreenHeight() {
-	return App->window->GetHeight();
+	return static_cast<float>(App->window->GetHeight());
 }

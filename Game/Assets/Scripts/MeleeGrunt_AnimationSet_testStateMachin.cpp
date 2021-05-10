@@ -5,6 +5,7 @@
 #include "GameObject.h"
 #include "Components/ComponentAnimation.h"
 #include "State.h"
+#include "TesseractEvent.h"
 
 EXPOSE_MEMBERS(MeleeGrunt_AnimationSet_testStateMachin) {
     // Add members here to expose them to the engine. Example:
@@ -20,7 +21,7 @@ void MeleeGrunt_AnimationSet_testStateMachin::Start() {
 	if (goAnimated) {
 		animation = goAnimated->GetComponent<ComponentAnimation>();
 		currentState = animation->GetCurrentState();
-	}	
+	}
 }
 
 void MeleeGrunt_AnimationSet_testStateMachin::Update() {
@@ -84,5 +85,28 @@ void MeleeGrunt_AnimationSet_testStateMachin::Update() {
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_O)) { //18
 		animation->SendTrigger("DeathSpawn");
+	}
+}
+
+void MeleeGrunt_AnimationSet_testStateMachin::ReceiveEvent(TesseractEvent& e) {
+	switch (e.type) {
+	case TesseractEventType::ANIMATION_FINISHED:
+		Debug::Log("ANIMATION_FINISHED!!");
+
+		if (currentState != animation->GetCurrentState())
+		{
+			currentState = animation->GetCurrentState();
+		}
+
+		if (currentState->name == "StateHurt") {
+			animation->SendTrigger("HurtIdle");
+		}
+		if (currentState->name == "StateAttack") {
+			animation->SendTrigger("AttackIdle");
+		}
+
+		break;
+	default:
+		break;
 	}
 }

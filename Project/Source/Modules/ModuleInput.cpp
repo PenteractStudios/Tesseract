@@ -78,8 +78,12 @@ UpdateStatus ModuleInput::PreUpdate() {
 				case SDL_WINDOWEVENT_CLOSE:
 					return UpdateStatus::STOP;
 				case SDL_WINDOWEVENT_RESIZED:
-					TesseractEvent e(TesseractEventType::SCREEN_RESIZED);
-					App->events->AddEvent(e);
+					// TODO: Refactor to event
+					// TesseractEvent e(TesseractEventType::SCREEN_RESIZED);
+					// App->events->AddEvent(e);
+					App->camera->ViewportResized((int) App->window->GetWidth(), (int) App->window->GetHeight());
+					App->renderer->ViewportResized((int) App->window->GetWidth(), (int) App->window->GetHeight());
+					App->userInterface->ViewportResized();
 					break;
 				}
 			}

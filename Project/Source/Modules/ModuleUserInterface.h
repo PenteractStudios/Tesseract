@@ -3,6 +3,9 @@
 #include "Module.h"
 #include "Utils/UID.h"
 #include "Math/float2.h"
+#include "Math/float4.h"
+
+#define SCENE_SCREEN_FACTOR 0.01f
 
 class GameObject;
 class ComponentEventSystem;
@@ -26,6 +29,12 @@ public:
 
 	unsigned int GetQuadVBO();			// Returns the generic VBO that is used in ComponentImages
 	void ViewportResized();				// Calls ComponentCanvas, ComponentTransform2D, ComponentText components to be updated
+	bool IsUsing2D() const;
+
+public:
+	bool view2DInternal = false;
+
+	float4 GetErrorColor();				// Gets the representation of the color
 
 private:
 	void CreateQuadVBO();				// Creates a vbo made by two triangles centered that form a Quad
@@ -33,4 +42,5 @@ private:
 private:
 	UID currentEvSys = 0;				// Module's Event System UID
 	unsigned int quadVBO = 0;			// VBO of the ComponentImage generic Quad
+	float4 errorColor = float4(-1, -1, -1, -1);		// Representation of error in color (not a color to display)
 };

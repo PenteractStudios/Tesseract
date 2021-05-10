@@ -63,7 +63,7 @@ void ResourceClip::Unload() {
 	App->resources->DecreaseReferenceCount(animationUID);
 }
 
-void ResourceClip::SaveToFile(const char* filePath) {
+bool ResourceClip::SaveToFile(const char* filePath) {
 	LOG("Saving ResourceClip to path: \"%s\".", filePath);
 
 	MSTimer timer;
@@ -89,11 +89,12 @@ void ResourceClip::SaveToFile(const char* filePath) {
 	bool saved = App->files->Save(filePath, stringBuffer.GetString(), stringBuffer.GetSize());
 	if (!saved) {
 		LOG("Failed to save clip resource.");
-		return;
+		return false;
 	}
 
 	unsigned timeMs = timer.Stop();
 	LOG("Clip saved in %ums", timeMs);
+	return true;
 }
 
 void ResourceClip::Init(std::string& mName, UID mAnimationUID, unsigned int mBeginIndex, unsigned int mEndIndex, bool mLoop, float mSpeed, UID mid) {

@@ -12,8 +12,20 @@
 
 #include "Utils/Leaks.h"
 
+int AnimationController::GetCurrentSample(const ResourceClip& clip, float& currentTime) {
+	float currentSample = (currentTime * (clip.keyFramesSize)) / clip.duration;
+	currentSample += clip.beginIndex;
+	int intPart = (int) currentSample;
+
+	return intPart;
+}
+
+
 bool AnimationController::GetTransform(const ResourceClip& clip, float& currentTime, const char* name, float3& pos, Quat& quat) {
 	assert(clip.animationUID != 0);
+
+	ResourceAnimation* resourceAnimation = clip.GetResourceAnimation();
+	if (resourceAnimation == nullptr) return false;
 
 	if (clip.loop) {
 		while (currentTime >= clip.duration) {
@@ -29,7 +41,6 @@ bool AnimationController::GetTransform(const ResourceClip& clip, float& currentT
 	float decimal = currentSample - intPart;
 
 	//find in hash by name
-	ResourceAnimation* resourceAnimation = clip.GetResourceAnimation();
 	std::unordered_map<std::string, ResourceAnimation::Channel>::const_iterator channel = resourceAnimation->keyFrames[intPart].channels.find(name);
 	unsigned int idNext = intPart == (clip.endIndex) ? clip.beginIndex : intPart + 1;
 	std::unordered_map<std::string, ResourceAnimation::Channel>::const_iterator channelNext = resourceAnimation->keyFrames[idNext].channels.find(name);

@@ -33,8 +33,18 @@ void ComponentCanvasRenderer::Render(const GameObject* gameObject) const {
 	}
 }
 
-float ComponentCanvasRenderer::GetCanvasScreenFactor() const {
+float2 ComponentCanvasRenderer::GetCanvasSize() {
+	ComponentCanvas* canvas = AnyParentHasCanvas(&GetOwner());
+	return canvas ? canvas->GetSize() : float2(1920, 1080);
+}
+
+float2 ComponentCanvasRenderer::GetScreenReferenceSize() const {
 	const ComponentCanvas* canvas = AnyParentHasCanvas(&GetOwner());
+	return canvas ? canvas->GetScreenReferenceSize() : float2(1920, 1080);
+}
+
+float ComponentCanvasRenderer::GetCanvasScreenFactor() {
+	ComponentCanvas* canvas = AnyParentHasCanvas(&GetOwner());
 	return canvas ? canvas->GetScreenFactor() : 1.0f;
 }
 
@@ -42,7 +52,7 @@ void ComponentCanvasRenderer::DuplicateComponent(GameObject& owner) {
 	ComponentCanvasRenderer* component = owner.CreateComponent<ComponentCanvasRenderer>();
 }
 
-const ComponentCanvas* ComponentCanvasRenderer::AnyParentHasCanvas(GameObject* current) const {
+ComponentCanvas* ComponentCanvasRenderer::AnyParentHasCanvas(GameObject* current) const {
 	ComponentCanvas* currentCanvas = current->GetComponent<ComponentCanvas>();
 	if (currentCanvas != nullptr) {
 		return currentCanvas;
@@ -56,5 +66,5 @@ const ComponentCanvas* ComponentCanvasRenderer::AnyParentHasCanvas(GameObject* c
 }
 
 bool ComponentCanvasRenderer::CanBeRemoved() const {
-	return !(GetOwner().GetComponent<ComponentImage>() || GetOwner().GetComponent<ComponentText>());
+	return !(GetOwner().GetComponent<ComponentImage>() || GetOwner().GetComponent<ComponentText>() || GetOwner().GetComponent<ComponentBoundingBox2D>());
 }

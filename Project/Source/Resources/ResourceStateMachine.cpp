@@ -52,7 +52,7 @@ void ResourceStateMachine::Load() {
 	assert(document.IsObject());
 
 	JsonValue clipArray = jStateMachine[JSON_TAG_CLIPS];
-	for (int i = 0; i < clipArray.Size(); ++i) {
+	for (unsigned int i = 0; i < clipArray.Size(); ++i) {
 		UID clipUID = clipArray[i];
 		ResourceClip* clip = App->resources->GetResource<ResourceClip>(clipUID);
 		App->resources->IncreaseReferenceCount(clipUID);
@@ -61,7 +61,7 @@ void ResourceStateMachine::Load() {
 
 	std::unordered_map<UID, State> stateMap;
 	JsonValue stateArray = jStateMachine[JSON_TAG_STATES];
-	for (int i = 0; i < stateArray.Size(); ++i) {
+	for (unsigned int i = 0; i < stateArray.Size(); ++i) {
 		UID id = stateArray[i][JSON_TAG_ID];
 		std::string name = stateArray[i][JSON_TAG_NAME];
 		UID clipId = stateArray[i][JSON_TAG_CLIP_ID];
@@ -71,7 +71,7 @@ void ResourceStateMachine::Load() {
 	}
 
 	JsonValue transitionArray = jStateMachine[JSON_TAG_TRANSITIONS];
-	for (int i = 0; i < transitionArray.Size(); ++i) {
+	for (unsigned int i = 0; i < transitionArray.Size(); ++i) {
 		std::string triggerName = transitionArray[i][JSON_TAG_TRIGGER_NAME];
 		UID id = transitionArray[i][JSON_TAG_ID];
 		UID source = transitionArray[i][JSON_TAG_SOURCE];

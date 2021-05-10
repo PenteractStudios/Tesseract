@@ -319,7 +319,7 @@ void ComponentSelectable::TryToClickOn() const {
 
 	std::vector<Component*>::const_iterator it = GetOwner().components.begin();
 	while (toBeClicked == 0 && it != GetOwner().components.end()) {
-		if ((*it)->GetType() == ComponentType::BUTTON || (*it)->GetType() == ComponentType::TOGGLE) {
+		if ((*it)->GetType() == ComponentType::BUTTON || (*it)->GetType() == ComponentType::TOGGLE || (*it)->GetType() == ComponentType::SLIDER) {
 			toBeClicked = (*it)->GetID();
 			typeToPress = (*it)->GetType();
 		} else {
@@ -338,6 +338,10 @@ void ComponentSelectable::TryToClickOn() const {
 			componentToPress = GetOwner().GetComponent<ComponentToggle>();
 			((ComponentToggle*) componentToPress)->OnClicked();
 			break;
+		case ComponentType::SLIDER:
+			componentToPress = GetOwner().GetComponent<ComponentSlider>();
+			((ComponentSlider*) componentToPress)->OnClicked();
+			break;
 		default:
 			assert("This is not supposed to ever happen");
 			break;
@@ -351,6 +355,8 @@ Component* ComponentSelectable::GetSelectableComponent() {
 		return GetOwner().GetComponent<ComponentButton>();
 	case ComponentType::TOGGLE:
 		return GetOwner().GetComponent<ComponentToggle>();
+	case ComponentType::SLIDER:
+		return GetOwner().GetComponent<ComponentSlider>();
 	default:
 		return nullptr;
 	}
@@ -361,5 +367,5 @@ void ComponentSelectable::SetSelectableType(ComponentType type_) {
 }
 
 bool ComponentSelectable::CanBeRemoved() const {
-	return !(GetOwner().GetComponent<ComponentButton>() || GetOwner().GetComponent<ComponentToggle>());
+	return !(GetOwner().GetComponent<ComponentButton>() || GetOwner().GetComponent<ComponentToggle>() || GetOwner().GetComponent<ComponentSlider>());
 }

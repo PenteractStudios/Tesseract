@@ -20,11 +20,11 @@ public:
 	void Load(JsonValue jComponent) override;		// Deserializes object
 	void DuplicateComponent(GameObject& owner) override;
 
-	void Draw(const ComponentTransform2D* transform) const; // Draws the image ortographically using the active camera, and the transform passed as model. It will apply AlphaTransparency if true, and will get Button's additional color to apply if needed
+	void Draw(ComponentTransform2D* transform) const; // Draws the image ortographically using the active camera, and the transform passed as model. It will apply AlphaTransparency if true, and will get Button's additional color to apply if needed
 	void SetColor(float4 color_);
 
 private:
-	float4 GetTintColor() const; // Gets an additional color that needs to be applied to the image. Currently gets the color of the Button
+	float4 GetMainColor() const;	// Gets an additional color that needs to be applied to the image. Currently gets the color of the Button, Slider and Checkbox
 
 private:
 	float4 color = float4::one;		// Color used as default tainter

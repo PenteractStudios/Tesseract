@@ -31,6 +31,9 @@
 #include "Utils/Leaks.h"
 
 bool ModuleUserInterface::Init() {
+#if GAME
+	view2DInternal = true;
+#endif
 	return true;
 }
 
@@ -39,6 +42,7 @@ bool ModuleUserInterface::Start() {
 	App->events->AddObserverToEvent(TesseractEventType::SCREEN_RESIZED, this);
 	App->events->AddObserverToEvent(TesseractEventType::MOUSE_CLICKED, this);
 	App->events->AddObserverToEvent(TesseractEventType::MOUSE_RELEASED, this);
+	ViewportResized();
 	return true;
 }
 
@@ -130,7 +134,7 @@ void ModuleUserInterface::Render() {
 	Scene* scene = App->scene->scene;
 	if (scene != nullptr) {
 		for (ComponentCanvasRenderer& canvasRenderer : scene->canvasRendererComponents) {
-			if (canvasRenderer.GetOwner().IsActiveInHierarchy()) {
+			if (canvasRenderer.GetOwner().IsActive()) {
 				canvasRenderer.Render(&canvasRenderer.GetOwner());
 			}
 		}
@@ -207,14 +211,22 @@ ComponentEventSystem* ModuleUserInterface::GetCurrentEventSystem() {
 
 void ModuleUserInterface::ViewportResized() {
 	for (ComponentCanvas& canvas : App->scene->scene->canvasComponents) {
-		canvas.SetDirty(true);
+		canvas.Invalidate();
 	}
 
 	for (ComponentTransform2D& transform : App->scene->scene->transform2DComponents) {
-		transform.InvalidateHierarchy();
+		transform.Invalidate();
 	}
 
 	for (ComponentText& text : App->scene->scene->textComponents) {
 		text.RecalculcateVertices();
 	}
+}
+
+bool ModuleUserInterface::IsUsing2D() const {
+	return view2DInternal || App->time->HasGameStarted();
+}
+
+float4 ModuleUserInterface::GetErrorColor() {
+	return errorColor;
 }

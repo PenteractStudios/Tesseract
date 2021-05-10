@@ -34,6 +34,7 @@ enum class ComponentType {
 	BOUNDING_BOX_2D,
 	TOGGLE,
 	SELECTABLE,
+	SLIDER,
 	SKYBOX,
 	ANIMATION,
 	TEXT,

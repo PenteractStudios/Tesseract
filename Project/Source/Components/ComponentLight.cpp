@@ -31,7 +31,7 @@ void ComponentLight::Update() {
 }
 
 void ComponentLight::DrawGizmos() {
-	if (IsActiveInHierarchy()) {
+	if (IsActive()) {
 		if (lightType == LightType::DIRECTIONAL) {
 			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 			dd::cone(pos, direction * 200, dd::colors::White, 1.0f, 1.0f);
@@ -48,9 +48,14 @@ void ComponentLight::DrawGizmos() {
 }
 
 void ComponentLight::OnEditorUpdate() {
-	bool active = IsActive();
 	if (ImGui::Checkbox("Active", &active)) {
-		active ? Enable() : Disable();
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
 	}
 
 	ImGui::TextColored(App->editor->titleColor, "Parameters");

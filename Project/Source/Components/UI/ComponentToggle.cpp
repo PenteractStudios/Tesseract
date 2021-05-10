@@ -78,11 +78,11 @@ void ComponentToggle::SetClicked(bool clicked_) {
 }
 
 float4 ComponentToggle::GetTintColor() const {
-	if (!IsActive()) return float4::one;
+	if (!IsActive()) return App->userInterface->GetErrorColor();
 
 	ComponentSelectable* sel = GetOwner().GetComponent<ComponentSelectable>();
 
-	if (!sel) return float4::one;
+	if (!sel) return App->userInterface->GetErrorColor();
 
 	if (sel->GetTransitionType() == ComponentSelectable::TransitionType::COLOR_CHANGE) {
 		if (!sel->IsInteractable()) {
@@ -96,7 +96,7 @@ float4 ComponentToggle::GetTintColor() const {
 		}
 	}
 
-	return float4::one;
+	return App->userInterface->GetErrorColor();
 }
 
 float4 ComponentToggle::GetClickColor() const {

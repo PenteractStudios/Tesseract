@@ -20,14 +20,13 @@ void ComponentAudioListener::Update() {
 }
 
 void ComponentAudioListener::OnEditorUpdate() {
-	bool active = IsActive();
 	if (ImGui::Checkbox("Active", &active)) {
-		active ? Enable() : Disable();
-
-		if (IsActive()) {
-			Init();
-		} else {
-			alListenerf(AL_GAIN, 0.f);
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
 		}
 	}
 }
@@ -43,6 +42,14 @@ void ComponentAudioListener::Load(JsonValue jComponent) {
 void ComponentAudioListener::DuplicateComponent(GameObject& owner) {
 	ComponentAudioListener* component = owner.CreateComponent<ComponentAudioListener>();
 	component->gain = this->gain;
+}
+
+void ComponentAudioListener::OnEnable() {
+	Init();
+}
+
+void ComponentAudioListener::OnDisable() {
+	alListenerf(AL_GAIN, 0.f);
 }
 
 void ComponentAudioListener::UpdateAudioListener() {

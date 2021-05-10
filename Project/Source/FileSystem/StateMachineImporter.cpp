@@ -47,12 +47,13 @@ bool StateMachineImporter::ImportStateMachine(const char* filePath, JsonValue jM
 	// State mahcine resource creation
 	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
 	JsonValue jResource = jResources[0];
-	UID id = jResource[JSON_TAG_ID];
-	ResourceStateMachine* stateMachine = App->resources->CreateResource<ResourceStateMachine>(filePath, id ? id : GenerateUID());
+	UID metaId = jResource[JSON_TAG_ID];
+	UID id = metaId ? metaId : GenerateUID();
+	App->resources->CreateResource<ResourceStateMachine>(filePath, id);
 
 	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(stateMachine->GetType());
-	jResource[JSON_TAG_ID] = stateMachine->GetId();
+	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceStateMachine::staticType);
+	jResource[JSON_TAG_ID] = id;
 
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
@@ -60,7 +61,7 @@ bool StateMachineImporter::ImportStateMachine(const char* filePath, JsonValue jM
 	document.Accept(writer);
 
 	// Save to file
-	const std::string& resourceFilePath = stateMachine->GetResourceFilePath();
+	const std::string& resourceFilePath = App->resources->GenerateResourcePath(id);
 	bool saved = App->files->Save(resourceFilePath.c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
 	if (!saved) {
 		LOG("Failed to save stateMachine resource.");

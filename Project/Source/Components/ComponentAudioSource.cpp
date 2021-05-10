@@ -36,7 +36,7 @@ void ComponentAudioSource::Update() {
 }
 
 void ComponentAudioSource::DrawGizmos() {
-	if (IsActiveInHierarchy() && drawGizmos) {
+	if (IsActive() && drawGizmos) {
 		if (spatialBlend && sourceType) {
 			dd::cone(position, direction, dd::colors::White, 1.0f, 0.0f);
 		} else {
@@ -65,9 +65,14 @@ void ComponentAudioSource::UpdateAudioSource() {
 }
 
 void ComponentAudioSource::OnEditorUpdate() {
-	bool active = IsActive();
 	if (ImGui::Checkbox("Active", &active)) {
-		active ? Enable() : Disable();
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
 	}
 	ImGui::Separator();
 	ImGui::Checkbox("Draw Gizmos", &drawGizmos);

@@ -40,13 +40,13 @@ public:
 	GameObject& GetOwner() const;
 	UID GetID() const;
 	TESSERACT_ENGINE_API bool IsActive() const;
-	bool IsActiveInHierarchy() const;
+	bool IsActiveInternal() const;
 
 protected:
 	ComponentType type = ComponentType::UNKNOWN; // See ComponentType.h for a list of all available types.
+	bool active = true;							 // Visibility of the Component. If active is false the GameObject behaves as if this Component doesn't exist.
 
 private:
 	UID id = 0;					 // Unique identifier for the component
-	bool active = true;			 // Visibility of the Component. If active is false the GameObject behaves as if this Component doesn't exist.
 	GameObject* owner = nullptr; // References the GameObject this Component applies its functionality to. Its 'parent'.
 };

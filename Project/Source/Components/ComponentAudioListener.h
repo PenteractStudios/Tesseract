@@ -14,6 +14,9 @@ public:
 	void Load(JsonValue jComponent) override;
 	void DuplicateComponent(GameObject& owner) override;
 
+	void OnEnable() override;
+	void OnDisable() override;
+
 	void UpdateAudioListener();
 
 private:

@@ -36,6 +36,8 @@ const char* GetComponentTypeName(ComponentType type) {
 		return "Toggle";
 	case ComponentType::SELECTABLE:
 		return "Selectable";
+	case ComponentType::SLIDER:
+		return "Slider";
 	case ComponentType::SKYBOX:
 		return "Skybox";
 	case ComponentType::ANIMATION:
@@ -84,6 +86,8 @@ ComponentType GetComponentTypeFromName(const char* name) {
 		return ComponentType::TOGGLE;
 	} else if (strcmp(name, "Selectable") == 0) {
 		return ComponentType::SELECTABLE;
+	} else if (strcmp(name, "Slider") == 0) {
+		return ComponentType::SLIDER;
 	} else if (strcmp(name, "Skybox") == 0) {
 		return ComponentType::SKYBOX;
 	} else if (strcmp(name, "Animation") == 0) {

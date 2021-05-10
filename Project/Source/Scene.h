@@ -16,6 +16,7 @@
 #include "Components/UI/ComponentButton.h"
 #include "Components/UI/ComponentToggle.h"
 #include "Components/UI/ComponentText.h"
+#include "Components/UI/ComponentSlider.h"
 #include "Components/ComponentBoundingBox2D.h"
 #include "Components/ComponentSkybox.h"
 #include "Components/ComponentScript.h"
@@ -71,6 +72,7 @@ public:
 	PoolMap<UID, ComponentText> textComponents;
 	PoolMap<UID, ComponentButton> buttonComponents;
 	PoolMap<UID, ComponentSelectable> selectableComponents;
+	PoolMap<UID, ComponentSlider> sliderComponents;
 	PoolMap<UID, ComponentSkyBox> skyboxComponents;
 	PoolMap<UID, ComponentScript> scriptComponents;
 	PoolMap<UID, ComponentAnimation> animationComponents;

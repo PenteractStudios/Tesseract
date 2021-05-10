@@ -18,9 +18,15 @@
 void ComponentBoundingBox::OnEditorUpdate() {
 	ImGui::TextColored(App->editor->titleColor, "Bounding Box");
 
-	bool active = IsActive();
-
-	if (ImGui::Checkbox("Draw", &active)) active ? Enable() : Disable();
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
+	}
 
 	if (IsActive()) DrawBoundingBox();
 }
@@ -92,4 +98,13 @@ const OBB& ComponentBoundingBox::GetWorldOBB() {
 const AABB& ComponentBoundingBox::GetWorldAABB() {
 	CalculateWorldBoundingBox();
 	return worldAABB;
+}
+
+const float3 ComponentBoundingBox::GetLocalMinPointAABB() {
+	CalculateWorldBoundingBox();
+	return localAABB.minPoint;
+}
+const float3 ComponentBoundingBox::GetLocalMaxPointAABB() {
+	CalculateWorldBoundingBox();
+	return localAABB.maxPoint;
 }

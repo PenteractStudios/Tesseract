@@ -47,12 +47,13 @@ bool ClipImporter::ImportClip(const char* filePath, JsonValue jMeta) {
 	// Clip resource creation
 	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
 	JsonValue jResource = jResources[0];
-	UID id = jResource[JSON_TAG_ID];
-	ResourceClip* clip = App->resources->CreateResource<ResourceClip>(filePath, id ? id : GenerateUID());
+	UID metaId = jResource[JSON_TAG_ID];
+	UID id = metaId ? metaId : GenerateUID();
+	App->resources->CreateResource<ResourceClip>(filePath, id);
 
 	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(clip->GetType());
-	jResource[JSON_TAG_ID] = clip->GetId();
+	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceClip::staticType);
+	jResource[JSON_TAG_ID] = id;
 
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
@@ -60,7 +61,7 @@ bool ClipImporter::ImportClip(const char* filePath, JsonValue jMeta) {
 	document.Accept(writer);
 
 	// Save to file
-	const std::string& resourceFilePath = clip->GetResourceFilePath();
+	const std::string& resourceFilePath = App->resources->GenerateResourcePath(id);
 	bool saved = App->files->Save(resourceFilePath.c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
 	if (!saved) {
 		LOG("Failed to save clip resource.");

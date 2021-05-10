@@ -26,6 +26,7 @@ Scene::Scene(unsigned numGameObjects) {
 	textComponents.Allocate(numGameObjects);
 	buttonComponents.Allocate(numGameObjects);
 	selectableComponents.Allocate(numGameObjects);
+	sliderComponents.Allocate(numGameObjects);
 	skyboxComponents.Allocate(numGameObjects);
 	scriptComponents.Allocate(numGameObjects);
 	animationComponents.Allocate(numGameObjects);
@@ -143,6 +144,8 @@ Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 		return textComponents.Find(componentId);
 	case ComponentType::SELECTABLE:
 		return selectableComponents.Find(componentId);
+	case ComponentType::SLIDER:
+		return sliderComponents.Find(componentId);
 	case ComponentType::SKYBOX:
 		return skyboxComponents.Find(componentId);
 	case ComponentType::ANIMATION:
@@ -192,6 +195,8 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 		return textComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::SELECTABLE:
 		return selectableComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::SLIDER:
+		return sliderComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::SKYBOX:
 		return skyboxComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::ANIMATION:
@@ -255,6 +260,9 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		break;
 	case ComponentType::SELECTABLE:
 		selectableComponents.Release(componentId);
+		break;
+	case ComponentType::SLIDER:
+		sliderComponents.Release(componentId);
 		break;
 	case ComponentType::SKYBOX:
 		skyboxComponents.Release(componentId);

@@ -4,6 +4,7 @@
 
 class ComponentAnimation;
 class State;
+struct TesseractEvent;
 
 class MeleeGrunt_AnimationSet_testStateMachin : public Script
 {
@@ -13,6 +14,7 @@ public:
 
 	void Start() override;
 	void Update() override;
+	void ReceiveEvent(TesseractEvent& e) override;
 
 private:
 	ComponentAnimation* animation = nullptr;

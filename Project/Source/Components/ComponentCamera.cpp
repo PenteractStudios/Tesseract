@@ -34,7 +34,7 @@ void ComponentCamera::Update() {
 void ComponentCamera::DrawGizmos() {
 	if (App->camera->GetActiveCamera() == this) return;
 
-	if (IsActiveInHierarchy()) dd::frustum(frustum.ViewProjMatrix().Inverted(), dd::colors::White);
+	if (IsActive()) dd::frustum(frustum.ViewProjMatrix().Inverted(), dd::colors::White);
 }
 
 void ComponentCamera::OnEditorUpdate() {

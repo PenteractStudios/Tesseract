@@ -57,9 +57,9 @@ void ResourceFont::Load() {
 
 		Character character = {
 			texture,
-			float2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-			float2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-			face->glyph->advance.x};
+			float2(static_cast<float>(face->glyph->bitmap.width), static_cast<float>(face->glyph->bitmap.rows)),
+			float2(static_cast<float>(face->glyph->bitmap_left), static_cast<float>(face->glyph->bitmap_top)),
+			static_cast<unsigned int>(face->glyph->advance.x)};
 
 		//Store the loaded glyph in the map for later use.
 		characters.insert(std::pair<char, Character>(c, character));
