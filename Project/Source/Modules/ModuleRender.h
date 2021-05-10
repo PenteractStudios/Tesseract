@@ -22,24 +22,20 @@ public:
 	void UpdateFramebuffer();					 // Generates the rendering framebuffer on Init(). If 'viewportUpdated' was set to true, it will be also called at PostUpdate().
 	void DrawScene(bool shadowPass);							 // Draw the Scene
 
-	void ShadowMapPass();
-	void RenderPass();
-
 	void SetVSync(bool vsync);
 
 	// -------- Game Debug --------- //
-	TESSERACT_ENGINE_API void ToggleDebugMode();
-	TESSERACT_ENGINE_API void ToggleDebugDraw();
-	TESSERACT_ENGINE_API void ToggleDrawQuadtree();
-	TESSERACT_ENGINE_API void ToggleDrawBBoxes();
-	TESSERACT_ENGINE_API void ToggleDrawSkybox(); // TODO: review Godmodecamera
-	TESSERACT_ENGINE_API void ToggleDrawAnimationBones();
-	TESSERACT_ENGINE_API void ToggleDrawCameraFrustums();
-	TESSERACT_ENGINE_API void ToggleDrawLightGizmos();
+	void ToggleDebugMode();
+	void ToggleDebugDraw();
+	void ToggleDrawQuadtree();
+	void ToggleDrawBBoxes();
+	void ToggleDrawSkybox(); // TODO: review Godmodecamera
+	void ToggleDrawAnimationBones();
+	void ToggleDrawCameraFrustums();
+	void ToggleDrawLightGizmos();
+	void ToggleDrawLightFrustumGizmo();
 
 	void UpdateShadingMode(const char* shadingMode);
-
-	bool IsShadowing() const;
 
 	float4x4 GetLightViewMatrix() const;
 	float4x4 GetLightProjectionMatrix() const;
@@ -66,13 +62,16 @@ public:
 	bool drawQuadtree = true;
 	bool drawAllBoundingBoxes = false;
 	bool skyboxActive = true; // TODO: review Godmodecamera
-	bool drawAllBones = true;
+	bool drawAllBones = false;
 	bool drawCameraFrustums = false;
 	bool drawLightGizmos = false;
+	bool drawLightFrustumGizmo = false;
 	int culledTriangles = 0;
 
 	float3 ambientColor = {0.25f, 0.25f, 0.25f}; // Color of ambient Light
 	float3 clearColor = {0.1f, 0.1f, 0.1f};	  // Color of the viewport between frames
+
+	LightFrustum lightFrustum;
 
 private:
 
@@ -87,9 +86,12 @@ private:
 	void SetOrtographicRender();
 	void SetPerspectiveRender();
 
+	void ShadowMapPass();
+	void RenderPass();
+	void DrawDepthMap();
+
 private:
 	// ------- Viewport Size ------- //
 	float2 viewportSize = float2::zero;
-	LightFrustum lightFrustum;
-	bool shadowing = false;
+	bool drawDepthMap = false;
 };

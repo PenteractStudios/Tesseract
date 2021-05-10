@@ -34,12 +34,13 @@ void main() {
         vec3 reflectDir = reflect(directionalDir, normal);
         float VRn = pow(max(dot(viewN, reflectDir), 0.0), shininess);
 
-
         vec3 Rf = Rf0 + (1 - Rf0) * pow(1 - NL, 5);
 
         vec3 directionalColor = (colorDiffuse.rgb * (1 - Rf0) + (shininess + 2) / 2 * Rf * VRn) * light.directional.color * light.directional.intensity * NL;
 
-        accumulativeColor = accumulativeColor + directionalColor;
+        float shadow = Shadow(fragPosLight, normal, light.directional.direction);
+
+        accumulativeColor = accumulativeColor + (1.0 - shadow) * directionalColor;
     }
 
     // Point Light

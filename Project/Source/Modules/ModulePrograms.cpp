@@ -135,7 +135,8 @@ bool ModulePrograms::Start() {
 	specularNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
 
 	// Shadow Shaders
-	shadowMap = CreateProgram(filePath, "vertShadow", "fragShadow");
+	shadowMap = CreateProgram(filePath, "vertDepthMap", "fragDepthMap");
+	drawDepthMap = CreateProgram(filePath, "vertDrawDepthMap", "fragDrawDepthMap");
 
 	//UI shaders
 	textUI = CreateProgram(filePath, "vertTextUI", "fragTextUI");
@@ -159,6 +160,7 @@ bool ModulePrograms::CleanUp() {
 	glDeleteProgram(standardNotNormal);
 	glDeleteProgram(specularNormal);
 	glDeleteProgram(specularNotNormal);
+	glDeleteProgram(shadowMap);
 	glDeleteProgram(textUI);
 	glDeleteProgram(imageUI);
 

@@ -1,28 +1,29 @@
 #include "PanelInspector.h"
 
 #include "GameObject.h"
+#include "Application.h"
 #include "Components/Component.h"
 #include "Components/ComponentType.h"
-#include "Components/ComponentMeshRenderer.h"
-#include "Components/ComponentCamera.h"
 #include "Components/ComponentLight.h"
 #include "Components/ComponentSkybox.h"
-#include "Components/ComponentAnimation.h"
 #include "Components/ComponentScript.h"
+#include "Components/ComponentCamera.h"
+#include "Components/ComponentAnimation.h"
+#include "Components/ComponentMeshRenderer.h"
 #include "Components/ComponentBoundingBox2D.h"
 #include "Components/UI/ComponentEventSystem.h"
-#include "Components/UI/ComponentCanvas.h"
-#include "Components/UI/ComponentImage.h"
-#include "Components/UI/ComponentButton.h"
-#include "Components/UI/ComponentCanvasRenderer.h"
-#include "Components/UI/ComponentSelectable.h"
 #include "Components/UI/ComponentText.h"
-#include "Components/UI/ComponentTransform2D.h"
+#include "Components/UI/ComponentImage.h"
+#include "Components/UI/ComponentCanvas.h"
+#include "Components/UI/ComponentButton.h"
 #include "Components/UI/ComponentSlider.h"
-#include "Application.h"
-#include "Modules/ModuleEditor.h"
-#include "Modules/ModuleUserInterface.h"
+#include "Components/UI/ComponentSelectable.h"
+#include "Components/UI/ComponentTransform2D.h"
+#include "Components/UI/ComponentCanvasRenderer.h"
 #include "Modules/ModuleScene.h"
+#include "Modules/ModuleEditor.h"
+#include "Modules/ModuleRender.h"
+#include "Modules/ModuleUserInterface.h"
 
 #include "Math/float3.h"
 #include "Math/float3x3.h"
@@ -62,6 +63,31 @@ void PanelInspector::Update() {
 			sprintf_s(name, 100, "%s", selected->name.c_str());
 			if (ImGui::InputText("##game_object_name", name, 100)) {
 				selected->name = name;
+			}
+
+			if (ImGui::Button("Mask")) {
+				ImGui::OpenPopup("Mask");
+			}
+
+			if (ImGui::BeginPopup("Mask")) {
+				for (int i = 0; i < ARRAY_LENGTH(selected->GetMask().maskNames); ++i) {
+					bool maskActive = selected->GetMask().maskValues[i];
+					if (ImGui::Checkbox(selected->GetMask().maskNames[i], &maskActive)) {
+						Mask& mask = selected->GetMask();
+						mask.maskValues[i] = maskActive;
+						if (selected->GetMask().maskValues[i]) {
+							if (mask.AddMask(GetMaskTypeFromName(selected->GetMask().maskNames[i]))) {
+								App->renderer->lightFrustum.ReconstructFrustum();
+							}
+						} else {
+							if (mask.DeleteMask(GetMaskTypeFromName(selected->GetMask().maskNames[i]))) {
+								App->renderer->lightFrustum.ReconstructFrustum();
+							}
+						}
+					}
+				}
+				ImGui::Separator();
+				ImGui::EndPopup();
 			}
 
 			ImGui::Separator();

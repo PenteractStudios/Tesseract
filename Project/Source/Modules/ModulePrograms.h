@@ -24,6 +24,7 @@ public:
 	unsigned standardNotNormal = 0;
 	unsigned specularNormal = 0;
 	unsigned specularNotNormal = 0;
+	unsigned drawDepthMap = 0;
 	
 	// Shadow Shaders
 	unsigned shadowMap = 0;

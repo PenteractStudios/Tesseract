@@ -9,6 +9,8 @@ public:
 	~LightFrustum() {}
 	void ReconstructFrustum();
 
+	void DrawGizmos();
+
 	Frustum GetFrustum() const;
 
 public:

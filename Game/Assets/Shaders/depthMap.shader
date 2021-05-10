@@ -1,4 +1,4 @@
---- vertShadow
+--- vertDepthMap
 
 layout (location = 0) in vec3 position;
 
@@ -11,7 +11,7 @@ void main() {
 	gl_Position = projection * vec4(mat3(view) * position, 1.0);
 }
 
---- fragShadow
+--- fragDepthMap
 
 void main() {
 	

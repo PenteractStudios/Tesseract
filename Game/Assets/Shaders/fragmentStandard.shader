@@ -1,4 +1,4 @@
--- - fragVarStandard
+--- fragVarStandard
 
 #define PI 3.1415926538
 #define EPSILON 1e-5
@@ -11,7 +11,7 @@ in vec4 fragPosLight;
 out vec4 outColor;
 
 // Depth Map
-uniform sample2D depthMap;
+uniform sampler2D depthMap;
 
 uniform vec3 viewPos;
 
@@ -104,41 +104,27 @@ float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection) {
 	vec3 projCoords = lightPos.xyz / lightPos.w;
 	projCoords = projCoords * 0.5 + 0.5;
 
-	float closestDepth = texture(depthMap, projCoords).r;
-	float currentDepth - projCoords.z;
+	float closestDepth = texture(depthMap, projCoords.xy).r;
+	float currentDepth = projCoords.z;
 
-	vec3 normal = normalize(normal);
-	vec3 lightDir = normalize(lightDirection);
-	float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-	float shadow = 0.0;
-	vec2 texelSize = 1.0 / textureSize(depthMap, 0);
-	for (int x = -1; x <= 1; ++x) {
-		for (int y = -1; y <= 1; ++y) {
-			float pcfDepth = texture(depthMap, projCoords.xy + vec2(x, y) * texelSize).r;
-			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
-		}
-	}
-
-	shadow /= 9.0;
-
-	if (projCoords.z > 1.0) shadow = 0.0;
+	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
 
 	return shadow;
 }
 
--- - fragVarMetallic
+--- fragVarMetallic
 
 uniform float metalness;
 uniform sampler2D metallicMap;
 uniform int hasMetallicMap;
 
--- - fragVarSpecular
+--- fragVarSpecular
 
 uniform vec3 specularColor;
 uniform sampler2D specularMap;
 uniform int hasSpecularMap;
 
--- - fragFunctionLight
+--- fragFunctionLight
 
 float GGXNormalDistribution(float NH, float roughness)
 {
@@ -229,7 +215,7 @@ vec3 ProcessSpotLight(SpotLight spot, vec3 fragNormal, vec3 fragPos, vec3 viewDi
 	return (Cd * (1 - F0) + 0.25 * Fn * V * NDF) * spot.color * spot.intensity * distAttenuation * cAttenuation * NL;
 }
 
--- - fragMainMetallic
+--- fragMainMetallic
 
 void main()
 {    
@@ -278,7 +264,7 @@ void main()
 
 }
 
--- - fragMainSpecular
+--- fragMainSpecular
 
 void main()
 {    

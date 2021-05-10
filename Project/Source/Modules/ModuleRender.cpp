@@ -153,7 +153,7 @@ bool ModuleRender::Init() {
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
+
 	ViewportResized(App->window->GetWidth(), App->window->GetHeight());
 	UpdateFramebuffer();
 
@@ -166,14 +166,14 @@ void ModuleRender::ShadowMapPass() {
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapBuffer);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
-
+	glCullFace(GL_FRONT);
 	DrawScene(true);
+	glCullFace(GL_BACK);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void ModuleRender::RenderPass() {
-
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -205,6 +205,25 @@ void ModuleRender::DrawScene(bool shadowPass) {
 	}
 }
 
+void ModuleRender::DrawDepthMap() {
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	unsigned program = App->programs->drawDepthMap;
+
+	glUseProgram(program);
+
+	glUniform1f(glGetUniformLocation(program, "nearPlane"), App->camera->GetNearPlane());
+	glUniform1f(glGetUniformLocation(program, "farPlane"), App->camera->GetFarPlane());
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+}
+
 UpdateStatus ModuleRender::PreUpdate() {
 	BROFILER_CATEGORY("ModuleRender - PreUpdate", Profiler::Color::Green)
 
@@ -230,10 +249,14 @@ UpdateStatus ModuleRender::Update() {
 	culledTriangles = 0;
 
 	// Pass 1. Build the depth map
-	//ShadowMapPass();
+	ShadowMapPass();
 
-	// Pass 2. Draw the scene with the depth map
-	RenderPass();
+	if (drawDepthMap) {
+		DrawDepthMap();
+	} else {
+		// Pass 2. Draw the scene with the depth map
+		RenderPass();
+	}
 
 	Scene* scene = App->scene->scene;
 
@@ -265,6 +288,11 @@ UpdateStatus ModuleRender::Update() {
 				GameObject* rootBone = animationComponent.GetOwner().GetRootBone();
 				if (rootBone) DrawAnimation(rootBone);
 			}
+		}
+
+		// Draw debug draw Light Frustum
+		if (drawLightFrustumGizmo) {
+			lightFrustum.DrawGizmos();
 		}
 	}
 
@@ -305,11 +333,11 @@ void ModuleRender::ViewportResized(int width, int height) {
 }
 
 void ModuleRender::UpdateFramebuffer() {
-	#if GAME
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	#else
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	#endif
+#if GAME
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#else
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+#endif
 
 	glBindTexture(GL_TEXTURE_2D, renderTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -321,7 +349,18 @@ void ModuleRender::UpdateFramebuffer() {
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
 
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, depthMapBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapBuffer);
+
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	float borderColor[] = {1.0, 1.0, 1.0, 1.0};
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
@@ -330,9 +369,6 @@ void ModuleRender::UpdateFramebuffer() {
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		LOG("ERROR: Framebuffer is not complete!");
 	}
-
-
-
 }
 
 void ModuleRender::SetVSync(bool vsync) {
@@ -371,15 +407,19 @@ void ModuleRender::ToggleDrawLightGizmos() {
 	drawLightGizmos = !drawLightGizmos;
 }
 
+void ModuleRender::ToggleDrawLightFrustumGizmo() {
+	drawLightFrustumGizmo = !drawLightFrustumGizmo;
+}
+
 void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 	if (strcmp(shadingMode, "Shaded") == 0) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		shadowing = false;
+		drawDepthMap = false;
 	} else if (strcmp(shadingMode, "Wireframe") == 0) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		shadowing = false;
+		drawDepthMap = false;
 	} else if (strcmp(shadingMode, "Depth") == 0) {
-		shadowing = true;
+		drawDepthMap = true;
 	}
 }
 

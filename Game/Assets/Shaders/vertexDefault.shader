@@ -45,7 +45,7 @@ void main()
     fragPos = vec3(model * position);
     fragNormal = normalize(transpose(inverse(mat3(model))) * normal.xyz);
     uv = uvs;
-    fragPosLight = lightProj * lightView * model * position;
+    fragPosLight = projLight * viewLight * model * position;
 }
 
 --- vertMainNormal
@@ -74,5 +74,5 @@ void main()
     fragNormal = N;
     TBN = mat3(T, B, N);
     uv = uvs;
-    fragPosLight = lightProj * lightView * model * position;
+    fragPosLight = projLight * viewLight * model * position;
 }

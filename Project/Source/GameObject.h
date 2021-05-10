@@ -4,6 +4,7 @@
 
 #include "Utils/UID.h"
 #include "FileSystem/JsonValue.h"
+#include "Mask.h"
 #include "Scene.h"
 
 #include <string>
@@ -61,13 +62,6 @@ private:
 	const std::vector<Component*>& components;
 };
 
-enum class LayerMask {
-	NONE = 0,
-	CAST_SHADOW = 1 >> 1,
-	OPAQUE = 1 >> 2,
-	TRANSPARENT = 1 >> 3
-};
-
 class TESSERACT_ENGINE_API GameObject {
 public:
 	void InitComponents();
@@ -96,8 +90,8 @@ public:
 	void SetRootBone(GameObject* gameObject);
 	GameObject* GetRootBone() const;
 
-	void AddLayerMask(LayerMask mask_);
-	int GetLayerMask() const;
+	Mask& GetMask();
+	const Mask& GetMask() const;
 
 	void AddChild(GameObject* gameObject);
 	void RemoveChild(GameObject* gameObject);
@@ -131,12 +125,11 @@ private:
 	bool active = true;
 	bool activeInHierarchy = true;
 	UID prefabId = 0;
+	Mask mask;
 	GameObject* parent = nullptr;
 	GameObject* rootBoneHierarchy = nullptr;
 	std::vector<GameObject*> children;
 
-	// By default all objects cast shadows
-	int layerMask = static_cast<int>(LayerMask::CAST_SHADOW);
 };
 
 template<class T>

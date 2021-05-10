@@ -137,6 +137,9 @@ void SceneImporter::LoadScene(const char* filePath) {
 		}
 	}
 
+	App->renderer->lightFrustum.dirty = true;
+	App->renderer->lightFrustum.ReconstructFrustum();
+
 	unsigned timeMs = timer.Stop();
 	LOG("Scene loaded in %ums.", timeMs);
 }
