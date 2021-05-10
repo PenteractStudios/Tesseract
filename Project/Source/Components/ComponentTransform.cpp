@@ -3,10 +3,8 @@
 #include "Globals.h"
 #include "Application.h"
 #include "GameObject.h"
-#include "Components/ComponentCamera.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleInput.h"
-#include "Modules/ModuleCamera.h"
 
 #include "Math/float3x3.h"
 #include "SDL.h"

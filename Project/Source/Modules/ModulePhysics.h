@@ -13,9 +13,9 @@ class ComponentCapsuleCollider;
 class btBroadphaseInterface;
 
 /* --- Collider Type ---
-	DYNAMIC = the object will respond to collisions, but not to user input (Such as modifying the transform)
-	STATIC = the object will never move
-	KINEMATIC = the object will not respond to collisions, but ilt will to user input
+	DYNAMIC = The object will respond to collisions, but not to user input (Such as modifying the transform).
+	STATIC = The object will never move.
+	KINEMATIC = The object will not respond to collisions, but it will to user input. Other Dynamic colliders (only) will phisically react to collisions with this object.
 	TRIGGER = It is like static, but the collisions against it have no physical effect to the colliding object.
 	*/
 enum class ColliderType {
