@@ -100,7 +100,6 @@ public:
 
 	void InvalidateHierarchy();							 // Invalidates hierarchy
 	void Invalidate();									 // Invalidates component
-	void DuplicateComponent(GameObject& owner) override; // Duplicates component (THIS SHOULDN'T BE USED)
 
 	void SetTop(float top);		  // Sets the right anchor
 	void SetBottom(float bottom); // Sets the right anchor

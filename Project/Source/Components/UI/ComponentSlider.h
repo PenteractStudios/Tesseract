@@ -29,7 +29,6 @@ public:
 
 	void Save(JsonValue jComponent) const override;				// Serializes the component
 	void Load(JsonValue jComponent) override;					// Deserializes the component
-	void DuplicateComponent(GameObject& owner) override;		// Duplicates the component
 
 	bool IsClicked() const;										// Returns true if the button is clicked
 	void SetClicked(bool clicked_);								// Sets clicked to the value

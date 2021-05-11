@@ -186,9 +186,6 @@ void ComponentSlider::Load(JsonValue jComponent) {
 	JsonValue jColorClick = jComponent[JSON_TAG_COLOR_CLICK];
 }
 
-void ComponentSlider::DuplicateComponent(GameObject& owner) {
-}
-
 bool ComponentSlider::IsClicked() const {
 	return clicked;
 }

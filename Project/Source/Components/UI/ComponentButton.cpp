@@ -90,11 +90,6 @@ float4 ComponentButton::GetTintColor() const {
 	return App->userInterface->GetErrorColor();
 }
 
-void ComponentButton::DuplicateComponent(GameObject& owner) {
-	ComponentButton* component = owner.CreateComponent<ComponentButton>();
-	component->colorClicked = colorClicked;
-}
-
 void ComponentButton::Update() {
 	if (clicked) {
 		if (!App->input->GetMouseButton(1)) {

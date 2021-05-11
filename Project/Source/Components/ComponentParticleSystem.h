@@ -50,7 +50,6 @@ public:
 	void Draw();
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Stop();
-	void DuplicateComponent(GameObject& owner) override;
 	void SpawnParticle();
 	void killParticles();
 	float3 CreatePosition();

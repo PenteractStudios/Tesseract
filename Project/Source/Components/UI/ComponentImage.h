@@ -18,7 +18,6 @@ public:
 	void OnEditorUpdate() override;					// Works as input of the AlphaTransparency, color and Texture and Shader used
 	void Save(JsonValue jComponent) const override; // Serializes object
 	void Load(JsonValue jComponent) override;		// Deserializes object
-	void DuplicateComponent(GameObject& owner) override;
 
 	void Draw(ComponentTransform2D* transform) const; // Draws the image ortographically using the active camera, and the transform passed as model. It will apply AlphaTransparency if true, and will get Button's additional color to apply if needed
 	void SetColor(float4 color_);

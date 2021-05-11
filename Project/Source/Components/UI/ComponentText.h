@@ -20,7 +20,6 @@ public:
 
 	void Save(JsonValue jComponent) const override;			// Serializes
 	void Load(JsonValue jComponent) override;				// Deserializes
-	void DuplicateComponent(GameObject& owner) override;	// Duplicates Component
 	
 	void Draw(ComponentTransform2D* transform) const;				// Draws the text ortographically using the active camera and the position of the Tranform2D. It will apply the color as tint
 	TESSERACT_ENGINE_API void SetText(const std::string& newText);	// Sets text

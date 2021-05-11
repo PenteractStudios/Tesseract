@@ -112,22 +112,8 @@ void ComponentText::Load(JsonValue jComponent) {
 	color.Set(jColor[0], jColor[1], jColor[2], jColor[3]);
 }
 
-void ComponentText::DuplicateComponent(GameObject& owner) {
-	ComponentText* component = owner.CreateComponent<ComponentText>();
-	component->fontID = fontID;
-	component->fontSize = fontSize;
-	component->lineHeight = lineHeight;
-	component->color = color;
-	component->textAlignment = textAlignment;
-
-	if (fontID != 0) {
-		App->resources->IncreaseReferenceCount(fontID);
-	}
-
-	component->SetText(text);
-}
-
 void ComponentText::Draw(ComponentTransform2D* transform) const {
+
 	if (fontID == 0) {
 		return;
 	}

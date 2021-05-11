@@ -73,24 +73,6 @@ GameObject* Scene::CreateGameObject(GameObject* parent, UID id, const char* name
 	return gameObject;
 }
 
-GameObject* Scene::DuplicateGameObject(GameObject* gameObject, GameObject* parent) {
-	GameObject* newGO = CreateGameObject(parent, GenerateUID(), (gameObject->name + " (copy)").c_str());
-
-	// Copy the components
-	for (Component* component : gameObject->GetComponents()) {
-		component->DuplicateComponent(*newGO);
-	}
-
-	newGO->InitComponents();
-
-	// Duplicate recursively its children
-	for (GameObject* child : gameObject->GetChildren()) {
-		DuplicateGameObject(child, newGO);
-	}
-
-	return newGO;
-}
-
 void Scene::DestroyGameObject(GameObject* gameObject) {
 	if (gameObject == nullptr) return;
 

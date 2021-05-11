@@ -21,12 +21,6 @@ void ComponentCanvas::Load(JsonValue jComponent) {
 	dirty = true;
 }
 
-void ComponentCanvas::DuplicateComponent(GameObject& owner) {
-	ComponentCanvas* component = owner.CreateComponent<ComponentCanvas>();
-	component->screenReferenceSize = screenReferenceSize;
-	dirty = true;
-}
-
 bool ComponentCanvas::CanBeRemoved() const {
 	return !AnyChildHasCanvasRenderer(&GetOwner());
 }

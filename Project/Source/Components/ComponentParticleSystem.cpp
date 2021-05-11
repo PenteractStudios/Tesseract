@@ -294,26 +294,6 @@ void ComponentParticleSystem::DrawGizmos() {
 	}
 }
 
-void ComponentParticleSystem::DuplicateComponent(GameObject& owner) {
-	ComponentParticleSystem* component = owner.CreateComponent<ComponentParticleSystem>();
-	component->looping = this->looping;
-	component->isPlaying = this->isPlaying;
-	component->textureID = this->textureID;
-	component->shaderID = this->shaderID;
-	component->isRandomFrame = this->isRandomFrame;
-	component->randomDirection = this->randomDirection;
-	component->initC = this->initC;
-	component->finalC = this->finalC;
-	component->scale = this->scale;
-	component->maxParticles = this->maxParticles;
-	component->velocity = this->velocity;
-	component->particleLife = this->particleLife;
-	component->Xtiles = this->Xtiles;
-	component->Ytiles = this->Ytiles;
-	component->emitterType = this->emitterType;
-	component->particleSpawned = this->particleSpawned;
-}
-
 const float4& ComponentParticleSystem::GetTintColor() const {
 	ComponentButton* button = GetOwner().GetComponent<ComponentButton>();
 	if (button != nullptr) {

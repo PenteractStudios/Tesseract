@@ -175,14 +175,3 @@ void ComponentImage::Draw(ComponentTransform2D* transform) const {
 void ComponentImage::SetColor(float4 color_) {
 	color = color_;
 }
-
-void ComponentImage::DuplicateComponent(GameObject& owner) {
-	ComponentImage* component = owner.CreateComponent<ComponentImage>();
-	component->textureID = textureID;
-	if (textureID != 0) {
-		App->resources->IncreaseReferenceCount(textureID);
-	}
-
-	component->color = color;
-	component->alphaTransparency = alphaTransparency;
-}

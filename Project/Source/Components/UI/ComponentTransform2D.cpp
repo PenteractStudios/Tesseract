@@ -464,18 +464,6 @@ void ComponentTransform2D::Invalidate() {
 	}
 }
 
-void ComponentTransform2D::DuplicateComponent(GameObject& owner) {
-	ComponentTransform2D* component = owner.CreateComponent<ComponentTransform2D>();
-	component->SetPivot(pivot);
-	component->SetSize(size);
-	component->SetPosition(position);
-	component->SetRotation(rotation);
-	component->SetScale(scale);
-	component->SetAnchorMin(anchorMin);
-	component->SetAnchorMax(anchorMax);
-	component->dirty = true;
-}
-
 void ComponentTransform2D::SetTop(float top_) {
 	anchorsRect.top = top_;
 }
