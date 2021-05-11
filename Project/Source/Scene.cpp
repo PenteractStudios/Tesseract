@@ -33,6 +33,7 @@ Scene::Scene(unsigned numGameObjects) {
 	particleComponents.Allocate(numGameObjects);
 	audioSourceComponents.Allocate(numGameObjects);
 	audioListenerComponents.Allocate(numGameObjects);
+	progressbarsComponents.Allocate(numGameObjects);
 }
 
 void Scene::ClearScene() {
@@ -141,6 +142,8 @@ Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 		return audioSourceComponents.Find(componentId);
 	case ComponentType::AUDIO_LISTENER:
 		return audioListenerComponents.Find(componentId);
+	case ComponentType::PROGRESS_BAR:
+		return progressbarsComponents.Find(componentId);
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::GetComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -194,6 +197,8 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 		return audioSourceComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::AUDIO_LISTENER:
 		return audioListenerComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::PROGRESS_BAR:
+		return progressbarsComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::CreateComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -268,6 +273,9 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		break;
 	case ComponentType::AUDIO_LISTENER:
 		audioListenerComponents.Release(componentId);
+		break;
+	case ComponentType::PROGRESS_BAR:
+		progressbarsComponents.Release(componentId);
 		break;
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::RemoveComponentByTypeAndId.", (unsigned) type);

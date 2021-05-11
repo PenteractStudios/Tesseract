@@ -497,6 +497,14 @@ const float2 ModuleRender::GetViewportSize() {
 	return viewportSize;
 }
 
+bool ModuleRender::ObjectInsideFrustum(GameObject* gameObject) {
+	ComponentBoundingBox* boundingBox = gameObject->GetComponent<ComponentBoundingBox>();
+	if (boundingBox) {
+		return CheckIfInsideFrustum(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB());
+	}
+	return false;
+}
+
 void ModuleRender::DrawAnimation(const GameObject* gameObject, bool hasAnimation) {
 	for (const GameObject* childen : gameObject->GetChildren()) {
 		ComponentTransform* transform = childen->GetComponent<ComponentTransform>();

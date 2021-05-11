@@ -229,7 +229,7 @@ void ModuleUserInterface::ViewportResized() {
 	}
 
 	for (ComponentText& text : App->scene->scene->textComponents) {
-		text.RecalculcateVertices();
+		text.Invalidate();
 	}
 }
 

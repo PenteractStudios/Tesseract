@@ -47,6 +47,10 @@ void GameplaySystems::SetRenderCamera(ComponentCamera* camera) {
 	App->camera->ChangeCullingCamera(camera, true);
 }
 
+void GameplaySystems::DestroyGameObject(GameObject* gameObject) {
+	App->scene->DestroyGameObjectDeferred(gameObject);
+}
+
 // ------------- DEBUG ------------- //
 
 void Debug::Log(const char* fmt, ...) {
@@ -183,4 +187,10 @@ float Screen::GetScreenWitdh() {
 
 float Screen::GetScreenHeight() {
 	return static_cast<float>(App->window->GetHeight());
+}
+
+// --------- Camera --------- //
+
+bool Camera::CheckObjectInsideFrustum(GameObject* gameObject) {
+	return App->renderer->ObjectInsideFrustum(gameObject);
 }

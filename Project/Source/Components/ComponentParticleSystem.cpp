@@ -86,7 +86,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		if (oldID != textureID) {
 			ComponentTransform2D* transform2D = GetOwner().GetComponent<ComponentTransform2D>();
 			if (transform2D != nullptr) {
-				transform2D->SetSize(float2(width, height));
+				transform2D->SetSize(float2(static_cast<float>(width), static_cast<float>(height)));
 			}
 		}
 
@@ -95,10 +95,10 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::TextColored(App->editor->titleColor, "Texture Preview");
 		ImGui::TextWrapped("Size:");
 		ImGui::SameLine();
-		ImGui::TextWrapped("%d x %d", width, height);
+		ImGui::TextWrapped("%i x %i", width, height);
 		ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
-		ImGui::InputInt("Xtiles: ", &Xtiles);
-		ImGui::InputInt("Ytiles: ", &Ytiles);
+		ImGui::InputScalar("Xtiles: ", ImGuiDataType_U32, &Xtiles);
+		ImGui::InputScalar("Ytiles: ", ImGuiDataType_U32, &Ytiles);
 		ImGui::InputFloat("Scale: ", &scale);
 		ImGui::InputFloat("Life: ", &particleLife);
 
@@ -106,7 +106,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			CreateParticles(maxParticles, velocity);
 		}
 
-		if (ImGui::InputFloat("MaxParticles: ", &maxParticles)) {
+		if (ImGui::InputScalar("MaxParticles: ", ImGuiDataType_U32, &maxParticles)) {
 			CreateParticles(maxParticles, velocity);
 		}
 
@@ -120,9 +120,9 @@ float3 ComponentParticleSystem::CreateVelocity() {
 	float x, y, z;
 	if (emitterType == EmitterType::CONE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-		x = (float(rand()) / float((RAND_MAX)) * 0.2) - 0.2;
-		y = (float(rand()) / float((RAND_MAX)) * 0.5) - 0.0;
-		z = (float(rand()) / float((RAND_MAX)) * 0.5) - 0.2;
+		x = (float(rand()) / float((RAND_MAX)) * 0.2f) - 0.2f;
+		y = (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.0f;
+		z = (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.2f;
 		float3 forward = transform->GetGlobalRotation() * float3::unitY;
 		if (!randomDirection) return forward;
 		return float3(forward.x + x, forward.y + y, forward.z + z);
@@ -130,11 +130,13 @@ float3 ComponentParticleSystem::CreateVelocity() {
 	//TODO: DINAMIC PARTICLE NOT HARCODED
 	if (emitterType == EmitterType::SPHERE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-		x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * 2.0) - 1.0f;
-		y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * 2.0) - 1.0f;
-		z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * 2.0) - 1.0f;
+		x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
+		y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
+		z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
 		return float3(x, y, z);
 	}
+
+	return float3(0, 0, 0);
 };
 
 float3 ComponentParticleSystem::CreatePosition() {
@@ -151,14 +153,16 @@ float3 ComponentParticleSystem::CreatePosition() {
 	//TODO: DINAMIC PARTICLE NOT HARCODED
 	if (emitterType == EmitterType::SPHERE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-		x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * 0.5) - 0.5;
-		z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * 0.5) - 0.5;
-		y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * 0.5) - 0.5;
+		x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.5f;
+		z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.5f;
+		y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.5f;
 		return float3(transform->GetGlobalPosition());
 	}
+
+	return float3(0, 0, 0);
 }
 
-void ComponentParticleSystem::CreateParticles(float nParticles, float vel) {
+void ComponentParticleSystem::CreateParticles(unsigned nParticles, float vel) {
 	particles.Allocate(maxParticles);
 	for (Particle& currentParticle : particles) {
 		currentParticle.scale = float3(0.1f, 0.1f, 0.1f) * scale;
@@ -259,7 +263,7 @@ void ComponentParticleSystem::SpawnParticle() {
 		currentParticle->position = currentParticle->initialPosition;
 		currentParticle->life = particleLife;
 		if (isRandomFrame) {
-			currentParticle->currentFrame = rand() % ((Xtiles * Ytiles) + 1);
+			currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
 		} else {
 			currentParticle->currentFrame = 0;
 		}
@@ -294,7 +298,7 @@ void ComponentParticleSystem::DrawGizmos() {
 	}
 }
 
-const float4& ComponentParticleSystem::GetTintColor() const {
+float4 ComponentParticleSystem::GetTintColor() const {
 	ComponentButton* button = GetOwner().GetComponent<ComponentButton>();
 	if (button != nullptr) {
 		return button->GetTintColor();

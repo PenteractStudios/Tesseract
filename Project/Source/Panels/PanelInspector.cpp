@@ -142,6 +142,9 @@ void PanelInspector::Update() {
 				case ComponentType::AUDIO_LISTENER:
 					cName = "Audio Listener";
 					break;
+				case ComponentType::PROGRESS_BAR:
+					cName = "Progress Bar";
+					break;
 				default:
 					cName = "";
 					break;

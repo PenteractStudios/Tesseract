@@ -21,6 +21,7 @@
 #include "Components/UI/ComponentCanvasRenderer.h"
 #include "Components/UI/ComponentTransform2D.h"
 #include "Components/UI/ComponentImage.h"
+#include "Components/UI/ComponentProgressBar.h"
 #include "Modules/ModuleInput.h"
 #include "Modules/ModulePrograms.h"
 #include "Modules/ModuleCamera.h"
@@ -179,6 +180,7 @@ void ModuleScene::CreateEmptyScene() {
 	ComponentSkyBox* gameCameraSkybox = gameCamera->CreateComponent<ComponentSkyBox>();
 	ComponentAudioListener* audioListener = gameCamera->CreateComponent<ComponentAudioListener>();
 	gameCamera->InitComponents();
+
 }
 
 void ModuleScene::DestroyGameObjectDeferred(GameObject* gameObject) {

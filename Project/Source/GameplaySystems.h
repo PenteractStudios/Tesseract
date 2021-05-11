@@ -23,6 +23,7 @@ namespace GameplaySystems {
 	TESSERACT_ENGINE_API GameObject* GetGameObject(UID id);
 	template<typename T> TESSERACT_ENGINE_API T* GetResource(UID id);
 	TESSERACT_ENGINE_API void SetRenderCamera(ComponentCamera* camera);
+	TESSERACT_ENGINE_API void DestroyGameObject(GameObject* gameObject);
 }; // namespace GameplaySystems
 
 namespace Debug {
@@ -390,3 +391,7 @@ namespace SceneManager {
 	TESSERACT_ENGINE_API void ChangeScene(const char* scenePath);
 	TESSERACT_ENGINE_API void ExitGame();
 }; // namespace SceneManager
+
+namespace Camera {
+	TESSERACT_ENGINE_API bool CheckObjectInsideFrustum(GameObject* gameObject);
+}; // namespace Camera

@@ -114,6 +114,12 @@ void GameObject::SetParent(GameObject* gameObject) {
 	if (gameObject != nullptr) {
 		gameObject->children.push_back(this);
 	}
+
+	// To invalidate hierarchy in UIElements
+	ComponentTransform2D* parentTransform2D = this->GetComponent<ComponentTransform2D>();
+	if (parentTransform2D != nullptr) {
+		parentTransform2D->InvalidateHierarchy();
+	}
 }
 
 GameObject* GameObject::GetParent() const {
