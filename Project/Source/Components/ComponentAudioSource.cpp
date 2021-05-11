@@ -250,17 +250,3 @@ void ComponentAudioSource::Load(JsonValue jComponent) {
 	outerAngle = jComponent[JSON_TAG_OUTER_ANGLE];
 	outerGain = jComponent[JSON_TAG_OUTER_GAIN];
 }
-
-void ComponentAudioSource::DuplicateComponent(GameObject& owner) {
-	ComponentAudioSource* component = owner.CreateComponent<ComponentAudioSource>();
-	component->pitch = this->pitch;
-	component->gain = this->gain;
-	component->mute = this->mute;
-	component->loopSound = this->loopSound;
-	component->audioClipId = this->audioClipId;
-	component->spatialBlend = this->spatialBlend;
-	component->sourceType = this->sourceType;
-	component->innerAngle = this->innerAngle;
-	component->outerAngle = this->outerAngle;
-	component->outerGain = this->outerGain;
-}

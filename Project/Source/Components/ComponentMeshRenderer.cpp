@@ -143,12 +143,6 @@ void ComponentMeshRenderer::Load(JsonValue jComponent) {
 	if (materialId != 0) App->resources->IncreaseReferenceCount(materialId);
 }
 
-void ComponentMeshRenderer::DuplicateComponent(GameObject& owner) {
-	ComponentMeshRenderer* component = owner.CreateComponent<ComponentMeshRenderer>();
-	component->meshId = meshId;
-	component->materialId = materialId;
-}
-
 void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	if (!IsActive()) return;
 

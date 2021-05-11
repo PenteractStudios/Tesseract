@@ -103,11 +103,6 @@ float4 ComponentToggle::GetClickColor() const {
 	return colorClicked;
 }
 
-void ComponentToggle::DuplicateComponent(GameObject& owner) {
-	ComponentToggle* component = owner.CreateComponent<ComponentToggle>();
-	component->isChecked = isChecked;
-}
-
 void ComponentToggle::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_IS_ON] = isChecked;
 	jComponent[JSON_TAG_ENABLED_IMAGE_ID] = enabledImageObjectID;

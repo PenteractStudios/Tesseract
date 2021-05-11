@@ -34,11 +34,6 @@ void ComponentBoundingBox2D::Update() {
 	CalculateWorldBoundingBox();
 }
 
-void ComponentBoundingBox2D::DuplicateComponent(GameObject& owner) {
-	ComponentBoundingBox2D* component = owner.CreateComponent<ComponentBoundingBox2D>();
-	component->SetLocalBoundingBox(AABB2D(localAABB));
-}
-
 void ComponentBoundingBox2D::Save(JsonValue jComponent) const {
 	JsonValue jLocalBoundingBox = jComponent[JSON_TAG_LOCAL_BOUNDING_BOX2D];
 	jLocalBoundingBox[0] = localAABB.minPoint.x;

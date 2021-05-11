@@ -148,20 +148,6 @@ void ComponentLight::Load(JsonValue jComponent) {
 	outerAngle = jOuterAngle;
 }
 
-void ComponentLight::DuplicateComponent(GameObject& owner) {
-	ComponentLight* component = owner.CreateComponent<ComponentLight>();
-	component->lightType = this->lightType;
-	component->pos = this->pos;
-	component->direction = this->direction;
-	component->color = this->color;
-	component->intensity = this->intensity;
-	component->kc = this->kc;
-	component->kl = this->kl;
-	component->kq = this->kq;
-	component->innerAngle = this->innerAngle;
-	component->outerAngle = this->outerAngle;
-}
-
 void ComponentLight::UpdateLight() {
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 	pos = transform->GetGlobalPosition();

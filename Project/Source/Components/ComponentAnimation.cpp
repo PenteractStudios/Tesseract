@@ -66,14 +66,6 @@ void ComponentAnimation::Load(JsonValue jComponent) {
 	LoadResourceStateMachine();
 }
 
-void ComponentAnimation::DuplicateComponent(GameObject& owner) {
-	// TODO
-	/*ComponentAnimation* component = owner.CreateComponent<ComponentAnimation>();
-	component->stateMachineResourceUID = stateMachineResourceUID;
-	component->currentState = currentState;
-	component->initialState = initialState;*/
-}
-
 void ComponentAnimation::OnUpdate() {
 	// Update gameobjects matrix
 	GameObject* rootBone = GetOwner().GetRootBone();

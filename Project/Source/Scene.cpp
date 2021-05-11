@@ -30,6 +30,7 @@ Scene::Scene(unsigned numGameObjects) {
 	skyboxComponents.Allocate(numGameObjects);
 	scriptComponents.Allocate(numGameObjects);
 	animationComponents.Allocate(numGameObjects);
+	particleComponents.Allocate(numGameObjects);
 	audioSourceComponents.Allocate(numGameObjects);
 	audioListenerComponents.Allocate(numGameObjects);
 }
@@ -70,24 +71,6 @@ GameObject* Scene::CreateGameObject(GameObject* parent, UID id, const char* name
 	gameObject->SetParent(parent);
 
 	return gameObject;
-}
-
-GameObject* Scene::DuplicateGameObject(GameObject* gameObject, GameObject* parent) {
-	GameObject* newGO = CreateGameObject(parent, GenerateUID(), (gameObject->name + " (copy)").c_str());
-
-	// Copy the components
-	for (Component* component : gameObject->GetComponents()) {
-		component->DuplicateComponent(*newGO);
-	}
-
-	newGO->InitComponents();
-
-	// Duplicate recursively its children
-	for (GameObject* child : gameObject->GetChildren()) {
-		DuplicateGameObject(child, newGO);
-	}
-
-	return newGO;
 }
 
 void Scene::DestroyGameObject(GameObject* gameObject) {
@@ -152,6 +135,8 @@ Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 		return animationComponents.Find(componentId);
 	case ComponentType::SCRIPT:
 		return scriptComponents.Find(componentId);
+	case ComponentType::PARTICLE:
+		return particleComponents.Find(componentId);
 	case ComponentType::AUDIO_SOURCE:
 		return audioSourceComponents.Find(componentId);
 	case ComponentType::AUDIO_LISTENER:
@@ -203,6 +188,8 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 		return animationComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::SCRIPT:
 		return scriptComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::PARTICLE:
+		return particleComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::AUDIO_SOURCE:
 		return audioSourceComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::AUDIO_LISTENER:
@@ -272,6 +259,9 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		break;
 	case ComponentType::SCRIPT:
 		scriptComponents.Release(componentId);
+		break;
+	case ComponentType::PARTICLE:
+		particleComponents.Release(componentId);
 		break;
 	case ComponentType::AUDIO_SOURCE:
 		audioSourceComponents.Release(componentId);

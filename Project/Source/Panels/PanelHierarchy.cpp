@@ -85,17 +85,15 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 				}
 			}
 
-			if (ImGui::Selectable("Duplicate")) {
-				scene->DuplicateGameObject(gameObject, gameObject->GetParent());
-			}
-
 			ImGui::Separator();
 		}
 
 		if (ImGui::Selectable("Create Empty")) {
 			CreateEmptyGameObject(gameObject);
 		}
-
+		if (ImGui::Selectable("Particle System")) {
+			CreatePartycleSystemObject(gameObject);
+		}
 		// TODO: code duplicated in every CreateXX(gameObject). Generalisation could be done here. Also with PanelInspector->AddUIComponentsOptions()
 		if (ImGui::BeginMenu("UI")) {
 			if (ImGui::MenuItem("Event System")) {
@@ -265,6 +263,17 @@ GameObject* PanelHierarchy::CreateUIButton(GameObject* gameObject) {
 	return newGameObject;
 }
 
+GameObject* PanelHierarchy::CreatePartycleSystemObject(GameObject* gameObject) {
+	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "ParticleSystem");
+	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
+	ComponentParticleSystem* particle = newGameObject->CreateComponent<ComponentParticleSystem>();
+	transform->SetPosition(float3(0, 0, 0));
+	transform->SetRotation(Quat::identity);
+	transform->SetScale(float3(1, 1, 1));
+	newGameObject->InitComponents();
+
+	return newGameObject;
+}
 GameObject* PanelHierarchy::CreateUIToggle(GameObject* gameObject) {
 	if (gameObject->HasComponentInAnyParent<ComponentCanvas>(gameObject) == nullptr) {
 		gameObject = CreateUICanvas(gameObject);

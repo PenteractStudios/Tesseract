@@ -44,6 +44,7 @@ UID ResourcePrefab::BuildPrefab(GameObject* parent) {
 	gameObject->LoadPrefab(jRoot);
 	gameObject->id = gameObjectId;
 	gameObject->SetParent(parent);
+	gameObject->InitComponents();
 
 	unsigned timeMs = timer.Stop();
 	LOG("Prefab built in %ums.", timeMs);

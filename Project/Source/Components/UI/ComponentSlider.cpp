@@ -135,13 +135,6 @@ void ComponentSlider::OnClicked() {
 	float2 mousePos = App->input->GetMousePosition(true);
 	newPosition.x = ((mousePos.x - (App->renderer->GetViewportSize().x / 2.0f)) / canvas->GetScreenFactor()) - GetOwner().GetComponent<ComponentTransform2D>()->GetScreenPosition().x;
 
-	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
-		Script* script = scriptComponent.GetScriptInstance();
-		if (script != nullptr) {
-			script->OnValueChanged();
-		}
-	}
-
 	OnValueChanged();
 }
 
@@ -150,7 +143,6 @@ void ComponentSlider::OnValueChanged() {
 	ComponentTransform2D* backgroundTransform = background->GetComponent<ComponentTransform2D>();
 
 	float size = 0.f;
-	LOG("X: %.f", newPosition.x);
 	if (newPosition.x > backgroundTransform->GetPosition().x - backgroundTransform->GetSize().x / 2.0f) {
 		size = newPosition.x - (backgroundTransform->GetPosition().x - backgroundTransform->GetSize().x / 2.0f);
 		if (size > backgroundTransform->GetSize().x) {
@@ -160,6 +152,13 @@ void ComponentSlider::OnValueChanged() {
 
 	normalizedValue = size / backgroundTransform->GetSize().x;
 	currentValue = (maxValue - minValue) * normalizedValue;
+
+	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
+		Script* script = scriptComponent.GetScriptInstance();
+		if (script != nullptr) {
+			script->OnValueChanged();
+		}
+	}
 }
 
 void ComponentSlider::Save(JsonValue jComponent) const {
@@ -185,9 +184,7 @@ void ComponentSlider::Load(JsonValue jComponent) {
 	handleStopsOnEdge = jComponent[JSON_TAG_STOP_EDGES];
 
 	JsonValue jColorClick = jComponent[JSON_TAG_COLOR_CLICK];
-}
-
-void ComponentSlider::DuplicateComponent(GameObject& owner) {
+	colorClicked = float4(jColorClick[0], jColorClick[1], jColorClick[2], jColorClick[3]);
 }
 
 bool ComponentSlider::IsClicked() const {
@@ -204,6 +201,22 @@ float4 ComponentSlider::GetClickColor() const {
 
 float2 ComponentSlider::GetClickedPosition() const {
 	return newPosition;
+}
+
+float ComponentSlider::GetCurrentValue() const {
+	return currentValue;
+}
+
+float ComponentSlider::GetMaxValue() const {
+	return maxValue;
+}
+
+float ComponentSlider::GetMinValue() const {
+	return minValue;
+}
+
+float ComponentSlider::GetNormalizedValue() const {
+	return normalizedValue;
 }
 
 float4 ComponentSlider::GetTintColor() const {

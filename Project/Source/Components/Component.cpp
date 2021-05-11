@@ -25,8 +25,6 @@ void Component::Save(JsonValue jComponent) const {}
 
 void Component::Load(JsonValue jComponent) {}
 
-void Component::DuplicateComponent(GameObject& owner) {}
-
 bool Component::CanBeRemoved() const {
 	return true;
 }

@@ -106,12 +106,6 @@ void ComponentEventSystem::SetSelected(UID newSelectableComponentId) {
 	}
 }
 
-void ComponentEventSystem::DuplicateComponent(GameObject& owner) {
-	ComponentEventSystem* component = owner.CreateComponent<ComponentEventSystem>();
-	component->firstSelectedId = firstSelectedId;
-	LOG("%u", component->GetID());
-}
-
 void ComponentEventSystem::EnteredPointerOnSelectable(ComponentSelectable* newHoveredComponent) {
 	for (std::vector<UID>::const_iterator it = hoveredSelectableIds.begin(); it != hoveredSelectableIds.end(); ++it) {
 		if ((*it) == newHoveredComponent->GetID()) {

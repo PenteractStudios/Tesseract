@@ -104,11 +104,6 @@ void ComponentCamera::Load(JsonValue jComponent) {
 	frustum.SetPerspective(jFrustum[JSON_TAG_HORIZONTAL_FOV], jFrustum[JSON_TAG_VERTICAL_FOV]);
 }
 
-void ComponentCamera::DuplicateComponent(GameObject& owner) {
-	ComponentCamera* component = owner.CreateComponent<ComponentCamera>();
-	component->frustum = this->frustum;
-}
-
 void ComponentCamera::UpdateFrustum() {
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 	frustum.SetPos(transform->GetGlobalPosition());
