@@ -151,12 +151,13 @@ void ComponentText::Draw(ComponentTransform2D* transform) const {
 		view = float4x4::identity;
 		model = float4x4(transform->GetGlobalRotation());
 	} else {
-		model = transform->GetGlobalScaledMatrix();
-		ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
-		if (canvasRenderer != nullptr) {
-			float factor = canvasRenderer->GetCanvasScreenFactor();
-			view = view * float4x4::Scale(factor, factor, factor);
-		}
+		model = transform->GetGlobalMatrix();
+	}
+
+	ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
+	if (canvasRenderer != nullptr) {
+		float factor = canvasRenderer->GetCanvasScreenFactor();
+		view = view * float4x4::Scale(factor, factor, factor);
 	}
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view.ptr());
