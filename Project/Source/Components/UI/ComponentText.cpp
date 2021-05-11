@@ -207,19 +207,17 @@ void ComponentText::RecalculcateVertices() {
 
 	verticesText.resize(text.size());
 
-	ComponentTransform2D* transform = GetOwner().GetComponent<ComponentTransform2D>();
-	float3 position = transform->GetScreenPosition();
-	float screenFactor = GetOwner().GetComponent<ComponentCanvasRenderer>()->GetCanvasScreenFactor();
-
-	float x = position.x * screenFactor;
-	float y = position.y * screenFactor;
+	float x = 0;
+	float y = 0;
 
 	float dy = 0; // additional y shifting
 	int j = 0;	  // index of row
 
-	float2 transformScale = transform->GetScale().xy();
 	// FontSize / size of imported font. 48 is due to FontImporter default PixelSize
 	float scale = (fontSize / 48);
+
+	ComponentTransform2D* transform = GetOwner().GetComponent<ComponentTransform2D>();
+	float screenFactor = GetOwner().GetComponent<ComponentCanvasRenderer>()->GetCanvasScreenFactor();
 
 	for (size_t i = 0; i < text.size(); ++i) {
 		Character character = App->userInterface->GetCharacter(fontID, text.at(i));
@@ -246,9 +244,9 @@ void ComponentText::RecalculcateVertices() {
 		}
 
 		if (text.at(i) == '\n') {
-			dy += lineHeight;			   // shifts to next line
-			x = position.x * screenFactor; // reset to initial position
-			j = i + 1;					   // updated j variable in order to get the substringwidth of the following line in the next iteration
+			dy += lineHeight; // shifts to next line
+			x = 0;			  // reset to initial position
+			j = i + 1;		  // updated j variable in order to get the substringwidth of the following line in the next iteration
 		}
 
 		// clang-format off
