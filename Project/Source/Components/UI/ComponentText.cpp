@@ -142,16 +142,13 @@ void ComponentText::Draw(ComponentTransform2D* transform) const {
 
 	glUseProgram(program);
 
-	float4x4 proj = App->camera->GetProjectionMatrix();
-	float4x4 view = App->camera->GetViewMatrix();
-	float4x4 model;
+	float4x4 model = transform->GetGlobalMatrix();
+	float4x4& proj = App->camera->GetProjectionMatrix();
+	float4x4& view = App->camera->GetViewMatrix();
 
 	if (App->userInterface->IsUsing2D()) {
 		proj = float4x4::D3DOrthoProjLH(-1, 1, App->renderer->GetViewportSize().x, App->renderer->GetViewportSize().y); //near plane. far plane, screen width, screen height
 		view = float4x4::identity;
-		model = float4x4(transform->GetGlobalRotation());
-	} else {
-		model = transform->GetGlobalMatrix();
 	}
 
 	ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
@@ -211,7 +208,7 @@ void ComponentText::RecalculcateVertices() {
 	verticesText.resize(text.size());
 
 	ComponentTransform2D* transform = GetOwner().GetComponent<ComponentTransform2D>();
-	float3 position = transform->GetGlobalPosition();
+	float3 position = transform->GetScreenPosition();
 	float screenFactor = GetOwner().GetComponent<ComponentCanvasRenderer>()->GetCanvasScreenFactor();
 
 	float x = position.x * screenFactor;
@@ -222,13 +219,13 @@ void ComponentText::RecalculcateVertices() {
 
 	float2 transformScale = transform->GetScale().xy();
 	// FontSize / size of imported font. 48 is due to FontImporter default PixelSize
-	float scale = (fontSize / 48) * (transformScale.x > transformScale.y ? transformScale.x : transformScale.y) * screenFactor;
+	float scale = (fontSize / 48);
 
 	for (size_t i = 0; i < text.size(); ++i) {
 		Character character = App->userInterface->GetCharacter(fontID, text.at(i));
 
-		float xpos = x + character.bearing.x * scale;
-		float ypos = y - (character.size.y - character.bearing.y) * scale;
+		float xpos = x + character.bearing.x;
+		float ypos = y - (character.size.y - character.bearing.y);
 
 		float w = character.size.x * scale;
 		float h = character.size.y * scale;

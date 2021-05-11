@@ -7,7 +7,7 @@
     ],
     "QuadtreeMaxDepth": 4,
     "QuadtreeElementsPerNode": 200,
-    "GameCamera": 8441614954372134560,
+    "GameCamera": 8104279857836399171,
     "AmbientLight": [
         0.25,
         0.25,
@@ -155,7 +155,7 @@
                             ],
                             "NearPlaneDistance": 0.10000000149011612,
                             "FarPlaneDistance": 200.0,
-                            "HorizontalFov": 1.8783425092697144,
+                            "HorizontalFov": 1.8832937479019166,
                             "VerticalFov": 1.3113912343978882
                         }
                     },
@@ -748,14 +748,14 @@
                                     200.0
                                 ],
                                 "AnchorMin": [
-                                    0.0,
-                                    1.0
+                                    0.5,
+                                    0.5
                                 ],
                                 "AnchorMax": [
-                                    0.0,
-                                    1.0
+                                    0.5,
+                                    0.5
                                 ],
-                                "AnchorSelected": 0,
+                                "AnchorSelected": 5,
                                 "IsCustomAnchor": false
                             },
                             {
@@ -770,7 +770,7 @@
                                 "FontID": 18326526522212889354,
                                 "FontSize": 50.0,
                                 "LineHeight": 16.0,
-                                "Alignment": 0,
+                                "Alignment": 1,
                                 "Value": "Text",
                                 "Color": [
                                     0.08928573131561279,
