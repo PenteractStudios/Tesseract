@@ -86,7 +86,6 @@ public:
 	void UpdatePivotPosition();								// Update this pivot position to value
 	const float4x4 GetGlobalMatrix();						// Returns GlobalMatrix
 	const float4x4 GetGlobalScaledMatrix();					// Returns GlobalMatrix with the size of the item
-	const float4x4 GetGlobalRotatedInPivotMatrix();			// Returns GlobalMatrix with the rotation of the item in a pivot position
 	void UpdateTransformChanges();							// Update the tranform matrix
 	Quat GetGlobalRotation() const;							// Returns the accumulated rotation of the parents and the current component
 
