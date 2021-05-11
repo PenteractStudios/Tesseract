@@ -330,6 +330,12 @@ const float4x4 ComponentTransform2D::GetGlobalScaledMatrix() {
 	return globalMatrix * float4x4::Scale(size.x, size.y, 0);
 }
 
+const float4x4 ComponentTransform2D::GetGlobalRotatedInPivotMatrix() {
+	CalculateGlobalMatrix();
+	return globalMatrix * float4x4::FromQuat(rotation, pivotPosition) * float4x4::Translate(position);
+}
+
+
 Quat ComponentTransform2D::GetGlobalRotation() const {
 	Quat parentRotation = Quat::FromEulerXYZ(0, 0, 0);
 	GameObject* parent = GetOwner().GetParent();
@@ -366,28 +372,21 @@ void ComponentTransform2D::CalculateGlobalMatrix() {
 }
 
 void ComponentTransform2D::UpdateTransformChanges() {
-	/* TODO: Fix pivots
-	bool isPivotMode = App->editor->panelControlEditor.GetRectTool();
+	// TODO: Fix pivots
+	if (App->editor->panelControlEditor.GetRectTool()) { // If is select pivot mode
+		bool isUsing2D = App->userInterface->IsUsing2D();
 
-	ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
-	float factor = canvasRenderer ? canvasRenderer->GetCanvasScreenFactor() : 1;
+		//ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
+		//float factor = canvasRenderer->GetCanvasScreenFactor();
 
-	bool isUsing2D = App->userInterface->IsUsing2D();
-	float4x4 aux = float4x4::identity;
-	float3 newPosition = float3(0, 0, 0);
-
-	UpdatePivotPosition();
-
-	if (isPivotMode) {
 		if (isUsing2D) {
-			aux = float4x4::FromQuat(rotation, pivotPosition * factor) * float4x4::Translate(position * factor);
-			position = aux.TranslatePart() * factor / 100;
+			GetGlobalRotatedInPivotMatrix();
 		} else {
-			aux = float4x4::FromQuat(rotation, pivotPosition / 100) * float4x4::Translate(position / 100);
-			position = aux.TranslatePart();
+			
 		}
+
+		//UpdatePivotPosition();
 	}
-	*/
 }
 
 void ComponentTransform2D::UpdateUIElements() {
