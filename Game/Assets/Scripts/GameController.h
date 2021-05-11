@@ -8,6 +8,8 @@ class GameObject;
 class ComponentCamera;
 class ComponentTransform;
 
+extern int checkpoint;
+
 class GameController : public Script
 {
 	GENERATE_BODY(GameController);
@@ -28,6 +30,7 @@ public:
 	UID staticCamera3UID;
 	UID staticCamera4UID;
 	UID playerUID;
+	UID pauseUID;
 
 	float speed = 50.f;
 	float rotationSpeedX = 10.f;
@@ -47,6 +50,7 @@ private:
 	ComponentCamera* staticCamera3 = nullptr;
 	ComponentCamera* staticCamera4 = nullptr;
 	GameObject* player = nullptr;
+	GameObject* pauseCanvas = nullptr;
 
 	float yaw = 0.f;
 	float pitch = 0.f;
@@ -54,5 +58,6 @@ private:
 	bool godCameraActive = false;
 	bool godModeAvailable = false;
 	bool transitionFinished = false;
+	bool isPaused = false;
 };
 

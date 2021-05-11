@@ -46,6 +46,8 @@ namespace Time {
 	TESSERACT_ENGINE_API float GetDeltaTime();
 	TESSERACT_ENGINE_API float GetFPS();
 	TESSERACT_ENGINE_API float GetMS();
+	TESSERACT_ENGINE_API void PauseGame();
+	TESSERACT_ENGINE_API void ResumeGame();
 } // namespace Time
 
 namespace Input {

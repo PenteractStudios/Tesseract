@@ -16,6 +16,7 @@
 
 #include "GL/glew.h"
 #include "Math/TransformOps.h"
+#include "Math/float3x3.h"
 #include "Utils/Logging.h"
 #include "Utils/ImGuiUtils.h"
 #include "imgui_stdlib.h"
@@ -148,7 +149,7 @@ void ComponentText::Draw(ComponentTransform2D* transform) const {
 	if (App->userInterface->IsUsing2D()) {
 		proj = float4x4::D3DOrthoProjLH(-1, 1, App->renderer->GetViewportSize().x, App->renderer->GetViewportSize().y); //near plane. far plane, screen width, screen height
 		view = float4x4::identity;
-		model = float4x4::FromTRS(float3::zero, transform->GetGlobalRotation(), float3::one);
+		model = float4x4(transform->GetGlobalRotation());
 	} else {
 		model = transform->GetGlobalScaledMatrix();
 		ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
@@ -209,7 +210,7 @@ void ComponentText::RecalculcateVertices() {
 	verticesText.resize(text.size());
 
 	ComponentTransform2D* transform = GetOwner().GetComponent<ComponentTransform2D>();
-	float3 position = transform->GetPosition();
+	float3 position = transform->GetGlobalPosition();
 	float screenFactor = GetOwner().GetComponent<ComponentCanvasRenderer>()->GetCanvasScreenFactor();
 
 	float x = position.x * screenFactor;

@@ -121,6 +121,15 @@ float Time::GetMS() {
 	return App->time->GetMS();
 }
 
+void Time::PauseGame() {
+	App->time->PauseGame();
+}
+
+void Time::ResumeGame() {
+	App->time->ResumeGame();
+}
+
+
 // ------------- INPUT ------------- //
 
 bool Input::GetMouseButtonDown(int button) {

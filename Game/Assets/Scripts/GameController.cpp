@@ -18,7 +18,8 @@ EXPOSE_MEMBERS(GameController) {
 	MEMBER(MemberType::GAME_OBJECT_UID, staticCamera3UID),
 	MEMBER(MemberType::GAME_OBJECT_UID, staticCamera4UID),
 	MEMBER(MemberType::GAME_OBJECT_UID, playerUID),
-	
+	MEMBER(MemberType::GAME_OBJECT_UID, pauseUID),
+
 	MEMBER(MemberType::FLOAT, speed),
 	MEMBER(MemberType::FLOAT, rotationSpeedX),
 	MEMBER(MemberType::FLOAT, rotationSpeedY),
@@ -43,14 +44,27 @@ void GameController::Start() {
 
 	player = GameplaySystems::GetGameObject(playerUID);
 
+	pauseCanvas = GameplaySystems::GetGameObject(pauseUID);
+
 	if (gameCamera) {
 		camera = gameCamera->GetComponent<ComponentCamera>();
 		GameplaySystems::SetRenderCamera(camera);
 	}
 
-
 	godCameraActive = false;
 	if (gameCamera && godCamera) godModeAvailable = true;
+
+	// TODO: The following is a provisional solution
+	// Setting player starting position
+	if (player) {
+		switch (checkpoint) {
+		case 1:
+			player->GetComponent<ComponentTransform>()->SetPosition(float3(37.f, 0.f, 41.f));
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 void GameController::Update() {
@@ -58,7 +72,7 @@ void GameController::Update() {
 		DoTransition();
 	}
 
-	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_G)) {
+	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_G) && !isPaused) {
 		if (godModeAvailable) {
 			Debug::ToggleDebugMode();
 			if (godCameraActive) {
@@ -74,8 +88,30 @@ void GameController::Update() {
 		}
 	}
 
+	if (pauseCanvas) {
+		if (pauseCanvas->IsActive()) {
+			isPaused = true;
+		}
+		else {
+			isPaused = false;
+		}
+	}
+
+	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_ESCAPE)) {
+		if (pauseCanvas) {
+			if (!isPaused) {
+				Time::PauseGame();
+				pauseCanvas->Enable();
+			}
+			else {
+				Time::ResumeGame();
+				pauseCanvas->Disable();
+			}
+		}
+	}
+
 	// Static cameras
-	if (!godCameraActive) {
+	if (!godCameraActive && !isPaused) {
 		if (Input::GetKeyCode(Input::KEYCODE::KEY_0) && gameCamera) {
 			camera = gameCamera->GetComponent<ComponentCamera>();
 			GameplaySystems::SetRenderCamera(camera);
