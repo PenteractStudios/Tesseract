@@ -207,7 +207,10 @@ void ComponentText::RecalculcateVertices() {
 
 	verticesText.resize(text.size());
 
-	float x = 0;
+	ComponentTransform2D* transform = GetOwner().GetComponent<ComponentTransform2D>();
+	float screenFactor = GetOwner().GetComponent<ComponentCanvasRenderer>()->GetCanvasScreenFactor();
+
+	float x = -transform->GetSize().x / 2.0f;
 	float y = 0;
 
 	float dy = 0; // additional y shifting
@@ -215,9 +218,6 @@ void ComponentText::RecalculcateVertices() {
 
 	// FontSize / size of imported font. 48 is due to FontImporter default PixelSize
 	float scale = (fontSize / 48);
-
-	ComponentTransform2D* transform = GetOwner().GetComponent<ComponentTransform2D>();
-	float screenFactor = GetOwner().GetComponent<ComponentCanvasRenderer>()->GetCanvasScreenFactor();
 
 	for (size_t i = 0; i < text.size(); ++i) {
 		Character character = App->userInterface->GetCharacter(fontID, text.at(i));
@@ -230,22 +230,21 @@ void ComponentText::RecalculcateVertices() {
 
 		switch (textAlignment) {
 		case TextAlignment::LEFT: {
-			// Default branch, could be deleted
 			break;
 		}
 		case TextAlignment::CENTER: {
-			xpos += (transform->GetSize().x * screenFactor / 2.0f - SubstringWidth(&text.c_str()[j], scale) / 2.0f);
+			xpos += (transform->GetSize().x / 2.0f - SubstringWidth(&text.c_str()[j], scale) / 2.0f);
 			break;
 		}
 		case TextAlignment::RIGHT: {
-			xpos += transform->GetSize().x * screenFactor - SubstringWidth(&text.c_str()[j], scale);
+			xpos += transform->GetSize().x - SubstringWidth(&text.c_str()[j], scale);
 			break;
 		}
 		}
 
 		if (text.at(i) == '\n') {
 			dy += lineHeight; // shifts to next line
-			x = 0;			  // reset to initial position
+			x = -transform->GetSize().x / 2.0f; // reset to initial position
 			j = i + 1;		  // updated j variable in order to get the substringwidth of the following line in the next iteration
 		}
 
