@@ -269,6 +269,7 @@ GameObject* PanelHierarchy::CreateUIButton(GameObject* gameObject) {
 GameObject* PanelHierarchy::CreatePartycleSystemObject(GameObject* gameObject) {
 	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "ParticleSystem");
 	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
+	ComponentBoundingBox* boundingBox = newGameObject->CreateComponent<ComponentBoundingBox>();
 	ComponentParticleSystem* particle = newGameObject->CreateComponent<ComponentParticleSystem>();
 	transform->SetPosition(float3(0, 0, 0));
 	transform->SetRotation(Quat::identity);
@@ -310,7 +311,7 @@ GameObject* PanelHierarchy::CreateUIProgressBar(GameObject* gameObject) {
 	if (gameObject->HasComponentInAnyParent<ComponentCanvas>(gameObject) == nullptr) {
 		gameObject = CreateUICanvas(gameObject);
 	}
-  
+
 	GameObject* progressBar = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Progress Bar");
 	ComponentTransform* progressTransform = progressBar->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* progressTransform2D = progressBar->CreateComponent<ComponentTransform2D>();
@@ -334,7 +335,7 @@ GameObject* PanelHierarchy::CreateUISlider(GameObject* gameObject) {
 	if (gameObject->HasComponentInAnyParent<ComponentCanvas>(gameObject) == nullptr) {
 		gameObject = CreateUICanvas(gameObject);
 	}
-  
+
 	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Slider");
 	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
@@ -362,7 +363,6 @@ GameObject* PanelHierarchy::CreateUISlider(GameObject* gameObject) {
 	ComponentTransform2D* handleTransform2D = handleGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* handleRenderer = handleGameObject->CreateComponent<ComponentCanvasRenderer>();
 	ComponentImage* handleImage = handleGameObject->CreateComponent<ComponentImage>();
-
 
 	selectable->SetSelectableType(slider->GetType());
 	backgroundGameObject->InitComponents();

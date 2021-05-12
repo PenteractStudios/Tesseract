@@ -156,7 +156,7 @@ const float3& Input::GetMouseWorldPosition() {
 	float4x4 ProjView = Projection * View;
 	ProjView.Inverse();
 	float4 worldPos = ProjView * ScreenPos;
-	return worldPos.xyz()/worldPos.w;
+	return worldPos.xyz() / worldPos.w;
 }
 
 float2 Input::GetMousePosition() {
@@ -202,15 +202,11 @@ float Screen::GetScreenWitdh() {
 }
 
 float Screen::GetScreenHeight() {
-
 	return static_cast<float>(App->window->GetHeight());
 }
-<<<<<<< HEAD
-=======
 
 // --------- Camera --------- //
 
 bool Camera::CheckObjectInsideFrustum(GameObject* gameObject) {
 	return App->renderer->ObjectInsideFrustum(gameObject);
 }
->>>>>>> feature/CU-hk6hva-AIMovementScript

@@ -164,7 +164,8 @@ UpdateStatus ModuleRender::Update() {
 	// Draw the scene
 	App->camera->CalculateFrustumPlanes();
 	Scene* scene = App->scene->scene;
-	for (ComponentBoundingBox& boundingBox : scene->boundingBoxComponents) {
+	std::vector<ComponentParticleSystem*> comParticles;
+ 	for (ComponentBoundingBox& boundingBox : scene->boundingBoxComponents) {
 		GameObject& gameObject = boundingBox.GetOwner();
 		gameObject.flag = false;
 		if (gameObject.isInQuadtree) continue;
@@ -173,6 +174,10 @@ UpdateStatus ModuleRender::Update() {
 		const OBB& gameObjectOBB = boundingBox.GetWorldOBB();
 		if (CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
 			DrawGameObject(&gameObject);
+			ComponentView<ComponentParticleSystem> particles = gameObject.GetComponents<ComponentParticleSystem>();
+			for (ComponentParticleSystem& particle : particles) {
+				comParticles.push_back(&particle);
+			}
 		}
 	}
 	if (scene->quadtree.IsOperative()) {
@@ -215,7 +220,9 @@ UpdateStatus ModuleRender::Update() {
 			}
 		}
 	}
-
+	for (ComponentParticleSystem* currentParticle : comParticles) {
+		currentParticle->Draw();
+	}
 	//Render UI
 	RenderUI();
 
@@ -455,7 +462,6 @@ void ModuleRender::DrawGameObject(GameObject* gameObject) {
 
 	for (ComponentMeshRenderer& mesh : meshes) {
 		mesh.Draw(transform->GetGlobalMatrix());
-
 		ResourceMesh* resourceMesh = App->resources->GetResource<ResourceMesh>(mesh.meshId);
 		if (resourceMesh != nullptr) {
 			culledTriangles += resourceMesh->numIndices / 3;

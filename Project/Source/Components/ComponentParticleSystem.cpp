@@ -231,6 +231,10 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 }
 
 void ComponentParticleSystem::Update() {
+	AABB newBoundingBox = {
+		{0, 0, 0},
+		{0, 0, 0}};
+
 	deadParticles.clear();
 	for (Particle& currentParticle : particles) {
 		if (App->time->IsGameRunning()) {
@@ -243,11 +247,20 @@ void ComponentParticleSystem::Update() {
 		if (currentParticle.life < 0) {
 			deadParticles.push_back(&currentParticle);
 		}
+		if (currentParticle.position.x > newBoundingBox.maxPoint.x) newBoundingBox.maxPoint.x = currentParticle.position.x;
+		if (currentParticle.position.x < newBoundingBox.minPoint.x) newBoundingBox.minPoint.x = currentParticle.position.x;
+		if (currentParticle.position.y > newBoundingBox.maxPoint.y) newBoundingBox.maxPoint.y = currentParticle.position.y;
+		if (currentParticle.position.y < newBoundingBox.minPoint.y) newBoundingBox.minPoint.y = currentParticle.position.y;
+		if (currentParticle.position.z > newBoundingBox.maxPoint.z) newBoundingBox.maxPoint.z = currentParticle.position.z;
+		if (currentParticle.position.z < newBoundingBox.minPoint.z) newBoundingBox.minPoint.z = currentParticle.position.z;
 	}
 	for (Particle* currentParticle : deadParticles) {
 		particles.Release(currentParticle);
 	}
-	Draw();
+	ComponentBoundingBox* bBox = GetOwner().GetComponent<ComponentBoundingBox>();
+	if (!bBox) return;
+	bBox->SetLocalBoundingBox(newBoundingBox);
+	//Draw()
 }
 
 void ComponentParticleSystem::Init() {
@@ -319,6 +332,7 @@ void ComponentParticleSystem::Draw() {
 
 			glDisable(GL_CULL_FACE);
 			glDisable(GL_DEPTH_TEST);
+			//glDepthMask(GL_FALSE);
 			glEnable(GL_BLEND);
 			//glBlendEquation(GL_MAX);
 			glBlendFunc(GL_ONE, GL_ONE);

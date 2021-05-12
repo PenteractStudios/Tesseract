@@ -1,6 +1,7 @@
 #pragma once
 #include "Component.h"
 
+#include "Components/ComponentBoundingBox.h"
 #include "Utils/Pool.h"
 #include "Utils/UID.h"
 #include "Math/float4.h"
