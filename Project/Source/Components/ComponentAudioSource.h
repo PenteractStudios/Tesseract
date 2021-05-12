@@ -9,6 +9,8 @@ public:
 	REGISTER_COMPONENT(ComponentAudioSource, ComponentType::AUDIO_SOURCE, true); // Refer to ComponentType for the Constructor
 
 	// ------- Core Functions ------ //
+	~ComponentAudioSource();
+
 	void Init() override;
 	void Update() override;
 	void DrawGizmos() override;
@@ -17,11 +19,12 @@ public:
 	void Load(JsonValue jComponent) override;
 
 	void UpdateAudioSource();
-	void UpdateSourceParameters() const;
+	void UpdateSourceParameters();
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Stop();
 	TESSERACT_ENGINE_API void Pause() const;
-	TESSERACT_ENGINE_API bool isPlaying() const;
+	TESSERACT_ENGINE_API bool IsPlaying() const;
+	TESSERACT_ENGINE_API bool IsStopped() const;
 
 private:
 	bool drawGizmos = true;

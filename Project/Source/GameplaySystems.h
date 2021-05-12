@@ -395,3 +395,7 @@ namespace SceneManager {
 namespace Camera {
 	TESSERACT_ENGINE_API bool CheckObjectInsideFrustum(GameObject* gameObject);
 }; // namespace Camera
+
+namespace Audio {
+	TESSERACT_ENGINE_API void StopAllSources();
+}; // namespace Audio
