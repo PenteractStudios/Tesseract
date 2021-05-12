@@ -34,6 +34,7 @@
 
 #include "Utils/Leaks.h"
 #include <string>
+#include <algorithm>
 
 #if _DEBUG
 static void __stdcall OurOpenGLErrorFunction(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
@@ -174,12 +175,9 @@ UpdateStatus ModuleRender::Update() {
 		const OBB& gameObjectOBB = boundingBox.GetWorldOBB();
 		if (CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
 			DrawGameObject(&gameObject);
-			ComponentView<ComponentParticleSystem> particles = gameObject.GetComponents<ComponentParticleSystem>();
-			for (ComponentParticleSystem& particle : particles) {
-				comParticles.push_back(&particle);
-			}
 		}
 	}
+
 	if (scene->quadtree.IsOperative()) {
 		DrawSceneRecursive(scene->quadtree.root, scene->quadtree.bounds);
 	}
@@ -290,6 +288,7 @@ void ModuleRender::ToggleDebugMode() {
 void ModuleRender::ToggleDebugDraw() {
 	drawDebugDraw = !drawDebugDraw;
 }
+
 void ModuleRender::ToggleDrawQuadtree() {
 	drawQuadtree = !drawQuadtree;
 }
@@ -313,6 +312,7 @@ void ModuleRender::ToggleDrawCameraFrustums() {
 void ModuleRender::ToggleDrawLightGizmos() {
 	drawLightGizmos = !drawLightGizmos;
 }
+
 void ModuleRender::ToggleDrawParticleGizmos() {
 	drawParticleGizmos = !drawParticleGizmos;
 }
