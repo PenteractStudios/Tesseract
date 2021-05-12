@@ -344,10 +344,13 @@ Quat ComponentTransform2D::GetGlobalRotation() const {
 void ComponentTransform2D::CalculateGlobalMatrix() {
 	if (dirty) {
 		if (App->editor->panelControlEditor.GetRectTool()) { //if is in pivot mode
-			UpdatePivotPosition(pivot);
 			localMatrix = float4x4::Translate(pivotPosition) * float4x4::FromTRS(GetPositionRelativeToParent(), rotation, scale) * float4x4::Translate(-pivotPosition);
+			float4x4 rotateCenterPos = float4x4::FromQuat(rotation, pivotPosition) * float4x4::Translate(position);
+			centerObjectPosition = float3(rotateCenterPos.x, rotateCenterPos.y, rotateCenterPos.z);
+			LOG("CENTER: X: %.f, Y: %.f, Z: %.f", centerObjectPosition.x, centerObjectPosition.y, centerObjectPosition.z);
 		} else {
 			UpdatePivotPosition(float2(0.5f, 0.5f));
+			position = centerObjectPosition;
 			localMatrix = float4x4::FromTRS(GetPositionRelativeToParent(), rotation, scale);
 		}
 
