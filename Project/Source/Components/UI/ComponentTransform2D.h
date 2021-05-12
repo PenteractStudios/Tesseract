@@ -84,7 +84,7 @@ public:
 	float3 GetPivotPosition() const;				 // Returns the pivot position
 	float3 GetPositionRelativeToParent() const;		 // Returns the position of the object relative to its parent
 	float3 GetScreenPosition() const;				 // Returns the position of the object respect the screen
-	float3 CalculateCenterObject() const;			 // Returns the center position of the object
+	float3 CalculateCenterObject();			 // Returns the center position of the object
 
 	void InvalidateHierarchy(); // Invalidates hierarchy
 	void Invalidate();			// Invalidates component
@@ -102,7 +102,6 @@ private:
 
 	float2 pivot = float2(0.5, 0.5);	 // The position of the pivot in 2D
 	float3 pivotPosition = float3::zero; // The position of the pivot in the world
-	float3 centerObjectPosition = float3::zero; // The center of the object in the world (Z always be 0)
 	float2 size = float2(200, 200);		 // The size of the item
 
 	float2 anchorMin = float2(0.5, 0.5);																			   // The Anchor Min. Represents the lower left handle.

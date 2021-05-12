@@ -344,13 +344,11 @@ Quat ComponentTransform2D::GetGlobalRotation() const {
 void ComponentTransform2D::CalculateGlobalMatrix() {
 	if (dirty) {
 		if (App->editor->panelControlEditor.GetRectTool()) { //if is in pivot mode
+			SetPivot(pivot);
 			localMatrix = float4x4::Translate(pivotPosition) * float4x4::FromTRS(GetPositionRelativeToParent(), rotation, scale) * float4x4::Translate(-pivotPosition);
-			float4x4 rotateCenterPos = float4x4::FromQuat(rotation, pivotPosition) * float4x4::Translate(position);
-			centerObjectPosition = float3(rotateCenterPos.x, rotateCenterPos.y, rotateCenterPos.z);
-			LOG("CENTER: X: %.f, Y: %.f, Z: %.f", centerObjectPosition.x, centerObjectPosition.y, centerObjectPosition.z);
 		} else {
+			position = CalculateCenterObject();
 			UpdatePivotPosition(float2(0.5f, 0.5f));
-			position = centerObjectPosition;
 			localMatrix = float4x4::FromTRS(GetPositionRelativeToParent(), rotation, scale);
 		}
 
@@ -434,11 +432,12 @@ float3 ComponentTransform2D::GetScreenPosition() const {
 	return screenPosition;
 }
 
-float3 ComponentTransform2D::CalculateCenterObject() const {
-	// el punto medio del cuadrado dependera de la posicion del objeto, del tamaño del objeto y de la rotacion
-	float newX = (position.x * Cos(rotation.z) - (position.y * Sin(rotation.z)));
-	float newY = (position.x * Sin(rotation.z) + (position.y * Cos(rotation.z)));
-	return float3(newX, newY, 0.f);
+float3 ComponentTransform2D::CalculateCenterObject() {
+	float3 centerObjectPosition = float3::zero;
+	float4x4 rotateCenterPos = float4x4::FromQuat(rotation, pivotPosition) * float4x4::Translate(position);
+	centerObjectPosition = float3(rotateCenterPos.x, rotateCenterPos.y, rotateCenterPos.z);
+	LOG("CENTER: X: %.f, Y: %.f, Z: %.f", centerObjectPosition.x, centerObjectPosition.y, centerObjectPosition.z);
+	return centerObjectPosition;
 }
 
 void ComponentTransform2D::InvalidateHierarchy() {
