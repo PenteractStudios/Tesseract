@@ -13,9 +13,11 @@
 
 #include "debugdraw.h"
 #include "imgui.h"
+#include "Math/MathFunc.h"
 #include "Math/TransformOps.h"
 
 #include "Utils/Leaks.h"
+#include <Utils/Logging.h>
 
 #define JSON_TAG_POSITION "Position"
 #define JSON_TAG_ROTATION "Rotation"
@@ -262,18 +264,18 @@ bool ComponentTransform2D::HasAnyUIElementsInChildren(const GameObject* obj) con
 void ComponentTransform2D::SetPosition(float3 position_) {
 	position = position_;
 	// Update the new pivot position
-	UpdatePivotPosition();
+	UpdatePivotPosition(pivot);
 	InvalidateHierarchy();
 }
 
 void ComponentTransform2D::SetPivot(float2 pivot_) {
 	pivot = pivot_;
 	// Update the new pivot position
-	UpdatePivotPosition();
+	UpdatePivotPosition(pivot);
 	InvalidateHierarchy();
 }
 
-void ComponentTransform2D::UpdatePivotPosition() {
+void ComponentTransform2D::UpdatePivotPosition(float2 pivot) {
 	pivotPosition.x = (size.x * pivot.x - size.x * 0.5f) * scale.x + position.x;
 	pivotPosition.y = (size.y * pivot.y - size.y * 0.5f) * scale.y + position.y;
 	InvalidateHierarchy();
@@ -282,7 +284,7 @@ void ComponentTransform2D::UpdatePivotPosition() {
 void ComponentTransform2D::SetSize(float2 size_) {
 	size = size_;
 	// Update the new pivot position
-	UpdatePivotPosition();
+	UpdatePivotPosition(pivot);
 	InvalidateHierarchy();
 }
 
@@ -297,15 +299,13 @@ void ComponentTransform2D::SetRotation(float3 rotation_) {
 	rotation = Quat::FromEulerXYZ(rotation_.x * DEGTORAD, rotation_.y * DEGTORAD, rotation_.z * DEGTORAD);
 	localEulerAngles = rotation_;
 
-	UpdateTransformChanges();
-
 	InvalidateHierarchy();
 }
 
 void ComponentTransform2D::SetScale(float3 scale_) {
 	scale = scale_;
 	// Update the new pivot position
-	UpdatePivotPosition();
+	UpdatePivotPosition(pivot);
 	InvalidateHierarchy();
 }
 
@@ -344,12 +344,13 @@ Quat ComponentTransform2D::GetGlobalRotation() const {
 void ComponentTransform2D::CalculateGlobalMatrix() {
 	if (dirty) {
 		if (App->editor->panelControlEditor.GetRectTool()) { //if is in pivot mode
+			UpdatePivotPosition(pivot);
 			localMatrix = float4x4::Translate(pivotPosition) * float4x4::FromTRS(GetPositionRelativeToParent(), rotation, scale) * float4x4::Translate(-pivotPosition);
 		} else {
-			localMatrix = float4x4::Translate(GetPositionRelativeToParent()) * float4x4::FromTRS(GetPositionRelativeToParent(), rotation, scale) * float4x4::Translate(-GetPositionRelativeToParent());
+			UpdatePivotPosition(float2(0.5f, 0.5f));
+			localMatrix = float4x4::FromTRS(GetPositionRelativeToParent(), rotation, scale);
 		}
-		
-		
+
 		GameObject* parent = GetOwner().GetParent();
 
 		if (parent != nullptr) {
@@ -367,10 +368,6 @@ void ComponentTransform2D::CalculateGlobalMatrix() {
 
 		dirty = false;
 	}
-}
-
-void ComponentTransform2D::UpdateTransformChanges() {
-
 }
 
 void ComponentTransform2D::UpdateUIElements() {
@@ -434,6 +431,13 @@ float3 ComponentTransform2D::GetScreenPosition() const {
 	return screenPosition;
 }
 
+float3 ComponentTransform2D::CalculateCenterObject() const {
+	// el punto medio del cuadrado dependera de la posicion del objeto, del tamaño del objeto y de la rotacion
+	float newX = (position.x * Cos(rotation.z) - (position.y * Sin(rotation.z)));
+	float newY = (position.x * Sin(rotation.z) + (position.y * Cos(rotation.z)));
+	return float3(newX, newY, 0.f);
+}
+
 void ComponentTransform2D::InvalidateHierarchy() {
 	Invalidate();
 
@@ -451,20 +455,4 @@ void ComponentTransform2D::Invalidate() {
 	if (boundingBox != nullptr) {
 		boundingBox->Invalidate();
 	}
-}
-
-void ComponentTransform2D::SetTop(float top_) {
-	anchorsRect.top = top_;
-}
-
-void ComponentTransform2D::SetBottom(float bottom_) {
-	anchorsRect.bottom = bottom_;
-}
-
-void ComponentTransform2D::SetLeft(float left_) {
-	anchorsRect.left = left_;
-}
-
-void ComponentTransform2D::SetRight(float right_) {
-	anchorsRect.right = right_;
 }
