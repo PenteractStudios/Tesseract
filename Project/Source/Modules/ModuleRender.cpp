@@ -165,7 +165,7 @@ UpdateStatus ModuleRender::Update() {
 	App->camera->CalculateFrustumPlanes();
 	Scene* scene = App->scene->scene;
 	std::vector<ComponentParticleSystem*> comParticles;
- 	for (ComponentBoundingBox& boundingBox : scene->boundingBoxComponents) {
+	for (ComponentBoundingBox& boundingBox : scene->boundingBoxComponents) {
 		GameObject& gameObject = boundingBox.GetOwner();
 		gameObject.flag = false;
 		if (gameObject.isInQuadtree) continue;
@@ -220,9 +220,7 @@ UpdateStatus ModuleRender::Update() {
 			}
 		}
 	}
-	for (ComponentParticleSystem* currentParticle : comParticles) {
-		currentParticle->Draw();
-	}
+
 	//Render UI
 	RenderUI();
 
@@ -455,6 +453,7 @@ void ModuleRender::DrawGameObject(GameObject* gameObject) {
 	ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
 	ComponentView<ComponentMeshRenderer> meshes = gameObject->GetComponents<ComponentMeshRenderer>();
 	ComponentBoundingBox* boundingBox = gameObject->GetComponent<ComponentBoundingBox>();
+	ComponentView<ComponentParticleSystem> particles = gameObject->GetComponents<ComponentParticleSystem>();
 
 	if (boundingBox && drawAllBoundingBoxes && (App->camera->IsEngineCameraActive() || debugMode)) {
 		boundingBox->DrawBoundingBox();
@@ -466,6 +465,9 @@ void ModuleRender::DrawGameObject(GameObject* gameObject) {
 		if (resourceMesh != nullptr) {
 			culledTriangles += resourceMesh->numIndices / 3;
 		}
+	}
+	for (ComponentParticleSystem& particle : particles) {
+		particle.Draw();
 	}
 }
 
