@@ -102,6 +102,19 @@ public:
 	void SavePrefab(JsonValue jGameObject);
 	void LoadPrefab(JsonValue jGameObject);
 
+	bool operator<(const GameObject& a) {
+		ComponentTransform* myTransform = this->GetComponent<ComponentTransform>();
+		ComponentTransform* aTransform = a.GetComponent<ComponentTransform>();
+
+		assert(myTransform);
+		assert(aTransform);
+
+		return myTransform->GetGlobalPosition().x < aTransform->GetGlobalPosition().x
+			   && myTransform->GetGlobalPosition().y < aTransform->GetGlobalPosition().y
+			   && myTransform->GetGlobalPosition().z < aTransform->GetGlobalPosition().z;
+
+	}
+
 public:
 	UID id = 0;
 	std::string name = "";

@@ -34,6 +34,7 @@
 
 #include "Utils/Leaks.h"
 #include <string>
+#include <algorithm>
 
 #if _DEBUG
 static void __stdcall OurOpenGLErrorFunction(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
@@ -164,7 +165,8 @@ UpdateStatus ModuleRender::Update() {
 	// Draw the scene
 	App->camera->CalculateFrustumPlanes();
 	Scene* scene = App->scene->scene;
-	std::vector<ComponentParticleSystem*> comParticles;
+	std::vector<const GameObject*> orderedGameObjects;
+
  	for (ComponentBoundingBox& boundingBox : scene->boundingBoxComponents) {
 		GameObject& gameObject = boundingBox.GetOwner();
 		gameObject.flag = false;
@@ -173,13 +175,13 @@ UpdateStatus ModuleRender::Update() {
 		const AABB& gameObjectAABB = boundingBox.GetWorldAABB();
 		const OBB& gameObjectOBB = boundingBox.GetWorldOBB();
 		if (CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
-			DrawGameObject(&gameObject);
-			ComponentView<ComponentParticleSystem> particles = gameObject.GetComponents<ComponentParticleSystem>();
-			for (ComponentParticleSystem& particle : particles) {
-				comParticles.push_back(&particle);
-			}
+			//DrawGameObject(&gameObject);
+			orderedGameObjects.insert(
+				std::upper_bound(orderedGameObjects.begin(), orderedGameObjects.end(), gameObject),
+				&gameObject);
 		}
 	}
+
 	if (scene->quadtree.IsOperative()) {
 		DrawSceneRecursive(scene->quadtree.root, scene->quadtree.bounds);
 	}
@@ -220,9 +222,7 @@ UpdateStatus ModuleRender::Update() {
 			}
 		}
 	}
-	for (ComponentParticleSystem* currentParticle : comParticles) {
-		currentParticle->Draw();
-	}
+
 	//Render UI
 	RenderUI();
 
@@ -292,6 +292,7 @@ void ModuleRender::ToggleDebugMode() {
 void ModuleRender::ToggleDebugDraw() {
 	drawDebugDraw = !drawDebugDraw;
 }
+
 void ModuleRender::ToggleDrawQuadtree() {
 	drawQuadtree = !drawQuadtree;
 }
@@ -315,6 +316,7 @@ void ModuleRender::ToggleDrawCameraFrustums() {
 void ModuleRender::ToggleDrawLightGizmos() {
 	drawLightGizmos = !drawLightGizmos;
 }
+
 void ModuleRender::ToggleDrawParticleGizmos() {
 	drawParticleGizmos = !drawParticleGizmos;
 }
