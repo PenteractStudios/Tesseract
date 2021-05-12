@@ -14,6 +14,8 @@ class ComponentScript : public Component {
 public:
 	REGISTER_COMPONENT(ComponentScript, ComponentType::SCRIPT, true);
 
+	void Init() override;
+
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;

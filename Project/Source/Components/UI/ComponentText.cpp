@@ -47,6 +47,17 @@ void ComponentText::Init() {
 }
 
 void ComponentText::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
 
 	bool mustRecalculateVertices = false;
@@ -212,8 +223,8 @@ void ComponentText::RecalculateVertices() {
 	for (size_t i = 0; i < text.size(); ++i) {
 		Character character = App->userInterface->GetCharacter(fontID, text.at(i));
 
-		float xpos = x + character.bearing.x;
-		float ypos = y - (character.size.y - character.bearing.y);
+		float xpos = x + character.bearing.x * scale;
+		float ypos = y - (character.size.y - character.bearing.y) * scale;
 
 		float w = character.size.x * scale;
 		float h = character.size.y * scale;

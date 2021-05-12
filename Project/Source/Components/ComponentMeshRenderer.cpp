@@ -124,9 +124,10 @@ void ComponentMeshRenderer::Update() {
 		const GameObject* rootBoneParent = rootBone->GetParent();
 		const float4x4& invertedRootBoneTransform = rootBoneParent ? rootBoneParent->GetComponent<ComponentTransform>()->GetGlobalMatrix().Inverted() : float4x4::identity;
 
+		const float4x4 &localMatrix = GetOwner().GetComponent<ComponentTransform>()->GetLocalMatrix();
 		for (unsigned i = 0; i < mesh->numBones; ++i) {
 			const GameObject* bone = goBones.at(mesh->bones[i].boneName);
-			palette[i] = invertedRootBoneTransform * bone->GetComponent<ComponentTransform>()->GetGlobalMatrix() * mesh->bones[i].transform;
+			palette[i] = localMatrix * invertedRootBoneTransform * bone->GetComponent<ComponentTransform>()->GetGlobalMatrix() * mesh->bones[i].transform ;
 		}
 	}
 }

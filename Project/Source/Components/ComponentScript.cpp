@@ -26,6 +26,10 @@
 #define JSON_TAG_TYPE "Type"
 #define JSON_TAG_VALUE "Value"
 
+void ComponentScript::Init() {
+	if (scriptInstance) scriptInstance->Start();
+}
+
 void ComponentScript::OnEditorUpdate() {
 	if (ImGui::Checkbox("Active", &active)) {
 		if (GetOwner().IsActive()) {
@@ -310,7 +314,7 @@ void ComponentScript::CreateScriptInstance() {
 			switch (member.type) {
 			case MemberType::BOOL: {
 				bool* memberPtr = (bool*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
-				*memberPtr= std::get<bool>(it->second.second);
+				*memberPtr = std::get<bool>(it->second.second);
 				break;
 			}
 			case MemberType::INT: {

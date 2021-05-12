@@ -180,7 +180,6 @@ void ModuleScene::CreateEmptyScene() {
 	ComponentSkyBox* gameCameraSkybox = gameCamera->CreateComponent<ComponentSkyBox>();
 	ComponentAudioListener* audioListener = gameCamera->CreateComponent<ComponentAudioListener>();
 	gameCamera->InitComponents();
-
 }
 
 void ModuleScene::DestroyGameObjectDeferred(GameObject* gameObject) {

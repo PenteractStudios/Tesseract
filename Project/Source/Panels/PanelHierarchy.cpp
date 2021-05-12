@@ -89,46 +89,46 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 		}
 
 		if (ImGui::Selectable("Create Empty")) {
-			CreateEmptyGameObject(gameObject);
+			App->editor->selectedGameObject = CreateEmptyGameObject(gameObject);
 		}
 		if (ImGui::Selectable("Particle System")) {
-			CreatePartycleSystemObject(gameObject);
+			App->editor->selectedGameObject = CreatePartycleSystemObject(gameObject);
 		}
 		// TODO: code duplicated in every CreateXX(gameObject). Generalisation could be done here. Also with PanelInspector->AddUIComponentsOptions()
 		if (ImGui::BeginMenu("UI")) {
 			if (ImGui::MenuItem("Event System")) {
 				if (App->scene->scene->eventSystemComponents.Count() == 0) {
-					CreateEventSystem(gameObject);
+					App->editor->selectedGameObject = CreateEventSystem(gameObject);
 				} else {
 					App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 				}
 			}
 
 			if (ImGui::MenuItem("Canvas")) {
-				CreateUICanvas(gameObject);
+				App->editor->selectedGameObject = CreateUICanvas(gameObject);
 			}
 
 			if (ImGui::MenuItem("Image")) {
-				CreateUIImage(gameObject);
+				App->editor->selectedGameObject = CreateUIImage(gameObject);
 			}
 
 			if (ImGui::MenuItem("Text")) {
-				CreateUIText(gameObject);
+				App->editor->selectedGameObject = CreateUIText(gameObject);
 			}
 
 			if (ImGui::MenuItem("Button")) {
-				CreateUIButton(gameObject);
+				App->editor->selectedGameObject = CreateUIButton(gameObject);
 			}
 
 			if (ImGui::MenuItem("Slider")) {
-				CreateUISlider(gameObject);
+				App->editor->selectedGameObject = CreateUISlider(gameObject);
 			}
 			if (ImGui::MenuItem("Toggle")) {
-				CreateUIToggle(gameObject);
+				App->editor->selectedGameObject = CreateUIToggle(gameObject);
 			}
 
 			if (ImGui::MenuItem("Progress Bar")) {
-				CreateUIProgressBar(gameObject);
+				App->editor->selectedGameObject = CreateUIProgressBar(gameObject);
 			}
 			ImGui::EndMenu();
 		}
