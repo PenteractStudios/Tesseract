@@ -7,15 +7,15 @@ class GameObject;
 class ComponentTransform;
 class ComponentCamera;
 
+enum class MovementDirection {
+		NONE = 0, UP = 1, UP_LEFT = 2, LEFT = 3, DOWN_LEFT = 4, DOWN = 5, DOWN_RIGHT = 6, RIGHT = 7, UP_RIGHT = 8
+};
+
 class PlayerController : public Script
 {
 	GENERATE_BODY(PlayerController);
 
 public:
-
-	enum class MovementDirection {
-		NONE = 0, UP = 1, UP_LEFT = 2, LEFT = 3, DOWN_LEFT = 4, DOWN = 5, DOWN_RIGHT = 6, RIGHT = 7, UP_RIGHT = 8
-	};
 
 	void Start() override;
 	void Update() override;
