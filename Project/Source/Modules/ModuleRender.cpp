@@ -227,8 +227,6 @@ void ModuleRender::DrawDepthMap() {
 UpdateStatus ModuleRender::PreUpdate() {
 	BROFILER_CATEGORY("ModuleRender - PreUpdate", Profiler::Color::Green)
 
-	lightFrustum.ReconstructFrustum();
-
 #if !GAME
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glViewport(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));

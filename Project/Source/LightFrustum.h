@@ -5,7 +5,7 @@
 class LightFrustum {
 public:
 
-	LightFrustum() {}
+	LightFrustum();
 	~LightFrustum() {}
 	void ReconstructFrustum();
 
@@ -13,11 +13,10 @@ public:
 
 	Frustum GetFrustum() const;
 
-public:
-
-	bool dirty = true;
+	void Invalidate();
 
 private:
-
+	bool dirty = true;
 	Frustum frustum;
+	
 };
