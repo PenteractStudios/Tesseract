@@ -242,7 +242,7 @@ void ComponentTransform2D::DrawGizmos() {
 		float3 pivotPosFactor = float3(GetPivotPosition().x / 100, GetPivotPosition().y / 100, GetPivotPosition().z / 100);
 		dd::box(pivotPosFactor, dd::colors::OrangeRed, 0.1f, 0.1f, 0.f);
 		float3 centerPositionFactor = float3(CalculateCenterObject().x / 100, CalculateCenterObject().y / 100, 0.f);
-		dd::box(centerPositionFactor, dd::colors::Black, 0.1f, 0.1f, 0.f);
+		dd::box(centerPositionFactor, dd::colors::Orange, 0.1f, 0.1f, 0.f);
 	}
 }
 
@@ -293,8 +293,6 @@ void ComponentTransform2D::SetRotation(Quat rotation_) {
 void ComponentTransform2D::SetRotation(float3 rotation_) {
 	rotation = Quat::FromEulerXYZ(rotation_.x * DEGTORAD, rotation_.y * DEGTORAD, rotation_.z * DEGTORAD);
 	localEulerAngles = rotation_;
-
-	//CalculatePivotPosition();
 
 	InvalidateHierarchy();
 }
@@ -426,26 +424,15 @@ float2 ComponentTransform2D::CalculateCenterObject() {
 	float2 centerObjectPosition = float2::zero;
 	float4x4 rotateCenterPos = float4x4::FromQuat(rotation, pivotPosition) * float4x4::Translate(position);
 	centerObjectPosition = float2(rotateCenterPos.x, rotateCenterPos.y);
-	// LOG("CENTER: X: %.f, Y: %.f", centerObjectPosition.x, centerObjectPosition.y);
+	LOG("CENTER: X: %.f, Y: %.f", centerObjectPosition.x, centerObjectPosition.y);
 	return centerObjectPosition;
 }
 
 void ComponentTransform2D::CalculatePivotPosition() {
-	/*float angleDegrees = localEulerAngles.z;
-	float rotatedW, rotatedH = 0;
-	rotatedW = size.x * cos(localEulerAngles.z) + size.y * cos(90 - localEulerAngles.z);
-	rotatedH = size.x * sin(localEulerAngles.z) + size.y * sin(90 - localEulerAngles.z);
-	LOG("SIZE RECTANGLE ROTATE: W: %.f, H: %.f", rotatedW, rotatedH);
-	// Tiene que dar W=60 y H=320 en 90 grados
+	float2 centerObjectPosition = CalculateCenterObject();
 
-	pivotPosition.x = (rotatedW * pivot.x - rotatedW * 0.5f) * scale.x + position.x;
-	pivotPosition.y = (rotatedH * pivot.y - rotatedH * 0.5f) * scale.y + position.y;	*/
-	if (pivot.x == 0.5f && pivot.y == 0.5f) {
-		pivotPosition = float3(CalculateCenterObject(), 0.0f);
-	} else {
-		pivotPosition.x = (size.x * pivot.x - size.x * 0.5f) * scale.x + position.x;
-		pivotPosition.y = (size.y * pivot.y - size.y * 0.5f) * scale.y + position.y;
-	}
+	pivotPosition.x = centerObjectPosition.x + ((size.x * pivot.x - size.x * 0.5f) * cos(localEulerAngles.z)) + ((size.x * pivot.x - size.x * 0.5f) * sin(localEulerAngles.z));
+	pivotPosition.y = centerObjectPosition.y - ((size.y * pivot.y - size.y * 0.5f) * Sin(localEulerAngles.z)) + ((size.y * pivot.y - size.y * 0.5f) * Cos(localEulerAngles.z));
 	
 	InvalidateHierarchy();
 }
