@@ -2,6 +2,7 @@
 
 #include "GameObject.h"
 #include "Application.h"
+#include "Modules/ModuleEditor.h"
 #include "Modules/ModuleResources.h"
 #include "Resources/ResourceMesh.h"
 #include "Utils/Logging.h"
@@ -86,6 +87,9 @@ void Scene::DestroyGameObject(GameObject* gameObject) {
 	if (gameObject->isInQuadtree) {
 		quadtree.Remove(gameObject);
 	}
+
+	bool selected = App->editor->selectedGameObject == gameObject;
+	if (selected) App->editor->selectedGameObject = nullptr;
 
 	gameObject->RemoveAllComponents();
 	gameObject->SetParent(nullptr);

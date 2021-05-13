@@ -39,6 +39,17 @@ void ComponentCamera::DrawGizmos() {
 }
 
 void ComponentCamera::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	bool isActive = this == App->camera->GetActiveCamera();
 	bool isCulling = this == App->camera->GetCullingCamera();
 	bool isGameCamera = this == App->camera->GetGameCamera();
