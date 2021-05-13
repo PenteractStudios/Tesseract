@@ -3,6 +3,7 @@
 #include "Scripting/Script.h"
 
 class ComponentAnimation;
+class ComponentTransform;
 struct TesseractEvent;
 
 enum class AIState {
@@ -24,26 +25,23 @@ public:
 	void Start() override;
 	void Update() override;
 	void ReceiveEvent(TesseractEvent& e) override;
+	void HitDetected();
 
 private:
 	bool CharacterInSight(const GameObject* character);
 	bool CharacterInMeleeRange(const GameObject* character);
 	void Seek(const float3& newPosition, int speed);
-	bool HitDetected();
 	
 
 public:
 
-	UID fangUID;
-	UID onimaruUID;
-	GameObject* fang = nullptr;
-	GameObject* onimaru = nullptr;
-	GameObject* currentTarget = nullptr;
+	UID playerUID;
+	GameObject* player = nullptr;
 	int maxSpeed = 8;
-	int fallingSpeed = 15;
-	float searchRadius = 50.f;
+	int fallingSpeed = 30;
+	float searchRadius = 40.f;
 	float meleeRange = 5.f;
-	int lifePoints = 3;
+	int lifePoints = 5;
 	float timeToDie = 5.f;
 	bool dead = false;
 
@@ -51,9 +49,10 @@ public:
 private:
 
 	float3 velocity = float3(0, 0, 0);	
-	AIState state = AIState::SPAWN;
+	AIState state = AIState::START;
 	bool hitTaken = false;
 	ComponentAnimation* animation = nullptr;
+	ComponentTransform* parentTransform = nullptr;
 
 };
 

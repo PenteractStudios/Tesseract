@@ -22,7 +22,8 @@ public:
 
 	void CreateScriptInstance();
 	void ReleaseScriptInstance();
-	Script* GetScriptInstance() const;
+	TESSERACT_ENGINE_API Script* GetScriptInstance() const;
+	TESSERACT_ENGINE_API const char* GetScriptName() const;
 
 private:
 	std::unordered_map<std::string, std::pair<MemberType, MEMBER_VARIANT>> changedValues;

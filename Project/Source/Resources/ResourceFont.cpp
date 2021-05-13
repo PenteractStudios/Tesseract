@@ -15,7 +15,7 @@ void ResourceFont::Load() {
 	MSTimer timer;
 	timer.Start();
 	std::string filePath = GetResourceFilePath();
-	LOG("Loading font from path: \"%s\".",filePath.c_str());
+	LOG("Loading font from path: \"%s\".", filePath.c_str());
 
 	FT_Library ft;
 	//Initiate freetype library. This piece of code should go into Module initialization
