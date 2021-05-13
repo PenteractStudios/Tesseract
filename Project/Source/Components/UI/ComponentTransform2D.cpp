@@ -294,7 +294,7 @@ void ComponentTransform2D::SetRotation(float3 rotation_) {
 	rotation = Quat::FromEulerXYZ(rotation_.x * DEGTORAD, rotation_.y * DEGTORAD, rotation_.z * DEGTORAD);
 	localEulerAngles = rotation_;
 
-	CalculatePivotPosition();
+	//CalculatePivotPosition();
 
 	InvalidateHierarchy();
 }
@@ -431,7 +431,7 @@ float2 ComponentTransform2D::CalculateCenterObject() {
 }
 
 void ComponentTransform2D::CalculatePivotPosition() {
-	float angleDegrees = localEulerAngles.z;
+	/*float angleDegrees = localEulerAngles.z;
 	float rotatedW, rotatedH = 0;
 	rotatedW = size.x * cos(localEulerAngles.z) + size.y * cos(90 - localEulerAngles.z);
 	rotatedH = size.x * sin(localEulerAngles.z) + size.y * sin(90 - localEulerAngles.z);
@@ -439,8 +439,14 @@ void ComponentTransform2D::CalculatePivotPosition() {
 	// Tiene que dar W=60 y H=320 en 90 grados
 
 	pivotPosition.x = (rotatedW * pivot.x - rotatedW * 0.5f) * scale.x + position.x;
-	pivotPosition.y = (rotatedH * pivot.y - rotatedH * 0.5f) * scale.y + position.y;
-
+	pivotPosition.y = (rotatedH * pivot.y - rotatedH * 0.5f) * scale.y + position.y;	*/
+	if (pivot.x == 0.5f && pivot.y == 0.5f) {
+		pivotPosition = float3(CalculateCenterObject(), 0.0f);
+	} else {
+		pivotPosition.x = (size.x * pivot.x - size.x * 0.5f) * scale.x + position.x;
+		pivotPosition.y = (size.y * pivot.y - size.y * 0.5f) * scale.y + position.y;
+	}
+	
 	InvalidateHierarchy();
 }
 
