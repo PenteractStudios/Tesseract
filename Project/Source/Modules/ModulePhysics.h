@@ -11,6 +11,7 @@ class ComponentSphereCollider;
 class ComponentBoxCollider;
 class ComponentCapsuleCollider;
 class btBroadphaseInterface;
+enum class CapsuleType;
 
 /* --- Collider Type ---
 	DYNAMIC = The object will respond to collisions, but not to user input (Such as modifying the transform).

@@ -15,6 +15,7 @@
 #include "Components/ComponentCamera.h"
 #include "GameObject.h"
 #include "Components/Physics/ComponentSphereCollider.h"
+#include "Components/Physics/ComponentCapsuleCollider.h"
 #include "Components/Physics/ComponentBoxCollider.h"
 
 bool ModulePhysics::Init() {
