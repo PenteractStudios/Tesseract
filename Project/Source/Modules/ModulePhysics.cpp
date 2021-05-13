@@ -14,8 +14,6 @@
 #include "ModuleCamera.h" // Remove this
 #include "Components/ComponentCamera.h"
 #include "GameObject.h"
-#include "Components/Physics/ComponentSphereCollider.h"
-#include "Components/Physics/ComponentBoxCollider.h"
 
 bool ModulePhysics::Init() {
 	LOG("Creating Physics environment using Bullet Physics.");
