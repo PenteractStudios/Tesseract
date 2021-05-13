@@ -4,6 +4,7 @@
 
 #include "Utils/UID.h"
 #include "FileSystem/JsonValue.h"
+#include "MaskType.h"
 #include "Scene.h"
 
 #include <string>
@@ -89,6 +90,10 @@ public:
 	void SetRootBone(GameObject* gameObject);
 	GameObject* GetRootBone() const;
 
+	void AddMask(MaskType mask_);
+	void DeleteMask(MaskType mask_);
+	Mask& GetMask();
+
 	void AddChild(GameObject* gameObject);
 	void RemoveChild(GameObject* gameObject);
 	const std::vector<GameObject*>& GetChildren() const;
@@ -120,6 +125,7 @@ private:
 private:
 	bool active = true;
 	bool activeInHierarchy = true;
+	Mask mask;
 	UID prefabId = 0;
 	GameObject* parent = nullptr;
 	GameObject* rootBoneHierarchy = nullptr;

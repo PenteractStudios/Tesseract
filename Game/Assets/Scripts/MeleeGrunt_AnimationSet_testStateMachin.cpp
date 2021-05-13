@@ -28,7 +28,9 @@ void MeleeGrunt_AnimationSet_testStateMachin::Update() {
 
 	if (currentState != animation->GetCurrentState())
 	{
-		Debug::Log("Old State: %s, New State: %s", currentState->name, animation->GetCurrentState()->name);
+		// TODO: LOG NOT WORKING PROPERLY YET
+		std::string logMSG = "Old State:" + currentState->name + ", New State: " + animation->GetCurrentState()->name;
+		Debug::Log(logMSG.c_str());
 		currentState = animation->GetCurrentState();
 	}
 

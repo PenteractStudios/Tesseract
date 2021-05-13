@@ -64,6 +64,26 @@ void PanelInspector::Update() {
 				selected->name = name;
 			}
 
+			if (ImGui::Button("Mask")) {
+				ImGui::OpenPopup("Mask");
+			}
+
+			if (ImGui::BeginPopup("Mask")) {
+				for (int i = 0; i < ARRAY_LENGTH(selected->GetMask().maskNames); ++i) {
+					bool maskActive = selected->GetMask().maskValues[i];
+					if (ImGui::Checkbox(selected->GetMask().maskNames[i], &maskActive)) {
+						selected->GetMask().maskValues[i] = maskActive;
+						if (selected->GetMask().maskValues[i]) {
+							selected->AddMask(GetMaskTypeFromName(selected->GetMask().maskNames[i]));
+						} else {
+							selected->DeleteMask(GetMaskTypeFromName(selected->GetMask().maskNames[i]));
+						}
+					}
+				}
+				ImGui::Separator();
+				ImGui::EndPopup();
+			}
+
 			ImGui::Separator();
 
 			// Don't show Scene PanelInpector information

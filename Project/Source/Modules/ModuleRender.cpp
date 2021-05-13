@@ -181,7 +181,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// Draw particles (TODO: improve with culling)
 	for (ComponentParticleSystem& particleSystem : scene->particleComponents) {
-		particleSystem.Draw();
+		if (particleSystem.IsActive()) particleSystem.Draw();
 	}
 
 	// Draw Gizmos

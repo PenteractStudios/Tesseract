@@ -175,6 +175,7 @@
     <ClCompile Include="Source\Components\UI\ComponentProgressBar.cpp" />
     <ClCompile Include="Source\Components\ComponentParticleSystem.cpp" />
     <ClCompile Include="Source\Panels\PanelResource.cpp" />
+    <ClCompile Include="Source\MaskType.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -449,6 +450,7 @@
     <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />
     <ClInclude Include="Source\Components\ComponentParticleSystem.h" />
     <ClInclude Include="Source\Panels\PanelResource.h" />
+    <ClInclude Include="Source\MaskType.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />

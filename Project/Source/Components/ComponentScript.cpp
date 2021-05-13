@@ -383,3 +383,11 @@ void ComponentScript::ReleaseScriptInstance() {
 Script* ComponentScript::GetScriptInstance() const {
 	return scriptInstance.get();
 }
+
+const char* ComponentScript::GetScriptName() const {
+	if (scriptInstance != nullptr) {
+		ResourceScript* resourceScript = App->resources->GetResource<ResourceScript>(scriptId);
+		return (resourceScript != nullptr) ? (resourceScript->name).c_str() : nullptr;
+	}
+	return nullptr;
+}
