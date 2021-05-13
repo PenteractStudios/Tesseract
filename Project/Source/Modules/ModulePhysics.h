@@ -7,6 +7,7 @@
 
 class DebugDrawer;
 class MotionState;
+class btBroadphaseInterface;
 class ComponentSphereCollider;
 class ComponentBoxCollider;
 class ComponentCapsuleCollider;
