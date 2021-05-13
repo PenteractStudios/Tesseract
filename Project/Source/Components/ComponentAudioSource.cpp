@@ -206,10 +206,8 @@ void ComponentAudioSource::UpdateSourceParameters() {
 
 void ComponentAudioSource::Play() {
 	if (IsActive()) {
-		if (!sourceId) {
-			sourceId = App->audio->GetAvailableSource();
-			UpdateSourceParameters();
-		}
+		sourceId = App->audio->GetAvailableSource();
+		UpdateSourceParameters();
 		alSourcePlay(sourceId);
 	}
 }

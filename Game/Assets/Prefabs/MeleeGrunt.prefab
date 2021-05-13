@@ -9,8 +9,8 @@
                 "Type": "Transform",
                 "Active": true,
                 "Position": [
-                    0.0,
-                    0.0,
+                    -16.348360061645509,
+                    9.14370059967041,
                     0.0
                 ],
                 "Rotation": [
@@ -91,7 +91,13 @@
                         "Type": "Script",
                         "Active": true,
                         "Script": 6803541990823883369,
-                        "Values": null
+                        "Values": [
+                            {
+                                "Name": "playerUID",
+                                "Type": "GameObjectUID",
+                                "Value": 5126003628094055705
+                            }
+                        ]
                     }
                 ],
                 "Children": null

@@ -79,6 +79,7 @@ bool ModuleScene::Start() {
 	App->events->AddObserverToEvent(TesseractEventType::CHANGE_SCENE, this);
 	App->events->AddObserverToEvent(TesseractEventType::RESOURCES_LOADED, this);
 	App->events->AddObserverToEvent(TesseractEventType::COMPILATION_FINISHED, this);
+	App->events->AddObserverToEvent(TesseractEventType::PRESSED_PLAY, this);
 
 #if !GAME
 	App->files->CreateFolder(ASSETS_PATH);
@@ -150,6 +151,7 @@ void ModuleScene::ReceiveEvent(TesseractEvent& e) {
 		}
 		break;
 	}
+
 }
 
 void ModuleScene::CreateEmptyScene() {

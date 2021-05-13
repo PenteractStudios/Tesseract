@@ -3,7 +3,8 @@
 #include "GameObject.h"
 #include "GameplaySystems.h"
 #include "TesseractEvent.h"
-//#include "PlayerController.h"
+
+#include "PlayerController.h"
 
 EXPOSE_MEMBERS(AIMovement) {
     MEMBER(MemberType::GAME_OBJECT_UID, playerUID),
@@ -36,7 +37,7 @@ void AIMovement::Update() {
         else if (state == AIState::ATTACK) {
             animation->SendTrigger("AttackHurt");
         }
-        lifePoints--;
+        lifePoints -= damageRecieved;
         state = AIState::HURT;
         hitTaken = false;
     }
@@ -46,7 +47,7 @@ void AIMovement::Update() {
     case AIState::START:
         if (Camera::CheckObjectInsideFrustum(&GetOwner())) {
             Seek(float3(parentTransform->GetGlobalPosition().x, 0, parentTransform->GetGlobalPosition().z), fallingSpeed);
-            if (parentTransform->GetGlobalPosition().y < 0e-5f) {
+            if (parentTransform->GetGlobalPosition().y < 2.7 + 0e-5f) {
                 animation->SendTrigger("StartSpawn");
                 state = AIState::SPAWN;
             }
@@ -105,8 +106,8 @@ void AIMovement::ReceiveEvent(TesseractEvent& e)
 
         else if(state == AIState::ATTACK)
         {
-            //PlayerController* playerController = static_cast<PlayerController*>(player->GetComponent<ComponentScript>()->GetInstanceScript());
-            //playerController->HitDetected();
+            PlayerController* playerController = GET_SCRIPT(player, PlayerController);
+            playerController->HitDetected();
             animation->SendTrigger("AttackIdle");
             state = AIState::IDLE;
         }
@@ -124,6 +125,11 @@ void AIMovement::ReceiveEvent(TesseractEvent& e)
         }
         break;
     }
+}
+
+void AIMovement::HitDetected(int damage_) {
+    damageRecieved = damage_;
+    hitTaken = true;
 }
 
 bool AIMovement::CharacterInSight(const GameObject* character)
@@ -164,10 +170,4 @@ void AIMovement::Seek(const float3& newPosition, int speed)
         Quat newRotation = Quat::LookAt(float3(0, 0, 1), direction.Normalized(), float3(0, 1, 0), float3(0, 1, 0));
         parentTransform->SetGlobalRotation(newRotation);
     }
-}
-
-void AIMovement::HitDetected()
-{
-    //Listens for an event to signal this enemy has taken a hit
-    hitTaken = true;
 }

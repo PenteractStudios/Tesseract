@@ -25,7 +25,7 @@ public:
 	void Start() override;
 	void Update() override;
 	void ReceiveEvent(TesseractEvent& e) override;
-	void HitDetected();
+	void HitDetected(int damage_ = 1);
 
 private:
 	bool CharacterInSight(const GameObject* character);
@@ -53,6 +53,7 @@ private:
 	bool hitTaken = false;
 	ComponentAnimation* animation = nullptr;
 	ComponentTransform* parentTransform = nullptr;
+	int damageRecieved = 0;
 
 };
 

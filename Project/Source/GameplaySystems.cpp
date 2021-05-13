@@ -4,6 +4,7 @@
 #include "Components/UI/ComponentTransform2D.h"
 #include "Components/ComponentCamera.h"
 #include "Application.h"
+#include "Panels/PanelScene.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleInput.h"
@@ -152,8 +153,23 @@ const float2& Input::GetMouseMotion() {
 	return App->input->GetMouseMotion();
 }
 
+const float3 Input::GetMouseWorldPosition() {
+	float2 MousePositionNormalized = App->editor->panelScene.GetMousePosOnSceneNormalized();
+	float4x4 Projection = App->camera->GetProjectionMatrix();
+	float4x4 View = App->camera->GetViewMatrix();
+	float4 ScreenPos = float4(MousePositionNormalized.x, MousePositionNormalized.y, 0.0f, 1.0f);
+	float4x4 ProjView = Projection * View;
+	ProjView.Inverse();
+	float4 worldPos = ProjView * ScreenPos;
+	return worldPos.xyz()/worldPos.w;
+}
+
 float2 Input::GetMousePosition() {
 	return App->input->GetMousePosition(true);
+}
+
+const float2& Input::GetMousePositionNormalized() {
+	return App->editor->panelScene.GetMousePosOnSceneNormalized();
 }
 
 bool Input::GetKeyCodeDown(KEYCODE keycode) {
@@ -191,6 +207,7 @@ float Screen::GetScreenWitdh() {
 }
 
 float Screen::GetScreenHeight() {
+
 	return static_cast<float>(App->window->GetHeight());
 }
 
