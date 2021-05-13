@@ -73,7 +73,6 @@ public:
 	void SetAnchorMin(float2 anchorMin);					// Sets this anchorMin to value
 	void SetAnchorMax(float2 anchorMax);					// Sets this anchorMax to value
 	void SetPivot(float2 pivotPosition);					// Sets this pivot to value
-	void UpdatePivotPosition(float2 pivot);								// Update this pivot position to value
 	const float4x4 GetGlobalMatrix();						// Returns GlobalMatrix
 	const float4x4 GetGlobalScaledMatrix();					// Returns GlobalMatrix with the size of the item
 	Quat GetGlobalRotation() const;							// Returns the accumulated rotation of the parents and the current component
@@ -84,7 +83,8 @@ public:
 	float3 GetPivotPosition() const;				 // Returns the pivot position
 	float3 GetPositionRelativeToParent() const;		 // Returns the position of the object relative to its parent
 	float3 GetScreenPosition() const;				 // Returns the position of the object respect the screen
-	float3 CalculateCenterObject();			 // Returns the center position of the object
+	float2 CalculateCenterObject();					 // Returns the center position of the object
+	void CalculatePivotPosition();					 // Update this pivot position to value
 
 	void InvalidateHierarchy(); // Invalidates hierarchy
 	void Invalidate();			// Invalidates component

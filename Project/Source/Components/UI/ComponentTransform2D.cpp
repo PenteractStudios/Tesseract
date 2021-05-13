@@ -13,7 +13,6 @@
 
 #include "debugdraw.h"
 #include "imgui.h"
-#include "Math/MathFunc.h"
 #include "Math/TransformOps.h"
 
 #include "Utils/Leaks.h"
@@ -242,6 +241,8 @@ void ComponentTransform2D::DrawGizmos() {
 		dd::box(GetPosition(), dd::colors::Yellow, size.x * scale.x / 100, size.y * scale.y / 100, 0);
 		float3 pivotPosFactor = float3(GetPivotPosition().x / 100, GetPivotPosition().y / 100, GetPivotPosition().z / 100);
 		dd::box(pivotPosFactor, dd::colors::OrangeRed, 0.1f, 0.1f, 0.f);
+		float3 centerPositionFactor = float3(CalculateCenterObject().x / 100, CalculateCenterObject().y / 100, 0.f);
+		dd::box(centerPositionFactor, dd::colors::Black, 0.1f, 0.1f, 0.f);
 	}
 }
 
@@ -264,27 +265,21 @@ bool ComponentTransform2D::HasAnyUIElementsInChildren(const GameObject* obj) con
 void ComponentTransform2D::SetPosition(float3 position_) {
 	position = position_;
 	// Update the new pivot position
-	UpdatePivotPosition(pivot);
+	CalculatePivotPosition();
 	InvalidateHierarchy();
 }
 
 void ComponentTransform2D::SetPivot(float2 pivot_) {
 	pivot = pivot_;
 	// Update the new pivot position
-	UpdatePivotPosition(pivot);
-	InvalidateHierarchy();
-}
-
-void ComponentTransform2D::UpdatePivotPosition(float2 pivot) {
-	pivotPosition.x = (size.x * pivot.x - size.x * 0.5f) * scale.x + position.x;
-	pivotPosition.y = (size.y * pivot.y - size.y * 0.5f) * scale.y + position.y;
+	CalculatePivotPosition();
 	InvalidateHierarchy();
 }
 
 void ComponentTransform2D::SetSize(float2 size_) {
 	size = size_;
 	// Update the new pivot position
-	UpdatePivotPosition(pivot);
+	CalculatePivotPosition();
 	InvalidateHierarchy();
 }
 
@@ -299,13 +294,15 @@ void ComponentTransform2D::SetRotation(float3 rotation_) {
 	rotation = Quat::FromEulerXYZ(rotation_.x * DEGTORAD, rotation_.y * DEGTORAD, rotation_.z * DEGTORAD);
 	localEulerAngles = rotation_;
 
+	CalculatePivotPosition();
+
 	InvalidateHierarchy();
 }
 
 void ComponentTransform2D::SetScale(float3 scale_) {
 	scale = scale_;
 	// Update the new pivot position
-	UpdatePivotPosition(pivot);
+	CalculatePivotPosition();
 	InvalidateHierarchy();
 }
 
@@ -343,14 +340,7 @@ Quat ComponentTransform2D::GetGlobalRotation() const {
 
 void ComponentTransform2D::CalculateGlobalMatrix() {
 	if (dirty) {
-		if (App->editor->panelControlEditor.GetRectTool()) { //if is in pivot mode
-			SetPivot(pivot);
-			localMatrix = float4x4::Translate(pivotPosition) * float4x4::FromTRS(GetPositionRelativeToParent(), rotation, scale) * float4x4::Translate(-pivotPosition);
-		} else {
-			position = CalculateCenterObject();
-			UpdatePivotPosition(float2(0.5f, 0.5f));
-			localMatrix = float4x4::FromTRS(GetPositionRelativeToParent(), rotation, scale);
-		}
+		localMatrix = float4x4::Translate(pivotPosition) * float4x4::FromTRS(GetPositionRelativeToParent(), rotation, scale) * float4x4::Translate(-pivotPosition);
 
 		GameObject* parent = GetOwner().GetParent();
 
@@ -432,12 +422,26 @@ float3 ComponentTransform2D::GetScreenPosition() const {
 	return screenPosition;
 }
 
-float3 ComponentTransform2D::CalculateCenterObject() {
-	float3 centerObjectPosition = float3::zero;
+float2 ComponentTransform2D::CalculateCenterObject() {
+	float2 centerObjectPosition = float2::zero;
 	float4x4 rotateCenterPos = float4x4::FromQuat(rotation, pivotPosition) * float4x4::Translate(position);
-	centerObjectPosition = float3(rotateCenterPos.x, rotateCenterPos.y, rotateCenterPos.z);
-	LOG("CENTER: X: %.f, Y: %.f, Z: %.f", centerObjectPosition.x, centerObjectPosition.y, centerObjectPosition.z);
+	centerObjectPosition = float2(rotateCenterPos.x, rotateCenterPos.y);
+	// LOG("CENTER: X: %.f, Y: %.f", centerObjectPosition.x, centerObjectPosition.y);
 	return centerObjectPosition;
+}
+
+void ComponentTransform2D::CalculatePivotPosition() {
+	float angleDegrees = localEulerAngles.z;
+	float rotatedW, rotatedH = 0;
+	rotatedW = size.x * cos(localEulerAngles.z) + size.y * cos(90 - localEulerAngles.z);
+	rotatedH = size.x * sin(localEulerAngles.z) + size.y * sin(90 - localEulerAngles.z);
+	LOG("SIZE RECTANGLE ROTATE: W: %.f, H: %.f", rotatedW, rotatedH);
+	// Tiene que dar W=60 y H=320 en 90 grados
+
+	pivotPosition.x = (rotatedW * pivot.x - rotatedW * 0.5f) * scale.x + position.x;
+	pivotPosition.y = (rotatedH * pivot.y - rotatedH * 0.5f) * scale.y + position.y;
+
+	InvalidateHierarchy();
 }
 
 void ComponentTransform2D::InvalidateHierarchy() {
