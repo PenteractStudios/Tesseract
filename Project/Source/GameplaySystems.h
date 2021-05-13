@@ -375,7 +375,7 @@ namespace Input {
 	TESSERACT_ENGINE_API bool GetMouseButtonRepeat(int button);
 	TESSERACT_ENGINE_API bool GetMouseButton(int button);
 	TESSERACT_ENGINE_API const float2& GetMouseMotion();
-	TESSERACT_ENGINE_API const float3& GetMouseWorldPosition();
+	TESSERACT_ENGINE_API const float3 GetMouseWorldPosition();
 	TESSERACT_ENGINE_API const float2& GetMousePositionNormalized();
 	TESSERACT_ENGINE_API float2 GetMousePosition();
 	TESSERACT_ENGINE_API bool GetKeyCodeDown(KEYCODE keycode);
