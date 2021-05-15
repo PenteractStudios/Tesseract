@@ -17,17 +17,29 @@
 
 #include "Utils/Leaks.h"
 
+const int JOYSTICK_DEAD_ZONE = 8000;
+
 bool ModuleInput::Init() {
 	LOG("Init SDL input event system");
 	bool ret = true;
 	SDL_Init(0);
 
-	if (SDL_InitSubSystem(SDL_INIT_EVENTS) < 0) {
+	if (SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) < 0) {
 		LOG("SDL_EVENTS could not initialize! SDL_Error: %s\n", SDL_GetError());
 		ret = false;
 	}
 
 	return ret;
+}
+
+UpdateStatus ModuleInput::Update() {
+	//Can be used to debug axis values
+
+	//if (players[0] != nullptr) {
+	//	LOG("%.2f - %.2f - %.2f - %.2f - %.2f - %.2f", players[0]->GetAxis(SDL_CONTROLLER_AXIS_LEFTX), players[0]->GetAxis(SDL_CONTROLLER_AXIS_LEFTY), players[0]->GetAxis(SDL_CONTROLLER_AXIS_RIGHTX), players[0]->GetAxis(SDL_CONTROLLER_AXIS_RIGHTY), players[0]->GetAxis(SDL_CONTROLLER_AXIS_TRIGGERLEFT), players[0]->GetAxis(SDL_CONTROLLER_AXIS_TRIGGERRIGHT));
+	//}
+
+	return UpdateStatus::CONTINUE;
 }
 
 UpdateStatus ModuleInput::PreUpdate() {
@@ -60,6 +72,19 @@ UpdateStatus ModuleInput::PreUpdate() {
 		}
 	}
 
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		if (players[i] == nullptr) continue;
+		for (int j = 0; j < SDL_CONTROLLER_BUTTON_MAX; ++j) {
+			if (players[i]->gameControllerButtons[j] == KS_DOWN) {
+				players[i]->gameControllerButtons[j] = KS_REPEAT;
+			}
+
+			if (players[i]->gameControllerButtons[j] == KS_UP) {
+				players[i]->gameControllerButtons[j] = KS_IDLE;
+			}
+		}
+	}
+
 	int auxMouseX;
 	int auxMouseY;
 	SDL_GetGlobalMouseState(&auxMouseX, &auxMouseY);
@@ -71,7 +96,50 @@ UpdateStatus ModuleInput::PreUpdate() {
 		switch (event.type) {
 		case SDL_QUIT:
 			return UpdateStatus::STOP;
+		case SDL_CONTROLLERDEVICEADDED:
+			OnControllerAdded(event.cdevice.which);
+			break;
+		case SDL_CONTROLLERDEVICEREMAPPED:
+			LOG("Controllerd %d was remapped", event.cdevice.which);
+			break;
+		case SDL_CONTROLLERDEVICEREMOVED:
+			OnControllerRemoved(event.cdevice.which);
+			break;
+		case SDL_CONTROLLERAXISMOTION: {
+			PlayerGamepad* player = GetPlayerWithIndex(event.cdevice.which);
+			if (!player) break;
 
+			LOG("Axis %d", event.caxis.axis);
+
+			if (event.caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT || event.caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT) {
+				player->gameControllerAxises[event.caxis.axis] = event.caxis.value;
+
+				break;
+			}
+			//Left of dead zone
+			if (event.caxis.value < -JOYSTICK_DEAD_ZONE) {
+				player->gameControllerAxises[event.caxis.axis] = event.caxis.value;
+			}
+			//Right of dead zone
+			else if (event.caxis.value > JOYSTICK_DEAD_ZONE) {
+				player->gameControllerAxises[event.caxis.axis] = event.caxis.value;
+
+			} else {
+				player->gameControllerAxises[event.caxis.axis] = 0;
+			}
+			break;
+		}
+		case SDL_CONTROLLERBUTTONDOWN: {
+			if (GetPlayerWithIndex(event.cdevice.which)) {
+				GetPlayerWithIndex(event.cdevice.which)->gameControllerButtons[event.cbutton.button] = KS_DOWN;
+			}
+			break;
+		}
+		case SDL_CONTROLLERBUTTONUP:
+			if (GetPlayerWithIndex(event.cdevice.which)) {
+				GetPlayerWithIndex(event.cdevice.which)->gameControllerButtons[event.cbutton.button] = KS_UP;
+			}
+			break;
 		case SDL_WINDOWEVENT:
 			if (event.window.windowID == windowId) {
 				switch (event.window.event) {
@@ -169,7 +237,12 @@ UpdateStatus ModuleInput::PreUpdate() {
 bool ModuleInput::CleanUp() {
 	ReleaseDroppedFilePath();
 	LOG("Quitting SDL input event subsystem");
-	SDL_QuitSubSystem(SDL_INIT_EVENTS);
+
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		RELEASE(players[i]);
+	}
+
+	SDL_QuitSubSystem(SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
 	return true;
 }
 
@@ -222,4 +295,39 @@ KeyState* ModuleInput::GetMouseButtons() {
 
 KeyState* ModuleInput::GetKeyboard() {
 	return keyboard;
+}
+
+void ModuleInput::OnControllerAdded(int index) {
+	LOG("Added controller");
+	if (SDL_IsGameController(index)) {
+		LOG("Found controller as SDL Game Controller");
+
+		if (players[0] == nullptr) {
+			LOG("New controller took player slot 0");
+			players[0] = new PlayerGamepad(index);
+		} else if (players[1] == nullptr) {
+			LOG("New controller took player slot 1");
+			players[1] = new PlayerGamepad(index);
+		}
+	}
+}
+
+void ModuleInput::OnControllerRemoved(int index) {
+	LOG("Disconnected controller");
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		if (players[i] == nullptr) continue;
+		if (players[i]->index == index) {
+			RELEASE(players[i]);
+			LOG("Player slot %d is now empty", i);
+		}
+	}
+}
+
+PlayerGamepad* ModuleInput::GetPlayerWithIndex(int index) const {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		if (players[i] == nullptr) continue;
+		if (players[i]->index == index) {
+			return players[i];
+		}
+	}
 }
