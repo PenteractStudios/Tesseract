@@ -16,7 +16,7 @@ public:
 	void Update() override;
 
 public:
-	UID treesUID;
+	UID treesUID = 0;
 
 private:
 	GameObject* trees = nullptr;

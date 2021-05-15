@@ -39,8 +39,10 @@ enum class ComponentType {
 	ANIMATION,
 	TEXT,
 	SCRIPT,
+	PARTICLE,
 	AUDIO_SOURCE,
-	AUDIO_LISTENER
+	AUDIO_LISTENER,
+	PROGRESS_BAR
 };
 
 const char* GetComponentTypeName(ComponentType type);

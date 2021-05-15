@@ -19,5 +19,5 @@ private:
 
 	void AddAudioComponentsOptions(GameObject* selected);
 	void AddUIComponentsOptions(GameObject* selected);
-	
+
 };

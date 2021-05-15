@@ -64,6 +64,26 @@ void PanelInspector::Update() {
 				selected->name = name;
 			}
 
+			if (ImGui::Button("Mask")) {
+				ImGui::OpenPopup("Mask");
+			}
+
+			if (ImGui::BeginPopup("Mask")) {
+				for (int i = 0; i < ARRAY_LENGTH(selected->GetMask().maskNames); ++i) {
+					bool maskActive = selected->GetMask().maskValues[i];
+					if (ImGui::Checkbox(selected->GetMask().maskNames[i], &maskActive)) {
+						selected->GetMask().maskValues[i] = maskActive;
+						if (selected->GetMask().maskValues[i]) {
+							selected->AddMask(GetMaskTypeFromName(selected->GetMask().maskNames[i]));
+						} else {
+							selected->DeleteMask(GetMaskTypeFromName(selected->GetMask().maskNames[i]));
+						}
+					}
+				}
+				ImGui::Separator();
+				ImGui::EndPopup();
+			}
+
 			ImGui::Separator();
 
 			// Don't show Scene PanelInpector information
@@ -133,11 +153,17 @@ void PanelInspector::Update() {
 				case ComponentType::ANIMATION:
 					cName = "Animation";
 					break;
+				case ComponentType::PARTICLE:
+					cName = "Particle";
+					break;
 				case ComponentType::AUDIO_SOURCE:
 					cName = "Audio Source";
 					break;
 				case ComponentType::AUDIO_LISTENER:
 					cName = "Audio Listener";
+					break;
+				case ComponentType::PROGRESS_BAR:
+					cName = "Progress Bar";
 					break;
 				default:
 					cName = "";
@@ -227,6 +253,14 @@ void PanelInspector::Update() {
 					ComponentAnimation* animation = selected->CreateComponent<ComponentAnimation>();
 					if (animation != nullptr) {
 						animation->Init();
+					} else {
+						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+					}
+				}
+				if (ImGui::MenuItem("Particle")) {
+					ComponentParticleSystem* particle = selected->CreateComponent<ComponentParticleSystem>();
+					if (particle != nullptr) {
+						particle->Init();
 					} else {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
@@ -329,7 +363,7 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 			}
 		}
-		
+
 		if (ImGui::MenuItem("Toggle")) {
 			ComponentToggle* component = selected->GetComponent<ComponentToggle>();
 			if (component == nullptr) {

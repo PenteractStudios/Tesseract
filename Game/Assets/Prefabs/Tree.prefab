@@ -1,0 +1,150 @@
+{
+    "Root": {
+        "Name": "Tree",
+        "Active": true,
+        "RootBoneName": "",
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    0.0,
+                    3.0,
+                    0.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "LocalEulerAngles": [
+                    -0.0,
+                    0.0,
+                    -0.0
+                ]
+            },
+            {
+                "Type": "Script",
+                "Active": true,
+                "Script": 11898775607629139619,
+                "Values": [
+                    {
+                        "Name": "treesUID",
+                        "Type": "GameObjectUID",
+                        "Value": 6617496198181274009
+                    }
+                ]
+            }
+        ],
+        "Children": [
+            {
+                "Name": "Tree_LP",
+                "Active": true,
+                "RootBoneName": "",
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            0.9606809616088867,
+                            0.0
+                        ],
+                        "Rotation": [
+                            -0.663414478302002,
+                            0.24470646679401399,
+                            0.24470646679401399,
+                            0.6634144186973572
+                        ],
+                        "Scale": [
+                            1.2225250005722047,
+                            1.2225247621536255,
+                            1.2225250005722047
+                        ],
+                        "LocalEulerAngles": [
+                            -90.0,
+                            -0.0000017075473124350538,
+                            40.49391174316406
+                        ]
+                    },
+                    {
+                        "Type": "MeshRenderer",
+                        "Active": true,
+                        "MeshID": 18254712681184567251,
+                        "MaterialID": 11585536702169229785
+                    },
+                    {
+                        "Type": "BoundingBox",
+                        "Active": true,
+                        "LocalBoundingBox": [
+                            -1.119400978088379,
+                            -1.119400978088379,
+                            0.0,
+                            1.119400978088379,
+                            1.119400978088379,
+                            2.958693027496338
+                        ]
+                    }
+                ],
+                "Children": null
+            },
+            {
+                "Name": "Tree_Leaves_01",
+                "Active": true,
+                "RootBoneName": "",
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            6.763604164123535,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.31113573908805849,
+                            0.6324838995933533,
+                            0.6303405165672302,
+                            -0.3253144919872284
+                        ],
+                        "Scale": [
+                            0.533818244934082,
+                            0.5338181257247925,
+                            0.5338181257247925
+                        ],
+                        "LocalEulerAngles": [
+                            -89.63797760009766,
+                            -1.1041239500045777,
+                            -126.50126647949219
+                        ]
+                    },
+                    {
+                        "Type": "MeshRenderer",
+                        "Active": true,
+                        "MeshID": 5095215277319626045,
+                        "MaterialID": 11052617873197009435
+                    },
+                    {
+                        "Type": "BoundingBox",
+                        "Active": true,
+                        "LocalBoundingBox": [
+                            -6.267728805541992,
+                            -5.842226028442383,
+                            -5.1869401931762699,
+                            7.3617095947265629,
+                            6.125740051269531,
+                            1.424930214881897
+                        ]
+                    }
+                ],
+                "Children": null
+            }
+        ]
+    }
+}

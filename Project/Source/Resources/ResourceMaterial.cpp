@@ -8,6 +8,7 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleEditor.h"
 #include "ResourceTexture.h"
+#include "Utils/FileDialog.h"
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
 #include "Utils/ImGuiUtils.h"
@@ -372,6 +373,8 @@ void ResourceMaterial::OnEditorUpdate() {
 
 	ImGui::NewLine();
 	if (ImGui::Button("Save##material")) {
-		SaveToFile(GetResourceFilePath().c_str());
+		if (FileDialog::GetFileExtension(GetAssetFilePath().c_str()) != DEFAULT_MODEL_EXTENSION) {
+			SaveToFile(GetAssetFilePath().c_str());
+		}
 	}
 }

@@ -364,7 +364,7 @@ void ModuleResources::UpdateAsync() {
 
 				if (success) {
 #if !GAME
-					long long metaTimestamp = App->files->GetLocalFileModificationTime(metaFilePath.c_str());
+					/*long long metaTimestamp = App->files->GetLocalFileModificationTime(metaFilePath.c_str());
 					long long assetTimestamp = App->files->GetLocalFileModificationTime(assetFilePath.c_str());
 					if (assetTimestamp > metaTimestamp) {
 						if (jMeta[JSON_TAG_RESOURCES].Size() > 1) {
@@ -377,7 +377,7 @@ void ModuleResources::UpdateAsync() {
 							}
 						}
 						continue;
-					}
+					}*/
 #endif
 				} else {
 					resourcesToRemove.push_back(resourceInfo);
@@ -486,7 +486,7 @@ Resource* ModuleResources::DoCreateResourceByType(ResourceType type, const char*
 		break;
 	case ResourceType::CLIP:
 		resource = new ResourceClip(id, assetFilePath, resourceFilePath.c_str());
-		break;	
+		break;
 	case ResourceType::AUDIO:
 		resource = new ResourceAudioClip(id, assetFilePath, resourceFilePath.c_str());
 		break;

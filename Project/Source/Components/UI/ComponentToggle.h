@@ -14,7 +14,6 @@ public:
 	~ComponentToggle();
 
 	void Init() override;
-	void DuplicateComponent(GameObject& obj) override;
 	void OnClicked() override; // Action to perform when the button is clicked
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
@@ -23,7 +22,7 @@ public:
 	void OnValueChanged(); //Method that triggers OnToggled for scripts and modifies the state (active) of enabledImageObject (if found)
 
 	//Setters
-	void SetChecked(bool b);
+	TESSERACT_ENGINE_API void SetChecked(bool b);
 	void SetEnabledImageObj(UID enabledImageObjID_); //Setter for image that will be drawn when isChecked is true
 	void SetClicked(bool clicked_);
 

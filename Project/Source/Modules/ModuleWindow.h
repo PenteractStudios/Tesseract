@@ -14,6 +14,13 @@ enum class WindowMode {
 	FULLSCREEN_DESKTOP
 };
 
+enum class RESOLUTION_PRESET {
+	m_1024x576,
+	m_1280x720,
+	m_1920x1080,
+	MAX
+};
+
 class ModuleWindow : public Module {
 public:
 	// ------- Core Functions ------ //
@@ -39,6 +46,8 @@ public:
 	int GetPositionY() const;
 	float GetBrightness() const;
 	const char* GetTitle() const;
+	int GetResolutionPreset() const;
+	void SetResolutionPreset(int resolutionPreset_);
 
 public:
 	SDL_Window* window = nullptr;
@@ -47,6 +56,8 @@ public:
 	std::vector<SDL_DisplayMode> displayModes;
 
 private:
-	WindowMode windowMode = WindowMode::WINDOWED;
+	int currentResolutionPreset = static_cast<int>(RESOLUTION_PRESET::m_1920x1080);
+
+	WindowMode windowMode = WindowMode::BORDERLESS;
 	int currentDisplayMode = 0;
 };

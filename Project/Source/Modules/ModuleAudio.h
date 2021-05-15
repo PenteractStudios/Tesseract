@@ -4,6 +4,12 @@
 
 #define NUM_SOURCES 16
 
+#if defined(TESSERACT_ENGINE_API)
+/* do nothing. */
+#elif defined(_MSC_VER)
+#define TESSERACT_ENGINE_API __declspec(dllexport)
+#endif
+
 struct ALCdevice;
 struct ALCcontext;
 
@@ -16,6 +22,8 @@ public:
 	unsigned GetAvailableSource(bool reverse = false) const;
 	bool isActive(unsigned sourceId) const;
 	bool isAvailable(unsigned sourceId) const;
+	void Stop(unsigned sourceID) const;
+	TESSERACT_ENGINE_API void StopAllSources();
 
 private:
 	ALCdevice* openALDevice = nullptr;

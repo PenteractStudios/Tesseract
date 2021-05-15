@@ -1,0 +1,291 @@
+{
+    "Root": {
+        "Name": "Level1Map",
+        "Active": true,
+        "RootBoneName": "",
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "LocalEulerAngles": [
+                    -0.0,
+                    0.0,
+                    -0.0
+                ]
+            }
+        ],
+        "Children": [
+            {
+                "Name": "HandRailPlaza",
+                "Active": true,
+                "RootBoneName": "",
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Name": "HandrailPylonNewCorner002",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": true,
+                                "Position": [
+                                    -148.417724609375,
+                                    3.463322639465332,
+                                    -26.392587661743165
+                                ],
+                                "Rotation": [
+                                    -3.090862321641907e-8,
+                                    0.7071068286895752,
+                                    0.7071068286895752,
+                                    3.090862321641907e-8
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -90.00000762939453,
+                                    0.0,
+                                    180.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Active": true,
+                                "MeshID": 14312715047244498583,
+                                "MaterialID": 411452716947539431
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -39.956947326660159,
+                                    1.2053430080413819,
+                                    -0.34105467796325686,
+                                    0.5068972706794739,
+                                    47.35112762451172,
+                                    1.6775104999542237
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    }
+                ]
+            },
+            {
+                "Name": "HandRailLeft",
+                "Active": true,
+                "RootBoneName": "",
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Name": "HandrailPylonNew001",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": true,
+                                "Position": [
+                                    -162.31813049316407,
+                                    3.4633235931396486,
+                                    -37.42381286621094
+                                ],
+                                "Rotation": [
+                                    0.5,
+                                    0.5,
+                                    0.5,
+                                    -0.5
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -90.0,
+                                    0.0,
+                                    -90.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Active": true,
+                                "MeshID": 13851621634968281418,
+                                "MaterialID": 18387596106359596786
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -0.5164951682090759,
+                                    -4.7930474281311039,
+                                    -0.34105467796325686,
+                                    13.440506935119629,
+                                    8.098447799682618,
+                                    1.6775104999542237
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    }
+                ]
+            },
+            {
+                "Name": "HandRailRight",
+                "Active": true,
+                "RootBoneName": "",
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Name": "HandrailPylonNew017",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": true,
+                                "Position": [
+                                    -100.91279602050781,
+                                    3.4633240699768068,
+                                    -24.67472267150879
+                                ],
+                                "Rotation": [
+                                    -0.5,
+                                    0.5,
+                                    0.5,
+                                    0.5
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -90.0,
+                                    0.0,
+                                    90.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Active": true,
+                                "MeshID": 17086719084424194346,
+                                "MaterialID": 18315333224739388383
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -0.5204687714576721,
+                                    -10.776934623718262,
+                                    -0.34105467796325686,
+                                    13.423547744750977,
+                                    2.156219482421875,
+                                    1.6775104999542237
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    }
+                ]
+            }
+        ]
+    }
+}

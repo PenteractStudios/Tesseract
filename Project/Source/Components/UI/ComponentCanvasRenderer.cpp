@@ -48,10 +48,6 @@ float ComponentCanvasRenderer::GetCanvasScreenFactor() {
 	return canvas ? canvas->GetScreenFactor() : 1.0f;
 }
 
-void ComponentCanvasRenderer::DuplicateComponent(GameObject& owner) {
-	ComponentCanvasRenderer* component = owner.CreateComponent<ComponentCanvasRenderer>();
-}
-
 ComponentCanvas* ComponentCanvasRenderer::AnyParentHasCanvas(GameObject* current) const {
 	ComponentCanvas* currentCanvas = current->GetComponent<ComponentCanvas>();
 	if (currentCanvas != nullptr) {

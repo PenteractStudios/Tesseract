@@ -9,6 +9,7 @@
 #include "Components/ComponentTransform.h"
 #include "Components/ComponentAnimation.h"
 #include "Components/ComponentCamera.h"
+#include "Components/ComponentParticleSystem.h"
 #include "Components/ComponentLight.h"
 #include "Modules/ModuleInput.h"
 #include "Modules/ModuleWindow.h"
@@ -18,6 +19,7 @@
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModulePrograms.h"
+#include "Modules/ModuleEvents.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleTime.h"
 #include "Resources/ResourceMesh.h"
@@ -138,6 +140,11 @@ bool ModuleRender::Init() {
 	return true;
 }
 
+bool ModuleRender::Start() {
+	App->events->AddObserverToEvent(TesseractEventType::SCREEN_RESIZED, this);
+	return true;
+}
+
 UpdateStatus ModuleRender::PreUpdate() {
 	BROFILER_CATEGORY("ModuleRender - PreUpdate", Profiler::Color::Green)
 
@@ -178,6 +185,11 @@ UpdateStatus ModuleRender::Update() {
 		DrawSceneRecursive(scene->quadtree.root, scene->quadtree.bounds);
 	}
 
+	// Draw particles (TODO: improve with culling)
+	for (ComponentParticleSystem& particleSystem : scene->particleComponents) {
+		if (particleSystem.IsActive()) particleSystem.Draw();
+	}
+
 	// Draw Gizmos
 	if (App->camera->IsEngineCameraActive() || debugMode) {
 		GameObject* selectedGameObject = App->editor->selectedGameObject;
@@ -194,6 +206,12 @@ UpdateStatus ModuleRender::Update() {
 				light.DrawGizmos();
 			}
 		}
+		if (drawParticleGizmos) {
+			for (ComponentParticleSystem& particle : scene->particleComponents) {
+				particle.DrawGizmos();
+			}
+		}
+
 		// Draw quadtree
 		if (drawQuadtree) DrawQuadtreeRecursive(App->scene->scene->quadtree.root, App->scene->scene->quadtree.bounds);
 
@@ -245,12 +263,22 @@ void ModuleRender::ViewportResized(int width, int height) {
 	viewportUpdated = true;
 }
 
+void ModuleRender::ReceiveEvent(TesseractEvent& ev) {
+	switch (ev.type) {
+	case TesseractEventType::SCREEN_RESIZED:
+		ViewportResized(ev.Get<ViewportResizedStruct>().newWidth, ev.Get<ViewportResizedStruct>().newHeight);
+		break;
+	default:
+		break;
+	}
+}
+
 void ModuleRender::UpdateFramebuffer() {
-	#if GAME
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	#else
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	#endif
+#if GAME
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#else
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+#endif
 
 	glBindTexture(GL_TEXTURE_2D, renderTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -300,6 +328,9 @@ void ModuleRender::ToggleDrawCameraFrustums() {
 
 void ModuleRender::ToggleDrawLightGizmos() {
 	drawLightGizmos = !drawLightGizmos;
+}
+void ModuleRender::ToggleDrawParticleGizmos() {
+	drawParticleGizmos = !drawParticleGizmos;
 }
 
 void ModuleRender::UpdateShadingMode(const char* shadingMode) {
@@ -485,6 +516,14 @@ void ModuleRender::SetPerspectiveRender() {
 
 const float2 ModuleRender::GetViewportSize() {
 	return viewportSize;
+}
+
+bool ModuleRender::ObjectInsideFrustum(GameObject* gameObject) {
+	ComponentBoundingBox* boundingBox = gameObject->GetComponent<ComponentBoundingBox>();
+	if (boundingBox) {
+		return CheckIfInsideFrustum(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB());
+	}
+	return false;
 }
 
 void ModuleRender::DrawAnimation(const GameObject* gameObject, bool hasAnimation) {

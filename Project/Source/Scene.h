@@ -19,10 +19,12 @@
 #include "Components/UI/ComponentSlider.h"
 #include "Components/ComponentBoundingBox2D.h"
 #include "Components/ComponentSkybox.h"
+#include "Components/ComponentParticleSystem.h"
 #include "Components/ComponentScript.h"
 #include "Components/ComponentAnimation.h"
 #include "Components/ComponentAudioListener.h"
 #include "Components/ComponentAudioSource.h"
+#include "Components/UI/ComponentProgressBar.h"
 
 class GameObject;
 
@@ -36,7 +38,6 @@ public:
 
 	// --- GameObject Management --- //
 	GameObject* CreateGameObject(GameObject* parent, UID id, const char* name);
-	GameObject* DuplicateGameObject(GameObject* gameObject, GameObject* parent);
 	void DestroyGameObject(GameObject* gameObject);
 	GameObject* GetGameObject(UID id) const;
 
@@ -74,8 +75,10 @@ public:
 	PoolMap<UID, ComponentSkyBox> skyboxComponents;
 	PoolMap<UID, ComponentScript> scriptComponents;
 	PoolMap<UID, ComponentAnimation> animationComponents;
+	PoolMap<UID, ComponentParticleSystem> particleComponents;
 	PoolMap<UID, ComponentAudioSource> audioSourceComponents;
 	PoolMap<UID, ComponentAudioListener> audioListenerComponents;
+	PoolMap<UID, ComponentProgressBar> progressbarsComponents;
 
 	// ---- Quadtree Parameters ---- //
 	Quadtree<GameObject> quadtree;

@@ -14,9 +14,9 @@ public:
 public:
 	UID prefabId = 0;
 	int amountOfEnemies = 0;
+	int offset = 1;
 
 private:
 	GameObject* gameObject = nullptr;
 	int iterator = 0;
-	int offset = 1;
 };

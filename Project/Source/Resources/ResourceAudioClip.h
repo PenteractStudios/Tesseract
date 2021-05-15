@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Resource.h"
+#include "Components/ComponentAudioSource.h"
+#include <vector>
 
 class ResourceAudioClip : public Resource {
 public:
@@ -9,6 +11,10 @@ public:
 	void Load() override;
 	void Unload() override;
 
+	void AddSource(ComponentAudioSource* component);
+	void RemoveSource(ComponentAudioSource* component);
+
 public:
 	unsigned ALbuffer;
+	std::vector<ComponentAudioSource*> componentAudioSources;
 };

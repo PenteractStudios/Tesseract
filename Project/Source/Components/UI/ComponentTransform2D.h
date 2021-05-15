@@ -5,6 +5,7 @@
 #include "Math/float2.h"
 #include "Math/float3.h"
 #include "Math/float4x4.h"
+#include "Math/float3x3.h"
 #include "Math/Quat.h"
 
 #if defined(TESSERACT_ENGINE_API)
@@ -87,6 +88,7 @@ public:
 	const float4x4 GetGlobalMatrix();						// Returns GlobalMatrix
 	const float4x4 GetGlobalScaledMatrix();					// Returns GlobalMatrix with the size of the item
 	void UpdateTransformChanges();							// Update the tranform matrix
+	float3x3 GetGlobalRotation();							// Returns the accumulated rotation of the parents and the current component
 
 	TESSERACT_ENGINE_API float3 GetPosition() const; // Returns the position
 	TESSERACT_ENGINE_API float2 GetSize() const;	 // Returns the size
@@ -94,10 +96,10 @@ public:
 	float3 GetPivotPosition() const;				 // Returns the pivot position
 	float3 GetPositionRelativeToParent() const;
 	float3 GetScreenPosition() const;
+	float3 GetGlobalPosition();						// Returns the global position
 
 	void InvalidateHierarchy();							 // Invalidates hierarchy
 	void Invalidate();									 // Invalidates component
-	void DuplicateComponent(GameObject& owner) override; // Duplicates component (THIS SHOULDN'T BE USED)
 
 	void SetTop(float top);		  // Sets the right anchor
 	void SetBottom(float bottom); // Sets the right anchor
@@ -119,7 +121,7 @@ private:
 	float3 pivotPosition = float3::zero; // The position of the pivot in the world
 	float2 size = float2(200, 200);		 // The size of the item
 
-	Rect anchorsRect = Rect(0, 0, 0, 0);																			   // Positions of the rectangle’s edges relative to their anchors.
+	Rect anchorsRect = Rect(0, 0, 0, 0);																			   // Positions of the rectangles edges relative to their anchors.
 	float2 anchorMin = float2(0.5, 0.5);																			   // The Anchor Min. Represents the lower left handle.
 	float2 anchorMax = float2(0.5, 0.5);																			   // The Anchor Max. Represents the upper right handle.
 	static std::array<AnchorPreset, 16> anchorPresets;																   // Listwith all the possible anchors presets

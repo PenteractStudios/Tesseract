@@ -1,0 +1,8 @@
+{
+    "Name": "Idle",
+    "AnimationUID": 15690165910126212934,
+    "BeginIndex": 0,
+    "EndIndex": 191,
+    "Loop": true,
+    "Speed": 1.0
+}

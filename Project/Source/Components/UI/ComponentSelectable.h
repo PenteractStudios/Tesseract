@@ -51,7 +51,6 @@ public:
 	// Inherited vía IPointerEnterHandler
 	virtual void OnPointerEnter() override;
 	virtual void OnPointerExit() override;
-	void DuplicateComponent(GameObject& owner) override;
 	bool CanBeRemoved() const override; //This override returns false if the GameObject holds a ComponentButton/ComponentToggle
 
 	Component* GetSelectableComponent();

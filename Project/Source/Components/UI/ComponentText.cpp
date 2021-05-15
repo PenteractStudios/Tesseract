@@ -16,6 +16,7 @@
 
 #include "GL/glew.h"
 #include "Math/TransformOps.h"
+#include "Math/float3x3.h"
 #include "Utils/Logging.h"
 #include "Utils/ImGuiUtils.h"
 #include "imgui_stdlib.h"
@@ -43,10 +44,21 @@ void ComponentText::Init() {
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-	RecalculcateVertices();
+	Invalidate();
 }
 
 void ComponentText::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
 
 	bool mustRecalculateVertices = false;
@@ -76,7 +88,7 @@ void ComponentText::OnEditorUpdate() {
 	ImGui::ColorEdit4("Color##", color.ptr());
 
 	if (mustRecalculateVertices) {
-		RecalculcateVertices();
+		Invalidate();
 	}
 }
 
@@ -111,22 +123,7 @@ void ComponentText::Load(JsonValue jComponent) {
 	color.Set(jColor[0], jColor[1], jColor[2], jColor[3]);
 }
 
-void ComponentText::DuplicateComponent(GameObject& owner) {
-	ComponentText* component = owner.CreateComponent<ComponentText>();
-	component->fontID = fontID;
-	component->fontSize = fontSize;
-	component->lineHeight = lineHeight;
-	component->color = color;
-	component->textAlignment = textAlignment;
-
-	if (fontID != 0) {
-		App->resources->IncreaseReferenceCount(fontID);
-	}
-
-	component->SetText(text);
-}
-
-void ComponentText::Draw(const ComponentTransform2D* transform) const {
+void ComponentText::Draw(ComponentTransform2D* transform) {
 	if (fontID == 0) {
 		return;
 	}
@@ -141,8 +138,9 @@ void ComponentText::Draw(const ComponentTransform2D* transform) const {
 
 	glUseProgram(program);
 
-	float4x4 proj = App->camera->GetProjectionMatrix();
-	float4x4 view = App->camera->GetViewMatrix();
+	float4x4 model = transform->GetGlobalMatrix();
+	float4x4& proj = App->camera->GetProjectionMatrix();
+	float4x4& view = App->camera->GetViewMatrix();
 
 	if (App->userInterface->IsUsing2D()) {
 		proj = float4x4::D3DOrthoProjLH(-1, 1, App->renderer->GetViewportSize().x, App->renderer->GetViewportSize().y); //near plane. far plane, screen width, screen height
@@ -157,7 +155,10 @@ void ComponentText::Draw(const ComponentTransform2D* transform) const {
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view.ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_TRUE, proj.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, model.ptr());
 	glUniform4fv(glGetUniformLocation(program, "textColor"), 1, color.ptr());
+
+	RecalculateVertices();
 
 	for (size_t i = 0; i < text.size(); ++i) {
 		if (text.at(i) != '\n') {
@@ -182,11 +183,12 @@ void ComponentText::Draw(const ComponentTransform2D* transform) const {
 
 void ComponentText::SetText(const std::string& newText) {
 	text = newText;
-	RecalculcateVertices();
+	Invalidate();
 }
 
 void ComponentText::SetFontSize(float newfontSize) {
 	fontSize = newfontSize;
+	Invalidate();
 }
 
 void ComponentText::SetFontColor(const float4& newColor) {
@@ -197,8 +199,11 @@ float4 ComponentText::GetFontColor() const {
 	return color;
 }
 
-//TODO make this happen with a TesseractEvent or SDLevent related to OnWindowSizeChanged
-void ComponentText::RecalculcateVertices() {
+void ComponentText::RecalculateVertices() {
+	if (!dirty) {
+		return;
+	}
+
 	if (fontID == 0) {
 		return;
 	}
@@ -206,18 +211,15 @@ void ComponentText::RecalculcateVertices() {
 	verticesText.resize(text.size());
 
 	ComponentTransform2D* transform = GetOwner().GetComponent<ComponentTransform2D>();
-	float3 position = transform->GetPosition();
-	float screenFactor = GetOwner().GetComponent<ComponentCanvasRenderer>()->GetCanvasScreenFactor();
 
-	float x = position.x * screenFactor;
-	float y = position.y * screenFactor;
+	float x = -transform->GetSize().x / 2.0f;
+	float y = 0;
 
-	float dy = 0;		// additional y shifting
-	int j = 0;			// index of row
+	float dy = 0; // additional y shifting
+	int j = 0;	  // index of row
 
-	float2 transformScale = transform->GetScale().xy();
 	// FontSize / size of imported font. 48 is due to FontImporter default PixelSize
-	float scale = (fontSize / 48) * (transformScale.x > transformScale.y ? transformScale.x : transformScale.y) * screenFactor;
+	float scale = (fontSize / 48);
 
 	for (size_t i = 0; i < text.size(); ++i) {
 		Character character = App->userInterface->GetCharacter(fontID, text.at(i));
@@ -229,23 +231,23 @@ void ComponentText::RecalculcateVertices() {
 		float h = character.size.y * scale;
 
 		switch (textAlignment) {
-			case TextAlignment::LEFT: {
-				// Default branch, could be deleted
-				break;
-			}
-			case TextAlignment::CENTER: {
-				xpos += (transform->GetSize().x * screenFactor / 2.0f - SubstringWidth(&text.c_str()[j], scale) / 2.0f);
-				break;
-			}
-			case TextAlignment::RIGHT: {
-				xpos += transform->GetSize().x * screenFactor - SubstringWidth(&text.c_str()[j], scale);
-				break;
-			}
+		case TextAlignment::LEFT: {
+			// Default branch, could be deleted
+			break;
+		}
+		case TextAlignment::CENTER: {
+			xpos += (transform->GetSize().x / 2.0f - SubstringWidth(&text.c_str()[j], scale) / 2.0f);
+			break;
+		}
+		case TextAlignment::RIGHT: {
+			xpos += transform->GetSize().x - SubstringWidth(&text.c_str()[j], scale);
+			break;
+		}
 		}
 
 		if (text.at(i) == '\n') {
 			dy += lineHeight;					// shifts to next line
-			x = position.x * screenFactor;		// reset to initial position
+			x = -transform->GetSize().x / 2.0f; // reset to initial position
 			j = i + 1;							// updated j variable in order to get the substringwidth of the following line in the next iteration
 		}
 
@@ -265,6 +267,12 @@ void ComponentText::RecalculcateVertices() {
 			x += (character.advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64). Divides / 64
 		}
 	}
+
+	dirty = false;
+}
+
+void ComponentText::Invalidate() {
+	dirty = true;
 }
 
 float ComponentText::SubstringWidth(const char* substring, float scale) {

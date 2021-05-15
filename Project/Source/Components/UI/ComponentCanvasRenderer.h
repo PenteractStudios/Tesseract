@@ -12,7 +12,6 @@ public:
 
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
-	void DuplicateComponent(GameObject& owner) override;
 	bool CanBeRemoved() const override;				 //This override returns false if the GameObject holds a ComponentImage/ComponentText
 	void Render(const GameObject* gameObject) const; //Calls Draw on all images if one of its parents is a canvas
 

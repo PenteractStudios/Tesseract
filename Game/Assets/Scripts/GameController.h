@@ -8,8 +8,8 @@ class GameObject;
 class ComponentCamera;
 class ComponentTransform;
 
-class GameController : public Script
-{
+
+class GameController : public Script {
 	GENERATE_BODY(GameController);
 
 public:
@@ -19,7 +19,6 @@ public:
 
 	void Rotate(float2 mouseMotion, Frustum* frustum, ComponentTransform* transform);
 
-
 public:
 	UID gameCameraUID;
 	UID godCameraUID;
@@ -28,6 +27,9 @@ public:
 	UID staticCamera3UID;
 	UID staticCamera4UID;
 	UID playerUID;
+	UID pauseUID;
+	UID hudUID;
+	UID enemySpawnPointsUID;
 
 	float speed = 50.f;
 	float rotationSpeedX = 10.f;
@@ -37,6 +39,7 @@ public:
 
 private:
 	void DoTransition();
+	void SpawnEnemies();
 
 private:
 	GameObject* gameCamera = nullptr;
@@ -47,12 +50,14 @@ private:
 	ComponentCamera* staticCamera3 = nullptr;
 	ComponentCamera* staticCamera4 = nullptr;
 	GameObject* player = nullptr;
+	GameObject* pauseCanvas = nullptr;
+	GameObject* hudCanvas = nullptr;
 
 	float yaw = 0.f;
 	float pitch = 0.f;
 	bool showWireframe = false;
-	bool godCameraActive = false;
 	bool godModeAvailable = false;
 	bool transitionFinished = false;
+	bool isPaused = false;
 };
 

@@ -11,20 +11,13 @@
 #include "Utils/Leaks.h"
 
 void ComponentCanvas::Init() {
-	
 }
 
 void ComponentCanvas::Save(JsonValue jComponent) const {
 }
 
 void ComponentCanvas::Load(JsonValue jComponent) {
-	dirty = true;
-}
-
-void ComponentCanvas::DuplicateComponent(GameObject& owner) {
-	ComponentCanvas* component = owner.CreateComponent<ComponentCanvas>();
-	component->screenReferenceSize = screenReferenceSize;
-	dirty = true;
+	Invalidate();
 }
 
 bool ComponentCanvas::CanBeRemoved() const {
@@ -45,6 +38,7 @@ void ComponentCanvas::Invalidate() {
 
 void ComponentCanvas::SetScreenReferenceSize(float2 screenReferenceSize_) {
 	screenReferenceSize = screenReferenceSize_;
+	Invalidate();
 }
 
 float2 ComponentCanvas::GetScreenReferenceSize() const {
@@ -70,6 +64,7 @@ void ComponentCanvas::RecalculateSizeAndScreenFactor() {
 		}
 		float2 factor = size.Div(screenReferenceSize);
 		screenFactor = factor.x < factor.y ? factor.x : factor.y;
+		dirty = false;
 	}
 }
 
