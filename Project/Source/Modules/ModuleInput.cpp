@@ -73,14 +73,14 @@ UpdateStatus ModuleInput::PreUpdate() {
 	}
 
 	for (int i = 0; i < MAX_PLAYERS; i++) {
-		if (players[i] == nullptr) continue;
+		if (playerControllers[i] == nullptr) continue;
 		for (int j = 0; j < SDL_CONTROLLER_BUTTON_MAX; ++j) {
-			if (players[i]->gameControllerButtons[j] == KS_DOWN) {
-				players[i]->gameControllerButtons[j] = KS_REPEAT;
+			if (playerControllers[i]->gameControllerButtons[j] == KS_DOWN) {
+				playerControllers[i]->gameControllerButtons[j] = KS_REPEAT;
 			}
 
-			if (players[i]->gameControllerButtons[j] == KS_UP) {
-				players[i]->gameControllerButtons[j] = KS_IDLE;
+			if (playerControllers[i]->gameControllerButtons[j] == KS_UP) {
+				playerControllers[i]->gameControllerButtons[j] = KS_IDLE;
 			}
 		}
 	}
@@ -106,7 +106,7 @@ UpdateStatus ModuleInput::PreUpdate() {
 			OnControllerRemoved(event.cdevice.which);
 			break;
 		case SDL_CONTROLLERAXISMOTION: {
-			PlayerGamepad* player = GetPlayerWithIndex(event.cdevice.which);
+			PlayerController* player = GetPlayerControllerWithJoystickIndex(event.cdevice.which);
 			if (!player) break;
 
 			LOG("Axis %d", event.caxis.axis);
@@ -130,14 +130,14 @@ UpdateStatus ModuleInput::PreUpdate() {
 			break;
 		}
 		case SDL_CONTROLLERBUTTONDOWN: {
-			if (GetPlayerWithIndex(event.cdevice.which)) {
-				GetPlayerWithIndex(event.cdevice.which)->gameControllerButtons[event.cbutton.button] = KS_DOWN;
+			if (GetPlayerControllerWithJoystickIndex(event.cdevice.which)) {
+				GetPlayerControllerWithJoystickIndex(event.cdevice.which)->gameControllerButtons[event.cbutton.button] = KS_DOWN;
 			}
 			break;
 		}
 		case SDL_CONTROLLERBUTTONUP:
-			if (GetPlayerWithIndex(event.cdevice.which)) {
-				GetPlayerWithIndex(event.cdevice.which)->gameControllerButtons[event.cbutton.button] = KS_UP;
+			if (GetPlayerControllerWithJoystickIndex(event.cdevice.which)) {
+				GetPlayerControllerWithJoystickIndex(event.cdevice.which)->gameControllerButtons[event.cbutton.button] = KS_UP;
 			}
 			break;
 		case SDL_WINDOWEVENT:
@@ -239,7 +239,7 @@ bool ModuleInput::CleanUp() {
 	LOG("Quitting SDL input event subsystem");
 
 	for (int i = 0; i < MAX_PLAYERS; i++) {
-		RELEASE(players[i]);
+		RELEASE(playerControllers[i]);
 	}
 
 	SDL_QuitSubSystem(SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
@@ -302,12 +302,12 @@ void ModuleInput::OnControllerAdded(int index) {
 	if (SDL_IsGameController(index)) {
 		LOG("Found controller as SDL Game Controller");
 
-		if (players[0] == nullptr) {
+		if (playerControllers[0] == nullptr) {
 			LOG("New controller took player slot 0");
-			players[0] = new PlayerGamepad(index);
-		} else if (players[1] == nullptr) {
+			playerControllers[0] = new PlayerController(index);
+		} else if (playerControllers[1] == nullptr) {
 			LOG("New controller took player slot 1");
-			players[1] = new PlayerGamepad(index);
+			playerControllers[1] = new PlayerController(index);
 		}
 	}
 }
@@ -315,19 +315,23 @@ void ModuleInput::OnControllerAdded(int index) {
 void ModuleInput::OnControllerRemoved(int index) {
 	LOG("Disconnected controller");
 	for (int i = 0; i < MAX_PLAYERS; i++) {
-		if (players[i] == nullptr) continue;
-		if (players[i]->index == index) {
-			RELEASE(players[i]);
+		if (playerControllers[i] == nullptr) continue;
+		if (playerControllers[i]->joystickIndex == index) {
+			RELEASE(playerControllers[i]);
 			LOG("Player slot %d is now empty", i);
 		}
 	}
 }
 
-PlayerGamepad* ModuleInput::GetPlayerWithIndex(int index) const {
+PlayerController* ModuleInput::GetPlayerControllerWithJoystickIndex(int joystickIndex) const {
 	for (int i = 0; i < MAX_PLAYERS; i++) {
-		if (players[i] == nullptr) continue;
-		if (players[i]->index == index) {
-			return players[i];
+		if (playerControllers[i] == nullptr) continue;
+		if (playerControllers[i]->joystickIndex == joystickIndex) {
+			return playerControllers[i];
 		}
 	}
+}
+
+PlayerController* ModuleInput::GetPlayerController(int index) const {
+	return playerControllers[index];
 }

@@ -368,6 +368,36 @@ namespace Input {
 
 		NUM_SCANCODES = 512 /**< not a key, just marks the number of scancodes for array bounds */
 	};
+	enum SDL_GameControllerAxis {
+		SDL_CONTROLLER_AXIS_INVALID = -1,
+		SDL_CONTROLLER_AXIS_LEFTX,
+		SDL_CONTROLLER_AXIS_LEFTY,
+		SDL_CONTROLLER_AXIS_RIGHTX,
+		SDL_CONTROLLER_AXIS_RIGHTY,
+		SDL_CONTROLLER_AXIS_TRIGGERLEFT,
+		SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
+		SDL_CONTROLLER_AXIS_MAX
+	};
+	enum SDL_GameControllerButton {
+		SDL_CONTROLLER_BUTTON_INVALID = -1,
+		SDL_CONTROLLER_BUTTON_A,
+		SDL_CONTROLLER_BUTTON_B,
+		SDL_CONTROLLER_BUTTON_X,
+		SDL_CONTROLLER_BUTTON_Y,
+		SDL_CONTROLLER_BUTTON_BACK,
+		SDL_CONTROLLER_BUTTON_GUIDE,
+		SDL_CONTROLLER_BUTTON_START,
+		SDL_CONTROLLER_BUTTON_LEFTSTICK,
+		SDL_CONTROLLER_BUTTON_RIGHTSTICK,
+		SDL_CONTROLLER_BUTTON_LEFTSHOULDER,
+		SDL_CONTROLLER_BUTTON_RIGHTSHOULDER,
+		SDL_CONTROLLER_BUTTON_DPAD_UP,
+		SDL_CONTROLLER_BUTTON_DPAD_DOWN,
+		SDL_CONTROLLER_BUTTON_DPAD_LEFT,
+		SDL_CONTROLLER_BUTTON_DPAD_RIGHT,
+		SDL_CONTROLLER_BUTTON_MAX
+	};
+
 	TESSERACT_ENGINE_API bool GetMouseButtonDown(int button);
 	TESSERACT_ENGINE_API bool GetMouseButtonUp(int button);
 	TESSERACT_ENGINE_API bool GetMouseButtonRepeat(int button);
@@ -378,6 +408,15 @@ namespace Input {
 	TESSERACT_ENGINE_API bool GetKeyCodeUp(KEYCODE keycode);
 	TESSERACT_ENGINE_API bool GetKeyCodeRepeat(KEYCODE keycode);
 	TESSERACT_ENGINE_API bool GetKeyCode(KEYCODE keycode);
+
+	//For these methods, playerID does mean the array index
+	TESSERACT_ENGINE_API bool GetControllerButtonDown(SDL_GameControllerButton button, int playerID);
+	TESSERACT_ENGINE_API bool GetControllerButtonUp(SDL_GameControllerButton button, int playerID);
+	TESSERACT_ENGINE_API bool GetControllerButtonRepeat(SDL_GameControllerButton button, int playerID);
+	TESSERACT_ENGINE_API bool GetControllerButton(SDL_GameControllerButton button, int playerID);
+	TESSERACT_ENGINE_API float GetControllerAxisValue(SDL_GameControllerAxis axis, int playerID);
+	TESSERACT_ENGINE_API bool IsGamepadConnected(int playerID);
+
 }; // namespace Input
 
 namespace Screen {

@@ -160,6 +160,35 @@ bool Input::GetKeyCode(KEYCODE keycode) {
 	return App->input->GetKeyboard()[keycode];
 }
 
+bool Input::GetControllerButtonDown(SDL_GameControllerButton button, int playerID) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+	return player ? false : player->gameControllerButtons[button] == KS_DOWN;
+}
+
+bool Input::GetControllerButtonUp(SDL_GameControllerButton button, int playerID) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+	return player ? false : player->gameControllerButtons[button] == KS_UP;
+}
+
+bool Input::GetControllerButtonRepeat(SDL_GameControllerButton button, int playerID) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+	return player ? false : player->gameControllerButtons[button] == KS_REPEAT;
+}
+
+bool Input::GetControllerButton(SDL_GameControllerButton button, int playerID) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+	return player ? false : player->gameControllerButtons[button];
+}
+
+float Input::GetControllerAxisValue(SDL_GameControllerAxis axis, int playerID) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+	return player ? 0.0f : player->gameControllerAxises[axis];
+}
+
+bool Input::IsGamepadConnected(int index) {
+	return App->input->GetPlayerController(index) != nullptr;
+}
+
 // --------- SCENE MANAGER --------- //
 
 void SceneManager::ChangeScene(const char* scenePath) {

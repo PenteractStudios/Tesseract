@@ -16,15 +16,15 @@ enum KeyState {
 	KS_UP
 };
 
-class PlayerGamepad {
+class PlayerController {
 public:
-	PlayerGamepad(int index_) {
+	PlayerController(int index_) {
 		controller = SDL_GameControllerOpen(index_);
 		SDL_Joystick* j = SDL_GameControllerGetJoystick(controller);
-		index = SDL_JoystickInstanceID(j);
+		joystickIndex = SDL_JoystickInstanceID(j);
 	}
 
-	~PlayerGamepad() {
+	~PlayerController() {
 		if (controller != NULL) {
 			SDL_GameControllerClose(controller);
 			controller = NULL;
@@ -41,7 +41,7 @@ public:
 
 public:
 	//PlayerGamepad id is not the array position nor the device index, due to how SDL manages controllers it is the controller's joystick's index, use carefully
-	int index = -1;
+	int joystickIndex = -1;
 	float gameControllerAxises[SDL_CONTROLLER_AXIS_MAX] = {0.0f};		   // Axis values, deadzone is 8000, max value is
 	KeyState gameControllerButtons[SDL_CONTROLLER_BUTTON_MAX] = {KS_IDLE}; // Same keystate, but for the controller buttons
 	SDL_GameController* controller = nullptr;
@@ -71,14 +71,17 @@ public:
 
 	void OnControllerAdded(int index);
 	void OnControllerRemoved(int index);
-	PlayerGamepad* GetPlayerWithIndex(int index) const;
+
+	PlayerController* GetPlayerControllerWithJoystickIndex(int joystickIndex_) const; //Returns player with joysticks id (internal value) == joystickIndex_
+
+	PlayerController* GetPlayerController(int index) const; //Returns player at array position index
 
 private:
 	char* droppedFilePath = nullptr;					  // SDL_DropEvent. Stores the path of a file when it is drag&dropped into the engine.
 	KeyState keyboard[SDL_NUM_SCANCODES] = {KS_IDLE};	  // Array that stores the 'KeyState' of every key in the keyboard. See KeyState for possible states.
 	KeyState mouseButtons[NUM_MOUSE_BUTTONS] = {KS_IDLE}; // Same keystate, but for the mouse buttons.
 
-	PlayerGamepad* players[MAX_PLAYERS] = {nullptr};
+	PlayerController* playerControllers[MAX_PLAYERS] = {nullptr};
 	float mouseWheelMotion = 0;	 // Stores the increment registered by the mouse wheel on a frame.
 	float2 mouseMotion = {0, 0}; // Stores de movement increment of the mouse position on a frame.
 	float2 mouse = {0, 0};		 // Stores the mouse position.
