@@ -18,6 +18,7 @@
 #include "Utils/Leaks.h"
 
 const int JOYSTICK_DEAD_ZONE = 8000;
+const int JOYSTICK_MAX_VALUE = 32767;
 
 bool ModuleInput::Init() {
 	LOG("Init SDL input event system");
@@ -35,8 +36,8 @@ bool ModuleInput::Init() {
 UpdateStatus ModuleInput::Update() {
 	//Can be used to debug axis values
 
-	//if (players[0] != nullptr) {
-	//	LOG("%.2f - %.2f - %.2f - %.2f - %.2f - %.2f", players[0]->GetAxis(SDL_CONTROLLER_AXIS_LEFTX), players[0]->GetAxis(SDL_CONTROLLER_AXIS_LEFTY), players[0]->GetAxis(SDL_CONTROLLER_AXIS_RIGHTX), players[0]->GetAxis(SDL_CONTROLLER_AXIS_RIGHTY), players[0]->GetAxis(SDL_CONTROLLER_AXIS_TRIGGERLEFT), players[0]->GetAxis(SDL_CONTROLLER_AXIS_TRIGGERRIGHT));
+	//if (playerControllers[0] != nullptr) {
+	//	LOG("%.2f - %.2f - %.2f - %.2f - %.2f - %.2f", playerControllers[0]->GetAxis(SDL_CONTROLLER_AXIS_LEFTX), playerControllers[0]->GetAxis(SDL_CONTROLLER_AXIS_LEFTY), playerControllers[0]->GetAxis(SDL_CONTROLLER_AXIS_RIGHTX), playerControllers[0]->GetAxis(SDL_CONTROLLER_AXIS_RIGHTY), playerControllers[0]->GetAxis(SDL_CONTROLLER_AXIS_TRIGGERLEFT), playerControllers[0]->GetAxis(SDL_CONTROLLER_AXIS_TRIGGERRIGHT));
 	//}
 
 	return UpdateStatus::CONTINUE;
@@ -108,8 +109,6 @@ UpdateStatus ModuleInput::PreUpdate() {
 		case SDL_CONTROLLERAXISMOTION: {
 			PlayerController* player = GetPlayerControllerWithJoystickIndex(event.cdevice.which);
 			if (!player) break;
-
-			LOG("Axis %d", event.caxis.axis);
 
 			if (event.caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT || event.caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT) {
 				player->gameControllerAxises[event.caxis.axis] = event.caxis.value;

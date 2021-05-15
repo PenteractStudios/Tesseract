@@ -150,6 +150,7 @@ void Time::ResumeGame() {
 }
 
 // ------------- INPUT ------------- //
+const int JOYSTICK_MAX_VALUE = 32767;
 
 bool Input::GetMouseButtonDown(int button) {
 	return App->input->GetMouseButtons()[button] == KS_DOWN;
@@ -179,7 +180,7 @@ const float3 Input::GetMouseWorldPosition() {
 	float4x4 ProjView = Projection * View;
 	ProjView.Inverse();
 	float4 worldPos = ProjView * ScreenPos;
-	return worldPos.xyz()/worldPos.w;
+	return worldPos.xyz() / worldPos.w;
 }
 
 float2 Input::GetMousePosition() {
@@ -238,7 +239,9 @@ bool Input::GetControllerButton(SDL_GameControllerButton button, int playerID) {
 
 float Input::GetControllerAxisValue(SDL_GameControllerAxis axis, int playerID) {
 	PlayerController* player = App->input->GetPlayerController(playerID);
-	return player ? 0.0f : player->gameControllerAxises[axis];
+
+
+	return player ? player->gameControllerAxises[axis] / JOYSTICK_MAX_VALUE : 0.0f;
 }
 
 bool Input::IsGamepadConnected(int index) {
@@ -264,7 +267,6 @@ float Screen::GetScreenWitdh() {
 }
 
 float Screen::GetScreenHeight() {
-
 	return static_cast<float>(App->window->GetHeight());
 }
 
@@ -283,7 +285,6 @@ int Screen::GetResolutionPreset() {
 void Screen::SetResolutionPreset(int resolutionPreset_) {
 	App->window->SetResolutionPreset(resolutionPreset_);
 }
-
 
 bool Screen::IsFullScreenOn() {
 	return App->window->GetWindowMode() == WindowMode::FULLSCREEN;

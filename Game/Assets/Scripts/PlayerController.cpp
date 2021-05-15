@@ -21,27 +21,27 @@
 EXPOSE_MEMBERS(PlayerController) {
 	// Add members here to expose them to the engine. Example:
 	MEMBER(MemberType::GAME_OBJECT_UID, fangUID),
-	MEMBER(MemberType::GAME_OBJECT_UID, onimaruUID),
-	MEMBER(MemberType::GAME_OBJECT_UID, mainNodeUID),
-	MEMBER(MemberType::GAME_OBJECT_UID, cameraUID),
-	MEMBER(MemberType::GAME_OBJECT_UID, fangParticleUID),
-	MEMBER(MemberType::GAME_OBJECT_UID, onimaruParticleUID),
-	MEMBER(MemberType::GAME_OBJECT_UID, switchAudioSourceUID),
-	MEMBER(MemberType::GAME_OBJECT_UID, dashAudioSourceUID),
-	MEMBER(MemberType::GAME_OBJECT_UID, canvasUID),
-	MEMBER(MemberType::FLOAT, distanceRayCast),
-	MEMBER(MemberType::FLOAT, switchCooldown),
-	MEMBER(MemberType::FLOAT, dashCooldown),
-	MEMBER(MemberType::FLOAT, dashSpeed),
-	MEMBER(MemberType::FLOAT, dashDistance),
-	MEMBER(MemberType::FLOAT, cameraOffsetZ),
-	MEMBER(MemberType::FLOAT, cameraOffsetY),
-	MEMBER(MemberType::FLOAT, cameraOffsetX),
-	MEMBER(MemberType::FLOAT, fangMovementSpeed),
-	MEMBER(MemberType::FLOAT, onimaruMovementSpeed),
-	MEMBER(MemberType::FLOAT, shootCooldown),
-	MEMBER(MemberType::INT, lifePointsFang),
-	MEMBER(MemberType::INT, lifePointsOni)
+		MEMBER(MemberType::GAME_OBJECT_UID, onimaruUID),
+		MEMBER(MemberType::GAME_OBJECT_UID, mainNodeUID),
+		MEMBER(MemberType::GAME_OBJECT_UID, cameraUID),
+		MEMBER(MemberType::GAME_OBJECT_UID, fangParticleUID),
+		MEMBER(MemberType::GAME_OBJECT_UID, onimaruParticleUID),
+		MEMBER(MemberType::GAME_OBJECT_UID, switchAudioSourceUID),
+		MEMBER(MemberType::GAME_OBJECT_UID, dashAudioSourceUID),
+		MEMBER(MemberType::GAME_OBJECT_UID, canvasUID),
+		MEMBER(MemberType::FLOAT, distanceRayCast),
+		MEMBER(MemberType::FLOAT, switchCooldown),
+		MEMBER(MemberType::FLOAT, dashCooldown),
+		MEMBER(MemberType::FLOAT, dashSpeed),
+		MEMBER(MemberType::FLOAT, dashDistance),
+		MEMBER(MemberType::FLOAT, cameraOffsetZ),
+		MEMBER(MemberType::FLOAT, cameraOffsetY),
+		MEMBER(MemberType::FLOAT, cameraOffsetX),
+		MEMBER(MemberType::FLOAT, fangMovementSpeed),
+		MEMBER(MemberType::FLOAT, onimaruMovementSpeed),
+		MEMBER(MemberType::FLOAT, shootCooldown),
+		MEMBER(MemberType::INT, lifePointsFang),
+		MEMBER(MemberType::INT, lifePointsOni)
 
 };
 
@@ -135,8 +135,7 @@ void PlayerController::LookAtMouse() {
 
 float3 PlayerController::GetDirection(MovementDirection md) const {
 	float3 direction = float3(0, 0, 0);
-	switch (md)
-	{
+	switch (md) {
 	case MovementDirection::UP:
 		direction = float3(0, 0, -1);
 		break;
@@ -200,24 +199,21 @@ void PlayerController::CheckCoolDowns() {
 		dashCooldownRemaing = 0.f;
 		dashInCooldown = false;
 		dashMovementDirection = MovementDirection::NONE;
-	}
-	else {
+	} else {
 		dashCooldownRemaing -= Time::GetDeltaTime();
 	}
 
 	if (switchCooldownRemaing <= 0.f) {
 		switchCooldownRemaing = 0.f;
 		switchInCooldown = false;
-	}
-	else {
+	} else {
 		switchCooldownRemaing -= Time::GetDeltaTime();
 	}
 
 	if (shootCooldownRemaing <= 0.f) {
 		shootCooldownRemaing = 0.f;
 		shooting = false;
-	}
-	else {
+	} else {
 		shootCooldownRemaing -= Time::GetDeltaTime();
 	}
 }
@@ -236,8 +232,7 @@ void PlayerController::SwitchCharacter() {
 			Debug::Log("Swaping to onimaru...");
 			fang->Disable();
 			onimaru->Enable();
-		}
-		else {
+		} else {
 			Debug::Log("Swaping to fang...");
 			onimaru->Disable();
 			fang->Enable();
@@ -257,25 +252,48 @@ void PlayerController::HitDetected() {
 MovementDirection PlayerController::GetInputMovementDirection() const {
 
 	MovementDirection md = MovementDirection::NONE;
-	if (Input::GetKeyCode(Input::KEYCODE::KEY_W)) {
+	//if (Input::GetKeyCode(Input::KEYCODE::KEY_W)) {
+	//	md = MovementDirection::UP;
+	//}
+
+	//if (Input::GetKeyCode(Input::KEYCODE::KEY_S)) {
+	//	md = MovementDirection::DOWN;
+	//}
+
+	//if (Input::GetKeyCode(Input::KEYCODE::KEY_A)) {
+	//	if (md == MovementDirection::UP) md = MovementDirection::UP_LEFT;
+	//	else if (md == MovementDirection::DOWN) md = MovementDirection::DOWN_LEFT;
+	//	else md = MovementDirection::LEFT;
+	//}
+
+	//if (Input::GetKeyCode(Input::KEYCODE::KEY_D)) {
+	//	if (md == MovementDirection::UP) md = MovementDirection::UP_RIGHT;
+	//	else if (md == MovementDirection::DOWN) md = MovementDirection::DOWN_RIGHT;
+	//	else md = MovementDirection::RIGHT;
+	//}
+
+	float horizontalAxis = Input::GetControllerAxisValue(Input::SDL_CONTROLLER_AXIS_LEFTX, 0);
+	float verticalAxis = Input::GetControllerAxisValue(Input::SDL_CONTROLLER_AXIS_LEFTY, 0);
+
+	if (verticalAxis < 0) {
 		md = MovementDirection::UP;
 	}
-
-	if (Input::GetKeyCode(Input::KEYCODE::KEY_S)) {
+	else if (verticalAxis > 0) {
 		md = MovementDirection::DOWN;
 	}
 
-	if (Input::GetKeyCode(Input::KEYCODE::KEY_A)) {
+	if (horizontalAxis < 0) {
 		if (md == MovementDirection::UP) md = MovementDirection::UP_LEFT;
 		else if (md == MovementDirection::DOWN) md = MovementDirection::DOWN_LEFT;
 		else md = MovementDirection::LEFT;
-	}
-
-	if (Input::GetKeyCode(Input::KEYCODE::KEY_D)) {
+	} else if (horizontalAxis > 0) {
 		if (md == MovementDirection::UP) md = MovementDirection::UP_RIGHT;
 		else if (md == MovementDirection::DOWN) md = MovementDirection::DOWN_RIGHT;
 		else md = MovementDirection::RIGHT;
 	}
+
+
+
 	return md;
 }
 
@@ -350,8 +368,7 @@ void PlayerController::Shoot() {
 	shooting = true;
 	if (fang->IsActive()) {
 		fangCompParticle->Play();
-	}
-	else {
+	} else {
 		onimaruCompParticle->Play();
 	}
 
