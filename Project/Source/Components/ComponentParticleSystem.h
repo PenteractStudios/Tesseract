@@ -69,6 +69,7 @@ private:
 	bool alphaTransparency = false; // Enables Alpha Transparency of the image and the color
 	bool isRandomFrame = false;
 	bool randomDirection = false;
+	bool sizeOverTime = false;
 
 	float3 initC = float3::one;
 	float3 finalC = float3::one;
