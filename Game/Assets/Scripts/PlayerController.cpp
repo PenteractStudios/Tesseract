@@ -252,47 +252,46 @@ void PlayerController::HitDetected() {
 MovementDirection PlayerController::GetInputMovementDirection() const {
 
 	MovementDirection md = MovementDirection::NONE;
-	//if (Input::GetKeyCode(Input::KEYCODE::KEY_W)) {
-	//	md = MovementDirection::UP;
-	//}
-
-	//if (Input::GetKeyCode(Input::KEYCODE::KEY_S)) {
-	//	md = MovementDirection::DOWN;
-	//}
-
-	//if (Input::GetKeyCode(Input::KEYCODE::KEY_A)) {
-	//	if (md == MovementDirection::UP) md = MovementDirection::UP_LEFT;
-	//	else if (md == MovementDirection::DOWN) md = MovementDirection::DOWN_LEFT;
-	//	else md = MovementDirection::LEFT;
-	//}
-
-	//if (Input::GetKeyCode(Input::KEYCODE::KEY_D)) {
-	//	if (md == MovementDirection::UP) md = MovementDirection::UP_RIGHT;
-	//	else if (md == MovementDirection::DOWN) md = MovementDirection::DOWN_RIGHT;
-	//	else md = MovementDirection::RIGHT;
-	//}
-
-	float horizontalAxis = Input::GetControllerAxisValue(Input::SDL_CONTROLLER_AXIS_LEFTX, 0);
-	float verticalAxis = Input::GetControllerAxisValue(Input::SDL_CONTROLLER_AXIS_LEFTY, 0);
-
-	if (verticalAxis < 0) {
+	if (Input::GetKeyCode(Input::KEYCODE::KEY_W)) {
 		md = MovementDirection::UP;
 	}
-	else if (verticalAxis > 0) {
+
+	if (Input::GetKeyCode(Input::KEYCODE::KEY_S)) {
 		md = MovementDirection::DOWN;
 	}
 
-	if (horizontalAxis < 0) {
+	if (Input::GetKeyCode(Input::KEYCODE::KEY_A)) {
 		if (md == MovementDirection::UP) md = MovementDirection::UP_LEFT;
 		else if (md == MovementDirection::DOWN) md = MovementDirection::DOWN_LEFT;
 		else md = MovementDirection::LEFT;
-	} else if (horizontalAxis > 0) {
+	}
+
+	if (Input::GetKeyCode(Input::KEYCODE::KEY_D)) {
 		if (md == MovementDirection::UP) md = MovementDirection::UP_RIGHT;
 		else if (md == MovementDirection::DOWN) md = MovementDirection::DOWN_RIGHT;
 		else md = MovementDirection::RIGHT;
 	}
 
+	if (Input::IsGamepadConnected(0)) {
+		float horizontalAxis = Input::GetControllerAxisValue(Input::SDL_CONTROLLER_AXIS_LEFTX, 0);
+		float verticalAxis = Input::GetControllerAxisValue(Input::SDL_CONTROLLER_AXIS_LEFTY, 0);
 
+		if (verticalAxis < 0) {
+			md = MovementDirection::UP;
+		} else if (verticalAxis > 0) {
+			md = MovementDirection::DOWN;
+		}
+
+		if (horizontalAxis < 0) {
+			if (md == MovementDirection::UP) md = MovementDirection::UP_LEFT;
+			else if (md == MovementDirection::DOWN) md = MovementDirection::DOWN_LEFT;
+			else md = MovementDirection::LEFT;
+		} else if (horizontalAxis > 0) {
+			if (md == MovementDirection::UP) md = MovementDirection::UP_RIGHT;
+			else if (md == MovementDirection::DOWN) md = MovementDirection::DOWN_RIGHT;
+			else md = MovementDirection::RIGHT;
+		}
+	}
 
 	return md;
 }

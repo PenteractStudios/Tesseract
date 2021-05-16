@@ -8,11 +8,11 @@
 EXPOSE_MEMBERS(FangMovement) {
 	// Add members here to expose them to the engine. Example:
 	MEMBER(MemberType::GAME_OBJECT_UID, fangUID),
-		MEMBER(MemberType::GAME_OBJECT_UID, cameraUID),
-		MEMBER(MemberType::GAME_OBJECT_UID, hitGOUID),
-		MEMBER(MemberType::INT, speed),
-		MEMBER(MemberType::INT, distanceRayCast),
-		MEMBER(MemberType::FLOAT, cameraXPosition)
+	MEMBER(MemberType::GAME_OBJECT_UID, cameraUID),
+	MEMBER(MemberType::GAME_OBJECT_UID, hitGOUID),
+	MEMBER(MemberType::INT, speed),
+	MEMBER(MemberType::INT, distanceRayCast),
+	MEMBER(MemberType::FLOAT, cameraXPosition)
 };
 
 GENERATE_BODY_IMPL(FangMovement);
@@ -35,7 +35,7 @@ void FangMovement::Update() {
 	if (Input::GetMouseButtonDown(0)) {
 		if (transform) {
 			float3 start = transform->GetPosition();
-			float3 end = transform->GetGlobalRotation() * float3(0, 0, 1);
+			float3 end = transform->GetGlobalRotation() * float3(0,0,1);
 			end.Normalize();
 			end *= distanceRayCast;
 			int mask = static_cast<int>(MaskType::ENEMY);
@@ -60,8 +60,6 @@ void FangMovement::Update() {
 	if (cameraTransform) {
 		float modifier = 1.0f;
 		if (cameraTransform->GetPosition().x < cameraXPosition) {
-			
-			/*
 			if (Input::GetKeyCode(Input::KEYCODE::KEY_LSHIFT)) {
 				modifier = 2.0f;
 			}
@@ -93,23 +91,6 @@ void FangMovement::Update() {
 					transform->SetPosition(newPosition);
 				}
 			}
-*/
-			//float horizontalAxis = Input::GetControllerAxisValue(Input::SDL_CONTROLLER_AXIS_LEFTX, 0);
-			//float verticalAxis = Input::GetControllerAxisValue(Input::SDL_CONTROLLER_AXIS_LEFTX, 1);
-
-			//if (horizontalAxis != 0) {
-			//	float3 newPosition = transform->GetPosition();
-			//	newPosition.x += horizontalAxis * speed * Time::GetDeltaTime() * modifier;
-			//	transform->SetPosition(newPosition);
-			//}
-
-			//if (verticalAxis != 0) {
-			//	float3 newPosition = transform->GetPosition();
-			//	newPosition.z += horizontalAxis * speed * Time::GetDeltaTime() * modifier;
-			//	transform->SetPosition(newPosition);
-			//}
-
-
 		}
 	}
 }
