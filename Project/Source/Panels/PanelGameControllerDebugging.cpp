@@ -81,52 +81,35 @@ void PanelGameControllerDebugging::DisplayGamepadInfo(int index, PlayerControlle
 			playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_RIGHTY] / App->input->JOYSTICK_MAX_VALUE);
 
 		//BUTTON A
-		ImGui::TextColored(App->editor->textColor, "Button A");
-		ImGui::SameLine();
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_A] ? yellow : App->editor->textColor,
-			playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_A] ? "Presssed" : "Idle");
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_A] ? yellow : App->editor->textColor, "Button A");
 
 		ImGui::SameLine();
 		ImGui::TextColored(App->editor->textColor, "---");
 		ImGui::SameLine();
 
 		//BUTTON B
-		ImGui::TextColored(App->editor->textColor, "Button B");
-		ImGui::SameLine();
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_B] ? yellow : App->editor->textColor,
-			playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_B] ? "Presssed" : "Idle");
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_B] ? yellow : App->editor->textColor, "Button B");
 
 		//BUTTON X
-		ImGui::TextColored(App->editor->textColor, "Button X");
-		ImGui::SameLine();
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_X] ? yellow : App->editor->textColor,
-			playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_X] ? "Presssed" : "Idle");
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_X] ? yellow : App->editor->textColor, "Button X");
 
 		ImGui::SameLine();
 		ImGui::TextColored(App->editor->textColor, "---");
 		ImGui::SameLine();
 
 		//BUTTON Y
-		ImGui::TextColored(App->editor->textColor, "Button Y");
-		ImGui::SameLine();
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_Y] ? yellow : App->editor->textColor,
-			playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_Y] ? "Presssed" : "Idle");
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_Y] ? yellow : App->editor->textColor, "Button Y");
 
 		//LEFT BUMPER
-		ImGui::TextColored(App->editor->textColor, "Left Bumper");
-		ImGui::SameLine();
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_LEFTSHOULDER] ? yellow : App->editor->textColor, 
-			playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_LEFTSHOULDER] ? "Presssed" : "Idle");
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_LEFTSHOULDER] ? yellow : App->editor->textColor, "Left Bumper");
 
 		ImGui::SameLine();
 		ImGui::TextColored(App->editor->textColor, "---");
 		ImGui::SameLine();
 
 		//RIGHT BUMPER
-		ImGui::TextColored(App->editor->textColor, "Right Bumper");
-		ImGui::SameLine();
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_RIGHTSHOULDER] ? yellow : App->editor->textColor, 
-			playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_RIGHTSHOULDER] ? "Presssed" : "Idle");
+
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_RIGHTSHOULDER] ? yellow : App->editor->textColor, "Right Bumper");
 
 		ImGui::TextColored(App->editor->textColor, "DPad:");
 		ImGui::SameLine();
