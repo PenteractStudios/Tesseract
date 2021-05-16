@@ -373,7 +373,7 @@ void ResourceMaterial::OnEditorUpdate() {
 
 	ImGui::NewLine();
 	if (ImGui::Button("Save##material")) {
-		if (FileDialog::GetFileExtension(GetAssetFilePath().c_str()) != DEFAULT_MODEL_EXTENSION) {
+		if (FileDialog::GetFileExtension(GetAssetFilePath().c_str()) != MODEL_EXTENSION) {
 			SaveToFile(GetAssetFilePath().c_str());
 		}
 	}
