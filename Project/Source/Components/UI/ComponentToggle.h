@@ -14,7 +14,6 @@ public:
 	~ComponentToggle();
 
 	void Init() override;
-	void DuplicateComponent(GameObject& obj) override;
 	void OnClicked() override; // Action to perform when the button is clicked
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;

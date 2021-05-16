@@ -38,6 +38,8 @@ public:
 	int GetCulledTriangles() const;
 	const float2 GetViewportSize();
 
+	bool ObjectInsideFrustum(GameObject* gameObject);
+
 public:
 	void* context = nullptr; // SDL context.
 

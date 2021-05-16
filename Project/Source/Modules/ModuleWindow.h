@@ -47,6 +47,6 @@ public:
 	std::vector<SDL_DisplayMode> displayModes;
 
 private:
-	WindowMode windowMode = WindowMode::WINDOWED;
+	WindowMode windowMode = WindowMode::BORDERLESS;
 	int currentDisplayMode = 0;
 };

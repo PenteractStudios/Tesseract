@@ -26,23 +26,43 @@
 #define JSON_TAG_TEXTURE_TEXTUREID "TextureId"
 #define JSON_TAG_COLOR "Color"
 #define JSON_TAG_ALPHATRANSPARENCY "AlphaTransparency"
+#define JSON_TAG_IS_FILL "IsFill"
+#define JSON_TAG_FILL_VALUE "FillValue"
 
 ComponentImage::~ComponentImage() {
 	//TODO DECREASE REFERENCE COUNT OF SHADER AND TEXTURE, MAYBE IN A NEW COMPONENT::CLEANUP?
 }
 
 void ComponentImage::Init() {
+	RebuildFillQuadVBO();
 }
 
 void ComponentImage::Update() {
 }
 
 void ComponentImage::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	ImGui::TextColored(App->editor->textColor, "Texture Settings:");
 
 	ImGui::ColorEdit4("Color##", color.ptr());
 
 	ImGui::Checkbox("Alpha transparency", &alphaTransparency);
+
+	ImGui::Checkbox("Is Fill", &isFill);
+
+	if (ImGui::DragFloat("Fill", &fillVal, App->editor->dragSpeed2f, 0, 1)) {
+		RebuildFillQuadVBO();
+	}
 
 	UID oldID = textureID;
 	ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
@@ -82,6 +102,8 @@ void ComponentImage::Save(JsonValue jComponent) const {
 	jColor[3] = color.w;
 
 	jComponent[JSON_TAG_ALPHATRANSPARENCY] = alphaTransparency;
+	jComponent[JSON_TAG_IS_FILL] = isFill;
+	jComponent[JSON_TAG_FILL_VALUE] = fillVal;
 }
 
 void ComponentImage::Load(JsonValue jComponent) {
@@ -95,6 +117,8 @@ void ComponentImage::Load(JsonValue jComponent) {
 	color.Set(jColor[0], jColor[1], jColor[2], jColor[3]);
 
 	alphaTransparency = jComponent[JSON_TAG_ALPHATRANSPARENCY];
+	isFill = jComponent[JSON_TAG_IS_FILL];
+	fillVal = jComponent[JSON_TAG_FILL_VALUE];
 }
 
 float4 ComponentImage::GetMainColor() const {
@@ -126,12 +150,15 @@ void ComponentImage::Draw(ComponentTransform2D* transform) const {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, App->userInterface->GetQuadVBO());
+	if (isFill) {
+		glBindBuffer(GL_ARRAY_BUFFER, fillQuadVBO);
+	} else {
+		glBindBuffer(GL_ARRAY_BUFFER, App->userInterface->GetQuadVBO());
+	}
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*) (sizeof(float) * 6 * 3));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*) ((sizeof(float) * 6 * 3)));
 	glUseProgram(program);
 
 	float4x4 modelMatrix = transform->GetGlobalScaledMatrix();
@@ -176,13 +203,62 @@ void ComponentImage::SetColor(float4 color_) {
 	color = color_;
 }
 
-void ComponentImage::DuplicateComponent(GameObject& owner) {
-	ComponentImage* component = owner.CreateComponent<ComponentImage>();
-	component->textureID = textureID;
-	if (textureID != 0) {
-		App->resources->IncreaseReferenceCount(textureID);
-	}
+void ComponentImage::SetFillValue(float val) {
+	if (val >= 1.0f) {
+		fillVal = 1.0f;
+	} else
+		fillVal = val;
+}
 
-	component->color = color;
-	component->alphaTransparency = alphaTransparency;
+void ComponentImage::SetIsFill(bool b) {
+	isFill = b;
+}
+
+void ComponentImage::RebuildFillQuadVBO() {
+	float buffer_data[] = {
+		-0.5f,
+		-0.5f,
+		0.0f, //  v0 pos
+
+		0.5f,
+		-0.5f,
+		0.0f, // v1 pos
+
+		-0.5f,
+		-0.5f + fillVal,
+		0.0f, //  v2 pos
+
+		0.5f,
+		-0.5f,
+		0.0f, //  v3 pos
+
+		0.5f,
+		-0.5f + fillVal,
+		0.0f, // v4 pos
+
+		-0.5f,
+		-0.5f + fillVal,
+		0.0f, //  v5 pos
+
+		0.0f,
+		0.0f, //  v0 texcoord
+
+		1.0f,
+		0.0f, //  v1 texcoord
+
+		0.0f ,
+		1.0f * fillVal, //  v2 texcoord
+
+		1.0f,
+		0.0f, //  v3 texcoord
+
+		1.0f ,
+		1.0f * fillVal, //  v4 texcoord
+
+		0.0f ,
+		1.0f * fillVal //  v5 texcoord
+	};
+	glGenBuffers(1, &fillQuadVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, fillQuadVBO); // set vbo active
+	glBufferData(GL_ARRAY_BUFFER, sizeof(buffer_data), buffer_data, GL_STATIC_DRAW);
 }

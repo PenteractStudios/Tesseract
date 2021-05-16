@@ -37,6 +37,17 @@ void ComponentAnimation::Update() {
 }
 
 void ComponentAnimation::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	ImGui::TextColored(App->editor->titleColor, "Animation");
 
 	UID oldStateMachineUID = stateMachineResourceUID;
@@ -64,14 +75,6 @@ void ComponentAnimation::Load(JsonValue jComponent) {
 
 	initalStateUid = jComponent[JSON_TAG_INITAL_STATE_ID];
 	LoadResourceStateMachine();
-}
-
-void ComponentAnimation::DuplicateComponent(GameObject& owner) {
-	// TODO
-	/*ComponentAnimation* component = owner.CreateComponent<ComponentAnimation>();
-	component->stateMachineResourceUID = stateMachineResourceUID;
-	component->currentState = currentState;
-	component->initialState = initialState;*/
 }
 
 void ComponentAnimation::OnUpdate() {

@@ -206,21 +206,6 @@ void ComponentSelectable::OnPointerExit() {
 	}
 }
 
-void ComponentSelectable::DuplicateComponent(GameObject& owner) {
-	ComponentSelectable* component = owner.CreateComponent<ComponentSelectable>();
-	component->interactable = interactable;
-	component->colorDisabled = colorDisabled;
-	component->colorHovered = colorHovered;
-	component->colorSelected = colorSelected;
-	component->onAxisDown = onAxisDown;
-	component->onAxisUp = onAxisUp;
-	component->onAxisRight = onAxisRight;
-	component->onAxisLeft = onAxisLeft;
-	component->selectableType = selectableType;
-	component->navigationType = navigationType;
-	component->transitionType = transitionType;
-}
-
 bool ComponentSelectable::IsHovered() const {
 	return hovered;
 }

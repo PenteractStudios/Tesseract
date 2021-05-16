@@ -29,6 +29,7 @@ void ComponentAudioListener::OnEditorUpdate() {
 			}
 		}
 	}
+	ImGui::Separator();
 }
 
 void ComponentAudioListener::Save(JsonValue jComponent) const {
@@ -37,11 +38,6 @@ void ComponentAudioListener::Save(JsonValue jComponent) const {
 
 void ComponentAudioListener::Load(JsonValue jComponent) {
 	gain = jComponent[JSON_TAG_GAIN];
-}
-
-void ComponentAudioListener::DuplicateComponent(GameObject& owner) {
-	ComponentAudioListener* component = owner.CreateComponent<ComponentAudioListener>();
-	component->gain = this->gain;
 }
 
 void ComponentAudioListener::OnEnable() {

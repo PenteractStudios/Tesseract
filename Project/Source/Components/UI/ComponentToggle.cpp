@@ -103,11 +103,6 @@ float4 ComponentToggle::GetClickColor() const {
 	return colorClicked;
 }
 
-void ComponentToggle::DuplicateComponent(GameObject& owner) {
-	ComponentToggle* component = owner.CreateComponent<ComponentToggle>();
-	component->isChecked = isChecked;
-}
-
 void ComponentToggle::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_IS_ON] = isChecked;
 	jComponent[JSON_TAG_ENABLED_IMAGE_ID] = enabledImageObjectID;
@@ -128,6 +123,17 @@ void ComponentToggle::Load(JsonValue jComponent) {
 }
 
 void ComponentToggle::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	ImGui::ColorEdit4("Click Color##", colorClicked.ptr());
 	ImGui::GameObjectSlot("Enabled Image GameObject", &enabledImageObjectID);
 

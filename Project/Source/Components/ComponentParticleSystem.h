@@ -50,15 +50,14 @@ public:
 	void Draw();
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Stop();
-	void DuplicateComponent(GameObject& owner) override;
 	void SpawnParticle();
 	void killParticles();
 	float3 CreatePosition();
 	float3 CreateVelocity();
 
 private:
-	const float4& GetTintColor() const; // Gets an additional color that needs to be applied to the image. Currently gets the color of the Button
-	void CreateParticles(float nParticles, float vel);
+	float4 GetTintColor() const; // Gets an additional color that needs to be applied to the image. Currently gets the color of the Button
+	void CreateParticles(unsigned nParticles, float vel);
 
 private:
 	UID textureID = 0; // ID of the image
@@ -76,8 +75,8 @@ private:
 	float4 color = float4::one; // Color used as default tainter
 
 	float scale = 5;
-	float maxParticles = 100;
-	float velocity = 0.1;
+	unsigned maxParticles = 100;
+	float velocity = 0.1f;
 	float kc = 1.0f; //Keep in one to avoid having denominator less than 1
 	float kl = 0.045f;
 	float kq = 0.0075f;
@@ -85,11 +84,9 @@ private:
 	float outerAngle = pi / 6;
 	float particleLife = 5;
 
-	int particleSpawned = 0;
-	int maxDistance = 2;
-	int particleActivated = false;
-	int Xtiles = 1;
-	int Ytiles = 1;
+	unsigned particleSpawned = 0;
+	unsigned Xtiles = 1;
+	unsigned Ytiles = 1;
 
 private:
 	EmitterType emitterType = EmitterType::CONE;

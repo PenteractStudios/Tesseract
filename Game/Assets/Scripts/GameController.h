@@ -28,6 +28,7 @@ public:
 	UID staticCamera3UID;
 	UID staticCamera4UID;
 	UID playerUID;
+	UID enemySpawnPointsUID;
 
 	float speed = 50.f;
 	float rotationSpeedX = 10.f;
@@ -37,6 +38,7 @@ public:
 
 private:
 	void DoTransition();
+	void SpawnEnemies();
 
 private:
 	GameObject* gameCamera = nullptr;

@@ -26,7 +26,6 @@
 #define JSON_TAG_SIZE "Size"
 #define JSON_TAG_ANCHOR_MIN "AnchorMin"
 #define JSON_TAG_ANCHOR_MAX "AnchorMax"
-#define JSON_TAG_ANCHORED_2D_POSITION "Anchored2DPosition"
 #define JSON_TAG_ANCHOR_SELECTED "AnchorSelected"
 #define JSON_TAG_IS_CUSTOM_ANCHOR "IsCustomAnchor"
 
@@ -330,6 +329,18 @@ const float4x4 ComponentTransform2D::GetGlobalScaledMatrix() {
 	return globalMatrix * float4x4::Scale(size.x, size.y, 0);
 }
 
+Quat ComponentTransform2D::GetGlobalRotation() const {
+	Quat parentRotation = Quat::FromEulerXYZ(0, 0, 0);
+	GameObject* parent = GetOwner().GetParent();
+	if (parent != nullptr) {
+		ComponentTransform2D* parentTransform = parent->GetComponent<ComponentTransform2D>();
+		if (parentTransform != nullptr) {
+			parentRotation = parentTransform->GetGlobalRotation();
+		}
+	}
+	return parentRotation * rotation;
+}
+
 void ComponentTransform2D::CalculateGlobalMatrix() {
 	if (dirty) {
 		localMatrix = float4x4::FromTRS(GetPositionRelativeToParent(), rotation, scale);
@@ -382,7 +393,7 @@ void ComponentTransform2D::UpdateUIElements() {
 	if (dirty) { // Means the transform has changed
 		ComponentText* text = GetOwner().GetComponent<ComponentText>();
 		if (text != nullptr) {
-			text->RecalculcateVertices();
+			text->Invalidate();
 		}
 	}
 }
@@ -456,18 +467,6 @@ void ComponentTransform2D::Invalidate() {
 	if (boundingBox != nullptr) {
 		boundingBox->Invalidate();
 	}
-}
-
-void ComponentTransform2D::DuplicateComponent(GameObject& owner) {
-	ComponentTransform2D* component = owner.CreateComponent<ComponentTransform2D>();
-	component->SetPivot(pivot);
-	component->SetSize(size);
-	component->SetPosition(position);
-	component->SetRotation(rotation);
-	component->SetScale(scale);
-	component->SetAnchorMin(anchorMin);
-	component->SetAnchorMax(anchorMax);
-	component->dirty = true;
 }
 
 void ComponentTransform2D::SetTop(float top_) {

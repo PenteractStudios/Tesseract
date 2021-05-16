@@ -7,7 +7,7 @@
     ],
     "QuadtreeMaxDepth": 4,
     "QuadtreeElementsPerNode": 200,
-    "GameCamera": 13710553100051561410,
+    "GameCamera": 15361723335120325241,
     "AmbientLight": [
         0.25,
         0.25,
@@ -155,7 +155,7 @@
                             ],
                             "NearPlaneDistance": 0.10000000149011612,
                             "FarPlaneDistance": 200.0,
-                            "HorizontalFov": 1.7257943153381348,
+                            "HorizontalFov": 1.7953853607177735,
                             "VerticalFov": 1.3113912343978882
                         }
                     },
@@ -214,6 +214,7 @@
                         "Active": true,
                         "Position": [
                             0.0,
+                            0.0,
                             0.0
                         ],
                         "Rotation": [
@@ -224,7 +225,8 @@
                         ],
                         "Scale": [
                             1.0,
-                            1.0
+                            1.0,
+                            0.0
                         ],
                         "LocalEulerAngles": [
                             0.0,
@@ -236,6 +238,7 @@
                             0.5
                         ],
                         "PivotPosition": [
+                            0.0,
                             0.0,
                             0.0
                         ],
@@ -300,6 +303,7 @@
                                 "Active": true,
                                 "Position": [
                                     0.0,
+                                    0.0,
                                     0.0
                                 ],
                                 "Rotation": [
@@ -310,7 +314,8 @@
                                 ],
                                 "Scale": [
                                     1.0,
-                                    1.0
+                                    1.0,
+                                    0.0
                                 ],
                                 "LocalEulerAngles": [
                                     0.0,
@@ -322,6 +327,7 @@
                                     0.5
                                 ],
                                 "PivotPosition": [
+                                    0.0,
                                     0.0,
                                     0.0
                                 ],
@@ -356,7 +362,9 @@
                                     1.0,
                                     0.0
                                 ],
-                                "AlphaTransparency": false
+                                "AlphaTransparency": false,
+                                "IsFill": false,
+                                "FillValue": 0.0
                             }
                         ],
                         "Children": null
@@ -400,22 +408,24 @@
                                 "Active": true,
                                 "Position": [
                                     -355.5,
-                                    -90.0
+                                    -90.0,
+                                    0.0
                                 ],
                                 "Rotation": [
                                     0.0,
                                     0.0,
-                                    0.0,
-                                    1.0
+                                    0.12706463038921357,
+                                    0.991894543170929
                                 ],
                                 "Scale": [
                                     1.0,
-                                    1.0
+                                    1.0,
+                                    0.0
                                 ],
                                 "LocalEulerAngles": [
                                     0.0,
                                     0.0,
-                                    0.0
+                                    14.600000381469727
                                 ],
                                 "Pivot": [
                                     0.5,
@@ -423,7 +433,8 @@
                                 ],
                                 "PivotPosition": [
                                     -355.5,
-                                    -90.0
+                                    -90.0,
+                                    0.0
                                 ],
                                 "Size": [
                                     711.0,
@@ -504,7 +515,9 @@
                                     1.0,
                                     1.0
                                 ],
-                                "AlphaTransparency": true
+                                "AlphaTransparency": true,
+                                "IsFill": false,
+                                "FillValue": 0.0
                             },
                             {
                                 "Type": "Script",
@@ -514,7 +527,114 @@
                                 "Values": null
                             }
                         ],
-                        "Children": null
+                        "Children": [
+                            {
+                                "Id": 12968852357105593578,
+                                "Name": "Text",
+                                "Active": true,
+                                "ActiveHierarchy": true,
+                                "RootBoneId": 0,
+                                "Components": [
+                                    {
+                                        "Type": "Transform",
+                                        "Id": 17652433384628653093,
+                                        "Active": true,
+                                        "Position": [
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
+                                        "Rotation": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            1.0
+                                        ],
+                                        "Scale": [
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                        ],
+                                        "LocalEulerAngles": [
+                                            -0.0,
+                                            0.0,
+                                            -0.0
+                                        ]
+                                    },
+                                    {
+                                        "Type": "Transform2D",
+                                        "Id": 11569149455011511969,
+                                        "Active": true,
+                                        "Position": [
+                                            200.0,
+                                            -200.0,
+                                            0.0
+                                        ],
+                                        "Rotation": [
+                                            0.0,
+                                            0.0,
+                                            0.28276002407073977,
+                                            0.9591907858848572
+                                        ],
+                                        "Scale": [
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                        ],
+                                        "LocalEulerAngles": [
+                                            0.0,
+                                            0.0,
+                                            32.849998474121097
+                                        ],
+                                        "Pivot": [
+                                            0.5,
+                                            0.5
+                                        ],
+                                        "PivotPosition": [
+                                            200.0,
+                                            -200.0,
+                                            0.0
+                                        ],
+                                        "Size": [
+                                            200.0,
+                                            200.0
+                                        ],
+                                        "AnchorMin": [
+                                            0.0,
+                                            1.0
+                                        ],
+                                        "AnchorMax": [
+                                            0.0,
+                                            1.0
+                                        ],
+                                        "AnchorSelected": 0,
+                                        "IsCustomAnchor": false
+                                    },
+                                    {
+                                        "Type": "CanvasRenderer",
+                                        "Id": 1224428166973779340,
+                                        "Active": true
+                                    },
+                                    {
+                                        "Type": "Text",
+                                        "Id": 5983853004735027789,
+                                        "Active": true,
+                                        "FontID": 13870526982062861803,
+                                        "FontSize": 24.0,
+                                        "LineHeight": 16.0,
+                                        "Alignment": 0,
+                                        "Value": "Textwerwer\nasdadasd\nadsadasd\nasdasdad",
+                                        "Color": [
+                                            1.0,
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                        ]
+                                    }
+                                ],
+                                "Children": null
+                            }
+                        ]
                     },
                     {
                         "Id": 14012164655252343934,
@@ -555,7 +675,8 @@
                                 "Active": true,
                                 "Position": [
                                     355.5,
-                                    90.0
+                                    90.0,
+                                    0.0
                                 ],
                                 "Rotation": [
                                     0.0,
@@ -565,7 +686,8 @@
                                 ],
                                 "Scale": [
                                     1.0,
-                                    1.0
+                                    1.0,
+                                    0.0
                                 ],
                                 "LocalEulerAngles": [
                                     0.0,
@@ -578,7 +700,8 @@
                                 ],
                                 "PivotPosition": [
                                     0.0,
-                                    90.0
+                                    90.0,
+                                    0.0
                                 ],
                                 "Size": [
                                     711.0,
@@ -659,7 +782,9 @@
                                     1.0,
                                     1.0
                                 ],
-                                "AlphaTransparency": true
+                                "AlphaTransparency": true,
+                                "IsFill": false,
+                                "FillValue": 0.0
                             }
                         ],
                         "Children": null

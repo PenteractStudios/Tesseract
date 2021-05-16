@@ -179,6 +179,11 @@ UpdateStatus ModuleRender::Update() {
 		DrawSceneRecursive(scene->quadtree.root, scene->quadtree.bounds);
 	}
 
+	// Draw particles (TODO: improve with culling)
+	for (ComponentParticleSystem& particleSystem : scene->particleComponents) {
+		if (particleSystem.IsActive()) particleSystem.Draw();
+	}
+
 	// Draw Gizmos
 	if (App->camera->IsEngineCameraActive() || debugMode) {
 		GameObject* selectedGameObject = App->editor->selectedGameObject;
@@ -495,6 +500,14 @@ void ModuleRender::SetPerspectiveRender() {
 
 const float2 ModuleRender::GetViewportSize() {
 	return viewportSize;
+}
+
+bool ModuleRender::ObjectInsideFrustum(GameObject* gameObject) {
+	ComponentBoundingBox* boundingBox = gameObject->GetComponent<ComponentBoundingBox>();
+	if (boundingBox) {
+		return CheckIfInsideFrustum(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB());
+	}
+	return false;
 }
 
 void ModuleRender::DrawAnimation(const GameObject* gameObject, bool hasAnimation) {

@@ -2,6 +2,7 @@
 
 #include "GameObject.h"
 #include "Application.h"
+#include "Modules/ModuleEditor.h"
 #include "Modules/ModuleResources.h"
 #include "Resources/ResourceMesh.h"
 #include "Utils/Logging.h"
@@ -33,6 +34,7 @@ Scene::Scene(unsigned numGameObjects) {
 	particleComponents.Allocate(numGameObjects);
 	audioSourceComponents.Allocate(numGameObjects);
 	audioListenerComponents.Allocate(numGameObjects);
+	progressbarsComponents.Allocate(numGameObjects);
 }
 
 void Scene::ClearScene() {
@@ -73,24 +75,6 @@ GameObject* Scene::CreateGameObject(GameObject* parent, UID id, const char* name
 	return gameObject;
 }
 
-GameObject* Scene::DuplicateGameObject(GameObject* gameObject, GameObject* parent) {
-	GameObject* newGO = CreateGameObject(parent, GenerateUID(), (gameObject->name + " (copy)").c_str());
-
-	// Copy the components
-	for (Component* component : gameObject->GetComponents()) {
-		component->DuplicateComponent(*newGO);
-	}
-
-	newGO->InitComponents();
-
-	// Duplicate recursively its children
-	for (GameObject* child : gameObject->GetChildren()) {
-		DuplicateGameObject(child, newGO);
-	}
-
-	return newGO;
-}
-
 void Scene::DestroyGameObject(GameObject* gameObject) {
 	if (gameObject == nullptr) return;
 
@@ -103,6 +87,9 @@ void Scene::DestroyGameObject(GameObject* gameObject) {
 	if (gameObject->isInQuadtree) {
 		quadtree.Remove(gameObject);
 	}
+
+	bool selected = App->editor->selectedGameObject == gameObject;
+	if (selected) App->editor->selectedGameObject = nullptr;
 
 	gameObject->RemoveAllComponents();
 	gameObject->SetParent(nullptr);
@@ -159,6 +146,8 @@ Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 		return audioSourceComponents.Find(componentId);
 	case ComponentType::AUDIO_LISTENER:
 		return audioListenerComponents.Find(componentId);
+	case ComponentType::PROGRESS_BAR:
+		return progressbarsComponents.Find(componentId);
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::GetComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -212,6 +201,8 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 		return audioSourceComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::AUDIO_LISTENER:
 		return audioListenerComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::PROGRESS_BAR:
+		return progressbarsComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::CreateComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -286,6 +277,9 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		break;
 	case ComponentType::AUDIO_LISTENER:
 		audioListenerComponents.Release(componentId);
+		break;
+	case ComponentType::PROGRESS_BAR:
+		progressbarsComponents.Release(componentId);
 		break;
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::RemoveComponentByTypeAndId.", (unsigned) type);

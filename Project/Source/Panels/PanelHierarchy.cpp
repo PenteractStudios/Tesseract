@@ -85,52 +85,51 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 				}
 			}
 
-			if (ImGui::Selectable("Duplicate")) {
-				scene->DuplicateGameObject(gameObject, gameObject->GetParent());
-			}
-
 			ImGui::Separator();
 		}
 
 		if (ImGui::Selectable("Create Empty")) {
-			CreateEmptyGameObject(gameObject);
+			App->editor->selectedGameObject = CreateEmptyGameObject(gameObject);
 		}
 		if (ImGui::Selectable("Particle System")) {
-			CreatePartycleSystemObject(gameObject);
+			App->editor->selectedGameObject = CreatePartycleSystemObject(gameObject);
 		}
 		// TODO: code duplicated in every CreateXX(gameObject). Generalisation could be done here. Also with PanelInspector->AddUIComponentsOptions()
 		if (ImGui::BeginMenu("UI")) {
 			if (ImGui::MenuItem("Event System")) {
 				if (App->scene->scene->eventSystemComponents.Count() == 0) {
-					CreateEventSystem(gameObject);
+					App->editor->selectedGameObject = CreateEventSystem(gameObject);
 				} else {
 					App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 				}
 			}
 
 			if (ImGui::MenuItem("Canvas")) {
-				CreateUICanvas(gameObject);
+				App->editor->selectedGameObject = CreateUICanvas(gameObject);
 			}
 
 			if (ImGui::MenuItem("Image")) {
-				CreateUIImage(gameObject);
+				App->editor->selectedGameObject = CreateUIImage(gameObject);
 			}
 
 			if (ImGui::MenuItem("Text")) {
-				CreateUIText(gameObject);
+				App->editor->selectedGameObject = CreateUIText(gameObject);
 			}
 
 			if (ImGui::MenuItem("Button")) {
-				CreateUIButton(gameObject);
+				App->editor->selectedGameObject = CreateUIButton(gameObject);
 			}
 
 			if (ImGui::MenuItem("Slider")) {
-				CreateUISlider(gameObject);
+				App->editor->selectedGameObject = CreateUISlider(gameObject);
 			}
 			if (ImGui::MenuItem("Toggle")) {
-				CreateUIToggle(gameObject);
+				App->editor->selectedGameObject = CreateUIToggle(gameObject);
 			}
 
+			if (ImGui::MenuItem("Progress Bar")) {
+				App->editor->selectedGameObject = CreateUIProgressBar(gameObject);
+			}
 			ImGui::EndMenu();
 		}
 
@@ -158,22 +157,8 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 				payloadGameObject->SetParent(gameObject);
 
 				ComponentTransform* transform = payloadGameObject->GetComponent<ComponentTransform>();
-				ComponentTransform* parentTransform = gameObject->GetComponent<ComponentTransform>();
-				// Recompute local matrix to maintain global position
-				// 1. Get current matrix
 				float4x4 childGlobalMatrix = transform->GetGlobalMatrix();
-				float4x4 parentGlobalMatrix = parentTransform->GetGlobalMatrix();
-				float3 parentScale = float3(parentGlobalMatrix.Col3(0).Length(), parentGlobalMatrix.Col3(1).Length(), parentGlobalMatrix.Col3(2).Length());
-				// 2. Invert the new parent global matrix with the fastest possible method
-				if (parentScale.Equals(float3::one)) { // No scaling
-					parentGlobalMatrix.InverseOrthonormal();
-				} else if (parentScale.xxx().Equals(parentScale)) { // Uniform scaling
-					parentGlobalMatrix.InverseOrthogonalUniformScale();
-				} else { // Non-uniform scaling
-					parentGlobalMatrix.InverseColOrthogonal();
-				}
-				// 3. New local matrix
-				transform->SetTRS(parentGlobalMatrix * childGlobalMatrix);
+				transform->SetGlobalTRS(childGlobalMatrix);
 			}
 		}
 
@@ -321,11 +306,35 @@ GameObject* PanelHierarchy::CreateUIToggle(GameObject* gameObject) {
 	return newGameObject;
 }
 
+GameObject* PanelHierarchy::CreateUIProgressBar(GameObject* gameObject) {
+	if (gameObject->HasComponentInAnyParent<ComponentCanvas>(gameObject) == nullptr) {
+		gameObject = CreateUICanvas(gameObject);
+	}
+  
+	GameObject* progressBar = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Progress Bar");
+	ComponentTransform* progressTransform = progressBar->CreateComponent<ComponentTransform>();
+	ComponentTransform2D* progressTransform2D = progressBar->CreateComponent<ComponentTransform2D>();
+	ComponentCanvasRenderer* progressRenderer = progressBar->CreateComponent<ComponentCanvasRenderer>();
+	ComponentProgressBar* progress = progressBar->CreateComponent<ComponentProgressBar>();
+
+	GameObject* background = CreateUIImage(progressBar);
+	background->GetComponent<ComponentTransform2D>()->SetSize(float2(700, 80));
+	background->name = "Background";
+
+	GameObject* fill = CreateUIImage(progressBar);
+	fill->GetComponent<ComponentImage>()->SetColor(float4(255.0f, 0, 0, 255.0f));
+	fill->name = "Fill";
+
+	progressBar->InitComponents();
+
+	return progressBar;
+}
+
 GameObject* PanelHierarchy::CreateUISlider(GameObject* gameObject) {
 	if (gameObject->HasComponentInAnyParent<ComponentCanvas>(gameObject) == nullptr) {
 		gameObject = CreateUICanvas(gameObject);
 	}
-
+  
 	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Slider");
 	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
@@ -354,7 +363,7 @@ GameObject* PanelHierarchy::CreateUISlider(GameObject* gameObject) {
 	ComponentCanvasRenderer* handleRenderer = handleGameObject->CreateComponent<ComponentCanvasRenderer>();
 	ComponentImage* handleImage = handleGameObject->CreateComponent<ComponentImage>();
 
-	
+
 	selectable->SetSelectableType(slider->GetType());
 	backgroundGameObject->InitComponents();
 	fillGameObject->InitComponents();

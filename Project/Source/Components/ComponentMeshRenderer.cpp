@@ -124,9 +124,10 @@ void ComponentMeshRenderer::Update() {
 		const GameObject* rootBoneParent = rootBone->GetParent();
 		const float4x4& invertedRootBoneTransform = rootBoneParent ? rootBoneParent->GetComponent<ComponentTransform>()->GetGlobalMatrix().Inverted() : float4x4::identity;
 
+		const float4x4 &localMatrix = GetOwner().GetComponent<ComponentTransform>()->GetLocalMatrix();
 		for (unsigned i = 0; i < mesh->numBones; ++i) {
 			const GameObject* bone = goBones.at(mesh->bones[i].boneName);
-			palette[i] = invertedRootBoneTransform * bone->GetComponent<ComponentTransform>()->GetGlobalMatrix() * mesh->bones[i].transform;
+			palette[i] = localMatrix * invertedRootBoneTransform * bone->GetComponent<ComponentTransform>()->GetGlobalMatrix() * mesh->bones[i].transform ;
 		}
 	}
 }
@@ -141,12 +142,6 @@ void ComponentMeshRenderer::Load(JsonValue jComponent) {
 	if (meshId != 0) App->resources->IncreaseReferenceCount(meshId);
 	materialId = jComponent[JSON_TAG_MATERIAL_ID];
 	if (materialId != 0) App->resources->IncreaseReferenceCount(materialId);
-}
-
-void ComponentMeshRenderer::DuplicateComponent(GameObject& owner) {
-	ComponentMeshRenderer* component = owner.CreateComponent<ComponentMeshRenderer>();
-	component->meshId = meshId;
-	component->materialId = materialId;
 }
 
 void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
