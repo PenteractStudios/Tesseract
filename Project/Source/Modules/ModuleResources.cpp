@@ -195,7 +195,7 @@ bool ModuleResources::ImportAssetByExtension(JsonValue jMeta, const char* filePa
 	} else if (extension == FRAGMENT_SHADER_EXTENSION || extension == VERTEX_SHADER_EXTENSION || extension == DEFAULT_SHADER_EXTENSION) {
 		// Shader files
 		ShaderImporter::ImportShader(filePath, jMeta);
-	} else if (extension == DEFAULT_MODEL_EXTENSION || extension == OBJ_MODEL_EXTENSION) {
+	} else if (extension == MODEL_EXTENSION) {
 		// Model files
 		ModelImporter::ImportModel(filePath, jMeta);
 	} else if (extension == SKYBOX_EXTENSION) {
