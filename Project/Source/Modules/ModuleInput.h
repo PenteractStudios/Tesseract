@@ -49,11 +49,13 @@ public:
 
 class ModuleInput : public Module {
 public:
+	const float JOYSTICK_DEAD_ZONE = 8000.0f;
+	const float JOYSTICK_MAX_VALUE = 32767.0f;
+
 public:
 	// ------- Core Functions ------ //
 	bool Init() override;
 	UpdateStatus PreUpdate() override; // All button and keys pressed are processed here.
-	UpdateStatus Update() override;	   // All button and keys pressed are processed here.
 	bool CleanUp() override;
 
 	void ReleaseDroppedFilePath();			// Calls a SDL_free() to release 'droppedFilePath'.

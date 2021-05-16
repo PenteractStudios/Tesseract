@@ -176,6 +176,7 @@
     <ClCompile Include="Source\Components\ComponentParticleSystem.cpp" />
     <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Source\MaskType.cpp" />
+    <ClCompile Include="Source\Panels\PanelGameControllerDebugging.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -451,6 +452,7 @@
     <ClInclude Include="Source\Components\ComponentParticleSystem.h" />
     <ClInclude Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Source\MaskType.h" />
+    <ClInclude Include="Source\Panels\PanelGameControllerDebugging.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />
@@ -467,6 +469,7 @@
     <None Include="Libs\MathGeoLib\Math\Matrix.inl" />
     <None Include="Debugging.props" />
     <None Include="Source\Utils\dte80a.tlh" />
+    <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />
