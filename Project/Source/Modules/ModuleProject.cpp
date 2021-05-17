@@ -404,8 +404,8 @@ bool ModuleProject::Init() {
 }
 
 UpdateStatus ModuleProject::Update() {
-	for (ComponentScript& script : App->scene->scene->scriptComponents) {
-		if (App->time->HasGameStarted() && App->scene->sceneLoaded) {
+	if (App->time->HasGameStarted() && App->scene->scene->sceneLoaded) {
+		for (ComponentScript& script : App->scene->scene->scriptComponents) {
 			if (script.IsActive()) {
 				Script* scriptInstance = script.GetScriptInstance();
 				if (scriptInstance != nullptr) {
@@ -425,8 +425,8 @@ bool ModuleProject::CleanUp() {
 }
 
 void ModuleProject::ReceiveEvent(TesseractEvent& e) {
-	for (ComponentScript& script : App->scene->scene->scriptComponents) {
-		if (App->time->HasGameStarted() && App->scene->sceneLoaded) {
+	if (App->time->HasGameStarted() && App->scene->scene->sceneLoaded) {
+		for (ComponentScript& script : App->scene->scene->scriptComponents) {
 			if (script.IsActive()) {
 				Script* scriptInstance = script.GetScriptInstance();
 				if (scriptInstance != nullptr) {

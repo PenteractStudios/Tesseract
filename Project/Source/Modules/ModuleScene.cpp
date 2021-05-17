@@ -130,12 +130,11 @@ void ModuleScene::ReceiveEvent(TesseractEvent& e) {
 		scene->DestroyGameObject(e.Get<DestroyGameObjectStruct>().gameObject);
 		break;
 	case TesseractEventType::CHANGE_SCENE:
-		sceneLoaded = false;
 		SceneImporter::LoadScene(e.Get<ChangeSceneStruct>().scenePath);
 		break;
 	case TesseractEventType::RESOURCES_LOADED:
-		if (App->time->IsGameRunning() && !sceneLoaded) {
-			sceneLoaded = true;
+		if (App->time->HasGameStarted() && !scene->sceneLoaded) {
+			scene->sceneLoaded = true;
 			for (ComponentScript& script : scene->scriptComponents) {
 				script.CreateScriptInstance();
 				Script* scriptInstance = script.GetScriptInstance();
