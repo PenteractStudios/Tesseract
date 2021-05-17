@@ -14,9 +14,6 @@
 #define TESSERACT_ENGINE_API __declspec(dllexport)
 #endif
 
-//TODO THIS CLASS CURRENTLY ONLY WORKS FOR OBJECTS THAT USE THE CENTER OF THE SCREEN AS THE CENTER OF COORDINATES,
-//NEITHER PIVOT NOR ANCHOR ARE TAKEN INTO ACCOUNT IN ANY WAY, NOR ARE THEY MODIFIABLE LIKE THEY WOULD IN UNITY
-
 struct AnchorPreset {
 	enum class AnchorPresetType {
 		// Presets
@@ -85,7 +82,7 @@ public:
 	float3 GetPivotPosition() const;				 // Returns the pivot position
 	float3 GetPositionRelativeToParent() const;		 // Returns the position of the object relative to its parent
 	float3 GetScreenPosition() const;				 // Returns the position of the object respect the screen
-	void CalculatePivotPosition();					 // Update this pivot position to value
+	void CalculatePivotPosition(bool changeScale);		 // Update this pivot position to value (scaled is true when scale the object)
 
 	void InvalidateHierarchy(); // Invalidates hierarchy
 	void Invalidate();			// Invalidates component

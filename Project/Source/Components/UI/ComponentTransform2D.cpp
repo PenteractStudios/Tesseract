@@ -264,14 +264,14 @@ void ComponentTransform2D::SetPosition(float3 position_) {
 
 void ComponentTransform2D::SetPivot(float2 pivot_) {
 	pivot = pivot_;
-	CalculatePivotPosition();
+	CalculatePivotPosition(false);
 
 	InvalidateHierarchy();
 }
 
 void ComponentTransform2D::SetSize(float2 size_) {
 	size = size_;
-	CalculatePivotPosition();
+	CalculatePivotPosition(false);
 
 	InvalidateHierarchy();
 }
@@ -292,8 +292,7 @@ void ComponentTransform2D::SetRotation(float3 rotation_) {
 
 void ComponentTransform2D::SetScale(float3 scale_) {
 	scale = scale_;
-	// Update the new pivot position
-	CalculatePivotPosition();
+	CalculatePivotPosition(true);
 	InvalidateHierarchy();
 }
 
@@ -413,10 +412,15 @@ float3 ComponentTransform2D::GetScreenPosition() const {
 	return screenPosition;
 }
 
-void ComponentTransform2D::CalculatePivotPosition() {
-	pivotPosition.x = (size.x * pivot.x - size.x * 0.5f);
-	pivotPosition.y = (size.y * pivot.y - size.y * 0.5f);
+void ComponentTransform2D::CalculatePivotPosition(bool changeScale) {
+	pivotPosition.x = size.x * pivot.x - size.x * 0.5f;
+	pivotPosition.y = size.y * pivot.y - size.y * 0.5f;
 	
+	if (changeScale) { // Change position only when the object change the scale
+		position.x += (pivotPosition.x * scale.x) - pivotPosition.x;
+		position.y += (pivotPosition.y * scale.x) - pivotPosition.y;
+	}
+
 	InvalidateHierarchy();
 }
 
