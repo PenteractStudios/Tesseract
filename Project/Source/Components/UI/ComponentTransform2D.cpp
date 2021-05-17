@@ -259,8 +259,6 @@ bool ComponentTransform2D::HasAnyUIElementsInChildren(const GameObject* obj) con
 
 void ComponentTransform2D::SetPosition(float3 position_) {
 	position = position_;
-	CalculatePivotPosition();
-
 	InvalidateHierarchy();
 }
 
@@ -288,9 +286,6 @@ void ComponentTransform2D::SetRotation(Quat rotation_) {
 void ComponentTransform2D::SetRotation(float3 rotation_) {
 	rotation = Quat::FromEulerXYZ(rotation_.x * DEGTORAD, rotation_.y * DEGTORAD, rotation_.z * DEGTORAD);
 	localEulerAngles = rotation_;
-
-	// Update the new pivot position
-	CalculatePivotPosition();
 
 	InvalidateHierarchy();
 }
@@ -412,24 +407,15 @@ float3 ComponentTransform2D::GetScreenPosition() const {
 	while (parent != nullptr) {
 		ComponentTransform2D* parentTransform2D = parent->GetComponent<ComponentTransform2D>();
 		if (parentTransform2D == nullptr) break;
-
 		screenPosition += parentTransform2D->GetPositionRelativeToParent();
 		parent = parent->GetParent();
 	}
 	return screenPosition;
 }
 
-/*float2 ComponentTransform2D::CalculateCenterObject() {
-	float2 centerObjectPosition = float2::zero;
-	float4x4 rotateCenterPos = float4x4::FromQuat(rotation, pivotPosition) * float4x4::Translate(position);
-	centerObjectPosition = float2(rotateCenterPos.x, rotateCenterPos.y);
-	LOG("CENTER: X: %.f, Y: %.f", centerObjectPosition.x, centerObjectPosition.y);
-	return centerObjectPosition;
-}*/
-
 void ComponentTransform2D::CalculatePivotPosition() {
-	pivotPosition.x = (GetSize().x * pivot.x - GetSize().x * 0.5f) * scale.x + position.x;
-	pivotPosition.y = (GetSize().y * pivot.y - GetSize().y * 0.5f) * scale.y + position.y;
+	pivotPosition.x = (size.x * pivot.x - size.x * 0.5f);
+	pivotPosition.y = (size.y * pivot.y - size.y * 0.5f);
 	
 	InvalidateHierarchy();
 }
