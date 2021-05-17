@@ -288,3 +288,16 @@ int Scene::GetTotalTriangles() const {
 	}
 	return triangles;
 }
+
+std::vector<float> Scene::GetVertices() {
+	std::vector<float> result;
+
+	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
+		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
+		if (mesh != nullptr) {
+			result.insert(result.end(), mesh->vertices.begin(), mesh->vertices.end());
+		}
+	}
+
+	return result;
+}

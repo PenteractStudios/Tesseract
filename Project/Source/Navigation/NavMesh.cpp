@@ -169,7 +169,7 @@ struct RasterizationContext {
 };
 
 
-static int rasterizeTileLayers(BuildContext* ctx, InputGeom* geom, const int tx, const int ty, const rcConfig& cfg, TileCacheData* tiles, const int maxTiles) {
+static int rasterizeTileLayers(BuildContext* ctx, const int tx, const int ty, const rcConfig& cfg, TileCacheData* tiles, const int maxTiles) {
 	//if (!geom || !geom->getMesh() || !geom->getChunkyMesh()) {
 	//	ctx->log(RC_LOG_ERROR, "buildTile: Input mesh is not specified.");
 	//	return 0;
@@ -178,8 +178,11 @@ static int rasterizeTileLayers(BuildContext* ctx, InputGeom* geom, const int tx,
 	FastLZCompressor comp;
 	RasterizationContext rc;
 
-	const float* verts = geom->getMesh()->getVerts();
-	const int nverts = geom->getMesh()->getVertCount();
+	//const float* verts = geom->getMesh()->getVerts();		// obtain list of verts
+	//const int nverts = geom->getMesh()->getVertCount();		// number of vertices
+	std::vector<float> verts = App->scene->scene->GetVertices();
+	const int nverts = verts.size(); // number of vertices
+
 	const rcChunkyTriMesh* chunkyMesh = geom->getChunkyMesh();
 
 	// Tile bounds.
@@ -236,9 +239,9 @@ static int rasterizeTileLayers(BuildContext* ctx, InputGeom* geom, const int tx,
 		const int ntris = node.n;
 
 		memset(rc.triareas, 0, ntris * sizeof(unsigned char));
-		rcMarkWalkableTriangles(ctx, tcfg.walkableSlopeAngle, verts, nverts, tris, ntris, rc.triareas);
+		rcMarkWalkableTriangles(ctx, tcfg.walkableSlopeAngle, &verts[0], nverts, tris, ntris, rc.triareas);
 
-		if (!rcRasterizeTriangles(ctx, verts, nverts, tris, rc.triareas, ntris, *rc.solid, tcfg.walkableClimb))
+		if (!rcRasterizeTriangles(ctx, &verts[0], nverts, tris, rc.triareas, ntris, *rc.solid, tcfg.walkableClimb))
 			return 0;
 	}
 
@@ -515,7 +518,7 @@ bool NavMesh::Build() {
 			TileCacheData tiles[MAX_LAYERS];
 			memset(tiles, 0, sizeof(tiles));
 			//int ntiles = 1;
-			int ntiles = rasterizeTileLayers(ctx, geom, x, y, cfg, tiles, MAX_LAYERS);
+			int ntiles = rasterizeTileLayers(ctx, x, y, cfg, tiles, MAX_LAYERS);
 
 			for (int i = 0; i < ntiles; ++i) {
 				TileCacheData* tile = &tiles[i];

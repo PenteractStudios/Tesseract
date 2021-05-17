@@ -48,6 +48,7 @@ public:
 	void RemoveComponentByTypeAndId(ComponentType type, UID componentId);
 
 	int GetTotalTriangles() const;
+	std::vector<float> GetVertices();
 
 public:
 	GameObject* root = nullptr;			  // GameObject Root. Parent of everything and god among gods (Game Object Deity) :D.

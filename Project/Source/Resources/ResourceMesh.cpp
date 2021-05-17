@@ -67,6 +67,10 @@ void ResourceMesh::Load() {
 		position.z = *((float*) cursor);
 		cursor += sizeof(float);
 
+		vertices.push_back(position.x);
+		vertices.push_back(position.y);
+		vertices.push_back(position.z);
+
 		// Scaling
 		scaling.x = *((float*) cursor);
 		cursor += sizeof(float);
