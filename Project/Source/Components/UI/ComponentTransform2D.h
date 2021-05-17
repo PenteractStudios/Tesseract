@@ -85,7 +85,8 @@ public:
 	float3 GetPivotPosition() const;				 // Returns the pivot position
 	float3 GetPositionRelativeToParent() const;		 // Returns the position of the object relative to its parent
 	float3 GetScreenPosition() const;				 // Returns the position of the object respect the screen
-	float3 CalculatePivotPosition();				 // Update this pivot position to value
+	// float2 CalculateCenterObject();					 // Returns the center position of the object
+	void CalculatePivotPosition();					 // Update this pivot position to value
 
 	void InvalidateHierarchy(); // Invalidates hierarchy
 	void Invalidate();			// Invalidates component
