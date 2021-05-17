@@ -95,6 +95,9 @@ bool ModuleScene::Start() {
 #if GAME
 	App->events->AddEvent(TesseractEventType::PRESSED_PLAY);
 	SceneImporter::LoadScene("Assets/Scenes/StartScene.scene");
+	if (App->scene->scene->root == nullptr) {
+		App->scene->CreateEmptyScene();
+	}
 	App->renderer->SetVSync(false);
 	App->time->limitFramerate = false;
 #else
