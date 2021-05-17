@@ -9,7 +9,7 @@ uniform mat4 model;
 
 void main()
 {
-	gl_Position = proj*view*model*vec4(vertexPosition, 1.0);
+	gl_Position = proj*view*vec4(vertexPosition, 1.0);
 
 }
 

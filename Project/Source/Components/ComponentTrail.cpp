@@ -111,10 +111,10 @@ void ComponentTrail::Draw() {
 	}
 
 	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
+	//glDisable(GL_DEPTH_TEST);
+	//glEnable(GL_BLEND);
 	//glBlendEquation(GL_MAX);
-	glBlendFunc(GL_ONE, GL_ONE);
+	//glBlendFunc(GL_ONE, GL_ONE);
 
 	unsigned int quadVBO;
 	glGenBuffers(1, &quadVBO);
@@ -130,19 +130,17 @@ void ComponentTrail::Draw() {
 	//TODO ADD DELTATIME
 
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-	//currentParticle.model = currentParticle.model;
 
-	//float3x3 rotatePart = currentParticle.model.RotatePart();
 	Frustum* frustum = App->camera->GetActiveCamera()->GetFrustum();
 	float4x4* proj = &App->camera->GetProjectionMatrix();
 	float4x4* view = &App->camera->GetViewMatrix();
 
-	float4x4 newModelMatrix = transform->GetGlobalMatrix().LookAt(transform->GetGlobalMatrix().RotatePart().Col(2), -frustum->Front(), transform->GetGlobalMatrix().RotatePart().Col(1), float3::unitY);
-	float4x4 Final = float4x4::FromTRS(transform->GetPosition(), newModelMatrix.RotatePart(), transform->GetScale());
-	Final = transform->GetGlobalMatrix();
+	//float4x4 newModelMatrix = transform->GetGlobalMatrix().LookAt(transform->GetGlobalMatrix().RotatePart().Col(2), -frustum->Front(), transform->GetGlobalMatrix().RotatePart().Col(1), float3::unitY);
+	//float4x4 Final = float4x4::FromTRS(transform->GetGlobalPosition(), transform->GetGlobalMatrix().RotatePart(), transform->GetScale());
+
 	//-> glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, newModelMatrix.ptr());
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, Final.ptr());
+	//glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, Final.ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view->ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
 
@@ -157,15 +155,14 @@ void ComponentTrail::Draw() {
 	if (textureResource != nullptr) {
 		glBindTexture(GL_TEXTURE_2D, textureResource->glTexture);
 	}*/
-	//glDrawArraysInstanced(GL_TRIANGLES, 0, 4, 100);
 
 	glDrawArrays(GL_TRIANGLES, 0, trianglesCreated);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	glDisable(GL_BLEND);
+	//glDisable(GL_BLEND);
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
 }
 
 void ComponentTrail::DuplicateComponent(GameObject& owner) {
