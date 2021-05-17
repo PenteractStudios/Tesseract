@@ -20,7 +20,7 @@ void ComponentCapsuleCollider::Init() {
 		ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();
 		if (boundingBox) {
 			radius = (boundingBox->GetWorldOBB().HalfSize().x > boundingBox->GetWorldOBB().HalfSize().z) ? boundingBox->GetWorldOBB().HalfSize().x : boundingBox->GetWorldOBB().HalfSize().z;
-			height = boundingBox->GetWorldOBB().Size().MaxElement() - 2*radius;
+			height = boundingBox->GetWorldOBB().Size().MaxElement() - 2 * radius;
 			centerOffset = boundingBox->GetWorldOBB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		} else {
 			centerOffset = float3::zero;
@@ -35,25 +35,24 @@ void ComponentCapsuleCollider::DrawGizmos() {
 		switch (type) {
 		case CapsuleType::X:
 			dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), float3(height, 0, 0), dd::colors::Green, radius, radius);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(height / 2, 0, 0), dd::colors::Green, radius);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), dd::colors::Green, radius);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(height / 2, 0, 0), dd::colors::Green, radius, 3);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), dd::colors::Green, radius, 4);
 			break;
 		case CapsuleType::Y:
 			dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), float3(0, height, 0), dd::colors::Green, radius, radius);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, height / 2, 0), dd::colors::Green, radius);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), dd::colors::Green, radius);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, height / 2, 0), dd::colors::Green, radius, 1);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), dd::colors::Green, radius, 2);
 			break;
 		case CapsuleType::Z:
 			dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), float3(0, 0, height), dd::colors::Green, radius, radius);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, 0, height / 2), dd::colors::Green, radius);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), dd::colors::Green, radius);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, 0, height / 2), dd::colors::Green, radius, 5);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), dd::colors::Green, radius, 6);
 			break;
 		}
 	}
 }
 
 void ComponentCapsuleCollider::OnEditorUpdate() {
-
 	const char* colliderTypeItems[] = {"Dynamic", "Static", "Kinematic", "Trigger"};
 	const char* colliderCurrent = colliderTypeItems[(int) colliderType];
 	if (ImGui::BeginCombo("Collider Mode", colliderCurrent)) {
@@ -89,27 +88,27 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 			bool isSelected = (currentType == types[n]);
 			if (ImGui::Selectable(types[n], isSelected)) {
 				type = CapsuleType(n);
-				ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();		
-				switch (type){
+				ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();
+				switch (type) {
 				case CapsuleType::X:
 					if (boundingBox) {
 						radius = (boundingBox->GetWorldOBB().HalfSize().y > boundingBox->GetWorldOBB().HalfSize().z) ? boundingBox->GetWorldOBB().HalfSize().y : boundingBox->GetWorldOBB().HalfSize().z;
 						height = boundingBox->GetWorldOBB().Size().MaxElement() - 2 * radius;
 					}
-				break;
+					break;
 				case CapsuleType::Y:
 					if (boundingBox) {
-					radius = (boundingBox->GetWorldOBB().HalfSize().x > boundingBox->GetWorldOBB().HalfSize().z) ? boundingBox->GetWorldOBB().HalfSize().x : boundingBox->GetWorldOBB().HalfSize().z;
-					height = boundingBox->GetWorldOBB().Size().MaxElement() - 2 * radius;
-				}
-				break;
+						radius = (boundingBox->GetWorldOBB().HalfSize().x > boundingBox->GetWorldOBB().HalfSize().z) ? boundingBox->GetWorldOBB().HalfSize().x : boundingBox->GetWorldOBB().HalfSize().z;
+						height = boundingBox->GetWorldOBB().Size().MaxElement() - 2 * radius;
+					}
+					break;
 				case CapsuleType::Z:
 					if (boundingBox) {
-					radius = (boundingBox->GetWorldOBB().HalfSize().x > boundingBox->GetWorldOBB().HalfSize().y) ? boundingBox->GetWorldOBB().HalfSize().x : boundingBox->GetWorldOBB().HalfSize().y;
-					height = boundingBox->GetWorldOBB().Size().MaxElement() - 2 * radius;
+						radius = (boundingBox->GetWorldOBB().HalfSize().x > boundingBox->GetWorldOBB().HalfSize().y) ? boundingBox->GetWorldOBB().HalfSize().x : boundingBox->GetWorldOBB().HalfSize().y;
+						height = boundingBox->GetWorldOBB().Size().MaxElement() - 2 * radius;
+					}
+					break;
 				}
-				break;
-			}
 
 				if (App->time->IsGameRunning()) {
 					App->physics->UpdateCapsuleRigidbody(this);
@@ -133,7 +132,7 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 void ComponentCapsuleCollider::Save(JsonValue jComponent) const {
 	JsonValue jColliderType = jComponent[JSON_TAG_COLLIDER_TYPE];
 	jColliderType = (int) colliderType;
-	
+
 	JsonValue jMass = jComponent[JSON_TAG_MASS];
 	jMass = mass;
 
