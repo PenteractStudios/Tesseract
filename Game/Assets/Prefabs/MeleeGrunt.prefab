@@ -72,8 +72,8 @@
                     {
                         "Type": "MeshRenderer",
                         "Active": true,
-                        "MeshID": 14124455750304648648,
-                        "MaterialID": 15397072817269370751
+                        "MeshID": 4844205703244386992,
+                        "MaterialID": 14657585799099154106
                     },
                     {
                         "Type": "BoundingBox",
@@ -95,7 +95,12 @@
                             {
                                 "Name": "playerUID",
                                 "Type": "GameObjectUID",
-                                "Value": 5126003628094055705
+                                "Value": 8960886680822700415
+                            },
+                            {
+                                "Name": "canvasUID",
+                                "Type": "GameObjectUID",
+                                "Value": 17773628572955029428
                             }
                         ]
                     }

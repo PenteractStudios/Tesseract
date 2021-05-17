@@ -49,15 +49,17 @@ void PanelControlEditor::Update() {
 			ImGui::SameLine();
 			if (ImGui::RadioButton(scale.c_str(), currentGuizmoOperation == ImGuizmo::SCALE)) currentGuizmoOperation = ImGuizmo::SCALE;
 
+			ImGui::SameLine();
+			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+			ImGui::SameLine();
+
 			if (currentGuizmoOperation != ImGuizmo::SCALE) {
-				ImGui::SameLine();
-				ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-				ImGui::SameLine();
 				if (ImGui::RadioButton(local.c_str(), currentGuizmoMode == ImGuizmo::LOCAL)) currentGuizmoMode = ImGuizmo::LOCAL;
 				ImGui::SameLine();
 				if (ImGui::RadioButton(global.c_str(), currentGuizmoMode == ImGuizmo::WORLD)) currentGuizmoMode = ImGuizmo::WORLD;
 			} else {
 				currentGuizmoMode = ImGuizmo::LOCAL;
+				ImGui::Dummy(ImVec2(78,0));
 			}
 
 			ImGui::SameLine();
@@ -72,22 +74,20 @@ void PanelControlEditor::Update() {
 			ImGui::PushItemWidth(150);
 			switch (currentGuizmoOperation) {
 			case ImGuizmo::TRANSLATE:
-				ImGui::InputFloat3("Snap", &snap[0]);
+				ImGui::InputFloat3("##Snap", &snap[0]);
 				break;
 			case ImGuizmo::ROTATE:
-				ImGui::InputFloat("Snap Angle", &snap[0]);
+				ImGui::InputFloat("##Snap Angle", &snap[0]);
 				break;
 			case ImGuizmo::SCALE:
-				ImGui::InputFloat("Snap Scale", &snap[0]);
+				ImGui::InputFloat("##Snap Scale", &snap[0]);
 				break;
 			}
 
 			ImGui::SameLine();
 			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 			ImGui::SameLine();
-			for (int i = 0; i < 5; ++i) {
-				ImGui::Spacing();
-			}
+			ImGui::Dummy(ImVec2(75, 0));
 			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 			ImGui::SameLine();
 
@@ -95,7 +95,7 @@ void PanelControlEditor::Update() {
 			std::string pause = std::string(ICON_FA_PAUSE);
 			std::string stop = std::string(ICON_FA_STOP);
 			std::string step = std::string(ICON_FA_STEP_FORWARD);
-			std::string compile = std::string("Compile");
+			std::string compile = std::string("Compile Scripts");
 			// Play / Pause / Step buttons
 			if (App->time->HasGameStarted()) {
 				if (ImGui::Button(stop.c_str())) {
@@ -127,6 +127,15 @@ void PanelControlEditor::Update() {
 			if (ImGui::Button(step.c_str())) {
 				App->events->AddEvent(TesseractEvent(TesseractEventType::PRESSED_STEP));
 			}
+			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+			ImGui::SameLine();
+			if (App->time->IsGameRunning()) {
+				ImGui::Dummy(ImVec2(48, 0));
+			} else {
+				ImGui::Dummy(ImVec2(75, 0));
+			}
+
+			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 			ImGui::SameLine();
 			if (ImGui::Button(compile.c_str())) {
 #if _DEBUG

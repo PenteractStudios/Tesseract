@@ -467,6 +467,7 @@
     <None Include="Libs\MathGeoLib\Math\Matrix.inl" />
     <None Include="Debugging.props" />
     <None Include="Source\Utils\dte80a.tlh" />
+    <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />

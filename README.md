@@ -144,11 +144,11 @@ A finder of the Assets folder with all the files imported
 ## About us
 
 Find all the information about the organization in the web page:
-https://tbd-org.github.io/
+https://penteractstudios.github.io/
 
 ## Github
 
-https://github.com/TBD-org/Tesseract
+https://github.com/PenteractStudios/Tesseract
 
 ## License
 

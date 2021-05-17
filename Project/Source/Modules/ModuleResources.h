@@ -15,7 +15,6 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <thread>
-#include <mutex>
 
 class ModuleResources : public Module {
 public:
@@ -38,7 +37,6 @@ public:
 
 	template<typename T>
 	void CreateResource(const char* assetFilePath, UID id);
-	void DestroyResource(UID id);
 
 private:
 	void UpdateAsync();
@@ -47,6 +45,7 @@ private:
 
 	void CreateResourceByType(ResourceType type, const char* assetFilePath, UID id);
 	Resource* DoCreateResourceByType(ResourceType type, const char* assetFilePath, UID id);
+	void DestroyResource(UID id);
 
 	void ValidateAssetResources(JsonValue jMeta, bool& validResourceFiles);
 	void ReimportResources(JsonValue jMeta, const char* filePath);
@@ -61,22 +60,21 @@ private:
 	std::unique_ptr<AssetFolder> rootFolder;
 
 	std::thread importThread;
-	std::mutex resourcesMutex;
 	bool stopImportThread = false;
-	std::vector<Resource> importedResources;
+	std::unordered_map<UID, std::string> concurrentResourceUIDToAssetFilePath;
 };
 
 template<typename T>
 inline T* ModuleResources::GetResource(UID id) {
-	resourcesMutex.lock();
 	auto it = resources.find(id);
 	T* resource = it != resources.end() ? static_cast<T*>(it->second.get()) : nullptr;
-	resourcesMutex.unlock();
 	return resource;
 }
 
 template<typename T>
 inline void ModuleResources::CreateResource(const char* assetFilePath, UID id) {
+	concurrentResourceUIDToAssetFilePath[id] = assetFilePath;
+
 	TesseractEvent addResourceEvent(TesseractEventType::CREATE_RESOURCE);
 	addResourceEvent.Set<CreateResourceStruct>(T::staticType, id, assetFilePath);
 	App->events->AddEvent(addResourceEvent);

@@ -171,7 +171,7 @@ void ComponentScript::OnEditorUpdate() {
 			case MemberType::FLOAT3: {
 				float3* memberPtr = (float3*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				float3 old = *memberPtr;
-				ImGui::InputFloat3("Target Position", &memberPtr->x, "%.1f");
+				ImGui::InputFloat3(member.name.c_str(), &memberPtr->x, "%.1f");
 				if (!old.Equals(*memberPtr)) {
 					changedValues[member.name] = std::pair<MemberType, MEMBER_VARIANT>(member.type, *memberPtr);
 				}

@@ -5,9 +5,11 @@
 #include "TesseractEvent.h"
 
 #include "PlayerController.h"
+#include "HUDController.h"
 
 EXPOSE_MEMBERS(AIMovement) {
     MEMBER(MemberType::GAME_OBJECT_UID, playerUID),
+    MEMBER(MemberType::GAME_OBJECT_UID, canvasUID),
     MEMBER(MemberType::INT, maxSpeed),
     MEMBER(MemberType::INT, lifePoints),
     MEMBER(MemberType::FLOAT, searchRadius),
@@ -22,6 +24,10 @@ void AIMovement::Start() {
     player = GameplaySystems::GetGameObject(playerUID);
     animation = GetOwner().GetParent()->GetComponent<ComponentAnimation>();   
     parentTransform = GetOwner().GetParent()->GetComponent<ComponentTransform>();
+    GameObject* canvas = GameplaySystems::GetGameObject(canvasUID);
+    if (canvas) {
+        hudControllerScript = GET_SCRIPT(canvas, HUDController);
+    }
 }
 
 void AIMovement::Update() {
@@ -88,6 +94,9 @@ void AIMovement::Update() {
         }
         else {
             GameplaySystems::DestroyGameObject(GetOwner().GetParent());
+            if (hudControllerScript) {
+                hudControllerScript->UpdateScore(10);
+            }
         }
     }
     	
@@ -118,6 +127,7 @@ void AIMovement::ReceiveEvent(TesseractEvent& e)
 
         else if (state == AIState::HURT && lifePoints <= 0) {
             animation->SendTrigger("HurtDeath");
+            Debug::Log("Death");
             state = AIState::DEATH;
         }
         else if (state == AIState::DEATH) {

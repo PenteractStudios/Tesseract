@@ -44,8 +44,7 @@ enum class UpdateStatus {
 #define VERTEX_SHADER_EXTENSION ".vert"
 #define DEFAULT_SHADER_EXTENSION ".glsl"
 
-#define DEFAULT_MODEL_EXTENSION ".fbx"
-#define OBJ_MODEL_EXTENSION ".obj"
+#define MODEL_EXTENSION ".fbx"
 
 #define SKYBOX_EXTENSION ".sky"
 

@@ -16,6 +16,7 @@
 
 #include "GL/glew.h"
 #include "Math/TransformOps.h"
+#include "Math/float3x3.h"
 #include "Utils/Logging.h"
 #include "Utils/ImGuiUtils.h"
 #include "imgui_stdlib.h"

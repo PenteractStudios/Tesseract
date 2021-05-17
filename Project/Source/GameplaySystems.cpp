@@ -117,6 +117,16 @@ const float3 Debug::GetCameraDirection() {
 	return App->camera->GetActiveCamera()->GetFrustum()->Front();
 }
 
+//Temporary hardcoded solution
+bool Debug::IsGodModeOn() {
+	return App->scene->godModeOn;
+}
+
+//Temporary hardcoded solution
+void Debug::SetGodModeOn(bool godModeOn_) {
+	App->scene->godModeOn = godModeOn_;
+}
+
 // ------------- TIME -------------- //
 
 float Time::GetDeltaTime() {
@@ -129,6 +139,14 @@ float Time::GetFPS() {
 
 float Time::GetMS() {
 	return App->time->GetMS();
+}
+
+void Time::PauseGame() {
+	App->time->PauseGame();
+}
+
+void Time::ResumeGame() {
+	App->time->ResumeGame();
 }
 
 // ------------- INPUT ------------- //
@@ -161,15 +179,25 @@ const float3 Input::GetMouseWorldPosition() {
 	float4x4 ProjView = Projection * View;
 	ProjView.Inverse();
 	float4 worldPos = ProjView * ScreenPos;
-	return worldPos.xyz()/worldPos.w;
+	return worldPos.xyz() / worldPos.w;
 }
 
 float2 Input::GetMousePosition() {
 	return App->input->GetMousePosition(true);
 }
 
-const float2& Input::GetMousePositionNormalized() {
+const float2 Input::GetMousePositionNormalized() {
+#if GAME
+	float2 mouseInput = App->input->GetMousePosition(true);
+	int width = App->window->GetWidth();
+	int height = App->window->GetHeight();
+	float2 mouseNormalized;
+	mouseNormalized.x = -1 + 2 * std::max(-1.0f, std::min((mouseInput.x) / (width), 1.0f));
+	mouseNormalized.y = 1 - 2 * std::max(-1.0f, std::min((mouseInput.y) / (height), 1.0f));
+	return mouseNormalized;
+#else
 	return App->editor->panelScene.GetMousePosOnSceneNormalized();
+#endif
 }
 
 bool Input::GetKeyCodeDown(KEYCODE keycode) {
@@ -200,15 +228,6 @@ void SceneManager::ExitGame() {
 	SDL_Event event;
 	event.type = SDL_QUIT;
 	SDL_PushEvent(&event);
-}
-
-float Screen::GetScreenWitdh() {
-	return static_cast<float>(App->window->GetWidth());
-}
-
-float Screen::GetScreenHeight() {
-
-	return static_cast<float>(App->window->GetHeight());
 }
 
 GameObject* Physics::Raycast(const float3& start, const float3& end, const int mask) {
@@ -260,6 +279,56 @@ float3 Colors::Orange() {
 
 float3 Colors::Green() {
 	return dd::colors::Green;
+}
+
+// --------- Screen --------- //
+
+void Screen::SetWindowMode(WindowMode mode) {
+	App->window->SetWindowMode(mode);
+}
+
+void Screen::SetCurrentDisplayMode(unsigned index) {
+	App->window->SetCurrentDisplayMode(index);
+}
+
+void Screen::SetSize(int width, int height) {
+	App->window->SetSize(width, height);
+}
+
+void Screen::SetBrightness(float brightness) {
+	App->window->SetBrightness(brightness);
+}
+
+WindowMode Screen::GetWindowMode() {
+	return App->window->GetWindowMode();
+}
+
+bool Screen::GetMaximized() {
+	return App->window->GetMaximized();
+}
+
+unsigned Screen::GetCurrentDisplayMode() {
+	return App->window->GetCurrentDisplayMode();
+}
+
+unsigned Screen::GetNumDisplayModes() {
+	return App->window->GetNumDisplayModes();
+}
+
+Screen::DisplayMode Screen::GetDisplayMode(unsigned index) {
+	return Screen::DisplayMode(App->window->GetDisplayMode(index));
+}
+
+int Screen::GetWidth() {
+	return App->window->GetWidth();
+}
+
+int Screen::GetHeight() {
+	return App->window->GetHeight();
+}
+
+float Screen::GetBrightness() {
+	return App->window->GetBrightness();
 }
 
 // --------- Camera --------- //

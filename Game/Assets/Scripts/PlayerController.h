@@ -10,6 +10,8 @@ class ComponentCamera;
 class ComponentAudioSource;
 class ComponentParticleSystem;
 
+class HUDController;
+
 class ComponentAnimation;
 class State;
 struct TesseractEvent;
@@ -29,7 +31,7 @@ public:
 	void ReceiveEvent(TesseractEvent& e) override;
 
 	void HitDetected();
-	
+
 public:
 
 	GameObject* gameObject = nullptr;
@@ -46,26 +48,32 @@ public:
 	UID mainNodeUID = 0;
 	UID cameraUID = 0;
 
+	UID canvasUID = 0;
+
 	UID switchAudioSourceUID = 0;
 	UID dashAudioSourceUID = 0;
 
 	bool hitTaken = false;
-	int lifePoints = 5;
+	int lifePointsFang = 7;
+	int lifePointsOni = 7;
 
 	float distanceRayCast = 2.f;
 	float dashCooldown = 5.f; //seconds
 	float switchCooldown = 5.f;
-	float movementSpeed = 5.f;
+	float fangMovementSpeed = 10.f;
+	float onimaruMovementSpeed = 6.f;
 	float dashSpeed = 100.f;
 	float dashDistance = 10.f;
 	float cameraOffsetZ = 20.f;
 	float cameraOffsetY = 10.f;
+	float cameraOffsetX = 0.f;
 	float shootCooldown = 0.1f;
+	bool firstTime = true;
 
-	std::vector<std::string> states {"Idle" , 
-								"RunBackward" , "RunForward" , "RunLeft" , "RunRight" , 
-								"DashBackward", "DashForward" , "DashLeft" , "DashRight" , 
-								"Death" , "Hurt" , "LeftShot" , "RightShot"  
+	std::vector<std::string> states {"Idle" ,
+								"RunBackward" , "RunForward" , "RunLeft" , "RunRight" ,
+								"DashBackward", "DashForward" , "DashLeft" , "DashRight" ,
+								"Death" , "Hurt" , "LeftShot" , "RightShot"
 	};
 
 private:
@@ -87,7 +95,7 @@ private:
 	int GetMouseDirectionState(MovementDirection input);
 
 private:
-	
+
 	float dashError = 2.f;
 	float dashCooldownRemaing = 0.f;
 	bool dashInCooldown = false;
@@ -106,7 +114,7 @@ private:
 	MovementDirection dashMovementDirection = MovementDirection::NONE;
 	ComponentTransform* transform = nullptr;
 	ComponentCamera* compCamera = nullptr;
-	
+
 	//Animation
 	ComponentAnimation* fangAnimation = nullptr;
 	State* fangCurrentState = nullptr;
@@ -116,10 +124,12 @@ private:
 	//Particles
 	ComponentParticleSystem* fangCompParticle = nullptr;
 	ComponentParticleSystem* onimaruCompParticle = nullptr;
-	
+
 	//Audio
 	ComponentAudioSource* shootAudioSource = nullptr;
 	ComponentAudioSource* dashAudioSource = nullptr;
 	ComponentAudioSource* switchAudioSource = nullptr;
+
+	HUDController* hudControllerScript = nullptr;
 };
 

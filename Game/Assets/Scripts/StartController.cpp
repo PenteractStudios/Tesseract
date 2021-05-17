@@ -1,5 +1,6 @@
 #include "StartController.h"
 
+#include "StartButton.h"
 #include "GameplaySystems.h"
 
 #include "GameObject.h"
@@ -18,7 +19,6 @@ void StartController::Start() {
 		ComponentCamera* camera = gameCamera->GetComponent<ComponentCamera>();
 		if(camera) GameplaySystems::SetRenderCamera(camera);
 	}
-	
 }
 
 void StartController::Update() {

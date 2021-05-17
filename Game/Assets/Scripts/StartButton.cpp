@@ -1,12 +1,14 @@
 #include "StartButton.h"
 
+#include "CheckpointManager.h"
+
 #include "GameplaySystems.h"
+#include "GameObject.h"
+
+int checkpoint;
 
 EXPOSE_MEMBERS(StartButton) {
-	// Add members here to expose them to the engine. Example:
-	// MEMBER(MemberType::BOOL, exampleMember1),
-	// MEMBER(MemberType::PREFAB_RESOURCE_UID, exampleMember2),
-	// MEMBER(MemberType::GAME_OBJECT_UID, exampleMember3)
+	MEMBER(MemberType::INT, checkpointNum),
 };
 
 
@@ -19,5 +21,7 @@ void StartButton::Update() {
 }
 
 void StartButton::OnButtonClick() {
+	checkpoint = checkpointNum;
 	SceneManager::ChangeScene("Assets/Scenes/Level1.scene");
+	if (Time::GetDeltaTime() == 0.f) Time::ResumeGame();
 }

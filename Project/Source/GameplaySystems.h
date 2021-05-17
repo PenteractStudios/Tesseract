@@ -4,6 +4,7 @@
 #include "GameObject.h"
 #include "Application.h"
 #include "Modules/ModuleResources.h"
+#include "Modules/ModuleWindow.h"
 #include "Components/ComponentCamera.h"
 #include "Components/ComponentScript.h"
 #include "Utils/Logging.h"
@@ -60,12 +61,18 @@ namespace Debug {
 	TESSERACT_ENGINE_API int GetTotalTriangles();
 	TESSERACT_ENGINE_API int GetCulledTriangles();
 	TESSERACT_ENGINE_API const float3 GetCameraDirection();
+
+	//Temporary hardcoded solution
+	TESSERACT_ENGINE_API bool IsGodModeOn();
+	TESSERACT_ENGINE_API void SetGodModeOn(bool godModeOn_);
 } // namespace Debug
 
 namespace Time {
 	TESSERACT_ENGINE_API float GetDeltaTime();
 	TESSERACT_ENGINE_API float GetFPS();
 	TESSERACT_ENGINE_API float GetMS();
+	TESSERACT_ENGINE_API void PauseGame();
+	TESSERACT_ENGINE_API void ResumeGame();
 } // namespace Time
 
 namespace Input {
@@ -395,7 +402,7 @@ namespace Input {
 	TESSERACT_ENGINE_API bool GetMouseButton(int button);
 	TESSERACT_ENGINE_API const float2& GetMouseMotion();
 	TESSERACT_ENGINE_API const float3 GetMouseWorldPosition();
-	TESSERACT_ENGINE_API const float2& GetMousePositionNormalized();
+	TESSERACT_ENGINE_API const float2 GetMousePositionNormalized();
 	TESSERACT_ENGINE_API float2 GetMousePosition();
 	TESSERACT_ENGINE_API bool GetKeyCodeDown(KEYCODE keycode);
 	TESSERACT_ENGINE_API bool GetKeyCodeUp(KEYCODE keycode);
@@ -405,8 +412,32 @@ namespace Input {
 }; // namespace Input
 
 namespace Screen {
-	TESSERACT_ENGINE_API float GetScreenWitdh();
-	TESSERACT_ENGINE_API float GetScreenHeight();
+	struct TESSERACT_ENGINE_API DisplayMode {
+		DisplayMode(const SDL_DisplayMode& sdlDisplayMode)
+			: width(sdlDisplayMode.w)
+			, height(sdlDisplayMode.h)
+			, bpp(SDL_BITSPERPIXEL(sdlDisplayMode.format))
+			, hz(sdlDisplayMode.refresh_rate) {}
+
+		int width = 0;
+		int height = 0;
+		unsigned bpp = 0;
+		int hz = 0;
+	};
+
+	TESSERACT_ENGINE_API void SetWindowMode(WindowMode mode);
+	TESSERACT_ENGINE_API void SetCurrentDisplayMode(unsigned index);
+	TESSERACT_ENGINE_API void SetSize(int width, int height);
+	TESSERACT_ENGINE_API void SetBrightness(float brightness);
+
+	TESSERACT_ENGINE_API WindowMode GetWindowMode();
+	TESSERACT_ENGINE_API bool GetMaximized();
+	TESSERACT_ENGINE_API unsigned GetCurrentDisplayMode();
+	TESSERACT_ENGINE_API unsigned GetNumDisplayModes();
+	TESSERACT_ENGINE_API DisplayMode GetDisplayMode(unsigned index);
+	TESSERACT_ENGINE_API int GetWidth();
+	TESSERACT_ENGINE_API int GetHeight();
+	TESSERACT_ENGINE_API float GetBrightness();
 }; // namespace Screen
 
 namespace SceneManager {

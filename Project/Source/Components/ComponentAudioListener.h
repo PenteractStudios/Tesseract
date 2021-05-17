@@ -18,6 +18,8 @@ public:
 
 	void UpdateAudioListener();
 
+	TESSERACT_ENGINE_API void SetAudioVolume(float volume);
+
 private:
 	float gain = 1.0f;
 };
