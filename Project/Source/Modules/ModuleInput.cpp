@@ -17,8 +17,6 @@
 
 #include "Utils/Leaks.h"
 
-
-
 bool ModuleInput::Init() {
 	LOG("Init SDL input event system");
 	bool ret = true;
@@ -317,6 +315,7 @@ PlayerController* ModuleInput::GetPlayerControllerWithJoystickIndex(int joystick
 			return playerControllers[i];
 		}
 	}
+	return nullptr;
 }
 
 PlayerController* ModuleInput::GetPlayerController(int index) const {

@@ -240,7 +240,6 @@ bool Input::GetControllerButton(SDL_GameControllerButton button, int playerID) {
 float Input::GetControllerAxisValue(SDL_GameControllerAxis axis, int playerID) {
 	PlayerController* player = App->input->GetPlayerController(playerID);
 
-
 	return player ? player->gameControllerAxises[axis] / JOYSTICK_MAX_VALUE : 0.0f;
 }
 
@@ -275,7 +274,7 @@ void Screen::SetResolution(int width_, int height_) {
 }
 
 float2 Screen::GetResolution() {
-	return float2(App->window->GetWidth(), App->window->GetHeight());
+	return float2(static_cast<float>(App->window->GetWidth()), static_cast<float>(App->window->GetHeight()));
 }
 
 int Screen::GetResolutionPreset() {
