@@ -31,45 +31,65 @@
 #define JSON_TAG_COLOR "Color"
 
 #define JSON_TAG_ALPHATRANSPARENCY "AlphaTransparency"
-
+// clang-format off
+static const float textureCords[12] = {
+	// Front (x, y, z)
+	0.0f,0.0f,
+	1.0f,0.0f,
+	0.0f,1.0f,
+	//////////
+	1.0f,0.0f,
+	1.0f,1.0f,
+	0.0f, 1.0f,
+	};
+// clang-format on
 void ComponentTrail::Update() {
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 
 	if (isStarted) {
 		previousPositionUp = currentPositionUp;
 		previousPositionDown = currentPositionDown;
-
 		previousPosition = currentPosition;
 
 		currentPosition = transform->GetGlobalPosition();
-		currentPositionUp = transform->GetGlobalRotation() * float3::unitX;
-		currentPositionUp.Normalize();
-		currentPositionUp = currentPositionUp * width + currentPosition;
-		currentPositionDown = -currentPositionUp * width + currentPosition;
+		previousVectorUp = transform->GetGlobalRotation() * float3::unitY;
+		previousVectorUp.Normalize();
+
+		currentPositionUp = (previousVectorUp * width) + currentPosition;
+		currentPositionDown = (-previousVectorUp * width) + currentPosition;
 		if (trianglesCreated >= (maxVertices)) {
 			UpdateVerticesPosition();
-			trianglesCreated -= 18;
+			trianglesCreated -= 30;
 		}
+
 		insertVertex(previousPositionDown);
+		insertTextureCoords();
 		insertVertex(currentPositionDown);
+		insertTextureCoords();
 		insertVertex(previousPositionUp);
+		insertTextureCoords();
 
 		insertVertex(currentPositionDown);
+		insertTextureCoords();
 		insertVertex(currentPositionUp);
+		insertTextureCoords();
 		insertVertex(previousPositionUp);
+		insertTextureCoords();
 
+		quadsCreated++;
 		Draw();
 	} else {
 		isStarted = true;
 		currentPosition = transform->GetGlobalPosition();
-		currentPositionUp = transform->GetGlobalRotation() * float3::unitX;
+		currentPositionUp = transform->GetGlobalRotation() * float3::unitY;
 		currentPositionUp.Normalize();
 		currentPositionUp = currentPositionUp * width + currentPosition;
 		currentPositionDown = -currentPositionUp * width + currentPosition;
 	}
 }
 
-void ComponentTrail::Init() {}
+void ComponentTrail::Init() {
+}
 
 void ComponentTrail::DrawGizmos() {
 }
@@ -82,6 +102,27 @@ void ComponentTrail::OnEditorUpdate() {
 	UID oldID = textureID;
 	ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
 	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
+	if (textureResource != nullptr) {
+		int width;
+		int height;
+		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
+		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
+
+		if (oldID != textureID) {
+			ComponentTransform2D* transform2D = GetOwner().GetComponent<ComponentTransform2D>();
+			if (transform2D != nullptr) {
+				transform2D->SetSize(float2((float) width, (float) height));
+			}
+		}
+		ImGui::Text("");
+		ImGui::Separator();
+		ImGui::TextColored(App->editor->titleColor, "Texture Preview");
+		ImGui::TextWrapped("Size:");
+		ImGui::SameLine();
+		ImGui::TextWrapped("%d x %d", width, height);
+		ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
+		ImGui::Separator();
+	}
 }
 
 void ComponentTrail::Load(JsonValue jComponent) {
@@ -99,6 +140,8 @@ void ComponentTrail::Load(JsonValue jComponent) {
 }
 
 void ComponentTrail::Save(JsonValue jComponent) const {
+	jComponent[JSON_TAG_TEXTURE_SHADERID] = shaderID;
+	jComponent[JSON_TAG_TEXTURE_TEXTUREID] = textureID;
 }
 
 void ComponentTrail::Draw() {
@@ -110,11 +153,11 @@ void ComponentTrail::Draw() {
 		return;
 	}
 
+	glDepthMask(GL_FALSE);
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_ONE, GL_ONE);
 	glDisable(GL_CULL_FACE);
-	//glDisable(GL_DEPTH_TEST);
-	//glEnable(GL_BLEND);
-	//glBlendEquation(GL_MAX);
-	//glBlendFunc(GL_ONE, GL_ONE);
 
 	unsigned int quadVBO;
 	glGenBuffers(1, &quadVBO);
@@ -123,9 +166,9 @@ void ComponentTrail::Draw() {
 
 	/*glBindBuffer(GL_ARRAY_BUFFER, verticesPosition);*/
 	glEnableVertexAttribArray(0);
-	//glEnableVertexAttribArray(1);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
-	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*) (sizeof(float) * 6 * 3));
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) 0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) (sizeof(float) * 3));
 	glUseProgram(program);
 	//TODO ADD DELTATIME
 
@@ -135,12 +178,12 @@ void ComponentTrail::Draw() {
 	float4x4* proj = &App->camera->GetProjectionMatrix();
 	float4x4* view = &App->camera->GetViewMatrix();
 
-	//float4x4 newModelMatrix = transform->GetGlobalMatrix().LookAt(transform->GetGlobalMatrix().RotatePart().Col(2), -frustum->Front(), transform->GetGlobalMatrix().RotatePart().Col(1), float3::unitY);
-	//float4x4 Final = float4x4::FromTRS(transform->GetGlobalPosition(), transform->GetGlobalMatrix().RotatePart(), transform->GetScale());
+	float4x4 newModelMatrix = transform->GetGlobalMatrix().LookAt(transform->GetGlobalMatrix().RotatePart().Col(2), -frustum->Front(), transform->GetGlobalMatrix().RotatePart().Col(1), float3::unitY);
+	float4x4 Final = float4x4::FromTRS(transform->GetGlobalPosition(), transform->GetGlobalMatrix().RotatePart(), transform->GetGlobalScale());
 
 	//-> glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, newModelMatrix.ptr());
 
-	//glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, Final.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, transform->GetGlobalMatrix().ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view->ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
 
@@ -151,33 +194,36 @@ void ComponentTrail::Draw() {
 	glUniform4fv(glGetUniformLocation(program, "inputColor"), 1, initC.ptr());
 	//glUniform4fv(glGetUniformLocation(program, "finalColor"), 1, finalC.ptr());
 
-	/*ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
+	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
 	if (textureResource != nullptr) {
 		glBindTexture(GL_TEXTURE_2D, textureResource->glTexture);
-	}*/
+	}
 
 	glDrawArrays(GL_TRIANGLES, 0, trianglesCreated);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	//glDisable(GL_BLEND);
 	glEnable(GL_CULL_FACE);
-	//glEnable(GL_DEPTH_TEST);
-}
-
-void ComponentTrail::DuplicateComponent(GameObject& owner) {
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
 }
 
 void ComponentTrail::SpawnParticle() {
 }
 
 void ComponentTrail::UpdateVerticesPosition() {
-	for (size_t i = 0; i < (maxVertices - 18); i++) {
-		verticesPosition[i] = verticesPosition[i + 18];
+	for (size_t i = 0; i < (maxVertices - 30); i++) {
+		verticesPosition[i] = verticesPosition[i + 30];
 	}
 }
 void ComponentTrail::insertVertex(float3 vertex) {
 	verticesPosition[trianglesCreated++] = vertex.x;
 	verticesPosition[trianglesCreated++] = vertex.y;
 	verticesPosition[trianglesCreated++] = vertex.z;
+}
+
+void ComponentTrail::insertTextureCoords() {
+	if (textureCreated == 12) textureCreated = 0;
+
+	verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
+	verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
 }

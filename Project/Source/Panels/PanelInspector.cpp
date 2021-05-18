@@ -264,7 +264,6 @@ void PanelInspector::Update() {
 					ComponentParticleSystem* particle = selected->CreateComponent<ComponentParticleSystem>();
 					if (particle != nullptr) {
 						particle->Init();
-<<<<<<< HEAD
 					}
 				}
 				if (ImGui::MenuItem("Trail")) {
@@ -285,8 +284,6 @@ void PanelInspector::Update() {
 					ComponentAudioListener* audioListener = selected->CreateComponent<ComponentAudioListener>();
 					if (audioListener != nullptr) {
 						audioListener->Init();
-=======
->>>>>>> SheetBilboard
 					} else {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}

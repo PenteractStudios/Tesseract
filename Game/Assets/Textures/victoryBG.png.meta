@@ -1,13 +1,8 @@
 {
     "Resources": [
         {
-            "Id": 18117953183777168591,
+            "Id": 292799392791640315,
             "Type": "Texture"
         }
-<<<<<<< HEAD:Game/Assets/textures/victoryBG.png.meta
-    ],
-    "Timestamp": 1621283722
-=======
     ]
->>>>>>> SheetBilboard:Game/Assets/Textures/victoryBG.png.meta
 }

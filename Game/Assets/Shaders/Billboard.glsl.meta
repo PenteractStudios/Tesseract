@@ -1,14 +1,8 @@
 {
     "Resources": [
         {
-            "Id": 14028879591438108246,
-            "Type": "Shader",
-            "ShaderType": 0
+            "Id": 14019853473958997531,
+            "Type": "Shader"
         }
-<<<<<<< HEAD
-    ],
-    "Timestamp": 1620890219
-=======
     ]
->>>>>>> SheetBilboard
 }

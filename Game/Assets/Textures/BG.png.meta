@@ -1,13 +1,8 @@
 {
     "Resources": [
         {
-            "Id": 10125293473612058736,
+            "Id": 1629166666707728921,
             "Type": "Texture"
         }
-<<<<<<< HEAD:Game/Assets/textures/BG.png.meta
-    ],
-    "Timestamp": 1621283721
-=======
     ]
->>>>>>> SheetBilboard:Game/Assets/Textures/BG.png.meta
 }

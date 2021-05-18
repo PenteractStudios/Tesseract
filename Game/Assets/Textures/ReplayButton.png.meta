@@ -1,13 +1,8 @@
 {
     "Resources": [
         {
-            "Id": 4496574043565637292,
+            "Id": 9503442453035582647,
             "Type": "Texture"
         }
-<<<<<<< HEAD:Game/Assets/textures/ReplayButton.png.meta
-    ],
-    "Timestamp": 1621283722
-=======
     ]
->>>>>>> SheetBilboard:Game/Assets/Textures/ReplayButton.png.meta
 }

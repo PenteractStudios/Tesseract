@@ -1,13 +1,8 @@
 {
     "Resources": [
         {
-            "Id": 11615413468693908463,
+            "Id": 11669946909975506685,
             "Type": "Texture"
         }
-<<<<<<< HEAD:Game/Assets/textures/HeavyBoxOBJLP_DefaultMaterial_SpecularSmoothness.png.meta
-    ],
-    "Timestamp": 1621283722
-=======
     ]
->>>>>>> SheetBilboard:Game/Assets/Textures/HeavyBoxOBJLP_DefaultMaterial_SpecularSmoothness.png.meta
 }

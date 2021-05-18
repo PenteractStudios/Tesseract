@@ -17,9 +17,7 @@
   <ItemGroup>
     <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />
     <ClInclude Include="Source\Components\ComponentParticleSystem.h" />
-<<<<<<< HEAD
     <ClInclude Include="Source\Components\ComponentTrail.h" />
-=======
     <ClInclude Include="Source\MaskType.h" />
     <ClInclude Include="Source\FileSystem\ClipImporter.h" />
     <ClInclude Include="Source\FileSystem\StateMachineImporter.h" />
@@ -27,7 +25,6 @@
     <ClInclude Include="Source\Resources\ResourceClip.h" />
     <ClInclude Include="Source\State.h" />
     <ClInclude Include="Source\Panels\PanelResource.h" />
->>>>>>> SheetBilboard
     <ClInclude Include="Source\FileSystem\AudioImporter.h" />
     <ClInclude Include="Libs\imgui\imgui_stdlib.h" />
     <ClInclude Include="Source\Resources\ResourceAudioClip.h" />
@@ -296,16 +293,13 @@
   <ItemGroup>
     <ClCompile Include="Source\Components\UI\ComponentProgressBar.cpp" />
     <ClCompile Include="Source\Components\ComponentParticleSystem.cpp" />
-<<<<<<< HEAD
     <ClCompile Include="Source\Components\ComponentTrail.cpp" />
-=======
     <ClCompile Include="Source\MaskType.cpp" />
     <ClCompile Include="Source\FileSystem\ClipImporter.cpp" />
     <ClCompile Include="Source\FileSystem\StateMachineImporter.cpp" />
     <ClCompile Include="Source\Resources\ResourceClip.cpp" />
     <ClCompile Include="Libs\imgui\imgui_tables.cpp" />
     <ClCompile Include="Source\Panels\PanelResource.cpp" />
->>>>>>> SheetBilboard
     <ClCompile Include="Source\FileSystem\AudioImporter.cpp" />
     <ClCompile Include="Libs\imgui\imgui_stdlib.cpp" />
     <ClCompile Include="Source\Resources\ResourceAudioClip.cpp" />

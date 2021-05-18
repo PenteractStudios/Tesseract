@@ -1,13 +1,8 @@
 {
     "Resources": [
         {
-            "Id": 9446298709316817845,
+            "Id": 7906034997440293592,
             "Type": "Texture"
         }
-<<<<<<< HEAD:Game/Assets/textures/RetryButton.png.meta
-    ],
-    "Timestamp": 1621283722
-=======
     ]
->>>>>>> SheetBilboard:Game/Assets/Textures/RetryButton.png.meta
 }

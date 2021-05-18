@@ -1,13 +1,8 @@
 {
     "Resources": [
         {
-            "Id": 13888220783837359179,
+            "Id": 14716873586100828992,
             "Type": "Texture"
         }
-<<<<<<< HEAD:Game/Assets/textures/HeavyBoxOBJLP_DefaultMaterial_AlbedoTransparency.png.meta
-    ],
-    "Timestamp": 1621283722
-=======
     ]
->>>>>>> SheetBilboard:Game/Assets/Textures/HeavyBoxOBJLP_DefaultMaterial_AlbedoTransparency.png.meta
 }

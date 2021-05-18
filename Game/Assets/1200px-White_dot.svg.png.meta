@@ -1,13 +1,9 @@
 {
     "Resources": [
         {
-            "Id": 3393824279833403891,
+            "Id": 3875556217013084371,
             "Type": "Texture"
         }
-<<<<<<< HEAD
     ],
-    "Timestamp": 1620890215
-=======
-    ]
->>>>>>> SheetBilboard
+    "Timestamp": 1621343174
 }
