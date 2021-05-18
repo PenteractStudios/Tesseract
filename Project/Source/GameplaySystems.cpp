@@ -4,6 +4,7 @@
 #include "Components/UI/ComponentTransform2D.h"
 #include "Components/ComponentCamera.h"
 #include "Application.h"
+#include "Panels/PanelScene.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleInput.h"
@@ -14,12 +15,16 @@
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleRender.h"
 #include "Modules/ModuleCamera.h"
+#include "Modules/ModuleAudio.h"
 #include "Resources/ResourcePrefab.h"
+#include "Resources/ResourceMaterial.h"
 #include "FileSystem/SceneImporter.h"
 #include "Utils/Logging.h"
 #include "TesseractEvent.h"
 
+#include "debugdraw.h"
 #include "Geometry/Frustum.h"
+#include "Geometry/LineSegment.h"
 #include "SDL_events.h"
 
 #include "Utils/Leaks.h"
@@ -41,10 +46,15 @@ T* GameplaySystems::GetResource(UID id) {
 }
 
 template TESSERACT_ENGINE_API ResourcePrefab* GameplaySystems::GetResource<ResourcePrefab>(UID id);
+template TESSERACT_ENGINE_API ResourceMaterial* GameplaySystems::GetResource<ResourceMaterial>(UID id);
 
 void GameplaySystems::SetRenderCamera(ComponentCamera* camera) {
 	App->camera->ChangeActiveCamera(camera, true);
 	App->camera->ChangeCullingCamera(camera, true);
+}
+
+void GameplaySystems::DestroyGameObject(GameObject* gameObject) {
+	App->scene->DestroyGameObjectDeferred(gameObject);
 }
 
 // ------------- DEBUG ------------- //
@@ -86,6 +96,9 @@ void Debug::ToggleDrawCameraFrustums() {
 
 void Debug::ToggleDrawLightGizmos() {
 	App->renderer->ToggleDrawLightGizmos();
+}
+void Debug::ToggleDrawParticleGizmos() {
+	App->renderer->ToggleDrawParticleGizmos();
 }
 
 void Debug::UpdateShadingMode(const char* shadingMode) {
@@ -140,6 +153,25 @@ const float2& Input::GetMouseMotion() {
 	return App->input->GetMouseMotion();
 }
 
+const float3 Input::GetMouseWorldPosition() {
+	float2 MousePositionNormalized = App->editor->panelScene.GetMousePosOnSceneNormalized();
+	float4x4 Projection = App->camera->GetProjectionMatrix();
+	float4x4 View = App->camera->GetViewMatrix();
+	float4 ScreenPos = float4(MousePositionNormalized.x, MousePositionNormalized.y, 0.0f, 1.0f);
+	float4x4 ProjView = Projection * View;
+	ProjView.Inverse();
+	float4 worldPos = ProjView * ScreenPos;
+	return worldPos.xyz()/worldPos.w;
+}
+
+float2 Input::GetMousePosition() {
+	return App->input->GetMousePosition(true);
+}
+
+const float2& Input::GetMousePositionNormalized() {
+	return App->editor->panelScene.GetMousePosOnSceneNormalized();
+}
+
 bool Input::GetKeyCodeDown(KEYCODE keycode) {
 	return App->input->GetKeyboard()[keycode] == KS_DOWN;
 }
@@ -171,9 +203,73 @@ void SceneManager::ExitGame() {
 }
 
 float Screen::GetScreenWitdh() {
-	return App->window->GetWidth();
+	return static_cast<float>(App->window->GetWidth());
 }
 
 float Screen::GetScreenHeight() {
-	return App->window->GetHeight();
+
+	return static_cast<float>(App->window->GetHeight());
+}
+
+GameObject* Physics::Raycast(const float3& start, const float3& end, const int mask) {
+	LineSegment ray = LineSegment(start, end);
+
+	Scene* scene = App->scene->scene;
+
+	GameObject* closestGo = nullptr;
+	float closestNear = FLT_MAX;
+	float closestFar = FLT_MIN;
+
+	for (GameObject& go : scene->gameObjects) {
+		if ((go.GetMask().bitMask & mask) == 0) continue;
+		ComponentBoundingBox* componentBBox = go.GetComponent<ComponentBoundingBox>();
+		if (componentBBox == nullptr) continue;
+		const AABB& bbox = componentBBox->GetWorldAABB();
+
+		float dNear, dFar;
+
+		if (ray.Intersects(bbox, dNear, dFar)) {
+			if (closestGo == nullptr) {
+				closestGo = &go;
+			} else {
+				if (dNear < closestFar) {
+					closestGo = &go;
+				}
+			}
+		}
+	}
+
+	return closestGo;
+}
+
+float3 Colors::Red() {
+	return dd::colors::Red;
+}
+
+float3 Colors::White() {
+	return dd::colors::White;
+}
+
+float3 Colors::Blue() {
+	return dd::colors::Blue;
+}
+
+float3 Colors::Orange() {
+	return dd::colors::Orange;
+}
+
+float3 Colors::Green() {
+	return dd::colors::Green;
+}
+
+// --------- Camera --------- //
+
+bool Camera::CheckObjectInsideFrustum(GameObject* gameObject) {
+	return App->renderer->ObjectInsideFrustum(gameObject);
+}
+
+// --------- Audio --------- //
+
+void Audio::StopAllSources() {
+	App->audio->StopAllSources();
 }

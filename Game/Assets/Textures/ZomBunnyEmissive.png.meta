@@ -1,0 +1,13 @@
+{
+    "Resources": [
+        {
+            "Id": 5862507731794970432,
+            "Type": "Texture"
+        }
+<<<<<<< HEAD:Game/Assets/textures/ZomBunnyEmissive.png.meta
+    ],
+    "Timestamp": 1621283722
+=======
+    ]
+>>>>>>> SheetBilboard:Game/Assets/Textures/ZomBunnyEmissive.png.meta
+}

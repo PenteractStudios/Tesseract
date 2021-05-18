@@ -34,6 +34,7 @@ enum class ComponentType {
 	BOUNDING_BOX_2D,
 	TOGGLE,
 	SELECTABLE,
+	SLIDER,
 	SKYBOX,
 	ANIMATION,
 	TEXT,
@@ -41,7 +42,8 @@ enum class ComponentType {
 	PARTICLE,
 	TRAIL,
 	AUDIO_SOURCE,
-	AUDIO_LISTENER
+	AUDIO_LISTENER,
+	PROGRESS_BAR
 };
 
 const char* GetComponentTypeName(ComponentType type);

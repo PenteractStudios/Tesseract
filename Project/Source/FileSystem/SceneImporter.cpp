@@ -65,15 +65,17 @@ bool SceneImporter::ImportScene(const char* filePath, JsonValue jMeta) {
 	// Create scene resource
 	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
 	JsonValue jResource = jResources[0];
-	UID id = jResource[JSON_TAG_ID];
-	ResourceScene* scene = App->resources->CreateResource<ResourceScene>(filePath, id ? id : GenerateUID());
+	UID metaId = jResource[JSON_TAG_ID];
+	UID id = metaId ? metaId : GenerateUID();
+	App->resources->CreateResource<ResourceScene>(filePath, id);
 
 	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(scene->GetType());
-	jResource[JSON_TAG_ID] = scene->GetId();
+	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceScene::staticType);
+	jResource[JSON_TAG_ID] = id;
 
 	// Save to file
-	App->files->Save(scene->GetResourceFilePath().c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
+	std::string resourceFilePath = App->resources->GenerateResourcePath(id);
+	App->files->Save(resourceFilePath.c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
 
 	unsigned timeMs = timer.Stop();
 	LOG("Scene imported in %ums", timeMs);

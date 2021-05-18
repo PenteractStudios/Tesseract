@@ -33,11 +33,23 @@ void ComponentCamera::Update() {
 
 void ComponentCamera::DrawGizmos() {
 	if (App->camera->GetActiveCamera() == this) return;
+	if (App->camera->GetEngineCamera() == this) return;
 
-	if (IsActiveInHierarchy()) dd::frustum(frustum.ViewProjMatrix().Inverted(), dd::colors::White);
+	if (IsActive()) dd::frustum(frustum.ViewProjMatrix().Inverted(), dd::colors::White);
 }
 
 void ComponentCamera::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	bool isActive = this == App->camera->GetActiveCamera();
 	bool isCulling = this == App->camera->GetCullingCamera();
 	bool isGameCamera = this == App->camera->GetGameCamera();
@@ -101,11 +113,6 @@ void ComponentCamera::Load(JsonValue jComponent) {
 	frustum.SetFrame(vec(jPos[0], jPos[1], jPos[2]), vec(jFront[0], jFront[1], jFront[2]), vec(jUp[0], jUp[1], jUp[2]));
 	frustum.SetViewPlaneDistances(jFrustum[JSON_TAG_NEAR_PLANE_DISTANCE], jFrustum[JSON_TAG_FAR_PLANE_DISTANCE]);
 	frustum.SetPerspective(jFrustum[JSON_TAG_HORIZONTAL_FOV], jFrustum[JSON_TAG_VERTICAL_FOV]);
-}
-
-void ComponentCamera::DuplicateComponent(GameObject& owner) {
-	ComponentCamera* component = owner.CreateComponent<ComponentCamera>();
-	component->frustum = this->frustum;
 }
 
 void ComponentCamera::UpdateFrustum() {

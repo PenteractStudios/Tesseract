@@ -21,6 +21,7 @@
 #include "Components/UI/ComponentCanvasRenderer.h"
 #include "Components/UI/ComponentTransform2D.h"
 #include "Components/UI/ComponentImage.h"
+#include "Components/UI/ComponentProgressBar.h"
 #include "Modules/ModuleInput.h"
 #include "Modules/ModulePrograms.h"
 #include "Modules/ModuleCamera.h"
@@ -78,6 +79,7 @@ bool ModuleScene::Start() {
 	App->events->AddObserverToEvent(TesseractEventType::CHANGE_SCENE, this);
 	App->events->AddObserverToEvent(TesseractEventType::RESOURCES_LOADED, this);
 	App->events->AddObserverToEvent(TesseractEventType::COMPILATION_FINISHED, this);
+	App->events->AddObserverToEvent(TesseractEventType::PRESSED_PLAY, this);
 
 #if !GAME
 	App->files->CreateFolder(ASSETS_PATH);
@@ -135,6 +137,7 @@ void ModuleScene::ReceiveEvent(TesseractEvent& e) {
 		if (App->time->IsGameRunning() && !sceneLoaded) {
 			sceneLoaded = true;
 			for (ComponentScript& script : scene->scriptComponents) {
+				script.CreateScriptInstance();
 				Script* scriptInstance = script.GetScriptInstance();
 				if (scriptInstance != nullptr) {
 					scriptInstance->Start();
@@ -148,6 +151,7 @@ void ModuleScene::ReceiveEvent(TesseractEvent& e) {
 		}
 		break;
 	}
+
 }
 
 void ModuleScene::CreateEmptyScene() {

@@ -2,6 +2,7 @@
 
 #include "Module.h"
 
+#include "Resources/Resource.h"
 #include "Panels/PanelScene.h"
 #include "Panels/PanelProject.h"
 #include "Panels/PanelConsole.h"
@@ -10,6 +11,7 @@
 #include "Panels/PanelHierarchy.h"
 #include "Panels/PanelAbout.h"
 #include "Panels/PanelControlEditor.h"
+#include "Panels/PanelResource.h"
 
 #include "imgui.h"
 #include <vector>
@@ -61,8 +63,10 @@ public:
 	PanelHierarchy panelHierarchy;
 	PanelAbout panelAbout;
 	PanelControlEditor panelControlEditor;
+	PanelResource panelResource;
 
 	GameObject* selectedGameObject = nullptr;			   // Pointer to the GameObject that will be shown in the inspector.
+	Resource* selectedResource = nullptr;				   // Pointer to the Resource that will be shown in the PanelResource.
 	ImVec4 titleColor = ImVec4(0.35f, 0.69f, 0.87f, 1.0f); // Color used for the titles in ImGui
 	ImVec4 textColor = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);	   // Color used for text and information in ImGui
 

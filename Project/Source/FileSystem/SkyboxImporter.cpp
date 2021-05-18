@@ -34,14 +34,15 @@ bool SkyboxImporter::ImportSkybox(const char* filePath, JsonValue jMeta) {
 
 	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
 	JsonValue jResource = jResources[0];
-	UID id = jResource[JSON_TAG_ID];
-	ResourceSkybox* resourceSkybox = App->resources->CreateResource<ResourceSkybox>(filePath, id ? id : GenerateUID());
+	UID metaId = jResource[JSON_TAG_ID];
+	UID id = metaId ? metaId : GenerateUID();
+	App->resources->CreateResource<ResourceSkybox>(filePath, id);
 
 	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(resourceSkybox->GetType());
-	jResource[JSON_TAG_ID] = resourceSkybox->GetId();
+	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceSkybox::staticType);
+	jResource[JSON_TAG_ID] = id;
 
-	const std::string& resourceFilePath = resourceSkybox->GetResourceFilePath();
+	const std::string& resourceFilePath = App->resources->GenerateResourcePath(id);
 	bool saved = App->files->Save(resourceFilePath.c_str(), buffer);
 	if (!saved) {
 		LOG("Failed to save skybox resource.");

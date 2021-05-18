@@ -71,7 +71,11 @@ void PanelScene::Update() {
 			}
 
 			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-			ImGui::Checkbox("2D", &view2D);
+			if (ImGui::Checkbox("2D", &App->userInterface->view2DInternal)) {
+				for (ComponentTransform2D& transform2D : App->scene->scene->transform2DComponents) {
+					transform2D.Invalidate();
+				};
+			};
 			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 
 			std::string camera = std::string(ICON_FA_VIDEO);
@@ -89,10 +93,10 @@ void PanelScene::Update() {
 				float nearPlane = frustum->NearPlaneDistance();
 				float farPlane = frustum->FarPlaneDistance();
 				if (ImGui::DragFloat("Near Plane", &nearPlane, 0.1f, 0.0f, farPlane, "%.2f")) {
-					App->camera->engineCamera->GetFrustum()->SetViewPlaneDistances(nearPlane, farPlane);
+					App->camera->engineCamera.GetFrustum()->SetViewPlaneDistances(nearPlane, farPlane);
 				}
 				if (ImGui::DragFloat("Far Plane", &farPlane, 1.0f, nearPlane, inf, "%.2f")) {
-					App->camera->engineCamera->GetFrustum()->SetViewPlaneDistances(nearPlane, farPlane);
+					App->camera->engineCamera.GetFrustum()->SetViewPlaneDistances(nearPlane, farPlane);
 				}
 				ImGui::EndPopup();
 			}
@@ -111,6 +115,7 @@ void PanelScene::Update() {
 				ImGui::Checkbox("Camera Frustums", &App->renderer->drawCameraFrustums);
 				ImGui::Checkbox("Light Gizmos", &App->renderer->drawLightGizmos);
 				ImGui::Checkbox("Animation Bones", &App->renderer->drawAllBones);
+				ImGui::Checkbox("Particle Gizmos", &App->renderer->drawParticleGizmos);
 				ImGui::Separator();
 				ImGui::EndPopup();
 			}
@@ -151,9 +156,10 @@ void PanelScene::Update() {
 		// Update viewport size
 		ImVec2 size = ImGui::GetContentRegionAvail();
 		if (App->renderer->GetViewportSize().x != size.x || App->renderer->GetViewportSize().y != size.y) {
+			// TODO, These should use the EVENT SCREEN_RESIZED
 			App->camera->ViewportResized((int) size.x, (int) size.y);
-			App->userInterface->ViewportResized();
 			App->renderer->ViewportResized((int) size.x, (int) size.y);
+			App->userInterface->ViewportResized();
 			framebufferSize = {
 				size.x,
 				size.y,
@@ -240,7 +246,7 @@ void PanelScene::Update() {
 			ImGuizmo::ViewManipulate(cameraView.ptr(), 4, ImVec2(viewManipulateRight - viewManipulateSize, viewManipulateTop), ImVec2(viewManipulateSize, viewManipulateSize), 0x10101010);
 			if (ImGui::IsWindowFocused()) {
 				float4x4 newCameraView = cameraView.InverseTransposed();
-				App->camera->engineCamera->GetFrustum()->SetFrame(newCameraView.Col(3).xyz(), -newCameraView.Col(2).xyz(), newCameraView.Col(1).xyz());
+				App->camera->engineCamera.GetFrustum()->SetFrame(newCameraView.Col(3).xyz(), -newCameraView.Col(2).xyz(), newCameraView.Col(1).xyz());
 			}
 		}
 
@@ -258,10 +264,10 @@ void PanelScene::Update() {
 			mousePosOnScene.x = io.MousePos.x - framebufferPosition.x;
 			mousePosOnScene.y = io.MousePos.y - framebufferPosition.y;
 
+			mousePosNormalized.x = -1 + 2 * std::max(-1.0f, std::min((io.MousePos.x - framebufferPosition.x) / (size.x), 1.0f));
+			mousePosNormalized.y = 1 - 2 * std::max(-1.0f, std::min((io.MousePos.y - framebufferPosition.y) / (size.y), 1.0f));
+
 			if (ImGui::IsMouseClicked(0) && ImGui::IsItemHovered() && !ImGuizmo::IsOver()) {
-				float2 mousePosNormalized;
-				mousePosNormalized.x = -1 + 2 * std::max(-1.0f, std::min((io.MousePos.x - framebufferPosition.x) / (size.x), 1.0f));
-				mousePosNormalized.y = 1 - 2 * std::max(-1.0f, std::min((io.MousePos.y - framebufferPosition.y) / (size.y), 1.0f));
 				App->camera->CalculateFrustumNearestObject(mousePosNormalized);
 			}
 			ImGui::CaptureMouseFromApp(false);
@@ -271,12 +277,11 @@ void PanelScene::Update() {
 	}
 }
 
-bool PanelScene::IsUsing2D() const {
-	return view2D;
-}
-
 const float2& PanelScene::GetMousePosOnScene() const {
 	return mousePosOnScene;
+}
+const float2& PanelScene::GetMousePosOnSceneNormalized() const {
+	return mousePosNormalized;
 }
 
 const char* PanelScene::GetCurrentShadingMode() const {

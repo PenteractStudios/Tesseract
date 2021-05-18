@@ -18,6 +18,7 @@
 #include "Components/UI/ComponentSelectable.h"
 #include "Components/UI/ComponentText.h"
 #include "Components/UI/ComponentTransform2D.h"
+#include "Components/UI/ComponentSlider.h"
 #include "Application.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleUserInterface.h"
@@ -47,7 +48,7 @@ void PanelInspector::Update() {
 			ImGui::SameLine();
 			ImGui::TextColored(App->editor->textColor, "%llu", selected->GetID());
 
-			bool active = selected->IsActive();
+			bool active = selected->IsActiveInternal();
 			if (ImGui::Checkbox("##game_object", &active)) {
 				// TODO: EventSystem would generate an event here
 				if (active) {
@@ -61,6 +62,26 @@ void PanelInspector::Update() {
 			sprintf_s(name, 100, "%s", selected->name.c_str());
 			if (ImGui::InputText("##game_object_name", name, 100)) {
 				selected->name = name;
+			}
+
+			if (ImGui::Button("Mask")) {
+				ImGui::OpenPopup("Mask");
+			}
+
+			if (ImGui::BeginPopup("Mask")) {
+				for (int i = 0; i < ARRAY_LENGTH(selected->GetMask().maskNames); ++i) {
+					bool maskActive = selected->GetMask().maskValues[i];
+					if (ImGui::Checkbox(selected->GetMask().maskNames[i], &maskActive)) {
+						selected->GetMask().maskValues[i] = maskActive;
+						if (selected->GetMask().maskValues[i]) {
+							selected->AddMask(GetMaskTypeFromName(selected->GetMask().maskNames[i]));
+						} else {
+							selected->DeleteMask(GetMaskTypeFromName(selected->GetMask().maskNames[i]));
+						}
+					}
+				}
+				ImGui::Separator();
+				ImGui::EndPopup();
 			}
 
 			ImGui::Separator();
@@ -120,6 +141,9 @@ void PanelInspector::Update() {
 				case ComponentType::SELECTABLE:
 					cName = "Selectable";
 					break;
+				case ComponentType::SLIDER:
+					cName = "Slider";
+					break;
 				case ComponentType::SKYBOX:
 					cName = "Skybox";
 					break;
@@ -140,6 +164,9 @@ void PanelInspector::Update() {
 					break;
 				case ComponentType::AUDIO_LISTENER:
 					cName = "Audio Listener";
+					break;
+				case ComponentType::PROGRESS_BAR:
+					cName = "Progress Bar";
 					break;
 				default:
 					cName = "";
@@ -237,6 +264,7 @@ void PanelInspector::Update() {
 					ComponentParticleSystem* particle = selected->CreateComponent<ComponentParticleSystem>();
 					if (particle != nullptr) {
 						particle->Init();
+<<<<<<< HEAD
 					}
 				}
 				if (ImGui::MenuItem("Trail")) {
@@ -257,12 +285,15 @@ void PanelInspector::Update() {
 					ComponentAudioListener* audioListener = selected->CreateComponent<ComponentAudioListener>();
 					if (audioListener != nullptr) {
 						audioListener->Init();
+=======
+>>>>>>> SheetBilboard
 					} else {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
 				}
 				// TRANSFORM is always there, cannot add a new one.
 
+				AddAudioComponentsOptions(selected);
 				AddUIComponentsOptions(selected);
 
 				ImGui::EndPopup();
@@ -280,49 +311,64 @@ void PanelInspector::SetComponentToDelete(Component* comp) {
 	componentToDelete = comp;
 }
 
+void PanelInspector::AddAudioComponentsOptions(GameObject* selected) {
+	if (ImGui::BeginMenu("Audio")) {
+		if (ImGui::MenuItem("Audio Source")) {
+			ComponentAudioSource* audioSource = selected->CreateComponent<ComponentAudioSource>();
+			if (audioSource != nullptr) {
+				audioSource->Init();
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+			}
+		}
+		if (ImGui::MenuItem("Audio Listener")) {
+			ComponentAudioListener* audioListener = selected->CreateComponent<ComponentAudioListener>();
+			if (audioListener != nullptr) {
+				audioListener->Init();
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+			}
+		}
+		ImGui::EndMenu();
+	}
+}
+
 void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 	if (ImGui::BeginMenu("UI")) {
 		// ------ CREATING UI HANDLERS -------
+
+		ComponentType typeToCreate = ComponentType::UNKNOWN;
+
 		if (ImGui::MenuItem("Event System")) {
 			if (App->scene->scene->eventSystemComponents.Count() == 0) {
-				ComponentEventSystem* component = selected->CreateComponent<ComponentEventSystem>();
-				if (component != nullptr) {
-					component->Init();
-				} else {
-					App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
-				}
+				typeToCreate = ComponentType::EVENT_SYSTEM;
 			} else {
 				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 			}
 		}
 
 		if (ImGui::MenuItem("Canvas")) {
-			ComponentCanvas* component = selected->CreateComponent<ComponentCanvas>();
-			if (component != nullptr) {
-				component->Init();
-			} else {
-				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
-			}
+			typeToCreate = ComponentType::CANVAS;
 		}
 
 		// ------ CREATING UI ELEMENTS -------
 		bool newUIComponentCreated = false;	 // If a UI component is created, we will create a Transform2D and a CanvasRenderer components for it
 		bool newUISelectableCreated = false; // In addition, if it is a selectable element, a ComponentBoundingBox2D will also be created
 		if (ImGui::MenuItem("Image")) {
-			ComponentImage* component = selected->CreateComponent<ComponentImage>();
-			if (component != nullptr) {
-				component->Init();
+			ComponentImage* component = selected->GetComponent<ComponentImage>();
+			if (component == nullptr) {
 				newUIComponentCreated = true;
+				typeToCreate = ComponentType::IMAGE;
 			} else {
 				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 			}
 		}
 
 		if (ImGui::MenuItem("Text")) {
-			ComponentText* component = selected->CreateComponent<ComponentText>();
-			if (component != nullptr) {
-				component->Init();
+			ComponentText* component = selected->GetComponent<ComponentText>();
+			if (component == nullptr) {
 				newUIComponentCreated = true;
+				typeToCreate = ComponentType::TEXT;
 			} else {
 				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 			}
@@ -332,21 +378,29 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 		// ...
 
 		// Selectables
-		ComponentType tmpType = ComponentType::UNKNOWN;
 
 		if (ImGui::MenuItem("Button")) {
-			ComponentButton* component = selected->CreateComponent<ComponentButton>();
-			if (component != nullptr) {
-				component->Init();
-				tmpType = component->GetType();
-				//ComponentEventSystem::m_Selectables.push_back(component);
+			ComponentButton* component = selected->GetComponent<ComponentButton>();
+			if (component == nullptr) {
+				typeToCreate = ComponentType::BUTTON;
 				newUIComponentCreated = true;
 				newUISelectableCreated = true;
 			} else {
 				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 			}
 		}
-		// MenuItem("Toggle")
+
+		if (ImGui::MenuItem("Toggle")) {
+			ComponentToggle* component = selected->GetComponent<ComponentToggle>();
+			if (component == nullptr) {
+				typeToCreate = ComponentType::TOGGLE;
+				newUIComponentCreated = true;
+				newUISelectableCreated = true;
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+			}
+		}
+
 		// MenuItem("InputText")
 		// MenuItem("ScrollBar")
 		// ...
@@ -366,10 +420,67 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 				if (boundingBox2d != nullptr) boundingBox2d->Init();
 				if (selectable != nullptr) {
 					selectable->Init();
-					selectable->SetSelectableType(tmpType);
+					selectable->SetSelectableType(typeToCreate);
 				}
 			}
 		}
+
+		switch (typeToCreate) {
+		case ComponentType::EVENT_SYSTEM: {
+			ComponentEventSystem* component = selected->CreateComponent<ComponentEventSystem>();
+			if (component != nullptr) {
+				component->Init();
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+			}
+			break;
+		}
+		case ComponentType::CANVAS: {
+			ComponentTransform2D* transform = selected->GetComponent<ComponentTransform2D>();
+			if (transform == nullptr) {
+				transform = selected->CreateComponent<ComponentTransform2D>();
+				transform->Init();
+			}
+			ComponentCanvas* component = selected->CreateComponent<ComponentCanvas>();
+			if (component != nullptr) {
+				component->Init();
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+			}
+			break;
+		}
+		case ComponentType::IMAGE: {
+			ComponentImage* component = selected->CreateComponent<ComponentImage>();
+			component->Init();
+			break;
+		}
+		case ComponentType::TEXT: {
+			ComponentText* component = selected->CreateComponent<ComponentText>();
+			component->Init();
+			break;
+		}
+		case ComponentType::BUTTON: {
+			ComponentButton* component = selected->CreateComponent<ComponentButton>();
+
+			component->Init();
+
+			if (!selected->GetComponent<ComponentImage>()) {
+				ComponentImage* image = selected->CreateComponent<ComponentImage>();
+				image->Init();
+			}
+			break;
+		}
+		case ComponentType::TOGGLE: {
+			ComponentToggle* component = selected->CreateComponent<ComponentToggle>();
+			component->Init();
+			if (!selected->GetComponent<ComponentImage>()) {
+				ComponentImage* image = selected->CreateComponent<ComponentImage>();
+				image->Init();
+			}
+			break;
+		}
+		}
+
 		ImGui::EndMenu();
 	}
 }

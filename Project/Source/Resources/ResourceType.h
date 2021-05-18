@@ -25,6 +25,8 @@ enum class ResourceType {
 	SKYBOX,
 	SCRIPT,
 	ANIMATION,
+	STATE_MACHINE,
+	CLIP,
 	AUDIO
 };
 

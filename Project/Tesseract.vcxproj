@@ -15,8 +15,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />
     <ClInclude Include="Source\Components\ComponentParticleSystem.h" />
+<<<<<<< HEAD
     <ClInclude Include="Source\Components\ComponentTrail.h" />
+=======
+    <ClInclude Include="Source\MaskType.h" />
+    <ClInclude Include="Source\FileSystem\ClipImporter.h" />
+    <ClInclude Include="Source\FileSystem\StateMachineImporter.h" />
+    <ClInclude Include="Source\AnimationInterpolation.h" />
+    <ClInclude Include="Source\Resources\ResourceClip.h" />
+    <ClInclude Include="Source\State.h" />
+    <ClInclude Include="Source\Panels\PanelResource.h" />
+>>>>>>> SheetBilboard
     <ClInclude Include="Source\FileSystem\AudioImporter.h" />
     <ClInclude Include="Libs\imgui\imgui_stdlib.h" />
     <ClInclude Include="Source\Resources\ResourceAudioClip.h" />
@@ -76,7 +87,8 @@
     <ClInclude Include="Source\UI\Interfaces\IPointerExitHandler.h" />
     <ClInclude Include="Source\Components\UI\ComponentCanvas.h" />
     <ClInclude Include="Source\Components\UI\ComponentCanvasRenderer.h" />
-    <ClInclude Include="Source\UI\FontImporter.h" />
+    <ClInclude Include="Source\FileSystem\FontImporter.h" />
+    <ClInclude Include="Source\Components\UI\ComponentSlider.h" />
     <ClInclude Include="Source\Components\UI\ComponentImage.h" />
     <ClInclude Include="Source\Components\UI\ComponentTransform2D.h" />
     <ClInclude Include="Source\GameplaySystems.h" />
@@ -134,6 +146,7 @@
     <ClInclude Include="Source\Resources\Resource.h" />
     <ClInclude Include="Source\Globals.h" />
     <ClInclude Include="Source\Application.h" />
+    <ClInclude Include="Source\Resources\ResourceStateMachine.h" />
     <ClInclude Include="Source\Components\UI\ComponentEventSystem.h" />
     <ClInclude Include="Source\Modules\ModuleUserInterface.h" />
     <ClInclude Include="Source\Components\UI\ComponentButton.h" />
@@ -275,13 +288,24 @@
     <ClInclude Include="Libs\MathGeoLib\Math\TransformOps.h" />
     <ClInclude Include="Libs\MathGeoLib\Math\vec2d.h" />
     <ClInclude Include="Libs\MathGeoLib\Time\Clock.h" />
+    <ClInclude Include="Source\Transition.h" />
+    <ClInclude Include="Source\Utils\VectorMap.h" />
     <ClInclude Include="Source\Utils\PoolMap.h" />
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Libs\imgui\imgui_tables.cpp" />
+    <ClCompile Include="Source\Components\UI\ComponentProgressBar.cpp" />
     <ClCompile Include="Source\Components\ComponentParticleSystem.cpp" />
+<<<<<<< HEAD
     <ClCompile Include="Source\Components\ComponentTrail.cpp" />
+=======
+    <ClCompile Include="Source\MaskType.cpp" />
+    <ClCompile Include="Source\FileSystem\ClipImporter.cpp" />
+    <ClCompile Include="Source\FileSystem\StateMachineImporter.cpp" />
+    <ClCompile Include="Source\Resources\ResourceClip.cpp" />
+    <ClCompile Include="Libs\imgui\imgui_tables.cpp" />
+    <ClCompile Include="Source\Panels\PanelResource.cpp" />
+>>>>>>> SheetBilboard
     <ClCompile Include="Source\FileSystem\AudioImporter.cpp" />
     <ClCompile Include="Libs\imgui\imgui_stdlib.cpp" />
     <ClCompile Include="Source\Resources\ResourceAudioClip.cpp" />
@@ -291,11 +315,12 @@
     <ClCompile Include="Source\Scripting\Member.cpp" />
     <ClCompile Include="Source\TesseractEvent.cpp" />
     <ClCompile Include="Source\Resources\ResourceFont.cpp" />
+    <ClCompile Include="Source\Components\UI\ComponentSlider.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentToggle.cpp" />
     <ClCompile Include="Source\Components\ComponentBoundingBox2D.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentCanvas.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentCanvasRenderer.cpp" />
-    <ClCompile Include="Source\UI\FontImporter.cpp" />
+    <ClCompile Include="Source\FileSystem\FontImporter.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentImage.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentTransform2D.cpp" />
     <ClCompile Include="Source\GameplaySystems.cpp" />
@@ -348,6 +373,7 @@
     <ClCompile Include="Source\Resources\Resource.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\Application.cpp" />
+    <ClCompile Include="Source\Resources\ResourceStateMachine.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentEventSystem.cpp" />
     <ClCompile Include="Source\Modules\ModuleUserInterface.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentButton.cpp" />
@@ -454,6 +480,7 @@
     <None Include="..\PackageEngine.ps1" />
     <None Include="..\README.md" />
     <None Include=".clang-format" />
+    <None Include="cpp.hint" />
     <None Include="Debugging.props" />
     <None Include="Libs\MathGeoLib\Geometry\KDTree.inl" />
     <None Include="Libs\MathGeoLib\Geometry\QuadTree.inl" />
@@ -462,6 +489,7 @@
     <None Include="Libs\MathGeoLib\Geometry\TriangleMesh_IntersectRay_SSE.inl" />
     <None Include="Libs\MathGeoLib\Math\float2.inl" />
     <None Include="Libs\MathGeoLib\Math\Matrix.inl" />
+    <None Include="Source\Utils\dte80a.tlh" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />

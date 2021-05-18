@@ -747,17 +747,17 @@ std::ostream &operator <<(std::ostream &out, const float3x3 &rhs);
 #endif
 
 /// Multiplies two transforms together.
-float3x3 operator *(const Quat &lhs, const float3x3 &rhs);
+TESSERACT_ENGINE_API float3x3 operator*(const Quat& lhs, const float3x3& rhs);
 
 /// Transforms the given vector by the given matrix in the order v * M. Note that this form
 /// of multiplication is against the convention of this math system for transforming geometrical objects.
 /// Please use the M * v notation instead. (Remember that M * v != v * M in general).
-float3 operator *(const float3 &lhs, const float3x3 &rhs);
+TESSERACT_ENGINE_API float3 operator *(const float3 &lhs, const float3x3 &rhs);
 
 /// Transforms the given vector by the given matrix in the order v * M. Note that this form
 /// of multiplication is against the convention of this math system. Please use the M * v notation instead.
 /// (Remember that M * v != v * M in general).
 /// This function ignores the w component of the given input vector. This component is assumed to be either 0 or 1.
-float4 operator *(const float4 &lhs, const float3x3 &rhs);
+TESSERACT_ENGINE_API float4 operator*(const float4& lhs, const float3x3& rhs);
 
 MATH_END_NAMESPACE

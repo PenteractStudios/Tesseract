@@ -16,6 +16,7 @@
 #include "Components/UI/ComponentButton.h"
 #include "Components/UI/ComponentToggle.h"
 #include "Components/UI/ComponentText.h"
+#include "Components/UI/ComponentSlider.h"
 #include "Components/ComponentBoundingBox2D.h"
 #include "Components/ComponentSkybox.h"
 #include "Components/ComponentTrail.h"
@@ -24,6 +25,7 @@
 #include "Components/ComponentAnimation.h"
 #include "Components/ComponentAudioListener.h"
 #include "Components/ComponentAudioSource.h"
+#include "Components/UI/ComponentProgressBar.h"
 
 class GameObject;
 
@@ -37,7 +39,6 @@ public:
 
 	// --- GameObject Management --- //
 	GameObject* CreateGameObject(GameObject* parent, UID id, const char* name);
-	GameObject* DuplicateGameObject(GameObject* gameObject, GameObject* parent);
 	void DestroyGameObject(GameObject* gameObject);
 	GameObject* GetGameObject(UID id) const;
 
@@ -71,6 +72,7 @@ public:
 	PoolMap<UID, ComponentText> textComponents;
 	PoolMap<UID, ComponentButton> buttonComponents;
 	PoolMap<UID, ComponentSelectable> selectableComponents;
+	PoolMap<UID, ComponentSlider> sliderComponents;
 	PoolMap<UID, ComponentSkyBox> skyboxComponents;
 	PoolMap<UID, ComponentScript> scriptComponents;
 	PoolMap<UID, ComponentAnimation> animationComponents;
@@ -78,6 +80,7 @@ public:
 	PoolMap<UID, ComponentTrail> trailComponents;
 	PoolMap<UID, ComponentAudioSource> audioSourceComponents;
 	PoolMap<UID, ComponentAudioListener> audioListenerComponents;
+	PoolMap<UID, ComponentProgressBar> progressbarsComponents;
 
 	// ---- Quadtree Parameters ---- //
 	Quadtree<GameObject> quadtree;

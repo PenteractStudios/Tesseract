@@ -1,0 +1,13 @@
+{
+    "Resources": [
+        {
+            "Id": 9955017878727440255,
+            "Type": "Texture"
+        }
+<<<<<<< HEAD:Game/Assets/textures/HowToPlay.png.meta
+    ],
+    "Timestamp": 1621283722
+=======
+    ]
+>>>>>>> SheetBilboard:Game/Assets/Textures/HowToPlay.png.meta
+}

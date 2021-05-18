@@ -12,6 +12,10 @@ public:
 
 	void Start() override;
 	void Update() override;
+
 public:
-	GameObject* gameObject = nullptr;
+	UID backgroundUID;
+
+private:
+	GameObject* background = nullptr;
 };

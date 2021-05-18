@@ -26,10 +26,19 @@
 #define JSON_TAG_TYPE "Type"
 #define JSON_TAG_VALUE "Value"
 
+void ComponentScript::Init() {
+	if (scriptInstance) scriptInstance->Start();
+}
+
 void ComponentScript::OnEditorUpdate() {
-	bool active = IsActive();
 	if (ImGui::Checkbox("Active", &active)) {
-		active ? Enable() : Disable();
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
 	}
 	ImGui::Separator();
 	UID oldScriptId = scriptId;
@@ -159,6 +168,15 @@ void ComponentScript::OnEditorUpdate() {
 				}
 				break;
 			}
+			case MemberType::FLOAT3: {
+				float3* memberPtr = (float3*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
+				float3 old = *memberPtr;
+				ImGui::InputFloat3("Target Position", &memberPtr->x, "%.1f");
+				if (!old.Equals(*memberPtr)) {
+					changedValues[member.name] = std::pair<MemberType, MEMBER_VARIANT>(member.type, *memberPtr);
+				}
+				break;
+			}
 			default:
 				LOG("Member of type %i hasn't been registered in ComponentScript's OnEditorUpdate function.", (unsigned) member.type);
 				assert(false); // ERROR: Member type not registered
@@ -173,7 +191,7 @@ void ComponentScript::Save(JsonValue jComponent) const {
 	JsonValue jValues = jComponent[JSON_TAG_VALUES];
 	unsigned i = 0;
 	for (auto& entry : changedValues) {
-		JsonValue jValue = jValues[i++]; 
+		JsonValue jValue = jValues[i++];
 		jValue[JSON_TAG_NAME] = entry.first.c_str();
 		jValue[JSON_TAG_TYPE] = GetMemberTypeName(entry.second.first);
 		switch (entry.second.first) {
@@ -207,6 +225,14 @@ void ComponentScript::Save(JsonValue jComponent) const {
 		case MemberType::PREFAB_RESOURCE_UID:
 			jValue[JSON_TAG_VALUE] = std::get<UID>(entry.second.second);
 			break;
+		case MemberType::FLOAT3: {
+			float3 aFloat3 = std::get<float3>(entry.second.second);
+			JsonValue float3JsonVal = jValue[JSON_TAG_VALUE];
+			float3JsonVal[0] = aFloat3.x;
+			float3JsonVal[1] = aFloat3.y;
+			float3JsonVal[2] = aFloat3.z;
+			break;
+		}
 		default:
 			LOG("Member of type %i hasn't been registered in ComponentScript's Save function.", (unsigned) type);
 			assert(false); // ERROR: Member type not registered
@@ -256,6 +282,11 @@ void ComponentScript::Load(JsonValue jComponent) {
 		case MemberType::PREFAB_RESOURCE_UID:
 			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, static_cast<UID>(jValue[JSON_TAG_VALUE]));
 			break;
+		case MemberType::FLOAT3: {
+			JsonValue jsonVal = jValue[JSON_TAG_VALUE];
+			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, float3(jsonVal[0], jsonVal[1], jsonVal[2]));
+			break;
+		}
 		default:
 			LOG("Member of type %i hasn't been registered in ComponentScript's Load function.", (unsigned) type);
 			assert(false); // ERROR: Member type not registered
@@ -265,12 +296,6 @@ void ComponentScript::Load(JsonValue jComponent) {
 	if (App->project->IsGameLoaded()) {
 		CreateScriptInstance();
 	}
-}
-
-void ComponentScript::DuplicateComponent(GameObject& owner) {
-	ComponentScript* component = owner.CreateComponent<ComponentScript>();
-	component->scriptId = scriptId;
-	component->changedValues = changedValues;
 }
 
 void ComponentScript::CreateScriptInstance() {
@@ -289,7 +314,7 @@ void ComponentScript::CreateScriptInstance() {
 			switch (member.type) {
 			case MemberType::BOOL: {
 				bool* memberPtr = (bool*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
-				*memberPtr= std::get<bool>(it->second.second);
+				*memberPtr = std::get<bool>(it->second.second);
 				break;
 			}
 			case MemberType::INT: {
@@ -337,6 +362,11 @@ void ComponentScript::CreateScriptInstance() {
 				*memberPtr = std::get<UID>(it->second.second);
 				break;
 			}
+			case MemberType::FLOAT3: {
+				float3* memberPtr = (float3*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
+				*memberPtr = std::get<float3>(it->second.second);
+				break;
+			}
 			default:
 				LOG("Member of type %i hasn't been registered in ComponentScript's ReloadScriptInstance function.", (unsigned) member.type);
 				assert(false); // ERROR: Member type not registered
@@ -352,4 +382,12 @@ void ComponentScript::ReleaseScriptInstance() {
 
 Script* ComponentScript::GetScriptInstance() const {
 	return scriptInstance.get();
+}
+
+const char* ComponentScript::GetScriptName() const {
+	if (scriptInstance != nullptr) {
+		ResourceScript* resourceScript = App->resources->GetResource<ResourceScript>(scriptId);
+		return (resourceScript != nullptr) ? (resourceScript->name).c_str() : nullptr;
+	}
+	return nullptr;
 }

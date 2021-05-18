@@ -30,13 +30,14 @@ bool AudioImporter::ImportAudio(const char* filePath, JsonValue jMeta) {
 
 	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
 	JsonValue jResource = jResources[0];
-	UID id = jResource[JSON_TAG_ID];
-	ResourceAudioClip* resourceAudioClip = App->resources->CreateResource<ResourceAudioClip>(filePath, id ? id : GenerateUID());
+	UID metaId = jResource[JSON_TAG_ID];
+	UID id = metaId ? metaId : GenerateUID();
+	App->resources->CreateResource<ResourceAudioClip>(filePath, id);
 
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(resourceAudioClip->GetType());
-	jResource[JSON_TAG_ID] = resourceAudioClip->GetId();
+	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceAudioClip::staticType);
+	jResource[JSON_TAG_ID] = id;
 
-	const std::string& resourceFilePath = resourceAudioClip->GetResourceFilePath();
+	const std::string& resourceFilePath = App->resources->GenerateResourcePath(id);
 	bool saved = App->files->Save(resourceFilePath.c_str(), buffer);
 	if (!saved) {
 		LOG("Failed to save audio resource.");

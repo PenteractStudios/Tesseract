@@ -27,16 +27,23 @@
 #define JSON_TAG_OUTER_ANGLE "OuterAngle"
 #define JSON_TAG_OUTER_GAIN "OuterGain"
 
+ComponentAudioSource::~ComponentAudioSource() {
+	Stop();
+}
+
 void ComponentAudioSource::Init() {
 	UpdateAudioSource();
 }
 
 void ComponentAudioSource::Update() {
 	UpdateAudioSource();
+	if (sourceId != 0 && IsStopped()) {
+		Stop();
+	}
 }
 
 void ComponentAudioSource::DrawGizmos() {
-	if (IsActiveInHierarchy() && drawGizmos) {
+	if (IsActive() && drawGizmos) {
 		if (spatialBlend && sourceType) {
 			dd::cone(position, direction, dd::colors::White, 1.0f, 0.0f);
 		} else {
@@ -65,16 +72,21 @@ void ComponentAudioSource::UpdateAudioSource() {
 }
 
 void ComponentAudioSource::OnEditorUpdate() {
-	bool active = IsActive();
 	if (ImGui::Checkbox("Active", &active)) {
-		active ? Enable() : Disable();
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
 	}
 	ImGui::Separator();
 	ImGui::Checkbox("Draw Gizmos", &drawGizmos);
 	ImGui::Separator();
 	ImGui::TextColored(App->editor->titleColor, "General Settings");
 
-	ImGui::ResourceSlot<ResourceAudioClip>("AudioClip", &audioClipId);
+	ImGui::ResourceSlot<ResourceAudioClip>("AudioClip", &audioClipId, [this]() { Stop(); });
 
 	if (ImGui::Checkbox("Mute", &mute)) {
 		if (mute) {
@@ -157,13 +169,14 @@ void ComponentAudioSource::OnEditorUpdate() {
 	}
 }
 
-void ComponentAudioSource::UpdateSourceParameters() const {
+void ComponentAudioSource::UpdateSourceParameters() {
 	ResourceAudioClip* audioResource = App->resources->GetResource<ResourceAudioClip>(audioClipId);
 	if (audioResource == nullptr) return;
 
 	alSourcef(sourceId, AL_PITCH, pitch);
 	alSourcei(sourceId, AL_LOOPING, loopSound);
 	alSourcei(sourceId, AL_BUFFER, audioResource->ALbuffer);
+	audioResource->AddSource(this);
 
 	if (!spatialBlend) {
 		alSourcei(sourceId, AL_SOURCE_RELATIVE, AL_TRUE);
@@ -193,31 +206,41 @@ void ComponentAudioSource::UpdateSourceParameters() const {
 
 void ComponentAudioSource::Play() {
 	if (IsActive()) {
-		if (!sourceId) {
-			sourceId = App->audio->GetAvailableSource();
-			UpdateSourceParameters();
-		}
+		sourceId = App->audio->GetAvailableSource();
+		UpdateSourceParameters();
 		alSourcePlay(sourceId);
 	}
 }
 
 void ComponentAudioSource::Stop() {
-	if (isPlaying()) {
+	if (sourceId) {
 		alSourceStop(sourceId);
+		alSourcei(sourceId, AL_BUFFER, NULL);
+
+		ResourceAudioClip* audioResource = App->resources->GetResource<ResourceAudioClip>(audioClipId);
+		if (audioResource != nullptr) {
+			audioResource->RemoveSource(this);
+		}
 		sourceId = 0;
 	}
 }
 
 void ComponentAudioSource::Pause() const {
-	if (isPlaying()) {
+	if (IsPlaying()) {
 		alSourcePause(sourceId);
 	}
 }
 
-bool ComponentAudioSource::isPlaying() const {
+bool ComponentAudioSource::IsPlaying() const {
 	ALint state;
 	alGetSourcei(sourceId, AL_SOURCE_STATE, &state);
 	return (state == AL_PLAYING);
+}
+
+bool ComponentAudioSource::IsStopped() const {
+	ALint state;
+	alGetSourcei(sourceId, AL_SOURCE_STATE, &state);
+	return (state == AL_STOPPED || state == AL_INITIAL);
 }
 
 void ComponentAudioSource::Save(JsonValue jComponent) const {
@@ -244,18 +267,8 @@ void ComponentAudioSource::Load(JsonValue jComponent) {
 	innerAngle = jComponent[JSON_TAG_INNER_ANGLE];
 	outerAngle = jComponent[JSON_TAG_OUTER_ANGLE];
 	outerGain = jComponent[JSON_TAG_OUTER_GAIN];
-}
 
-void ComponentAudioSource::DuplicateComponent(GameObject& owner) {
-	ComponentAudioSource* component = owner.CreateComponent<ComponentAudioSource>();
-	component->pitch = this->pitch;
-	component->gain = this->gain;
-	component->mute = this->mute;
-	component->loopSound = this->loopSound;
-	component->audioClipId = this->audioClipId;
-	component->spatialBlend = this->spatialBlend;
-	component->sourceType = this->sourceType;
-	component->innerAngle = this->innerAngle;
-	component->outerAngle = this->outerAngle;
-	component->outerGain = this->outerGain;
+	if (audioClipId) {
+		App->resources->IncreaseReferenceCount(audioClipId);
+	}
 }

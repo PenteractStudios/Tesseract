@@ -1,0 +1,13 @@
+{
+    "Resources": [
+        {
+            "Id": 17570384786664117605,
+            "Type": "Texture"
+        }
+<<<<<<< HEAD:Game/Assets/textures/Controls Screen.png.meta
+    ],
+    "Timestamp": 1621283721
+=======
+    ]
+>>>>>>> SheetBilboard:Game/Assets/Textures/Controls Screen.png.meta
+}

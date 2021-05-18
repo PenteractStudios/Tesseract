@@ -30,14 +30,39 @@
 #define JSON_TAG_COLOR "Color"
 #define JSON_TAG_ALPHATRANSPARENCY "AlphaTransparency"
 
+#define JSON_TAG_ISPLAYING "IsPlaying"
+#define JSON_TAG_LOOPING "IsLooping"
+#define JSON_TAG_ISRANDOMFRAME "IsRandomFrame"
+#define JSON_TAG_ISRANDOMDIRECTION "IsRandomDirection"
+#define JSON_TAG_SCALEPARTICLE "ParticleScale"
+#define JSON_TAG_MAXPARTICLE "MaxParticle"
+#define JSON_TAG_VELOCITY "Velocity"
+#define JSON_TAG_LIFE "LifeParticle"
+#define JSON_TAG_YTILES "Ytiles"
+#define JSON_TAG_XTILES "Xtiles"
+#define JSON_TAG_INITCOLOR "InitColor"
+#define JSON_TAG_FINALCOLOR "FinalColor"
+
 #include <random>
 
 void ComponentParticleSystem::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	ImGui::TextColored(App->editor->textColor, "Texture Settings:");
 
-	ImGui::Checkbox("Play: ", &isPlaying);
+	ImGui::Checkbox("isPlaying: ", &isPlaying);
 	ImGui::Checkbox("Loop: ", &looping);
-
+	if (ImGui::Button("Play")) Play();
+	if (ImGui::Button("Stop")) Stop();
 	ImGui::Separator();
 	const char* emitterTypeCombo[] = {"Cone", "Sphere", "Hemisphere", "Donut", "Circle", "Rectangle"};
 	const char* emitterTypeComboCurrent = emitterTypeCombo[(int) emitterType];
@@ -54,9 +79,8 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		}
 		ImGui::EndCombo();
 	}
-	ImGui::Checkbox("Alpha transparency", &alphaTransparency);
 	ImGui::Checkbox("Random Frame", &isRandomFrame);
-
+	ImGui::Checkbox("Random Direction: ", &randomDirection);
 	ImGui::ResourceSlot<ResourceShader>("shader", &shaderID);
 
 	UID oldID = textureID;
@@ -73,7 +97,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		if (oldID != textureID) {
 			ComponentTransform2D* transform2D = GetOwner().GetComponent<ComponentTransform2D>();
 			if (transform2D != nullptr) {
-				transform2D->SetSize(float2(width, height));
+				transform2D->SetSize(float2(static_cast<float>(width), static_cast<float>(height)));
 			}
 		}
 
@@ -82,10 +106,10 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::TextColored(App->editor->titleColor, "Texture Preview");
 		ImGui::TextWrapped("Size:");
 		ImGui::SameLine();
-		ImGui::TextWrapped("%d x %d", width, height);
+		ImGui::TextWrapped("%i x %i", width, height);
 		ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
-		ImGui::InputInt("Xtiles: ", &Xtiles);
-		ImGui::InputInt("Ytiles: ", &Ytiles);
+		ImGui::InputScalar("Xtiles: ", ImGuiDataType_U32, &Xtiles);
+		ImGui::InputScalar("Ytiles: ", ImGuiDataType_U32, &Ytiles);
 		ImGui::InputFloat("Scale: ", &scale);
 		ImGui::InputFloat("Life: ", &particleLife);
 
@@ -93,50 +117,63 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			CreateParticles(maxParticles, velocity);
 		}
 
-		if (ImGui::InputFloat("MaxParticles: ", &maxParticles)) {
+		if (ImGui::InputScalar("MaxParticles: ", ImGuiDataType_U32, &maxParticles)) {
 			CreateParticles(maxParticles, velocity);
 		}
 
-		ImGui::ColorEdit4("InitColor##", initC.ptr());
-		ImGui::ColorEdit4("FinalColor##", finalC.ptr());
+		ImGui::ColorEdit3("InitColor##", initC.ptr());
+		ImGui::ColorEdit3("FinalColor##", finalC.ptr());
 	}
 }
 
+//TODO: DINAMIC PARTICLE NOT HARCODED
 float3 ComponentParticleSystem::CreateVelocity() {
+	float x, y, z;
 	if (emitterType == EmitterType::CONE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-		float x = (float(rand()) / float((RAND_MAX)) * 0.2) - 0.2;
-		float z = (float(rand()) / float((RAND_MAX)) * 0.2) - 0.2;
-		float y = (float(rand()) / float((RAND_MAX)) * 1.0);
-		return float3(x, y, z);
+		x = (float(rand()) / float((RAND_MAX)) * 0.2f) - 0.2f;
+		y = (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.0f;
+		z = (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.2f;
+		float3 forward = transform->GetGlobalRotation() * float3::unitY;
+		if (!randomDirection) return forward;
+		return float3(forward.x + x, forward.y + y, forward.z + z);
 	}
+	//TODO: DINAMIC PARTICLE NOT HARCODED
 	if (emitterType == EmitterType::SPHERE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-		float x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * 2.0) - 1.0f;
-		float z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * 2.0) - 1.0f;
-		float y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * 2.0) - 1.0f;
+		x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
+		y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
+		z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
 		return float3(x, y, z);
 	}
+
+	return float3(0, 0, 0);
 };
 
 float3 ComponentParticleSystem::CreatePosition() {
+	//TODO: DINAMIC PARTICLE NOT HARCODED
+	float x, y, z;
+
 	if (emitterType == EmitterType::CONE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-		float x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * 0.2) - 0.2;
-		float z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * 0.2) - 0.2;
-		float y = (transform->GetGlobalPosition().y);
-		return float3(x, y, z);
+		x = (transform->GetGlobalPosition().x);
+		z = (transform->GetGlobalPosition().z);
+		y = (transform->GetGlobalPosition().y);
+		return (float3(x, y, z));
 	}
+	//TODO: DINAMIC PARTICLE NOT HARCODED
 	if (emitterType == EmitterType::SPHERE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-		float x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * 0.5) - 0.5;
-		float z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * 0.5) - 0.5;
-		float y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * 0.5) - 0.5;
+		x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.5f;
+		z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.5f;
+		y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.5f;
 		return float3(transform->GetGlobalPosition());
 	}
+
+	return float3(0, 0, 0);
 }
 
-void ComponentParticleSystem::CreateParticles(float nParticles, float vel) {
+void ComponentParticleSystem::CreateParticles(unsigned nParticles, float vel) {
 	particles.Allocate(maxParticles);
 	for (Particle& currentParticle : particles) {
 		currentParticle.scale = float3(0.1f, 0.1f, 0.1f) * scale;
@@ -160,17 +197,58 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 		App->resources->IncreaseReferenceCount(textureID);
 	}
 
-	alphaTransparency = jComponent[JSON_TAG_ALPHATRANSPARENCY];
+	isPlaying = jComponent[JSON_TAG_ISPLAYING];
+	looping = jComponent[JSON_TAG_LOOPING];
+	isRandomFrame = jComponent[JSON_TAG_ISRANDOMFRAME];
+	randomDirection = jComponent[JSON_TAG_ISRANDOMDIRECTION];
+	scale = jComponent[JSON_TAG_SCALEPARTICLE];
+	maxParticles = jComponent[JSON_TAG_MAXPARTICLE];
+	velocity = jComponent[JSON_TAG_VELOCITY];
+	particleLife = jComponent[JSON_TAG_LIFE];
+	Ytiles = jComponent[JSON_TAG_YTILES];
+	Xtiles = jComponent[JSON_TAG_XTILES];
+	JsonValue jColor = jComponent[JSON_TAG_INITCOLOR];
+	initC.Set(jColor[0], jColor[1], jColor[2]);
+
+	JsonValue jColor2 = jComponent[JSON_TAG_FINALCOLOR];
+	finalC.Set(jColor2[0], jColor2[1], jColor2[2]);
+	particleSpawned = 0;
 	CreateParticles(maxParticles, velocity);
 }
 
 void ComponentParticleSystem::Save(JsonValue jComponent) const {
+	jComponent[JSON_TAG_TEXTURE_SHADERID] = shaderID;
+	jComponent[JSON_TAG_TEXTURE_TEXTUREID] = textureID;
+
+	jComponent[JSON_TAG_ISPLAYING] = isPlaying;
+	jComponent[JSON_TAG_LOOPING] = looping;
+	jComponent[JSON_TAG_ISRANDOMFRAME] = isRandomFrame;
+	jComponent[JSON_TAG_ISRANDOMDIRECTION] = randomDirection;
+	jComponent[JSON_TAG_SCALEPARTICLE] = scale;
+	jComponent[JSON_TAG_MAXPARTICLE] = maxParticles;
+	jComponent[JSON_TAG_VELOCITY] = velocity;
+	jComponent[JSON_TAG_LIFE] = particleLife;
+	jComponent[JSON_TAG_YTILES] = Ytiles;
+	jComponent[JSON_TAG_XTILES] = Xtiles;
+
+	JsonValue jColor = jComponent[JSON_TAG_INITCOLOR];
+	jColor[0] = initC.x;
+	jColor[1] = initC.y;
+	jColor[2] = initC.z;
+	JsonValue jColor2 = jComponent[JSON_TAG_FINALCOLOR];
+	jColor2[0] = finalC.x;
+	jColor2[1] = finalC.y;
+	jColor2[2] = finalC.z;
 }
 
 void ComponentParticleSystem::Update() {
 	deadParticles.clear();
 	for (Particle& currentParticle : particles) {
-		currentParticle.life -= 0.01;
+		if (App->time->IsGameRunning()) {
+			currentParticle.life -= App->time->GetDeltaTime();
+		} else {
+			currentParticle.life -= App->time->GetRealTimeDeltaTime();
+		}
 		currentParticle.position += currentParticle.direction * velocity;
 		currentParticle.model = float4x4::FromTRS(currentParticle.position, currentParticle.rotation, currentParticle.scale);
 		if (currentParticle.life < 0) {
@@ -180,7 +258,6 @@ void ComponentParticleSystem::Update() {
 	for (Particle* currentParticle : deadParticles) {
 		particles.Release(currentParticle);
 	}
-	Draw();
 }
 
 void ComponentParticleSystem::Init() {
@@ -189,11 +266,14 @@ void ComponentParticleSystem::Init() {
 
 void ComponentParticleSystem::SpawnParticle() {
 	Particle* currentParticle = particles.Obtain();
+	if (!looping) {
+		particleSpawned++;
+	}
 	if (currentParticle) {
 		currentParticle->position = currentParticle->initialPosition;
 		currentParticle->life = particleLife;
 		if (isRandomFrame) {
-			currentParticle->currentFrame = rand() % ((Xtiles * Ytiles) + 1);
+			currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
 		} else {
 			currentParticle->currentFrame = 0;
 		}
@@ -201,12 +281,20 @@ void ComponentParticleSystem::SpawnParticle() {
 		currentParticle->direction = CreateVelocity();
 		currentParticle->initialPosition = CreatePosition();
 		currentParticle->position = currentParticle->initialPosition;
+		//TODO: not hardcoded
 		currentParticle->scale = float3(0.1f, 0.1f, 0.1f) * scale;
 	}
 }
 
+void ComponentParticleSystem::killParticles() {
+	for (Particle& currentParticle : particles) {
+		particles.Release(&currentParticle);
+	}
+}
+
 void ComponentParticleSystem::DrawGizmos() {
-	if (IsActiveInHierarchy()) {
+	//TODO: IMPROVE DRAWS
+	if (IsActive()) {
 		if (emitterType == EmitterType::CONE) {
 			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 			dd::cone(transform->GetGlobalPosition(), transform->GetGlobalRotation() * float3::unitY * 1, dd::colors::White, 1.0f, 0.3f);
@@ -220,10 +308,7 @@ void ComponentParticleSystem::DrawGizmos() {
 	}
 }
 
-void ComponentParticleSystem::DuplicateComponent(GameObject& owner) {
-}
-
-const float4& ComponentParticleSystem::GetTintColor() const {
+float4 ComponentParticleSystem::GetTintColor() const {
 	ComponentButton* button = GetOwner().GetComponent<ComponentButton>();
 	if (button != nullptr) {
 		return button->GetTintColor();
@@ -242,10 +327,9 @@ void ComponentParticleSystem::Draw() {
 				return;
 			}
 
-			glDisable(GL_CULL_FACE);
-			glDisable(GL_DEPTH_TEST);
+			glDepthMask(GL_FALSE);
 			glEnable(GL_BLEND);
-			//glBlendEquation(GL_MAX);
+			glBlendEquation(GL_FUNC_ADD);
 			glBlendFunc(GL_ONE, GL_ONE);
 
 			glBindBuffer(GL_ARRAY_BUFFER, App->userInterface->GetQuadVBO());
@@ -254,7 +338,6 @@ void ComponentParticleSystem::Draw() {
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*) (sizeof(float) * 6 * 3));
 			glUseProgram(program);
-			//TODO ADD DELTATIME
 
 			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 			currentParticle.model = currentParticle.model;
@@ -271,7 +354,7 @@ void ComponentParticleSystem::Draw() {
 			glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, Final.ptr());
 			glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view->ptr());
 			glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
-
+			//TODO: ADD delta Time
 			if (!isRandomFrame) {
 				currentParticle.currentFrame += 0.1f;
 			}
@@ -291,15 +374,28 @@ void ComponentParticleSystem::Draw() {
 			if (textureResource != nullptr) {
 				glBindTexture(GL_TEXTURE_2D, textureResource->glTexture);
 			}
+			//TODO: implement drawarrays
 			//glDrawArraysInstanced(GL_TRIANGLES, 0, 4, 100);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 			glDisable(GL_BLEND);
-			glEnable(GL_CULL_FACE);
-			glEnable(GL_DEPTH_TEST);
+			glDepthMask(GL_TRUE);
 		}
-		SpawnParticle();
+		if (looping || (particleSpawned <= maxParticles)) {
+			SpawnParticle();
+		}
 	}
+}
+
+void ComponentParticleSystem::Play() {
+	particleSpawned = 0;
+	isPlaying = true;
+}
+
+void ComponentParticleSystem::Stop() {
+	particleSpawned = maxParticles;
+	killParticles();
+	isPlaying = false;
 }

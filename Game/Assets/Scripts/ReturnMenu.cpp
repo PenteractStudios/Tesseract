@@ -6,15 +6,14 @@
 EXPOSE_MEMBERS(ReturnMenu) {
 	// Add members here to expose them to the engine. Example:
 	// MEMBER(MemberType::BOOL, exampleMember1),
-	// MEMBER(MemberType::PREFAB_RESOURCE_UID, exampleMember2),
-	// MEMBER(MemberType::GAME_OBJECT_UID, exampleMember3)
+	MEMBER(MemberType::FLOAT, padding),
 };
 
 GENERATE_BODY_IMPL(ReturnMenu);
 
 void ReturnMenu::Start() {
-	button = GameplaySystems::GetGameObject("ExitButton");
-	ComponentTransform2D* transform2D = button->GetComponent<ComponentTransform2D>();
+	GameObject exitButton = GetOwner();
+	ComponentTransform2D* transform2D = exitButton.GetComponent<ComponentTransform2D>();
 	if (transform2D) {
 		float2 buttonSize = transform2D->GetSize();
 		float2 newSize = float2(Screen::GetScreenWitdh(), Screen::GetScreenHeight());
@@ -23,7 +22,8 @@ void ReturnMenu::Start() {
 }
 
 void ReturnMenu::Update() {
-	ComponentTransform2D* transform2D = button->GetComponent<ComponentTransform2D>();
+	GameObject exitButton = GetOwner();
+	ComponentTransform2D* transform2D = exitButton.GetComponent<ComponentTransform2D>();
 	if (transform2D) {
 		float2 buttonSize = transform2D->GetSize();
 		float2 newSize = float2(Screen::GetScreenWitdh(), Screen::GetScreenHeight());

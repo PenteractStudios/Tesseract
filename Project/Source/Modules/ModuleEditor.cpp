@@ -148,6 +148,7 @@ bool ModuleEditor::Start() {
 	panels.push_back(&panelInspector);
 	panels.push_back(&panelAbout);
 	panels.push_back(&panelControlEditor);
+	panels.push_back(&panelResource);
 
 	return true;
 }
@@ -181,13 +182,13 @@ UpdateStatus ModuleEditor::Update() {
 	// Main menu bar
 	ImGui::BeginMainMenuBar();
 	if (ImGui::BeginMenu("File")) {
-		if (ImGui::MenuItem("New")) {
+		if (ImGui::MenuItem("New Scene")) {
 			modalToOpen = Modal::NEW_SCENE;
 		}
-		if (ImGui::MenuItem("Load")) {
+		if (ImGui::MenuItem("Load Scene")) {
 			modalToOpen = Modal::LOAD_SCENE;
 		}
-		if (ImGui::MenuItem("Save")) {
+		if (ImGui::MenuItem("Save Scene")) {
 			modalToOpen = Modal::SAVE_SCENE;
 		}
 		if (ImGui::MenuItem("Quit")) {
@@ -216,6 +217,7 @@ UpdateStatus ModuleEditor::Update() {
 		ImGui::MenuItem(panelHierarchy.name, "", &panelHierarchy.enabled);
 		ImGui::MenuItem(panelConfiguration.name, "", &panelConfiguration.enabled);
 		ImGui::MenuItem(panelControlEditor.name, "", &panelControlEditor.enabled);
+		ImGui::MenuItem(panelResource.name, "", &panelResource.enabled);
 		ImGui::EndMenu();
 	}
 	if (ImGui::BeginMenu("Help")) {
@@ -246,13 +248,13 @@ UpdateStatus ModuleEditor::Update() {
 		FileDialog::Init("Load project", false, (AllowedExtensionsFlag::PROJECT));
 		break;
 	case Modal::LOAD_SCENE:
-		FileDialog::Init("Load scene", false, (AllowedExtensionsFlag::SCENE));
+		FileDialog::Init("Load scene", false, (AllowedExtensionsFlag::SCENE), SCENES_PATH);
 		break;
 	case Modal::SAVE_PROJECT:
 		FileDialog::Init("Save project", true, (AllowedExtensionsFlag::PROJECT));
 		break;
 	case Modal::SAVE_SCENE:
-		FileDialog::Init("Save scene", true, (AllowedExtensionsFlag::SCENE));
+		FileDialog::Init("Save scene", true, (AllowedExtensionsFlag::SCENE), SCENES_PATH);
 		break;
 	case Modal::QUIT:
 		ImGui::OpenPopup("Quit");
@@ -290,12 +292,12 @@ UpdateStatus ModuleEditor::Update() {
 	}
 
 	std::string selectedFile;
-	/*
+
 	if (FileDialog::OpenDialog("Load scene", selectedFile)) {
-		SceneImporter::LoadScene(FileDialog::GetFileName(selectedFile.c_str()).c_str());
+		std::string filePath = std::string(SCENES_PATH "/") + FileDialog::GetFileName(selectedFile.c_str()) + SCENE_EXTENSION;
+		SceneImporter::LoadScene(filePath.c_str());
 		ImGui::CloseCurrentPopup();
 	}
-	*/
 
 	if (FileDialog::OpenDialog("Save scene", selectedFile)) {
 		std::string filePath = std::string(SCENES_PATH "/") + FileDialog::GetFileName(selectedFile.c_str()) + SCENE_EXTENSION;

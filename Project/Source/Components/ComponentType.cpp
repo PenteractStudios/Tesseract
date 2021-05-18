@@ -36,6 +36,8 @@ const char* GetComponentTypeName(ComponentType type) {
 		return "Toggle";
 	case ComponentType::SELECTABLE:
 		return "Selectable";
+	case ComponentType::SLIDER:
+		return "Slider";
 	case ComponentType::SKYBOX:
 		return "Skybox";
 	case ComponentType::ANIMATION:
@@ -52,6 +54,8 @@ const char* GetComponentTypeName(ComponentType type) {
 		return "AudioListener";
 	case ComponentType::AUDIO_SOURCE:
 		return "AudioSource";
+	case ComponentType::PROGRESS_BAR:
+		return "ProgressBar";
 	default:
 		LOG("Component of type %i hasn't been registered in GetComponentTypeName.", (unsigned) type);
 		assert(false); // ERROR: Component type not registered
@@ -88,6 +92,8 @@ ComponentType GetComponentTypeFromName(const char* name) {
 		return ComponentType::TOGGLE;
 	} else if (strcmp(name, "Selectable") == 0) {
 		return ComponentType::SELECTABLE;
+	} else if (strcmp(name, "Slider") == 0) {
+		return ComponentType::SLIDER;
 	} else if (strcmp(name, "Skybox") == 0) {
 		return ComponentType::SKYBOX;
 	} else if (strcmp(name, "Animation") == 0) {
@@ -104,6 +110,8 @@ ComponentType GetComponentTypeFromName(const char* name) {
 		return ComponentType::AUDIO_LISTENER;
 	} else if (strcmp(name, "AudioSource") == 0) {
 		return ComponentType::AUDIO_SOURCE;
+	} else if (strcmp(name, "ProgressBar") == 0) {
+		return ComponentType::PROGRESS_BAR;
 	} else {
 		LOG("No component of name %s exists.", (unsigned) name);
 		assert(false); // ERROR: Invalid name

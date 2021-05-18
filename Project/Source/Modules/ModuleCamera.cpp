@@ -61,10 +61,9 @@ static void WarpMouseOnEdges() {
 
 bool ModuleCamera::Start() {
 	UID uid = GenerateUID();
-	engineCamera = App->scene->scene->cameraComponents.Obtain(uid, nullptr, uid, true);
-	activeCamera = engineCamera;
-	cullingCamera = engineCamera;
-	gameCamera = engineCamera;
+	activeCamera = &engineCamera;
+	cullingCamera = &engineCamera;
+	gameCamera = &engineCamera;
 	Frustum* activeFrustum = activeCamera->GetFrustum();
 	activeFrustum->SetKind(FrustumSpaceGL, FrustumRightHanded);
 	activeFrustum->SetViewPlaneDistances(0.1f, 2000.0f);
@@ -86,7 +85,15 @@ bool ModuleCamera::Start() {
 UpdateStatus ModuleCamera::Update() {
 	BROFILER_CATEGORY("ModuleCamera - Update", Profiler::Color::Blue)
 
-	if (activeCamera != engineCamera) return UpdateStatus::CONTINUE;
+	//Camera updates happen here to prevent rendering problems, the logic followed is:
+	//1. ModuleProject updates first, modifying camera values
+	//2. Module camera updates camera frustums, updating view and projection matrixes
+	//3. Module renderer uses updated view and projection matrixes to correctly draw geometry and skyboxes
+
+	if (activeCamera != &engineCamera) {
+		activeCamera->UpdateFrustum();
+		return UpdateStatus::CONTINUE;
+	}
 
 	Frustum* activeFrustum = activeCamera->GetFrustum();
 	float deltaTime = App->time->GetRealTimeDeltaTime();
@@ -149,7 +156,6 @@ UpdateStatus ModuleCamera::Update() {
 			Translate(activeFrustum->WorldRight().Normalized() * finalMovementSpeed * focusDistance * deltaTime);
 		}
 	} else {
-
 		// Focus camera around geometry with f key
 		if (App->input->GetKey(SDL_SCANCODE_F)) {
 			Focus(App->editor->selectedGameObject);
@@ -177,10 +183,10 @@ void ModuleCamera::CalculateFrustumNearestObject(float2 pos) {
 	MSTimer timer;
 	timer.Start();
 
-	if (activeCamera != engineCamera) return;
+	if (activeCamera != &engineCamera) return;
 
 	std::vector<GameObject*> intersectingObjects;
-	LineSegment ray = engineCamera->GetFrustum()->UnProjectLineSegment(pos.x, pos.y);
+	LineSegment ray = engineCamera.GetFrustum()->UnProjectLineSegment(pos.x, pos.y);
 
 	// Check with AABB
 	Scene* scene = App->scene->scene;
@@ -263,7 +269,7 @@ void ModuleCamera::CalculateFrustumPlanes() {
 }
 
 bool ModuleCamera::IsEngineCameraActive() const {
-	if (activeCamera == engineCamera) {
+	if (activeCamera == &engineCamera) {
 		return true;
 	}
 	return false;
@@ -367,7 +373,7 @@ void ModuleCamera::ViewportResized(int width, int height) {
 		// TODO: Implement button to force AspectRatio from specific camera
 		camera.frustum.SetVerticalFovAndAspectRatio(camera.frustum.VerticalFov(), width / (float) height);
 	}
-	engineCamera->GetFrustum()->SetVerticalFovAndAspectRatio(engineCamera->GetFrustum()->VerticalFov(), width / (float) height);
+	engineCamera.GetFrustum()->SetVerticalFovAndAspectRatio(engineCamera.GetFrustum()->VerticalFov(), width / (float) height);
 }
 
 void ModuleCamera::SetFOV(float hFov) {
@@ -399,7 +405,7 @@ void ModuleCamera::ChangeActiveCamera(ComponentCamera* camera, bool change) {
 	if (change) {
 		activeCamera = camera;
 	} else {
-		activeCamera = engineCamera;
+		activeCamera = &engineCamera;
 	}
 }
 
@@ -407,7 +413,7 @@ void ModuleCamera::ChangeCullingCamera(ComponentCamera* camera, bool change) {
 	if (change) {
 		cullingCamera = camera;
 	} else {
-		cullingCamera = engineCamera;
+		cullingCamera = &engineCamera;
 	}
 }
 
@@ -415,9 +421,8 @@ void ModuleCamera::ChangeGameCamera(ComponentCamera* camera, bool change) {
 	if (change) {
 		gameCamera = camera;
 	} else {
-		gameCamera = engineCamera;
+		gameCamera = &engineCamera;
 	}
-	
 }
 
 vec ModuleCamera::GetFront() const {
@@ -468,8 +473,8 @@ float4x4 ModuleCamera::GetViewMatrix() const {
 	return activeCamera->GetFrustum()->ViewMatrix();
 }
 
-ComponentCamera* ModuleCamera::GetEngineCamera() const {
-	return engineCamera;
+ComponentCamera* ModuleCamera::GetEngineCamera() {
+	return &engineCamera;
 }
 
 ComponentCamera* ModuleCamera::GetActiveCamera() const {
@@ -494,7 +499,7 @@ void ModuleCamera::EnableOrtographic() {
 
 void ModuleCamera::EnablePerspective() {
 	activeCamera->GetFrustum()->SetPerspective(1.3f, 1.f);
-	ViewportResized(App->renderer->GetViewportSize().x, App->renderer->GetViewportSize().y);
+	ViewportResized(static_cast<int>(App->renderer->GetViewportSize().x), static_cast<int>(App->renderer->GetViewportSize().y));
 }
 
 void ModuleCamera::GetIntersectingAABBRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& nodeAABB, const LineSegment& ray, std::vector<GameObject*>& intersectingObjects) {

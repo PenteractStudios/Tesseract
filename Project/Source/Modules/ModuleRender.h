@@ -31,11 +31,14 @@ public:
 	TESSERACT_ENGINE_API void ToggleDrawAnimationBones();
 	TESSERACT_ENGINE_API void ToggleDrawCameraFrustums();
 	TESSERACT_ENGINE_API void ToggleDrawLightGizmos();
+	TESSERACT_ENGINE_API void ToggleDrawParticleGizmos();
 
 	void UpdateShadingMode(const char* shadingMode);
 
 	int GetCulledTriangles() const;
 	const float2 GetViewportSize();
+
+	bool ObjectInsideFrustum(GameObject* gameObject);
 
 public:
 	void* context = nullptr; // SDL context.
@@ -57,10 +60,11 @@ public:
 	bool drawAllBones = true;
 	bool drawCameraFrustums = false;
 	bool drawLightGizmos = false;
+	bool drawParticleGizmos = false;
 	int culledTriangles = 0;
 
-	float3 ambientColor = {0.0f, 0.0f, 0.0f}; // Color of ambient Light
-	float3 clearColor = {0.1f, 0.1f, 0.1f};	  // Color of the viewport between frames
+	float3 ambientColor = {0.25f, 0.25f, 0.25f}; // Color of ambient Light
+	float3 clearColor = {0.1f, 0.1f, 0.1f};		 // Color of the viewport between frames
 
 private:
 	void DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb); // Draws the quadrtee nodes if 'drawQuadtree' is set to true.
@@ -69,7 +73,6 @@ private:
 	void DrawGameObject(GameObject* gameObject);											// ??
 	void DrawSkyBox();																		// Draws a default skybox if 'skyboxActive' is set to true.
 	void DrawAnimation(const GameObject* gameObject, bool hasAnimation = false);
-	void RenderParticleSystem();
 	void RenderUI();
 	void SetOrtographicRender();
 	void SetPerspectiveRender();

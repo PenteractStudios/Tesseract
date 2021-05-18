@@ -1,6 +1,7 @@
 #include "ComponentSkyBox.h"
 
 #include "Application.h"
+#include "GameObject.h"
 #include "Utils/ImGuiUtils.h"
 #include "Resources/ResourceSkybox.h"
 #include "Modules/ModuleCamera.h"
@@ -32,9 +33,14 @@ void ComponentSkyBox::Load(JsonValue jComponent) {
 }
 
 void ComponentSkyBox::OnEditorUpdate() {
-	bool active = IsActive();
 	if (ImGui::Checkbox("Active", &active)) {
-		active ? Enable() : Disable();
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
 	}
 	ImGui::Separator();
 	ImGui::ResourceSlot<ResourceSkybox>("Skybox", &skyboxId);

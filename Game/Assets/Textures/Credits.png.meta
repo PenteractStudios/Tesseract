@@ -1,0 +1,13 @@
+{
+    "Resources": [
+        {
+            "Id": 3630367008664579345,
+            "Type": "Texture"
+        }
+<<<<<<< HEAD:Game/Assets/textures/Credits.png.meta
+    ],
+    "Timestamp": 1621283722
+=======
+    ]
+>>>>>>> SheetBilboard:Game/Assets/Textures/Credits.png.meta
+}

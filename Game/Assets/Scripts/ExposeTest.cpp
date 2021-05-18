@@ -17,4 +17,5 @@ void ExposeTest::Update() {
 	if (prefab != nullptr) {
 		prefab->BuildPrefab(GameplaySystems::GetGameObject("Scene"));
 	}
+	Debug::Log("Expose Test");
 }

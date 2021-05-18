@@ -31,7 +31,7 @@ void ComponentLight::Update() {
 }
 
 void ComponentLight::DrawGizmos() {
-	if (IsActiveInHierarchy()) {
+	if (IsActive()) {
 		if (lightType == LightType::DIRECTIONAL) {
 			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 			dd::cone(pos, direction * 200, dd::colors::White, 1.0f, 1.0f);
@@ -48,10 +48,17 @@ void ComponentLight::DrawGizmos() {
 }
 
 void ComponentLight::OnEditorUpdate() {
-	bool active = IsActive();
 	if (ImGui::Checkbox("Active", &active)) {
-		active ? Enable() : Disable();
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
 	}
+	ImGui::Separator();
+
 
 	ImGui::TextColored(App->editor->titleColor, "Parameters");
 
@@ -141,20 +148,6 @@ void ComponentLight::Load(JsonValue jComponent) {
 
 	JsonValue jOuterAngle = jComponent[JSON_TAG_OUTER_ANGLE];
 	outerAngle = jOuterAngle;
-}
-
-void ComponentLight::DuplicateComponent(GameObject& owner) {
-	ComponentLight* component = owner.CreateComponent<ComponentLight>();
-	component->lightType = this->lightType;
-	component->pos = this->pos;
-	component->direction = this->direction;
-	component->color = this->color;
-	component->intensity = this->intensity;
-	component->kc = this->kc;
-	component->kl = this->kl;
-	component->kq = this->kq;
-	component->innerAngle = this->innerAngle;
-	component->outerAngle = this->outerAngle;
 }
 
 void ComponentLight::UpdateLight() {

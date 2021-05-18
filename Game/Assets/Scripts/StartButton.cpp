@@ -9,6 +9,7 @@ EXPOSE_MEMBERS(StartButton) {
 	// MEMBER(MemberType::GAME_OBJECT_UID, exampleMember3)
 };
 
+
 GENERATE_BODY_IMPL(StartButton);
 
 void StartButton::Start() {

@@ -12,13 +12,19 @@ public:
 
 	void Start() override;
 	void Update() override;
-public:
 
+public:
+	UID winUID;
+	UID loseUID;
+	UID playerUID;
+
+	float LoseOffsetX = 2.0f;
+	float LoseOffsetZ = 2.0f;
+
+private:
 	GameObject* winCon = nullptr;
 	GameObject* loseCon = nullptr;
 	GameObject* player = nullptr;
 
-public:
-	float LoseOffsetX = 2.0f;
-	float LoseOffsetZ = 2.0f;
+
 };

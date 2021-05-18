@@ -1,0 +1,13 @@
+{
+    "Resources": [
+        {
+            "Id": 943873689796820877,
+            "Type": "Texture"
+        }
+<<<<<<< HEAD:Game/Assets/textures/EXIT.png.meta
+    ],
+    "Timestamp": 1621283722
+=======
+    ]
+>>>>>>> SheetBilboard:Game/Assets/Textures/EXIT.png.meta
+}

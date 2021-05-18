@@ -5,17 +5,19 @@
 
 EXPOSE_MEMBERS(WinLose) {
 	// Add members here to expose them to the engine. Example:
-	// MEMBER(MemberType::BOOL, exampleMember1),
-	// MEMBER(MemberType::PREFAB_RESOURCE_UID, exampleMember2),
-	// MEMBER(MemberType::GAME_OBJECT_UID, exampleMember3)
+	MEMBER(MemberType::GAME_OBJECT_UID, winUID),
+	MEMBER(MemberType::GAME_OBJECT_UID, loseUID),
+	MEMBER(MemberType::GAME_OBJECT_UID, playerUID),
+	MEMBER(MemberType::FLOAT, LoseOffsetX),
+	MEMBER(MemberType::FLOAT, LoseOffsetZ)
 };
 
 GENERATE_BODY_IMPL(WinLose);
 
 void WinLose::Start() {
-	winCon = GameplaySystems::GetGameObject("WinCon");
-	loseCon = GameplaySystems::GetGameObject("LoseCon");
-	player = GameplaySystems::GetGameObject("Fang");
+	winCon = GameplaySystems::GetGameObject(winUID);
+	loseCon = GameplaySystems::GetGameObject(loseUID);
+	player = GameplaySystems::GetGameObject(playerUID);
 }
 
 void WinLose::Update() {
