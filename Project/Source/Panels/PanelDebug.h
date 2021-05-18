@@ -5,9 +5,9 @@
 
 class PlayerController;
 
-class PanelGameControllerDebugging : public Panel {
+class PanelDebug : public Panel {
 public:
-	PanelGameControllerDebugging();
+	PanelDebug();
 
 	void Update() override;
 

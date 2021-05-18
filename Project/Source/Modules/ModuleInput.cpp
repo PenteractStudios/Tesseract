@@ -285,7 +285,7 @@ KeyState* ModuleInput::GetKeyboard() {
 void ModuleInput::OnControllerAdded(int index) {
 	LOG("Added controller");
 	if (SDL_IsGameController(index)) {
-		LOG("Found controller as SDL Game Controller");
+		LOG("New controller was deemed compatible, type is %s", GetControllerTypeAsString(SDL_GameControllerTypeForIndex(index)));
 
 		if (playerControllers[0] == nullptr) {
 			LOG("New controller took player slot 0");
@@ -293,6 +293,8 @@ void ModuleInput::OnControllerAdded(int index) {
 		} else if (playerControllers[1] == nullptr) {
 			LOG("New controller took player slot 1");
 			playerControllers[1] = new PlayerController(index);
+		} else {
+			LOG("No available slots found, Game Controller will be ignored");
 		}
 	}
 }
@@ -320,4 +322,21 @@ PlayerController* ModuleInput::GetPlayerControllerWithJoystickIndex(int joystick
 
 PlayerController* ModuleInput::GetPlayerController(int index) const {
 	return playerControllers[index];
+}
+
+const char* ModuleInput::GetControllerTypeAsString(SDL_GameControllerType type) {
+	switch (type) {
+	case SDL_GameControllerType::SDL_CONTROLLER_TYPE_PS3:
+		return "PS3 Controller";
+	case SDL_GameControllerType::SDL_CONTROLLER_TYPE_PS4:
+		return "PS4 Controller";
+	case SDL_GameControllerType::SDL_CONTROLLER_TYPE_XBOX360:
+		return "XBOX 360 Controller";
+	case SDL_GameControllerType::SDL_CONTROLLER_TYPE_XBOXONE:
+		return "XBOX One Controller";
+	case SDL_GameControllerType::SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO:
+		return "Nintendo Switch Pro Controller";
+	default:
+		return "UNKNOWN";
+	}
 }

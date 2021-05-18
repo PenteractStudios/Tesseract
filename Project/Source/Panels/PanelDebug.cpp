@@ -1,4 +1,4 @@
-#include "PanelGameControllerDebugging.h"
+#include "PanelDebug.h"
 
 #include "Application.h"
 #include "Modules/ModuleEditor.h"
@@ -10,11 +10,11 @@
 
 #define N_PLAYERS 2
 
-PanelGameControllerDebugging::PanelGameControllerDebugging()
+PanelDebug::PanelDebug()
 	: Panel("Game Controller Debugger", false) {
 }
 
-void PanelGameControllerDebugging::Update() {
+void PanelDebug::Update() {
 	ImGui::SetNextWindowSize(ImVec2(400.0f, 200.0f), ImGuiCond_FirstUseEver);
 	std::string windowName = std::string(ICON_FK_INFO_CIRCLE " ") + name;
 	if (ImGui::Begin(windowName.c_str(), &enabled, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -26,7 +26,7 @@ void PanelGameControllerDebugging::Update() {
 	ImGui::End();
 }
 
-void PanelGameControllerDebugging::DisplayGamepadInfo(int index, PlayerController* playerController) {
+void PanelDebug::DisplayGamepadInfo(int index, PlayerController* playerController) {
 	ImGui::TextColored(App->editor->textColor, "Game Controller %d:", index);
 	ImGui::SameLine();
 	ImGui::TextColored(playerController != nullptr ? yellow : disconnectedColor, playerController != nullptr ? "Connected" : "Disconnected");

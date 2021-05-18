@@ -12,7 +12,7 @@
 #include "Panels/PanelAbout.h"
 #include "Panels/PanelControlEditor.h"
 #include "Panels/PanelResource.h"
-#include "Panels/PanelGameControllerDebugging.h"
+#include "Panels/PanelDebug.h"
 
 #include "imgui.h"
 #include <vector>
@@ -65,7 +65,7 @@ public:
 	PanelAbout panelAbout;
 	PanelControlEditor panelControlEditor;
 	PanelResource panelResource;
-	PanelGameControllerDebugging panelGameControllerDebug;
+	PanelDebug panelGameControllerDebug;
 
 	GameObject* selectedGameObject = nullptr;			   // Pointer to the GameObject that will be shown in the inspector.
 	Resource* selectedResource = nullptr;				   // Pointer to the Resource that will be shown in the PanelResource.
