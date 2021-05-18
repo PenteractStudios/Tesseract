@@ -27,6 +27,12 @@ enum class ColliderType {
 	TRIGGER
 };
 
+enum class WorldLayers {
+	WOLRD_ELEMENTS,
+	EVENT_TRIGGER,
+	PLAYER
+};
+
 class ModulePhysics : public Module {
 
 public:
