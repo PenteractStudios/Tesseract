@@ -30,7 +30,7 @@ void ComponentBoxCollider::Init() {
 }
 
 void ComponentBoxCollider::DrawGizmos() {
-	if (IsActiveInHierarchy()) {
+	if (IsActive()) {
 		float3 points[8];
 		// TODO: dirty{
 		CalculateWorldBoundingBox();

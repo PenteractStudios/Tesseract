@@ -27,7 +27,7 @@ void ComponentSphereCollider::Init() {
 }
 
 void ComponentSphereCollider::DrawGizmos() {
-	if (IsActiveInHierarchy()) {
+	if (IsActive()) {
 		ComponentTransform* ownerTransform = GetOwner().GetComponent<ComponentTransform>();
 		dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset, dd::colors::Green, radius);
 	}

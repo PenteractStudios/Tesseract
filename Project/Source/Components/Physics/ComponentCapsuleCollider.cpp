@@ -30,7 +30,7 @@ void ComponentCapsuleCollider::Init() {
 }
 
 void ComponentCapsuleCollider::DrawGizmos() {
-	if (IsActiveInHierarchy()) {
+	if (IsActive()) {
 		ComponentTransform* ownerTransform = GetOwner().GetComponent<ComponentTransform>();
 		switch (type) {
 		case CapsuleType::X:
