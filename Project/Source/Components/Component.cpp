@@ -25,7 +25,9 @@ void Component::Save(JsonValue jComponent) const {}
 
 void Component::Load(JsonValue jComponent) {}
 
-void Component::DuplicateComponent(GameObject& owner) {}
+bool Component::CanBeRemoved() const {
+	return true;
+}
 
 void Component::Enable() {
 	active = true;
@@ -50,9 +52,9 @@ UID Component::GetID() const {
 }
 
 bool Component::IsActive() const {
-	return active;
+	return active && GetOwner().IsActive();
 }
 
-bool Component::IsActiveInHierarchy() const {
-	return active && owner->IsActiveInHierarchy();
+bool Component::IsActiveInternal() const {
+	return active;
 }

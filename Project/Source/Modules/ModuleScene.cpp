@@ -21,6 +21,7 @@
 #include "Components/UI/ComponentCanvasRenderer.h"
 #include "Components/UI/ComponentTransform2D.h"
 #include "Components/UI/ComponentImage.h"
+#include "Components/UI/ComponentProgressBar.h"
 #include "Modules/ModuleInput.h"
 #include "Modules/ModulePrograms.h"
 #include "Modules/ModuleCamera.h"
@@ -32,6 +33,7 @@
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleTime.h"
 #include "Panels/PanelHierarchy.h"
+#include "Scripting/Script.h"
 
 #include "GL/glew.h"
 #include "Math/myassert.h"
@@ -77,6 +79,7 @@ bool ModuleScene::Start() {
 	App->events->AddObserverToEvent(TesseractEventType::CHANGE_SCENE, this);
 	App->events->AddObserverToEvent(TesseractEventType::RESOURCES_LOADED, this);
 	App->events->AddObserverToEvent(TesseractEventType::COMPILATION_FINISHED, this);
+	App->events->AddObserverToEvent(TesseractEventType::PRESSED_PLAY, this);
 
 #if !GAME
 	App->files->CreateFolder(ASSETS_PATH);
@@ -92,6 +95,9 @@ bool ModuleScene::Start() {
 #if GAME
 	App->events->AddEvent(TesseractEventType::PRESSED_PLAY);
 	SceneImporter::LoadScene("Assets/Scenes/StartScene.scene");
+	if (App->scene->scene->root == nullptr) {
+		App->scene->CreateEmptyScene();
+	}
 	App->renderer->SetVSync(false);
 	App->time->limitFramerate = false;
 #else
@@ -127,23 +133,27 @@ void ModuleScene::ReceiveEvent(TesseractEvent& e) {
 		scene->DestroyGameObject(e.Get<DestroyGameObjectStruct>().gameObject);
 		break;
 	case TesseractEventType::CHANGE_SCENE:
-		sceneLoaded = false;
 		SceneImporter::LoadScene(e.Get<ChangeSceneStruct>().scenePath);
 		break;
 	case TesseractEventType::RESOURCES_LOADED:
-		if (App->time->IsGameRunning() && !sceneLoaded) {
-			sceneLoaded = true;
+		if (App->time->HasGameStarted() && !scene->sceneLoaded) {
+			scene->sceneLoaded = true;
 			for (ComponentScript& script : scene->scriptComponents) {
-				script.OnStart();
+				script.CreateScriptInstance();
+				Script* scriptInstance = script.GetScriptInstance();
+				if (scriptInstance != nullptr) {
+					scriptInstance->Start();
+				}
 			}
 		}
 		break;
 	case TesseractEventType::COMPILATION_FINISHED:
 		for (ComponentScript& script : scene->scriptComponents) {
-			script.dirty = true;
+			script.CreateScriptInstance();
 		}
 		break;
 	}
+
 }
 
 void ModuleScene::CreateEmptyScene() {

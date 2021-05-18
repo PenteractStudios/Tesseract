@@ -22,26 +22,33 @@ void ComponentCanvasRenderer::Render(const GameObject* gameObject) const {
 
 		//IF OTHER COMPONENTS THAT RENDER IN UI ARE IMPLEMENTED, THEY MUST HAVE THEIR DRAW METHODS CALLED HERE
 		ComponentImage* componentImage = gameObject->GetComponent<ComponentImage>();
-		if (componentImage != nullptr) {
+		if (componentImage != nullptr && componentImage->IsActive()) {
 			componentImage->Draw(transform2D);
 		}
 
 		ComponentText* componentText = gameObject->GetComponent<ComponentText>();
-		if (componentText != nullptr) {
+		if (componentText != nullptr && componentText->IsActive()) {
 			componentText->Draw(transform2D);
 		}
 	}
 }
 
-float ComponentCanvasRenderer::GetCanvasScreenFactor() const {
-	return AnyParentHasCanvas(&GetOwner())->GetScreenFactor();
+float2 ComponentCanvasRenderer::GetCanvasSize() {
+	ComponentCanvas* canvas = AnyParentHasCanvas(&GetOwner());
+	return canvas ? canvas->GetSize() : float2(1920, 1080);
 }
 
-void ComponentCanvasRenderer::DuplicateComponent(GameObject& owner) {
-	ComponentCanvasRenderer* component = owner.CreateComponent<ComponentCanvasRenderer>();
+float2 ComponentCanvasRenderer::GetScreenReferenceSize() const {
+	const ComponentCanvas* canvas = AnyParentHasCanvas(&GetOwner());
+	return canvas ? canvas->GetScreenReferenceSize() : float2(1920, 1080);
 }
 
-const ComponentCanvas* ComponentCanvasRenderer::AnyParentHasCanvas(GameObject* current) const {
+float ComponentCanvasRenderer::GetCanvasScreenFactor() {
+	ComponentCanvas* canvas = AnyParentHasCanvas(&GetOwner());
+	return canvas ? canvas->GetScreenFactor() : 1.0f;
+}
+
+ComponentCanvas* ComponentCanvasRenderer::AnyParentHasCanvas(GameObject* current) const {
 	ComponentCanvas* currentCanvas = current->GetComponent<ComponentCanvas>();
 	if (currentCanvas != nullptr) {
 		return currentCanvas;
@@ -52,4 +59,8 @@ const ComponentCanvas* ComponentCanvasRenderer::AnyParentHasCanvas(GameObject* c
 	}
 
 	return nullptr;
+}
+
+bool ComponentCanvasRenderer::CanBeRemoved() const {
+	return !(GetOwner().GetComponent<ComponentImage>() || GetOwner().GetComponent<ComponentText>() || GetOwner().GetComponent<ComponentBoundingBox2D>());
 }

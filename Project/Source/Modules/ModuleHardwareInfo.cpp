@@ -7,8 +7,17 @@
 #include "SDL_cpuinfo.h"
 #include "SDL_video.h"
 #include "GL/glew.h"
-#include "IL/il.h"
 #include "assimp/version.h"
+#include "IL/il.h"
+#include "imgui.h"
+//#include mathgeolib
+#include "fmt/core.h"
+#include "freetype/freetype.h"
+#include "sndfile.h"
+#include "physfs.h"
+#include "rapidjson/rapidjson.h"
+#include "AL/al.h"
+
 #include "Brofiler.h"
 #include "LinearMath/btScalar.h"
 
@@ -18,10 +27,20 @@ bool ModuleHardwareInfo::Start() {
 	SDL_version sdlVersionStruct;
 	SDL_VERSION(&sdlVersionStruct);
 
-	sprintf_s(glewVersion, "%i.%i.%i", GLEW_VERSION_MAJOR, GLEW_VERSION_MINOR, GLEW_VERSION_MICRO);
 	sprintf_s(sdlVersion, "%i.%i.%i", sdlVersionStruct.major, sdlVersionStruct.minor, sdlVersionStruct.patch);
+	sprintf_s(glewVersion, "%i.%i.%i", GLEW_VERSION_MAJOR, GLEW_VERSION_MINOR, GLEW_VERSION_MICRO);
 	sprintf_s(assimpVersion, "%i.%i.%i", aiGetVersionMajor(), aiGetVersionMinor(), aiGetVersionRevision());
 	sprintf_s(devilVersion, "%i.%i.%i", IL_VERSION / 100, (IL_VERSION % 100) / 10, IL_VERSION % 10);
+	sprintf_s(mathgeolibVersion, "1.5"); // HARDCODED. Could not find MACRO.
+	sprintf_s(imguiVersion, "%i.%i.%i", IMGUI_VERSION_NUM / 10000, (IMGUI_VERSION_NUM % 10000) / 100, IMGUI_VERSION_NUM % 100);
+	//sprintf_s(imguizmoVersion, "");
+	sprintf_s(fmtVersion, "%i.%i.%i", FMT_VERSION / 10000, (FMT_VERSION % 10000) / 100, FMT_VERSION % 100);
+	sprintf_s(freetypeVersion, "%i.%i.%i", FREETYPE_MAJOR, FREETYPE_MINOR, FREETYPE_PATCH);
+	sf_command(NULL, SFC_GET_LIB_VERSION, libsndVersion, sizeof(libsndVersion));
+	sprintf_s(libsndVersion, &libsndVersion[11]); // Obtain the version numbers substring
+	sprintf_s(physFSVersion, "%i.%i.%i", PHYSFS_VER_MAJOR, PHYSFS_VER_MINOR, PHYSFS_VER_PATCH);
+	sprintf_s(rapidJsonVersion, "%i.%i.%i", RAPIDJSON_MAJOR_VERSION, RAPIDJSON_MINOR_VERSION, RAPIDJSON_PATCH_VERSION);
+	sprintf_s(openALVersion, alGetString(AL_VERSION));
 	sprintf_s(bulletVersion, "%i.%i", btGetVersion() / 100, (btGetVersion() % 100));
 
 	cpuCount = SDL_GetCPUCount();

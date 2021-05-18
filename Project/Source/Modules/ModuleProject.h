@@ -20,17 +20,19 @@ enum class Configuration {
 class ModuleProject : public Module {
 public:
 	bool Init() override;
+	UpdateStatus Update() override;
 	bool CleanUp() override;
+	void ReceiveEvent(TesseractEvent& e) override; // Treats the events that is listening to.
 
 	void CreateScript(std::string& name);
 	void CreateNewProject(const char* name, const char* path);
 	void LoadProject(const char* path);
 
 	void CompileProject(Configuration config);
-	bool PDBReplace(const std::string& filename, const std::string& namePDB);
+
+	bool IsGameLoaded() const;
 
 public:
-	HMODULE gameCodeDLL = nullptr;
 	std::string projectName = "";
 	std::string projectPath = "";
 
@@ -40,4 +42,7 @@ private:
 	void CreateMSVCSolution(const char* path, const char* name, const char* UIDProject);
 	void CreateMSVCProject(const char* path, const char* name, const char* UIDProject);
 	void CreateBatches();
+
+private:
+	HMODULE gameCodeDLL = nullptr;
 };

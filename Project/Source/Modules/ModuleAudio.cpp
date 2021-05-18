@@ -74,6 +74,21 @@ bool ModuleAudio::isAvailable(unsigned sourceId) const {
 	return (state == AL_STOPPED || state == AL_INITIAL);
 }
 
+void ModuleAudio::Stop(unsigned sourceId) const {
+	if (sourceId) {
+		alSourceStop(sourceId);
+		alSourcei(sourceId, AL_BUFFER, NULL);
+	}
+}
+
+void ModuleAudio::StopAllSources() {
+	for (int i = 0; i < NUM_SOURCES; ++i) {
+		if (isActive(sources[i])) {
+			Stop(sources[i]);
+		}
+	}
+}
+
 bool ModuleAudio::CleanUp() {
 	alCall(alDeleteSources, 16, sources);
 	alcCall(alcMakeContextCurrent, contextMadeCurrent, openALDevice, nullptr);

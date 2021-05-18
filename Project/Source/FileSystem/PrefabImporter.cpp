@@ -48,15 +48,16 @@ bool PrefabImporter::ImportPrefab(const char* filePath, JsonValue jMeta) {
 	// Create prefab resource
 	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
 	JsonValue jResource = jResources[0];
-	UID id = jResource[JSON_TAG_ID];
-	ResourcePrefab* prefab = App->resources->CreateResource<ResourcePrefab>(filePath, id ? id : GenerateUID());
+	UID metaId = jResource[JSON_TAG_ID];
+	UID id = metaId ? metaId : GenerateUID();
+	App->resources->CreateResource<ResourcePrefab>(filePath, id);
 
 	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(prefab->GetType());
-	jResource[JSON_TAG_ID] = prefab->GetId();
+	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourcePrefab::staticType);
+	jResource[JSON_TAG_ID] = id;
 
 	// Save to file
-	App->files->Save(prefab->GetResourceFilePath().c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
+	App->files->Save(App->resources->GenerateResourcePath(id).c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
 
 	unsigned timeMs = timer.Stop();
 	LOG("Prefab imported in %ums", timeMs);

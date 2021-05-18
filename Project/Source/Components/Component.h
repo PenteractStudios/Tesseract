@@ -24,7 +24,7 @@ public:
 	virtual void OnEditorUpdate();						// Draw the ImGui elements & info of the Component in the Inspector. Called from PanelInspector->Update()
 	virtual void Save(JsonValue jComponent) const;		// Operations to serialise this Component when saving the scene. Called from owner->Save().
 	virtual void Load(JsonValue jComponent);			// Operations to initialise this Component when a scene is loaded. Called from owner->Load().
-	virtual void DuplicateComponent(GameObject& owner); // Used when duplicating GameObjects. It duplicates this Component into a new Component in owner.
+	virtual bool CanBeRemoved() const;					// Used in inspectorPanel to check if there are any dependencies that "forbid" the component from being removed
 
 	// ---- Visibility Setters ----- //
 	TESSERACT_ENGINE_API void Enable();
@@ -39,14 +39,13 @@ public:
 	GameObject& GetOwner() const;
 	UID GetID() const;
 	TESSERACT_ENGINE_API bool IsActive() const;
-	bool IsActiveInHierarchy() const;
+	bool IsActiveInternal() const;
 
 protected:
 	ComponentType type = ComponentType::UNKNOWN; // See ComponentType.h for a list of all available types.
+	bool active = true;							 // Visibility of the Component. If active is false the GameObject behaves as if this Component doesn't exist.
 
 private:
 	UID id = 0;					 // Unique identifier for the component
-	bool active = true;			 // Visibility of the Component. If active is false the GameObject behaves as if this Component doesn't exist.
-	bool edited = true;			 // This boolean saves whether the component was edited in a prefab or not. It only makes sense inside prefabs.
 	GameObject* owner = nullptr; // References the GameObject this Component applies its functionality to. Its 'parent'.
 };

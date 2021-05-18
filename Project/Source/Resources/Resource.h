@@ -18,6 +18,7 @@ public:
 
 	virtual void Load();
 	virtual void Unload();
+	virtual void OnEditorUpdate();
 
 private:
 	ResourceType type = ResourceType::UNKNOWN;

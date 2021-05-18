@@ -36,6 +36,8 @@ const char* GetComponentTypeName(ComponentType type) {
 		return "Toggle";
 	case ComponentType::SELECTABLE:
 		return "Selectable";
+	case ComponentType::SLIDER:
+		return "Slider";
 	case ComponentType::SKYBOX:
 		return "Skybox";
 	case ComponentType::ANIMATION:
@@ -44,10 +46,14 @@ const char* GetComponentTypeName(ComponentType type) {
 		return "Text";
 	case ComponentType::SCRIPT:
 		return "Script";
+	case ComponentType::PARTICLE:
+		return "Particle";
 	case ComponentType::AUDIO_LISTENER:
 		return "AudioListener";
 	case ComponentType::AUDIO_SOURCE:
 		return "AudioSource";
+	case ComponentType::PROGRESS_BAR:
+		return "ProgressBar";
 	case ComponentType::SPHERE_COLLIDER:
 		return "SphereCollider";
 	case ComponentType::BOX_COLLIDER:
@@ -90,6 +96,8 @@ ComponentType GetComponentTypeFromName(const char* name) {
 		return ComponentType::TOGGLE;
 	} else if (strcmp(name, "Selectable") == 0) {
 		return ComponentType::SELECTABLE;
+	} else if (strcmp(name, "Slider") == 0) {
+		return ComponentType::SLIDER;
 	} else if (strcmp(name, "Skybox") == 0) {
 		return ComponentType::SKYBOX;
 	} else if (strcmp(name, "Animation") == 0) {
@@ -98,10 +106,14 @@ ComponentType GetComponentTypeFromName(const char* name) {
 		return ComponentType::TEXT;
 	} else if (strcmp(name, "Script") == 0) {
 		return ComponentType::SCRIPT;
+	} else if (strcmp(name, "Particle") == 0) {
+		return ComponentType::PARTICLE;
 	} else if (strcmp(name, "AudioListener") == 0) {
 		return ComponentType::AUDIO_LISTENER;
 	} else if (strcmp(name, "AudioSource") == 0) {
 		return ComponentType::AUDIO_SOURCE;
+	} else if (strcmp(name, "ProgressBar") == 0) {
+		return ComponentType::PROGRESS_BAR;
 	} else if (strcmp(name, "SphereCollider") == 0) {
 		return ComponentType::SPHERE_COLLIDER;
 	} else if (strcmp(name, "BoxCollider") == 0) {

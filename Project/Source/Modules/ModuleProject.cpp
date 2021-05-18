@@ -3,20 +3,106 @@
 #include "fmt/format.h"
 
 #include "Application.h"
+#include "Modules/ModuleScene.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleEvents.h"
+#include "Modules/ModuleTime.h"
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
 #include "Utils/UID.h"
 #include "Utils/FileDialog.h"
+#include "Scripting/Script.h"
+#include "Scene.h"
 
 #include <Windows.h>
 #include <shellapi.h>
 #include <ObjIdl.h>
 
-#include <filesystem>
+// from https://msdn.microsoft.com/en-us/library/yf86a8ts.aspx
+#pragma warning(disable : 4278)
+#pragma warning(disable : 4146)
+#include "Utils/dte80a.tlh"
+#pragma warning(default : 4146)
+#pragma warning(default : 4278)
 
 #include "Utils/Leaks.h"
+
+EnvDTE::Process* FindVSProcess(DWORD targetPID) {
+	HRESULT hr;
+
+	static const wchar_t* progID = L"VisualStudio.DTE.16.0";
+
+	CLSID clsID;
+	CLSIDFromProgID(progID, &clsID);
+
+	IUnknown* unknown;
+	hr = GetActiveObject(clsID, 0, &unknown);
+	if (FAILED(hr)) {
+		return nullptr;
+	}
+
+	EnvDTE::_DTE* interface_;
+
+	hr = unknown->QueryInterface(&interface_);
+	if (FAILED(hr)) {
+		return nullptr;
+	}
+
+	EnvDTE::Debugger* debugger;
+	hr = interface_->get_Debugger(&debugger);
+	if (FAILED(hr)) {
+		return nullptr;
+	}
+
+	EnvDTE::Processes* processes;
+	hr = debugger->get_LocalProcesses(&processes);
+	if (FAILED(hr)) {
+		return nullptr;
+	}
+
+	long Count = 0;
+	hr = processes->get_Count(&Count);
+	if (FAILED(hr)) {
+		return nullptr;
+	}
+
+	EnvDTE::Process* result = nullptr;
+
+	for (int i = 0; i < Count; ++i) {
+		EnvDTE::Process* process;
+
+		hr = processes->Item(_variant_t(i), &process);
+		if (FAILED(hr)) continue;
+
+		long processID;
+		hr = process->get_ProcessID(&processID);
+		if (FAILED(hr)) {
+			return nullptr;
+		}
+
+		if (processID == targetPID) {
+			result = process;
+		}
+	}
+
+	return result;
+}
+
+void AttachVS() {
+	DWORD targetPID = GetCurrentProcessId();
+	EnvDTE::Process* process = FindVSProcess(targetPID);
+	if (process) {
+		process->Attach();
+	}
+}
+
+void DetachVS(bool waitForBreakOrEnd) {
+	DWORD targetPID = GetCurrentProcessId();
+	EnvDTE::Process* process = FindVSProcess(targetPID);
+	if (process) {
+		process->Detach(variant_t(false));
+	}
+}
 
 template<class T>
 static T struct_cast(void* ptr, LONG offset = 0) {
@@ -135,7 +221,7 @@ static char* PDBFind(LPBYTE imageBase, PIMAGE_DEBUG_DIRECTORY debugDir) {
 	return nullptr;
 }
 
-bool ModuleProject::PDBReplace(const std::string& filename, const std::string& namePDB) {
+static bool PDBReplace(const std::string& filename, const std::string& namePDB) {
 	HANDLE fp = nullptr;
 	HANDLE filemap = nullptr;
 	LPVOID mem = nullptr;
@@ -302,20 +388,53 @@ namespace Tesseract {
 } // namespace Tesseract
 
 bool ModuleProject::Init() {
+	Factory::CreateContext();
+
 #if GAME
 	UnloadGameCodeDLL();
-	if (!LoadLibrary("Penteract.dll")) {
+	if (!LoadGameCodeDLL("Penteract.dll")) {
 		LOG("%s", GetLastErrorStdStr().c_str());
 	}
 #else
 	LoadProject("Penteract/Penteract.sln");
+
+	App->events->AddObserverToEvent(TesseractEventType::ANIMATION_FINISHED, this);
 #endif
 	return true;
 }
 
+UpdateStatus ModuleProject::Update() {
+	if (App->time->HasGameStarted() && App->scene->scene->sceneLoaded) {
+		for (ComponentScript& script : App->scene->scene->scriptComponents) {
+			if (script.IsActive()) {
+				Script* scriptInstance = script.GetScriptInstance();
+				if (scriptInstance != nullptr) {
+					scriptInstance->Update();
+				}
+			}
+		}
+	}
+
+	return UpdateStatus::CONTINUE;
+}
+
 bool ModuleProject::CleanUp() {
 	UnloadGameCodeDLL();
+	Factory::DestroyContext();
 	return true;
+}
+
+void ModuleProject::ReceiveEvent(TesseractEvent& e) {
+	if (App->time->HasGameStarted() && App->scene->scene->sceneLoaded) {
+		for (ComponentScript& script : App->scene->scene->scriptComponents) {
+			if (script.IsActive()) {
+				Script* scriptInstance = script.GetScriptInstance();
+				if (scriptInstance != nullptr) {
+					scriptInstance->ReceiveEvent(e);
+				}
+			}
+		}
+	}
 }
 
 void ModuleProject::LoadProject(const char* path) {
@@ -326,12 +445,6 @@ void ModuleProject::LoadProject(const char* path) {
 	if (!App->files->Exists(projectName.c_str())) {
 		CreateNewProject(projectPath.c_str(), "");
 	}
-
-#ifdef _DEBUG
-	CompileProject(Configuration::DEBUG_EDITOR);
-#else
-	CompileProject(Configuration::RELEASE_EDITOR);
-#endif // _DEBUG
 }
 
 void ModuleProject::CreateScript(std::string& name) {
@@ -393,7 +506,7 @@ void ModuleProject::CreateMSVCProject(const char* path, const char* name, const 
 #ifdef _DEBUG
 	std::string result = fmt::format(project, name, UIDProject, "../../Project/Source/", "../../Project/Libs/MathGeoLib", "../../Project/Libs/SDL/include", "../../Project/Libs/rapidjson/include", "../../Project/Libs/OpenAL-soft/include", enginePath);
 #else
-	std::string result = fmt::format(project, name, UIDProject, "../../Project/Source/", "../../Project/Libs/MathGeoLib", "../../Project/Libs/SDL/include", "../../Project/Libs/rapidjson/include", "../../Project/Libs/OpenAL-soft/include", enginePath);
+	std::string result = fmt::format(project, name, UIDProject, "../Engine/Source/", "../Engine/Libs/MathGeoLib", "../Engine/Libs/SDL/include", "../Engine/Libs/rapidjson/include", "../Engine/Libs/OpenAL-soft/include", enginePath);
 #endif
 
 	App->files->Save(path, result.data(), result.size());
@@ -430,6 +543,10 @@ void ModuleProject::CreateBatches() {
 }
 
 void ModuleProject::CompileProject(Configuration config) {
+	if (IsDebuggerPresent()) {
+		DetachVS(true);
+	}
+
 	UnloadGameCodeDLL();
 
 	std::string batchDir = projectPath + "/Batches";
@@ -486,31 +603,39 @@ void ModuleProject::CompileProject(Configuration config) {
 
 	std::string dllPath = buildPath + name + ".dll";
 	std::string pdbPath = buildPath + name + ".pdb";
+	std::string dllPathAux = "";
 
 	std::string auxName = App->files->GetFilePath(pdbPath.c_str(), true);
 
 	// GetFilePath returns "" if the file is not found
-
 	if (auxName != "") {
 		std::size_t found = auxName.find_first_of("/");
 		while (found != std::string::npos) {
 			auxName[found] = '\\';
 			found = auxName.find_first_of("/", found + 1);
 		}
-
 		auxName[auxName.size() - 5] = '_';
-		PDBReplace(dllPath, auxName);
+
+		dllPathAux = buildPath + FileDialog::GetFileName(auxName.c_str()) + ".dll";
+
+		if (!CopyFileA(dllPath.c_str(), dllPathAux.c_str(), FALSE)) {
+			std::string error = GetLastErrorStdStr().c_str();
+			LOG("Move fails dll %s", error.c_str());
+		}
+		PDBReplace(dllPathAux, auxName);
+
 		std::string realPDB = buildPath + name + ".pdb";
+
 		if (!CopyFileA(realPDB.c_str(), auxName.c_str(), FALSE)) {
 			std::string error = GetLastErrorStdStr().c_str();
-			LOG("Copy fails %s", error.c_str());
+			LOG("Move fails pdb %s", error.c_str());
 		}
 	}
-
 
 	std::string logFile = buildPath + name + ".log";
 	Buffer<char> buffer = App->files->Load(logFile.c_str());
 	std::string logContent = "";
+
 	if (buffer.Size() > 0) {
 		logContent = buffer.Data();
 	}
@@ -523,17 +648,19 @@ void ModuleProject::CompileProject(Configuration config) {
 	}
 	LOG("----------------------------------------------------------");
 
-	buildPath += name;
-	std::string newPath(name);
-	newPath[newPath.size() - 1] = '_';
-	newPath += ".dll";
-	buildPath += ".dll";
-
-	if (!LoadGameCodeDLL(buildPath.c_str())) {
+	if (!LoadGameCodeDLL(dllPathAux.c_str())) {
 		LOG("DLL NOT LOADED: %s", GetLastErrorStdStr().c_str());
 	}
 
+	if (!IsDebuggerPresent()) {
+		AttachVS();
+	}
+
 	App->events->AddEvent(TesseractEventType::COMPILATION_FINISHED);
+}
+
+bool ModuleProject::IsGameLoaded() const {
+	return gameCodeDLL != nullptr;
 }
 
 bool ModuleProject::LoadGameCodeDLL(const char* path) {
@@ -542,12 +669,19 @@ bool ModuleProject::LoadGameCodeDLL(const char* path) {
 		return false;
 	}
 
-	gameCodeDLL = LoadLibraryA(path);
+	gameCodeDLL = LoadLibrary(path);
 
 	return gameCodeDLL ? true : false;
 }
 
 bool ModuleProject::UnloadGameCodeDLL() {
+	Scene* scene = App->scene->scene;
+	if (scene != nullptr) {
+		for (ComponentScript& scriptComponent : scene->scriptComponents) {
+			scriptComponent.ReleaseScriptInstance();
+		}
+	}
+
 	if (!gameCodeDLL) {
 		LOG("No DLL to unload.");
 		return false;

@@ -18,16 +18,22 @@ public:
 	void OnEditorUpdate() override;					// Works as input of the AlphaTransparency, color and Texture and Shader used
 	void Save(JsonValue jComponent) const override; // Serializes object
 	void Load(JsonValue jComponent) override;		// Deserializes object
-	void DuplicateComponent(GameObject& owner) override;
 
-	void Draw(const ComponentTransform2D* transform) const; // Draws the image ortographically using the active camera, and the transform passed as model. It will apply AlphaTransparency if true, and will get Button's additional color to apply if needed
+	void Draw(ComponentTransform2D* transform) const; // Draws the image ortographically using the active camera, and the transform passed as model. It will apply AlphaTransparency if true, and will get Button's additional color to apply if needed
+	TESSERACT_ENGINE_API void SetColor(float4 color_);
+	TESSERACT_ENGINE_API void SetFillValue(float val);
+	void SetIsFill(bool b);
+	TESSERACT_ENGINE_API bool IsFill() const;
 
 private:
-	const float4& GetTintColor() const; // Gets an additional color that needs to be applied to the image. Currently gets the color of the Button
+	float4 GetMainColor() const;	// Gets an additional color that needs to be applied to the image. Currently gets the color of the Button, Slider and Checkbox
+	void RebuildFillQuadVBO();	
 
 private:
 	float4 color = float4::one;		// Color used as default tainter
 	bool alphaTransparency = false; // Enables Alpha Transparency of the image and the color
+	bool isFill = false;			// Image rendered in function of fillVal
 	UID textureID = 0;				// ID of the image
-	UID shaderID = 0;				// ID of the shader
+	float fillVal = 1.0f;			// Percent of image rendered (0 to 1)
+	unsigned int fillQuadVBO = 0;
 };

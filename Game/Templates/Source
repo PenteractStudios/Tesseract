@@ -1,5 +1,12 @@
 #include "{0}.h"
 
+EXPOSE_MEMBERS({0}) {1}
+    // Add members here to expose them to the engine. Example:
+    // MEMBER(MemberType::BOOL, exampleMember1),
+    // MEMBER(MemberType::PREFAB_RESOURCE_UID, exampleMember2),
+    // MEMBER(MemberType::GAME_OBJECT_UID, exampleMember3)
+{2};
+
 GENERATE_BODY_IMPL({0});
 
 void {0}::Start() {1}

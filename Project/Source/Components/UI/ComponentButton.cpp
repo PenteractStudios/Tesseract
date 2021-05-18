@@ -11,7 +11,7 @@
 #include "Components/UI/ComponentEventSystem.h"
 #include "Resources/ResourceScript.h"
 #include "Utils/Logging.h"
-#include "Script.h"
+#include "Scripting/Script.h"
 
 #include "Utils/Leaks.h"
 
@@ -24,6 +24,17 @@ void ComponentButton::Init() {
 }
 
 void ComponentButton::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	ImGui::ColorEdit4("Click Color##", colorClicked.ptr());
 }
 
@@ -49,12 +60,9 @@ void ComponentButton::OnClicked() {
 	App->userInterface->GetCurrentEventSystem()->SetSelected(GetOwner().GetComponent<ComponentSelectable>()->GetID());
 
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
-		ResourceScript* scriptResource = App->resources->GetResource<ResourceScript>(scriptComponent.GetScriptID());
-		if (scriptResource != nullptr) {
-			Script* script = scriptResource->script;
-			if (script != nullptr) {
-				script->OnButtonClick();
-			}
+		Script* script = scriptComponent.GetScriptInstance();
+		if (script != nullptr) {
+			script->OnButtonClick();
 		}
 	}
 }
@@ -67,16 +75,16 @@ void ComponentButton::SetClicked(bool clicked_) {
 	clicked = clicked_;
 }
 
-const float4& ComponentButton::GetClickColor() const {
+float4 ComponentButton::GetClickColor() const {
 	return colorClicked;
 }
 
-const float4& ComponentButton::GetTintColor() const {
-	if (!IsActive()) return float4::one;
+float4 ComponentButton::GetTintColor() const {
+	if (!IsActive()) return App->userInterface->GetErrorColor();
 
 	ComponentSelectable* sel = GetOwner().GetComponent<ComponentSelectable>();
 
-	if (!sel) return float4::one;
+	if (!sel) return App->userInterface->GetErrorColor();
 
 	if (sel->GetTransitionType() == ComponentSelectable::TransitionType::COLOR_CHANGE) {
 		if (!sel->IsInteractable()) {
@@ -90,12 +98,7 @@ const float4& ComponentButton::GetTintColor() const {
 		}
 	}
 
-	return float4::one;
-}
-
-void ComponentButton::DuplicateComponent(GameObject& owner) {
-	ComponentButton* component = owner.CreateComponent<ComponentButton>();
-	component->colorClicked = colorClicked;
+	return App->userInterface->GetErrorColor();
 }
 
 void ComponentButton::Update() {

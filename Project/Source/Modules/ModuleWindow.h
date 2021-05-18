@@ -1,15 +1,16 @@
 #pragma once
 
+#include "Globals.h"
 #include "Module.h"
 
 #include "SDL_video.h"
 #include <vector>
+#include <string>
 
 struct SDL_Surface;
 
 enum class WindowMode {
 	WINDOWED,
-	BORDERLESS,
 	FULLSCREEN,
 	FULLSCREEN_DESKTOP
 };
@@ -23,8 +24,9 @@ public:
 	// ---------- Setters ---------- //
 	void SetWindowMode(WindowMode mode);
 	void SetResizable(bool resizable);
-	void SetCurrentDisplayMode(int index);
+	void SetCurrentDisplayMode(unsigned index);
 	void SetSize(int width, int height);
+	void ResetToDefaultSize();
 	void SetBrightness(float brightness);
 	void SetTitle(const char* title);
 
@@ -32,7 +34,9 @@ public:
 	WindowMode GetWindowMode() const;
 	bool GetMaximized() const;
 	bool GetResizable() const;
-	int GetCurrentDisplayMode() const;
+	unsigned GetCurrentDisplayMode() const;
+	unsigned GetNumDisplayModes() const;
+	const SDL_DisplayMode& GetDisplayMode(unsigned index) const;
 	int GetWidth() const;
 	int GetHeight() const;
 	int GetPositionX() const;
@@ -44,9 +48,8 @@ public:
 	SDL_Window* window = nullptr;
 	SDL_Surface* surface = nullptr;
 
-	std::vector<SDL_DisplayMode> displayModes;
-
 private:
 	WindowMode windowMode = WindowMode::WINDOWED;
-	int currentDisplayMode = 0;
+	std::vector<SDL_DisplayMode> displayModes;
+	unsigned currentDisplayMode = 0;
 };

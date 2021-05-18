@@ -10,6 +10,7 @@
 #include "Components/UI/ComponentEventSystem.h"
 #include "Components/UI/ComponentSelectable.h"
 #include "FileSystem/ModelImporter.h"
+#include "Utils/Logging.h"
 
 #include "Math/myassert.h"
 #include "rapidjson/document.h"
@@ -19,11 +20,13 @@
 #define JSON_TAG_ID "Id"
 #define JSON_TAG_NAME "Name"
 #define JSON_TAG_ACTIVE "Active"
+#define JSON_TAG_ACTIVEINHIERARCHY "ActiveHierarchy"
 #define JSON_TAG_ROOT_BONE_ID "RootBoneId"
 #define JSON_TAG_ROOT_BONE_NAME "RootBoneName"
 #define JSON_TAG_TYPE "Type"
 #define JSON_TAG_COMPONENTS "Components"
 #define JSON_TAG_CHILDREN "Children"
+#define JSON_TAG_MASK "Mask"
 
 void GameObject::InitComponents() {
 	for (Component* component : components) {
@@ -32,7 +35,7 @@ void GameObject::InitComponents() {
 }
 
 void GameObject::Update() {
-	if (IsActiveInHierarchy()) {
+	if (IsActive()) {
 		for (Component* component : components) {
 			component->Update();
 		}
@@ -55,19 +58,19 @@ void GameObject::DrawGizmos() {
 
 void GameObject::Enable() {
 	active = true;
+	EnableInHierarchy();
 }
 
 void GameObject::Disable() {
+	DisableInHierarchy();
 	active = false;
 }
 
 bool GameObject::IsActive() const {
-	return active;
+	return active && activeInHierarchy;
 }
 
-bool GameObject::IsActiveInHierarchy() const {
-	if (parent) return parent->IsActiveInHierarchy() && active;
-
+bool GameObject::IsActiveInternal() const {
 	return active;
 }
 
@@ -113,6 +116,12 @@ void GameObject::SetParent(GameObject* gameObject) {
 	if (gameObject != nullptr) {
 		gameObject->children.push_back(this);
 	}
+
+	// To invalidate hierarchy in UIElements
+	ComponentTransform2D* parentTransform2D = this->GetComponent<ComponentTransform2D>();
+	if (parentTransform2D != nullptr) {
+		parentTransform2D->InvalidateHierarchy();
+	}
 }
 
 GameObject* GameObject::GetParent() const {
@@ -125,6 +134,33 @@ void GameObject::SetRootBone(GameObject* gameObject) {
 
 GameObject* GameObject::GetRootBone() const {
 	return rootBoneHierarchy;
+}
+
+void GameObject::AddMask(MaskType mask_) {
+
+	switch (mask_) {
+	case MaskType::ENEMY:
+		mask.bitMask |= static_cast<int>(mask_);
+		break;
+	default:
+		LOG("The solicitated mask doesn't exist");
+		break;
+	}
+}
+
+void GameObject::DeleteMask(MaskType mask_) {
+	switch (mask_) {
+	case MaskType::ENEMY:
+		mask.bitMask ^= static_cast<int>(mask_);
+		break;
+	default:
+		LOG("The solicitated mask doesn't exist");
+		break;
+	}
+}
+
+Mask& GameObject::GetMask() {
+	return mask;
 }
 
 void GameObject::AddChild(GameObject* gameObject) {
@@ -145,12 +181,12 @@ bool GameObject::IsDescendantOf(GameObject* gameObject) {
 	return GetParent()->IsDescendantOf(gameObject);
 }
 
-GameObject* GameObject::FindDescendant(const std::string& name) const {
+GameObject* GameObject::FindDescendant(const std::string& name_) const {
 	for (GameObject* child : children) {
-		if (child->name == name) {
+		if (child->name == name_) {
 			return child;
 		} else {
-			GameObject* gameObject = child->FindDescendant(name);
+			GameObject* gameObject = child->FindDescendant(name_);
 			if (gameObject != nullptr) return gameObject;
 		}
 	}
@@ -166,7 +202,9 @@ void GameObject::Save(JsonValue jGameObject) const {
 	jGameObject[JSON_TAG_ID] = id;
 	jGameObject[JSON_TAG_NAME] = name.c_str();
 	jGameObject[JSON_TAG_ACTIVE] = active;
+	jGameObject[JSON_TAG_ACTIVEINHIERARCHY] = activeInHierarchy;
 	jGameObject[JSON_TAG_ROOT_BONE_ID] = rootBoneHierarchy != nullptr ? rootBoneHierarchy->id : 0;
+	jGameObject[JSON_TAG_MASK] = mask.bitMask;
 
 	JsonValue jComponents = jGameObject[JSON_TAG_COMPONENTS];
 	for (unsigned i = 0; i < components.size(); ++i) {
@@ -175,7 +213,7 @@ void GameObject::Save(JsonValue jGameObject) const {
 
 		jComponent[JSON_TAG_TYPE] = GetComponentTypeName(component->GetType());
 		jComponent[JSON_TAG_ID] = component->GetID();
-		jComponent[JSON_TAG_ACTIVE] = component->IsActive();
+		jComponent[JSON_TAG_ACTIVE] = component->IsActiveInternal();
 		component->Save(jComponent);
 	}
 
@@ -193,6 +231,15 @@ void GameObject::Load(JsonValue jGameObject) {
 	id = newId;
 	name = jGameObject[JSON_TAG_NAME];
 	active = jGameObject[JSON_TAG_ACTIVE];
+	activeInHierarchy = jGameObject[JSON_TAG_ACTIVEINHIERARCHY];
+	mask.bitMask = jGameObject[JSON_TAG_MASK];
+
+	for (unsigned i = 0; i < ARRAY_LENGTH(mask.maskNames); ++i) {
+		MaskType type = GetMaskTypeFromName(mask.maskNames[i]);
+		if ((mask.bitMask & static_cast<int>(type)) != 0) {
+			mask.maskValues[i] = true;
+		}
+	}
 
 	JsonValue jComponents = jGameObject[JSON_TAG_COMPONENTS];
 	for (unsigned i = 0; i < jComponents.Size(); ++i) {
@@ -204,6 +251,11 @@ void GameObject::Load(JsonValue jGameObject) {
 
 		ComponentType type = GetComponentTypeFromName(typeName.c_str());
 		Component* component = scene->CreateComponentByTypeAndId(this, type, componentId);
+		if (active) {
+			component->Enable();
+		} else {
+			component->Disable();
+		}
 		components.push_back(component);
 		component->Load(jComponent);
 	}
@@ -235,6 +287,7 @@ void GameObject::SavePrefab(JsonValue jGameObject) {
 	jGameObject[JSON_TAG_NAME] = name.c_str();
 	jGameObject[JSON_TAG_ACTIVE] = active;
 	jGameObject[JSON_TAG_ROOT_BONE_NAME] = rootBoneHierarchy ? rootBoneHierarchy->name.c_str() : "";
+	jGameObject[JSON_TAG_MASK] = mask.bitMask;
 
 	JsonValue jComponents = jGameObject[JSON_TAG_COMPONENTS];
 	for (unsigned i = 0; i < components.size(); ++i) {
@@ -258,6 +311,14 @@ void GameObject::SavePrefab(JsonValue jGameObject) {
 void GameObject::LoadPrefab(JsonValue jGameObject) {
 	name = jGameObject[JSON_TAG_NAME];
 	active = jGameObject[JSON_TAG_ACTIVE];
+	mask.bitMask = jGameObject[JSON_TAG_MASK];
+
+	for (unsigned i = 0; i < ARRAY_LENGTH(mask.maskNames); ++i) {
+		MaskType type = GetMaskTypeFromName(mask.maskNames[i]);
+		if ((mask.bitMask & static_cast<int>(type)) != 0) {
+			mask.maskValues[i] = true;
+		}
+	}
 
 	JsonValue jComponents = jGameObject[JSON_TAG_COMPONENTS];
 	for (unsigned i = 0; i < jComponents.Size(); ++i) {
@@ -296,4 +357,36 @@ void GameObject::LoadPrefab(JsonValue jGameObject) {
 		ModelImporter::CacheBones(rootBoneHierarchy, temporalBonesMap);
 		ModelImporter::SaveBones(this, temporalBonesMap);
 	}
+}
+
+void GameObject::EnableInHierarchy() {
+	if (parent != nullptr && !parent->IsActive()) {
+		return;
+	}
+
+	activeInHierarchy = true;
+	for (GameObject* child : children) {
+		child->EnableInHierarchy();
+	}
+	for (Component* component : components) {
+		if (component->IsActive()) {
+			component->OnEnable();
+		}
+	}
+}
+
+void GameObject::DisableInHierarchy() {
+	if (parent != nullptr && !parent->IsActive()) {
+		return;
+	}
+
+	for (Component* component : components) {
+		if (component->IsActive()) {
+			component->OnDisable();
+		}
+	}
+	for (GameObject* child : children) {
+		child->DisableInHierarchy();
+	}
+	activeInHierarchy = false;
 }

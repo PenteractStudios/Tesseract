@@ -15,7 +15,6 @@ public:
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
-	void DuplicateComponent(GameObject& owner) override;
 
 	void UpdateFrustum();
 	Frustum BuildDefaultFrustum() const; // Builds a frustum object, at origin, facing Z direction, with specified FOV.

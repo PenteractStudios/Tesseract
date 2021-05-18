@@ -16,12 +16,15 @@
 #include "Components/UI/ComponentButton.h"
 #include "Components/UI/ComponentToggle.h"
 #include "Components/UI/ComponentText.h"
+#include "Components/UI/ComponentSlider.h"
 #include "Components/ComponentBoundingBox2D.h"
 #include "Components/ComponentSkybox.h"
+#include "Components/ComponentParticleSystem.h"
 #include "Components/ComponentScript.h"
 #include "Components/ComponentAnimation.h"
 #include "Components/ComponentAudioListener.h"
 #include "Components/ComponentAudioSource.h"
+#include "Components/UI/ComponentProgressBar.h"
 #include "Components/Physics/ComponentSphereCollider.h"
 #include "Components/Physics/ComponentBoxCollider.h"
 #include "Components/Physics/ComponentCapsuleCollider.h"
@@ -38,7 +41,6 @@ public:
 
 	// --- GameObject Management --- //
 	GameObject* CreateGameObject(GameObject* parent, UID id, const char* name);
-	GameObject* DuplicateGameObject(GameObject* gameObject, GameObject* parent);
 	void DestroyGameObject(GameObject* gameObject);
 	GameObject* GetGameObject(UID id) const;
 
@@ -56,6 +58,8 @@ public:
 	GameObject* root = nullptr;			  // GameObject Root. Parent of everything and god among gods (Game Object Deity) :D.
 	PoolMap<UID, GameObject> gameObjects; // Pool of GameObjects. Stores all the memory of all existing GameObject in a contiguous memory space.
 
+	bool sceneLoaded = false; // This is set to true when all scene resources have been loaded
+
 	// ---- Components ---- //
 	PoolMap<UID, ComponentTransform> transformComponents;
 	PoolMap<UID, ComponentMeshRenderer> meshRendererComponents;
@@ -72,11 +76,14 @@ public:
 	PoolMap<UID, ComponentText> textComponents;
 	PoolMap<UID, ComponentButton> buttonComponents;
 	PoolMap<UID, ComponentSelectable> selectableComponents;
+	PoolMap<UID, ComponentSlider> sliderComponents;
 	PoolMap<UID, ComponentSkyBox> skyboxComponents;
 	PoolMap<UID, ComponentScript> scriptComponents;
 	PoolMap<UID, ComponentAnimation> animationComponents;
+	PoolMap<UID, ComponentParticleSystem> particleComponents;
 	PoolMap<UID, ComponentAudioSource> audioSourceComponents;
 	PoolMap<UID, ComponentAudioListener> audioListenerComponents;
+	PoolMap<UID, ComponentProgressBar> progressbarsComponents;
 	PoolMap<UID, ComponentSphereCollider> sphereColliderComponents;
 	PoolMap<UID, ComponentBoxCollider> boxColliderComponents;
 	PoolMap<UID, ComponentCapsuleCollider> capsuleColliderComponents;

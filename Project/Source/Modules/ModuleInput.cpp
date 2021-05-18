@@ -78,7 +78,11 @@ UpdateStatus ModuleInput::PreUpdate() {
 				case SDL_WINDOWEVENT_CLOSE:
 					return UpdateStatus::STOP;
 				case SDL_WINDOWEVENT_RESIZED:
-					App->userInterface->ViewportResized();
+
+					TesseractEvent resizeEvent(TesseractEventType::SCREEN_RESIZED);
+					resizeEvent.Set<ViewportResizedStruct>(event.window.data1, event.window.data2);
+					App->events->AddEvent(resizeEvent);
+
 					break;
 				}
 			}

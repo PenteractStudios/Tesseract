@@ -9,9 +9,6 @@
 //TODO see why these cleanups generate errors
 static void CleanUpEvent(TesseractEvent& e) {
 	switch (e.type) {
-	case TesseractEventType::ADD_RESOURCE:
-		RELEASE(e.Get<AddResourceStruct>().resource);
-		break;
 	case TesseractEventType::UPDATE_FOLDERS:
 		RELEASE(e.Get<UpdateFoldersStruct>().folder);
 		break;
