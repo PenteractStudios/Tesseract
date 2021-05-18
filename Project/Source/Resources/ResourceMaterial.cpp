@@ -146,8 +146,10 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 
 void ResourceMaterial::OnEditorUpdate() {
 	// Save Material
-	if (ImGui::Button("Save Material")) {
-		SaveToFile(GetResourceFilePath().c_str());
+	if (FileDialog::GetFileExtension(GetAssetFilePath().c_str()) == MATERIAL_EXTENSION) {
+		if (ImGui::Button("Save Material")) {
+			SaveToFile(GetAssetFilePath().c_str());
+		}
 	}
 
 	// Shader types
