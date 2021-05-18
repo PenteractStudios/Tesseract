@@ -4,7 +4,6 @@
 
 class LightFrustum {
 public:
-
 	LightFrustum();
 	~LightFrustum() {}
 	void ReconstructFrustum();
@@ -18,5 +17,4 @@ public:
 private:
 	bool dirty = true;
 	Frustum frustum;
-	
 };
