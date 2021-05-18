@@ -43,6 +43,6 @@ public:
 	bool hasChanged = false;
 
 	TextureWrap wrap = TextureWrap::REPEAT;
-	TextureMinFilter minFilter = TextureMinFilter::NEAREST;
-	TextureMagFilter magFilter = TextureMagFilter::NEAREST;
+	TextureMinFilter minFilter = TextureMinFilter::NEAREST_MIPMAP_LINEAR;
+	TextureMagFilter magFilter = TextureMagFilter::LINEAR;
 };
