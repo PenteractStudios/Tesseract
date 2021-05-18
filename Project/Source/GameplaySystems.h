@@ -4,6 +4,7 @@
 #include "GameObject.h"
 #include "Application.h"
 #include "Modules/ModuleResources.h"
+#include "Modules/ModuleWindow.h"
 #include "Components/ComponentCamera.h"
 #include "Components/ComponentScript.h"
 #include "Utils/Logging.h"
@@ -449,26 +450,34 @@ namespace Input {
 }; // namespace Input
 
 namespace Screen {
-	TESSERACT_ENGINE_API float GetScreenWitdh();
-	TESSERACT_ENGINE_API float GetScreenHeight();
-	TESSERACT_ENGINE_API void SetResolution(int width_, int height_);
-	TESSERACT_ENGINE_API float2 GetResolution();
+	struct TESSERACT_ENGINE_API DisplayMode {
+		DisplayMode(const SDL_DisplayMode& sdlDisplayMode)
+			: width(sdlDisplayMode.w)
+			, height(sdlDisplayMode.h)
+			, bpp(SDL_BITSPERPIXEL(sdlDisplayMode.format))
+			, hz(sdlDisplayMode.refresh_rate) {}
 
-	enum RESOLUTION_PRESET {
-		m_1024x576,
-		m_1280x720,
-		m_1920x1080,
-		MAX
+		int width = 0;
+		int height = 0;
+		unsigned bpp = 0;
+		int hz = 0;
 	};
 
-	TESSERACT_ENGINE_API int GetResolutionPreset();
-	TESSERACT_ENGINE_API void SetResolutionPreset(int resolutionPreset_);
+	TESSERACT_ENGINE_API void SetWindowMode(WindowMode mode);
+	TESSERACT_ENGINE_API void SetCurrentDisplayMode(unsigned index);
+	TESSERACT_ENGINE_API void SetSize(int width, int height);
+	TESSERACT_ENGINE_API void SetBrightness(float brightness);
 
-	TESSERACT_ENGINE_API bool IsFullScreenOn();
-	TESSERACT_ENGINE_API void SetFullScreen(bool fullscreen_);
+	TESSERACT_ENGINE_API WindowMode GetWindowMode();
+	TESSERACT_ENGINE_API bool GetMaximized();
+	TESSERACT_ENGINE_API unsigned GetCurrentDisplayMode();
+	TESSERACT_ENGINE_API unsigned GetNumDisplayModes();
+	TESSERACT_ENGINE_API DisplayMode GetDisplayMode(unsigned index);
+	TESSERACT_ENGINE_API int GetWidth();
+	TESSERACT_ENGINE_API int GetHeight();
+	TESSERACT_ENGINE_API float GetBrightness();
+	TESSERACT_ENGINE_API float2 GetResolution();
 
-	TESSERACT_ENGINE_API bool IsBorderless();
-	TESSERACT_ENGINE_API void SetBorderless(bool borderless_);
 }; // namespace Screen
 
 namespace SceneManager {
@@ -477,7 +486,7 @@ namespace SceneManager {
 }; // namespace SceneManager
 
 namespace Physics {
-	TESSERACT_ENGINE_API GameObject* Raycast(const float3& start, const float3& end,const int mask);
+	TESSERACT_ENGINE_API GameObject* Raycast(const float3& start, const float3& end, const int mask);
 }
 
 namespace Colors {
@@ -488,7 +497,7 @@ namespace Colors {
 	TESSERACT_ENGINE_API float3 Orange();
 	TESSERACT_ENGINE_API float3 Green();
 
-}
+} // namespace Colors
 
 namespace Camera {
 	TESSERACT_ENGINE_API bool CheckObjectInsideFrustum(GameObject* gameObject);

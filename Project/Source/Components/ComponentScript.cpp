@@ -27,7 +27,9 @@
 #define JSON_TAG_VALUE "Value"
 
 void ComponentScript::Init() {
-	if (scriptInstance) scriptInstance->Start();
+	if (scriptInstance && App->time->HasGameStarted() && App->scene->scene->sceneLoaded) {
+		scriptInstance->Start();
+	}
 }
 
 void ComponentScript::OnEditorUpdate() {

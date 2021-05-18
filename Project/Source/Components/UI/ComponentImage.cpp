@@ -82,14 +82,7 @@ void ComponentImage::OnEditorUpdate() {
 			}
 		}
 
-		ImGui::Text("");
-		ImGui::Separator();
-		ImGui::TextColored(App->editor->titleColor, "Texture Preview");
-		ImGui::TextWrapped("Size:");
-		ImGui::SameLine();
-		ImGui::TextWrapped("%d x %d", width, height);
-		ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
-		ImGui::Separator();
+		ImGui::TextWrapped("Size: %d x %d", width, height);
 	}
 }
 
