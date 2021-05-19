@@ -11,9 +11,6 @@ class ComponentToggle : public Component
 public:
 	REGISTER_COMPONENT(ComponentToggle, ComponentType::TOGGLE, false);
 
-	~ComponentToggle();
-
-	void Init() override;
 	void OnClicked() override; // Action to perform when the button is clicked
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;

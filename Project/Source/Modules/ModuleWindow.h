@@ -1,24 +1,18 @@
 #pragma once
 
+#include "Globals.h"
 #include "Module.h"
 
 #include "SDL_video.h"
 #include <vector>
+#include <string>
 
 struct SDL_Surface;
 
 enum class WindowMode {
 	WINDOWED,
-	BORDERLESS,
 	FULLSCREEN,
 	FULLSCREEN_DESKTOP
-};
-
-enum class RESOLUTION_PRESET {
-	m_1024x576,
-	m_1280x720,
-	m_1920x1080,
-	MAX
 };
 
 class ModuleWindow : public Module {
@@ -30,8 +24,9 @@ public:
 	// ---------- Setters ---------- //
 	void SetWindowMode(WindowMode mode);
 	void SetResizable(bool resizable);
-	void SetCurrentDisplayMode(int index);
+	void SetCurrentDisplayMode(unsigned index);
 	void SetSize(int width, int height);
+	void ResetToDefaultSize();
 	void SetBrightness(float brightness);
 	void SetTitle(const char* title);
 
@@ -39,25 +34,22 @@ public:
 	WindowMode GetWindowMode() const;
 	bool GetMaximized() const;
 	bool GetResizable() const;
-	int GetCurrentDisplayMode() const;
+	unsigned GetCurrentDisplayMode() const;
+	unsigned GetNumDisplayModes() const;
+	const SDL_DisplayMode& GetDisplayMode(unsigned index) const;
 	int GetWidth() const;
 	int GetHeight() const;
 	int GetPositionX() const;
 	int GetPositionY() const;
 	float GetBrightness() const;
 	const char* GetTitle() const;
-	int GetResolutionPreset() const;
-	void SetResolutionPreset(int resolutionPreset_);
 
 public:
 	SDL_Window* window = nullptr;
 	SDL_Surface* surface = nullptr;
 
-	std::vector<SDL_DisplayMode> displayModes;
-
 private:
-	int currentResolutionPreset = static_cast<int>(RESOLUTION_PRESET::m_1920x1080);
-
-	WindowMode windowMode = WindowMode::BORDERLESS;
-	int currentDisplayMode = 0;
+	WindowMode windowMode = WindowMode::WINDOWED;
+	std::vector<SDL_DisplayMode> displayModes;
+	unsigned currentDisplayMode = 0;
 };

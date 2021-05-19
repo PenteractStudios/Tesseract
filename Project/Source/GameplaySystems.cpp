@@ -150,6 +150,7 @@ void Time::ResumeGame() {
 }
 
 // ------------- INPUT ------------- //
+const int JOYSTICK_MAX_VALUE = 32767;
 
 bool Input::GetMouseButtonDown(int button) {
 	return App->input->GetMouseButtons()[button] == KS_DOWN;
@@ -179,7 +180,7 @@ const float3 Input::GetMouseWorldPosition() {
 	float4x4 ProjView = Projection * View;
 	ProjView.Inverse();
 	float4 worldPos = ProjView * ScreenPos;
-	return worldPos.xyz()/worldPos.w;
+	return worldPos.xyz() / worldPos.w;
 }
 
 float2 Input::GetMousePosition() {
@@ -216,6 +217,36 @@ bool Input::GetKeyCode(KEYCODE keycode) {
 	return App->input->GetKeyboard()[keycode];
 }
 
+bool Input::GetControllerButtonDown(SDL_GameControllerButton button, int playerID) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+	return player ? false : player->gameControllerButtons[button] == KS_DOWN;
+}
+
+bool Input::GetControllerButtonUp(SDL_GameControllerButton button, int playerID) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+	return player ? false : player->gameControllerButtons[button] == KS_UP;
+}
+
+bool Input::GetControllerButtonRepeat(SDL_GameControllerButton button, int playerID) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+	return player ? false : player->gameControllerButtons[button] == KS_REPEAT;
+}
+
+bool Input::GetControllerButton(SDL_GameControllerButton button, int playerID) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+	return player ? false : player->gameControllerButtons[button];
+}
+
+float Input::GetControllerAxisValue(SDL_GameControllerAxis axis, int playerID) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+
+	return player ? player->gameControllerAxises[axis] / JOYSTICK_MAX_VALUE : 0.0f;
+}
+
+bool Input::IsGamepadConnected(int index) {
+	return App->input->GetPlayerController(index) != nullptr;
+}
+
 // --------- SCENE MANAGER --------- //
 
 void SceneManager::ChangeScene(const char* scenePath) {
@@ -228,48 +259,6 @@ void SceneManager::ExitGame() {
 	SDL_Event event;
 	event.type = SDL_QUIT;
 	SDL_PushEvent(&event);
-}
-
-float Screen::GetScreenWitdh() {
-	return static_cast<float>(App->window->GetWidth());
-}
-
-float Screen::GetScreenHeight() {
-
-	return static_cast<float>(App->window->GetHeight());
-}
-
-void Screen::SetResolution(int width_, int height_) {
-	App->window->SetSize(width_, height_);
-}
-
-float2 Screen::GetResolution() {
-	return float2(App->window->GetWidth(), App->window->GetHeight());
-}
-
-int Screen::GetResolutionPreset() {
-	return App->window->GetResolutionPreset();
-}
-
-void Screen::SetResolutionPreset(int resolutionPreset_) {
-	App->window->SetResolutionPreset(resolutionPreset_);
-}
-
-
-bool Screen::IsFullScreenOn() {
-	return App->window->GetWindowMode() == WindowMode::FULLSCREEN;
-}
-
-void Screen::SetFullScreen(bool fullscreen_) {
-	App->window->SetWindowMode(fullscreen_ ? WindowMode::FULLSCREEN : WindowMode::WINDOWED);
-}
-
-bool Screen::IsBorderless() {
-	return App->window->GetWindowMode() == WindowMode::BORDERLESS;
-}
-
-void Screen::SetBorderless(bool borderless_) {
-	App->window->SetWindowMode(borderless_ ? WindowMode::BORDERLESS : WindowMode::WINDOWED);
 }
 
 GameObject* Physics::Raycast(const float3& start, const float3& end, const int mask) {
@@ -321,6 +310,60 @@ float3 Colors::Orange() {
 
 float3 Colors::Green() {
 	return dd::colors::Green;
+}
+
+// --------- Screen --------- //
+
+void Screen::SetWindowMode(WindowMode mode) {
+	App->window->SetWindowMode(mode);
+}
+
+void Screen::SetCurrentDisplayMode(unsigned index) {
+	App->window->SetCurrentDisplayMode(index);
+}
+
+void Screen::SetSize(int width, int height) {
+	App->window->SetSize(width, height);
+}
+
+void Screen::SetBrightness(float brightness) {
+	App->window->SetBrightness(brightness);
+}
+
+WindowMode Screen::GetWindowMode() {
+	return App->window->GetWindowMode();
+}
+
+bool Screen::GetMaximized() {
+	return App->window->GetMaximized();
+}
+
+unsigned Screen::GetCurrentDisplayMode() {
+	return App->window->GetCurrentDisplayMode();
+}
+
+unsigned Screen::GetNumDisplayModes() {
+	return App->window->GetNumDisplayModes();
+}
+
+Screen::DisplayMode Screen::GetDisplayMode(unsigned index) {
+	return Screen::DisplayMode(App->window->GetDisplayMode(index));
+}
+
+int Screen::GetWidth() {
+	return static_cast<float>(App->window->GetWidth());
+}
+
+int Screen::GetHeight() {
+	return static_cast<float>(App->window->GetHeight());
+}
+
+float Screen::GetBrightness() {
+	return App->window->GetBrightness();
+}
+
+float2 Screen::GetResolution() {
+	return float2(static_cast<float>(App->window->GetWidth()), static_cast<float>(App->window->GetHeight()));
 }
 
 // --------- Camera --------- //
