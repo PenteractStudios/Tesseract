@@ -20,10 +20,10 @@ public:
 
 	bool SaveToFile(const char* filePath);
 
-	void Init(std::string& mName, UID mAnimationUID = 0, int mBeginIndex = 0, int mEndIndex = 0, bool mLoop = false, float mSpeed = 1.0f, UID mid = 0);
+	void Init(std::string& mName, UID mAnimationUID = 0, unsigned int mBeginIndex = 0, unsigned int mEndIndex = 0, bool mLoop = false, float mSpeed = 1.0f, UID mid = 0);
 
-	void SetBeginIndex(int index);
-	void SetEndIndex(int index);
+	void SetBeginIndex(unsigned int index);
+	void SetEndIndex(unsigned int index);
 
 	void SetSpeed(float mSpeed) {
 		speed = mSpeed;
@@ -35,8 +35,8 @@ public:
 	std::string name = "";
 	UID animationUID = 0;
 	bool loop = false;
-	int beginIndex = 0;
-	int endIndex = 0;
+	unsigned int beginIndex = 0;
+	unsigned int endIndex = 0;
 	float speed = 1.0f;
 	float duration = 0;
 	unsigned int keyFramesSize = 0;

@@ -113,13 +113,13 @@ void ResourceClip::OnEditorUpdate() {
 
 	ImGui::Checkbox("Loop", &loop);
 
-	ImGui::InputInt("Begin Index", &beginIndex);
+	ImGui::DragScalar("Begin Index", ImGuiDataType_U32, &beginIndex);
 	SetBeginIndex(beginIndex);
 
-	ImGui::InputInt("End Index", &endIndex);
+	ImGui::DragScalar("End Index", ImGuiDataType_U32, &endIndex);
 	SetEndIndex(endIndex);
 
-	ImGui::InputFloat("Speed", &speed);
+	ImGui::DragFloat("Speed", &speed, 0.001);
 
 	ImGui::NewLine();
 	if (ImGui::Button("Save##clip")) {
@@ -162,7 +162,7 @@ bool ResourceClip::SaveToFile(const char* filePath) {
 	return true;
 }
 
-void ResourceClip::Init(std::string& mName, UID mAnimationUID, int mBeginIndex, int mEndIndex, bool mLoop, float mSpeed, UID mid) {
+void ResourceClip::Init(std::string& mName, UID mAnimationUID, unsigned int mBeginIndex, unsigned int mEndIndex, bool mLoop, float mSpeed, UID mid) {
 	name = mName;
 	animationUID = mAnimationUID;
 	loop = mLoop;
@@ -177,7 +177,7 @@ void ResourceClip::Init(std::string& mName, UID mAnimationUID, int mBeginIndex, 
 	SetBeginIndex(mBeginIndex);
 }
 
-void ResourceClip::SetBeginIndex(int index) {
+void ResourceClip::SetBeginIndex(unsigned int index) {
 	ResourceAnimation* animationResource = GetResourceAnimation();
 	if (!animationResource) {
 		return;
@@ -193,7 +193,7 @@ void ResourceClip::SetBeginIndex(int index) {
 	}
 }
 
-void ResourceClip::SetEndIndex(int index) {
+void ResourceClip::SetEndIndex(unsigned int index) {
 	ResourceAnimation* animationResource = GetResourceAnimation();
 	if (!animationResource) {
 		return;
