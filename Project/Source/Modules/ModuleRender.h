@@ -20,7 +20,7 @@ public:
 
 	void ViewportResized(int width, int height); // Updates the viewport aspect ratio with the new one given by parameters. It will set 'viewportUpdated' to true, to regenerate the framebuffer to its new size using UpdateFramebuffer().
 	void UpdateFramebuffer();					 // Generates the rendering framebuffer on Init(). If 'viewportUpdated' was set to true, it will be also called at PostUpdate().
-	void DrawScene(bool shadowPass);							 // Draw the Scene
+	void DrawScene(bool shadowPass = false);	 // Draw the Scene
 
 	void SetVSync(bool vsync);
 
@@ -50,8 +50,8 @@ public:
 	unsigned renderTexture = 0;
 	unsigned renderBuffer = 0;
 	unsigned framebuffer = 0;
-	unsigned depthMap = 0;
-	unsigned depthMapBuffer = 0;
+	unsigned depthMapTexture = 0;
+	unsigned depthMapTextureBuffer = 0;
 
 	// ------- Viewport Updated ------- //
 	bool viewportUpdated = true;
@@ -76,11 +76,10 @@ public:
 private:
 
 	void DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb); // Draws the quadrtee nodes if 'drawQuadtree' is set to true.
-	void DrawSceneRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb);	// ??
+	void DrawSceneRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb, bool shadowPass); // ??
 	bool CheckIfInsideFrustum(const AABB& aabb, const OBB& obb);							// ??
 	void DrawGameObject(GameObject* gameObject);											// ??
 	void DrawGameObjectShadowPass(GameObject* gameObject);
-	void DrawSkyBox();																		// Draws a default skybox if 'skyboxActive' is set to true.
 	void DrawAnimation(const GameObject* gameObject, bool hasAnimation = false);
 	void RenderUI();
 	void SetOrtographicRender();
@@ -88,10 +87,10 @@ private:
 
 	void ShadowMapPass();
 	void RenderPass();
-	void DrawDepthMap();
+	void DrawDepthMapTexture();
 
 private:
 	// ------- Viewport Size ------- //
 	float2 viewportSize = float2::zero;
-	bool drawDepthMap = false;
+	bool drawDepthMapTexture = false;
 };

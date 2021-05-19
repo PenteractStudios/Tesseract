@@ -137,19 +137,18 @@ bool ModuleRender::Init() {
 
 	// Shadow Mapping buffer / texture configuration
 
-	glGenFramebuffers(1, &depthMapBuffer);
-	glGenTextures(1, &depthMap);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	float borderColor[] = {1.0, 1.0, 1.0, 1.0};
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	glGenFramebuffers(1, &depthMapTextureBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapBuffer);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glGenTextures(1, &depthMapTexture);
+	glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -161,23 +160,16 @@ bool ModuleRender::Init() {
 }
 
 void ModuleRender::ShadowMapPass() {
-	// TODO: Change the viewport
-	// glViewport(..., shadow_size)
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapBuffer);
-
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glCullFace(GL_FRONT);
 	DrawScene(true);
-	glCullFace(GL_BACK);
-
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void ModuleRender::RenderPass() {
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	DrawScene(false);
+	DrawScene();
 }
 
 void ModuleRender::DrawScene(bool shadowPass) {
@@ -201,24 +193,22 @@ void ModuleRender::DrawScene(bool shadowPass) {
 	}
 
 	if (scene->quadtree.IsOperative()) {
-		DrawSceneRecursive(scene->quadtree.root, scene->quadtree.bounds);
+		DrawSceneRecursive(scene->quadtree.root, scene->quadtree.bounds, shadowPass);
 	}
 }
 
-void ModuleRender::DrawDepthMap() {
+void ModuleRender::DrawDepthMapTexture() {
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	unsigned program = App->programs->drawDepthMap;
+	unsigned program = App->programs->drawDepthMapTexture;
 
 	glUseProgram(program);
 
-	glUniform1f(glGetUniformLocation(program, "nearPlane"), App->camera->GetNearPlane());
-	glUniform1f(glGetUniformLocation(program, "farPlane"), App->camera->GetFarPlane());
-
+	glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+	glUniform1i(glGetUniformLocation(program, "depthMapTexture"), 0);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -226,6 +216,8 @@ void ModuleRender::DrawDepthMap() {
 
 UpdateStatus ModuleRender::PreUpdate() {
 	BROFILER_CATEGORY("ModuleRender - PreUpdate", Profiler::Color::Green)
+
+	lightFrustum.ReconstructFrustum();
 
 #if !GAME
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -249,8 +241,8 @@ UpdateStatus ModuleRender::Update() {
 	// Pass 1. Build the depth map
 	ShadowMapPass();
 
-	if (drawDepthMap) {
-		DrawDepthMap();
+	if (drawDepthMapTexture) {
+		DrawDepthMapTexture();
 	} else {
 		// Pass 2. Draw the scene with the depth map
 		RenderPass();
@@ -347,19 +339,15 @@ void ModuleRender::UpdateFramebuffer() {
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
+	glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glGenTextures(1, &depthMap);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	float borderColor[] = {1.0, 1.0, 1.0, 1.0};
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -412,12 +400,12 @@ void ModuleRender::ToggleDrawLightFrustumGizmo() {
 void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 	if (strcmp(shadingMode, "Shaded") == 0) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		drawDepthMap = false;
+		drawDepthMapTexture = false;
 	} else if (strcmp(shadingMode, "Wireframe") == 0) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		drawDepthMap = false;
+		drawDepthMapTexture = false;
 	} else if (strcmp(shadingMode, "Depth") == 0) {
-		drawDepthMap = true;
+		drawDepthMapTexture = true;
 	}
 }
 
@@ -467,7 +455,7 @@ void ModuleRender::DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node,
 	}
 }
 
-void ModuleRender::DrawSceneRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb) {
+void ModuleRender::DrawSceneRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb, bool shadowPass) {
 	AABB aabb3d = AABB({aabb.minPoint.x, -1000000.0f, aabb.minPoint.y}, {aabb.maxPoint.x, 1000000.0f, aabb.maxPoint.y});
 	if (CheckIfInsideFrustum(aabb3d, OBB(aabb3d))) {
 		if (node.IsBranch()) {
@@ -475,19 +463,19 @@ void ModuleRender::DrawSceneRecursive(const Quadtree<GameObject>::Node& node, co
 
 			const Quadtree<GameObject>::Node& topLeft = node.childNodes->nodes[0];
 			AABB2D topLeftAABB = {{aabb.minPoint.x, center.y}, {center.x, aabb.maxPoint.y}};
-			DrawSceneRecursive(topLeft, topLeftAABB);
+			DrawSceneRecursive(topLeft, topLeftAABB, shadowPass);
 
 			const Quadtree<GameObject>::Node& topRight = node.childNodes->nodes[1];
 			AABB2D topRightAABB = {{center.x, center.y}, {aabb.maxPoint.x, aabb.maxPoint.y}};
-			DrawSceneRecursive(topRight, topRightAABB);
+			DrawSceneRecursive(topRight, topRightAABB, shadowPass);
 
 			const Quadtree<GameObject>::Node& bottomLeft = node.childNodes->nodes[2];
 			AABB2D bottomLeftAABB = {{aabb.minPoint.x, aabb.minPoint.y}, {center.x, center.y}};
-			DrawSceneRecursive(bottomLeft, bottomLeftAABB);
+			DrawSceneRecursive(bottomLeft, bottomLeftAABB, shadowPass);
 
 			const Quadtree<GameObject>::Node& bottomRight = node.childNodes->nodes[3];
 			AABB2D bottomRightAABB = {{center.x, aabb.minPoint.y}, {aabb.maxPoint.x, center.y}};
-			DrawSceneRecursive(bottomRight, bottomRightAABB);
+			DrawSceneRecursive(bottomRight, bottomRightAABB, shadowPass);
 		} else {
 			const Quadtree<GameObject>::Element* element = node.firstElement;
 			while (element != nullptr) {
@@ -497,7 +485,11 @@ void ModuleRender::DrawSceneRecursive(const Quadtree<GameObject>::Node& node, co
 					const AABB& gameObjectAABB = boundingBox->GetWorldAABB();
 					const OBB& gameObjectOBB = boundingBox->GetWorldOBB();
 					if (CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
-						DrawGameObject(gameObject);
+						if (shadowPass) {
+							DrawGameObjectShadowPass(gameObject);
+						} else {
+							DrawGameObject(gameObject);
+						}
 					}
 
 					gameObject->flag = true;
@@ -573,6 +565,9 @@ void ModuleRender::DrawGameObject(GameObject* gameObject) {
 }
 
 void ModuleRender::DrawGameObjectShadowPass(GameObject* gameObject) {
+
+	if ((gameObject->GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOW)) == 0) return;
+
 	ComponentView<ComponentMeshRenderer> meshes = gameObject->GetComponents<ComponentMeshRenderer>();
 	ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
 	assert(transform);

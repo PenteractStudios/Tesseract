@@ -11,7 +11,8 @@ in vec4 fragPosLight;
 out vec4 outColor;
 
 // Depth Map
-uniform sampler2D depthMap;
+uniform sampler2D depthMapTexture;
+uniform bool castShadows;
 
 uniform vec3 viewPos;
 
@@ -99,17 +100,29 @@ vec3 GetNormal(sampler2D normalMap, vec2 uv, mat3 TBN, float normalStrength)
     return normalize(TBN * normal);
 }
 
-float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection) {
+float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMap) {
 
 	vec3 projCoords = lightPos.xyz / lightPos.w;
 	projCoords = projCoords * 0.5 + 0.5;
 
-	float closestDepth = texture(depthMap, projCoords.xy).r;
-	float currentDepth = projCoords.z;
+	float closestDepth = texture(shadowMap, projCoords.xy).r;
+    float currentDepth = projCoords.z;
+	float bias = max(0.05 * (1 - dot(normal, lightDirection)), 0.005);
 
-	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
+	float shadow = 0.0;  
+	
+	vec2 texelSize = 1.0/textureSize(shadowMap, 0);
+	for(int x = -1; x <= 1; ++x){
+		for(int y = -1; y <= 1; ++y){
+			float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x,y) * texelSize).r;
+			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+		}
+	}
 
-	return shadow;
+	shadow /= 9.0;
+
+	return projCoords.z > 1.0 ? 0.0 : shadow;
+
 }
 
 --- fragVarMetallic

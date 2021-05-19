@@ -272,6 +272,10 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	float4x4 viewMatrix = App->camera->GetViewMatrix();
 	float4x4 projMatrix = App->camera->GetProjectionMatrix();
 
+	// Light frustum
+	float4x4 viewLight = App->renderer->GetLightViewMatrix();
+	float4x4 projLight = App->renderer->GetLightProjectionMatrix();
+
 	unsigned glTextureDiffuse = 0;
 	ResourceTexture* diffuse = App->resources->GetResource<ResourceTexture>(material->diffuseMapId);
 	glTextureDiffuse = diffuse ? diffuse->glTexture : 0;
@@ -282,7 +286,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glTextureNormal = normal ? normal->glTexture : 0;
 	int hasNormalMap = normal ? 1 : 0;
 
-	unsigned glDepthMap = App->renderer->depthMap;
+	unsigned gldepthMapTexture = App->renderer->depthMapTexture;
 
 	if (material->shaderType == MaterialShader::PHONG) {
 		// Phong-specific settings
@@ -362,6 +366,9 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, viewMatrix.ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, projMatrix.ptr());
 
+	glUniformMatrix4fv(glGetUniformLocation(program, "viewLight"), 1, GL_TRUE, viewLight.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "projLight"), 1, GL_TRUE, projLight.ptr());
+
 	if (palette.size() > 0) {
 		glUniformMatrix4fv(glGetUniformLocation(program, "palette"), palette.size(), GL_TRUE, palette[0].ptr());
 	}
@@ -389,9 +396,9 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glBindTexture(GL_TEXTURE_2D, glTextureNormal);
 
 	// Depth Map
-	glUniform1i(glGetUniformLocation(program, "depthMap"), 3);
+	glUniform1i(glGetUniformLocation(program, "depthMapTexture"), 3);
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, glDepthMap);
+	glBindTexture(GL_TEXTURE_2D, gldepthMapTexture);
 
 	// Tilling settings
 	glUniform2fv(glGetUniformLocation(program, "tiling"), 1, material->tiling.ptr());
@@ -568,6 +575,12 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 }
 
 void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix) const {
+
+	if (!IsActive()) return;
+
+	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
+	if (mesh == nullptr) return;
+
 	unsigned program = App->programs->shadowMap;
 	float4x4 viewMatrix = App->renderer->GetLightViewMatrix();
 	float4x4 projMatrix = App->renderer->GetLightProjectionMatrix();
@@ -578,4 +591,8 @@ void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix) const {
 	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, modelMatrix.ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, viewMatrix.ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, projMatrix.ptr());
+
+	glBindVertexArray(mesh->vao);
+	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
+	glBindVertexArray(0);
 }

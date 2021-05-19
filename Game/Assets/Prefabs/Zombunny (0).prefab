@@ -1,0 +1,60 @@
+{
+    "Root": {
+        "Name": "Zombunny",
+        "Active": true,
+        "RootBoneName": "",
+        "Mask": 4,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    7.162619113922119,
+                    3.048084259033203,
+                    0.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    0.05000000074505806,
+                    0.05000000074505806,
+                    0.05000000074505806
+                ],
+                "LocalEulerAngles": [
+                    -0.0,
+                    0.0,
+                    -0.0
+                ]
+            },
+            {
+                "Type": "MeshRenderer",
+                "Active": true,
+                "MeshID": 9218848821787111831,
+                "MaterialID": 9964757237344865990
+            },
+            {
+                "Type": "MeshRenderer",
+                "Active": true,
+                "MeshID": 9027867366580633265,
+                "MaterialID": 8079755573114365741
+            },
+            {
+                "Type": "BoundingBox",
+                "Active": true,
+                "LocalBoundingBox": [
+                    -76.11719512939453,
+                    -0.33393901586532595,
+                    -35.7611083984375,
+                    76.11719512939453,
+                    148.1706085205078,
+                    37.818817138671878
+                ]
+            }
+        ],
+        "Children": null
+    }
+}

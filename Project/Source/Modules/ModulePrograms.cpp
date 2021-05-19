@@ -136,11 +136,13 @@ bool ModulePrograms::Start() {
 
 	// Shadow Shaders
 	shadowMap = CreateProgram(filePath, "vertDepthMap", "fragDepthMap");
-	drawDepthMap = CreateProgram(filePath, "vertDrawDepthMap", "fragDrawDepthMap");
 
 	//UI shaders
 	textUI = CreateProgram(filePath, "vertTextUI", "fragTextUI");
 	imageUI = CreateProgram(filePath, "vertImageUI", "fragImageUI");
+
+	// Engine Shaders
+	drawDepthMapTexture = CreateProgram(filePath, "vertDrawDepthMapTexture", "fragDrawDepthMapTexture");
 
 	unsigned timeMs = timer.Stop();
 	LOG("Shaders loaded in %ums", timeMs);

@@ -397,9 +397,8 @@ bool ModuleProject::Init() {
 	}
 #else
 	LoadProject("Penteract/Penteract.sln");
-
-	App->events->AddObserverToEvent(TesseractEventType::ANIMATION_FINISHED, this);
 #endif
+	App->events->AddObserverToEvent(TesseractEventType::ANIMATION_FINISHED, this);
 	return true;
 }
 
