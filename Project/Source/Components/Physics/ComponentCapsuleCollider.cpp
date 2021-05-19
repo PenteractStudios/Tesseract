@@ -53,6 +53,22 @@ void ComponentCapsuleCollider::DrawGizmos() {
 }
 
 void ComponentCapsuleCollider::OnEditorUpdate() {
+	// World Layers combo box
+	const char* layerTypeItems[] = {"World Elements", "Event Triggers", "Player"};
+	const char* layerCurrent = layerTypeItems[(int) layer];
+	if (ImGui::BeginCombo("Layer", layerCurrent)) {
+		for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {
+			if (ImGui::Selectable(layerTypeItems[n])) {
+				layer = WorldLayers(n);
+				if (App->time->IsGameRunning()) {
+					App->physics->UpdateCapsuleRigidbody(this);
+				}
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	// Collider Type combo box
 	const char* colliderTypeItems[] = {"Dynamic", "Static", "Kinematic", "Trigger"};
 	const char* colliderCurrent = colliderTypeItems[(int) colliderType];
 	if (ImGui::BeginCombo("Collider Mode", colliderCurrent)) {

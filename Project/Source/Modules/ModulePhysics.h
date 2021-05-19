@@ -15,11 +15,11 @@ class btBroadphaseInterface;
 enum class CapsuleType;
 
 /* --- Collider Type ---
-	DYNAMIC = The object will respond to collisions, but not to user input (Such as modifying the transform).
-	STATIC = The object will never move.
-	KINEMATIC = The object will not respond to collisions, but it will to user input. Other Dynamic colliders (only) will phisically react to collisions with this object.
-	TRIGGER = It is like static, but the collisions against it have no physical effect to the colliding object.
-	*/
+*	DYNAMIC = The object will respond to collisions, but not to user input (Such as modifying the transform).
+*	STATIC = The object will never move.
+*	KINEMATIC = The object will not respond to collisions, but it will to user input. Other Dynamic colliders (only) will phisically react to collisions with this object.
+*	TRIGGER = It is like static, but the collisions against it have no physical effect to the colliding object.
+*/
 enum class ColliderType {
 	DYNAMIC,
 	STATIC,
@@ -27,14 +27,21 @@ enum class ColliderType {
 	TRIGGER
 };
 
-enum class WorldLayers {
-	WOLRD_ELEMENTS,
-	EVENT_TRIGGER,
-	PLAYER
+/* --- Collider Type ---
+*	NO_COLLISION = Doesn't collide with anything.
+*	WOLRD_ELEMENTS = All Objects that are physically present in the scene, including map props and enemy bodies. Interaction with other WOLRD_ELEMENTS and PLAYER.
+*	EVENT_TRIGGERS = All trigger colliders that will be activated by the player. Interaction with PLAYER.
+*	PLAYER = The Player of the game, should only exist one of this type. Interaction with WOLRD_ELEMENTS and EVENT_TRIGGERS.
+*/
+enum WorldLayers {
+	NO_COLLISION = 0,
+	EVENT_TRIGGERS = 1 << 1,
+	WORLD_ELEMENTS = 1 << 2,
+	PLAYER = 1 << 3,
+	EVERYTHING = -1
 };
 
 class ModulePhysics : public Module {
-
 public:
 	// ------- Core Functions ------ //
 	bool Init() override;
@@ -45,21 +52,23 @@ public:
 	bool CleanUp();
 	//void ReceiveEvent(TesseractEvent& e);
 
-	// ------ Add/Remove Sphere Body ------ //
+	// -- Add/Remove Sphere Body --- //
 	void CreateSphereRigidbody(ComponentSphereCollider* sphereCollider);
 	btRigidBody* AddSphereBody(MotionState* myMotionState, float radius, float mass);
 	void RemoveSphereRigidbody(ComponentSphereCollider* sphereCollider);
 	void UpdateSphereRigidbody(ComponentSphereCollider* sphereCollider);
-	// ------ Add/Remove Box Body ------ //
+	// ---- Add/Remove Box Body ---- //
 	void CreateBoxRigidbody(ComponentBoxCollider* boxCollider);
 	btRigidBody* AddBoxBody(MotionState* myMotionState, float3 size, float mass);
 	void RemoveBoxRigidbody(ComponentBoxCollider* boxCollider);
 	void UpdateBoxRigidbody(ComponentBoxCollider* boxCollider);
-
+	// -- Add/Remove Capsule Body -- //
 	void CreateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider);
 	btRigidBody* AddCapsuleBody(MotionState* myMotionState, float radius, float height, CapsuleType type, float mass);
 	void RemoveCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider);
 	void UpdateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider);
+
+	void AddBodyToWorld(btRigidBody* rigidbody, ColliderType colliderType, WorldLayers layer);
 
 	void InitializeRigidBodies();
 	void ClearPhysicBodies();

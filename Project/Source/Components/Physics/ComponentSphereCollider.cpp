@@ -34,8 +34,8 @@ void ComponentSphereCollider::DrawGizmos() {
 }
 
 void ComponentSphereCollider::OnEditorUpdate() {
-	// Collider Type combo box
-	const char* layerTypeItems[] = {"World Elements", "Event Triggers", "Player"};
+	// World Layers combo box
+	const char* layerTypeItems[] = {"No Collision", "World Elements", "Event Triggers", "Player", "Everything"};
 	const char* layerCurrent = layerTypeItems[(int) layer];
 	if (ImGui::BeginCombo("Layer", layerCurrent)) {
 		for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {

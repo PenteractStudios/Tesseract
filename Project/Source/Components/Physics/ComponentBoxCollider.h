@@ -30,6 +30,7 @@ public:
 	btRigidBody* rigidBody = nullptr;
 	MotionState motionState = MotionState(nullptr, float3::zero, false);
 	ColliderType colliderType = ColliderType::DYNAMIC;
+	WorldLayers layer = WorldLayers::WORLD_ELEMENTS;
 	float mass = 1.f;
 	float3 size = float3::one;
 	float3 centerOffset = float3::inf;
