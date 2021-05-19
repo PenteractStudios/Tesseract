@@ -20,9 +20,10 @@ public:
 	void Load(JsonValue jComponent) override;		// Deserializes object
 
 	void Draw(ComponentTransform2D* transform) const; // Draws the image ortographically using the active camera, and the transform passed as model. It will apply AlphaTransparency if true, and will get Button's additional color to apply if needed
-	void SetColor(float4 color_);
-	void SetFillValue(float val);
+	TESSERACT_ENGINE_API void SetColor(float4 color_);
+	TESSERACT_ENGINE_API void SetFillValue(float val);
 	void SetIsFill(bool b);
+	TESSERACT_ENGINE_API bool IsFill() const;
 
 private:
 	float4 GetMainColor() const;	// Gets an additional color that needs to be applied to the image. Currently gets the color of the Button, Slider and Checkbox

@@ -25,6 +25,7 @@ public:
 	// ------- Core Functions ------ //
 	bool Start() override;
 	UpdateStatus Update() override;
+	void ReceiveEvent(TesseractEvent& ev) override;
 
 	void CalculateFrustumNearestObject(float2 pos); // Mouse Picking function. Detects the nearest object to the camera and selects it on a mouse left click. 'pos' is the x,y coordinates of the clicked pixel on the viewport.
 	void CalculateFrustumPlanes();					// Calculates the geometry of the 'planes' and 'points' that define the frustum, from the 'cullingFrustum' properties.

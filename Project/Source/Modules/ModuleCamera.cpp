@@ -19,6 +19,7 @@
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleEditor.h"
+#include "Modules/ModuleEvents.h"
 
 #include "Math/float3.h"
 #include "Math/float3x3.h"
@@ -78,6 +79,7 @@ bool ModuleCamera::Start() {
 
 	SetPosition(vec(2, 3, -5));
 	LookAt(0, 0, 0);
+	App->events->AddObserverToEvent(TesseractEventType::SCREEN_RESIZED, this);
 
 	return true;
 }
@@ -177,6 +179,19 @@ UpdateStatus ModuleCamera::Update() {
 	}
 
 	return UpdateStatus::CONTINUE;
+}
+
+void ModuleCamera::ReceiveEvent(TesseractEvent& ev) {
+	switch (ev.type) {
+	case TesseractEventType::SCREEN_RESIZED: {
+		int width = ev.Get<ViewportResizedStruct>().newWidth;
+		int height = ev.Get<ViewportResizedStruct>().newHeight;
+		ViewportResized(width, height);
+		break;
+	}
+	default:
+		break;
+	}
 }
 
 void ModuleCamera::CalculateFrustumNearestObject(float2 pos) {

@@ -18,6 +18,7 @@ public:
 	bool Init() override;						   // Inits the module
 	bool Start() override;						   // Adds event listeners: SCREEN_RESIZED, MOUSE_CLICKED, MOUSE_RELEASED
 	UpdateStatus Update() override;				   // Calls PointerEnter and PointerExit of Components if eventSystem isn't null
+	UpdateStatus PostUpdate() override;			   //
 	bool CleanUp() override;					   // Deletes generic image VBO (used in ComponentImage)
 	void ReceiveEvent(TesseractEvent& e) override; // Treats the events that is listening to.
 
@@ -28,8 +29,8 @@ public:
 	void SetCurrentEventSystem(UID id_);		   // Sets the new event system
 	ComponentEventSystem* GetCurrentEventSystem(); // Returns the Module's Event System. If the UID is 0, returns nullptr
 
-	unsigned int GetQuadVBO();	// Returns the generic VBO that is used in ComponentImages
-	void ViewportResized();	// Calls ComponentCanvas, ComponentTransform2D, ComponentText components to be updated
+	unsigned int GetQuadVBO(); // Returns the generic VBO that is used in ComponentImages
+	void ViewportResized();	   // Calls ComponentCanvas, ComponentTransform2D, ComponentText components to be updated
 	bool IsUsing2D() const;
 
 public:
@@ -38,10 +39,12 @@ public:
 	float4 GetErrorColor(); // Gets the representation of the color
 
 private:
-	void CreateQuadVBO(); // Creates a vbo made by two triangles centered that form a Quad
+	void CreateQuadVBO();	  // Creates a vbo made by two triangles centered that form a Quad
+	void OnViewportResized(); // Sets all bool dirty required to recalculate ScreenFactors
 
 private:
 	UID currentEvSys = 0;						// Module's Event System UID
 	unsigned int quadVBO = 0;					// VBO of the ComponentImage generic Quad
 	float4 errorColor = float4(-1, -1, -1, -1); // Representation of error in color (not a color to display)
+	bool viewportWasResized = false;
 };
