@@ -30,6 +30,8 @@ public:
 		initialState = newState;
 	}
 
+	~ResourceStateMachine();
+
 public:
 	std::unordered_map<std::string, ResourceAnimation*> resourceAnimations;
 	std::list<State> states;

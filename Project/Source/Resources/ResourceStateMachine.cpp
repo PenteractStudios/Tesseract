@@ -202,3 +202,11 @@ Transition* ResourceStateMachine::FindTransitionGivenName(const std::string& nam
 
 	return nullptr;
 }
+
+ResourceStateMachine::~ResourceStateMachine() {
+
+	if (initialState) {
+		delete (initialState);
+		initialState = nullptr;
+	}
+}
