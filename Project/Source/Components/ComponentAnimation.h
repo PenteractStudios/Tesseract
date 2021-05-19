@@ -34,18 +34,18 @@ public:
 		currentState = mCurrentState;
 	}
 
-	TESSERACT_ENGINE_API State* GetInitialState() {
+	/*TESSERACT_ENGINE_API State* GetInitialState() {
 		return initialState;
-	}
+	}*/
 
-	void SetInitialState(State* mInitalState) {
+	/*void SetInitialState(State* mInitalState) {
 		initialState = mInitalState;
-	}
+	}*/
 
 public:
 	UID stateMachineResourceUID = 0;
 	State* currentState = nullptr;
-	State* initialState = nullptr;
+	//State* initialState = nullptr;
 
 private:
 	void UpdateAnimations(GameObject* gameObject);

@@ -20,6 +20,7 @@
 
 #define JSON_TAG_CLIPS "Clips"
 #define JSON_TAG_STATES "States"
+#define JSON_TAG_INITIAL_STATE "InitialState"
 #define JSON_TAG_TRANSITIONS "Transitions"
 
 #define JSON_TAG_CLIP_ID "ClipId"
@@ -50,6 +51,7 @@ void ResourceStateMachine::Load() {
 	}
 	JsonValue jStateMachine(document, document);
 	assert(document.IsObject());
+	assert(document.HasMember(JSON_TAG_INITIAL_STATE)); 
 
 	JsonValue clipArray = jStateMachine[JSON_TAG_CLIPS];
 	for (unsigned int i = 0; i < clipArray.Size(); ++i) {
@@ -60,15 +62,23 @@ void ResourceStateMachine::Load() {
 	}
 
 	std::unordered_map<UID, State> stateMap;
+	UID initialStateId = jStateMachine[JSON_TAG_INITIAL_STATE];
 	JsonValue stateArray = jStateMachine[JSON_TAG_STATES];
 	for (unsigned int i = 0; i < stateArray.Size(); ++i) {
 		UID id = stateArray[i][JSON_TAG_ID];
 		std::string name = stateArray[i][JSON_TAG_NAME];
 		UID clipId = stateArray[i][JSON_TAG_CLIP_ID];
-		State state(name, clipId, 0, id);
-		states.push_back(state);
-		stateMap.insert(std::make_pair(id, state));
+		State *state = new State(name, clipId, 0, id);
+		states.push_back(*state);
+		stateMap.insert(std::make_pair(id, *state));
+
+		//Setting initial state
+		if (initialStateId == id) {
+			SetInitialState(state);
+		}
 	}
+
+	
 
 	JsonValue transitionArray = jStateMachine[JSON_TAG_TRANSITIONS];
 	for (unsigned int i = 0; i < transitionArray.Size(); ++i) {
@@ -104,6 +114,9 @@ void ResourceStateMachine::SaveToFile(const char* filePath) {
 
 	// Save JSON values
 	document.SetObject();
+
+	//Saving initial state
+	jStateMachine[JSON_TAG_INITIAL_STATE] = initialState->id;
 
 	// Saving Clips UIDs
 	JsonValue clipArray = jStateMachine[JSON_TAG_CLIPS];

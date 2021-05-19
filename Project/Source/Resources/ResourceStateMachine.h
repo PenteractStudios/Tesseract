@@ -22,9 +22,18 @@ public:
 	void AddTransition(const State& from, const State& to, const float interpolation, const std::string& name);
 	Transition* FindTransitionGivenName(const std::string& name);
 
+	State* GetInitialState() const {
+		return initialState;
+	}
+
+	void SetInitialState(State *newState){
+		initialState = newState;
+	}
+
 public:
 	std::unordered_map<std::string, ResourceAnimation*> resourceAnimations;
 	std::list<State> states;
+	State* initialState;
 
 private:
 	std::list<UID> clipsUids;

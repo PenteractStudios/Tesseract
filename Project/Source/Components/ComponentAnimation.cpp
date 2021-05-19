@@ -25,11 +25,10 @@
 #define JSON_TAG_LOOP "Controller"
 #define JSON_TAG_ANIMATION_ID "AnimationId"
 #define JSON_TAG_STATE_MACHINE_ID "StateMachineId"
-#define JSON_TAG_INITAL_STATE_ID "InitalState"
 #define JSON_TAG_CLIP "Clip"
 
 void ComponentAnimation::Update() {
-	if (!initialState) { //Checking if there is no state machine
+	if (!currentState) { //Checking if there is no state machine
 		LoadResourceStateMachine();
 	}
 
@@ -55,25 +54,21 @@ void ComponentAnimation::OnEditorUpdate() {
 	if (oldStateMachineUID != stateMachineResourceUID) {
 		ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
 		if (resourceStateMachine) {
-			currentState = &resourceStateMachine->states.front();
-			initialState = &resourceStateMachine->states.front();
+			currentState = resourceStateMachine->GetInitialState();
 		} else {
 			currentState = nullptr;
-			initialState = nullptr;
 		}
 	}
 }
 
 void ComponentAnimation::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_STATE_MACHINE_ID] = stateMachineResourceUID;
-	jComponent[JSON_TAG_INITAL_STATE_ID] = initialState ? initialState->id : 0;
 }
 
 void ComponentAnimation::Load(JsonValue jComponent) {
 	stateMachineResourceUID = jComponent[JSON_TAG_STATE_MACHINE_ID];
 	if (stateMachineResourceUID != 0) App->resources->IncreaseReferenceCount(stateMachineResourceUID);
 
-	initalStateUid = jComponent[JSON_TAG_INITAL_STATE_ID];
 	LoadResourceStateMachine();
 }
 
@@ -160,12 +155,6 @@ void ComponentAnimation::LoadResourceStateMachine() {
 	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
 
 	if (resourceStateMachine) {
-		for (auto& state : resourceStateMachine->states) {
-			if (initalStateUid == state.id) {
-				initialState = &state;
-				currentState = &state;
-				break;
-			}
-		}
+		currentState = resourceStateMachine->GetInitialState();
 	}
 }
