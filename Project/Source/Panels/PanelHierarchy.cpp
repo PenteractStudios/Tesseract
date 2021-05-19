@@ -217,7 +217,6 @@ GameObject* PanelHierarchy::CreateEventSystem(GameObject* gameObject) {
 
 GameObject* PanelHierarchy::CreateUICanvas(GameObject* gameObject) {
 	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Canvas");
-	//ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvas* canvas = newGameObject->CreateComponent<ComponentCanvas>();
 	newGameObject->InitComponents();
@@ -231,7 +230,6 @@ GameObject* PanelHierarchy::CreateUIImage(GameObject* gameObject) {
 	}
 
 	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Image");
-	//ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* canvasRenderer = newGameObject->CreateComponent<ComponentCanvasRenderer>();
 	ComponentImage* image = newGameObject->CreateComponent<ComponentImage>();
@@ -246,7 +244,6 @@ GameObject* PanelHierarchy::CreateUIText(GameObject* gameObject) {
 	}
 
 	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Text");
-	//ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* canvasRenderer = newGameObject->CreateComponent<ComponentCanvasRenderer>();
 	ComponentText* text = newGameObject->CreateComponent<ComponentText>();
@@ -261,7 +258,6 @@ GameObject* PanelHierarchy::CreateUIButton(GameObject* gameObject) {
 	}
 
 	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Button");
-	//ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* canvasRenderer = newGameObject->CreateComponent<ComponentCanvasRenderer>();
 	ComponentBoundingBox2D* boundingBox = newGameObject->CreateComponent<ComponentBoundingBox2D>();
@@ -281,7 +277,6 @@ GameObject* PanelHierarchy::CreateUIToggle(GameObject* gameObject) {
 		gameObject = CreateUICanvas(gameObject);
 	}
 	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Toggle");
-	//ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* canvasRenderer = newGameObject->CreateComponent<ComponentCanvasRenderer>();
 	ComponentBoundingBox2D* boundingBox = newGameObject->CreateComponent<ComponentBoundingBox2D>();
@@ -311,7 +306,6 @@ GameObject* PanelHierarchy::CreateUIProgressBar(GameObject* gameObject) {
 	}
 
 	GameObject* progressBar = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Progress Bar");
-	//ComponentTransform* progressTransform = progressBar->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* progressTransform2D = progressBar->CreateComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* progressRenderer = progressBar->CreateComponent<ComponentCanvasRenderer>();
 	ComponentProgressBar* progress = progressBar->CreateComponent<ComponentProgressBar>();
@@ -335,7 +329,6 @@ GameObject* PanelHierarchy::CreateUISlider(GameObject* gameObject) {
 	}
 
 	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Slider");
-	//ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* canvasRenderer = newGameObject->CreateComponent<ComponentCanvasRenderer>();
 	ComponentBoundingBox2D* boundingBox = newGameObject->CreateComponent<ComponentBoundingBox2D>();
@@ -345,19 +338,16 @@ GameObject* PanelHierarchy::CreateUISlider(GameObject* gameObject) {
 	CreateEventSystem(App->scene->scene->root);
 
 	GameObject* backgroundGameObject = App->scene->scene->CreateGameObject(newGameObject, GenerateUID(), "Background");
-	//ComponentTransform* backgroundTransform = backgroundGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* backgroundTransform2D = backgroundGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* backgroundRenderer = backgroundGameObject->CreateComponent<ComponentCanvasRenderer>();
 	ComponentImage* backgorundImage = backgroundGameObject->CreateComponent<ComponentImage>();
 
 	GameObject* fillGameObject = App->scene->scene->CreateGameObject(newGameObject, GenerateUID(), "Fill");
-	//ComponentTransform* fillTransform = fillGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* fillTransform2D = fillGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* fillRenderer = fillGameObject->CreateComponent<ComponentCanvasRenderer>();
 	ComponentImage* fillImage = fillGameObject->CreateComponent<ComponentImage>();
 
 	GameObject* handleGameObject = App->scene->scene->CreateGameObject(newGameObject, GenerateUID(), "Handle");
-	//ComponentTransform* handleTransform = handleGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* handleTransform2D = handleGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* handleRenderer = handleGameObject->CreateComponent<ComponentCanvasRenderer>();
 	ComponentImage* handleImage = handleGameObject->CreateComponent<ComponentImage>();
