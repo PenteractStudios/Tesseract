@@ -65,9 +65,10 @@ void ComponentBoundingBox2D::CalculateWorldBoundingBox(bool force) {
 		if (canvasRenderer != nullptr) {
 			screenFactor = canvasRenderer->GetCanvasScreenFactor();
 			screenSize = canvasRenderer->GetCanvasSize();
-			position = transform2d->GetScreenPosition();
+			position = transform2d->GetCenterPositionObject();
 		}
 
+		// dd::box(position * screenFactor, dd::colors::Red, 0.1f, 0.1f, 0.f);
 
 		worldAABB.minPoint = position.xy().Mul(float2(1.0f, -1.0f).Mul(screenFactor)) + screenSize / 2.0f
 							 + localAABB.minPoint.Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy()).Mul(screenFactor));
@@ -81,7 +82,7 @@ void ComponentBoundingBox2D::CalculateWorldBoundingBox(bool force) {
 	}
 }
 
-void ComponentBoundingBox2D::DrawBoundingBox() {
+void ComponentBoundingBox2D::DrawGizmos() {
 	dd::aabb(float3(worldAABB.minPoint, 0.0f), float3(worldAABB.maxPoint, 0.0f), float3::one);
 }
 

@@ -82,7 +82,8 @@ public:
 	float3 GetPivotPosition() const;				 // Returns the pivot position
 	float3 GetPositionRelativeToParent() const;		 // Returns the position of the object relative to its parent
 	float3 GetScreenPosition() const;				 // Returns the position of the object respect the screen
-	void CalculatePivotPosition(bool changeScale);		 // Update this pivot position to value (scaled is true when scale the object)
+	float3 GetCenterPositionObject() const;				 // Returns the center position of the object (to calculate bounding box 2D)
+	void CalculatePivotPosition(bool changeScale);	 // Update this pivot position to value (scaled is true when scale the object)
 
 	void InvalidateHierarchy(); // Invalidates hierarchy
 	void Invalidate();			// Invalidates component

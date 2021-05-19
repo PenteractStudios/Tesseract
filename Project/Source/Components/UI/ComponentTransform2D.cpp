@@ -412,6 +412,11 @@ float3 ComponentTransform2D::GetScreenPosition() const {
 	return screenPosition;
 }
 
+float3 ComponentTransform2D::GetCenterPositionObject() const {
+	float4x4 rotateCenterPos = float4x4::FromQuat(rotation, pivotPosition) * float4x4::Translate(GetScreenPosition());
+	return float3(rotateCenterPos.x, rotateCenterPos.y, 0.0f);
+}
+
 void ComponentTransform2D::CalculatePivotPosition(bool changeScale) {
 	pivotPosition.x = size.x * pivot.x - size.x * 0.5f;
 	pivotPosition.y = size.y * pivot.y - size.y * 0.5f;

@@ -17,7 +17,7 @@ public:
 
 	void SetLocalBoundingBox(const AABB2D& boundingBox);
 	void CalculateWorldBoundingBox(bool force = false);
-	void DrawBoundingBox();
+	void DrawGizmos();
 	void Invalidate();
 	const AABB2D& GetWorldAABB() const;
 
