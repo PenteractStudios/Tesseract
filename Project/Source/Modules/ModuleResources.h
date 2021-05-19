@@ -36,19 +36,19 @@ public:
 	std::string GenerateResourcePath(UID id) const;
 
 	template<typename T>
-	void CreateResource(const char* assetFilePath, UID id);
+	std::unique_ptr<T> CreateResource(const char* resourceName, const char* assetFilePath, UID id); // Returns a copy of the resource for convenience. Any changes to the resource will be lost unless saved.
 
 private:
 	void UpdateAsync();
 
 	void CheckForNewAssetsRecursive(const char* path, AssetFolder* folder);
 
-	void CreateResourceByType(ResourceType type, const char* assetFilePath, UID id);
-	Resource* DoCreateResourceByType(ResourceType type, const char* assetFilePath, UID id);
+	void CreateResourceByType(ResourceType type, const char* resourceName, const char* assetFilePath, UID id);
+	Resource* DoCreateResourceByType(ResourceType type, const char* resourceName, const char* assetFilePath, UID id);
 	void DestroyResource(UID id);
 
 	void ValidateAssetResources(JsonValue jMeta, bool& validResourceFiles);
-	void ReimportResources(JsonValue jMeta, const char* filePath);
+	void RecreateResources(JsonValue jMeta, const char* filePath);
 	bool ImportAssetByExtension(JsonValue jMeta, const char* filePath);
 
 public:
@@ -72,10 +72,12 @@ inline T* ModuleResources::GetResource(UID id) {
 }
 
 template<typename T>
-inline void ModuleResources::CreateResource(const char* assetFilePath, UID id) {
+inline std::unique_ptr<T> ModuleResources::CreateResource(const char* resourceName, const char* assetFilePath, UID id) {
 	concurrentResourceUIDToAssetFilePath[id] = assetFilePath;
 
 	TesseractEvent addResourceEvent(TesseractEventType::CREATE_RESOURCE);
-	addResourceEvent.Set<CreateResourceStruct>(T::staticType, id, assetFilePath);
+	addResourceEvent.Set<CreateResourceStruct>(T::staticType, id, resourceName, assetFilePath);
 	App->events->AddEvent(addResourceEvent);
+
+	return std::unique_ptr<T>(static_cast<T*>(DoCreateResourceByType(T::staticType, resourceName, assetFilePath, id)));
 }

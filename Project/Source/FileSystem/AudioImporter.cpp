@@ -1,23 +1,22 @@
 #include "AudioImporter.h"
 
 #include "Application.h"
+#include "Utils/Logging.h"
+#include "Utils/Buffer.h"
+#include "Utils/FileDialog.h"
 #include "Resources/ResourceAudioClip.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleTime.h"
 #include "Globals.h"
+#include "ImporterCommon.h"
 
-#include "Utils/Logging.h"
-#include "Utils/Buffer.h"
 #include "Utils/Leaks.h"
-
-#define JSON_TAG_RESOURCES "Resources"
-#define JSON_TAG_TYPE "Type"
-#define JSON_TAG_ID "Id"
 
 bool AudioImporter::ImportAudio(const char* filePath, JsonValue jMeta) {
 	LOG("Importing audio from path: \"%s\".", filePath);
 
+	// Timer to measure importing audio
 	MSTimer timer;
 	timer.Start();
 
@@ -28,23 +27,25 @@ bool AudioImporter::ImportAudio(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
-	JsonValue jResource = jResources[0];
-	UID metaId = jResource[JSON_TAG_ID];
-	UID id = metaId ? metaId : GenerateUID();
-	App->resources->CreateResource<ResourceAudioClip>(filePath, id);
+	// Create audio clip resource
+	unsigned resourceIndex = 0;
+	std::unique_ptr<ResourceAudioClip> audioClip = ImporterCommon::CreateResource<ResourceAudioClip>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceAudioClip::staticType);
-	jResource[JSON_TAG_ID] = id;
-
-	const std::string& resourceFilePath = App->resources->GenerateResourcePath(id);
-	bool saved = App->files->Save(resourceFilePath.c_str(), buffer);
+	// Save resource meta file
+	bool saved = ImporterCommon::SaveResourceMetaFile(audioClip.get());
 	if (!saved) {
-		LOG("Failed to save audio resource.");
+		LOG("Failed to save audio clip resource meta file.");
+		return false;
+	}
+
+	// Save to file
+	saved = App->files->Save(audioClip->GetResourceFilePath().c_str(), buffer);
+	if (!saved) {
+		LOG("Failed to save audio clip resource file.");
 		return false;
 	}
 
 	unsigned timeMs = timer.Stop();
-	LOG("audio imported in %ums", timeMs);
+	LOG("Audio imported in %ums", timeMs);
 	return true;
 }

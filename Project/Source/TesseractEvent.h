@@ -46,10 +46,12 @@ enum class TesseractEventType {
 struct CreateResourceStruct {
 	ResourceType type = ResourceType::UNKNOWN;
 	UID resourceId = 0;
+	std::string resourceName = "";
 	std::string assetFilePath = "";
-	CreateResourceStruct(ResourceType type_, UID resourceId_, const char* assetFilePath_)
+	CreateResourceStruct(ResourceType type_, UID resourceId_, const char* resourceName_, const char* assetFilePath_)
 		: type(type_)
 		, resourceId(resourceId_)
+		, resourceName(resourceName_)
 		, assetFilePath(assetFilePath_) {}
 };
 

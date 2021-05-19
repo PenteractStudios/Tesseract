@@ -21,6 +21,7 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleTime.h"
+#include "ImporterCommon.h"
 
 #include "assimp/mesh.h"
 #include "assimp/scene.h"
@@ -32,9 +33,6 @@
 
 #include <set>
 
-#define JSON_TAG_RESOURCES "Resources"
-#define JSON_TAG_TYPE "Type"
-#define JSON_TAG_ID "Id"
 #define JSON_TAG_ROOT "Root"
 
 static UID ImportMesh(const char* modelFilePath, JsonValue jMeta, const aiMesh* assimpMesh, unsigned& resourceIndex, std::vector<const char*>& bones) {
@@ -212,29 +210,26 @@ static UID ImportMesh(const char* modelFilePath, JsonValue jMeta, const aiMesh* 
 		cursor += sizeof(unsigned);
 	}
 
-	// Create mesh
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
-	JsonValue jResource = jResources[resourceIndex];
-	UID metaId = jResource[JSON_TAG_ID];
-	UID id = metaId ? metaId : GenerateUID();
-	App->resources->CreateResource<ResourceMesh>(modelFilePath, id);
+	// Create mesh resource
+	std::unique_ptr<ResourceMesh> mesh = ImporterCommon::CreateResource<ResourceMesh>(assimpMesh->mName.C_Str(), modelFilePath, jMeta, resourceIndex);
 
-	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceMesh::staticType);
-	jResource[JSON_TAG_ID] = id;
-	resourceIndex += 1;
-
-	// Save buffer to file
-	const std::string& resourceFilePath = App->resources->GenerateResourcePath(id);
-	bool saved = App->files->Save(resourceFilePath.c_str(), buffer);
+	// Save resource meta file
+	bool saved = ImporterCommon::SaveResourceMetaFile(mesh.get());
 	if (!saved) {
-		LOG("Failed to save meshRenderer resource.");
+		LOG("Failed to save mesh resource meta file.");
+		return false;
+	}
+
+	// Save to file
+	saved = App->files->Save(mesh->GetResourceFilePath().c_str(), buffer);
+	if (!saved) {
+		LOG("Failed to save mesh resource file.");
 		return 0;
 	}
 
 	unsigned timeMs = timer.Stop();
 	LOG("Mesh imported in %ums", timeMs);
-	return id;
+	return mesh->GetId();
 }
 
 static std::pair<UID, UID> ImportAnimation(const char* modelFilePath, JsonValue jMeta, const aiAnimation* aiAnim, const aiScene* assimpScene, unsigned& resourceIndex, unsigned animationIndex) {
@@ -378,55 +373,48 @@ static std::pair<UID, UID> ImportAnimation(const char* modelFilePath, JsonValue 
 	}
 
 	// Create animation
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
-	JsonValue jResource = jResources[resourceIndex];
-	UID metaAnimationId = jResource[JSON_TAG_ID];
-	UID animationId = metaAnimationId ? metaAnimationId : GenerateUID();
-	App->resources->CreateResource<ResourceAnimation>(modelFilePath, animationId);
+	std::unique_ptr<ResourceAnimation> animation = ImporterCommon::CreateResource<ResourceAnimation>(aiAnim->mName.C_Str(), modelFilePath, jMeta, resourceIndex);
 
-	// Add animation to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceAnimation::staticType);
-	jResource[JSON_TAG_ID] = animationId;
-	resourceIndex += 1;
+	// Save resource meta file
+	bool animationSaved = ImporterCommon::SaveResourceMetaFile(animation.get());
+	if (!animationSaved) {
+		LOG("Failed to save animation resource meta file.");
+		return {0, 0};
+	}
 
 	// Save animation to file
-	const std::string& animationResourceFilePath = App->resources->GenerateResourcePath(animationId);
-	bool animationSaved = App->files->Save(animationResourceFilePath.c_str(), buffer);
+	animationSaved = App->files->Save(animation->GetResourceFilePath().c_str(), buffer);
 	if (!animationSaved) {
-		LOG("Failed to save animation resource.");
+		LOG("Failed to save animation resource file.");
 		return {0, 0};
 	}
 
 	// Load animation to create basic clip
-	ResourceAnimation tempAnimation(animationId, modelFilePath, animationResourceFilePath.c_str());
-	tempAnimation.Load();
+	animation->Load();
 	DEFER {
-		tempAnimation.Unload();
+		animation->Unload();
 	};
 
 	// Create clip
-	JsonValue jResourceClip = jResources[resourceIndex];
-	UID metaClipId = jResourceClip[JSON_TAG_ID];
-	UID clipId = metaClipId ? metaClipId : GenerateUID();
-	App->resources->CreateResource<ResourceClip>(modelFilePath, clipId);
+	std::unique_ptr<ResourceClip> clip = ImporterCommon::CreateResource<ResourceClip>(aiAnim->mName.C_Str(), modelFilePath, jMeta, resourceIndex);
+	clip->Init("clip" + std::to_string(animationIndex), animation->GetId(), 0, animation->keyFrames.size() - 1, true);
 
-	// Add clip to meta file
-	jResourceClip[JSON_TAG_TYPE] = GetResourceTypeName(ResourceClip::staticType);
-	jResourceClip[JSON_TAG_ID] = clipId;
-	resourceIndex += 1;
+	// Save resource meta file
+	bool clipSaved = ImporterCommon::SaveResourceMetaFile(clip.get());
+	if (!clipSaved) {
+		LOG("Failed to save clip resource meta file.");
+		return {0, 0};
+	}
 
 	// Save clip to file
-	const std::string& clipResourceFilePath = App->resources->GenerateResourcePath(clipId);
-	ResourceClip tempClip(animationId, modelFilePath, clipResourceFilePath.c_str());
-	tempClip.Init("clip" + std::to_string(animationIndex), animationId, 0, tempAnimation.keyFrames.size() - 1, true);
-	bool clipSaved = tempClip.SaveToFile(clipResourceFilePath.c_str());
+	clipSaved = clip->SaveToFile(clip->GetResourceFilePath().c_str());
 	if (!clipSaved) {
 		return {0, 0};
 	}
 
 	unsigned timeMs = timer.Stop();
 	LOG("Animation imported in %ums", timeMs);
-	return {animationId, clipId};
+	return {animation->GetId(), clip->GetId()};
 }
 
 static void ImportNode(const char* modelFilePath, JsonValue jMeta, const aiScene* assimpScene, const aiNode* node, Scene* scene, GameObject* parent, std::vector<UID>& materialIds, const float4x4& accumulatedTransform, unsigned& resourceIndex, std::vector<const char*>& bones) {
@@ -555,7 +543,6 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 	// Initialize resource accumulator
 	unsigned resourceIndex = 0;
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
 
 	// Import materials
 	std::vector<UID> materialIds;
@@ -563,12 +550,8 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 		LOG("Loading material %i...", i);
 		aiMaterial* assimpMaterial = assimpScene->mMaterials[i];
 
-		JsonValue jResource = jResources[resourceIndex];
-		UID metaId = jResource[JSON_TAG_ID];
-		UID id = metaId ? metaId : GenerateUID();
-		App->resources->CreateResource<ResourceMaterial>(filePath, id);
+		std::unique_ptr<ResourceMaterial> material = ImporterCommon::CreateResource<ResourceMaterial>(assimpMaterial->GetName().C_Str(), filePath, jMeta, resourceIndex);
 
-		ResourceMaterial tempMaterial(id, filePath, App->resources->GenerateResourcePath(id).c_str());
 		aiString materialFilePath;
 		aiTextureMapping mapping;
 		aiColor4D color;
@@ -603,7 +586,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 				LOG("Unable to find diffuse texture file.");
 			} else {
 				LOG("Diffuse texture imported successfuly.");
-				tempMaterial.diffuseMapId = textureResourceIds[0];
+				material->diffuseMapId = textureResourceIds[0];
 			}
 		} else {
 			LOG("Diffuse texture not found.");
@@ -638,7 +621,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 				LOG("Unable to find specular texture file.");
 			} else {
 				LOG("Specular texture imported successfuly.");
-				tempMaterial.specularMapId = textureResourceIds[0];
+				material->specularMapId = textureResourceIds[0];
 			}
 		} else {
 			LOG("Specular texture not found.");
@@ -673,7 +656,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 				LOG("Unable to find metalness texture file.");
 			} else {
 				LOG("Metalness texture imported successfuly.");
-				tempMaterial.metallicMapId = textureResourceIds[0];
+				material->metallicMapId = textureResourceIds[0];
 			}
 		} else {
 			LOG("Metalness texture not found.");
@@ -708,23 +691,23 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 				LOG("Unable to find normals texture file.");
 			} else {
 				LOG("Normals texture imported successfuly.");
-				tempMaterial.normalMapId = textureResourceIds[0];
+				material->normalMapId = textureResourceIds[0];
 			}
 		} else {
 			LOG("Normals texture not found.");
 		}
 
-		assimpMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, tempMaterial.diffuseColor);
-		assimpMaterial->Get(AI_MATKEY_COLOR_SPECULAR, tempMaterial.specularColor);
-		assimpMaterial->Get(AI_MATKEY_SHININESS, tempMaterial.smoothness);
+		assimpMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, material->diffuseColor);
+		assimpMaterial->Get(AI_MATKEY_COLOR_SPECULAR, material->specularColor);
+		assimpMaterial->Get(AI_MATKEY_SHININESS, material->smoothness);
 
-		// Add resource to meta file
-		jResource[JSON_TAG_TYPE] = GetResourceTypeName(tempMaterial.GetType());
-		jResource[JSON_TAG_ID] = tempMaterial.GetId();
-		resourceIndex += 1;
+		// Save resource meta file
+		ImporterCommon::SaveResourceMetaFile(material.get());
 
-		tempMaterial.SaveToFile(tempMaterial.GetResourceFilePath().c_str());
-		materialIds.push_back(tempMaterial.GetId());
+		// Save material
+		material->SaveToFile(material->GetResourceFilePath().c_str());
+
+		materialIds.push_back(material->GetId());
 		LOG("Material imported.");
 	}
 
@@ -774,16 +757,17 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 	}
 
 	// Create prefab resource
-	JsonValue jResource = jResources[resourceIndex];
-	UID metaId = jResource[JSON_TAG_ID];
-	UID id = metaId ? metaId : GenerateUID();
-	App->resources->CreateResource<ResourcePrefab>(filePath, id);
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourcePrefab::staticType);
-	jResource[JSON_TAG_ID] = id;
-	resourceIndex += 1;
+	std::unique_ptr<ResourceMesh> prefab = ImporterCommon::CreateResource<ResourceMesh>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+
+	// Save resource meta file
+	bool saved = ImporterCommon::SaveResourceMetaFile(prefab.get());
+	if (!saved) {
+		LOG("Failed to save prefab resource meta file.");
+		return false;
+	}
 
 	// Save prefab
-	PrefabImporter::SavePrefab(App->resources->GenerateResourcePath(id).c_str(), root->GetChildren()[0]);
+	PrefabImporter::SavePrefab(prefab->GetResourceFilePath().c_str(), root->GetChildren()[0]);
 
 	// Delete temporary GameObject
 	scene.DestroyGameObject(root);

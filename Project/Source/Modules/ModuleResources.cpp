@@ -53,6 +53,7 @@
 #define JSON_TAG_RESOURCES "Resources"
 #define JSON_TAG_TYPE "Type"
 #define JSON_TAG_ID "Id"
+#define JSON_TAG_NAME "Name"
 
 static bool ReadMetaFile(const char* filePath, rapidjson::Document& document) {
 	// Read from file
@@ -120,7 +121,7 @@ bool ModuleResources::CleanUp() {
 void ModuleResources::ReceiveEvent(TesseractEvent& e) {
 	if (e.type == TesseractEventType::CREATE_RESOURCE) {
 		CreateResourceStruct& createResourceStruct = e.Get<CreateResourceStruct>();
-		Resource* resource = DoCreateResourceByType(createResourceStruct.type, createResourceStruct.assetFilePath.c_str(), createResourceStruct.resourceId);
+		Resource* resource = DoCreateResourceByType(createResourceStruct.type, createResourceStruct.resourceName.c_str(), createResourceStruct.assetFilePath.c_str(), createResourceStruct.resourceId);
 		UID id = resource->GetId();
 		if (GetReferenceCount(id) > 0) {
 			resource->Load();
@@ -153,7 +154,7 @@ void ModuleResources::ValidateAssetResources(JsonValue jMeta, bool& validResourc
 	}
 }
 
-void ModuleResources::ReimportResources(JsonValue jMeta, const char* filePath) {
+void ModuleResources::RecreateResources(JsonValue jMeta, const char* filePath) {
 	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
 	for (unsigned i = 0; i < jResources.Size(); ++i) {
 		JsonValue jResource = jResources[i];
@@ -161,7 +162,7 @@ void ModuleResources::ReimportResources(JsonValue jMeta, const char* filePath) {
 		if (GetResource<Resource>(id) == nullptr) {
 			std::string typeName = jResource[JSON_TAG_TYPE];
 			ResourceType type = GetResourceTypeFromName(typeName.c_str());
-			CreateResourceByType(type, filePath, id);
+			CreateResourceByType(type, "", filePath, id);
 		}
 	}
 }
@@ -240,7 +241,7 @@ std::vector<UID> ModuleResources::ImportAssetResources(const char* filePath) {
 
 	// if resources are valid resources, reimport them or import them if needed
 	if (validMetaFile && validResourceFiles) {
-		ReimportResources(jMeta, filePath);
+		RecreateResources(jMeta, filePath);
 	} else {
 		if (ImportAssetByExtension(jMeta, filePath)) {
 			if (!validMetaFile) {
@@ -270,6 +271,34 @@ void ModuleResources::IncreaseReferenceCount(UID id) {
 	} else {
 		Resource* resource = GetResource<Resource>(id);
 		if (resource != nullptr) {
+			// Read resource meta file
+			bool resourceMetaLoaded = true;
+			std::string resourceMetaFile = resource->GetResourceFilePath() + META_EXTENSION;
+			Buffer<char> buffer = App->files->Load(resourceMetaFile.c_str());
+			if (buffer.Size() == 0) {
+				LOG("Error loading meta file path %s", resourceMetaFile);
+				resourceMetaLoaded = false;
+			}
+
+			// Parse document from file
+			rapidjson::Document document;
+			if (resourceMetaLoaded) {
+				document.ParseInsitu<rapidjson::kParseNanAndInfFlag>(buffer.Data());
+				if (document.HasParseError()) {
+					LOG("Error parsing JSON: %s (offset: %u)", rapidjson::GetParseError_En(document.GetParseError()), document.GetErrorOffset());
+					resourceMetaLoaded = false;
+				}
+			}
+
+			// Load resource meta
+			if (resourceMetaLoaded) {
+				JsonValue jResourceMeta(document, document);
+				std::string resourceName = jResourceMeta[JSON_TAG_NAME];
+				resource->SetName(resourceName.c_str());
+				resource->LoadResourceMeta(jResourceMeta);
+			}
+
+			// Load resource
 			resource->Load();
 		}
 		referenceCounts[id] = 1;
@@ -412,57 +441,56 @@ void ModuleResources::CheckForNewAssetsRecursive(const char* path, AssetFolder* 
 	}
 }
 
-void ModuleResources::CreateResourceByType(ResourceType type, const char* assetFilePath, UID id) {
+void ModuleResources::CreateResourceByType(ResourceType type, const char* resourceName, const char* assetFilePath, UID id) {
 	concurrentResourceUIDToAssetFilePath[id] = assetFilePath;
 
 	TesseractEvent addResourceEvent(TesseractEventType::CREATE_RESOURCE);
-	addResourceEvent.Set<CreateResourceStruct>(type, id, assetFilePath);
+	addResourceEvent.Set<CreateResourceStruct>(type, id, resourceName, assetFilePath);
 	App->events->AddEvent(addResourceEvent);
 }
 
-Resource* ModuleResources::DoCreateResourceByType(ResourceType type, const char* assetFilePath, UID id) {
+Resource* ModuleResources::DoCreateResourceByType(ResourceType type, const char* resourceName, const char* assetFilePath, UID id) {
 	std::string resourceFilePath = GenerateResourcePath(id);
 	Resource* resource = nullptr;
 	switch (type) {
 	case ResourceType::MATERIAL:
-		resource = new ResourceMaterial(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceMaterial(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::MESH:
-		resource = new ResourceMesh(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceMesh(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::PREFAB:
-		resource = new ResourcePrefab(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourcePrefab(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::SCENE:
-		resource = new ResourceScene(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceScene(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::SHADER:
-		resource = new ResourceShader(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceShader(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::TEXTURE:
-		resource = new ResourceTexture(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceTexture(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::FONT:
-		resource = new ResourceFont(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceFont(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::SKYBOX:
-		resource = new ResourceSkybox(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceSkybox(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::SCRIPT:
-		resource = new ResourceScript(id, assetFilePath, resourceFilePath.c_str());
-		resource->Load();
+		resource = new ResourceScript(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::ANIMATION:
-		resource = new ResourceAnimation(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceAnimation(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::STATE_MACHINE:
-		resource = new ResourceStateMachine(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceStateMachine(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::CLIP:
-		resource = new ResourceClip(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceClip(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::AUDIO:
-		resource = new ResourceAudioClip(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceAudioClip(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	default:
 		LOG("Resource of type %i hasn't been registered in ModuleResources::CreateResourceByType.", (unsigned) type);

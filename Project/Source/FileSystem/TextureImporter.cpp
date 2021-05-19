@@ -9,19 +9,21 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleTime.h"
+#include "ImporterCommon.h"
 
 #include "IL/il.h"
 #include "IL/ilu.h"
 #include "GL/glew.h"
+#include "rapidjson/prettywriter.h"
 
 #include "Utils/Leaks.h"
 
-#define JSON_TAG_RESOURCES "Resources"
-#define JSON_TAG_TYPE "Type"
-#define JSON_TAG_ID "Id"
-
 bool TextureImporter::ImportTexture(const char* filePath, JsonValue jMeta) {
 	LOG("Importing texture from path: \"%s\".", filePath);
+
+	// Timer to measure importing a texture
+	MSTimer timer;
+	timer.Start();
 
 	// Generate image handler
 	unsigned image;
@@ -57,23 +59,24 @@ bool TextureImporter::ImportTexture(const char* filePath, JsonValue jMeta) {
 	}
 
 	// Create texture resource
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
-	JsonValue jResource = jResources[0];
-	UID metaId = jResource[JSON_TAG_ID];
-	UID id = metaId ? metaId : GenerateUID();
-	App->resources->CreateResource<ResourceTexture>(filePath, id);
+	unsigned resourceIndex = 0;
+	std::unique_ptr<ResourceTexture> texture = ImporterCommon::CreateResource<ResourceTexture>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
-	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceTexture::staticType);
-	jResource[JSON_TAG_ID] = id;
-
-	// Save to file
-	const std::string& resourceFilePath = App->resources->GenerateResourcePath(id);
-	bool saved = App->files->Save(resourceFilePath.c_str(), buffer);
+	// Save resource meta file
+	bool saved = ImporterCommon::SaveResourceMetaFile(texture.get());
 	if (!saved) {
-		LOG("Failed to save texture resource.");
+		LOG("Failed to save texture resource meta file.");
 		return false;
 	}
 
+	// Save to file
+	saved = App->files->Save(texture->GetResourceFilePath().c_str(), buffer);
+	if (!saved) {
+		LOG("Failed to save texture resource file.");
+		return false;
+	}
+
+	unsigned timeMs = timer.Stop();
+	LOG("Texture imported in %ums", timeMs);
 	return true;
 }

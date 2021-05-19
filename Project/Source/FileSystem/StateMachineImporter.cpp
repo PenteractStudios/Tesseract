@@ -3,13 +3,13 @@
 #include "Utils/Logging.h"
 #include "Utils/MSTimer.h"
 #include "Utils/Buffer.h"
-
+#include "Utils/FileDialog.h"
 #include "Application.h"
 #include "Modules/ModuleResources.h"
-#include "Resources/ResourceStateMachine.h"
-
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleTime.h"
+#include "Resources/ResourceStateMachine.h"
+#include "ImporterCommon.h"
 
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
@@ -17,10 +17,6 @@
 #include "rapidjson/document.h"
 
 #include "Utils/Leaks.h"
-
-#define JSON_TAG_RESOURCES "Resources"
-#define JSON_TAG_TYPE "Type"
-#define JSON_TAG_ID "Id"
 
 bool StateMachineImporter::ImportStateMachine(const char* filePath, JsonValue jMeta) {
 	LOG("Importing sate machine from path: \"%s\".", filePath);
@@ -44,27 +40,26 @@ bool StateMachineImporter::ImportStateMachine(const char* filePath, JsonValue jM
 		return false;
 	}
 
-	// State mahcine resource creation
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
-	JsonValue jResource = jResources[0];
-	UID metaId = jResource[JSON_TAG_ID];
-	UID id = metaId ? metaId : GenerateUID();
-	App->resources->CreateResource<ResourceStateMachine>(filePath, id);
-
-	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceStateMachine::staticType);
-	jResource[JSON_TAG_ID] = id;
-
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
 	rapidjson::PrettyWriter<rapidjson::StringBuffer, rapidjson::UTF8<>, rapidjson::UTF8<>, rapidjson::CrtAllocator, rapidjson::kWriteNanAndInfFlag> writer(stringBuffer);
 	document.Accept(writer);
 
-	// Save to file
-	const std::string& resourceFilePath = App->resources->GenerateResourcePath(id);
-	bool saved = App->files->Save(resourceFilePath.c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
+	// Create state machine resource
+	unsigned resourceIndex = 0;
+	std::unique_ptr<ResourceStateMachine> stateMachine = ImporterCommon::CreateResource<ResourceStateMachine>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+
+	// Save resource meta file
+	bool saved = ImporterCommon::SaveResourceMetaFile(stateMachine.get());
 	if (!saved) {
-		LOG("Failed to save stateMachine resource.");
+		LOG("Failed to save state machine resource meta file.");
+		return false;
+	}
+
+	// Save to file
+	saved = App->files->Save(stateMachine->GetResourceFilePath().c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
+	if (!saved) {
+		LOG("Failed to save state machine resource file.");
 		return false;
 	}
 

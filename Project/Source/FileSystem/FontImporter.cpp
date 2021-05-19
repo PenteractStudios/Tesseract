@@ -4,39 +4,48 @@
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleResources.h"
 #include "Resources/ResourceFont.h"
+#include "Utils/MSTimer.h"
 #include "Utils/Buffer.h"
 #include "Utils/Logging.h"
+#include "Utils/FileDialog.h"
+#include "ImporterCommon.h"
 
 #include "Utils/Leaks.h"
 
-#define JSON_TAG_RESOURCES "Resources"
-#define JSON_TAG_TYPE "Type"
-#define JSON_TAG_ID "Id"
-
 bool FontImporter::ImportFont(const char* filePath, JsonValue jMeta) {
 	LOG("Importing font from path: \"%s\".", filePath);
+
+	// Timer to measure importing a texture
+	MSTimer timer;
+	timer.Start();
+
+	// Read from file
 	Buffer<char> buffer;
 	buffer = App->files->Load(filePath);
-
-	// Create font resource
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
-	JsonValue jResource = jResources[0];
-	UID metaId = jResource[JSON_TAG_ID];
-	UID id = metaId ? metaId : GenerateUID();
-	App->resources->CreateResource<ResourceFont>(filePath, id);
-
-	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceFont::staticType);
-	jResource[JSON_TAG_ID] = id;
-
-	// Save to file
-	const std::string& resourceFilePath = App->resources->GenerateResourcePath(id);
-	bool saved = App->files->Save(resourceFilePath.c_str(), buffer);
-	
-	if (!saved) {
-		LOG("Failed to save font resource.");
+	if (buffer.Size() == 0) {
+		LOG("Error loading font %s", filePath);
 		return false;
 	}
 
+	// Create font resource
+	unsigned resourceIndex = 0;
+	std::unique_ptr<ResourceFont> font = ImporterCommon::CreateResource<ResourceFont>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+
+	// Save resource meta file
+	bool saved = ImporterCommon::SaveResourceMetaFile(font.get());
+	if (!saved) {
+		LOG("Failed to save font resource meta file.");
+		return false;
+	}
+
+	// Save to file
+	saved = App->files->Save(font->GetResourceFilePath().c_str(), buffer);
+	if (!saved) {
+		LOG("Failed to save font resource file.");
+		return false;
+	}
+
+	unsigned timeMs = timer.Stop();
+	LOG("Font imported in %ums", timeMs);
 	return true;
 }
