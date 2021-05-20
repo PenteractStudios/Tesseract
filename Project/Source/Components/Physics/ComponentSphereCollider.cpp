@@ -7,6 +7,8 @@
 #include "Modules/ModuleTime.h"
 #include "Components/ComponentBoundingBox.h"
 
+#include "Utils/Logging.h"
+
 #define JSON_TAG_MASS "mass"
 #define JSON_TAG_RADIUS "radius"
 #define JSON_TAG_CENTER_OFFSET "centerOffset"
@@ -35,12 +37,13 @@ void ComponentSphereCollider::DrawGizmos() {
 
 void ComponentSphereCollider::OnEditorUpdate() {
 	// World Layers combo box
-	const char* layerTypeItems[] = {"No Collision", "World Elements", "Event Triggers", "Player", "Everything"};
-	const char* layerCurrent = layerTypeItems[(int) layer];
+	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Everything"};
+	const char* layerCurrent = layerTypeItems[layerIndex];
 	if (ImGui::BeginCombo("Layer", layerCurrent)) {
 		for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {
 			if (ImGui::Selectable(layerTypeItems[n])) {
-				layer = WorldLayers(n);
+				layerIndex = n;
+				layer = WorldLayers(1 << layerIndex);
 				if (App->time->IsGameRunning()) {
 					App->physics->UpdateSphereRigidbody(this);
 				}

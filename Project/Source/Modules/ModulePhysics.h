@@ -19,6 +19,7 @@ enum class CapsuleType;
 *	STATIC = The object will never move.
 *	KINEMATIC = The object will not respond to collisions, but it will to user input. Other Dynamic colliders (only) will phisically react to collisions with this object.
 *	TRIGGER = It is like static, but the collisions against it have no physical effect to the colliding object.
+*	Usage in our game: Kinematics for player, enemies and bullets. Static for any level prop inside the navmesh. Trigger for any game event callback.
 */
 enum class ColliderType {
 	DYNAMIC,
@@ -27,11 +28,12 @@ enum class ColliderType {
 	TRIGGER
 };
 
-/* --- Collider Type ---
+/* --- World Layers ----
 *	NO_COLLISION = Doesn't collide with anything.
 *	WOLRD_ELEMENTS = All Objects that are physically present in the scene, including map props and enemy bodies. Interaction with other WOLRD_ELEMENTS and PLAYER.
 *	EVENT_TRIGGERS = All trigger colliders that will be activated by the player. Interaction with PLAYER.
-*	PLAYER = The Player of the game, should only exist one of this type. Interaction with WOLRD_ELEMENTS and EVENT_TRIGGERS.
+*	PLAYER = The Player of the game, should only exist one of this type. Interaction with WORLD_ELEMENTS and EVENT_TRIGGERS. Doesnt itneract with itself.
+*	EVERYTHING = The default setting. Interaction with all other types except NO_COLLISION.
 */
 enum WorldLayers {
 	NO_COLLISION = 0,

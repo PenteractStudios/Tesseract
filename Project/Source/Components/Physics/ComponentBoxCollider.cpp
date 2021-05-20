@@ -51,12 +51,13 @@ void ComponentBoxCollider::DrawGizmos() {
 
 void ComponentBoxCollider::OnEditorUpdate() {
 	// World Layers combo box
-	const char* layerTypeItems[] = {"World Elements", "Event Triggers", "Player"};
-	const char* layerCurrent = layerTypeItems[(int) layer];
+	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Everything"};
+	const char* layerCurrent = layerTypeItems[layerIndex];
 	if (ImGui::BeginCombo("Layer", layerCurrent)) {
 		for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {
 			if (ImGui::Selectable(layerTypeItems[n])) {
-				layer = WorldLayers(n);
+				layerIndex = n;
+				layer = WorldLayers(1 << layerIndex);
 				if (App->time->IsGameRunning()) {
 					App->physics->UpdateBoxRigidbody(this);
 				}

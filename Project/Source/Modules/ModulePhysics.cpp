@@ -99,10 +99,9 @@ UpdateStatus ModulePhysics::Update() {
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(3.0f, myMotionState, colShape, localInertia);
 			btRigidBody* body = new btRigidBody(rbInfo);
 
-			world->addRigidBody(body, WorldLayers::EVENT_TRIGGERS, WorldLayers::PLAYER);
+			world->addRigidBody(body, WorldLayers::WORLD_ELEMENTS, WorldLayers::PLAYER | WorldLayers::WORLD_ELEMENTS);
 			float3 f = App->camera->GetEngineCamera()->frustum.Front();
 			body->applyCentralImpulse(btVector3(f.x * 73.f, f.y * 73.f, f.z * 73.f));
-			LOG("%d", 3 & 2);
 			/*
 
 
@@ -254,20 +253,20 @@ void ModulePhysics::AddBodyToWorld(btRigidBody* rigidbody, ColliderType collider
 
 	short collisionMask = 0;
 	switch (layer) {
-	case NO_COLLISION:
-		collisionMask = 0;
-		break;
 	case EVENT_TRIGGERS:
-		collisionMask = collisionMask | WorldLayers::PLAYER;
+		collisionMask = WorldLayers::PLAYER | WorldLayers::EVERYTHING;
 		break;
 	case WORLD_ELEMENTS:
-		collisionMask = collisionMask | WorldLayers::PLAYER | WorldLayers::WORLD_ELEMENTS;
+		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::EVERYTHING;
 		break;
 	case PLAYER:
-		collisionMask = collisionMask | WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS;
+		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::EVERYTHING;
 		break;
-	default:
-		collisionMask = collisionMask | WorldLayers::EVERYTHING;
+	case EVERYTHING:
+		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::EVERYTHING;
+		break;
+	default: //NO_COLLISION
+		collisionMask = 0;
 		break;
 	}
 
