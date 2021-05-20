@@ -195,7 +195,7 @@ void ModulePhysics::UpdateBoxRigidbody(ComponentBoxCollider* boxCollider) {
 
 void ModulePhysics::CreateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider) {
 	capsuleCollider->motionState = MotionState(capsuleCollider, capsuleCollider->centerOffset, capsuleCollider->freezeRotation);
-	capsuleCollider->rigidBody = AddCapsuleBody(&capsuleCollider->motionState, capsuleCollider->radius, capsuleCollider->height, capsuleCollider->type, capsuleCollider->colliderType == ColliderType::DYNAMIC ? capsuleCollider->mass : 0);
+	capsuleCollider->rigidBody = AddCapsuleBody(&capsuleCollider->motionState, capsuleCollider->radius, capsuleCollider->height, capsuleCollider->capsuleType, capsuleCollider->colliderType == ColliderType::DYNAMIC ? capsuleCollider->mass : 0);
 	capsuleCollider->rigidBody->setUserPointer(capsuleCollider);
 	AddBodyToWorld(capsuleCollider->rigidBody, capsuleCollider->colliderType, capsuleCollider->layer);
 }

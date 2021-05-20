@@ -41,6 +41,6 @@ public:
 	float height = 1.f;
 	float3 centerOffset = float3::inf;
 	bool freezeRotation = false;
-	CapsuleType type = CapsuleType::Y;
+	CapsuleType capsuleType = CapsuleType::Y;
 
 };

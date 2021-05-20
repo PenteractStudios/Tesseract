@@ -14,6 +14,7 @@
 #define JSON_TAG_CENTER_OFFSET "centerOffset"
 #define JSON_TAG_FREEZE_ROTATION "freezeRotation"
 #define JSON_TAG_COLLIDER_TYPE "colliderType"
+#define JSON_TAG_LAYER_TYPE "layerType"
 
 void ComponentSphereCollider::Init() {
 	if (!centerOffset.IsFinite()) {
@@ -31,7 +32,7 @@ void ComponentSphereCollider::Init() {
 void ComponentSphereCollider::DrawGizmos() {
 	if (IsActiveInHierarchy()) {
 		ComponentTransform* ownerTransform = GetOwner().GetComponent<ComponentTransform>();
-		dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset, dd::colors::Green, radius);
+		dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset, dd::colors::LawnGreen, radius);
 	}
 }
 
@@ -89,6 +90,9 @@ void ComponentSphereCollider::Save(JsonValue jComponent) const {
 	JsonValue jColliderType = jComponent[JSON_TAG_COLLIDER_TYPE];
 	jColliderType = (int) colliderType;
 
+	JsonValue jLayerType = jComponent[JSON_TAG_LAYER_TYPE];
+	jLayerType = (int) layerIndex;
+
 	JsonValue jMass = jComponent[JSON_TAG_MASS];
 	jMass = mass;
 
@@ -107,6 +111,10 @@ void ComponentSphereCollider::Save(JsonValue jComponent) const {
 void ComponentSphereCollider::Load(JsonValue jComponent) {
 	JsonValue jColliderType = jComponent[JSON_TAG_COLLIDER_TYPE];
 	colliderType = (ColliderType)(int) jColliderType;
+
+	JsonValue jLayerType = jComponent[JSON_TAG_LAYER_TYPE];
+	layerIndex = (int) jLayerType;
+	layer = WorldLayers(1 << layerIndex);
 
 	JsonValue jMass = jComponent[JSON_TAG_MASS];
 	mass = jMass;

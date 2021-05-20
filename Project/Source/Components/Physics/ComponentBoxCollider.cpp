@@ -12,6 +12,7 @@
 #define JSON_TAG_CENTER_OFFSET "centerOffset"
 #define JSON_TAG_FREEZE_ROTATION "freezeRotation"
 #define JSON_TAG_COLLIDER_TYPE "colliderType"
+#define JSON_TAG_LAYER_TYPE "layerType"
 
 void ComponentBoxCollider::Init() {
 	if (!centerOffset.IsFinite()) {
@@ -45,7 +46,7 @@ void ComponentBoxCollider::DrawGizmos() {
 		points[6] = points[7];
 		points[7] = aux;
 
-		dd::box(points, dd::colors::White);
+		dd::box(points, dd::colors::LawnGreen);
 	}
 }
 
@@ -112,6 +113,9 @@ void ComponentBoxCollider::Save(JsonValue jComponent) const {
 	JsonValue jColliderType = jComponent[JSON_TAG_COLLIDER_TYPE];
 	jColliderType = (int) colliderType;
 
+	JsonValue jLayerType = jComponent[JSON_TAG_LAYER_TYPE];
+	jLayerType = (int) layerIndex;
+
 	JsonValue jMass = jComponent[JSON_TAG_MASS];
 	jMass = mass;
 
@@ -133,6 +137,10 @@ void ComponentBoxCollider::Save(JsonValue jComponent) const {
 void ComponentBoxCollider::Load(JsonValue jComponent) {
 	JsonValue jColliderType = jComponent[JSON_TAG_COLLIDER_TYPE];
 	colliderType = (ColliderType)(int) jColliderType;
+
+	JsonValue jLayerType = jComponent[JSON_TAG_LAYER_TYPE];
+	layerIndex = (int) jLayerType;
+	layer = WorldLayers(1 << layerIndex);
 
 	JsonValue jMass = jComponent[JSON_TAG_MASS];
 	mass = jMass;
