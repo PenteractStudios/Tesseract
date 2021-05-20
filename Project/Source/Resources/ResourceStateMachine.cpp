@@ -100,6 +100,7 @@ void ResourceStateMachine::Unload() {
 	for (itClip = clipsUids.begin(); itClip != clipsUids.end(); ++itClip) {
 		App->resources->DecreaseReferenceCount((*itClip));
 	}
+	RELEASE(initialState);
 }
 
 void ResourceStateMachine::SaveToFile(const char* filePath) {
@@ -201,12 +202,4 @@ Transition* ResourceStateMachine::FindTransitionGivenName(const std::string& nam
 	}
 
 	return nullptr;
-}
-
-ResourceStateMachine::~ResourceStateMachine() {
-
-	if (initialState) {
-		delete (initialState);
-		initialState = nullptr;
-	}
 }
