@@ -19,6 +19,7 @@
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModulePrograms.h"
+#include "Modules/ModuleEvents.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleTime.h"
 #include "Resources/ResourceMesh.h"
@@ -139,6 +140,11 @@ bool ModuleRender::Init() {
 	return true;
 }
 
+bool ModuleRender::Start() {
+	App->events->AddObserverToEvent(TesseractEventType::SCREEN_RESIZED, this);
+	return true;
+}
+
 UpdateStatus ModuleRender::PreUpdate() {
 	BROFILER_CATEGORY("ModuleRender - PreUpdate", Profiler::Color::Green)
 
@@ -255,6 +261,16 @@ void ModuleRender::ViewportResized(int width, int height) {
 	viewportSize.y = static_cast<float>(height);
 
 	viewportUpdated = true;
+}
+
+void ModuleRender::ReceiveEvent(TesseractEvent& ev) {
+	switch (ev.type) {
+	case TesseractEventType::SCREEN_RESIZED:
+		ViewportResized(ev.Get<ViewportResizedStruct>().newWidth, ev.Get<ViewportResizedStruct>().newHeight);
+		break;
+	default:
+		break;
+	}
 }
 
 void ModuleRender::UpdateFramebuffer() {

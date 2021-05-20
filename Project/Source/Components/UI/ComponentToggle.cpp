@@ -10,6 +10,7 @@
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleInput.h"
+#include "Modules/ModuleTime.h"
 #include "Resources/ResourceScript.h"
 #include "Scripting/Script.h"
 #include "imgui.h"
@@ -20,16 +21,14 @@
 #define JSON_TAG_ENABLED_IMAGE_ID "EnabledImageID"
 #define JSON_TAG_CLICKED_COLOR "ClickedColor"
 
-ComponentToggle ::~ComponentToggle() {}
-
-void ComponentToggle::Init() {
-	OnValueChanged();
-}
-
 void ComponentToggle::OnClicked() {
 	SetChecked(!IsChecked());
 	App->userInterface->GetCurrentEventSystem()->SetSelected(GetOwner().GetComponent<ComponentSelectable>()->GetID());
 }
+
+
+//TODO, Set a new functionality allowing toggle to actually work as a toggle, currently working only as checkbox, which enables/disables checkbox
+//A toggle would modify the shown image depending on its value.
 
 void ComponentToggle ::OnValueChanged() {
 	ComponentImage* childImage = GetEnabledImage();

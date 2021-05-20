@@ -15,6 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Panels\PanelDebug.h" />
     <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />
     <ClInclude Include="Source\Components\ComponentParticleSystem.h" />
     <ClInclude Include="Source\Components\ComponentTrail.h" />
@@ -291,6 +292,7 @@
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Panels\PanelDebug.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentProgressBar.cpp" />
     <ClCompile Include="Source\Components\ComponentParticleSystem.cpp" />
     <ClCompile Include="Source\Components\ComponentTrail.cpp" />
@@ -569,6 +571,9 @@
       <Command>
       </Command>
     </PostBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -599,6 +604,9 @@
       <Command>
       </Command>
     </PostBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Game|Win32'">
     <ClCompile>
@@ -629,6 +637,9 @@
       <Command>
       </Command>
     </PostBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

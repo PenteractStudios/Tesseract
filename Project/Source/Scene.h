@@ -56,6 +56,8 @@ public:
 	GameObject* root = nullptr;			  // GameObject Root. Parent of everything and god among gods (Game Object Deity) :D.
 	PoolMap<UID, GameObject> gameObjects; // Pool of GameObjects. Stores all the memory of all existing GameObject in a contiguous memory space.
 
+	bool sceneLoaded = false; // This is set to true when all scene resources have been loaded
+
 	// ---- Components ---- //
 	PoolMap<UID, ComponentTransform> transformComponents;
 	PoolMap<UID, ComponentMeshRenderer> meshRendererComponents;

@@ -72,8 +72,16 @@ void PanelScene::Update() {
 
 			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 			if (ImGui::Checkbox("2D", &App->userInterface->view2DInternal)) {
+				for (ComponentCanvas& canvas : App->scene->scene->canvasComponents) {
+					canvas.Invalidate();
+				}
+
 				for (ComponentTransform2D& transform2D : App->scene->scene->transform2DComponents) {
 					transform2D.Invalidate();
+				};
+
+				for (ComponentText& text : App->scene->scene->textComponents) {
+					text.Invalidate();
 				};
 			};
 			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
@@ -156,10 +164,11 @@ void PanelScene::Update() {
 		// Update viewport size
 		ImVec2 size = ImGui::GetContentRegionAvail();
 		if (App->renderer->GetViewportSize().x != size.x || App->renderer->GetViewportSize().y != size.y) {
-			// TODO, These should use the EVENT SCREEN_RESIZED
-			App->camera->ViewportResized((int) size.x, (int) size.y);
-			App->renderer->ViewportResized((int) size.x, (int) size.y);
-			App->userInterface->ViewportResized();
+			TesseractEvent resizeEvent(TesseractEventType::SCREEN_RESIZED);
+
+			resizeEvent.Set<ViewportResizedStruct>((int) size.x, (int) size.y);
+			App->events->AddEvent(resizeEvent);
+
 			framebufferSize = {
 				size.x,
 				size.y,

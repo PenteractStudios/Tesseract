@@ -50,12 +50,13 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 	char label[160];
 	sprintf_s(label, "%s###%p", gameObject->name.c_str(), gameObject);
 
-	ImGuiTreeNodeFlags baseFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow;
+	ImGuiTreeNodeFlags baseFlags = ImGuiTreeNodeFlags_OpenOnArrow;
 	ImGuiTreeNodeFlags flags = baseFlags;
 
 	if (children.empty()) flags |= ImGuiTreeNodeFlags_Leaf;
 	bool isSelected = App->editor->selectedGameObject == gameObject;
 	if (isSelected) flags |= ImGuiTreeNodeFlags_Selected;
+	if (gameObject == App->scene->scene->root) flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
 	//White for active gameobjects, gray for disabled objects, if a parent is not active, children are inherently not active
 	ImGui::PushStyleColor(0, gameObject->IsActive() ? white : grey);

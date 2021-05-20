@@ -54,17 +54,6 @@
 #define JSON_TAG_TYPE "Type"
 #define JSON_TAG_ID "Id"
 
-struct ResourceInfo {
-	ResourceInfo(Resource* resource)
-		: id(resource->GetId())
-		, assetFilePath(resource->GetAssetFilePath())
-		, resourceFilePath(resource->GetResourceFilePath()) {}
-
-	UID id = 0;
-	std::string assetFilePath = "";
-	std::string resourceFilePath = "";
-};
-
 static bool ReadMetaFile(const char* filePath, rapidjson::Document& document) {
 	// Read from file
 	Buffer<char> buffer = App->files->Load(filePath);
@@ -136,18 +125,14 @@ void ModuleResources::ReceiveEvent(TesseractEvent& e) {
 		if (GetReferenceCount(id) > 0) {
 			resource->Load();
 		}
-		resourcesMutex.lock();
 		resources[id].reset(resource);
-		resourcesMutex.unlock();
 	} else if (e.type == TesseractEventType::DESTROY_RESOURCE) {
 		UID id = e.Get<DestroyResourceStruct>().resourceId;
-		resourcesMutex.lock();
 		auto& it = resources.find(id);
 		if (it != resources.end()) {
 			it->second->Unload();
 			resources.erase(it);
 		}
-		resourcesMutex.unlock();
 	} else if (e.type == TesseractEventType::UPDATE_FOLDERS) {
 		AssetFolder* folder = e.Get<UpdateFoldersStruct>().folder;
 		rootFolder.reset(folder);
@@ -195,7 +180,7 @@ bool ModuleResources::ImportAssetByExtension(JsonValue jMeta, const char* filePa
 	} else if (extension == FRAGMENT_SHADER_EXTENSION || extension == VERTEX_SHADER_EXTENSION || extension == DEFAULT_SHADER_EXTENSION) {
 		// Shader files
 		ShaderImporter::ImportShader(filePath, jMeta);
-	} else if (extension == DEFAULT_MODEL_EXTENSION || extension == OBJ_MODEL_EXTENSION) {
+	} else if (extension == MODEL_EXTENSION) {
 		// Model files
 		ModelImporter::ImportModel(filePath, jMeta);
 	} else if (extension == SKYBOX_EXTENSION) {
@@ -322,40 +307,27 @@ std::string ModuleResources::GenerateResourcePath(UID id) const {
 	return metaFolder + "/" + strId;
 }
 
-void ModuleResources::DestroyResource(UID id) {
-	TesseractEvent destroyResourceEvent(TesseractEventType::DESTROY_RESOURCE);
-	destroyResourceEvent.Set<DestroyResourceStruct>(id);
-	App->events->AddEvent(destroyResourceEvent);
-}
-
 void ModuleResources::UpdateAsync() {
 	while (!stopImportThread) {
-		// Create a snapshot of the available resources
-		std::vector<ResourceInfo> resourcesSnapshot;
-		resourcesMutex.lock();
-		for (const auto& entry : resources) {
-			resourcesSnapshot.emplace_back(entry.second.get());
-		}
-		resourcesMutex.unlock();
-
 		// Check if any asset file has been modified / deleted
-		std::vector<ResourceInfo> resourcesToRemove;
+		std::vector<UID> resourcesToRemove;
 		std::vector<std::string> assetsToReimport;
 
-		for (const ResourceInfo& resourceInfo : resourcesSnapshot) {
-			const std::string& resourceFilePath = resourceInfo.resourceFilePath;
-			const std::string& assetFilePath = resourceInfo.assetFilePath;
+		for (const auto& entry : concurrentResourceUIDToAssetFilePath) {
+			UID resourceId = entry.first;
+			const std::string& assetFilePath = entry.second;
+			const std::string& resourceFilePath = GenerateResourcePath(resourceId);
 			std::string metaFilePath = assetFilePath + META_EXTENSION;
 
 			// Check for deleted assets
 			if (!App->files->Exists(assetFilePath.c_str())) {
-				resourcesToRemove.push_back(resourceInfo);
+				resourcesToRemove.push_back(resourceId);
 				continue;
 			}
 
 			// Check for deleted, invalid or outdated meta files
 			if (!App->files->Exists(metaFilePath.c_str())) {
-				resourcesToRemove.push_back(resourceInfo);
+				resourcesToRemove.push_back(resourceId);
 				continue;
 			} else {
 				rapidjson::Document document;
@@ -368,9 +340,9 @@ void ModuleResources::UpdateAsync() {
 					long long assetTimestamp = App->files->GetLocalFileModificationTime(assetFilePath.c_str());
 					if (assetTimestamp > metaTimestamp) {
 						if (jMeta[JSON_TAG_RESOURCES].Size() > 1) {
-							resourcesToRemove.push_back(resourceInfo);
+							resourcesToRemove.push_back(resourceId);
 						} else {
-							resourcesToRemove.push_back(resourceInfo);
+							resourcesToRemove.push_back(resourceId);
 							if (std::find(assetsToReimport.begin(), assetsToReimport.end(), assetFilePath) == assetsToReimport.end()) {
 								assetsToReimport.push_back(assetFilePath);
 								SaveMetaFile(metaFilePath.c_str(), document);
@@ -380,7 +352,7 @@ void ModuleResources::UpdateAsync() {
 					}
 #endif
 				} else {
-					resourcesToRemove.push_back(resourceInfo);
+					resourcesToRemove.push_back(resourceId);
 					continue;
 				}
 			}
@@ -391,9 +363,9 @@ void ModuleResources::UpdateAsync() {
 				}
 			}
 		}
-		for (const ResourceInfo& resourceInfo : resourcesToRemove) {
-			const std::string& assetFilePath = resourceInfo.assetFilePath;
-			const std::string& resourceFilePath = resourceInfo.resourceFilePath;
+		for (UID resourceId : resourcesToRemove) {
+			const std::string& assetFilePath = concurrentResourceUIDToAssetFilePath.at(resourceId);
+			const std::string& resourceFilePath = GenerateResourcePath(resourceId);
 			std::string metaFilePath = assetFilePath + META_EXTENSION;
 			if (App->files->Exists(metaFilePath.c_str()) && std::find(assetsToReimport.begin(), assetsToReimport.end(), assetFilePath) == assetsToReimport.end()) {
 				App->files->Erase(metaFilePath.c_str());
@@ -402,7 +374,7 @@ void ModuleResources::UpdateAsync() {
 				App->files->Erase(resourceFilePath.c_str());
 			}
 
-			DestroyResource(resourceInfo.id);
+			DestroyResource(resourceId);
 		}
 		for (const std::string& assetFilePath : assetsToReimport) {
 			ImportAssetResources(assetFilePath.c_str());
@@ -441,6 +413,8 @@ void ModuleResources::CheckForNewAssetsRecursive(const char* path, AssetFolder* 
 }
 
 void ModuleResources::CreateResourceByType(ResourceType type, const char* assetFilePath, UID id) {
+	concurrentResourceUIDToAssetFilePath[id] = assetFilePath;
+
 	TesseractEvent addResourceEvent(TesseractEventType::CREATE_RESOURCE);
 	addResourceEvent.Set<CreateResourceStruct>(type, id, assetFilePath);
 	App->events->AddEvent(addResourceEvent);
@@ -486,7 +460,7 @@ Resource* ModuleResources::DoCreateResourceByType(ResourceType type, const char*
 		break;
 	case ResourceType::CLIP:
 		resource = new ResourceClip(id, assetFilePath, resourceFilePath.c_str());
-		break;	
+		break;
 	case ResourceType::AUDIO:
 		resource = new ResourceAudioClip(id, assetFilePath, resourceFilePath.c_str());
 		break;
@@ -496,4 +470,12 @@ Resource* ModuleResources::DoCreateResourceByType(ResourceType type, const char*
 		return nullptr;
 	}
 	return resource;
+}
+
+void ModuleResources::DestroyResource(UID id) {
+	concurrentResourceUIDToAssetFilePath.erase(id);
+
+	TesseractEvent destroyResourceEvent(TesseractEventType::DESTROY_RESOURCE);
+	destroyResourceEvent.Set<DestroyResourceStruct>(id);
+	App->events->AddEvent(destroyResourceEvent);
 }

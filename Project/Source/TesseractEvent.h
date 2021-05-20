@@ -13,7 +13,7 @@ class Resource;
 
 struct AssetFolder;
 
-#define EventVariant std::variant<int, DestroyGameObjectStruct, CreateResourceStruct, DestroyResourceStruct, UpdateFoldersStruct, ChangeSceneStruct>
+#define EventVariant std::variant<int, DestroyGameObjectStruct, CreateResourceStruct, DestroyResourceStruct, UpdateFoldersStruct, ChangeSceneStruct, ViewportResizedStruct>
 
 /* Creating a new event type:
 *    1. Add a new EventType for the new event (ALWAYS ABOVE COUNT)
@@ -76,6 +76,14 @@ struct ChangeSceneStruct {
 	const char* scenePath = nullptr;
 	ChangeSceneStruct(const char* scenePath_)
 		: scenePath(scenePath_) {}
+};
+
+struct ViewportResizedStruct {
+	ViewportResizedStruct(int newWidth_, int newHeight_)
+		: newWidth(newWidth_)
+		, newHeight(newHeight_) {}
+	int newWidth = 0;
+	int newHeight = 0;
 };
 
 struct TesseractEvent {
