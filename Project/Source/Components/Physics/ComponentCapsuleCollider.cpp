@@ -100,7 +100,7 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 	}
 
 	const char* types[] = {"X", "Y", "Z"};
-	const char* currentType = types[(int) type];
+	const char* currentType = types[(int) capsuleType];
 	if (ImGui::BeginCombo("Capsule Type Orientation", currentType)) {
 		for (int n = 0; n < IM_ARRAYSIZE(types); ++n) {
 			bool isSelected = (currentType == types[n]);
