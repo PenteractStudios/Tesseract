@@ -4,9 +4,12 @@
 #include "Components/UI/ComponentText.h"
 #include "Components/UI/ComponentCanvas.h"
 #include "Components/UI/ComponentTransform2D.h"
-#include "Components/UI/ComponentCanvas.h"
+#include "Modules/ModuleTime.h"
+#include "Modules/ModuleRender.h"
+#include "Modules/ModuleUserInterface.h"
 #include "GameObject.h"
 
+#include "debugdraw.h"
 #include "Utils/Leaks.h"
 
 void ComponentCanvasRenderer::Save(JsonValue jComponent) const {
@@ -30,6 +33,13 @@ void ComponentCanvasRenderer::Render(const GameObject* gameObject) const {
 		if (componentText != nullptr && componentText->IsActive()) {
 			componentText->Draw(transform2D);
 		}
+	}
+}
+
+void ComponentCanvasRenderer::DrawGizmos() {
+	if (!App->time->IsGameRunning() && !App->userInterface->IsUsing2D()) {
+		float2 canvasSize = GetCanvasSize();
+		dd::box(float3(canvasSize.x * 0.5f, canvasSize.y * 0.5, 0.0f), dd::colors::Gray, canvasSize.x, canvasSize.y, 0);
 	}
 }
 
