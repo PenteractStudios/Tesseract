@@ -446,7 +446,6 @@ namespace Input {
 	TESSERACT_ENGINE_API bool GetControllerButton(SDL_GameControllerButton button, int playerID);
 	TESSERACT_ENGINE_API float GetControllerAxisValue(SDL_GameControllerAxis axis, int playerID);
 	TESSERACT_ENGINE_API bool IsGamepadConnected(int playerID);
-
 }; // namespace Input
 
 namespace Screen {
@@ -477,7 +476,6 @@ namespace Screen {
 	TESSERACT_ENGINE_API int GetHeight();
 	TESSERACT_ENGINE_API float GetBrightness();
 	TESSERACT_ENGINE_API float2 GetResolution();
-
 }; // namespace Screen
 
 namespace SceneManager {
@@ -495,10 +493,6 @@ namespace Colors {
 	TESSERACT_ENGINE_API float3 Blue();
 	TESSERACT_ENGINE_API float3 Orange();
 	TESSERACT_ENGINE_API float3 Green();
-<<<<<<< HEAD
-=======
-
->>>>>>> develop
 } // namespace Colors
 
 namespace Camera {

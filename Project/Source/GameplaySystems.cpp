@@ -270,14 +270,6 @@ void SceneManager::ExitGame() {
 	SDL_PushEvent(&event);
 }
 
-float Screen::GetScreenWitdh() {
-	return static_cast<float>(App->window->GetWidth());
-}
-
-float Screen::GetScreenHeight() {
-	return static_cast<float>(App->window->GetHeight());
-}
-
 GameObject* Physics::Raycast(const float3& start, const float3& end, const int mask) {
 	LineSegment ray = LineSegment(start, end);
 
