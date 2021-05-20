@@ -48,7 +48,7 @@ void LightFrustum::ReconstructFrustum() {
 	frustum.SetUp(transform->GetUp());
 	frustum.SetFront(transform->GetFront());
 	frustum.SetPos(position);
-	frustum.SetViewPlaneDistances(0.0f, (maxPoint.z - minPoint.z) * 2.5f);
+	frustum.SetViewPlaneDistances(0.0f, (maxPoint.z - minPoint.z));
 
 	dirty = true;
 }

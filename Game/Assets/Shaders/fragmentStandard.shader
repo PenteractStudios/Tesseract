@@ -12,7 +12,6 @@ out vec4 outColor;
 
 // Depth Map
 uniform sampler2D depthMapTexture;
-uniform bool castShadows;
 
 uniform vec3 viewPos;
 
@@ -106,6 +105,14 @@ float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMa
 	projCoords = projCoords * 0.5 + 0.5;
 
 	float closestDepth = texture(shadowMap, projCoords.xy).r;
+
+	if(	projCoords.x < 0.0 || projCoords.x > 1.0 ||
+		projCoords.y < 0.0 || projCoords.y > 1.0 ||
+		closestDepth == 1.0
+	) {
+		return 0.0;
+	}
+
     float currentDepth = projCoords.z;
 	float bias = max(0.05 * (1 - dot(normal, lightDirection)), 0.005);
 
@@ -121,7 +128,7 @@ float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMa
 
 	shadow /= 9.0;
 
-	return projCoords.z > 1.0 ? 0.0 : shadow;
+	return shadow;
 
 }
 
