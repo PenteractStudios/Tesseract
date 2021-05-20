@@ -12,6 +12,7 @@
 #include "Panels/PanelAbout.h"
 #include "Panels/PanelControlEditor.h"
 #include "Panels/PanelResource.h"
+#include "Panels/PanelDebug.h"
 #include "Panels/PanelImportOptions.h"
 #include "Utils/UID.h"
 
@@ -66,6 +67,7 @@ public:
 	PanelAbout panelAbout;
 	PanelControlEditor panelControlEditor;
 	PanelResource panelResource;
+	PanelDebug panelGameControllerDebug;
 	PanelImportOptions panelImportOptions;
 
 	GameObject* selectedGameObject = nullptr;			   // Pointer to the GameObject that will be shown in the inspector.

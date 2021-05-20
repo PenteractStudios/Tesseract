@@ -25,6 +25,12 @@ void PanelConsole::Update() {
 		// Output
 		const float footerHeightToReserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
 		ImGui::BeginChild("ScrollingRegion", ImVec2(0, -footerHeightToReserve), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+		if (ImGui::BeginPopupContextWindow()) {
+			if (ImGui::Selectable("Clear")) logger->logString.clear();
+			ImGui::EndPopup();
+		}
+
 		ImGui::TextUnformattedWithColorMD(logger->logString.c_str());
 		if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
 			ImGui::SetScrollHereY(1.0f);
