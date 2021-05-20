@@ -42,7 +42,7 @@
 #define JSON_TAG_XTILES "Xtiles"
 #define JSON_TAG_INITCOLOR "InitColor"
 #define JSON_TAG_FINALCOLOR "FinalColor"
-
+#define JSON_TAG_ANIMATIONSPEED "AnimationSpeed"
 #include <random>
 
 void ComponentParticleSystem::OnEditorUpdate() {
@@ -112,6 +112,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::InputScalar("Ytiles: ", ImGuiDataType_U32, &Ytiles);
 		ImGui::InputFloat("Scale: ", &scale);
 		ImGui::InputFloat("Life: ", &particleLife);
+		ImGui::InputFloat("Animation Speed: ", &animationSpeed);
 
 		if (ImGui::InputFloat("Speed: ", &velocity)) {
 			CreateParticles(maxParticles, velocity);
@@ -207,6 +208,7 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	particleLife = jComponent[JSON_TAG_LIFE];
 	Ytiles = jComponent[JSON_TAG_YTILES];
 	Xtiles = jComponent[JSON_TAG_XTILES];
+	animationSpeed = jComponent[JSON_TAG_ANIMATIONSPEED];
 	JsonValue jColor = jComponent[JSON_TAG_INITCOLOR];
 	initC.Set(jColor[0], jColor[1], jColor[2]);
 
@@ -230,6 +232,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_LIFE] = particleLife;
 	jComponent[JSON_TAG_YTILES] = Ytiles;
 	jComponent[JSON_TAG_XTILES] = Xtiles;
+	jComponent[JSON_TAG_ANIMATIONSPEED] = animationSpeed;
 
 	JsonValue jColor = jComponent[JSON_TAG_INITCOLOR];
 	jColor[0] = initC.x;
@@ -356,7 +359,11 @@ void ComponentParticleSystem::Draw() {
 			glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
 			//TODO: ADD delta Time
 			if (!isRandomFrame) {
-				currentParticle.currentFrame += 0.1f;
+				if (App->time->IsGameRunning()) {
+					currentParticle.currentFrame += animationSpeed * App->time->GetDeltaTime();
+				} else {
+					currentParticle.currentFrame += animationSpeed * App->time->GetRealTimeDeltaTime();
+				}
 			}
 
 			currentParticle.colorFrame += 0.01f;

@@ -28,6 +28,7 @@
 
 #define JSON_TAG_TEXTURE_SHADERID "ShaderId"
 #define JSON_TAG_TEXTURE_TEXTUREID "TextureId"
+#define JSON_TAG_TIMETOSTART "TimeToStart"
 #define JSON_TAG_COLOR "Color"
 
 #define JSON_TAG_ALPHATRANSPARENCY "AlphaTransparency"
@@ -45,7 +46,6 @@ static const float textureCords[12] = {
 // clang-format on
 void ComponentTrail::Update() {
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-
 	if (isStarted) {
 		previousPositionUp = currentPositionUp;
 		previousPositionDown = currentPositionDown;
@@ -81,16 +81,18 @@ void ComponentTrail::Update() {
 	} else {
 		isStarted = true;
 		currentPosition = transform->GetGlobalPosition();
-		currentPositionUp = transform->GetGlobalRotation() * float3::unitY;
-		currentPositionUp.Normalize();
-		currentPositionUp = currentPositionUp * width + currentPosition;
-		currentPositionDown = -currentPositionUp * width + currentPosition;
+		previousVectorUp = transform->GetGlobalRotation() * float3::unitY;
+		previousVectorUp.Normalize();
+		currentPositionUp = previousVectorUp * width + currentPosition;
+		currentPositionDown = -previousVectorUp * width + currentPosition;
 	}
 }
 
 void ComponentTrail::Init() {
+	for (float& vertice : verticesPosition) {
+		vertice = 0.0f;
+	}
 }
-
 void ComponentTrail::DrawGizmos() {
 }
 
@@ -177,17 +179,23 @@ void ComponentTrail::Draw() {
 	Frustum* frustum = App->camera->GetActiveCamera()->GetFrustum();
 	float4x4* proj = &App->camera->GetProjectionMatrix();
 	float4x4* view = &App->camera->GetViewMatrix();
-
-	float4x4 newModelMatrix = transform->GetGlobalMatrix().LookAt(transform->GetGlobalMatrix().RotatePart().Col(2), -frustum->Front(), transform->GetGlobalMatrix().RotatePart().Col(1), float3::unitY);
-	float4x4 Final = float4x4::FromTRS(transform->GetGlobalPosition(), transform->GetGlobalMatrix().RotatePart(), transform->GetGlobalScale());
+	//float4x4 MiguelMatrix = float4x4::LookAt(transform->GetGlobalMatrix().RotatePart().Col(2), -frustum->Front(), transform->GetGlobalMatrix().RotatePart().Col(1), float3::unitY);
+	/*float4x4 newModelMatrix = transform->GetGlobalMatrix().LookAt(transform->GetGlobalMatrix().RotatePart().Col(2), -frustum->Front(), transform->GetGlobalMatrix().RotatePart().Col(1), float3::unitY);
+	newModelMatrix = transform->GetGlobalMatrix();
+	float4x4 Final = float4x4::FromTRS(float3::zero, transform->GetGlobalMatrix().RotatePart(), transform->GetGlobalScale());*/
 
 	//-> glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, newModelMatrix.ptr());
+	float3 PolLocalMiuse = transform->GetRotation().ToEulerXYZ();
+	float3 PolMiuse = transform->GetGlobalRotation().ToEulerXYZ();
+	/*transform->SetRotation(float3(PolLocalMiuse.x, PolLocalMiuse.y, PolMiuse.y - (pi / 2)));*/
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, transform->GetGlobalMatrix().ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view->ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
+	float4x4 newModelMatrix = float4x4::FromTRS(transform->GetGlobalPosition(), Quat::FromEulerXYZ(PolLocalMiuse.x, PolLocalMiuse.y, PolMiuse.y - (pi / 2)), transform->GetGlobalScale());
 
 	glActiveTexture(GL_TEXTURE0);
+	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, newModelMatrix.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view->ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
+	
 	//glUniform1i(glGetUniformLocation(program, "diffuse"), 0);
 	//glUniform1f(glGetUniformLocation(program, "currentFrame"), currentParticle.currentFrame);
 	//glUniform1f(glGetUniformLocation(program, "colorFrame"), currentParticle.colorFrame);

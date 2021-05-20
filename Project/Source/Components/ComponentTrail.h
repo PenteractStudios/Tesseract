@@ -32,14 +32,14 @@ private:
 	float4 initC;
 	int nSegments = 1;
 	int quadsCreated = 0;
-	int maxVertices = 9000;
+	int maxVertices = 1500;
 	int trianglesCreated = 0;
 	int textureCreated = 0;
 	float width = 0.1;
 	float timePoint = 1.0f;
 	float minDistance = 2.0f;
 	/*std::vector<float> particlesPosition;*/
-	float verticesPosition[9000];
+	float verticesPosition[1500];
 
 	float3 currentPosition;
 	float3 previousPosition;

@@ -8,11 +8,11 @@
 EXPOSE_MEMBERS(FangMovement) {
 	// Add members here to expose them to the engine. Example:
 	MEMBER(MemberType::GAME_OBJECT_UID, fangUID),
-	MEMBER(MemberType::GAME_OBJECT_UID, cameraUID),
-	MEMBER(MemberType::GAME_OBJECT_UID, hitGOUID),
-	MEMBER(MemberType::INT, speed),
-	MEMBER(MemberType::INT, distanceRayCast),
-	MEMBER(MemberType::FLOAT, cameraXPosition)
+		MEMBER(MemberType::GAME_OBJECT_UID, cameraUID),
+		MEMBER(MemberType::GAME_OBJECT_UID, hitGOUID),
+		MEMBER(MemberType::INT, speed),
+		MEMBER(MemberType::INT, distanceRayCast),
+		MEMBER(MemberType::FLOAT, cameraXPosition)
 };
 
 GENERATE_BODY_IMPL(FangMovement);
@@ -35,7 +35,7 @@ void FangMovement::Update() {
 	if (Input::GetMouseButtonDown(0)) {
 		if (transform) {
 			float3 start = transform->GetPosition();
-			float3 end = transform->GetGlobalRotation() * float3(0,0,1);
+			float3 end = transform->GetGlobalRotation() * float3(0, 0, 1);
 			end.Normalize();
 			end *= distanceRayCast;
 			int mask = static_cast<int>(MaskType::ENEMY);
@@ -49,8 +49,8 @@ void FangMovement::Update() {
 				}
 				AIMovement* enemyScript = static_cast<AIMovement*>(hitGo->GetComponent<ComponentScript>()->GetScriptInstance());
 				enemyScript->HitDetected();
-
-			} else {
+			}
+			else {
 				hitGOUID = 0;
 			}
 		}

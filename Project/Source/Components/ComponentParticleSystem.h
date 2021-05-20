@@ -73,7 +73,7 @@ private:
 	float3 initC = float3::one;
 	float3 finalC = float3::one;
 	float4 color = float4::one; // Color used as default tainter
-
+	float animationSpeed = 0.0f;
 	float scale = 5;
 	unsigned maxParticles = 100;
 	float velocity = 0.1f;

@@ -7,7 +7,7 @@
     ],
     "QuadtreeMaxDepth": 4,
     "QuadtreeElementsPerNode": 200,
-    "GameCamera": 9239229420536993669,
+    "GameCamera": 17963575687084872499,
     "AmbientLight": [
         0.25,
         0.25,
@@ -115,15 +115,15 @@
                         "Id": 3457390788420515174,
                         "Active": true,
                         "Position": [
-                            -2.8247790336608888,
-                            3.088257312774658,
+                            0.0,
+                            0.0,
                             0.0
                         ],
                         "Rotation": [
-                            0.25167834758758547,
-                            0.6608023643493652,
-                            -0.2516786754131317,
-                            0.6607996225357056
+                            0.26610034704208376,
+                            0.0,
+                            0.0,
+                            0.9639453291893005
                         ],
                         "Scale": [
                             1.0,
@@ -131,9 +131,9 @@
                             1.0
                         ],
                         "LocalEulerAngles": [
-                            90.00029754638672,
-                            48.2994499206543,
-                            -90.00032806396485
+                            30.864688873291017,
+                            0.0,
+                            -0.0
                         ]
                     },
                     {
@@ -142,23 +142,23 @@
                         "Active": true,
                         "Frustum": {
                             "Pos": [
-                                -2.8247790336608888,
-                                3.088257312774658,
+                                0.0,
+                                0.0,
                                 0.0
                             ],
                             "Up": [
-                                0.6652376651763916,
-                                0.7466317415237427,
-                                -0.0000018775463104248047
+                                0.0,
+                                0.8583812117576599,
+                                0.5130123496055603
                             ],
                             "Front": [
-                                0.7466318011283875,
-                                -0.6652376651763916,
-                                -0.0000034570693969726564
+                                0.0,
+                                -0.5130123496055603,
+                                0.8583812117576599
                             ],
                             "NearPlaneDistance": 0.10000000149011612,
                             "FarPlaneDistance": 200.0,
-                            "HorizontalFov": 2.0229928493499758,
+                            "HorizontalFov": 2.033430814743042,
                             "VerticalFov": 1.3113912343978882
                         }
                     },
@@ -218,6 +218,44 @@
                         "Active": true,
                         "StateMachineId": 0,
                         "InitalState": 0
+                    },
+                    {
+                        "Type": "Script",
+                        "Id": 9954753908584207344,
+                        "Active": true,
+                        "Script": 7922689938248139169,
+                        "Values": [
+                            {
+                                "Name": "prefabId",
+                                "Type": "PrefabResourceUID",
+                                "Value": 7821893670062307649
+                            },
+                            {
+                                "Name": "sceneId",
+                                "Type": "GameObjectUID",
+                                "Value": 17292986642128493312
+                            },
+                            {
+                                "Name": "cameraUID",
+                                "Type": "GameObjectUID",
+                                "Value": 9959938295577888656
+                            },
+                            {
+                                "Name": "cameraOffsetZ",
+                                "Type": "Float",
+                                "Value": -6.0
+                            },
+                            {
+                                "Name": "gunId",
+                                "Type": "GameObjectUID",
+                                "Value": 17599826517542333056
+                            },
+                            {
+                                "Name": "cameraOffsetY",
+                                "Type": "Float",
+                                "Value": 2.0
+                            }
+                        ]
                     }
                 ],
                 "Children": [
@@ -1352,10 +1390,10 @@
                                                                                                                     2.0306954383850099
                                                                                                                 ],
                                                                                                                 "Rotation": [
-                                                                                                                    -0.5452136397361755,
-                                                                                                                    0.44805389642715456,
-                                                                                                                    0.48747286200523379,
-                                                                                                                    0.5141595005989075
+                                                                                                                    0.0,
+                                                                                                                    0.0,
+                                                                                                                    -0.7071068286895752,
+                                                                                                                    0.7071068286895752
                                                                                                                 ],
                                                                                                                 "Scale": [
                                                                                                                     1.0,
@@ -1363,13 +1401,92 @@
                                                                                                                     1.0
                                                                                                                 ],
                                                                                                                 "LocalEulerAngles": [
-                                                                                                                    -89.77140808105469,
-                                                                                                                    -4.060590744018555,
-                                                                                                                    82.90320587158203
+                                                                                                                    0.0,
+                                                                                                                    0.0,
+                                                                                                                    -90.0
+                                                                                                                ]
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "Type": "Script",
+                                                                                                                "Id": 7667607866297922169,
+                                                                                                                "Active": true,
+                                                                                                                "Script": 15928411689826441282,
+                                                                                                                "Values": [
+                                                                                                                    {
+                                                                                                                        "Name": "prefabId",
+                                                                                                                        "Type": "PrefabResourceUID",
+                                                                                                                        "Value": 7821893670062307649
+                                                                                                                    }
                                                                                                                 ]
                                                                                                             }
                                                                                                         ],
-                                                                                                        "Children": null
+                                                                                                        "Children": [
+                                                                                                            {
+                                                                                                                "Id": 17599826517542333056,
+                                                                                                                "Name": "Game Object",
+                                                                                                                "Active": true,
+                                                                                                                "ActiveHierarchy": true,
+                                                                                                                "RootBoneId": 0,
+                                                                                                                "Mask": 0,
+                                                                                                                "Components": [
+                                                                                                                    {
+                                                                                                                        "Type": "Transform",
+                                                                                                                        "Id": 17856722389959446720,
+                                                                                                                        "Active": true,
+                                                                                                                        "Position": [
+                                                                                                                            -0.30634307861328127,
+                                                                                                                            5.4506988525390629,
+                                                                                                                            0.3570442199707031
+                                                                                                                        ],
+                                                                                                                        "Rotation": [
+                                                                                                                            0.0,
+                                                                                                                            0.0,
+                                                                                                                            0.0,
+                                                                                                                            1.0
+                                                                                                                        ],
+                                                                                                                        "Scale": [
+                                                                                                                            1.0,
+                                                                                                                            1.0,
+                                                                                                                            1.0
+                                                                                                                        ],
+                                                                                                                        "LocalEulerAngles": [
+                                                                                                                            -0.0,
+                                                                                                                            0.0,
+                                                                                                                            -0.0
+                                                                                                                        ]
+                                                                                                                    },
+                                                                                                                    {
+                                                                                                                        "Type": "Particle",
+                                                                                                                        "Id": 11745756571005767914,
+                                                                                                                        "Active": true,
+                                                                                                                        "ShaderId": 14019853473958997531,
+                                                                                                                        "TextureId": 4465459578951329041,
+                                                                                                                        "IsPlaying": true,
+                                                                                                                        "IsLooping": false,
+                                                                                                                        "IsRandomFrame": false,
+                                                                                                                        "IsRandomDirection": false,
+                                                                                                                        "ParticleScale": 5.0,
+                                                                                                                        "MaxParticle": 1,
+                                                                                                                        "Velocity": 0.0,
+                                                                                                                        "LifeParticle": 1.0,
+                                                                                                                        "Ytiles": 2,
+                                                                                                                        "Xtiles": 5,
+                                                                                                                        "AnimationSpeed": 10.0,
+                                                                                                                        "InitColor": [
+                                                                                                                            1.0,
+                                                                                                                            1.0,
+                                                                                                                            1.0
+                                                                                                                        ],
+                                                                                                                        "FinalColor": [
+                                                                                                                            1.0,
+                                                                                                                            1.0,
+                                                                                                                            1.0
+                                                                                                                        ]
+                                                                                                                    }
+                                                                                                                ],
+                                                                                                                "Children": null
+                                                                                                            }
+                                                                                                        ]
                                                                                                     }
                                                                                                 ]
                                                                                             }
@@ -3073,50 +3190,6 @@
                         "Children": null
                     }
                 ]
-            },
-            {
-                "Id": 13052222914999551901,
-                "Name": "Trail",
-                "Active": true,
-                "ActiveHierarchy": true,
-                "RootBoneId": 0,
-                "Mask": 0,
-                "Components": [
-                    {
-                        "Type": "Transform",
-                        "Id": 12668034016543739487,
-                        "Active": true,
-                        "Position": [
-                            -0.43505948781967165,
-                            1.3088884353637696,
-                            1.9455456733703614
-                        ],
-                        "Rotation": [
-                            0.6435796022415161,
-                            0.574767529964447,
-                            0.3769697844982147,
-                            -0.33666208386421206
-                        ],
-                        "Scale": [
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "LocalEulerAngles": [
-                            -119.43797302246094,
-                            5.636406421661377,
-                            -86.82764434814453
-                        ]
-                    },
-                    {
-                        "Type": "Trail",
-                        "Id": 4820093460211226535,
-                        "Active": true,
-                        "ShaderId": 17543698406268600824,
-                        "TextureId": 470709737562253037
-                    }
-                ],
-                "Children": null
             }
         ]
     }

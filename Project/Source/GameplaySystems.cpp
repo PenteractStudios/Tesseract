@@ -39,6 +39,15 @@ GameObject* GameplaySystems::GetGameObject(const char* name) {
 GameObject* GameplaySystems::GetGameObject(UID id) {
 	return App->scene->scene->GetGameObject(id);
 }
+// --------- Instantiating --------- //
+GameObject* GameplaySystems::Instantiate(ResourcePrefab* prefab, float3 position, Quat rotation) {
+	UID prefabId = prefab->BuildPrefab(App->scene->scene->root);
+	GameObject* go = GameplaySystems::GetGameObject(prefabId);
+	ComponentTransform* transform = go->GetComponent<ComponentTransform>();
+	transform->SetGlobalRotation(rotation);
+	transform->SetGlobalPosition(position);
+	return go;
+}
 
 template<typename T>
 T* GameplaySystems::GetResource(UID id) {
@@ -161,7 +170,7 @@ const float3 Input::GetMouseWorldPosition() {
 	float4x4 ProjView = Projection * View;
 	ProjView.Inverse();
 	float4 worldPos = ProjView * ScreenPos;
-	return worldPos.xyz()/worldPos.w;
+	return worldPos.xyz() / worldPos.w;
 }
 
 float2 Input::GetMousePosition() {
@@ -207,7 +216,6 @@ float Screen::GetScreenWitdh() {
 }
 
 float Screen::GetScreenHeight() {
-
 	return static_cast<float>(App->window->GetHeight());
 }
 

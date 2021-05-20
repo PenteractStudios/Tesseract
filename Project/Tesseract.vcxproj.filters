@@ -174,12 +174,9 @@
     <ClCompile Include="Source\Scripting\Member.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentProgressBar.cpp" />
     <ClCompile Include="Source\Components\ComponentParticleSystem.cpp" />
-<<<<<<< HEAD
     <ClCompile Include="Source\Components\ComponentTrail.cpp" />
-=======
     <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Source\MaskType.cpp" />
->>>>>>> SheetBilboard
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -453,12 +450,9 @@
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
     <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />
     <ClInclude Include="Source\Components\ComponentParticleSystem.h" />
-<<<<<<< HEAD
     <ClInclude Include="Source\Components\ComponentTrail.h" />
-=======
     <ClInclude Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Source\MaskType.h" />
->>>>>>> SheetBilboard
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />
