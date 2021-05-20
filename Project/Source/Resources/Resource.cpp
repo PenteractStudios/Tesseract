@@ -10,7 +10,9 @@ Resource::Resource(ResourceType type_, UID id_, const char* name_, const char* a
 	, assetFilePath(assetFilePath_)
 	, resourceFilePath(resourceFilePath_) {}
 
-Resource::~Resource() {}
+Resource::~Resource() {
+	Unload();
+}
 
 ResourceType Resource::GetType() const {
 	return type;

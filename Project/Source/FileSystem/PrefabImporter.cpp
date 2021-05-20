@@ -61,6 +61,9 @@ bool PrefabImporter::ImportPrefab(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(prefab);
+
 	unsigned timeMs = timer.Stop();
 	LOG("Prefab imported in %ums", timeMs);
 	return true;

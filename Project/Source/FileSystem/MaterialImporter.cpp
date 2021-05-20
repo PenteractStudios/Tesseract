@@ -78,6 +78,9 @@ bool MaterialImporter::ImportMaterial(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(material);
+
 	unsigned timeMs = timer.Stop();
 	LOG("Material imported in %ums", timeMs);
 	return true;

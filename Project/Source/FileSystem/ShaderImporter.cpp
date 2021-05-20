@@ -49,6 +49,9 @@ bool ShaderImporter::ImportShader(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(shader);
+
 	unsigned timeMs = timer.Stop();
 	LOG("Shader imported in %ums", timeMs);
 	return true;

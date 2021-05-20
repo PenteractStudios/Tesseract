@@ -11,9 +11,9 @@ class GameObject;
 class Component;
 class Resource;
 
-struct AssetFolder;
+struct AssetCache;
 
-#define EventVariant std::variant<int, DestroyGameObjectStruct, CreateResourceStruct, DestroyResourceStruct, UpdateFoldersStruct, ChangeSceneStruct, ViewportResizedStruct>
+#define EventVariant std::variant<int, DestroyGameObjectStruct, CreateResourceStruct, DestroyResourceStruct, UpdateAssetCacheStruct, ChangeSceneStruct, ViewportResizedStruct>
 
 /* Creating a new event type:
 *    1. Add a new EventType for the new event (ALWAYS ABOVE COUNT)
@@ -32,7 +32,7 @@ enum class TesseractEventType {
 	PRESSED_STOP,
 	CREATE_RESOURCE,
 	DESTROY_RESOURCE,
-	UPDATE_FOLDERS,
+	UPDATE_ASSET_CACHE,
 	MOUSE_CLICKED,
 	MOUSE_RELEASED,
 	CHANGE_SCENE,
@@ -67,10 +67,10 @@ struct DestroyGameObjectStruct {
 		: gameObject(gameObject_) {}
 };
 
-struct UpdateFoldersStruct {
-	AssetFolder* folder = nullptr;
-	UpdateFoldersStruct(AssetFolder* folder_)
-		: folder(folder_) {
+struct UpdateAssetCacheStruct {
+	AssetCache* assetCache = nullptr;
+	UpdateAssetCacheStruct(AssetCache* assetCache_)
+		: assetCache(assetCache_) {
 	}
 };
 

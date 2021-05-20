@@ -78,6 +78,9 @@ bool SceneImporter::ImportScene(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(scene);
+
 	unsigned timeMs = timer.Stop();
 	LOG("Scene imported in %ums", timeMs);
 	return true;

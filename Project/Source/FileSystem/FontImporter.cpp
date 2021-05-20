@@ -45,6 +45,9 @@ bool FontImporter::ImportFont(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(font);
+
 	unsigned timeMs = timer.Stop();
 	LOG("Font imported in %ums", timeMs);
 	return true;

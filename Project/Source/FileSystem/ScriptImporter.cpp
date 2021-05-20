@@ -45,6 +45,9 @@ bool ScriptImporter::ImportScript(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(script);
+
 	unsigned timeMs = timer.Stop();
 	LOG("Script imported in %ums", timeMs);
 	return true;

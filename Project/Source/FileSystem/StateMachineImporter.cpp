@@ -63,6 +63,9 @@ bool StateMachineImporter::ImportStateMachine(const char* filePath, JsonValue jM
 		return false;
 	}
 
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(stateMachine);
+
 	unsigned timeMs = timer.Stop();
 	LOG("StateMachine imported in %ums", timeMs);
 	return true;

@@ -63,6 +63,9 @@ bool ClipImporter::ImportClip(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(clip);
+
 	unsigned timeMs = timer.Stop();
 	LOG("Clip imported in %ums", timeMs);
 	return true;

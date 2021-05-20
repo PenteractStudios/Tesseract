@@ -48,6 +48,9 @@ bool SkyboxImporter::ImportSkybox(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(skybox);
+
 	unsigned timeMs = timer.Stop();
 	LOG("skybox imported in %ums", timeMs);
 	return true;

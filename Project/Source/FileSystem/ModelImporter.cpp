@@ -227,6 +227,9 @@ static UID ImportMesh(const char* modelFilePath, JsonValue jMeta, const aiMesh* 
 		return 0;
 	}
 
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(mesh);
+
 	unsigned timeMs = timer.Stop();
 	LOG("Mesh imported in %ums", timeMs);
 	return mesh->GetId();
@@ -389,6 +392,9 @@ static std::pair<UID, UID> ImportAnimation(const char* modelFilePath, JsonValue 
 		return {0, 0};
 	}
 
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(animation);
+
 	// Load animation to create basic clip
 	animation->Load();
 	DEFER {
@@ -411,6 +417,9 @@ static std::pair<UID, UID> ImportAnimation(const char* modelFilePath, JsonValue 
 	if (!clipSaved) {
 		return {0, 0};
 	}
+
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(clip);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Animation imported in %ums", timeMs);
@@ -564,7 +573,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 			// Try to load from the path given in the model file
 			LOG("Trying to import diffuse texture...");
-			std::vector<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
+			std::list<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
 
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
@@ -586,7 +595,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 				LOG("Unable to find diffuse texture file.");
 			} else {
 				LOG("Diffuse texture imported successfuly.");
-				material->diffuseMapId = textureResourceIds[0];
+				material->diffuseMapId = textureResourceIds.front();
 			}
 		} else {
 			LOG("Diffuse texture not found.");
@@ -599,7 +608,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 			// Try to load from the path given in the model file
 			LOG("Trying to import specular texture...");
-			std::vector<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
+			std::list<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
 
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
@@ -621,7 +630,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 				LOG("Unable to find specular texture file.");
 			} else {
 				LOG("Specular texture imported successfuly.");
-				material->specularMapId = textureResourceIds[0];
+				material->specularMapId = textureResourceIds.front();
 			}
 		} else {
 			LOG("Specular texture not found.");
@@ -634,7 +643,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 			// Try to load from the path given in the model file
 			LOG("Trying to import metalness texture...");
-			std::vector<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
+			std::list<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
 
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
@@ -656,7 +665,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 				LOG("Unable to find metalness texture file.");
 			} else {
 				LOG("Metalness texture imported successfuly.");
-				material->metallicMapId = textureResourceIds[0];
+				material->metallicMapId = textureResourceIds.front();
 			}
 		} else {
 			LOG("Metalness texture not found.");
@@ -669,7 +678,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 			// Try to load from the path given in the model file
 			LOG("Trying to import normals texture...");
-			std::vector<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
+			std::list<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
 
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
@@ -691,7 +700,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 				LOG("Unable to find normals texture file.");
 			} else {
 				LOG("Normals texture imported successfuly.");
-				material->normalMapId = textureResourceIds[0];
+				material->normalMapId = textureResourceIds.front();
 			}
 		} else {
 			LOG("Normals texture not found.");
@@ -706,6 +715,9 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 		// Save material
 		material->SaveToFile(material->GetResourceFilePath().c_str());
+
+		// Send resource creation event
+		App->resources->SendCreateResourceEvent(material);
 
 		materialIds.push_back(material->GetId());
 		LOG("Material imported.");
@@ -768,6 +780,9 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 	// Save prefab
 	PrefabImporter::SavePrefab(prefab->GetResourceFilePath().c_str(), root->GetChildren()[0]);
+
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(prefab);
 
 	// Delete temporary GameObject
 	scene.DestroyGameObject(root);

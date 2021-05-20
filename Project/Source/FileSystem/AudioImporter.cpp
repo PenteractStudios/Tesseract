@@ -45,6 +45,9 @@ bool AudioImporter::ImportAudio(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(audioClip);
+
 	unsigned timeMs = timer.Stop();
 	LOG("Audio imported in %ums", timeMs);
 	return true;
