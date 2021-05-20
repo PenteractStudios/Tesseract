@@ -166,41 +166,22 @@ void ComponentTrail::Draw() {
 	glBindBuffer(GL_ARRAY_BUFFER, quadVBO); // set vbo active
 	glBufferData(GL_ARRAY_BUFFER, sizeof(verticesPosition), verticesPosition, GL_STATIC_DRAW);
 
-	/*glBindBuffer(GL_ARRAY_BUFFER, verticesPosition);*/
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) 0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) (sizeof(float) * 3));
 	glUseProgram(program);
-	//TODO ADD DELTATIME
 
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 
 	Frustum* frustum = App->camera->GetActiveCamera()->GetFrustum();
 	float4x4* proj = &App->camera->GetProjectionMatrix();
 	float4x4* view = &App->camera->GetViewMatrix();
-	//float4x4 MiguelMatrix = float4x4::LookAt(transform->GetGlobalMatrix().RotatePart().Col(2), -frustum->Front(), transform->GetGlobalMatrix().RotatePart().Col(1), float3::unitY);
-	/*float4x4 newModelMatrix = transform->GetGlobalMatrix().LookAt(transform->GetGlobalMatrix().RotatePart().Col(2), -frustum->Front(), transform->GetGlobalMatrix().RotatePart().Col(1), float3::unitY);
-	newModelMatrix = transform->GetGlobalMatrix();
-	float4x4 Final = float4x4::FromTRS(float3::zero, transform->GetGlobalMatrix().RotatePart(), transform->GetGlobalScale());*/
-
-	//-> glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, newModelMatrix.ptr());
-	float3 PolLocalMiuse = transform->GetRotation().ToEulerXYZ();
-	float3 PolMiuse = transform->GetGlobalRotation().ToEulerXYZ();
-	/*transform->SetRotation(float3(PolLocalMiuse.x, PolLocalMiuse.y, PolMiuse.y - (pi / 2)));*/
-
-	float4x4 newModelMatrix = float4x4::FromTRS(transform->GetGlobalPosition(), Quat::FromEulerXYZ(PolLocalMiuse.x, PolLocalMiuse.y, PolMiuse.y - (pi / 2)), transform->GetGlobalScale());
 
 	glActiveTexture(GL_TEXTURE0);
-	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, newModelMatrix.ptr());
+
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view->ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
-	
-	//glUniform1i(glGetUniformLocation(program, "diffuse"), 0);
-	//glUniform1f(glGetUniformLocation(program, "currentFrame"), currentParticle.currentFrame);
-	//glUniform1f(glGetUniformLocation(program, "colorFrame"), currentParticle.colorFrame);
-	glUniform4fv(glGetUniformLocation(program, "inputColor"), 1, initC.ptr());
-	//glUniform4fv(glGetUniformLocation(program, "finalColor"), 1, finalC.ptr());
 
 	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
 	if (textureResource != nullptr) {

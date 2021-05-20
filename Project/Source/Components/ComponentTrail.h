@@ -18,7 +18,6 @@ public:
 	void Load(JsonValue jComponent) override;
 	void Save(JsonValue jComponent) const override;
 	void Draw();
-	void updtadePosition(float3 up, float3 down);
 
 	void SpawnParticle();
 	void UpdateVerticesPosition();
@@ -38,7 +37,6 @@ private:
 	float width = 0.1;
 	float timePoint = 1.0f;
 	float minDistance = 2.0f;
-	/*std::vector<float> particlesPosition;*/
 	float verticesPosition[1500];
 
 	float3 currentPosition;
