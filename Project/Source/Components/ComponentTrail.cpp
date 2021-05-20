@@ -23,9 +23,9 @@
 #include "GL/glew.h"
 #include "debugdraw.h"
 
-#include "Utils/Leaks.h"
 #include <Utils/Logging.h>
 
+#include "Utils/Leaks.h"
 #define JSON_TAG_TEXTURE_SHADERID "ShaderId"
 #define JSON_TAG_TEXTURE_TEXTUREID "TextureId"
 #define JSON_TAG_TIMETOSTART "TimeToStart"

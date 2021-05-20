@@ -75,18 +75,11 @@ void TrailTest::Update() {
 	if (Input::GetMouseButtonDown(0)) {
 		ResourcePrefab* prefab = GameplaySystems::GetResource<ResourcePrefab>(prefabId);
 		if (prefab != nullptr) {
-			Debug::Log("TrailShoot");
 			fangGun->GetComponent<ComponentParticleSystem>()->Play();
 			GameplaySystems::Instantiate(prefab, FangGuntransform->GetGlobalPosition(), transform->GetGlobalRotation());
-
 			float3 frontTrail = transform->GetGlobalRotation() * float3(0.0f, 0.0f, 1.0f);
-
 			GameObject* secondTrail = GameplaySystems::Instantiate(prefab, FangGuntransform->GetGlobalPosition(), Quat::RotateAxisAngle(frontTrail, (pi / 2)).Mul(transform->GetGlobalRotation()));
 			TrailScript* seconTrailScript = GET_SCRIPT(secondTrail, TrailScript);
-			/*	seconTrailScript->itsVertical = true;*/
-
-				/*UID prefabId = prefab->BuildPrefab(scene);
-				GameObject* go = GameplaySystems::GetGameObject(prefabId);*/
 		}
 	}
 	if (Input::GetKeyCode(Input::KEYCODE::KEY_W)) {
