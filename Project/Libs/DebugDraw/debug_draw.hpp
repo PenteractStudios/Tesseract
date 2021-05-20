@@ -2985,7 +2985,7 @@ void sphere(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,) ddVec3_In center, ddVec
     }
 
     // Hemispheres direction angles
-	float archInitialAngle, archFinalAngle, fillInitialAngle, fillFinalAngle;
+	int archInitialAngle, archFinalAngle, fillInitialAngle, fillFinalAngle;
 	switch (hemisphereDir) {
 	case 0:
         // Complete Sphere
