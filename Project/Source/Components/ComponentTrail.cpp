@@ -204,13 +204,13 @@ void ComponentTrail::UpdateVerticesPosition() {
 		verticesPosition[i] = verticesPosition[i + 30];
 	}
 }
-void ComponentTrail::insertVertex(float3 vertex) {
+void ComponentTrail::InsertVertex(float3 vertex) {
 	verticesPosition[trianglesCreated++] = vertex.x;
 	verticesPosition[trianglesCreated++] = vertex.y;
 	verticesPosition[trianglesCreated++] = vertex.z;
 }
 
-void ComponentTrail::insertTextureCoords() {
+void ComponentTrail::InsertTextureCoords() {
 	if (textureCreated == 12) textureCreated = 0;
 
 	verticesPosition[trianglesCreated++] = textureCords[textureCreated++];

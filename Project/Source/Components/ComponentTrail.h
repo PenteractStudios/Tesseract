@@ -21,8 +21,8 @@ public:
 
 	void SpawnParticle();
 	void UpdateVerticesPosition();
-	void insertVertex(float3 vertex);
-	void insertTextureCoords();
+	void InsertVertex(float3 vertex);
+	void InsertTextureCoords();
 
 private:
 	UID textureID = 0; // ID of the image
