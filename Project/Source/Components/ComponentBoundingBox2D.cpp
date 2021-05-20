@@ -25,7 +25,6 @@ void ComponentBoundingBox2D::Init() {
 	ComponentTransform2D* transform2D = GetOwner().GetComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
 	if (transform2D != nullptr && canvasRenderer != nullptr) {
-		
 		float2 size = transform2D->GetSize();
 		float3 scale = transform2D->GetScale();
 		float screenFactor = canvasRenderer->GetCanvasScreenFactor();
@@ -88,10 +87,10 @@ void ComponentBoundingBox2D::CalculateWorldBoundingBox(bool force) {
 		worldAABB = worldOBB.MinimalEnclosingAABB();
 
 		// Hay que sumarselo al worldOBB para ponerlo en la posicion
-		/*worldAABB.minPoint = position.xyz().Mul(float3(1.0f, -1.0f, 0.0f).Mul(screenFactor)) + float3(screenSize, 0.0f) / 2.0f
-							 + localAABB.minPoint.Mul(float3(transform2d->GetSize(), 0.0f).Mul(transform2d->GetScale().xyz()).Mul(screenFactor));
-		worldAABB.maxPoint = position.xyz().Mul(float3(1.0f, -1.0f, 0.0f).Mul(screenFactor)) + float3(screenSize, 0.0f) / 2.0f
-							 + localAABB.maxPoint.Mul(float3(transform2d->GetSize(), 0.0f).Mul(transform2d->GetScale().xyz()).Mul(screenFactor));*/
+		//worldAABB.minPoint = position.xyz().Mul(float3(1.0f, -1.0f, 0.0f).Mul(screenFactor)) + float3(screenSize, 0.0f) / 2.0f
+							 //+ localAABB.minPoint.Mul(float3(transform2d->GetSize(), 0.0f).Mul(transform2d->GetScale().xyz()).Mul(screenFactor));
+		//worldAABB.maxPoint = position.xyz().Mul(float3(1.0f, -1.0f, 0.0f).Mul(screenFactor)) + float3(screenSize, 0.0f) / 2.0f
+							 //+ localAABB.maxPoint.Mul(float3(transform2d->GetSize(), 0.0f).Mul(transform2d->GetScale().xyz()).Mul(screenFactor));
 
 #if GAME
 		float2 windowPos = float2(App->window->GetPositionX(), App->window->GetPositionY());
@@ -128,11 +127,13 @@ void ComponentBoundingBox2D::Invalidate() {
 	dirty = true;
 }
 
-const AABB& ComponentBoundingBox2D::GetWorldAABB() const {
+const AABB& ComponentBoundingBox2D::GetWorldAABB() {
+	CalculateWorldBoundingBox();
 	return worldAABB;
 }
 
-const OBB& ComponentBoundingBox2D::GetWorldOBB() const {
+const OBB& ComponentBoundingBox2D::GetWorldOBB() {
+	CalculateWorldBoundingBox();
 	return worldOBB;
 }
 

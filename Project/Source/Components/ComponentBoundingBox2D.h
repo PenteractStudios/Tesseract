@@ -22,17 +22,17 @@ public:
 	void CalculateWorldBoundingBox(bool force = false);
 	void DrawGizmos();
 	void Invalidate();
-	const AABB& GetWorldAABB() const;
-	const OBB& GetWorldOBB() const;
+	const AABB& GetWorldAABB();
+	const OBB& GetWorldOBB();
 
 private:
-	bool dirty = true;
-
 	//AABB2D localAABB = {{0, 0}, {0, 0}};
-	AABB localAABB;
 	//AABB2D worldAABB = {{0, 0}, {0, 0}};
-	AABB worldAABB;
 
-	OBB worldOBB;
-	
+	AABB localAABB = {{0, 0, 0}, {0, 0, 0}};
+	AABB worldAABB = {{0, 0, 0}, {0, 0, 0}};
+
+	OBB worldOBB = {worldAABB};
+
+	bool dirty = true;	
 };
