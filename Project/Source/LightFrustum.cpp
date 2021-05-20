@@ -28,9 +28,9 @@ void LightFrustum::ReconstructFrustum() {
 	AABB lightAABB;
 	lightAABB.SetNegativeInfinity();
 
-	for (const GameObject& go : App->scene->scene->gameObjects) {
-		const Mask& mask = go.GetMask();
-		if ((mask.bitMask & static_cast<int>(MaskType::CAST_SHADOW)) != 0 && go.HasComponent<ComponentMeshRenderer>()) {
+	for (GameObject& go : App->scene->scene->gameObjects) {
+		Mask mask = go.GetMask();
+		if ((mask.bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0 && go.HasComponent<ComponentMeshRenderer>()) {
 			ComponentBoundingBox* componentBBox = go.GetComponent<ComponentBoundingBox>();
 			if (componentBBox) {
 				AABB boundingBox = componentBBox->GetWorldAABB();

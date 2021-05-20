@@ -8,6 +8,7 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleEditor.h"
 #include "ResourceTexture.h"
+#include "Utils/FileDialog.h"
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
 #include "Utils/ImGuiUtils.h"
@@ -144,13 +145,16 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 }
 
 void ResourceMaterial::OnEditorUpdate() {
-	ImGui::TextColored(App->editor->titleColor, "Shader");
-	ImGui::TextUnformatted("Change type:");
-	ImGui::SameLine();
+	// Save Material
+	if (ImGui::Button("Save Material")) {
+		SaveToFile(GetResourceFilePath().c_str());
+	}
+
 	// Shader types
+	ImGui::TextColored(App->editor->titleColor, "Shader");
 	const char* shaderTypes[] = {"[Legacy] Phong", "Standard (specular settings)", "Standard"};
 	const char* shaderTypesCurrent = shaderTypes[(int) shaderType];
-	if (ImGui::BeginCombo("Type", shaderTypesCurrent)) {
+	if (ImGui::BeginCombo("Shader Type", shaderTypesCurrent)) {
 		for (int n = 0; n < IM_ARRAYSIZE(shaderTypes); ++n) {
 			bool isSelected = (shaderTypesCurrent == shaderTypes[n]);
 			if (ImGui::Selectable(shaderTypes[n], isSelected)) {
@@ -165,213 +169,139 @@ void ResourceMaterial::OnEditorUpdate() {
 	}
 
 	//Diffuse
-	ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-	{
-		// TODO: Hint image of texture
-		ImGui::ResourceSlot<ResourceTexture>("Diffuse Texture", &diffuseMapId);
-		if (ImGui::Button("No map##diffuse")) {
-			if (diffuseMapId != 0) {
-				App->resources->DecreaseReferenceCount(diffuseMapId);
-				diffuseMapId = 0;
-			}
+	ImGui::TextColored(App->editor->titleColor, "Albedo");
+	ImGui::ColorEdit4("Diffuse Color##color_d", diffuseColor.ptr(), ImGuiColorEditFlags_NoInputs);
+	ImGui::ResourceSlot<ResourceTexture>("Diffuse Texture", &diffuseMapId);
+	if (ImGui::Button("Remove texture map##diffuse")) {
+		if (diffuseMapId != 0) {
+			App->resources->DecreaseReferenceCount(diffuseMapId);
+			diffuseMapId = 0;
 		}
 	}
-	ImGui::NextColumn();
-	{
-		std::string id_cd("##color_d");
-		ImGui::PushID(id_cd.c_str());
-		ImGui::ColorEdit4("", diffuseColor.ptr(), ImGuiColorEditFlags_NoInputs);
-		ImGui::PopID();
-	}
-	ImGui::EndColumns();
 
 	if (shaderType == MaterialShader::PHONG) {
 		// Specular Options
-		ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-		{
-			ImGui::ResourceSlot<ResourceTexture>("Specular Texture", &specularMapId);
-			if (ImGui::Button("No map##specular")) {
-				if (specularMapId != 0) {
-					App->resources->DecreaseReferenceCount(specularMapId);
-					specularMapId = 0;
-				}
+		ImGui::TextColored(App->editor->titleColor, "Specular");
+		if (specularMapId == 0) {
+			ImGui::ColorEdit4("Specular Color##color_s", specularColor.ptr(), ImGuiColorEditFlags_NoInputs);
+		}
+		ImGui::ResourceSlot<ResourceTexture>("Specular Texture", &specularMapId);
+		if (ImGui::Button("Remove texture map##specular")) {
+			if (specularMapId != 0) {
+				App->resources->DecreaseReferenceCount(specularMapId);
+				specularMapId = 0;
 			}
 		}
-		ImGui::NextColumn();
-		{
-			if (specularMapId == 0) {
-				std::string id_cs("##color_s");
-				ImGui::PushID(id_cs.c_str());
-				ImGui::ColorEdit4("", specularColor.ptr(), ImGuiColorEditFlags_NoInputs);
-				ImGui::PopID();
-			}
-		}
-		ImGui::EndColumns();
 
 		// Shininess Options
-		ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-		{
-			const char* shininessItems[] = {"Shininess Value", "Shininess Alpha"};
-			const char* shininessItemCurrent = shininessItems[hasSmoothnessInAlphaChannel];
-			if (ImGui::BeginCombo("##shininess", shininessItemCurrent)) {
-				for (int n = 0; n < IM_ARRAYSIZE(shininessItems); ++n) {
-					bool isSelected = (shininessItemCurrent == shininessItems[n]);
-					if (ImGui::Selectable(shininessItems[n], isSelected)) {
-						hasSmoothnessInAlphaChannel = n ? 1 : 0;
-					}
-					if (isSelected) {
-						ImGui::SetItemDefaultFocus();
-					}
+		ImGui::TextColored(App->editor->titleColor, "Shininess");
+		const char* shininessItems[] = {"Shininess Value", "Shininess Alpha"};
+		const char* shininessItemCurrent = shininessItems[hasSmoothnessInAlphaChannel];
+		if (ImGui::BeginCombo("##shininess", shininessItemCurrent)) {
+			for (int n = 0; n < IM_ARRAYSIZE(shininessItems); ++n) {
+				bool isSelected = (shininessItemCurrent == shininessItems[n]);
+				if (ImGui::Selectable(shininessItems[n], isSelected)) {
+					hasSmoothnessInAlphaChannel = n ? 1 : 0;
 				}
-				ImGui::EndCombo();
+				if (isSelected) {
+					ImGui::SetItemDefaultFocus();
+				}
 			}
+			ImGui::EndCombo();
 		}
-		ImGui::NextColumn();
-		{
-			if (!hasSmoothnessInAlphaChannel) {
-				std::string id_s("##shininess_");
-				ImGui::PushID(id_s.c_str());
-				ImGui::DragFloat(id_s.c_str(), &smoothness, App->editor->dragSpeed1f, 0, 1000);
-				ImGui::PopID();
-			}
+
+		if (!hasSmoothnessInAlphaChannel) {
+			std::string id_s("##shininess_");
+			ImGui::PushID(id_s.c_str());
+			ImGui::DragFloat(id_s.c_str(), &smoothness, App->editor->dragSpeed1f, 0, 1000);
+			ImGui::PopID();
 		}
-		ImGui::EndColumns();
 
 	} else if (shaderType == MaterialShader::STANDARD_SPECULAR) {
 		// Specular Options
-		ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-		{
-			ImGui::ResourceSlot<ResourceTexture>("Specular Texture", &specularMapId);
-			if (ImGui::Button("No map##specular")) {
-				if (specularMapId != 0) {
-					App->resources->DecreaseReferenceCount(specularMapId);
-					specularMapId = 0;
-				}
+		ImGui::TextColored(App->editor->titleColor, "Specular");
+		if (specularMapId == 0) {
+			ImGui::ColorEdit4("Specular Color##color_s", specularColor.ptr(), ImGuiColorEditFlags_NoInputs);
+		}
+		ImGui::ResourceSlot<ResourceTexture>("Specular Texture", &specularMapId);
+		if (ImGui::Button("Remove texture map##specular")) {
+			if (specularMapId != 0) {
+				App->resources->DecreaseReferenceCount(specularMapId);
+				specularMapId = 0;
 			}
 		}
-		ImGui::NextColumn();
-		{
-			if (specularMapId == 0) {
-				std::string id_cs("##color_s");
-				ImGui::PushID(id_cs.c_str());
-				ImGui::ColorEdit4("", specularColor.ptr(), ImGuiColorEditFlags_NoInputs);
-				ImGui::PopID();
-			}
-		}
-		ImGui::EndColumns();
 
 		// Smoothness Options
-		ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-		{
-			ImGui::Text("Smoothness");
+		ImGui::TextColored(App->editor->titleColor, "Smoothness");
+		ImGui::Text("Smoothness");
 
-			const char* smoothnessItems[] = {"Diffuse Alpha", "Specular Alpha"};
-			const char* smoothnessItemCurrent = smoothnessItems[hasSmoothnessInAlphaChannel];
-			if (ImGui::BeginCombo("##smoothness", smoothnessItemCurrent)) {
-				for (int n = 0; n < IM_ARRAYSIZE(smoothnessItems); ++n) {
-					bool isSelected = (smoothnessItemCurrent == smoothnessItems[n]);
-					if (ImGui::Selectable(smoothnessItems[n], isSelected)) {
-						hasSmoothnessInAlphaChannel = n;
-					}
-					if (isSelected) {
-						ImGui::SetItemDefaultFocus();
-					}
+		const char* smoothnessItems[] = {"Diffuse Alpha", "Specular Alpha"};
+		const char* smoothnessItemCurrent = smoothnessItems[hasSmoothnessInAlphaChannel];
+		if (ImGui::BeginCombo("##smoothness", smoothnessItemCurrent)) {
+			for (int n = 0; n < IM_ARRAYSIZE(smoothnessItems); ++n) {
+				bool isSelected = (smoothnessItemCurrent == smoothnessItems[n]);
+				if (ImGui::Selectable(smoothnessItems[n], isSelected)) {
+					hasSmoothnessInAlphaChannel = n;
 				}
-				ImGui::EndCombo();
+				if (isSelected) {
+					ImGui::SetItemDefaultFocus();
+				}
 			}
+			ImGui::EndCombo();
 		}
-		ImGui::NextColumn();
-		{
-			ImGui::NewLine();
-			std::string id_s("##smooth_");
-			ImGui::PushID(id_s.c_str());
-			ImGui::SliderFloat(id_s.c_str(), &smoothness, 0.0, 1.0);
-			ImGui::PopID();
-		}
-		ImGui::EndColumns();
+		ImGui::SliderFloat("##smooth_", &smoothness, 0.0, 1.0);
 
 	} else if (shaderType == MaterialShader::STANDARD) {
 		// Metallic Options
-		ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-		{
-			ImGui::ResourceSlot<ResourceTexture>("Metallic Texture", &metallicMapId);
-			if (ImGui::Button("No map##metallic")) {
-				if (metallicMapId != 0) {
-					App->resources->DecreaseReferenceCount(metallicMapId);
-					metallicMapId = 0;
-				}
+		ImGui::TextColored(App->editor->titleColor, "Metalness");
+		if (metallicMapId == 0) {
+			ImGui::SliderFloat("##metalness", &metallic, 0.0, 1.0);
+		}
+		ImGui::ResourceSlot<ResourceTexture>("Metallic Texture", &metallicMapId);
+		if (ImGui::Button("Remove texture map##metallic")) {
+			if (metallicMapId != 0) {
+				App->resources->DecreaseReferenceCount(metallicMapId);
+				metallicMapId = 0;
 			}
 		}
-		ImGui::NextColumn();
-		{
-			if (metallicMapId == 0) {
-				std::string id_m("##metalness");
-				ImGui::PushID(id_m.c_str());
-				ImGui::SliderFloat("", &metallic, 0.0, 1.0);
-				ImGui::PopID();
-			}
-		}
-		ImGui::EndColumns();
 
 		// Smoothness Options
-		ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-		{
-			ImGui::Text("Smoothness");
-			const char* smoothnessItems[] = {"Diffuse Alpha", "Metallic Alpha"};
-			const char* smoothnessItemCurrent = smoothnessItems[hasSmoothnessInAlphaChannel];
-			if (ImGui::BeginCombo("##smoothness", smoothnessItemCurrent)) {
-				for (int n = 0; n < IM_ARRAYSIZE(smoothnessItems); ++n) {
-					bool isSelected = (smoothnessItemCurrent == smoothnessItems[n]);
-					if (ImGui::Selectable(smoothnessItems[n], isSelected)) {
-						hasSmoothnessInAlphaChannel = n;
-					}
-					if (isSelected) {
-						ImGui::SetItemDefaultFocus();
-					}
+		ImGui::TextColored(App->editor->titleColor, "Smoothness");
+		ImGui::Text("Smoothness");
+
+		const char* smoothnessItems[] = {"Diffuse Alpha", "Specular Alpha"};
+		const char* smoothnessItemCurrent = smoothnessItems[hasSmoothnessInAlphaChannel];
+		if (ImGui::BeginCombo("##smoothness", smoothnessItemCurrent)) {
+			for (int n = 0; n < IM_ARRAYSIZE(smoothnessItems); ++n) {
+				bool isSelected = (smoothnessItemCurrent == smoothnessItems[n]);
+				if (ImGui::Selectable(smoothnessItems[n], isSelected)) {
+					hasSmoothnessInAlphaChannel = n;
 				}
-				ImGui::EndCombo();
+				if (isSelected) {
+					ImGui::SetItemDefaultFocus();
+				}
 			}
+			ImGui::EndCombo();
 		}
-		ImGui::NextColumn();
-		{
-			ImGui::NewLine();
-			std::string id_s("##smooth_");
-			ImGui::PushID(id_s.c_str());
-			ImGui::SliderFloat(id_s.c_str(), &smoothness, 0.0, 1.0);
-			ImGui::PopID();
-		}
-		ImGui::EndColumns();
+		ImGui::SliderFloat("##smooth_", &smoothness, 0.0, 1.0);
 	}
 
 	// Normal Options
-	ImGui::BeginColumns("##material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-	{
-		ImGui::ResourceSlot<ResourceTexture>("Normal Texture", &normalMapId);
-		if (ImGui::Button("No map##normal")) {
-			if (normalMapId != 0) {
-				App->resources->DecreaseReferenceCount(normalMapId);
-				normalMapId = 0;
-			}
-		}
-	}
-	ImGui::NextColumn();
-	{
+	ImGui::TextColored(App->editor->titleColor, "Normal Mapping");
+	ImGui::ResourceSlot<ResourceTexture>("Normal Texture", &normalMapId);
+	if (ImGui::Button("Remove texture map##normal")) {
 		if (normalMapId != 0) {
-			std::string id_m("##strength");
-			ImGui::PushID(id_m.c_str());
-			ImGui::SliderFloat("", &normalStrength, 0.0, 10.0);
-			ImGui::PopID();
+			App->resources->DecreaseReferenceCount(normalMapId);
+			normalMapId = 0;
 		}
 	}
-	ImGui::EndColumns();
+	if (normalMapId != 0) {
+		ImGui::SliderFloat("##strength", &normalStrength, 0.0, 10.0);
+	}
+
 	ImGui::NewLine();
 
-	// Tiling Settings
+	// Tiling Settingsextension
 	ImGui::DragFloat2("Tiling", tiling.ptr(), App->editor->dragSpeed1f, 1, inf);
 	ImGui::DragFloat2("Offset", offset.ptr(), App->editor->dragSpeed3f, -inf, inf);
-
-	ImGui::NewLine();
-	if (ImGui::Button("Save##material")) {
-		SaveToFile(GetResourceFilePath().c_str());
-	}
 }

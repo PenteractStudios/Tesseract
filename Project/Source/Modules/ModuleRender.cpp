@@ -9,6 +9,7 @@
 #include "Components/ComponentTransform.h"
 #include "Components/ComponentAnimation.h"
 #include "Components/ComponentCamera.h"
+#include "Components/ComponentParticleSystem.h"
 #include "Components/ComponentLight.h"
 #include "Modules/ModuleInput.h"
 #include "Modules/ModuleWindow.h"
@@ -18,6 +19,7 @@
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModulePrograms.h"
+#include "Modules/ModuleEvents.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleTime.h"
 #include "Resources/ResourceMesh.h"
@@ -211,7 +213,11 @@ void ModuleRender::DrawDepthMapTexture() {
 	glActiveTexture(GL_TEXTURE0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
 
+bool ModuleRender::Start() {
+	App->events->AddObserverToEvent(TesseractEventType::SCREEN_RESIZED, this);
+	return true;
 }
 
 UpdateStatus ModuleRender::PreUpdate() {
@@ -249,6 +255,10 @@ UpdateStatus ModuleRender::Update() {
 	}
 
 	Scene* scene = App->scene->scene;
+	// Draw particles (TODO: improve with culling)
+	for (ComponentParticleSystem& particleSystem : scene->particleComponents) {
+		if (particleSystem.IsActive()) particleSystem.Draw();
+	}
 
 	// Draw Gizmos
 	if (App->camera->IsEngineCameraActive() || debugMode) {
@@ -266,6 +276,12 @@ UpdateStatus ModuleRender::Update() {
 				light.DrawGizmos();
 			}
 		}
+		if (drawParticleGizmos) {
+			for (ComponentParticleSystem& particle : scene->particleComponents) {
+				particle.DrawGizmos();
+			}
+		}
+
 		// Draw quadtree
 		if (drawQuadtree) DrawQuadtreeRecursive(App->scene->scene->quadtree.root, App->scene->scene->quadtree.bounds);
 
@@ -320,6 +336,16 @@ void ModuleRender::ViewportResized(int width, int height) {
 	viewportSize.y = static_cast<float>(height);
 
 	viewportUpdated = true;
+}
+
+void ModuleRender::ReceiveEvent(TesseractEvent& ev) {
+	switch (ev.type) {
+	case TesseractEventType::SCREEN_RESIZED:
+		ViewportResized(ev.Get<ViewportResizedStruct>().newWidth, ev.Get<ViewportResizedStruct>().newHeight);
+		break;
+	default:
+		break;
+	}
 }
 
 void ModuleRender::UpdateFramebuffer() {
@@ -391,6 +417,9 @@ void ModuleRender::ToggleDrawCameraFrustums() {
 
 void ModuleRender::ToggleDrawLightGizmos() {
 	drawLightGizmos = !drawLightGizmos;
+}
+void ModuleRender::ToggleDrawParticleGizmos() {
+	drawParticleGizmos = !drawParticleGizmos;
 }
 
 void ModuleRender::ToggleDrawLightFrustumGizmo() {
@@ -566,7 +595,7 @@ void ModuleRender::DrawGameObject(GameObject* gameObject) {
 
 void ModuleRender::DrawGameObjectShadowPass(GameObject* gameObject) {
 
-	if ((gameObject->GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOW)) == 0) return;
+	if ((gameObject->GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) == 0) return;
 
 	ComponentView<ComponentMeshRenderer> meshes = gameObject->GetComponents<ComponentMeshRenderer>();
 	ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
@@ -609,6 +638,14 @@ void ModuleRender::SetPerspectiveRender() {
 
 const float2 ModuleRender::GetViewportSize() {
 	return viewportSize;
+}
+
+bool ModuleRender::ObjectInsideFrustum(GameObject* gameObject) {
+	ComponentBoundingBox* boundingBox = gameObject->GetComponent<ComponentBoundingBox>();
+	if (boundingBox) {
+		return CheckIfInsideFrustum(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB());
+	}
+	return false;
 }
 
 void ModuleRender::DrawAnimation(const GameObject* gameObject, bool hasAnimation) {

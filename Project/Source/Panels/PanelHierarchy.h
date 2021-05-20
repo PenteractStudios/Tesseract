@@ -20,6 +20,8 @@ private:
 	GameObject* CreateUIButton(GameObject* gameObject);
 	GameObject* CreateUISlider(GameObject* gameObject);
 	GameObject* CreateUIToggle(GameObject* gameObject);
+	GameObject* CreateUIProgressBar(GameObject* gameObject);
+	GameObject* CreatePartycleSystemObject(GameObject* gameObject);
 
 private:
 	int windowWidth = 0;

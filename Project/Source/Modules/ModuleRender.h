@@ -13,10 +13,13 @@ class ModuleRender : public Module {
 public:
 	// ------- Core Functions ------ //
 	bool Init() override;
+
+	bool Start() override;
 	UpdateStatus PreUpdate() override;
 	UpdateStatus Update() override;
 	UpdateStatus PostUpdate() override;
 	bool CleanUp() override;
+	void ReceiveEvent(TesseractEvent& ev) override;
 
 	void ViewportResized(int width, int height); // Updates the viewport aspect ratio with the new one given by parameters. It will set 'viewportUpdated' to true, to regenerate the framebuffer to its new size using UpdateFramebuffer().
 	void UpdateFramebuffer();					 // Generates the rendering framebuffer on Init(). If 'viewportUpdated' was set to true, it will be also called at PostUpdate().
@@ -34,6 +37,7 @@ public:
 	void ToggleDrawCameraFrustums();
 	void ToggleDrawLightGizmos();
 	void ToggleDrawLightFrustumGizmo();
+	void ToggleDrawParticleGizmos();
 
 	void UpdateShadingMode(const char* shadingMode);
 
@@ -42,6 +46,8 @@ public:
 
 	int GetCulledTriangles() const;
 	const float2 GetViewportSize();
+
+	bool ObjectInsideFrustum(GameObject* gameObject);
 
 public:
 	void* context = nullptr; // SDL context.
@@ -66,10 +72,11 @@ public:
 	bool drawCameraFrustums = false;
 	bool drawLightGizmos = false;
 	bool drawLightFrustumGizmo = false;
+	bool drawParticleGizmos = false;
 	int culledTriangles = 0;
 
 	float3 ambientColor = {0.25f, 0.25f, 0.25f}; // Color of ambient Light
-	float3 clearColor = {0.1f, 0.1f, 0.1f};	  // Color of the viewport between frames
+	float3 clearColor = {0.1f, 0.1f, 0.1f};		 // Color of the viewport between frames
 
 	LightFrustum lightFrustum;
 

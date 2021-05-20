@@ -26,7 +26,6 @@
 #define JSON_TAG_SIZE "Size"
 #define JSON_TAG_ANCHOR_MIN "AnchorMin"
 #define JSON_TAG_ANCHOR_MAX "AnchorMax"
-#define JSON_TAG_ANCHORED_2D_POSITION "Anchored2DPosition"
 #define JSON_TAG_ANCHOR_SELECTED "AnchorSelected"
 #define JSON_TAG_IS_CUSTOM_ANCHOR "IsCustomAnchor"
 
@@ -144,8 +143,6 @@ void ComponentTransform2D::OnEditorUpdate() {
 		SetPivot(piv);
 	}
 	ImGui::InputFloat3("Pivot World Position (X,Y,Z)", pivPos.ptr(), "%.3f", ImGuiInputTextFlags_ReadOnly);
-
-	UpdateUIElements();
 
 	ImGui::Separator();
 }
@@ -330,6 +327,11 @@ const float4x4 ComponentTransform2D::GetGlobalScaledMatrix() {
 	return globalMatrix * float4x4::Scale(size.x, size.y, 0);
 }
 
+float3x3 ComponentTransform2D::GetGlobalRotation() {
+	CalculateGlobalMatrix();
+	return globalMatrix.RotatePart();
+}
+
 void ComponentTransform2D::CalculateGlobalMatrix() {
 	if (dirty) {
 		localMatrix = float4x4::FromTRS(GetPositionRelativeToParent(), rotation, scale);
@@ -350,6 +352,7 @@ void ComponentTransform2D::CalculateGlobalMatrix() {
 		}
 
 		dirty = false;
+		UpdateUIElements();
 	}
 }
 
@@ -382,7 +385,7 @@ void ComponentTransform2D::UpdateUIElements() {
 	if (dirty) { // Means the transform has changed
 		ComponentText* text = GetOwner().GetComponent<ComponentText>();
 		if (text != nullptr) {
-			text->RecalculcateVertices();
+			text->Invalidate();
 		}
 	}
 }
@@ -401,6 +404,11 @@ float3 ComponentTransform2D::GetScale() const {
 
 float3 ComponentTransform2D::GetPivotPosition() const {
 	return pivotPosition;
+}
+
+float3 ComponentTransform2D::GetGlobalPosition() {
+	CalculateGlobalMatrix();
+	return globalMatrix.TranslatePart();
 }
 
 float3 ComponentTransform2D::GetPositionRelativeToParent() const {
@@ -456,18 +464,6 @@ void ComponentTransform2D::Invalidate() {
 	if (boundingBox != nullptr) {
 		boundingBox->Invalidate();
 	}
-}
-
-void ComponentTransform2D::DuplicateComponent(GameObject& owner) {
-	ComponentTransform2D* component = owner.CreateComponent<ComponentTransform2D>();
-	component->SetPivot(pivot);
-	component->SetSize(size);
-	component->SetPosition(position);
-	component->SetRotation(rotation);
-	component->SetScale(scale);
-	component->SetAnchorMin(anchorMin);
-	component->SetAnchorMax(anchorMax);
-	component->dirty = true;
 }
 
 void ComponentTransform2D::SetTop(float top_) {

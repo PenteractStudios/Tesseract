@@ -24,8 +24,7 @@ MATH_BEGIN_NAMESPACE
 
 /// Specifies a plane in 3D space. This plane is an affine 2D subspace of the 3D space, meaning
 /// that its sides extend to infinity, and it does not necessarily pass through the origin.
-class Plane
-{
+class TESSERACT_ENGINE_API Plane {
 public:
 	/// The direction this plane is facing at.
 	/** This direction vector is always normalized. If you assign to this directly, please remember to only

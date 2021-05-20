@@ -77,13 +77,6 @@ void ComponentTransform::Load(JsonValue jComponent) {
 	dirty = true;
 }
 
-void ComponentTransform::DuplicateComponent(GameObject& owner) {
-	ComponentTransform* component = owner.CreateComponent<ComponentTransform>();
-	component->SetPosition(this->GetPosition());
-	component->SetRotation(this->GetRotation());
-	component->SetScale(this->GetScale());
-}
-
 void ComponentTransform::InvalidateHierarchy() {
 	if (!dirty) {
 		dirty = true;
@@ -121,7 +114,7 @@ void ComponentTransform::CalculateGlobalMatrix(bool force) {
 void ComponentTransform::SetPosition(float3 position_) {
 	position = position_;
 	InvalidateHierarchy();
-	if ((GetOwner().GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOW)) != 0) {
+	if ((GetOwner().GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0) {
 		App->renderer->lightFrustum.Invalidate();
 	}
 }
@@ -130,7 +123,7 @@ void ComponentTransform::SetRotation(Quat rotation_) {
 	rotation = rotation_;
 	localEulerAngles = rotation_.ToEulerXYZ().Mul(RADTODEG);
 	InvalidateHierarchy();
-	if ((GetOwner().GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOW)) != 0 || GetOwner().HasComponent<ComponentLight>()) {
+	if ((GetOwner().GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0 || GetOwner().HasComponent<ComponentLight>()) {
 		App->renderer->lightFrustum.Invalidate();
 	}
 }
@@ -139,7 +132,7 @@ void ComponentTransform::SetRotation(float3 rotation_) {
 	rotation = Quat::FromEulerXYZ(rotation_.x * DEGTORAD, rotation_.y * DEGTORAD, rotation_.z * DEGTORAD);
 	localEulerAngles = rotation_;
 	InvalidateHierarchy();
-	if ((GetOwner().GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOW)) != 0 || GetOwner().HasComponent<ComponentLight>()) {
+	if ((GetOwner().GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0 || GetOwner().HasComponent<ComponentLight>()) {
 		App->renderer->lightFrustum.Invalidate();
 	}
 }
@@ -147,7 +140,7 @@ void ComponentTransform::SetRotation(float3 rotation_) {
 void ComponentTransform::SetScale(float3 scale_) {
 	scale = scale_;
 	InvalidateHierarchy();
-	if ((GetOwner().GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOW)) != 0) {
+	if ((GetOwner().GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0) {
 		App->renderer->lightFrustum.Invalidate();
 	}
 }
@@ -160,7 +153,7 @@ void ComponentTransform::SetTRS(float4x4& newTransform_) {
 	rotation = Quat(newTransform_.SubMatrix(3, 3));
 	localEulerAngles = rotation.ToEulerXYZ().Mul(RADTODEG);
 	InvalidateHierarchy();
-	if ((GetOwner().GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOW)) != 0 || GetOwner().HasComponent<ComponentLight>()) {
+	if ((GetOwner().GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0 || GetOwner().HasComponent<ComponentLight>()) {
 		App->renderer->lightFrustum.Invalidate();
 	}
 }

@@ -10,6 +10,7 @@
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleInput.h"
+#include "Modules/ModuleTime.h"
 #include "Resources/ResourceScript.h"
 #include "Scripting/Script.h"
 #include "imgui.h"
@@ -20,16 +21,14 @@
 #define JSON_TAG_ENABLED_IMAGE_ID "EnabledImageID"
 #define JSON_TAG_CLICKED_COLOR "ClickedColor"
 
-ComponentToggle ::~ComponentToggle() {}
-
-void ComponentToggle::Init() {
-	OnValueChanged();
-}
-
 void ComponentToggle::OnClicked() {
 	SetChecked(!IsChecked());
 	App->userInterface->GetCurrentEventSystem()->SetSelected(GetOwner().GetComponent<ComponentSelectable>()->GetID());
 }
+
+
+//TODO, Set a new functionality allowing toggle to actually work as a toggle, currently working only as checkbox, which enables/disables checkbox
+//A toggle would modify the shown image depending on its value.
 
 void ComponentToggle ::OnValueChanged() {
 	ComponentImage* childImage = GetEnabledImage();
@@ -103,11 +102,6 @@ float4 ComponentToggle::GetClickColor() const {
 	return colorClicked;
 }
 
-void ComponentToggle::DuplicateComponent(GameObject& owner) {
-	ComponentToggle* component = owner.CreateComponent<ComponentToggle>();
-	component->isChecked = isChecked;
-}
-
 void ComponentToggle::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_IS_ON] = isChecked;
 	jComponent[JSON_TAG_ENABLED_IMAGE_ID] = enabledImageObjectID;
@@ -128,6 +122,17 @@ void ComponentToggle::Load(JsonValue jComponent) {
 }
 
 void ComponentToggle::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	ImGui::ColorEdit4("Click Color##", colorClicked.ptr());
 	ImGui::GameObjectSlot("Enabled Image GameObject", &enabledImageObjectID);
 

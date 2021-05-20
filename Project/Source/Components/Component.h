@@ -24,7 +24,6 @@ public:
 	virtual void OnEditorUpdate();						// Draw the ImGui elements & info of the Component in the Inspector. Called from PanelInspector->Update()
 	virtual void Save(JsonValue jComponent) const;		// Operations to serialise this Component when saving the scene. Called from owner->Save().
 	virtual void Load(JsonValue jComponent);			// Operations to initialise this Component when a scene is loaded. Called from owner->Load().
-	virtual void DuplicateComponent(GameObject& owner); // Used when duplicating GameObjects. It duplicates this Component into a new Component in owner.
 	virtual bool CanBeRemoved() const;					// Used in inspectorPanel to check if there are any dependencies that "forbid" the component from being removed
 
 	// ---- Visibility Setters ----- //

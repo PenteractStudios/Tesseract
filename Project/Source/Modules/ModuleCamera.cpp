@@ -19,6 +19,7 @@
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleEditor.h"
+#include "Modules/ModuleEvents.h"
 
 #include "Math/float3.h"
 #include "Math/float3x3.h"
@@ -61,10 +62,9 @@ static void WarpMouseOnEdges() {
 
 bool ModuleCamera::Start() {
 	UID uid = GenerateUID();
-	engineCamera = App->scene->scene->cameraComponents.Obtain(uid, nullptr, uid, true);
-	activeCamera = engineCamera;
-	cullingCamera = engineCamera;
-	gameCamera = engineCamera;
+	activeCamera = &engineCamera;
+	cullingCamera = &engineCamera;
+	gameCamera = &engineCamera;
 	Frustum* activeFrustum = activeCamera->GetFrustum();
 	activeFrustum->SetKind(FrustumSpaceGL, FrustumRightHanded);
 	activeFrustum->SetViewPlaneDistances(0.1f, 2000.0f);
@@ -79,6 +79,7 @@ bool ModuleCamera::Start() {
 
 	SetPosition(vec(2, 3, -5));
 	LookAt(0, 0, 0);
+	App->events->AddObserverToEvent(TesseractEventType::SCREEN_RESIZED, this);
 
 	return true;
 }
@@ -91,7 +92,7 @@ UpdateStatus ModuleCamera::Update() {
 	//2. Module camera updates camera frustums, updating view and projection matrixes
 	//3. Module renderer uses updated view and projection matrixes to correctly draw geometry and skyboxes
 
-	if (activeCamera != engineCamera) {
+	if (activeCamera != &engineCamera) {
 		activeCamera->UpdateFrustum();
 		return UpdateStatus::CONTINUE;
 	}
@@ -180,14 +181,27 @@ UpdateStatus ModuleCamera::Update() {
 	return UpdateStatus::CONTINUE;
 }
 
+void ModuleCamera::ReceiveEvent(TesseractEvent& ev) {
+	switch (ev.type) {
+	case TesseractEventType::SCREEN_RESIZED: {
+		int width = ev.Get<ViewportResizedStruct>().newWidth;
+		int height = ev.Get<ViewportResizedStruct>().newHeight;
+		ViewportResized(width, height);
+		break;
+	}
+	default:
+		break;
+	}
+}
+
 void ModuleCamera::CalculateFrustumNearestObject(float2 pos) {
 	MSTimer timer;
 	timer.Start();
 
-	if (activeCamera != engineCamera) return;
+	if (activeCamera != &engineCamera) return;
 
 	std::vector<GameObject*> intersectingObjects;
-	LineSegment ray = engineCamera->GetFrustum()->UnProjectLineSegment(pos.x, pos.y);
+	LineSegment ray = engineCamera.GetFrustum()->UnProjectLineSegment(pos.x, pos.y);
 
 	// Check with AABB
 	Scene* scene = App->scene->scene;
@@ -270,7 +284,7 @@ void ModuleCamera::CalculateFrustumPlanes() {
 }
 
 bool ModuleCamera::IsEngineCameraActive() const {
-	if (activeCamera == engineCamera) {
+	if (activeCamera == &engineCamera) {
 		return true;
 	}
 	return false;
@@ -374,7 +388,7 @@ void ModuleCamera::ViewportResized(int width, int height) {
 		// TODO: Implement button to force AspectRatio from specific camera
 		camera.frustum.SetVerticalFovAndAspectRatio(camera.frustum.VerticalFov(), width / (float) height);
 	}
-	engineCamera->GetFrustum()->SetVerticalFovAndAspectRatio(engineCamera->GetFrustum()->VerticalFov(), width / (float) height);
+	engineCamera.GetFrustum()->SetVerticalFovAndAspectRatio(engineCamera.GetFrustum()->VerticalFov(), width / (float) height);
 }
 
 void ModuleCamera::SetFOV(float hFov) {
@@ -406,7 +420,7 @@ void ModuleCamera::ChangeActiveCamera(ComponentCamera* camera, bool change) {
 	if (change) {
 		activeCamera = camera;
 	} else {
-		activeCamera = engineCamera;
+		activeCamera = &engineCamera;
 	}
 }
 
@@ -414,7 +428,7 @@ void ModuleCamera::ChangeCullingCamera(ComponentCamera* camera, bool change) {
 	if (change) {
 		cullingCamera = camera;
 	} else {
-		cullingCamera = engineCamera;
+		cullingCamera = &engineCamera;
 	}
 }
 
@@ -422,7 +436,7 @@ void ModuleCamera::ChangeGameCamera(ComponentCamera* camera, bool change) {
 	if (change) {
 		gameCamera = camera;
 	} else {
-		gameCamera = engineCamera;
+		gameCamera = &engineCamera;
 	}
 }
 
@@ -474,8 +488,8 @@ float4x4 ModuleCamera::GetViewMatrix() const {
 	return activeCamera->GetFrustum()->ViewMatrix();
 }
 
-ComponentCamera* ModuleCamera::GetEngineCamera() const {
-	return engineCamera;
+ComponentCamera* ModuleCamera::GetEngineCamera() {
+	return &engineCamera;
 }
 
 ComponentCamera* ModuleCamera::GetActiveCamera() const {

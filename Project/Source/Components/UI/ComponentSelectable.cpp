@@ -177,19 +177,23 @@ void ComponentSelectable::OnEnable() {
 }
 
 void ComponentSelectable::OnDisable() {
-	if (ComponentEventSystem* evSys = App->userInterface->GetCurrentEventSystem()) {
+	ComponentEventSystem* evSys = App->userInterface->GetCurrentEventSystem();
+	if (evSys != nullptr) {
 		if (selected) {
 			evSys->SetSelected(0);
+		}
+		if (hovered) {
+			hovered = false;
+			evSys->ExitedPointerOnSelectable(this);
 		}
 	}
 }
 
 void ComponentSelectable::OnPointerEnter() {
-	if (ComponentEventSystem* evSys = App->userInterface->GetCurrentEventSystem()) {
+	ComponentEventSystem* evSys = App->userInterface->GetCurrentEventSystem();
+	if (evSys != nullptr && GetOwner().IsActive()) {
 		hovered = true;
-		if (evSys != nullptr) {
-			evSys->EnteredPointerOnSelectable(this);
-		}
+		evSys->EnteredPointerOnSelectable(this);
 	}
 }
 
@@ -198,27 +202,11 @@ const float4 ComponentSelectable::GetDisabledColor() const {
 }
 
 void ComponentSelectable::OnPointerExit() {
-	if (ComponentEventSystem* evSys = App->userInterface->GetCurrentEventSystem()) {
+	ComponentEventSystem* evSys = App->userInterface->GetCurrentEventSystem();
+	if (evSys != nullptr && GetOwner().IsActive()) {
 		hovered = false;
-		if (evSys != nullptr) {
-			evSys->ExitedPointerOnSelectable(this);
-		}
+		evSys->ExitedPointerOnSelectable(this);
 	}
-}
-
-void ComponentSelectable::DuplicateComponent(GameObject& owner) {
-	ComponentSelectable* component = owner.CreateComponent<ComponentSelectable>();
-	component->interactable = interactable;
-	component->colorDisabled = colorDisabled;
-	component->colorHovered = colorHovered;
-	component->colorSelected = colorSelected;
-	component->onAxisDown = onAxisDown;
-	component->onAxisUp = onAxisUp;
-	component->onAxisRight = onAxisRight;
-	component->onAxisLeft = onAxisLeft;
-	component->selectableType = selectableType;
-	component->navigationType = navigationType;
-	component->transitionType = transitionType;
 }
 
 bool ComponentSelectable::IsHovered() const {

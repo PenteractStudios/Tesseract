@@ -3,6 +3,7 @@
 #include "Globals.h"
 #include "Application.h"
 #include "Utils/Logging.h"
+#include "Modules/ModuleEvents.h"
 
 #include "SDL.h"
 
@@ -26,9 +27,7 @@ bool ModuleWindow::Init() {
 
 	Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
 
-#if GAME
-	flags |= SDL_WINDOW_MAXIMIZED;
-#else
+#if !GAME
 	flags |= SDL_WINDOW_RESIZABLE;
 #endif
 
@@ -50,8 +49,11 @@ bool ModuleWindow::Init() {
 		displayModes.push_back(displayMode);
 	}
 
-	// Set the current display mode to the first one
-	SDL_SetWindowDisplayMode(window, &displayModes[currentDisplayMode]);
+#if GAME
+	SetWindowMode(WindowMode::FULLSCREEN);
+#else
+	SetWindowMode(WindowMode::WINDOWED);
+#endif
 
 	return true;
 }
@@ -71,18 +73,14 @@ void ModuleWindow::SetWindowMode(WindowMode mode) {
 	switch (mode) {
 	case WindowMode::WINDOWED:
 		SDL_SetWindowFullscreen(window, SDL_FALSE);
-		SDL_SetWindowBordered(window, SDL_TRUE);
-		break;
-	case WindowMode::BORDERLESS:
-		SDL_SetWindowFullscreen(window, SDL_FALSE);
-		SDL_SetWindowBordered(window, SDL_FALSE);
+		ResetToDefaultSize();
 		break;
 	case WindowMode::FULLSCREEN:
-		SDL_SetWindowDisplayMode(window, &displayModes[currentDisplayMode]);
+		SetCurrentDisplayMode(currentDisplayMode);
 		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
 		break;
 	case WindowMode::FULLSCREEN_DESKTOP:
-		SDL_SetWindowDisplayMode(window, &displayModes[currentDisplayMode]);
+		SetCurrentDisplayMode(currentDisplayMode);
 		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
 		break;
 	}
@@ -97,15 +95,27 @@ void ModuleWindow::SetResizable(bool resizable) {
 	}
 }
 
-void ModuleWindow::SetCurrentDisplayMode(int index) {
-	SDL_SetWindowDisplayMode(window, &displayModes[index]);
+void ModuleWindow::SetCurrentDisplayMode(unsigned index) {
+	if (index >= displayModes.size()) return;
+	const SDL_DisplayMode& displayMode = displayModes[index];
+	SDL_SetWindowDisplayMode(window, &displayMode);
 	currentDisplayMode = index;
+	SetSize(displayMode.w, displayMode.h);
 }
 
 void ModuleWindow::SetSize(int width, int height) {
 	int displayIndex = SDL_GetWindowDisplayIndex(window);
 	SDL_SetWindowSize(window, width, height);
 	SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex), SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex));
+	TesseractEvent resizeEvent(TesseractEventType::SCREEN_RESIZED);
+	resizeEvent.Set<ViewportResizedStruct>(width, height);
+	App->events->AddEvent(resizeEvent);
+}
+
+void ModuleWindow::ResetToDefaultSize() {
+	SDL_DisplayMode desktopDisplayMode;
+	SDL_GetDesktopDisplayMode(0, &desktopDisplayMode);
+	SetSize(desktopDisplayMode.w - 100, desktopDisplayMode.h - 100);
 }
 
 void ModuleWindow::SetBrightness(float brightness) {
@@ -128,8 +138,16 @@ bool ModuleWindow::GetResizable() const {
 	return (SDL_GetWindowFlags(window) & SDL_WINDOW_RESIZABLE) != 0;
 }
 
-int ModuleWindow::GetCurrentDisplayMode() const {
+unsigned ModuleWindow::GetCurrentDisplayMode() const {
 	return currentDisplayMode;
+}
+
+unsigned ModuleWindow::GetNumDisplayModes() const {
+	return displayModes.size();
+}
+
+const SDL_DisplayMode& ModuleWindow::GetDisplayMode(unsigned index) const {
+	return displayModes[index];
 }
 
 int ModuleWindow::GetWidth() const {

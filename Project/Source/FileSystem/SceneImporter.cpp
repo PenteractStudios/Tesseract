@@ -86,6 +86,7 @@ void SceneImporter::LoadScene(const char* filePath) {
 	// Clear scene
 	Scene* scene = App->scene->scene;
 	scene->ClearScene();
+	scene->sceneLoaded = false;
 	App->editor->selectedGameObject = nullptr;
 
 	// Timer to measure loading a scene
@@ -127,17 +128,6 @@ void SceneImporter::LoadScene(const char* filePath) {
 
 	JsonValue ambientLight = jScene[JSON_TAG_AMBIENTLIGHT];
 	App->renderer->ambientColor = {ambientLight[0], ambientLight[1], ambientLight[2]};
-
-	if (App->time->IsGameRunning()) {
-		for (ComponentScript& script : scene->scriptComponents) {
-			Script* scriptInstance = script.GetScriptInstance();
-			if (scriptInstance != nullptr) {
-				scriptInstance->Start();
-			}
-		}
-	}
-
-	App->renderer->lightFrustum.ReconstructFrustum();
 
 	unsigned timeMs = timer.Stop();
 	LOG("Scene loaded in %ums.", timeMs);

@@ -26,6 +26,12 @@
 #define JSON_TAG_TYPE "Type"
 #define JSON_TAG_VALUE "Value"
 
+void ComponentScript::Init() {
+	if (scriptInstance && App->time->HasGameStarted() && App->scene->scene->sceneLoaded) {
+		scriptInstance->Start();
+	}
+}
+
 void ComponentScript::OnEditorUpdate() {
 	if (ImGui::Checkbox("Active", &active)) {
 		if (GetOwner().IsActive()) {
@@ -167,7 +173,7 @@ void ComponentScript::OnEditorUpdate() {
 			case MemberType::FLOAT3: {
 				float3* memberPtr = (float3*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				float3 old = *memberPtr;
-				ImGui::InputFloat3("Target Position", &memberPtr->x, "%.1f");
+				ImGui::InputFloat3(member.name.c_str(), &memberPtr->x, "%.1f");
 				if (!old.Equals(*memberPtr)) {
 					changedValues[member.name] = std::pair<MemberType, MEMBER_VARIANT>(member.type, *memberPtr);
 				}
@@ -294,12 +300,6 @@ void ComponentScript::Load(JsonValue jComponent) {
 	}
 }
 
-void ComponentScript::DuplicateComponent(GameObject& owner) {
-	ComponentScript* component = owner.CreateComponent<ComponentScript>();
-	component->scriptId = scriptId;
-	component->changedValues = changedValues;
-}
-
 void ComponentScript::CreateScriptInstance() {
 	if (scriptInstance != nullptr) return;
 
@@ -316,7 +316,7 @@ void ComponentScript::CreateScriptInstance() {
 			switch (member.type) {
 			case MemberType::BOOL: {
 				bool* memberPtr = (bool*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
-				*memberPtr= std::get<bool>(it->second.second);
+				*memberPtr = std::get<bool>(it->second.second);
 				break;
 			}
 			case MemberType::INT: {
@@ -384,4 +384,12 @@ void ComponentScript::ReleaseScriptInstance() {
 
 Script* ComponentScript::GetScriptInstance() const {
 	return scriptInstance.get();
+}
+
+const char* ComponentScript::GetScriptName() const {
+	if (scriptInstance != nullptr) {
+		ResourceScript* resourceScript = App->resources->GetResource<ResourceScript>(scriptId);
+		return (resourceScript != nullptr) ? (resourceScript->name).c_str() : nullptr;
+	}
+	return nullptr;
 }

@@ -120,7 +120,11 @@ void ResourceClip::SetBeginIndex(unsigned int index) {
 	if (endIndex >= index) {
 		beginIndex = index;
 		keyFramesSize = endIndex - beginIndex;
-		duration = keyFramesSize * animationResource->duration / animationResource->keyFrames.size();
+		if (keyFramesSize == 0) {
+			duration = 1;
+		} else {
+			duration = keyFramesSize * animationResource->duration / animationResource->keyFrames.size();
+		}
 	}
 }
 
@@ -133,7 +137,11 @@ void ResourceClip::SetEndIndex(unsigned int index) {
 	if (index >= beginIndex) {
 		endIndex = index;
 		keyFramesSize = endIndex - beginIndex;
-		duration = keyFramesSize * animationResource->duration / animationResource->keyFrames.size();
+		if (keyFramesSize == 0) {
+			duration = 1;
+		} else {
+			duration = keyFramesSize * animationResource->duration / animationResource->keyFrames.size();
+		}
 	}
 }
 
