@@ -10,10 +10,11 @@
 #define JSON_TAG_MASS "mass"
 #define JSON_TAG_RADIUS "radius"
 #define JSON_TAG_HEIGHT "height"
-#define JSON_TAG_TYPE "type"
+#define JSON_TAG_TYPE "capsuleType"
 #define JSON_TAG_CENTER_OFFSET "centerOffset"
 #define JSON_TAG_FREEZE_ROTATION "freezeRotation"
 #define JSON_TAG_COLLIDER_TYPE "colliderType"
+#define JSON_TAG_LAYER_TYPE "layerType"
 
 void ComponentCapsuleCollider::Init() {
 	if (!centerOffset.IsFinite()) {
@@ -32,16 +33,16 @@ void ComponentCapsuleCollider::Init() {
 void ComponentCapsuleCollider::DrawGizmos() {
 	if (IsActive()) {
 		ComponentTransform* ownerTransform = GetOwner().GetComponent<ComponentTransform>();
-		switch (type) {
+		switch (capsuleType) {
 		case CapsuleType::X:
-			dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), float3(height, 0, 0), dd::colors::Green, radius, radius);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(height / 2, 0, 0), dd::colors::Green, radius, 3);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), dd::colors::Green, radius, 4);
+			dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), float3(height, 0, 0), dd::colors::LawnGreen, radius, radius);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(height / 2, 0, 0), dd::colors::LawnGreen, radius, 3);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), dd::colors::LawnGreen, radius, 4);
 			break;
 		case CapsuleType::Y:
-			dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), float3(0, height, 0), dd::colors::Green, radius, radius);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, height / 2, 0), dd::colors::Green, radius, 1);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), dd::colors::Green, radius, 2);
+			dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), float3(0, height, 0), dd::colors::LawnGreen, radius, radius);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, height / 2, 0), dd::colors::LawnGreen, radius, 1);
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), dd::colors::LawnGreen, radius, 2);
 			break;
 		case CapsuleType::Z:
 			dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), float3(0, 0, height), dd::colors::Green, radius, radius);
@@ -53,6 +54,23 @@ void ComponentCapsuleCollider::DrawGizmos() {
 }
 
 void ComponentCapsuleCollider::OnEditorUpdate() {
+	// World Layers combo box
+	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Everything"};
+	const char* layerCurrent = layerTypeItems[layerIndex];
+	if (ImGui::BeginCombo("Layer", layerCurrent)) {
+		for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {
+			if (ImGui::Selectable(layerTypeItems[n])) {
+				layerIndex = n;
+				layer = WorldLayers(1 << layerIndex);
+				if (App->time->IsGameRunning()) {
+					App->physics->UpdateCapsuleRigidbody(this);
+				}
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	// Collider Type combo box
 	const char* colliderTypeItems[] = {"Dynamic", "Static", "Kinematic", "Trigger"};
 	const char* colliderCurrent = colliderTypeItems[(int) colliderType];
 	if (ImGui::BeginCombo("Collider Mode", colliderCurrent)) {
@@ -82,14 +100,14 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 	}
 
 	const char* types[] = {"X", "Y", "Z"};
-	const char* currentType = types[(int) type];
+	const char* currentType = types[(int) capsuleType];
 	if (ImGui::BeginCombo("Capsule Type Orientation", currentType)) {
 		for (int n = 0; n < IM_ARRAYSIZE(types); ++n) {
 			bool isSelected = (currentType == types[n]);
 			if (ImGui::Selectable(types[n], isSelected)) {
-				type = CapsuleType(n);
+				capsuleType = CapsuleType(n);
 				ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();
-				switch (type) {
+				switch (capsuleType) {
 				case CapsuleType::X:
 					if (boundingBox) {
 						radius = (boundingBox->GetWorldOBB().HalfSize().y > boundingBox->GetWorldOBB().HalfSize().z) ? boundingBox->GetWorldOBB().HalfSize().y : boundingBox->GetWorldOBB().HalfSize().z;
@@ -133,6 +151,9 @@ void ComponentCapsuleCollider::Save(JsonValue jComponent) const {
 	JsonValue jColliderType = jComponent[JSON_TAG_COLLIDER_TYPE];
 	jColliderType = (int) colliderType;
 
+	JsonValue jLayerType = jComponent[JSON_TAG_LAYER_TYPE];
+	jLayerType = (int) layerIndex;
+
 	JsonValue jMass = jComponent[JSON_TAG_MASS];
 	jMass = mass;
 
@@ -143,7 +164,7 @@ void ComponentCapsuleCollider::Save(JsonValue jComponent) const {
 	jHeight = height;
 
 	JsonValue jType = jComponent[JSON_TAG_TYPE];
-	jType = (int) type;
+	jType = (int) capsuleType;
 
 	JsonValue jCenterOffset = jComponent[JSON_TAG_CENTER_OFFSET];
 	jCenterOffset[0] = centerOffset.x;
@@ -158,6 +179,10 @@ void ComponentCapsuleCollider::Load(JsonValue jComponent) {
 	JsonValue jColliderType = jComponent[JSON_TAG_COLLIDER_TYPE];
 	colliderType = (ColliderType)(int) jColliderType;
 
+	JsonValue jLayerType = jComponent[JSON_TAG_LAYER_TYPE];
+	layerIndex = (int) jLayerType;
+	layer = WorldLayers(1 << layerIndex);
+
 	JsonValue jMass = jComponent[JSON_TAG_MASS];
 	mass = jMass;
 
@@ -168,7 +193,7 @@ void ComponentCapsuleCollider::Load(JsonValue jComponent) {
 	height = jHeight;
 
 	JsonValue jType = jComponent[JSON_TAG_TYPE];
-	type = (CapsuleType)(int) jType;
+	capsuleType = (CapsuleType)(int) jType;
 
 	JsonValue jCenterOffset = jComponent[JSON_TAG_CENTER_OFFSET];
 	centerOffset = float3(jCenterOffset[0], jCenterOffset[1], jCenterOffset[2]);

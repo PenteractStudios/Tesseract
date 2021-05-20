@@ -20,7 +20,6 @@ public:
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
-	//void DuplicateComponent(GameObject& owner) override;
 
 	// ----- Collider Functions ---- //
 	void OnCollision();
@@ -29,6 +28,8 @@ public:
 	btRigidBody* rigidBody = nullptr;
 	MotionState motionState = MotionState(nullptr, float3(0, 0, 0), false);
 	ColliderType colliderType = ColliderType::DYNAMIC;
+	int layerIndex = 4;
+	WorldLayers layer = WorldLayers::EVERYTHING;
 	float mass = 1.f;
 	float radius = 1.f;
 	float3 centerOffset = float3::inf;

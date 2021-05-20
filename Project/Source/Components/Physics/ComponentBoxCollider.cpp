@@ -12,6 +12,7 @@
 #define JSON_TAG_CENTER_OFFSET "centerOffset"
 #define JSON_TAG_FREEZE_ROTATION "freezeRotation"
 #define JSON_TAG_COLLIDER_TYPE "colliderType"
+#define JSON_TAG_LAYER_TYPE "layerType"
 
 void ComponentBoxCollider::Init() {
 	if (!centerOffset.IsFinite()) {
@@ -45,11 +46,27 @@ void ComponentBoxCollider::DrawGizmos() {
 		points[6] = points[7];
 		points[7] = aux;
 
-		dd::box(points, dd::colors::White);
+		dd::box(points, dd::colors::LawnGreen);
 	}
 }
 
 void ComponentBoxCollider::OnEditorUpdate() {
+	// World Layers combo box
+	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Everything"};
+	const char* layerCurrent = layerTypeItems[layerIndex];
+	if (ImGui::BeginCombo("Layer", layerCurrent)) {
+		for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {
+			if (ImGui::Selectable(layerTypeItems[n])) {
+				layerIndex = n;
+				layer = WorldLayers(1 << layerIndex);
+				if (App->time->IsGameRunning()) {
+					App->physics->UpdateBoxRigidbody(this);
+				}
+			}
+		}
+		ImGui::EndCombo();
+	}
+
 	// Collider Type combo box
 	const char* colliderTypeItems[] = {"Dynamic", "Static", "Kinematic", "Trigger"};
 	const char* colliderCurrent = colliderTypeItems[(int) colliderType];
@@ -96,6 +113,9 @@ void ComponentBoxCollider::Save(JsonValue jComponent) const {
 	JsonValue jColliderType = jComponent[JSON_TAG_COLLIDER_TYPE];
 	jColliderType = (int) colliderType;
 
+	JsonValue jLayerType = jComponent[JSON_TAG_LAYER_TYPE];
+	jLayerType = (int) layerIndex;
+
 	JsonValue jMass = jComponent[JSON_TAG_MASS];
 	jMass = mass;
 
@@ -117,6 +137,10 @@ void ComponentBoxCollider::Save(JsonValue jComponent) const {
 void ComponentBoxCollider::Load(JsonValue jComponent) {
 	JsonValue jColliderType = jComponent[JSON_TAG_COLLIDER_TYPE];
 	colliderType = (ColliderType)(int) jColliderType;
+
+	JsonValue jLayerType = jComponent[JSON_TAG_LAYER_TYPE];
+	layerIndex = (int) jLayerType;
+	layer = WorldLayers(1 << layerIndex);
 
 	JsonValue jMass = jComponent[JSON_TAG_MASS];
 	mass = jMass;

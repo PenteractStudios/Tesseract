@@ -98,10 +98,10 @@ UpdateStatus ModulePhysics::Update() {
 			btDefaultMotionState* myMotionState = new btDefaultMotionState(btTransform(btQuaternion::getIdentity(), btVector3(position.x, position.y, position.z)));
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(3.0f, myMotionState, colShape, localInertia);
 			btRigidBody* body = new btRigidBody(rbInfo);
-			world->addRigidBody(body);
+
+			world->addRigidBody(body, WorldLayers::WORLD_ELEMENTS, WorldLayers::PLAYER | WorldLayers::WORLD_ELEMENTS);
 			float3 f = App->camera->GetEngineCamera()->frustum.Front();
 			body->applyCentralImpulse(btVector3(f.x * 73.f, f.y * 73.f, f.z * 73.f));
-
 			/*
 
 
@@ -135,25 +135,9 @@ bool ModulePhysics::CleanUp() {
 
 void ModulePhysics::CreateSphereRigidbody(ComponentSphereCollider* sphereCollider) {
 	sphereCollider->motionState = MotionState(sphereCollider, sphereCollider->centerOffset, sphereCollider->freezeRotation);
-	sphereCollider->rigidBody = App->physics->AddSphereBody(&sphereCollider->motionState, sphereCollider->radius, sphereCollider->colliderType == ColliderType::DYNAMIC ? sphereCollider->mass : 0);
-	
-	switch (sphereCollider->colliderType) {
-	case ColliderType::STATIC:
-		sphereCollider->rigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
-		break;
-	case ColliderType::KINEMATIC:
-		sphereCollider->rigidBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
-		sphereCollider->rigidBody->setActivationState(DISABLE_DEACTIVATION);
-		break;
-	case ColliderType::TRIGGER:
-		sphereCollider->rigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT | btCollisionObject::CF_NO_CONTACT_RESPONSE);
-		break;
-	default:
-		break;
-	}
-
+	sphereCollider->rigidBody = AddSphereBody(&sphereCollider->motionState, sphereCollider->radius, sphereCollider->colliderType == ColliderType::DYNAMIC ? sphereCollider->mass : 0);
 	sphereCollider->rigidBody->setUserPointer(sphereCollider);
-	world->addRigidBody(sphereCollider->rigidBody);
+	AddBodyToWorld(sphereCollider->rigidBody, sphereCollider->colliderType, sphereCollider->layer);
 }
 
 btRigidBody* ModulePhysics::AddSphereBody(MotionState* myMotionState, float radius, float mass) {
@@ -181,25 +165,9 @@ void ModulePhysics::UpdateSphereRigidbody(ComponentSphereCollider* sphereCollide
 
 void ModulePhysics::CreateBoxRigidbody(ComponentBoxCollider* boxCollider) {
 	boxCollider->motionState = MotionState(boxCollider, boxCollider->centerOffset, boxCollider->freezeRotation);
-	boxCollider->rigidBody = App->physics->AddBoxBody(&boxCollider->motionState, boxCollider->size / 2, boxCollider->colliderType == ColliderType::DYNAMIC ? boxCollider->mass : 0);
-
-	switch (boxCollider->colliderType) {
-	case ColliderType::STATIC:
-		boxCollider->rigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
-		break;
-	case ColliderType::KINEMATIC:
-		boxCollider->rigidBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
-		boxCollider->rigidBody->setActivationState(DISABLE_DEACTIVATION);
-		break;
-	case ColliderType::TRIGGER:
-		boxCollider->rigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT | btCollisionObject::CF_NO_CONTACT_RESPONSE);
-		break;
-	default:
-		break;
-	}
-
+	boxCollider->rigidBody = AddBoxBody(&boxCollider->motionState, boxCollider->size / 2, boxCollider->colliderType == ColliderType::DYNAMIC ? boxCollider->mass : 0);
 	boxCollider->rigidBody->setUserPointer(boxCollider);
-	world->addRigidBody(boxCollider->rigidBody);
+	AddBodyToWorld(boxCollider->rigidBody, boxCollider->colliderType, boxCollider->layer);
 }
 
 btRigidBody* ModulePhysics::AddBoxBody(MotionState* myMotionState, float3 size, float mass) {
@@ -227,25 +195,9 @@ void ModulePhysics::UpdateBoxRigidbody(ComponentBoxCollider* boxCollider) {
 
 void ModulePhysics::CreateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider) {
 	capsuleCollider->motionState = MotionState(capsuleCollider, capsuleCollider->centerOffset, capsuleCollider->freezeRotation);
-	capsuleCollider->rigidBody = App->physics->AddCapsuleBody(&capsuleCollider->motionState, capsuleCollider->radius, capsuleCollider->height, capsuleCollider->type, capsuleCollider->colliderType == ColliderType::DYNAMIC ? capsuleCollider->mass : 0);
-	
-	switch (capsuleCollider->colliderType) {
-	case ColliderType::STATIC:
-		capsuleCollider->rigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
-		break;
-	case ColliderType::KINEMATIC:
-		capsuleCollider->rigidBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
-		capsuleCollider->rigidBody->setActivationState(DISABLE_DEACTIVATION);
-		break;
-	case ColliderType::TRIGGER:
-		capsuleCollider->rigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT | btCollisionObject::CF_NO_CONTACT_RESPONSE);
-		break;
-	default:
-		break;
-	}
-
+	capsuleCollider->rigidBody = AddCapsuleBody(&capsuleCollider->motionState, capsuleCollider->radius, capsuleCollider->height, capsuleCollider->capsuleType, capsuleCollider->colliderType == ColliderType::DYNAMIC ? capsuleCollider->mass : 0);
 	capsuleCollider->rigidBody->setUserPointer(capsuleCollider);
-	world->addRigidBody(capsuleCollider->rigidBody);
+	AddBodyToWorld(capsuleCollider->rigidBody, capsuleCollider->colliderType, capsuleCollider->layer);
 }
 
 btRigidBody* ModulePhysics::AddCapsuleBody(MotionState* myMotionState, float radius, float height, CapsuleType type, float mass) {
@@ -281,6 +233,44 @@ void ModulePhysics::RemoveCapsuleRigidbody(ComponentCapsuleCollider* capsuleColl
 void ModulePhysics::UpdateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider) {
 	RemoveCapsuleRigidbody(capsuleCollider);
 	CreateCapsuleRigidbody(capsuleCollider);
+}
+
+void ModulePhysics::AddBodyToWorld(btRigidBody* rigidbody, ColliderType colliderType, WorldLayers layer) {
+	switch (colliderType) {
+	case ColliderType::STATIC:
+		rigidbody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
+		break;
+	case ColliderType::KINEMATIC:
+		rigidbody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
+		rigidbody->setActivationState(DISABLE_DEACTIVATION);
+		break;
+	case ColliderType::TRIGGER:
+		rigidbody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+		break;
+	default:
+		break;
+	}
+
+	short collisionMask = 0;
+	switch (layer) {
+	case EVENT_TRIGGERS:
+		collisionMask = WorldLayers::PLAYER | WorldLayers::EVERYTHING;
+		break;
+	case WORLD_ELEMENTS:
+		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::EVERYTHING;
+		break;
+	case PLAYER:
+		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::EVERYTHING;
+		break;
+	case EVERYTHING:
+		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::EVERYTHING;
+		break;
+	default: //NO_COLLISION
+		collisionMask = 0;
+		break;
+	}
+
+	world->addRigidBody(rigidbody, layer, collisionMask);
 }
 
 void ModulePhysics::InitializeRigidBodies() {
