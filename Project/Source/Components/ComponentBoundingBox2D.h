@@ -2,7 +2,9 @@
 
 #include "Component.h"
 
-#include "Geometry/AABB2D.h"
+#include "Geometry/AABB.h"
+#include "Geometry/OBB.h"
+
 
 class ComponentBoundingBox2D : public Component {
 public:
@@ -15,14 +17,22 @@ public:
 	void Load(JsonValue jComponent) override;
 	bool CanBeRemoved() const override;
 
-	void SetLocalBoundingBox(const AABB2D& boundingBox);
+	//void SetLocalBoundingBox(const AABB2D& boundingBox);
+	void SetLocalBoundingBox(const AABB& boundingBox);
 	void CalculateWorldBoundingBox(bool force = false);
 	void DrawGizmos();
 	void Invalidate();
-	const AABB2D& GetWorldAABB() const;
+	const AABB& GetWorldAABB() const;
+	const OBB& GetWorldOBB() const;
 
 private:
 	bool dirty = true;
-	AABB2D localAABB = {{0, 0}, {0, 0}};
-	AABB2D worldAABB = {{0, 0}, {0, 0}};
+
+	//AABB2D localAABB = {{0, 0}, {0, 0}};
+	AABB localAABB;
+	//AABB2D worldAABB = {{0, 0}, {0, 0}};
+	AABB worldAABB;
+
+	OBB worldOBB;
+	
 };

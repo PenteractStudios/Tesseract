@@ -236,8 +236,8 @@ void ComponentTransform2D::DrawGizmos() {
 	ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
 	float factor = canvasRenderer ? canvasRenderer->GetCanvasScreenFactor() : 1.0f;
 	if (!App->time->IsGameRunning()) {
-		dd::box(GetPosition(), dd::colors::Yellow, size.x * scale.x / 100, size.y * scale.y / 100, 0);
-		dd::box(pivotPosition * factor, dd::colors::OrangeRed, 0.1f, 0.1f, 0.f);
+		//dd::box(GetPosition(), dd::colors::Yellow, size.x * scale.x / 100, size.y * scale.y / 100, 0);
+		//dd::box(pivotPosition * factor, dd::colors::OrangeRed, 0.1f, 0.1f, 0.f);
 	}
 }
 

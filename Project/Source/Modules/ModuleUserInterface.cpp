@@ -56,11 +56,11 @@ UpdateStatus ModuleUserInterface::Update() {
 
 			if (bb) {
 				if (!selectable.IsHovered()) {
-					if (bb->GetWorldAABB().Contains(mousePos)) {
+					if (bb->GetWorldAABB().Contains(float3(mousePos, 0.0f))) {
 						selectable.OnPointerEnter();
 					}
 				} else {
-					if (!bb->GetWorldAABB().Contains(mousePos)) {
+					if (!bb->GetWorldAABB().Contains(float3(mousePos, 0.0f))) {
 						selectable.OnPointerExit();
 					}
 				}

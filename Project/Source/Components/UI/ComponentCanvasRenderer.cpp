@@ -36,13 +36,6 @@ void ComponentCanvasRenderer::Render(const GameObject* gameObject) const {
 	}
 }
 
-void ComponentCanvasRenderer::DrawGizmos() {
-	if (!App->time->IsGameRunning() && !App->userInterface->IsUsing2D()) {
-		float2 canvasSize = GetCanvasSize();
-		dd::box(float3(canvasSize.x * 0.5f, canvasSize.y * 0.5, 0.0f), dd::colors::Gray, canvasSize.x, canvasSize.y, 0);
-	}
-}
-
 float2 ComponentCanvasRenderer::GetCanvasSize() {
 	ComponentCanvas* canvas = AnyParentHasCanvas(&GetOwner());
 	return canvas ? canvas->GetSize() : float2(1920, 1080);
