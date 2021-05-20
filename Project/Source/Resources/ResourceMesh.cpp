@@ -37,6 +37,8 @@ void ResourceMesh::Load() {
 	unsigned bonesIDSize = sizeof(unsigned) * 4;
 	unsigned weightsSize = sizeof(float) * 4;
 	unsigned indexSize = sizeof(unsigned);
+	// Add to elementsPerVertex any other element that must be included in the Vertex
+	int elementsPerVertex = 3 + 3 + 2 + 4 + 4;
 
 	unsigned vertexSize = positionSize + normalSize + uvSize + bonesIDSize + weightsSize;
 	unsigned vertexBufferSize = vertexSize * numVertices;
@@ -67,10 +69,6 @@ void ResourceMesh::Load() {
 		position.z = *((float*) cursor);
 		cursor += sizeof(float);
 
-		vertices.push_back(position.x);
-		vertices.push_back(position.y);
-		vertices.push_back(position.z);
-
 		// Scaling
 		scaling.x = *((float*) cursor);
 		cursor += sizeof(float);
@@ -99,8 +97,24 @@ void ResourceMesh::Load() {
 	float* vertices = (float*) cursor;
 	cursor += vertexBufferSize;
 
+
+	for (int i = 0; i < numVertices * elementsPerVertex; i += elementsPerVertex) {
+		meshVertices.push_back(vertices[i]);
+		meshVertices.push_back(vertices[i + 1]);
+		meshVertices.push_back(vertices[i + 2]);
+	}
+
+	//LOG("------");
+	//for (int i = 0; i < meshVertices.size(); i += 3) {
+	//	LOG("%f | %f | %f", meshVertices[i], meshVertices[i + 1], meshVertices[i+2]);
+	//}
+
 	// Indices
 	unsigned* indices = (unsigned*) cursor;
+
+	for (int i = 0; i < numIndices; ++i) {
+		meshIndices.push_back(indices[i]);
+	}
 
 	LOG("Loading %i vertices...", numVertices);
 

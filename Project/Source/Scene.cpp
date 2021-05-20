@@ -295,8 +295,46 @@ std::vector<float> Scene::GetVertices() {
 	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
 		if (mesh != nullptr) {
-			result.insert(result.end(), mesh->vertices.begin(), mesh->vertices.end());
+			ComponentTransform* transform = meshRenderer.GetOwner().GetComponent<ComponentTransform>();
+			for (size_t i = 0; i < mesh->meshVertices.size(); i += 3) {
+				float4 transformedVertex = transform->GetGlobalMatrix() * float4(mesh->meshVertices[i], mesh->meshVertices[i + 1], mesh->meshVertices[i + 2], 1);
+				result.push_back(transformedVertex.x);
+				result.push_back(transformedVertex.y);
+				result.push_back(transformedVertex.z);
+			}
 		}
+	}
+
+	return result;
+}
+
+std::vector<int> Scene::GetTriangles() {
+	
+	int triangles = 0;
+	int i = 0;
+	std::vector<int> maxVertMesh(meshRendererComponents.Count() + 1, 0);
+	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
+		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
+		triangles += mesh->numIndices / 3;
+		maxVertMesh[i + 1] = mesh->numVertices;
+		i++;
+	}
+	std::vector<int> result(triangles * 3);
+	
+	int currentGlobalTri = 0;
+	int vertOverload = 0;
+	i = 0;
+
+	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
+		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
+		vertOverload += maxVertMesh[i];
+		for (int j = 0; j < mesh->meshIndices.size(); j += 3) {
+			result[currentGlobalTri] = mesh->meshIndices[j] + vertOverload;
+			result[currentGlobalTri + 1] = mesh->meshIndices[j + 1] + vertOverload;
+			result[currentGlobalTri + 2] = mesh->meshIndices[j + 2] + vertOverload;
+			currentGlobalTri += 3;
+		}
+		i++;
 	}
 
 	return result;

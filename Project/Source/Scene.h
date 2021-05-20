@@ -49,6 +49,7 @@ public:
 
 	int GetTotalTriangles() const;
 	std::vector<float> GetVertices();
+	std::vector<int> GetTriangles();
 
 public:
 	GameObject* root = nullptr;			  // GameObject Root. Parent of everything and god among gods (Game Object Deity) :D.

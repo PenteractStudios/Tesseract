@@ -39,7 +39,7 @@ public:
 	// AGENT
 	float agentHeight = 2.0f;
 	float agentRadius = 0.5f;
-	float agentMaxClimb = 0.4f; // Step height in Unity
+	float agentMaxClimb = 0.9f; // Step height in Unity
 	float agentMaxSlope = 45;
 
 	// RASTERIZATION
@@ -92,5 +92,12 @@ private:
 	int cacheLayerCount;
 	int cacheBuildMemUsage;
 
+	rcHeightfield* solid;
+	unsigned char* triareas = nullptr;
+
+	rcCompactHeightfield* chf;
+	rcContourSet* cset;
+	rcPolyMesh* pmesh;
+	rcPolyMeshDetail* dmesh;
 
 };
