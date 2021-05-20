@@ -62,19 +62,19 @@ void ComponentTrail::Update() {
 			trianglesCreated -= 30;
 		}
 
-		insertVertex(previousPositionDown);
-		insertTextureCoords();
-		insertVertex(currentPositionDown);
-		insertTextureCoords();
-		insertVertex(previousPositionUp);
-		insertTextureCoords();
+		InsertVertex(previousPositionDown);
+		InsertTextureCoords();
+		InsertVertex(currentPositionDown);
+		InsertTextureCoords();
+		InsertVertex(previousPositionUp);
+		InsertTextureCoords();
 
-		insertVertex(currentPositionDown);
-		insertTextureCoords();
-		insertVertex(currentPositionUp);
-		insertTextureCoords();
-		insertVertex(previousPositionUp);
-		insertTextureCoords();
+		InsertVertex(currentPositionDown);
+		InsertTextureCoords();
+		InsertVertex(currentPositionUp);
+		InsertTextureCoords();
+		InsertVertex(previousPositionUp);
+		InsertTextureCoords();
 
 		quadsCreated++;
 		Draw();
@@ -99,7 +99,6 @@ void ComponentTrail::DrawGizmos() {
 void ComponentTrail::OnEditorUpdate() {
 	ImGui::ResourceSlot<ResourceShader>("shader", &shaderID);
 	ImGui::InputFloat("Witdh: ", &width);
-	ImGui::ColorEdit4("InitColor##", initC.ptr());
 
 	UID oldID = textureID;
 	ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);

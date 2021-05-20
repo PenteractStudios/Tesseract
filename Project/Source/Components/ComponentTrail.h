@@ -28,7 +28,6 @@ private:
 	UID textureID = 0; // ID of the image
 	UID shaderID = 0;  // ID of the shader
 
-	float4 initC;
 	int nSegments = 1;
 	int quadsCreated = 0;
 	int maxVertices = 1500;
@@ -39,11 +38,11 @@ private:
 	float minDistance = 2.0f;
 	float verticesPosition[1500];
 
-	float3 currentPosition;
-	float3 previousPosition;
-	float3 previousVectorUp;
-	float3 currentPositionUp;
-	float3 currentPositionDown;
+	float3 currentPosition = float3(0, 0, 0);
+	float3 previousPosition = float3(0, 0, 0);
+	float3 previousVectorUp = float3(0, 0, 0);
+	float3 currentPositionUp = float3(0, 0, 0);
+	float3 currentPositionDown = float3(0, 0, 0);
 	float3 previousPositionUp = float3(0, 0, 0);
 	float3 previousPositionDown = float3(0, 0, 0);
 
