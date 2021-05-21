@@ -36,7 +36,7 @@ private:
 	float width = 0.1;
 	float timePoint = 1.0f;
 	float minDistance = 2.0f;
-	float verticesPosition[1500];
+	float verticesPosition[1500] = {0.0f};
 
 	float3 currentPosition = float3(0, 0, 0);
 	float3 previousPosition = float3(0, 0, 0);

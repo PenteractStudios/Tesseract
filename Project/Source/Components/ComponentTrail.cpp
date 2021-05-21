@@ -89,9 +89,6 @@ void ComponentTrail::Update() {
 }
 
 void ComponentTrail::Init() {
-	for (float& vertice : verticesPosition) {
-		vertice = 0.0f;
-	}
 }
 void ComponentTrail::DrawGizmos() {
 }
