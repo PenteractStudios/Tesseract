@@ -30,6 +30,8 @@
 #define JSON_TAG_METALLIC_MAP "MetallicMap"
 #define JSON_TAG_METALLIC "Metalness"
 #define JSON_TAG_NORMAL_MAP "NormalMap"
+#define JSON_TAG_EMISSIVE_MAP "EmissiveMap"
+#define JSON_TAG_AMBIENT_OCCLUSION_MAP "AmbientOcclusionMap"
 #define JSON_TAG_SMOOTHNESS "Smoothness"
 #define JSON_TAG_HAS_SMOOTHNESS_IN_ALPHA_CHANNEL "HasSmoothnessInAlphaChannel"
 #define JSON_TAG_TILING "Tiling"
@@ -69,6 +71,12 @@ void ResourceMaterial::Load() {
 
 	normalMapId = jMaterial[JSON_TAG_NORMAL_MAP];
 	App->resources->IncreaseReferenceCount(normalMapId);
+
+	emissiveMapId = jMaterial[JSON_TAG_EMISSIVE_MAP];
+	App->resources->IncreaseReferenceCount(emissiveMapId);
+
+	ambientOcclusionMapId = jMaterial[JSON_TAG_AMBIENT_OCCLUSION_MAP];
+	App->resources->IncreaseReferenceCount(ambientOcclusionMapId);
 
 	smoothness = jMaterial[JSON_TAG_SMOOTHNESS];
 	hasSmoothnessInAlphaChannel = jMaterial[JSON_TAG_HAS_SMOOTHNESS_IN_ALPHA_CHANNEL];
@@ -117,6 +125,8 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	jMaterial[JSON_TAG_METALLIC] = metallic;
 	jMaterial[JSON_TAG_METALLIC_MAP] = metallicMapId;
 	jMaterial[JSON_TAG_NORMAL_MAP] = normalMapId;
+	jMaterial[JSON_TAG_EMISSIVE_MAP] = emissiveMapId;
+	jMaterial[JSON_TAG_AMBIENT_OCCLUSION_MAP] = ambientOcclusionMapId;
 
 	jMaterial[JSON_TAG_SMOOTHNESS] = smoothness;
 	jMaterial[JSON_TAG_HAS_SMOOTHNESS_IN_ALPHA_CHANNEL] = hasSmoothnessInAlphaChannel;
@@ -219,51 +229,53 @@ void ResourceMaterial::OnEditorUpdate() {
 			ImGui::PopID();
 		}
 
-	} else if (shaderType == MaterialShader::STANDARD_SPECULAR) {
-		// Specular Options
-		ImGui::TextColored(App->editor->titleColor, "Specular");
-		if (specularMapId == 0) {
-			ImGui::ColorEdit4("Specular Color##color_s", specularColor.ptr(), ImGuiColorEditFlags_NoInputs);
+	} else {
+		if (shaderType == MaterialShader::STANDARD_SPECULAR) {
+			// Specular Options
+			ImGui::TextColored(App->editor->titleColor, "Specular");
+			if (specularMapId == 0) {
+				ImGui::ColorEdit4("Specular Color##color_s", specularColor.ptr(), ImGuiColorEditFlags_NoInputs);
+			}
+			ImGui::ResourceSlot<ResourceTexture>("Specular Texture", &specularMapId);
+			if (ImGui::Button("Remove texture map##specular")) {
+				if (specularMapId != 0) {
+					App->resources->DecreaseReferenceCount(specularMapId);
+					specularMapId = 0;
+				}
+			}
+
+		} else if (shaderType == MaterialShader::STANDARD) {
+			// Metallic Options
+			ImGui::TextColored(App->editor->titleColor, "Metalness");
+			if (metallicMapId == 0) {
+				ImGui::SliderFloat("##metalness", &metallic, 0.0, 1.0);
+			}
+			ImGui::ResourceSlot<ResourceTexture>("Metallic Texture", &metallicMapId);
+			if (ImGui::Button("Remove texture map##metallic")) {
+				if (metallicMapId != 0) {
+					App->resources->DecreaseReferenceCount(metallicMapId);
+					metallicMapId = 0;
+				}
+			}
 		}
-		ImGui::ResourceSlot<ResourceTexture>("Specular Texture", &specularMapId);
-		if (ImGui::Button("Remove texture map##specular")) {
-			if (specularMapId != 0) {
-				App->resources->DecreaseReferenceCount(specularMapId);
-				specularMapId = 0;
+
+		// Emissive Options
+		ImGui::TextColored(App->editor->titleColor, "Emissive Mapping");
+		ImGui::ResourceSlot<ResourceTexture>("Emissive Texture", &emissiveMapId);
+		if (ImGui::Button("Remove texture map##emissive")) {
+			if (emissiveMapId != 0) {
+				App->resources->DecreaseReferenceCount(emissiveMapId);
+				emissiveMapId = 0;
 			}
 		}
 
-		// Smoothness Options
-		ImGui::TextColored(App->editor->titleColor, "Smoothness");
-		ImGui::Text("Smoothness");
-
-		const char* smoothnessItems[] = {"Diffuse Alpha", "Specular Alpha"};
-		const char* smoothnessItemCurrent = smoothnessItems[hasSmoothnessInAlphaChannel];
-		if (ImGui::BeginCombo("##smoothness", smoothnessItemCurrent)) {
-			for (int n = 0; n < IM_ARRAYSIZE(smoothnessItems); ++n) {
-				bool isSelected = (smoothnessItemCurrent == smoothnessItems[n]);
-				if (ImGui::Selectable(smoothnessItems[n], isSelected)) {
-					hasSmoothnessInAlphaChannel = n;
-				}
-				if (isSelected) {
-					ImGui::SetItemDefaultFocus();
-				}
-			}
-			ImGui::EndCombo();
-		}
-		ImGui::SliderFloat("##smooth_", &smoothness, 0.0, 1.0);
-
-	} else if (shaderType == MaterialShader::STANDARD) {
-		// Metallic Options
-		ImGui::TextColored(App->editor->titleColor, "Metalness");
-		if (metallicMapId == 0) {
-			ImGui::SliderFloat("##metalness", &metallic, 0.0, 1.0);
-		}
-		ImGui::ResourceSlot<ResourceTexture>("Metallic Texture", &metallicMapId);
-		if (ImGui::Button("Remove texture map##metallic")) {
-			if (metallicMapId != 0) {
-				App->resources->DecreaseReferenceCount(metallicMapId);
-				metallicMapId = 0;
+		// Ambient Occlusion Options
+		ImGui::TextColored(App->editor->titleColor, "Ambient Occlusion Mapping");
+		ImGui::ResourceSlot<ResourceTexture>("Ambient Occlusion Texture", &ambientOcclusionMapId);
+		if (ImGui::Button("Remove texture map##ambientOcclusion")) {
+			if (ambientOcclusionMapId != 0) {
+				App->resources->DecreaseReferenceCount(ambientOcclusionMapId);
+				ambientOcclusionMapId = 0;
 			}
 		}
 
@@ -287,6 +299,7 @@ void ResourceMaterial::OnEditorUpdate() {
 		}
 		ImGui::SliderFloat("##smooth_", &smoothness, 0.0, 1.0);
 	}
+	
 
 	// Normal Options
 	ImGui::TextColored(App->editor->titleColor, "Normal Mapping");
