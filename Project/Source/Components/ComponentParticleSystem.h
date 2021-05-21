@@ -68,11 +68,13 @@ private:
 	bool alphaTransparency = false; // Enables Alpha Transparency of the image and the color
 	bool isRandomFrame = false;
 	bool randomDirection = false;
+	//TODO USE THIS FETURE
+	bool sizeOverTime = false;
 
 	float3 initC = float3::one;
 	float3 finalC = float3::one;
 	float4 color = float4::one; // Color used as default tainter
-
+	float animationSpeed = 0.0f;
 	float scale = 5;
 	unsigned maxParticles = 100;
 	float velocity = 0.1f;

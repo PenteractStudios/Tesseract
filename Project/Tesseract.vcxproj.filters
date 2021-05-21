@@ -175,6 +175,8 @@
     <ClCompile Include="Source\Components\UI\ComponentProgressBar.cpp" />
     <ClCompile Include="Source\Components\ComponentParticleSystem.cpp" />
     <ClCompile Include="Source\Panels\PanelImportOptions.cpp" />
+    <ClCompile Include="Source\Components\ComponentTrail.cpp" />
+    <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Source\MaskType.cpp" />
     <ClCompile Include="Source\Panels\PanelDebug.cpp" />
     <ClCompile Include="Source\FileSystem\ImporterCommon.cpp" />
@@ -456,6 +458,7 @@
     <ClInclude Include="Source\Panels\PanelImportOptions.h" />
     <ClInclude Include="Source\MaskType.h" />
     <ClInclude Include="Source\FileSystem\ImporterCommon.h" />
+    <ClInclude Include="Source\Components\ComponentTrail.h" />
     <ClInclude Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Source\MaskType.h" />
     <ClInclude Include="Source\Panels\PanelDebug.h" />
