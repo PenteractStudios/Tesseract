@@ -44,6 +44,7 @@ public:
 	void OnEnable() override;
 	void OnDisable() override;
 	bool IsHovered() const;
+	void SetHovered(bool hovered_);
 	bool IsSelected() const;
 	void Save(JsonValue jsonVal) const override;
 	void Load(JsonValue jsonVal) override;

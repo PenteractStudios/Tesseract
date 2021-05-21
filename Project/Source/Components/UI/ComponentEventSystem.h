@@ -22,6 +22,7 @@ public:
 	void OnDisable() override;
 
 	void SetSelected(UID newSelectableComponentId);
+	void SetSelected(ComponentSelectable* newSelectable);
 	void EnteredPointerOnSelectable(ComponentSelectable* newHoveredComponent);	//Interface implementation
 	void ExitedPointerOnSelectable(ComponentSelectable* newUnHoveredComponent); //Interface implementation
 	ComponentSelectable* GetCurrentSelected() const;							//Returns currently selected ComponentSelectable
@@ -32,7 +33,8 @@ public:
 private:
 	UID selectedId = 0; //Currently selected SelectableComponent*
 	GameObject* clickedObj = nullptr;
-	std::vector<UID> hoveredSelectableIds; //vector of SelectableComponents* it updates (adding/removing) with mouse events
+	UID hoveredSelectableID = 0;
+	bool started = false;
 
 public:
 	UID firstSelectedId = 0; //Reference to the "first selected selectableComponent", this is not used directly but Unity implements it so that users can access it
