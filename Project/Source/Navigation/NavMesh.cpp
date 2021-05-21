@@ -2,8 +2,11 @@
 
 #include "Application.h"
 #include "Modules/ModuleScene.h"
+#include "Modules/ModuleDebugDraw.h"
+#include "Modules/ModuleCamera.h"
 #include "Scene.h"
 #include "Components/ComponentMeshRenderer.h"
+
 
 #include "Recast/Recast.h"
 #include "Detour/DetourStatus.h"
@@ -26,6 +29,9 @@
 #include "Recast/RecastAssert.h"
 #include "fastlz/fastlz.h"
 
+#include "GL/glew.h"
+
+//#include "debugdraw.h"
 
 #include "Utils/Logging.h"
 #include "Utils/Leaks.h"
@@ -362,7 +368,10 @@ NavMesh::NavMesh() :
 	//drawMode(DRAWMODE_NAVMESH),
 	maxTiles(0),
 	maxPolysPerTile(0),
-	tileSize(48) {
+	tileSize(48),
+	
+	navMeshDrawFlags(DU_DRAWNAVMESH_OFFMESHCONS | DU_DRAWNAVMESH_CLOSEDLIST)
+{
 
 	// SAMPLE INIT
 	//resetCommonSettings();
@@ -764,4 +773,139 @@ bool NavMesh::Build() {
 	//initToolStates(this);
 
 	return true;
+}
+
+void NavMesh::Render() {
+
+	DebugDrawGL dds;
+
+	glClearColor(.1f, .1f, .1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glLoadMatrixf(App->camera->GetProjectionMatrix().Transposed().ptr());
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glLoadMatrixf(App->camera->GetViewMatrix().Transposed().ptr());
+	
+
+
+	glEnable(GL_FOG);
+	glDepthMask(GL_TRUE);
+	
+	const float texScale = 1.0f / (cellSize * 10.0f);
+
+	// CHECK
+	//if (drawMode != DRAWMODE_NAVMESH_TRANS) {
+	//	// Draw mesh
+	//	duDebugDrawTriMeshSlope(&dds, geom->getMesh()->getVerts(), geom->getMesh()->getVertCount(), geom->getMesh()->getTris(), geom->getMesh()->getNormals(), geom->getMesh()->getTriCount(), agentMaxSlope, texScale);
+	//	geom->drawOffMeshConnections(&dds);
+	//}
+
+	glDisable(GL_FOG);
+	glDepthMask(GL_FALSE);
+
+	// Draw bounds
+	//const float* bmin = geom->getNavMeshBoundsMin();
+	//const float* bmax = geom->getNavMeshBoundsMax();
+	float bmin[3] = {INT_MAX, INT_MAX, INT_MAX};
+	float bmax[3] = {INT_MIN, INT_MIN, INT_MIN};
+	for (ComponentBoundingBox boundingBox : App->scene->scene->boundingBoxComponents) {
+		AABB currentBB = boundingBox.GetWorldAABB();
+		float3 currentBBMin = currentBB.minPoint;
+		float3 currentBBMax = currentBB.maxPoint;
+		bmin[0] = currentBBMin.x < bmin[0] ? currentBBMin.x : bmin[0];
+		bmin[1] = currentBBMin.y < bmin[1] ? currentBBMin.y : bmin[1];
+		bmin[2] = currentBBMin.z < bmin[2] ? currentBBMin.z : bmin[2];
+		bmax[0] = currentBBMax.x > bmax[0] ? currentBBMax.x : bmax[0];
+		bmax[1] = currentBBMax.y > bmax[1] ? currentBBMax.y : bmax[1];
+		bmax[2] = currentBBMax.z > bmax[2] ? currentBBMax.z : bmax[2];
+	}
+
+	duDebugDrawBoxWire(&dds, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duRGBA(255, 255, 255, 128), 1.0f);
+
+	dds.begin(DU_DRAW_POINTS, 5.0f);
+	dds.vertex(bmin[0], bmin[1], bmin[2], duRGBA(255, 255, 255, 128));
+	dds.end();
+
+	if (navMesh && navQuery && (drawMode == DRAWMODE_NAVMESH || drawMode == DRAWMODE_NAVMESH_TRANS || drawMode == DRAWMODE_NAVMESH_BVTREE || drawMode == DRAWMODE_NAVMESH_NODES || drawMode == DRAWMODE_NAVMESH_INVIS)) {
+		if (drawMode != DRAWMODE_NAVMESH_INVIS)
+			duDebugDrawNavMeshWithClosedList(&dds, *navMesh, *navQuery, navMeshDrawFlags);
+		if (drawMode == DRAWMODE_NAVMESH_BVTREE)
+			duDebugDrawNavMeshBVTree(&dds, *navMesh);
+		if (drawMode == DRAWMODE_NAVMESH_NODES)
+			duDebugDrawNavMeshNodes(&dds, *navQuery);
+		duDebugDrawNavMeshPolysWithFlags(&dds, *navMesh, SAMPLE_POLYFLAGS_DISABLED, duRGBA(0, 0, 0, 128));
+	}
+
+	glDepthMask(GL_TRUE);
+
+	if (chf && drawMode == DRAWMODE_COMPACT)
+		duDebugDrawCompactHeightfieldSolid(&dds, *chf);
+
+	if (chf && drawMode == DRAWMODE_COMPACT_DISTANCE)
+		duDebugDrawCompactHeightfieldDistance(&dds, *chf);
+	if (chf && drawMode == DRAWMODE_COMPACT_REGIONS)
+		duDebugDrawCompactHeightfieldRegions(&dds, *chf);
+	if (solid && drawMode == DRAWMODE_VOXELS) {
+		glEnable(GL_FOG);
+		duDebugDrawHeightfieldSolid(&dds, *solid);
+		glDisable(GL_FOG);
+	}
+	if (solid && drawMode == DRAWMODE_VOXELS_WALKABLE) {
+		glEnable(GL_FOG);
+		duDebugDrawHeightfieldWalkable(&dds, *solid);
+		glDisable(GL_FOG);
+	}
+	if (cset && drawMode == DRAWMODE_RAW_CONTOURS) {
+		glDepthMask(GL_FALSE);
+		duDebugDrawRawContours(&dds, *cset);
+		glDepthMask(GL_TRUE);
+	}
+	if (cset && drawMode == DRAWMODE_BOTH_CONTOURS) {
+		glDepthMask(GL_FALSE);
+		duDebugDrawRawContours(&dds, *cset, 0.5f);
+		duDebugDrawContours(&dds, *cset);
+		glDepthMask(GL_TRUE);
+	}
+	if (cset && drawMode == DRAWMODE_CONTOURS) {
+		glDepthMask(GL_FALSE);
+		duDebugDrawContours(&dds, *cset);
+		glDepthMask(GL_TRUE);
+	}
+	if (chf && cset && drawMode == DRAWMODE_REGION_CONNECTIONS) {
+		duDebugDrawCompactHeightfieldRegions(&dds, *chf);
+
+		glDepthMask(GL_FALSE);
+		duDebugDrawRegionConnections(&dds, *cset);
+		glDepthMask(GL_TRUE);
+	}
+	if (pmesh && drawMode == DRAWMODE_POLYMESH) {
+		glDepthMask(GL_FALSE);
+		duDebugDrawPolyMesh(&dds, *pmesh);
+		glDepthMask(GL_TRUE);
+	}
+	if (dmesh && drawMode == DRAWMODE_POLYMESH_DETAIL) {
+		glDepthMask(GL_FALSE);
+		duDebugDrawPolyMeshDetail(&dds, *dmesh);
+		glDepthMask(GL_TRUE);
+	}
+
+	//geom->drawConvexVolumes(&dds);
+
+	//if (tool)
+	//	tool->handleRender();
+	//renderToolStates();
+
+	glDepthMask(GL_TRUE);
+
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
 }

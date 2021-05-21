@@ -70,6 +70,8 @@ public:
 	void Disable();
 	bool IsActive() const;
 	bool IsActiveInHierarchy() const;
+	void SetStatic(bool value);
+	bool IsStatic() const;
 
 	UID GetID() const;
 
@@ -114,6 +116,7 @@ public:
 
 private:
 	bool active = true;
+	bool isStatic = false; // Used for NavMesh creation atm
 	UID prefabId = 0;
 	GameObject* parent = nullptr;
 	GameObject* rootBoneHierarchy = nullptr;

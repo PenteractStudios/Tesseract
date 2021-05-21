@@ -19,6 +19,7 @@
 #define JSON_TAG_ID "Id"
 #define JSON_TAG_NAME "Name"
 #define JSON_TAG_ACTIVE "Active"
+#define JSON_TAG_STATIC "Static"
 #define JSON_TAG_ROOT_BONE_ID "RootBoneId"
 #define JSON_TAG_ROOT_BONE_NAME "RootBoneName"
 #define JSON_TAG_TYPE "Type"
@@ -69,6 +70,14 @@ bool GameObject::IsActiveInHierarchy() const {
 	if (parent) return parent->IsActiveInHierarchy() && active;
 
 	return active;
+}
+
+void GameObject::SetStatic(bool value) {
+	isStatic = value;
+}
+
+bool GameObject::IsStatic() const {
+	return isStatic;
 }
 
 UID GameObject::GetID() const {
@@ -166,6 +175,7 @@ void GameObject::Save(JsonValue jGameObject) const {
 	jGameObject[JSON_TAG_ID] = id;
 	jGameObject[JSON_TAG_NAME] = name.c_str();
 	jGameObject[JSON_TAG_ACTIVE] = active;
+	jGameObject[JSON_TAG_STATIC] = isStatic;
 	jGameObject[JSON_TAG_ROOT_BONE_ID] = rootBoneHierarchy != nullptr ? rootBoneHierarchy->id : 0;
 
 	JsonValue jComponents = jGameObject[JSON_TAG_COMPONENTS];
@@ -193,6 +203,7 @@ void GameObject::Load(JsonValue jGameObject) {
 	id = newId;
 	name = jGameObject[JSON_TAG_NAME];
 	active = jGameObject[JSON_TAG_ACTIVE];
+	isStatic = jGameObject[JSON_TAG_STATIC];
 
 	JsonValue jComponents = jGameObject[JSON_TAG_COMPONENTS];
 	for (unsigned i = 0; i < jComponents.Size(); ++i) {

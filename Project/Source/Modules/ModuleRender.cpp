@@ -20,6 +20,7 @@
 #include "Modules/ModulePrograms.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleTime.h"
+#include "Modules/ModuleNavigation.h"
 #include "Resources/ResourceMesh.h"
 #include "TesseractEvent.h"
 
@@ -211,6 +212,11 @@ UpdateStatus ModuleRender::Update() {
 			}
 		}
 	}
+
+	if (drawNavMesh) {
+		App->navigation->RenderNavMesh();
+	}
+
 
 	//Render UI
 	RenderUI();

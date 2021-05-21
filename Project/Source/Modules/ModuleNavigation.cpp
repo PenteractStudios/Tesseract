@@ -9,11 +9,17 @@ bool ModuleNavigation::Init() {
 }
 
 void ModuleNavigation::BakeNavMesh() {
-	bool baked = navMesh.Build();
-	if (baked) {
+	generated = navMesh.Build();
+	if (generated) {
 		LOG("NavMesh successfully baked");
 	} else {
 		LOG("NavMesh ERROR. Could not be baked");
+	}
+}
+
+void ModuleNavigation::RenderNavMesh() {
+	if (generated) {
+		navMesh.Render();
 	}
 }
 

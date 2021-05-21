@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Recast/SampleInterfaces.h"
+//#include "Recast/NavMeshTesterTool.h"
 
 /// These are just sample areas to use consistent values across the samples.
 /// The use should specify these base on his needs.
@@ -28,12 +29,34 @@ public:
 	~NavMesh();
 
 	bool Build();
+	void Render();
 
 public:
 	enum SamplePartitionType {
 		SAMPLE_PARTITION_WATERSHED,
 		SAMPLE_PARTITION_MONOTONE,
 		SAMPLE_PARTITION_LAYERS,
+	};
+
+	enum DrawMode {
+		DRAWMODE_NAVMESH,
+		DRAWMODE_NAVMESH_TRANS,
+		DRAWMODE_NAVMESH_BVTREE,
+		DRAWMODE_NAVMESH_NODES,
+		DRAWMODE_NAVMESH_INVIS,
+		DRAWMODE_MESH,
+		DRAWMODE_VOXELS,
+		DRAWMODE_VOXELS_WALKABLE,
+		DRAWMODE_COMPACT,
+		DRAWMODE_COMPACT_DISTANCE,
+		DRAWMODE_COMPACT_REGIONS,
+		DRAWMODE_REGION_CONNECTIONS,
+		DRAWMODE_RAW_CONTOURS,
+		DRAWMODE_BOTH_CONTOURS,
+		DRAWMODE_CONTOURS,
+		DRAWMODE_POLYMESH,
+		DRAWMODE_POLYMESH_DETAIL,
+		MAX_DRAWMODE
 	};
 
 	// AGENT
@@ -68,7 +91,13 @@ public:
 	// TILING
 	int tileSize = 56;
 
+	// DRAW MODE
+	DrawMode drawMode = DRAWMODE_NAVMESH;
+
 private:
+	
+
+
 	BuildContext* ctx;
 
 	class InputGeom* geom;
@@ -100,4 +129,7 @@ private:
 	rcPolyMesh* pmesh;
 	rcPolyMeshDetail* dmesh;
 
+	unsigned char navMeshDrawFlags;
+
+	//NavMeshTesterTool* tool;
 };

@@ -111,6 +111,7 @@ void PanelScene::Update() {
 				ImGui::Checkbox("Camera Frustums", &App->renderer->drawCameraFrustums);
 				ImGui::Checkbox("Light Gizmos", &App->renderer->drawLightGizmos);
 				ImGui::Checkbox("Animation Bones", &App->renderer->drawAllBones);
+				ImGui::Checkbox("NavMesh", &App->renderer->drawNavMesh);
 				ImGui::Separator();
 				ImGui::EndPopup();
 			}

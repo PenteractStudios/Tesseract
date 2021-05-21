@@ -63,6 +63,11 @@ void PanelInspector::Update() {
 				selected->name = name;
 			}
 
+			bool isStatic = selected->IsStatic();
+			if (ImGui::Checkbox("Static##game_object_static", &isStatic)) {
+				selected->SetStatic(isStatic);
+			}
+
 			ImGui::Separator();
 
 			// Don't show Scene PanelInpector information
