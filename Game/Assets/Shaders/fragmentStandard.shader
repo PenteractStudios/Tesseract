@@ -101,7 +101,9 @@ vec3 GetNormal(sampler2D normalMap, vec2 uv, mat3 TBN, float normalStrength)
 
 float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMap) {
 
-	vec3 projCoords = lightPos.xyz / lightPos.w;
+	vec3 projCoords;
+	//projCoords = lightPos.xyz / lightPos.w; // If perspective, we need to apply perspective division
+	projCoords = lightPos.xyz;
 	projCoords = projCoords * 0.5 + 0.5;
 
 	float closestDepth = texture(shadowMap, projCoords.xy).r;
@@ -260,10 +262,12 @@ void main()
 	vec3 Cd = colorDiffuse.rgb * (1 - metalnessMask);
 	vec3 F0 = mix(vec3(0.04), colorDiffuse.rgb, metalnessMask);
 
+	float shadow = Shadow(fragPosLight, normal,  normalize(light.directional.direction), depthMapTexture);
+
 	// Directional Light
 	if (light.directional.isActive == 1)
 	{
-		colorAccumulative += ProcessDirectionalLight(light.directional, normal, viewDir, Cd, F0, roughness);
+		colorAccumulative += (1 - shadow) * ProcessDirectionalLight(light.directional, normal, viewDir, Cd, F0, roughness);
 	}
 
 	// Point Light
@@ -304,10 +308,12 @@ void main()
 
     vec3 colorAccumulative = colorDiffuse.rgb * light.ambient.color;
 
+	float shadow = Shadow(fragPosLight, normal, normalize(light.directional.direction), depthMapTexture);
+
     // Directional Light
     if (light.directional.isActive == 1)
     {
-        colorAccumulative += ProcessDirectionalLight(light.directional, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+        colorAccumulative += (1 - shadow) * ProcessDirectionalLight(light.directional, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
     }
 
 	// Point Light
