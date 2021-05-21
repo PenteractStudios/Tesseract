@@ -7,7 +7,7 @@
     ],
     "QuadtreeMaxDepth": 4,
     "QuadtreeElementsPerNode": 200,
-    "GameCamera": 17963575687084872499,
+    "GameCamera": 9997301164474655871,
     "AmbientLight": [
         0.25,
         0.25,
@@ -158,7 +158,7 @@
                             ],
                             "NearPlaneDistance": 0.10000000149011612,
                             "FarPlaneDistance": 200.0,
-                            "HorizontalFov": 2.033430814743042,
+                            "HorizontalFov": 1.9605313539505005,
                             "VerticalFov": 1.3113912343978882
                         }
                     },
@@ -223,12 +223,12 @@
                         "Type": "Script",
                         "Id": 9954753908584207344,
                         "Active": true,
-                        "Script": 7922689938248139169,
+                        "Script": 4352532089779053350,
                         "Values": [
                             {
-                                "Name": "prefabId",
-                                "Type": "PrefabResourceUID",
-                                "Value": 7821893670062307649
+                                "Name": "cameraUID",
+                                "Type": "GameObjectUID",
+                                "Value": 9959938295577888656
                             },
                             {
                                 "Name": "sceneId",
@@ -236,24 +236,14 @@
                                 "Value": 17292986642128493312
                             },
                             {
-                                "Name": "cameraUID",
-                                "Type": "GameObjectUID",
-                                "Value": 9959938295577888656
-                            },
-                            {
-                                "Name": "cameraOffsetZ",
-                                "Type": "Float",
-                                "Value": -6.0
+                                "Name": "prefabId",
+                                "Type": "PrefabResourceUID",
+                                "Value": 2262200073206642743
                             },
                             {
                                 "Name": "gunId",
                                 "Type": "GameObjectUID",
-                                "Value": 17599826517542333056
-                            },
-                            {
-                                "Name": "cameraOffsetY",
-                                "Type": "Float",
-                                "Value": 2.0
+                                "Value": 2082151223965155619
                             }
                         ]
                     }
@@ -1420,73 +1410,7 @@
                                                                                                                 ]
                                                                                                             }
                                                                                                         ],
-                                                                                                        "Children": [
-                                                                                                            {
-                                                                                                                "Id": 17599826517542333056,
-                                                                                                                "Name": "Game Object",
-                                                                                                                "Active": true,
-                                                                                                                "ActiveHierarchy": true,
-                                                                                                                "RootBoneId": 0,
-                                                                                                                "Mask": 0,
-                                                                                                                "Components": [
-                                                                                                                    {
-                                                                                                                        "Type": "Transform",
-                                                                                                                        "Id": 17856722389959446720,
-                                                                                                                        "Active": true,
-                                                                                                                        "Position": [
-                                                                                                                            -0.30634307861328127,
-                                                                                                                            5.4506988525390629,
-                                                                                                                            0.3570442199707031
-                                                                                                                        ],
-                                                                                                                        "Rotation": [
-                                                                                                                            0.0,
-                                                                                                                            0.0,
-                                                                                                                            0.0,
-                                                                                                                            1.0
-                                                                                                                        ],
-                                                                                                                        "Scale": [
-                                                                                                                            1.0,
-                                                                                                                            1.0,
-                                                                                                                            1.0
-                                                                                                                        ],
-                                                                                                                        "LocalEulerAngles": [
-                                                                                                                            -0.0,
-                                                                                                                            0.0,
-                                                                                                                            -0.0
-                                                                                                                        ]
-                                                                                                                    },
-                                                                                                                    {
-                                                                                                                        "Type": "Particle",
-                                                                                                                        "Id": 11745756571005767914,
-                                                                                                                        "Active": true,
-                                                                                                                        "ShaderId": 14019853473958997531,
-                                                                                                                        "TextureId": 4465459578951329041,
-                                                                                                                        "IsPlaying": true,
-                                                                                                                        "IsLooping": false,
-                                                                                                                        "IsRandomFrame": false,
-                                                                                                                        "IsRandomDirection": false,
-                                                                                                                        "ParticleScale": 5.0,
-                                                                                                                        "MaxParticle": 1,
-                                                                                                                        "Velocity": 0.0,
-                                                                                                                        "LifeParticle": 1.0,
-                                                                                                                        "Ytiles": 2,
-                                                                                                                        "Xtiles": 5,
-                                                                                                                        "AnimationSpeed": 10.0,
-                                                                                                                        "InitColor": [
-                                                                                                                            1.0,
-                                                                                                                            1.0,
-                                                                                                                            1.0
-                                                                                                                        ],
-                                                                                                                        "FinalColor": [
-                                                                                                                            1.0,
-                                                                                                                            1.0,
-                                                                                                                            1.0
-                                                                                                                        ]
-                                                                                                                    }
-                                                                                                                ],
-                                                                                                                "Children": null
-                                                                                                            }
-                                                                                                        ]
+                                                                                                        "Children": null
                                                                                                     }
                                                                                                 ]
                                                                                             }

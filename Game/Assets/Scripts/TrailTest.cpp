@@ -75,7 +75,7 @@ void TrailTest::Update() {
 	if (Input::GetMouseButtonDown(0)) {
 		ResourcePrefab* prefab = GameplaySystems::GetResource<ResourcePrefab>(prefabId);
 		if (prefab != nullptr) {
-			fangGun->GetComponent<ComponentParticleSystem>()->Play();
+			/*		fangGun->GetComponent<ComponentParticleSystem>()->Play();*/
 			GameplaySystems::Instantiate(prefab, FangGuntransform->GetGlobalPosition(), transform->GetGlobalRotation());
 			float3 frontTrail = transform->GetGlobalRotation() * float3(0.0f, 0.0f, 1.0f);
 			GameObject* secondTrail = GameplaySystems::Instantiate(prefab, FangGuntransform->GetGlobalPosition(), Quat::RotateAxisAngle(frontTrail, (pi / 2)).Mul(transform->GetGlobalRotation()));
