@@ -1,8 +1,9 @@
 #include "ComponentSkyBox.h"
 
 #include "Application.h"
+#include "GameObject.h"
 #include "Utils/ImGuiUtils.h"
-#include "Resources/ResourceShader.h"
+#include "Resources/ResourceSkybox.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleEditor.h"
 #include "ComponentSkyBox.h"
@@ -32,32 +33,35 @@ void ComponentSkyBox::Load(JsonValue jComponent) {
 }
 
 void ComponentSkyBox::OnEditorUpdate() {
-	bool active = IsActive();
 	if (ImGui::Checkbox("Active", &active)) {
-		active ? Enable() : Disable();
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
 	}
 	ImGui::Separator();
-
-	ImGui::ResourceSlot<ResourceShader>("Shader", &shaderId);
 	ImGui::ResourceSlot<ResourceSkybox>("Skybox", &skyboxId);
 }
 
 void ComponentSkyBox::Draw() {
-	ResourceShader* shader = (ResourceShader*) App->resources->GetResource(shaderId);
-	if (shader == nullptr) return;
-	ResourceSkybox* skybox = (ResourceSkybox*) App->resources->GetResource(skyboxId);
+	if (!IsActive()) return;
+
+	ResourceSkybox* skybox = App->resources->GetResource<ResourceSkybox>(skyboxId);
 	if (skybox == nullptr) return;
 
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL);
 
-	unsigned int programSky = shader->GetShaderProgram();
-	glUseProgram(programSky);
+	unsigned program = App->programs->skybox;
+	glUseProgram(program);
 	float4x4 proj = App->camera->GetProjectionMatrix();
 	float4x4 view = App->camera->GetViewMatrix();
 
-	glUniformMatrix4fv(glGetUniformLocation(programSky, "view"), 1, GL_TRUE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(programSky, "proj"), 1, GL_TRUE, &proj[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, &proj[0][0]);
 
 	glBindVertexArray(skybox->GetVAO());
 	glActiveTexture(GL_TEXTURE0);

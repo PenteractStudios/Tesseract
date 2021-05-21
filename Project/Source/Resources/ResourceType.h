@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Math/myassert.h"
-
 /* Creating a new resource type:
 *    1. Add a new ResourceType for the new resource
 *    2. Add REGISTER_RESOURCE to the .h of the new resource
@@ -26,7 +24,10 @@ enum class ResourceType {
 	FONT,
 	SKYBOX,
 	SCRIPT,
-	ANIMATION
+	ANIMATION,
+	STATE_MACHINE,
+	CLIP,
+	AUDIO
 };
 
 const char* GetResourceTypeName(ResourceType type);

@@ -1,28 +1,17 @@
 #include "ModuleEvents.h"
 
 #include "Utils/Logging.h"
+#include "Resources/Resource.h"
+#include "Utils/AssetFile.h"
 
 #include "Utils/Leaks.h"
 
-void ModuleEvents::AddEvent(const Event& newEvent) {
-	eventQueue.push(newEvent);
-}
-
-Event ModuleEvents::PopEvent() {
-	Event tmp(EventType::UNKNOWN);
-	eventQueue.try_pop(tmp);
-	return tmp;
-}
-
-void ModuleEvents::ProcessEvents() {
-	while (!eventQueue.empty()) {
-		ProcessEvent(PopEvent());
-	}
-}
-
-void ModuleEvents::ProcessEvent(Event& e) {
-	for (Module* m : observerMap[e.type]) {
-		m->ReceiveEvent(e);
+//TODO see why these cleanups generate errors
+static void CleanUpEvent(TesseractEvent& e) {
+	switch (e.type) {
+	case TesseractEventType::UPDATE_FOLDERS:
+		RELEASE(e.Get<UpdateFoldersStruct>().folder);
+		break;
 	}
 }
 
@@ -43,33 +32,43 @@ UpdateStatus ModuleEvents::PostUpdate() {
 	return UpdateStatus::CONTINUE;
 }
 
-void ModuleEvents::AddObserverToEvent(EventType type, Module* moduleToAdd) {
-	observerMap[type].push_back(moduleToAdd);
+bool ModuleEvents::CleanUp() {
+	while (!eventQueue.empty()) {
+		TesseractEvent e(TesseractEventType::UNKNOWN);
+		eventQueue.try_pop(e);
+		CleanUpEvent(e);
+	}
+	return true;
 }
 
-void ModuleEvents::RemoveObserverFromEvent(EventType type, Module* moduleToRemove) {
-	for (std::vector<Module*>::iterator it = observerMap[type].begin(); it != observerMap[type].end(); ++it) {
+void ModuleEvents::AddObserverToEvent(TesseractEventType type, Module* moduleToAdd) {
+	observerArray[(int) type].push_back(moduleToAdd);
+}
+
+void ModuleEvents::RemoveObserverFromEvent(TesseractEventType type, Module* moduleToRemove) {
+	for (std::vector<Module*>::iterator it = observerArray[(int) type].begin(); it != observerArray[(int) type].end(); ++it) {
 		if (*it == moduleToRemove) {
-			observerMap[type].erase(it);
+			observerArray[(int) type].erase(it);
 			return;
 		}
 	}
 }
 
-bool ModuleEvents::CleanUp() {
-	observerMap.clear();
-	while (!eventQueue.empty()) {
-		Event anEvent(EventType::UNKNOWN);
-		eventQueue.try_pop(anEvent);
+void ModuleEvents::AddEvent(const TesseractEvent& newEvent) {
+	eventQueue.push(newEvent);
+}
 
-		switch (anEvent.type) {
-		case EventType::ADD_RESOURCE:
-			RELEASE(anEvent.addResource.resource);
-			break;
-		case EventType::UPDATE_FOLDERS:
-			RELEASE(anEvent.updateFolders.folder);
-			break;
-		}
+void ModuleEvents::ProcessEvents() {
+	while (!eventQueue.empty()) {
+		TesseractEvent e(TesseractEventType::UNKNOWN);
+		eventQueue.try_pop(e);
+		ProcessEvent(e);
+		CleanUpEvent(e);
 	}
-	return true;
+}
+
+void ModuleEvents::ProcessEvent(TesseractEvent& e) {
+	for (Module* m : observerArray[(int) e.type]) {
+		m->ReceiveEvent(e);
+	}
 }

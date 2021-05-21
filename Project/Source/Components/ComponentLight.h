@@ -21,12 +21,10 @@ public:
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
-	void DuplicateComponent(GameObject& owner) override;
 
 	void UpdateLight();
 
 public:
-	bool drawGizmos = true;						  // If true, the Gizmos will be drawn on DrawGizmos().
 	LightType lightType = LightType::DIRECTIONAL; // Defines the type of the light from one in the LightType enum.
 	float3 pos = {0.0f, 0.0f, 0.0f};			  // World coordinates from where the light is emitting. Corresponds to the GameObject Transform and will update on OnTransformUpdate().
 	float3 direction = {0.0f, 0.0f, 0.0f};		  // Direction the light emits to. Corresponds to the GameObject Rotation and will update on OnTransformUpdate().

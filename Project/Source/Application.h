@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Utils/MSTimer.h"
 #include <vector>
 
 enum class UpdateStatus;

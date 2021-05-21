@@ -4,7 +4,6 @@
 #include "UI/Interfaces/IPointerEnterHandler.h"
 #include "UI/Interfaces/IPointerExitHandler.h"
 
-#include <vector>
 #include "Math/float2.h"
 #include "Math/float4.h"
 
@@ -52,7 +51,7 @@ public:
 	// Inherited vía IPointerEnterHandler
 	virtual void OnPointerEnter() override;
 	virtual void OnPointerExit() override;
-	void DuplicateComponent(GameObject& owner) override;
+	bool CanBeRemoved() const override; //This override returns false if the GameObject holds a ComponentButton/ComponentToggle
 
 	Component* GetSelectableComponent();
 	void SetSelectableType(ComponentType type_); // Sets the enum that hints which other component (that would inherit from Selectable) is contained within the same GameObject
@@ -60,6 +59,7 @@ public:
 	const float4 GetHoverColor() const;			 // Returns colorHovered
 	const float4 GetSelectedColor() const;		 // Returns colorSelected
 	TransitionType GetTransitionType() const;
+	void TryToClickOn() const;
 
 public:
 	UID onAxisUp = 0;

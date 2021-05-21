@@ -4,37 +4,57 @@
 
 #include "imgui.h"
 #include "IconsForkAwesome.h"
-
 #include "Math/MathFunc.h"
-
 #include <algorithm>
 #include <windows.h>
 #include <vector>
 #include <string.h>
 #include <fstream>
 
-static char currentSelectedPath_[FILENAME_MAX];
-static std::string title_;
-static std::string currentDrive_;
-static bool open_ = false;
-static AllowedExtensionsFlag ext_;
-static std::string selectedPath_;
-static bool saveMode_ = false;
-static char fileName_[FILENAME_MAX];
-static bool override_ = false;
+#include "Utils/Leaks.h"
 
-void FileDialog::Init(const std::string& title, bool saveMode, AllowedExtensionsFlag ext, const std::string& defaultPath) {
-	title_ = title;
-	if (defaultPath == "") {
-		sprintf(currentSelectedPath_, GetAbsolutePath(".").c_str());
+struct FileDialogContext {
+	std::string workingDirectory_ = "";
+
+	char currentSelectedPath_[FILENAME_MAX] = {'\0'};
+	char fileName_[FILENAME_MAX] = {'\0'};
+	std::string title_ = "";
+	std::string currentDrive_ = "";
+	bool open_ = false;
+	AllowedExtensionsFlag ext_ = AllowedExtensionsFlag::ALL;
+	std::string selectedPath_ = "";
+	bool saveMode_ = false;
+	bool override_ = false;
+};
+
+static FileDialogContext* fileDialogContext = nullptr;
+
+void FileDialog::CreateContext() {
+	RELEASE(fileDialogContext);
+	fileDialogContext = new FileDialogContext();
+
+	TCHAR NPath[MAX_PATH];
+	GetCurrentDirectory(MAX_PATH, NPath);
+	fileDialogContext->workingDirectory_ = NPath;
+}
+
+void FileDialog::DestroyContext() {
+	RELEASE(fileDialogContext);
+}
+
+void FileDialog::Init(const std::string& title, bool saveMode, AllowedExtensionsFlag ext, const char* specificPath) {
+	fileDialogContext->title_ = title;
+	if (fileDialogContext->workingDirectory_ == "") {
+		sprintf(fileDialogContext->currentSelectedPath_, GetAbsolutePath(".").c_str());
 	} else {
-		sprintf(currentSelectedPath_, defaultPath.c_str());
+		sprintf(fileDialogContext->currentSelectedPath_, (fileDialogContext->workingDirectory_ + ((specificPath!=nullptr) ? (std::string("\\") + specificPath) : "")).c_str());
+			
 	}
-	saveMode_ = saveMode;
-	currentDrive_ = std::string() + currentSelectedPath_[0] + ":";
-	ext_ = ext;
-	override_ = false;
-	memset(fileName_, 0, FILENAME_MAX);
+	fileDialogContext->saveMode_ = saveMode;
+	fileDialogContext->currentDrive_ = std::string() + fileDialogContext->currentSelectedPath_[0] + ":";
+	fileDialogContext->ext_ = ext;
+	fileDialogContext->override_ = false;
+	memset(fileDialogContext->fileName_, 0, FILENAME_MAX);
 	ImGui::OpenPopup(title.c_str());
 }
 
@@ -50,7 +70,7 @@ bool FileDialog::OverrideAlertDialog(const std::string& file) {
 		ImGui::NewLine();
 		ImGui::SameLine(ImGui::GetWindowWidth() - 120);
 		if (ImGui::Button("Yes", ImVec2(50, 20))) {
-			override_ = true;
+			fileDialogContext->override_ = true;
 			ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
 			ImGui::PopStyleVar();
@@ -76,12 +96,12 @@ bool FileDialog::OpenDialog(const std::string& title, std::string& selectedPath)
 	if (ImGui::BeginPopupModal(title.c_str(), nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar)) {
 		//DriversCombo
 		ImGui::PushItemWidth(4 * ImGui::GetFontSize());
-		if (ImGui::BeginCombo("##Drives", currentDrive_.c_str())) {
+		if (ImGui::BeginCombo("##Drives", fileDialogContext->currentDrive_.c_str())) {
 			std::vector<std::string> drives = GetDrives();
 			for (std::string& drive : drives) {
-				if (ImGui::Selectable(drive.c_str(), currentDrive_[0] == drive[0])) {
-					currentDrive_ = drive;
-					sprintf(currentSelectedPath_, drive.c_str());
+				if (ImGui::Selectable(drive.c_str(), fileDialogContext->currentDrive_[0] == drive[0])) {
+					fileDialogContext->currentDrive_ = drive;
+					sprintf(fileDialogContext->currentSelectedPath_, drive.c_str());
 				}
 			}
 			ImGui::EndCombo();
@@ -91,67 +111,67 @@ bool FileDialog::OpenDialog(const std::string& title, std::string& selectedPath)
 		//RouteInput
 		ImGui::SameLine();
 		ImGui::PushItemWidth(-1);
-		ImGui::InputText("##route", currentSelectedPath_, FILENAME_MAX);
+		ImGui::InputText("##route", fileDialogContext->currentSelectedPath_, FILENAME_MAX);
 		ImGui::PopItemWidth();
 
 		//FileExplorer
 		float reserveHeight = ImGui::GetFrameHeightWithSpacing();
 		ImGui::BeginChild("FileExplorer", ImVec2(0, -reserveHeight), true);
-		for (std::string& file : GetFilesInFolder(currentSelectedPath_, ext_)) {
+		for (std::string& file : GetFilesInFolder(fileDialogContext->currentSelectedPath_, fileDialogContext->ext_)) {
 			std::string icon = ICON_FK_FILE;
-			std::string absoluteFilePath = std::string(currentSelectedPath_) + "\\" + file;
+			std::string absoluteFilePath = std::string(fileDialogContext->currentSelectedPath_) + "\\" + file;
 			bool isDirectory = IsDirectory(absoluteFilePath.c_str());
 			if (isDirectory) icon = ICON_FK_FOLDER;
 
 			std::string selectableLabel = std::string(icon + " ") + file;
 			if (ImGui::Selectable(selectableLabel.c_str())) {
 				if (isDirectory) {
-					if ((selectedPath_ == absoluteFilePath)) {
+					if ((fileDialogContext->selectedPath_ == absoluteFilePath)) {
 						if (file == "..") {
-							sprintf(currentSelectedPath_, GetFileFolder(currentSelectedPath_).c_str());
+							sprintf(fileDialogContext->currentSelectedPath_, GetFileFolder(fileDialogContext->currentSelectedPath_).c_str());
 						} else {
-							sprintf(currentSelectedPath_, absoluteFilePath.c_str());
+							sprintf(fileDialogContext->currentSelectedPath_, absoluteFilePath.c_str());
 						}
-						selectedPath_ = "";
+						fileDialogContext->selectedPath_ = "";
 					} else {
-						selectedPath_ = absoluteFilePath.c_str();
+						fileDialogContext->selectedPath_ = absoluteFilePath.c_str();
 					}
 				} else {
-					selectedPath_ = absoluteFilePath.c_str();
-					if (saveMode_) sprintf(fileName_, GetFileNameAndExtension(absoluteFilePath.c_str()).c_str());
+					fileDialogContext->selectedPath_ = absoluteFilePath.c_str();
+					if (fileDialogContext->saveMode_) sprintf(fileDialogContext->fileName_, GetFileNameAndExtension(absoluteFilePath.c_str()).c_str());
 				}
 			}
 		}
-		selectedPath = selectedPath_;
+		selectedPath = fileDialogContext->selectedPath_;
 		ImGui::EndChild();
 
 		//SelectedPath
-		if (saveMode_) {
+		if (fileDialogContext->saveMode_) {
 			ImGui::PushItemWidth(6 * ImGui::GetFontSize());
 			ImGui::LabelText("##FileName", "File name:");
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			ImGui::PushItemWidth(25 * ImGui::GetFontSize());
-			ImGui::InputText("##FileName", fileName_, FILENAME_MAX);
+			ImGui::InputText("##FileName", fileDialogContext->fileName_, FILENAME_MAX);
 			ImGui::PopItemWidth();
 		} else {
-			ImGui::Text(selectedPath_.c_str());
+			ImGui::Text(fileDialogContext->selectedPath_.c_str());
 		}
 
 		//Buttons
 		ImGui::SameLine(ImGui::GetWindowWidth() - 120);
-		if (ImGui::Button((saveMode_) ? "Save" : "Accept", ImVec2(50, 20))) {
-			selectedPath = (saveMode_) ? std::string(currentSelectedPath_) + "\\" + std::string(fileName_) : selectedPath_;
+		if (ImGui::Button((fileDialogContext->saveMode_) ? "Save" : "Accept", ImVec2(50, 20))) {
+			selectedPath = (fileDialogContext->saveMode_) ? std::string(fileDialogContext->currentSelectedPath_) + "\\" + std::string(fileDialogContext->fileName_) : fileDialogContext->selectedPath_;
 
-			if (!saveMode_ || !Exists(selectedPath.c_str())) {
+			if (!fileDialogContext->saveMode_ || !Exists(selectedPath.c_str())) {
 				ImGui::CloseCurrentPopup();
 				ImGui::EndPopup();
 				return true;
-			} else if (saveMode_) {
+			} else if (fileDialogContext->saveMode_) {
 				ImGui::OpenPopup("Override alert");
 			}
 		}
-		if (override_) {
+		if (fileDialogContext->override_) {
 			ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
 			return true;

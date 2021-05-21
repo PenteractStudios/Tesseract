@@ -6,7 +6,8 @@
 #include "GameObject.h"
 #include "Utils/Logging.h"
 #include "Panels/PanelScene.h"
-#include "Modules/ModuleEditor.h"
+#include "Modules/ModuleWindow.h"
+#include "Modules/ModuleRender.h"
 
 #include "debugdraw.h"
 #include "Geometry/AABB.h"
@@ -15,6 +16,8 @@
 #include "Math/float3x3.h"
 
 #include "Utils/Leaks.h"
+
+#define JSON_TAG_LOCAL_BOUNDING_BOX2D "LocalBoundingBox2D"
 
 void ComponentBoundingBox2D::Init() {
 	ComponentTransform2D* transform2D = GetOwner().GetComponent<ComponentTransform2D>();
@@ -29,11 +32,6 @@ void ComponentBoundingBox2D::Init() {
 
 void ComponentBoundingBox2D::Update() {
 	CalculateWorldBoundingBox();
-}
-
-void ComponentBoundingBox2D::DuplicateComponent(GameObject& owner) {
-	ComponentBoundingBox2D* component = owner.CreateComponent<ComponentBoundingBox2D>();
-	component->SetLocalBoundingBox(AABB2D(localAABB));
 }
 
 void ComponentBoundingBox2D::Save(JsonValue jComponent) const {
@@ -60,12 +58,26 @@ void ComponentBoundingBox2D::SetLocalBoundingBox(const AABB2D& boundingBox) {
 void ComponentBoundingBox2D::CalculateWorldBoundingBox(bool force) {
 	if (dirty || force) {
 		ComponentTransform2D* transform2d = GetOwner().GetComponent<ComponentTransform2D>();
+		ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
+		float screenFactor = 1.0f;
+		float2 screenSize(0, 0);
+		float3 position(0, 0, 0);
+		if (canvasRenderer != nullptr) {
+			screenFactor = canvasRenderer->GetCanvasScreenFactor();
+			screenSize = canvasRenderer->GetCanvasSize();
+			position = transform2d->GetScreenPosition();
+		}
 
-		//worldAABB minPoint is the localAABB's min point mulitplied by the rect transform's scale and size, adding the rect transform position
-		//Right now to calculate position we add half the size of the WindowScene because all textures are "centered" for their coordinates
 
-		worldAABB.minPoint = transform2d->GetPosition().xy().Mul(float2(1.0f, -1.0f)) + App->editor->panelScene.GetSceneWindowSize() / 2.0f + localAABB.minPoint.Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy() * 1.01f));
-		worldAABB.maxPoint = transform2d->GetPosition().xy().Mul(float2(1.0f, -1.0f)) + App->editor->panelScene.GetSceneWindowSize() / 2.0f + localAABB.maxPoint.Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy() * 1.01f));
+		worldAABB.minPoint = position.xy().Mul(float2(1.0f, -1.0f).Mul(screenFactor)) + screenSize / 2.0f
+							 + localAABB.minPoint.Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy()).Mul(screenFactor));
+		worldAABB.maxPoint = position.xy().Mul(float2(1.0f, -1.0f).Mul(screenFactor)) + screenSize / 2.0f
+							 + localAABB.maxPoint.Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy()).Mul(screenFactor));
+#if GAME
+		float2 windowPos = float2(App->window->GetPositionX(), App->window->GetPositionY());
+		worldAABB.minPoint += windowPos;
+		worldAABB.maxPoint += windowPos;
+#endif
 	}
 }
 
@@ -79,4 +91,8 @@ void ComponentBoundingBox2D::Invalidate() {
 
 const AABB2D& ComponentBoundingBox2D::GetWorldAABB() const {
 	return worldAABB;
+}
+
+bool ComponentBoundingBox2D::CanBeRemoved() const {
+	return !GetOwner().GetComponent<ComponentSelectable>();
 }

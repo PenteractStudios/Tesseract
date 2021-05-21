@@ -33,12 +33,13 @@ void ResourceMesh::Load() {
 
 	unsigned positionSize = sizeof(float) * 3;
 	unsigned normalSize = sizeof(float) * 3;
+	unsigned tangentSize = sizeof(float) * 3;
 	unsigned uvSize = sizeof(float) * 2;
 	unsigned bonesIDSize = sizeof(unsigned) * 4;
 	unsigned weightsSize = sizeof(float) * 4;
 	unsigned indexSize = sizeof(unsigned);
 
-	unsigned vertexSize = positionSize + normalSize + uvSize + bonesIDSize + weightsSize;
+	unsigned vertexSize = positionSize + normalSize + tangentSize + uvSize + bonesIDSize + weightsSize;
 	unsigned vertexBufferSize = vertexSize * numVertices;
 	unsigned indexBufferSize = indexSize * numIndices;
 
@@ -121,12 +122,14 @@ void ResourceMesh::Load() {
 	glEnableVertexAttribArray(2);
 	glEnableVertexAttribArray(3);
 	glEnableVertexAttribArray(4);
+	glEnableVertexAttribArray(5);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, (void*) 0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertexSize, (void*) positionSize);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, vertexSize, (void*) (positionSize + normalSize));
-	glVertexAttribIPointer(3, 4, GL_UNSIGNED_INT, vertexSize, (void*) (positionSize + normalSize + uvSize));
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, vertexSize, (void*) (positionSize + normalSize + uvSize + bonesIDSize));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, vertexSize, (void*) (positionSize + normalSize));
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, vertexSize, (void*) (positionSize + normalSize + tangentSize));
+	glVertexAttribIPointer(4, 4, GL_UNSIGNED_INT, vertexSize, (void*) (positionSize + normalSize + tangentSize + uvSize));
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, vertexSize, (void*) (positionSize + normalSize + tangentSize + uvSize + bonesIDSize));
 
 	// Unbind VAO
 	glBindVertexArray(0);
@@ -172,10 +175,11 @@ std::vector<Triangle> ResourceMesh::ExtractTriangles(const float4x4& modelMatrix
 
 	// Vertices
 	unsigned normalSize = sizeof(float) * 3;
+	unsigned tangentSize = sizeof(float) * 3;
 	unsigned uvSize = sizeof(float) * 2;
 	unsigned bonesIDSize = sizeof(unsigned) * 4;
 	unsigned weightsSize = sizeof(float) * 4;
-	unsigned nonPosVertexAttributesSize = normalSize + uvSize + bonesIDSize + weightsSize;
+	unsigned nonPosVertexAttributesSize = normalSize + tangentSize + uvSize + bonesIDSize + weightsSize;
 	std::vector<float3> vertices;
 	for (unsigned i = 0; i < numVertices; ++i) {
 		float vertex[3] = {};

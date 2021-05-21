@@ -1,23 +1,13 @@
 #include "Logging.h"
 
-#include <sstream>
 #include <windows.h>
-#include <stdio.h>
-#include <mutex>
-#include <queue>
 
 #include "Leaks.h"
 
-std::mutex logMessageQueueMutex;
-std::queue<std::string> logMessageQueue;
-
-void Log(const char file[], int line, const char* format, ...) {
-	static char tmpString[4096];
-	static char tmpString2[4096];
-	static va_list ap;
-
+void Logger::Log(const char file[], int line, const char* format, ...) {
 	// Construct the string from variable arguments
 	logMessageQueueMutex.lock();
+	va_list ap;
 	va_start(ap, format);
 	vsprintf_s(tmpString, 4096, format, ap);
 	va_end(ap);
@@ -27,16 +17,16 @@ void Log(const char file[], int line, const char* format, ...) {
 	logMessageQueueMutex.unlock();
 }
 
-void UpdateLogString() {
+void Logger::UpdateLogString() {
 	logMessageQueueMutex.lock();
 	while (!logMessageQueue.empty()) {
-		logString->append(logMessageQueue.front());
+		logString += logMessageQueue.front();
 		logMessageQueue.pop();
 	}
 	logMessageQueueMutex.unlock();
 }
 
-void LogDeltaMS(float deltaMs) {
+void Logger::LogDeltaMS(float deltaMs) {
 	float fps = 1000.0f / deltaMs;
 	fpsLogIndex -= 1;
 	if (fpsLogIndex < 0) {
@@ -46,7 +36,4 @@ void LogDeltaMS(float deltaMs) {
 	msLog[fpsLogIndex] = deltaMs;
 }
 
-std::string* logString = nullptr;
-int fpsLogIndex = FPS_LOG_SIZE - 1;
-float fpsLog[FPS_LOG_SIZE] = {0};
-float msLog[FPS_LOG_SIZE] = {0};
+Logger* logger = nullptr;

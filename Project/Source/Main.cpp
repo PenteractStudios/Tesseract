@@ -8,6 +8,12 @@
 
 #include "Utils/Leaks.h"
 
+// Use discrete GPU by default.
+extern "C" {
+__declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
+__declspec(dllexport) unsigned long AmdPowerXpressRequestHighPerformance = 0x00000001;
+}
+
 enum class MainState {
 	CREATION,
 	INIT,
@@ -25,8 +31,8 @@ int main(int argc, char** argv) {
 	_CrtMemCheckpoint(&memState);
 #endif
 
-	// Initialize logging
-	logString = new std::string();
+	// Logging
+	logger = new Logger();
 
 	// Game loop
 	int mainReturn = EXIT_FAILURE;
@@ -91,7 +97,7 @@ int main(int argc, char** argv) {
 	LOG("Bye :)\n");
 
 	RELEASE(App);
-	RELEASE(logString);
+	RELEASE(logger);
 
 #ifdef _DEBUG
 	_CrtMemDumpAllObjectsSince(&memState);

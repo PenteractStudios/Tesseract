@@ -15,3 +15,7 @@
 
 # Penteract solution
 /Game/Penteract/
+
+# Penteract pdb/dll
+/Game/Penterac_.pdb
+/Game/Penterac_.dll

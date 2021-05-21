@@ -18,9 +18,17 @@
 void ComponentBoundingBox::OnEditorUpdate() {
 	ImGui::TextColored(App->editor->titleColor, "Bounding Box");
 
-	bool active = IsActive();
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
 
-	if (ImGui::Checkbox("Draw", &active)) active ? Enable() : Disable();
 
 	if (IsActive()) DrawBoundingBox();
 }
@@ -41,12 +49,6 @@ void ComponentBoundingBox::Load(JsonValue jComponent) {
 	localAABB.maxPoint.Set(jLocalBoundingBox[3], jLocalBoundingBox[4], jLocalBoundingBox[5]);
 
 	dirty = true;
-}
-
-void ComponentBoundingBox::DuplicateComponent(GameObject& owner) {
-	ComponentBoundingBox* component = owner.CreateComponent<ComponentBoundingBox>();
-	component->SetLocalBoundingBox(this->localAABB);
-	//component->bbActive = this->bbActive;
 }
 
 void ComponentBoundingBox::SetLocalBoundingBox(const AABB& boundingBox) {
@@ -93,4 +95,13 @@ const OBB& ComponentBoundingBox::GetWorldOBB() {
 const AABB& ComponentBoundingBox::GetWorldAABB() {
 	CalculateWorldBoundingBox();
 	return worldAABB;
+}
+
+const float3 ComponentBoundingBox::GetLocalMinPointAABB() {
+	CalculateWorldBoundingBox();
+	return localAABB.minPoint;
+}
+const float3 ComponentBoundingBox::GetLocalMaxPointAABB() {
+	CalculateWorldBoundingBox();
+	return localAABB.maxPoint;
 }

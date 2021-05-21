@@ -26,6 +26,12 @@
 
 MATH_BEGIN_NAMESPACE
 
+#if defined(TESSERACT_ENGINE_API)
+/* do nothing. */
+#elif defined(_MSC_VER)
+#define TESSERACT_ENGINE_API __declspec(dllexport)
+#endif
+
 /// A Frustum can be set to one of the two common different forms.
 enum FrustumType
 {
@@ -91,8 +97,7 @@ enum FrustumHandedness
 };
 
 /// Represents either an orthographic or a perspective viewing frustum.
-class Frustum
-{
+class TESSERACT_ENGINE_API Frustum {
 private:
 	/// Specifies whether this frustum is a perspective or an orthographic frustum.
 	/** [noscript] @todo Remove the noscript attribute. */
@@ -156,6 +161,7 @@ private:
 	// Frustums are typically used in batch culling operations. Therefore the matrices associated with a Frustum are cached
 	// for immediate access.
 	float3x4 worldMatrix;
+	float3x4 viewMatrix;
 	float4x4 projectionMatrix;
 	float4x4 viewProjMatrix;
 
@@ -402,7 +408,7 @@ public:
 			matrix is built to use the convention Matrix * vector to map a point between these spaces.
 			(as opposed to the convention v*M).
 		@see ViewMatrix(), ProjectionMatrix(), ViewProjMatrix(). */
-	float3x4 WorldMatrix() const { return worldMatrix;  }
+	const float3x4& WorldMatrix() const { return worldMatrix;  }
 	float3x4 ComputeWorldMatrix() const;
 
 	/// Computes the matrix that transforms from the world (global) space to the view space of this Frustum.
@@ -411,7 +417,7 @@ public:
 			matrix is built to use the convention Matrix * vector to map a point between these spaces.
 			(as opposed to the convention v*M).
 		@see WorldMatrix(), ProjectionMatrix(), ViewProjMatrix(). */
-	float3x4 ViewMatrix() const { float3x4 m = worldMatrix; m.InverseOrthonormal(); return m; }
+	const float3x4& ViewMatrix() const { return viewMatrix; }
 	float3x4 ComputeViewMatrix() const;
 
 	/// Computes the matrix that projects from the view space to the projection space of this Frustum.
@@ -419,7 +425,7 @@ public:
 			invertible or orthonormal. The returned matrix is built to use the convention Matrix * vector
 			to map a point between these spaces. (as opposed to the convention v*M).
 		@see WorldMatrix(), ViewMatrix(), ViewProjMatrix(). */
-	float4x4 ProjectionMatrix() const { return projectionMatrix; }
+	const float4x4& ProjectionMatrix() const { return projectionMatrix; }
 	float4x4 ComputeProjectionMatrix() const;
 
 	/// Computes the matrix that transforms from the world (global) space to the projection space of this Frustum.
@@ -430,7 +436,7 @@ public:
 			orthonormal. The returned matrix is built to use the convention Matrix * vector
 			to map a point between these spaces. (as opposed to the convention v*M).
 		@see WorldMatrix(), ViewMatrix(), ProjectionMatrix(). */
-	float4x4 ViewProjMatrix() const { return viewProjMatrix; }
+	const float4x4& ViewProjMatrix() const { return viewProjMatrix; }
 	float4x4 ComputeViewProjMatrix() const;
 
 	/// Finds a ray in world space that originates at the eye point and looks in the given direction inside the frustum.

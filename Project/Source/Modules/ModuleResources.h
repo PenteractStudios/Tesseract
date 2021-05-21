@@ -1,16 +1,20 @@
 #pragma once
 
+#include "Application.h"
 #include "Module.h"
+#include "ModuleEvents.h"
 #include "Utils/Pool.h"
 #include "Utils/UID.h"
 #include "Resources/Resource.h"
 #include "Utils/AssetFile.h"
+#include "FileSystem/JsonValue.h"
+#include "TesseractEvent.h"
 
 #include <vector>
+#include <memory>
 #include <unordered_set>
 #include <unordered_map>
 #include <thread>
-#include <concurrent_queue.h>
 
 class ModuleResources : public Module {
 public:
@@ -18,11 +22,11 @@ public:
 	bool Start() override;
 	UpdateStatus Update() override;
 	bool CleanUp() override;
-	void ReceiveEvent(const Event& ev) override;
+	void ReceiveEvent(TesseractEvent& e) override;
 
-	std::vector<UID> ImportAsset(const char* filePath);
+	std::vector<UID> ImportAssetResources(const char* filePath);
 
-	Resource* GetResource(UID id) const;
+	template<typename T> T* GetResource(UID id);
 	AssetFolder* GetRootFolder() const;
 
 	void IncreaseReferenceCount(UID id);
@@ -32,31 +36,46 @@ public:
 	std::string GenerateResourcePath(UID id) const;
 
 	template<typename T>
-	T* CreateResource(const char* assetFilePath, UID id);
+	void CreateResource(const char* assetFilePath, UID id);
 
 private:
 	void UpdateAsync();
 
 	void CheckForNewAssetsRecursive(const char* path, AssetFolder* folder);
 
-	Resource* CreateResourceByType(ResourceType type, const char* assetFilePath, UID id);
-	void SendAddResourceEvent(Resource* resource);
+	void CreateResourceByType(ResourceType type, const char* assetFilePath, UID id);
+	Resource* DoCreateResourceByType(ResourceType type, const char* assetFilePath, UID id);
+	void DestroyResource(UID id);
+
+	void ValidateAssetResources(JsonValue jMeta, bool& validResourceFiles);
+	void ReimportResources(JsonValue jMeta, const char* filePath);
+	bool ImportAssetByExtension(JsonValue jMeta, const char* filePath);
 
 public:
 	std::unordered_set<std::string> assetsToNotUpdate;
 
 private:
-	std::unordered_map<UID, Resource*> resources;
+	std::unordered_map<UID, std::unique_ptr<Resource>> resources;
 	std::unordered_map<UID, unsigned> referenceCounts;
-	AssetFolder* rootFolder = nullptr;
+	std::unique_ptr<AssetFolder> rootFolder;
+
 	std::thread importThread;
 	bool stopImportThread = false;
+	std::unordered_map<UID, std::string> concurrentResourceUIDToAssetFilePath;
 };
 
 template<typename T>
-inline T* ModuleResources::CreateResource(const char* assetFilePath, UID id) {
-	std::string resourceFilePath = GenerateResourcePath(id);
-	T* resource = new T(id, assetFilePath, resourceFilePath.c_str());
-	SendAddResourceEvent(resource);
+inline T* ModuleResources::GetResource(UID id) {
+	auto it = resources.find(id);
+	T* resource = it != resources.end() ? static_cast<T*>(it->second.get()) : nullptr;
 	return resource;
+}
+
+template<typename T>
+inline void ModuleResources::CreateResource(const char* assetFilePath, UID id) {
+	concurrentResourceUIDToAssetFilePath[id] = assetFilePath;
+
+	TesseractEvent addResourceEvent(TesseractEventType::CREATE_RESOURCE);
+	addResourceEvent.Set<CreateResourceStruct>(T::staticType, id, assetFilePath);
+	App->events->AddEvent(addResourceEvent);
 }

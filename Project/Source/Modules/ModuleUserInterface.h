@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Module.h"
-#include "UI/FontImporter.h"
 #include "Utils/UID.h"
+#include "Math/float2.h"
+#include "Math/float4.h"
 
-#include <unordered_map>
+#define SCENE_SCREEN_FACTOR 0.01f
 
 class GameObject;
 class ComponentEventSystem;
@@ -14,27 +15,36 @@ struct Character;
 
 class ModuleUserInterface : public Module {
 public:
-	bool Init() override;
-	bool Start() override;
-	void ReceiveEvent(const Event& e) override;
-	bool CleanUp() override;
+	bool Init() override;						   // Inits the module
+	bool Start() override;						   // Adds event listeners: SCREEN_RESIZED, MOUSE_CLICKED, MOUSE_RELEASED
+	UpdateStatus Update() override;				   // Calls PointerEnter and PointerExit of Components if eventSystem isn't null
+	UpdateStatus PostUpdate() override;			   //
+	bool CleanUp() override;					   // Deletes generic image VBO (used in ComponentImage)
+	void ReceiveEvent(TesseractEvent& e) override; // Treats the events that is listening to.
 
-	Character GetCharacter(UID font, char c);																	//Returns the Character that matches the given one in the given font or null otherwise.
-	void GetCharactersInString(UID font, const std::string& sentence, std::vector<Character>& charsInSentence); //Fills the given vector with the glyphs of the given font to form the given sentence.
-	void Render();
-	void SetCurrentEventSystem(ComponentEventSystem* ev);
-	GameObject* GetCanvas() const;
-	ComponentEventSystem* GetCurrentEventSystem();
+	Character GetCharacter(UID font, char c);																	// Returns the Character that matches the given one in the given font or null otherwise.
+	void GetCharactersInString(UID font, const std::string& sentence, std::vector<Character>& charsInSentence); // Fills the given vector with the glyphs of the given font to form the given sentence.
+	void Render();																								// Calls every ComponentCanvasRenderer Render function if the parent is active in hierarchy
+	void RecursiveRender(const GameObject* obj);
+	void SetCurrentEventSystem(UID id_);		   // Sets the new event system
+	ComponentEventSystem* GetCurrentEventSystem(); // Returns the Module's Event System. If the UID is 0, returns nullptr
 
-	unsigned int GetQuadVBO();
-
-private:
-	void CreateQuadVBO(); // Creates a vbo made by two triangles centered that form a Quad
-
-private:
-	ComponentEventSystem* currentEvSys = nullptr;
-	unsigned int quadVBO = 0;
+	unsigned int GetQuadVBO(); // Returns the generic VBO that is used in ComponentImages
+	void ViewportResized();	   // Calls ComponentCanvas, ComponentTransform2D, ComponentText components to be updated
+	bool IsUsing2D() const;
 
 public:
-	GameObject* canvas = nullptr;
+	bool view2DInternal = false;
+
+	float4 GetErrorColor(); // Gets the representation of the color
+
+private:
+	void CreateQuadVBO();	  // Creates a vbo made by two triangles centered that form a Quad
+	void OnViewportResized(); // Sets all bool dirty required to recalculate ScreenFactors
+
+private:
+	UID currentEvSys = 0;						// Module's Event System UID
+	unsigned int quadVBO = 0;					// VBO of the ComponentImage generic Quad
+	float4 errorColor = float4(-1, -1, -1, -1); // Representation of error in color (not a color to display)
+	bool viewportWasResized = false;
 };

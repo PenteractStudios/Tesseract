@@ -5,7 +5,6 @@
 #include "Math/float4x4.h"
 
 class DDRenderInterfaceCoreGL;
-class Camera;
 
 class ModuleDebugDraw : public Module {
 public:

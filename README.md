@@ -2,20 +2,25 @@
 
 Basic engine created for UPC's Master in Advanced Programming for AAA Videogames.
 
-![Photo of the Engine](https://i.imgur.com/ouVEiux.jpg)
+![Photo of the Engine](https://imgur.com/NPpU4XW.jpeg)
 
 ## Features
 
 - 3D Scene view with Unity-like controls
-- Loading basic 3D models into the scene by dragging and dropping files
 - Basic console log
 - Loading and saving scenes
 - Custom file format to save the information loaded
+- Module Resource to manage the import of different type of files
 - Implementation of an editable Quadtree
 - Frustum Culling
 - PBR Phong implementation
 - Three types of lights (directional, point, spot)
 - Ray tracing (to select objects in the scene)
+- Event System to capture events
+- Animated models 
+- Creation of UI Canvas
+- A Gameplay System with the capacity to create scripts
+- A Build System to export a game
 
 ## Additional features
 
@@ -23,10 +28,10 @@ Basic engine created for UPC's Master in Advanced Programming for AAA Videogames
 
 ## How to use
 
-### Loading models and textures
+### Loading scenes, models and textures
 
-- Drag model files inside any engine window to load it
-- You can also load a different texture file for the model in the same manner. Select it clicking in the object, inside the Inspector Panel
+- Drag the files inside the Panel Scene window and the files will be loaded in the Panel Project
+- You can also copy the files to the Assets folder and the Engine will import the files and show them in the Panel Project
 
 ### Menu items
 
@@ -35,6 +40,8 @@ Basic engine created for UPC's Master in Advanced Programming for AAA Videogames
   - Load: Load a scene 
   - Save: Save a scene
   - Quit: Exit the engine
+- Assets
+  - Create material
 - View
   - Open/Close different panels from here
 - Help
@@ -83,19 +90,19 @@ This panel contains engine information and configuration variables for multiple 
   - Change brightness
   - Resize window
 - Scene
-  - Draw Bounding Boxes
-  - Draw Quadtree
   - Configure Quadtree
-  - Draw Skybox
   - Change the background color
   - Change the ambient color
-- Engine Camera
-  - Frustum vector information (read-only)
-  - Change near/far planes
+
+### Control Editor panel
+- Translate/Rotate/Scale controller
+- Play/Stop/Pause controller
 
 ### Scene panel
-- Play/Stop/Pause controller
+- Shading mode
+- Engine camera parameters
 - Gizmos parameters
+- Stats
 - Preview of the scene
 
 ### Inspector panel
@@ -104,40 +111,44 @@ Contains information about the currently loaded model
 - Transformation (postition, rotation and scale)
 - Geometry (meshes and bounding box)
 - Textures (shader configuration, size and preview)
-- Lights (lights parameters)
-- Camera (camera parameters)
+- Lights component
+- Camera component
+- Skybox component
+- Script component
+- Animation component
+- UI component (Canvas, Image, Text, Button, Event System...)
+
 
 ### Console panel
 
-Prints all logged information and allows you to input commands.
+Prints all logged information from the Engine.
 
-There are no commands currently available.
+### Project panel
+
+A finder of the Assets folder with all the files imported
 
 ## Libraries used
 
 - SDL 2 (https://www.libsdl.org/download-2.0.php)
+- Glew (https://github.com/nigels-com/glew)
 - MatGeoLib (https://github.com/juj/MathGeoLib)
 - Dear ImGui (https://github.com/ocornut/imgui)
 - DeviL (http://openil.sourceforge.net/)
 - assimp (https://github.com/assimp/assimp)
 - ImGuizmo (https://github.com/CedricGuillemet/ImGuizmo)
 - RapidJason (https://github.com/Tencent/rapidjson)
+- Fmt (https://github.com/fmtlib/fmt)
+- Libsndfile (https://github.com/libsndfile/libsndfile)
+- OpenAl-soft (https://github.com/kcat/openal-soft)
 
-## Authors
+## About us
 
-_Jaime Bea Pérez-Zubizarreta_ (https://github.com/JaimeBea)
-
-_Lowy Solé Franquesa_ (http://github.com/lowysole)
-
-_Jordi Gil Gonzalez_ (https://jordi-gil.github.io/)
-
-_Cristian Ferrer Galan_ (https://github.com/Yonimevicio)
-
-"To fix" 
+Find all the information about the organization in the web page:
+https://penteractstudios.github.io/
 
 ## Github
 
-https://github.com/TBD-org/Tesseract
+https://github.com/PenteractStudios/Tesseract
 
 ## License
 

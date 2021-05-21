@@ -1,11 +1,10 @@
 #pragma once
 
-#include "Resources/ResourceType.h"
-#include "Resources/Resource.h"
+#include "Resource.h"
 
 #include "Math/float3.h"
 #include "Math/Quat.h"
-#include <string>
+#include <vector>
 #include <unordered_map>
 
 class ResourceAnimation : public Resource {

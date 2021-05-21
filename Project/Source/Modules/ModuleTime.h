@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Module.h"
 #include "Utils/MSTimer.h"
 
@@ -12,9 +11,9 @@
 class ModuleTime : public Module {
 public:
 	ModuleTime();
-	bool Init() override;
+	bool Start() override;
 	UpdateStatus PreUpdate() override;
-	void ReceiveEvent(const Event& e) override;
+	void ReceiveEvent(TesseractEvent& e) override;
 
 	void WaitForEndOfFrame(); // Calculates the time until the next frame if there is a framerate limitation, and introduces a Delay for that remainign time.
 
@@ -24,6 +23,8 @@ public:
 
 	TESSERACT_ENGINE_API float GetDeltaTime() const;
 	TESSERACT_ENGINE_API float GetRealTimeDeltaTime() const;
+	TESSERACT_ENGINE_API float GetFPS() const;
+	TESSERACT_ENGINE_API float GetMS() const;
 	float GetTimeSinceStartup() const;
 	float GetRealTimeSinceStartup() const;
 
@@ -35,9 +36,10 @@ public:
 	// They are also in charge to serialise and load the scene on play, pause and stops.
 	void StartGame();
 	void StopGame();
-	void PauseGame();
-	void ResumeGame();
+	TESSERACT_ENGINE_API void PauseGame();
+	TESSERACT_ENGINE_API void ResumeGame();
 	void StepGame();
+	UpdateStatus ExitGame();
 
 public:
 	int maxFps = 60;			// Maximum FPS when the framerate is limited.

@@ -1,8 +1,16 @@
 #pragma once
 
+#include "Utils/UID.h"
 #include "Resources/Resource.h"
 
-#include "Math/float3.h"
+#include "Math/float4.h"
+#include "Math/float2.h"
+
+enum class MaterialShader {
+	PHONG,
+	STANDARD_SPECULAR,
+	STANDARD
+};
 
 class ResourceMaterial : public Resource {
 public:
@@ -10,31 +18,35 @@ public:
 
 	void Load() override;
 	void Unload() override;
+	void OnEditorUpdate() override;
 
 	void SaveToFile(const char* filePath);
 
 public:
 	// Material shader
-	UID shaderId = 0;
+	MaterialShader shaderType = MaterialShader::STANDARD;
 
 	// Diffuse
-	bool hasDiffuseMap = false;
 	float4 diffuseColor = {1.0f, 1.0f, 1.0f, 1.0f};
 	UID diffuseMapId = 0;
 
 	// Specular
-	bool hasSpecularMap = false;
-	float4 specularColor = {1.0f, 1.0f, 1.0f, 1.0f};
+	float4 specularColor = {0.15f, 0.15f, 0.15f, 1.f};
 	UID specularMapId = 0;
 
 	// Metalness
-	float metallic = 1.f;
+	float metallic = 0.f;
 	UID metallicMapId = 0;
 
 	// Normal
 	UID normalMapId = 0;
+	float normalStrength = 1.f;
 
 	// Smoothness
-	float smoothness = 300;
+	float smoothness = 1;
 	bool hasSmoothnessInAlphaChannel = false;
+
+	// Tilling
+	float2 tiling = {1.f, 1.f};
+	float2 offset = {0.f, 0.f};
 };

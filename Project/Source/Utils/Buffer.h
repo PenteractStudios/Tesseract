@@ -2,8 +2,6 @@
 
 #include "Globals.h"
 
-#include <cstring>
-
 template<typename T>
 class Buffer {
 public:

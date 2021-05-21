@@ -1,6 +1,7 @@
 #include "SceneImporter.h"
 
 #include "Application.h"
+#include "GameObject.h"
 #include "Utils/Logging.h"
 #include "Utils/MSTimer.h"
 #include "Utils/FileDialog.h"
@@ -9,10 +10,15 @@
 #include "Components/ComponentTransform.h"
 #include "Components/ComponentBoundingBox.h"
 #include "Components/ComponentMeshRenderer.h"
+#include "Components/ComponentScript.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleEditor.h"
+#include "Modules/ModuleCamera.h"
 #include "Modules/ModuleScene.h"
+#include "Modules/ModuleTime.h"
+#include "Modules/ModuleRender.h"
+#include "Scripting/Script.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
@@ -27,6 +33,8 @@
 #define JSON_TAG_QUADTREE_BOUNDS "QuadtreeBounds"
 #define JSON_TAG_QUADTREE_MAX_DEPTH "QuadtreeMaxDepth"
 #define JSON_TAG_QUADTREE_ELEMENTS_PER_NODE "QuadtreeElementsPerNode"
+#define JSON_TAG_GAME_CAMERA "GameCamera"
+#define JSON_TAG_AMBIENTLIGHT "AmbientLight"
 
 bool SceneImporter::ImportScene(const char* filePath, JsonValue jMeta) {
 	// Timer to measure importing a scene
@@ -57,15 +65,17 @@ bool SceneImporter::ImportScene(const char* filePath, JsonValue jMeta) {
 	// Create scene resource
 	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
 	JsonValue jResource = jResources[0];
-	UID id = jResource[JSON_TAG_ID];
-	ResourceScene* scene = App->resources->CreateResource<ResourceScene>(filePath, id ? id : GenerateUID());
+	UID metaId = jResource[JSON_TAG_ID];
+	UID id = metaId ? metaId : GenerateUID();
+	App->resources->CreateResource<ResourceScene>(filePath, id);
 
 	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(scene->GetType());
-	jResource[JSON_TAG_ID] = scene->GetId();
+	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceScene::staticType);
+	jResource[JSON_TAG_ID] = id;
 
 	// Save to file
-	App->files->Save(scene->GetResourceFilePath().c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
+	std::string resourceFilePath = App->resources->GenerateResourcePath(id);
+	App->files->Save(resourceFilePath.c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
 
 	unsigned timeMs = timer.Stop();
 	LOG("Scene imported in %ums", timeMs);
@@ -76,6 +86,7 @@ void SceneImporter::LoadScene(const char* filePath) {
 	// Clear scene
 	Scene* scene = App->scene->scene;
 	scene->ClearScene();
+	scene->sceneLoaded = false;
 	App->editor->selectedGameObject = nullptr;
 
 	// Timer to measure loading a scene
@@ -99,11 +110,10 @@ void SceneImporter::LoadScene(const char* filePath) {
 
 	// Load GameObjects
 	JsonValue jRoot = jScene[JSON_TAG_ROOT];
-	GameObject* root = scene->gameObjects.Obtain();
+	GameObject* root = scene->gameObjects.Obtain(0);
 	scene->root = root;
 	root->scene = scene;
 	root->Load(jRoot);
-	scene->gameObjectsIdMap[root->GetID()] = root;
 	root->InitComponents();
 
 	// Quadtree generation
@@ -112,6 +122,12 @@ void SceneImporter::LoadScene(const char* filePath) {
 	scene->quadtreeMaxDepth = jScene[JSON_TAG_QUADTREE_MAX_DEPTH];
 	scene->quadtreeElementsPerNode = jScene[JSON_TAG_QUADTREE_ELEMENTS_PER_NODE];
 	scene->RebuildQuadtree();
+
+	ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(jScene[JSON_TAG_GAME_CAMERA]);
+	App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
+
+	JsonValue ambientLight = jScene[JSON_TAG_AMBIENTLIGHT];
+	App->renderer->ambientColor = {ambientLight[0], ambientLight[1], ambientLight[2]};
 
 	unsigned timeMs = timer.Stop();
 	LOG("Scene loaded in %ums.", timeMs);
@@ -132,6 +148,14 @@ bool SceneImporter::SaveScene(const char* filePath) {
 	jQuadtreeBounds[3] = scene->quadtreeBounds.maxPoint.y;
 	jScene[JSON_TAG_QUADTREE_MAX_DEPTH] = scene->quadtreeMaxDepth;
 	jScene[JSON_TAG_QUADTREE_ELEMENTS_PER_NODE] = scene->quadtreeElementsPerNode;
+
+	ComponentCamera* gameCamera = App->camera->GetGameCamera();
+	jScene[JSON_TAG_GAME_CAMERA] = gameCamera ? gameCamera->GetID() : 0;
+
+	JsonValue ambientLight = jScene[JSON_TAG_AMBIENTLIGHT];
+	ambientLight[0] = App->renderer->ambientColor.x;
+	ambientLight[1] = App->renderer->ambientColor.y;
+	ambientLight[2] = App->renderer->ambientColor.z;
 
 	// Save GameObjects
 	JsonValue jRoot = jScene[JSON_TAG_ROOT];

@@ -145,7 +145,7 @@ void Frustum::SetOrthographic(float w, float h)
 void Frustum::WorldMatrixChanged()
 {
 	worldMatrix = ComputeWorldMatrix();
-	float3x4 viewMatrix = worldMatrix;
+	viewMatrix = worldMatrix;
 	viewMatrix.InverseOrthonormal();
 	viewProjMatrix = projectionMatrix * viewMatrix;
 }
@@ -155,8 +155,6 @@ void Frustum::ProjectionMatrixChanged()
 	projectionMatrix = ComputeProjectionMatrix();
 	if (!IsNan(worldMatrix[0][0]))
 	{
-		float3x4 viewMatrix = worldMatrix;
-		viewMatrix.InverseOrthonormal();
 		viewProjMatrix = projectionMatrix * viewMatrix;
 	}
 }

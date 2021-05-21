@@ -3,7 +3,6 @@
 #include "Logging.h"
 
 #include "AL/alc.h"
-#include <iostream>
 #include <string>
 
 #define alcCall(function, device, ...) alcCallImpl(__FILE__, __LINE__, function, device, __VA_ARGS__)
@@ -31,7 +30,7 @@ bool check_alc_errors(const std::string& filename, const std::uint_fast32_t line
 		default:
 			errorText = "UNKNOWN ALC ERROR: " + error;
 		}
-		LOG(filename.c_str(), line, errorText.c_str());
+		LOG((filename.substr(filename.rfind("\\") + 1) + " (%d): " + errorText).c_str(), line);
 		return false;
 	}
 	return true;

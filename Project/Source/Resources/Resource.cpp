@@ -30,3 +30,5 @@ const std::string& Resource::GetResourceFilePath() const {
 void Resource::Load() {}
 
 void Resource::Unload() {}
+
+void Resource::OnEditorUpdate() {}

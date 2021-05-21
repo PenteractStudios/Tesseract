@@ -4,6 +4,7 @@
 
 #include "Math/float2.h"
 #include <unordered_map>
+#include <string>
 
 struct Character {
 	unsigned int textureID = 0;

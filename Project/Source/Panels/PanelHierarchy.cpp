@@ -3,6 +3,7 @@
 #include "Application.h"
 #include "Utils/Logging.h"
 #include "GameObject.h"
+#include "FileSystem/PrefabImporter.h"
 #include "Components/ComponentTransform.h"
 #include "Components/ComponentBoundingBox2D.h"
 #include "Components/UI/ComponentTransform2D.h"
@@ -10,8 +11,12 @@
 #include "Components/UI/ComponentCanvasRenderer.h"
 #include "Components/UI/ComponentImage.h"
 #include "Components/UI/ComponentSelectable.h"
+#include "Components/UI/ComponentEventSystem.h"
+#include "Components/UI/ComponentButton.h"
+#include "Components/UI/ComponentSlider.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleScene.h"
+#include "Modules/ModuleFiles.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleResources.h"
 #include "Resources/ResourcePrefab.h"
@@ -45,15 +50,16 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 	char label[160];
 	sprintf_s(label, "%s###%p", gameObject->name.c_str(), gameObject);
 
-	ImGuiTreeNodeFlags baseFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow;
+	ImGuiTreeNodeFlags baseFlags = ImGuiTreeNodeFlags_OpenOnArrow;
 	ImGuiTreeNodeFlags flags = baseFlags;
 
 	if (children.empty()) flags |= ImGuiTreeNodeFlags_Leaf;
 	bool isSelected = App->editor->selectedGameObject == gameObject;
 	if (isSelected) flags |= ImGuiTreeNodeFlags_Selected;
+	if (gameObject == App->scene->scene->root) flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
 	//White for active gameobjects, gray for disabled objects, if a parent is not active, children are inherently not active
-	ImGui::PushStyleColor(0, gameObject->IsActiveInHierarchy() ? white : grey);
+	ImGui::PushStyleColor(0, gameObject->IsActive() ? white : grey);
 
 	bool open = ImGui::TreeNodeEx(label, flags);
 
@@ -64,6 +70,14 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 		App->editor->selectedGameObject = gameObject;
 		Scene* scene = App->scene->scene;
 		if (gameObject != scene->root) {
+			if (ImGui::Selectable("Create Prefab")) {
+				std::string path = std::string(PREFABS_PATH) + "/" + gameObject->name + PREFAB_EXTENSION;
+				for (unsigned copyIndex = 0; App->files->Exists(path.c_str()); ++copyIndex) {
+					path = std::string(PREFABS_PATH) + "/" + gameObject->name + " (" + std::to_string(copyIndex) + ")" + PREFAB_EXTENSION;
+				}
+				PrefabImporter::SavePrefab(path.c_str(), gameObject);
+			}
+
 			if (ImGui::Selectable("Delete")) {
 				if (isSelected) App->editor->selectedGameObject = nullptr;
 				App->scene->DestroyGameObjectDeferred(gameObject);
@@ -72,40 +86,51 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 				}
 			}
 
-			if (ImGui::Selectable("Duplicate")) {
-				scene->DuplicateGameObject(gameObject, gameObject->GetParent());
-			}
-
 			ImGui::Separator();
 		}
 
 		if (ImGui::Selectable("Create Empty")) {
-			CreateEmptyGameObject(gameObject);
+			App->editor->selectedGameObject = CreateEmptyGameObject(gameObject);
 		}
-
+		if (ImGui::Selectable("Particle System")) {
+			App->editor->selectedGameObject = CreatePartycleSystemObject(gameObject);
+		}
 		// TODO: code duplicated in every CreateXX(gameObject). Generalisation could be done here. Also with PanelInspector->AddUIComponentsOptions()
 		if (ImGui::BeginMenu("UI")) {
 			if (ImGui::MenuItem("Event System")) {
-				// TODO
-				CreateEventSystem(gameObject);
+				if (App->scene->scene->eventSystemComponents.Count() == 0) {
+					App->editor->selectedGameObject = CreateEventSystem(gameObject);
+				} else {
+					App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+				}
 			}
 
 			if (ImGui::MenuItem("Canvas")) {
-				CreateUICanvas(gameObject);
+				App->editor->selectedGameObject = CreateUICanvas(gameObject);
 			}
 
 			if (ImGui::MenuItem("Image")) {
-				CreateUIImage(gameObject);
+				App->editor->selectedGameObject = CreateUIImage(gameObject);
 			}
 
 			if (ImGui::MenuItem("Text")) {
-				CreateUIText(gameObject);
+				App->editor->selectedGameObject = CreateUIText(gameObject);
 			}
 
 			if (ImGui::MenuItem("Button")) {
-				CreateUIButton(gameObject);
+				App->editor->selectedGameObject = CreateUIButton(gameObject);
 			}
 
+			if (ImGui::MenuItem("Slider")) {
+				App->editor->selectedGameObject = CreateUISlider(gameObject);
+			}
+			if (ImGui::MenuItem("Toggle")) {
+				App->editor->selectedGameObject = CreateUIToggle(gameObject);
+			}
+
+			if (ImGui::MenuItem("Progress Bar")) {
+				App->editor->selectedGameObject = CreateUIProgressBar(gameObject);
+			}
 			ImGui::EndMenu();
 		}
 
@@ -113,7 +138,7 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 	}
 	ImGui::PopID();
 
-	if (ImGui::IsItemClicked()) {
+	if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && ImGui::IsItemHovered()) {
 		App->editor->selectedGameObject = gameObject;
 	}
 
@@ -129,26 +154,20 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 			UID payloadGameObjectId = *(UID*) payload->Data;
 			GameObject* payloadGameObject = App->scene->scene->GetGameObject(payloadGameObjectId);
 			if (!gameObject->IsDescendantOf(payloadGameObject)) {
-				// First of all, set the new Parent for the object
-				payloadGameObject->SetParent(gameObject);
-
 				ComponentTransform* transform = payloadGameObject->GetComponent<ComponentTransform>();
-				ComponentTransform* parentTransform = gameObject->GetComponent<ComponentTransform>();
-				// Recompute local matrix to maintain global position
-				// 1. Get current matrix
-				float4x4 childGlobalMatrix = transform->GetGlobalMatrix();
-				float4x4 parentGlobalMatrix = parentTransform->GetGlobalMatrix();
-				float3 parentScale = float3(parentGlobalMatrix.Col3(0).Length(), parentGlobalMatrix.Col3(1).Length(), parentGlobalMatrix.Col3(2).Length());
-				// 2. Invert the new parent global matrix with the fastest possible method
-				if (parentScale.Equals(float3::one)) { // No scaling
-					parentGlobalMatrix.InverseOrthonormal();
-				} else if (parentScale.xxx().Equals(parentScale)) { // Uniform scaling
-					parentGlobalMatrix.InverseOrthogonalUniformScale();
-				} else { // Non-uniform scaling
-					parentGlobalMatrix.InverseColOrthogonal();
+				// 3D and 2D objects have "separate spaces" and cannot be parented between them. So we check:
+				if (transform && gameObject->GetComponent<ComponentTransform>()) {
+					// If both objects are 3D objects.
+					payloadGameObject->SetParent(gameObject);
+					float4x4 childGlobalMatrix = transform->GetGlobalMatrix();
+					transform->SetGlobalTRS(childGlobalMatrix);
+				} else if (payloadGameObject->GetComponent<ComponentTransform2D>() && gameObject->GetComponent<ComponentTransform2D>()) {
+					// If both objects are 2D objects (with this we are also forcing that 2D elements are always inside a Canvas.
+					payloadGameObject->SetParent(gameObject);
+				} else if (payloadGameObject->GetComponent<ComponentCanvas>() && gameObject == App->scene->scene->root) {
+					// Canvas objects can be moved to root (the only exception).
+					payloadGameObject->SetParent(gameObject);
 				}
-				// 3. New local matrix
-				transform->SetTRS(parentGlobalMatrix * childGlobalMatrix);
 			}
 		}
 
@@ -156,7 +175,7 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 		std::string prafabPayloadType = std::string("_RESOURCE_") + GetResourceTypeName(ResourceType::PREFAB);
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(prafabPayloadType.c_str())) {
 			UID prefabId = *(UID*) payload->Data;
-			ResourcePrefab* prefab = (ResourcePrefab*) App->resources->GetResource(prefabId);
+			ResourcePrefab* prefab = App->resources->GetResource<ResourcePrefab>(prefabId);
 			if (prefab != nullptr) {
 				prefab->BuildPrefab(gameObject);
 			}
@@ -172,6 +191,7 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 	}
 }
 
+// --- New GameObject Functions ---- //
 GameObject* PanelHierarchy::CreateEmptyGameObject(GameObject* gameObject) {
 	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Game Object");
 	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
@@ -182,28 +202,26 @@ GameObject* PanelHierarchy::CreateEmptyGameObject(GameObject* gameObject) {
 	return newGameObject;
 }
 
+// ---------- UI ELEMENTS ---------- //
 GameObject* PanelHierarchy::CreateEventSystem(GameObject* gameObject) {
 	if (App->userInterface->GetCurrentEventSystem() == nullptr) {
 		GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Event System");
 		newGameObject->CreateComponent<ComponentTransform>();
 		ComponentEventSystem* component = newGameObject->CreateComponent<ComponentEventSystem>();
-
-		App->userInterface->SetCurrentEventSystem(component);
-
+		App->userInterface->SetCurrentEventSystem(component->GetID());
 		newGameObject->InitComponents();
 		return newGameObject;
 	}
+
+	return nullptr;
 }
 
 GameObject* PanelHierarchy::CreateUICanvas(GameObject* gameObject) {
-	CreateEventSystem(gameObject);
-
 	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Canvas");
-	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
+	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvas* canvas = newGameObject->CreateComponent<ComponentCanvas>();
-
 	newGameObject->InitComponents();
-
+	CreateEventSystem(App->scene->scene->root);
 	return newGameObject;
 }
 
@@ -213,12 +231,11 @@ GameObject* PanelHierarchy::CreateUIImage(GameObject* gameObject) {
 	}
 
 	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Image");
-	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* canvasRenderer = newGameObject->CreateComponent<ComponentCanvasRenderer>();
 	ComponentImage* image = newGameObject->CreateComponent<ComponentImage>();
-
 	newGameObject->InitComponents();
+
 	return newGameObject;
 }
 
@@ -228,12 +245,11 @@ GameObject* PanelHierarchy::CreateUIText(GameObject* gameObject) {
 	}
 
 	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Text");
-	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* canvasRenderer = newGameObject->CreateComponent<ComponentCanvasRenderer>();
 	ComponentText* text = newGameObject->CreateComponent<ComponentText>();
-
 	newGameObject->InitComponents();
+
 	return newGameObject;
 }
 
@@ -243,14 +259,119 @@ GameObject* PanelHierarchy::CreateUIButton(GameObject* gameObject) {
 	}
 
 	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Button");
-	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* canvasRenderer = newGameObject->CreateComponent<ComponentCanvasRenderer>();
 	ComponentBoundingBox2D* boundingBox = newGameObject->CreateComponent<ComponentBoundingBox2D>();
-	ComponentImage* image = newGameObject->CreateComponent<ComponentImage>();
-	ComponentButton* button = newGameObject->CreateComponent<ComponentButton>();
 	ComponentSelectable* selectable = newGameObject->CreateComponent<ComponentSelectable>();
-	newGameObject->InitComponents();
+	ComponentButton* button = newGameObject->CreateComponent<ComponentButton>();
+	ComponentImage* image = newGameObject->CreateComponent<ComponentImage>();
+	CreateEventSystem(App->scene->scene->root);
+
 	selectable->SetSelectableType(button->GetType());
+	newGameObject->InitComponents();
+
+	return newGameObject;
+}
+
+GameObject* PanelHierarchy::CreateUIToggle(GameObject* gameObject) {
+	if (gameObject->HasComponentInAnyParent<ComponentCanvas>(gameObject) == nullptr) {
+		gameObject = CreateUICanvas(gameObject);
+	}
+	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Toggle");
+	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
+	ComponentCanvasRenderer* canvasRenderer = newGameObject->CreateComponent<ComponentCanvasRenderer>();
+	ComponentBoundingBox2D* boundingBox = newGameObject->CreateComponent<ComponentBoundingBox2D>();
+	ComponentSelectable* selectable = newGameObject->CreateComponent<ComponentSelectable>();
+	ComponentToggle* toggle = newGameObject->CreateComponent<ComponentToggle>();
+	ComponentImage* image = newGameObject->CreateComponent<ComponentImage>();
+
+	CreateEventSystem(App->scene->scene->root);
+
+	//Child Image
+	GameObject* newGameObjectChild = CreateUIImage(newGameObject);
+	newGameObjectChild->InitComponents();
+	newGameObjectChild->GetComponent<ComponentTransform2D>()->SetSize(transform2D->GetSize() / 2);
+	newGameObjectChild->GetComponent<ComponentImage>()->SetColor(float4::zero);
+	newGameObjectChild->name = "Checkmark";
+
+	toggle->SetEnabledImageObj(newGameObjectChild->GetID());
+	selectable->SetSelectableType(toggle->GetType());
+	newGameObject->InitComponents();
+
+	return newGameObject;
+}
+
+GameObject* PanelHierarchy::CreateUIProgressBar(GameObject* gameObject) {
+	if (gameObject->HasComponentInAnyParent<ComponentCanvas>(gameObject) == nullptr) {
+		gameObject = CreateUICanvas(gameObject);
+	}
+
+	GameObject* progressBar = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Progress Bar");
+	ComponentTransform2D* progressTransform2D = progressBar->CreateComponent<ComponentTransform2D>();
+	ComponentCanvasRenderer* progressRenderer = progressBar->CreateComponent<ComponentCanvasRenderer>();
+	ComponentProgressBar* progress = progressBar->CreateComponent<ComponentProgressBar>();
+
+	GameObject* background = CreateUIImage(progressBar);
+	background->GetComponent<ComponentTransform2D>()->SetSize(float2(700, 80));
+	background->name = "Background";
+
+	GameObject* fill = CreateUIImage(progressBar);
+	fill->GetComponent<ComponentImage>()->SetColor(float4(255.0f, 0, 0, 255.0f));
+	fill->name = "Fill";
+
+	progressBar->InitComponents();
+
+	return progressBar;
+}
+
+GameObject* PanelHierarchy::CreateUISlider(GameObject* gameObject) {
+	if (gameObject->HasComponentInAnyParent<ComponentCanvas>(gameObject) == nullptr) {
+		gameObject = CreateUICanvas(gameObject);
+	}
+
+	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Slider");
+	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
+	ComponentCanvasRenderer* canvasRenderer = newGameObject->CreateComponent<ComponentCanvasRenderer>();
+	ComponentBoundingBox2D* boundingBox = newGameObject->CreateComponent<ComponentBoundingBox2D>();
+	ComponentSelectable* selectable = newGameObject->CreateComponent<ComponentSelectable>();
+	ComponentSlider* slider = newGameObject->CreateComponent<ComponentSlider>();
+
+	CreateEventSystem(App->scene->scene->root);
+
+	GameObject* backgroundGameObject = App->scene->scene->CreateGameObject(newGameObject, GenerateUID(), "Background");
+	ComponentTransform2D* backgroundTransform2D = backgroundGameObject->CreateComponent<ComponentTransform2D>();
+	ComponentCanvasRenderer* backgroundRenderer = backgroundGameObject->CreateComponent<ComponentCanvasRenderer>();
+	ComponentImage* backgorundImage = backgroundGameObject->CreateComponent<ComponentImage>();
+
+	GameObject* fillGameObject = App->scene->scene->CreateGameObject(newGameObject, GenerateUID(), "Fill");
+	ComponentTransform2D* fillTransform2D = fillGameObject->CreateComponent<ComponentTransform2D>();
+	ComponentCanvasRenderer* fillRenderer = fillGameObject->CreateComponent<ComponentCanvasRenderer>();
+	ComponentImage* fillImage = fillGameObject->CreateComponent<ComponentImage>();
+
+	GameObject* handleGameObject = App->scene->scene->CreateGameObject(newGameObject, GenerateUID(), "Handle");
+	ComponentTransform2D* handleTransform2D = handleGameObject->CreateComponent<ComponentTransform2D>();
+	ComponentCanvasRenderer* handleRenderer = handleGameObject->CreateComponent<ComponentCanvasRenderer>();
+	ComponentImage* handleImage = handleGameObject->CreateComponent<ComponentImage>();
+
+	selectable->SetSelectableType(slider->GetType());
+	backgroundGameObject->InitComponents();
+	fillGameObject->InitComponents();
+	handleGameObject->InitComponents();
+
+	newGameObject->InitComponents();
+
+	return newGameObject;
+}
+
+// ------- PARTICLE SYSTEMS -------- //
+GameObject* PanelHierarchy::CreatePartycleSystemObject(GameObject* gameObject) {
+	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "ParticleSystem");
+	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
+	ComponentParticleSystem* particle = newGameObject->CreateComponent<ComponentParticleSystem>();
+	transform->SetPosition(float3(0, 0, 0));
+	transform->SetRotation(Quat::identity);
+	transform->SetScale(float3(1, 1, 1));
+	newGameObject->InitComponents();
+
 	return newGameObject;
 }

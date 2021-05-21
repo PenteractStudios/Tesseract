@@ -1,12 +1,15 @@
 #pragma once
 
+#include "Modules/ModuleFiles.h"
+
 #include <string>
 #include <vector>
 
-#include "Modules/ModuleFiles.h"
-
 namespace FileDialog {
-	void Init(const std::string& title, bool editMode = false, AllowedExtensionsFlag ext = AllowedExtensionsFlag::ALL, const std::string& defaultPath = "");
+	void CreateContext();
+	void DestroyContext();
+
+	void Init(const std::string& title, bool editMode = false, AllowedExtensionsFlag ext = AllowedExtensionsFlag::ALL, const char* specificPath = nullptr);
 	bool OpenDialog(const std::string& title, std::string& selectedPath);
 	bool OverrideAlertDialog(const std::string& file);
 	bool IsDirectory(const char* path);

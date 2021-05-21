@@ -22,7 +22,7 @@
 #define JSON_TAG_TYPE "Type"
 #define JSON_TAG_ID "Id"
 
-#define JSON_TAG_SHADER "Shader"
+#define JSON_TAG_SHADER "ShaderType"
 #define JSON_TAG_HAS_DIFFUSE_MAP "HasDiffuseMap"
 #define JSON_TAG_DIFFUSE_COLOR "DiffuseColor"
 #define JSON_TAG_DIFFUSE_MAP "DiffuseMap"
@@ -34,6 +34,8 @@
 #define JSON_TAG_NORMAL_MAP "NormalMap"
 #define JSON_TAG_SMOOTHNESS "Smoothness"
 #define JSON_TAG_HAS_SMOOTHNESS_IN_ALPHA_CHANNEL "HasSmoothnessInAlphaChannel"
+#define JSON_TAG_TILING "Tiling"
+#define JSON_TAG_OFFSET "Offset"
 
 bool MaterialImporter::ImportMaterial(const char* filePath, JsonValue jMeta) {
 	LOG("Importing material from path: \"%s\".", filePath);
@@ -60,12 +62,13 @@ bool MaterialImporter::ImportMaterial(const char* filePath, JsonValue jMeta) {
 	// Material resource creation
 	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
 	JsonValue jResource = jResources[0];
-	UID id = jResource[JSON_TAG_ID];
-	ResourceMaterial* material = App->resources->CreateResource<ResourceMaterial>(filePath, id ? id : GenerateUID());
+	UID metaId = jResource[JSON_TAG_ID];
+	UID id = metaId ? metaId : GenerateUID();
+	App->resources->CreateResource<ResourceMaterial>(filePath, id);
 
 	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(material->GetType());
-	jResource[JSON_TAG_ID] = material->GetId();
+	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceMaterial::staticType);
+	jResource[JSON_TAG_ID] = id;
 
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
@@ -73,7 +76,7 @@ bool MaterialImporter::ImportMaterial(const char* filePath, JsonValue jMeta) {
 	document.Accept(writer);
 
 	// Save to file
-	const std::string& resourceFilePath = material->GetResourceFilePath();
+	const std::string& resourceFilePath = App->resources->GenerateResourcePath(id);
 	bool saved = App->files->Save(resourceFilePath.c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
 	if (!saved) {
 		LOG("Failed to save material resource.");
@@ -96,7 +99,7 @@ bool MaterialImporter::CreateAndSaveMaterial(const char* filePath) {
 	JsonValue jMaterial(document, document);
 
 	// Save JSON values
-	jMaterial[JSON_TAG_SHADER] = 0;
+	jMaterial[JSON_TAG_SHADER] = (int) MaterialShader::STANDARD;
 
 	jMaterial[JSON_TAG_HAS_DIFFUSE_MAP] = false;
 	JsonValue jDiffuseColor = jMaterial[JSON_TAG_DIFFUSE_COLOR];
@@ -108,18 +111,25 @@ bool MaterialImporter::CreateAndSaveMaterial(const char* filePath) {
 
 	jMaterial[JSON_TAG_HAS_SPECULAR_MAP] = false;
 	JsonValue jSpecularColor = jMaterial[JSON_TAG_SPECULAR_COLOR];
-	jSpecularColor[0] = 1.0f;
-	jSpecularColor[1] = 1.0f;
-	jSpecularColor[2] = 1.0f;
-	jSpecularColor[3] = 1.0f;
+	jSpecularColor[0] = 0.15f;
+	jSpecularColor[1] = 0.15f;
+	jSpecularColor[2] = 0.15f;
+	jSpecularColor[3] = 1.f;
 	jMaterial[JSON_TAG_SPECULAR_MAP] = 0;
 
-	jMaterial[JSON_TAG_METALLIC] = 1.0f;
+	jMaterial[JSON_TAG_METALLIC] = 0.0f;
 	jMaterial[JSON_TAG_METALLIC_MAP] = 0;
 	jMaterial[JSON_TAG_NORMAL_MAP] = 0;
 
 	jMaterial[JSON_TAG_SMOOTHNESS] = 1;
 	jMaterial[JSON_TAG_HAS_SMOOTHNESS_IN_ALPHA_CHANNEL] = false;
+
+	JsonValue jTiling = jMaterial[JSON_TAG_TILING];
+	jTiling[0] = 1.0f;
+	jTiling[1] = 1.0f;
+	JsonValue jOffset = jMaterial[JSON_TAG_OFFSET];
+	jOffset[0] = 0.0f;
+	jOffset[1] = 0.0f;
 
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;

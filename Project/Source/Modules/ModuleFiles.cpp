@@ -16,6 +16,8 @@ bool ModuleFiles::Init() {
 }
 
 bool ModuleFiles::CleanUp() {
+	Erase(TEMP_SCENE_FILE_NAME);
+
 	PHYSFS_deinit();
 
 	return true;
@@ -39,7 +41,7 @@ Buffer<char> ModuleFiles::Load(const char* filePath) const {
 		return buffer;
 	}
 
-	buffer.Allocate(size + 1);
+	buffer.Allocate(static_cast<size_t>(size) + 1);
 	char* data = buffer.Data();
 	PHYSFS_sint64 numBytes = PHYSFS_readBytes(file, data, size);
 	if (numBytes < size) {

@@ -1,20 +1,7 @@
 #pragma once
 
 #include "Component.h"
-#include "Resources/ResourceSkybox.h"
-#include "Resources/ResourceShader.h"
-#include "Modules/ModuleResources.h"
-#include "FileSystem/JsonValue.h"
-
-#ifdef TESSERACT_ENGINE
-#include "rapidjson/error/en.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/prettywriter.h"
-#include "rapidjson/document.h"
-#endif //  TESSERACT_ENGINE
-
-#include <vector>
-#include <string>
+#include "Utils/UID.h"
 
 class ComponentSkyBox : public Component {
 public:

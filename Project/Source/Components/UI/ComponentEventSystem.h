@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Components/Component.h"
-#include <queue>
+
+#include <vector>
 
 class GameObject;
 class ComponentSelectable;
@@ -19,7 +20,6 @@ public:
 	void Load(JsonValue jComponent) override;
 	void OnEnable() override;
 	void OnDisable() override;
-	void DuplicateComponent(GameObject& owner) override;
 
 	void SetSelected(UID newSelectableComponentId);
 	void EnteredPointerOnSelectable(ComponentSelectable* newHoveredComponent);	//Interface implementation

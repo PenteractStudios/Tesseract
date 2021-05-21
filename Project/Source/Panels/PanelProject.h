@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Panel.h"
-#include "Resources/Resource.h"
-#include "Modules/ModuleResources.h"
 
 #include <string>
+
+struct AssetFolder;
 
 class PanelProject : public Panel {
 public:

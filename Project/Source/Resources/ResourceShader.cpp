@@ -18,7 +18,6 @@
 #define JSON_TAG_RESOURCES "Resources"
 #define JSON_TAG_TYPE "Type"
 #define JSON_TAG_ID "Id"
-#define JSON_TAG_SHADER_TYPE "ShaderType"
 #define JSON_TAG_TIMESTAMP "Timestamp"
 
 static bool ReadMetaFile(const char* filePath, rapidjson::Document& document) {
@@ -66,23 +65,6 @@ void ResourceShader::Unload() {
 	App->programs->DeleteProgram(shaderProgram);
 }
 
-ShaderType ResourceShader::GetShaderType() {
-	return shaderType;
-}
-
-void ResourceShader::SetShaderType(const ShaderType type) {
-	shaderType = type;
-}
-
-void ResourceShader::SaveShaderType() const {
-	std::string metaFilePath = GetAssetFilePath() + META_EXTENSION;
-	rapidjson::Document document;
-	JsonValue jMeta(document, document);
-	ReadMetaFile(metaFilePath.c_str(), document);
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
-	JsonValue jResource = jResources[0];
-	jResource[JSON_TAG_SHADER_TYPE] = (int) shaderType;
-
-	jMeta[JSON_TAG_TIMESTAMP] = App->time->GetCurrentTimestamp();
-	SaveMetaFile(metaFilePath.c_str(), document);
+unsigned ResourceShader::GetShaderProgram() {
+	return shaderProgram;
 }

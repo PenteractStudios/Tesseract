@@ -18,7 +18,6 @@ for /f "usebackq tokens=*" %%i in (`"%VSWHERE%" -latest -products * -requires Mi
 
 call "%InstallDir%\VC\Auxiliary\Build\vcvarsall.bat" x86
 
-devenv "%solutionDir%" /Clean Debug
 devenv "%solutionDir%" /Build Debug
 
 exit /b

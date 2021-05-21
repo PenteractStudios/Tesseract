@@ -1,11 +1,12 @@
 #include "ComponentEventSystem.h"
 
-#include "Event.h"
 #include "GameObject.h"
 #include "Components/UI/ComponentSelectable.h"
 #include "Application.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleInput.h"
+#include "Modules/ModuleScene.h"
+#include "Scene.h"
 
 #include "imgui.h"
 #include "Utils/Logging.h"
@@ -15,10 +16,17 @@
 #define JSON_TAG_FIRST_SELECTED_ID "FirstSelectedId"
 
 ComponentEventSystem ::~ComponentEventSystem() {
+	ComponentEventSystem* eventSystem = App->userInterface->GetCurrentEventSystem();
+	if (eventSystem != nullptr) {
+		if (eventSystem->GetID() == GetID()) {
+			App->userInterface->SetCurrentEventSystem(0);
+		}
+	}
 }
 
 void ComponentEventSystem::Init() {
-	App->userInterface->SetCurrentEventSystem(this);
+	App->userInterface->SetCurrentEventSystem(GetID());
+	LOG("established %u as CurrentEventSystem", GetID());
 	SetSelected(firstSelectedId);
 }
 
@@ -44,9 +52,12 @@ void ComponentEventSystem::Update() {
 
 	if (keyPressed) {
 		if (selectedId != 0) {
-			ComponentSelectable* newSel = GetCurrentSelected()->FindSelectableOnDir(selectionDir);
-			if (newSel) {
-				SetSelected(newSel->GetID());
+			ComponentSelectable* currentSel = GetCurrentSelected();
+			if (currentSel != nullptr) {
+				ComponentSelectable* newSel = currentSel->FindSelectableOnDir(selectionDir);
+				if (newSel != nullptr) {
+					SetSelected(newSel->GetID());
+				}
 			}
 		}
 	}
@@ -72,12 +83,12 @@ void ComponentEventSystem::Load(JsonValue jComponent) {
 }
 
 void ComponentEventSystem::OnEnable() {
-	App->userInterface->SetCurrentEventSystem(this);
+	App->userInterface->SetCurrentEventSystem(GetID());
 }
 
 void ComponentEventSystem::OnDisable() {
 	if (App->userInterface->GetCurrentEventSystem() == this) {
-		App->userInterface->SetCurrentEventSystem(nullptr);
+		App->userInterface->SetCurrentEventSystem(0);
 	}
 }
 
@@ -95,11 +106,6 @@ void ComponentEventSystem::SetSelected(UID newSelectableComponentId) {
 			newSelectableComponent->OnSelect();
 		}
 	}
-}
-
-void ComponentEventSystem::DuplicateComponent(GameObject& owner) {
-	ComponentEventSystem* component = owner.CreateComponent<ComponentEventSystem>();
-	component->firstSelectedId = firstSelectedId;
 }
 
 void ComponentEventSystem::EnteredPointerOnSelectable(ComponentSelectable* newHoveredComponent) {

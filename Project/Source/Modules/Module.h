@@ -1,8 +1,7 @@
 #pragma once
 
 enum class UpdateStatus;
-
-struct Event;
+struct TesseractEvent;
 
 class Module {
 public:
@@ -16,5 +15,5 @@ public:
 	virtual UpdateStatus Update();				  // Second phase of the update loop. Actions performed to render the scene.
 	virtual UpdateStatus PostUpdate();			  // Third phase of the update loop. Actions performed after rendering the scene.
 	virtual bool CleanUp();						  // Called on quitting the application. Releases recursively all the memory allocated for each Module.
-	virtual void ReceiveEvent(const Event& e) {}; // Called whenever ModuleEventSystem pops an event from the queue (that this module is a listener to)
+	virtual void ReceiveEvent(TesseractEvent& e); // Called whenever ModuleEventSystem pops an event from the queue (that this module is a listener to)
 };

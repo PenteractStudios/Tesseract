@@ -2,7 +2,7 @@
 
 #include "Module.h"
 
-#include "Utils/Buffer.h"
+#include "Resources/Resource.h"
 #include "Panels/PanelScene.h"
 #include "Panels/PanelProject.h"
 #include "Panels/PanelConsole.h"
@@ -10,12 +10,13 @@
 #include "Panels/PanelInspector.h"
 #include "Panels/PanelHierarchy.h"
 #include "Panels/PanelAbout.h"
+#include "Panels/PanelControlEditor.h"
+#include "Panels/PanelResource.h"
+#include "Panels/PanelDebug.h"
 
 #include "imgui.h"
 #include <vector>
-
-class Panel;
-struct Event;
+#include <string>
 
 enum class Modal {
 	NONE,
@@ -27,6 +28,8 @@ enum class Modal {
 	SAVE_SCENE,
 	COMPONENT_EXISTS,
 	CREATE_MATERIAL,
+	CREATE_SCRIPT,
+	CANT_REMOVE_COMPONENT,
 	QUIT
 };
 
@@ -39,15 +42,14 @@ public:
 	UpdateStatus Update() override;
 	UpdateStatus PostUpdate() override;
 	bool CleanUp() override;
-	void OnMouseMoved();
 	void OnMouseClicked();
 	void OnMouseReleased();
 
 public:
 	Modal modalToOpen = Modal::NONE; // Used in the MenuBar to popup a Modal Window of the specific type.
-
 	// ---------- Docking ----------
 	unsigned dockMainId = 0;
+	unsigned dockUpId = 0;
 	unsigned dockLeftId = 0;
 	unsigned dockRightId = 0;
 	unsigned dockDownId = 0;
@@ -61,8 +63,12 @@ public:
 	PanelInspector panelInspector;
 	PanelHierarchy panelHierarchy;
 	PanelAbout panelAbout;
+	PanelControlEditor panelControlEditor;
+	PanelResource panelResource;
+	PanelDebug panelGameControllerDebug;
 
 	GameObject* selectedGameObject = nullptr;			   // Pointer to the GameObject that will be shown in the inspector.
+	Resource* selectedResource = nullptr;				   // Pointer to the Resource that will be shown in the PanelResource.
 	ImVec4 titleColor = ImVec4(0.35f, 0.69f, 0.87f, 1.0f); // Color used for the titles in ImGui
 	ImVec4 textColor = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);	   // Color used for text and information in ImGui
 

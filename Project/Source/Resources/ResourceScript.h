@@ -12,5 +12,5 @@ public:
 	void Unload() override;
 
 public:
-	Script* script = nullptr;
+	std::string name = "";
 };

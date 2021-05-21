@@ -1,9 +1,40 @@
 #include "Scene.h"
 
 #include "GameObject.h"
+#include "Application.h"
+#include "Modules/ModuleEditor.h"
+#include "Modules/ModuleResources.h"
+#include "Resources/ResourceMesh.h"
+#include "Utils/Logging.h"
+
+#include "Utils/Leaks.h"
 
 Scene::Scene(unsigned numGameObjects) {
 	gameObjects.Allocate(numGameObjects);
+
+	transformComponents.Allocate(numGameObjects);
+	meshRendererComponents.Allocate(numGameObjects);
+	boundingBoxComponents.Allocate(numGameObjects);
+	cameraComponents.Allocate(numGameObjects);
+	lightComponents.Allocate(numGameObjects);
+	canvasComponents.Allocate(numGameObjects);
+	canvasRendererComponents.Allocate(numGameObjects);
+	imageComponents.Allocate(numGameObjects);
+	transform2DComponents.Allocate(numGameObjects);
+	boundingBox2DComponents.Allocate(numGameObjects);
+	eventSystemComponents.Allocate(numGameObjects);
+	toggleComponents.Allocate(numGameObjects);
+	textComponents.Allocate(numGameObjects);
+	buttonComponents.Allocate(numGameObjects);
+	selectableComponents.Allocate(numGameObjects);
+	sliderComponents.Allocate(numGameObjects);
+	skyboxComponents.Allocate(numGameObjects);
+	scriptComponents.Allocate(numGameObjects);
+	animationComponents.Allocate(numGameObjects);
+	particleComponents.Allocate(numGameObjects);
+	audioSourceComponents.Allocate(numGameObjects);
+	audioListenerComponents.Allocate(numGameObjects);
+	progressbarsComponents.Allocate(numGameObjects);
 }
 
 void Scene::ClearScene() {
@@ -12,7 +43,7 @@ void Scene::ClearScene() {
 	quadtree.Clear();
 
 	assert(gameObjects.Count() == 0); // There should be no GameObjects outside the scene hierarchy
-	gameObjects.ReleaseAll();		  // This looks redundant, but it resets the free list so that GameObject order is mantained when saving/loading
+	gameObjects.Clear();			  // This looks redundant, but it resets the free list so that GameObject order is mantained when saving/loading
 }
 
 void Scene::RebuildQuadtree() {
@@ -35,29 +66,13 @@ void Scene::ClearQuadtree() {
 }
 
 GameObject* Scene::CreateGameObject(GameObject* parent, UID id, const char* name) {
-	GameObject* gameObject = gameObjects.Obtain();
+	GameObject* gameObject = gameObjects.Obtain(id);
 	gameObject->scene = this;
 	gameObject->id = id;
 	gameObject->name = name;
-	gameObjectsIdMap[id] = gameObject;
 	gameObject->SetParent(parent);
 
 	return gameObject;
-}
-
-GameObject* Scene::DuplicateGameObject(GameObject* gameObject, GameObject* parent) {
-	GameObject* newGO = CreateGameObject(parent, GenerateUID(), (gameObject->name + " (copy)").c_str());
-
-	// Copy the components
-	for (Component* component : gameObject->GetComponents()) {
-		component->DuplicateComponent(*newGO);
-	}
-	newGO->InitComponents();
-	// Duplicate recursively its children
-	for (GameObject* child : gameObject->GetChildren()) {
-		DuplicateGameObject(child, newGO);
-	}
-	return newGO;
 }
 
 void Scene::DestroyGameObject(GameObject* gameObject) {
@@ -73,76 +88,68 @@ void Scene::DestroyGameObject(GameObject* gameObject) {
 		quadtree.Remove(gameObject);
 	}
 
-	gameObjectsIdMap.erase(gameObject->GetID());
+	bool selected = App->editor->selectedGameObject == gameObject;
+	if (selected) App->editor->selectedGameObject = nullptr;
+
 	gameObject->RemoveAllComponents();
 	gameObject->SetParent(nullptr);
-	gameObjects.Release(gameObject);
+	gameObjects.Release(gameObject->GetID());
 }
 
 GameObject* Scene::GetGameObject(UID id) const {
-	if (gameObjectsIdMap.count(id) == 0) return nullptr;
-
-	return gameObjectsIdMap.at(id);
+	return gameObjects.Find(id);
 }
 
 Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 	switch (type) {
 	case ComponentType::TRANSFORM:
-		if (!transformComponents.Has(componentId)) return nullptr;
-		return &transformComponents.Get(componentId);
+		return transformComponents.Find(componentId);
 	case ComponentType::MESH_RENDERER:
-		if (!meshRendererComponents.Has(componentId)) return nullptr;
-		return &meshRendererComponents.Get(componentId);
+		return meshRendererComponents.Find(componentId);
 	case ComponentType::BOUNDING_BOX:
-		if (!boundingBoxComponents.Has(componentId)) return nullptr;
-		return &boundingBoxComponents.Get(componentId);
+		return boundingBoxComponents.Find(componentId);
 	case ComponentType::CAMERA:
-		if (!cameraComponents.Has(componentId)) return nullptr;
-		return &cameraComponents.Get(componentId);
+		return cameraComponents.Find(componentId);
 	case ComponentType::LIGHT:
-		if (!lightComponents.Has(componentId)) return nullptr;
-		return &lightComponents.Get(componentId);
+		return lightComponents.Find(componentId);
 	case ComponentType::CANVAS:
-		if (!canvasComponents.Has(componentId)) return nullptr;
-		return &canvasComponents.Get(componentId);
+		return canvasComponents.Find(componentId);
 	case ComponentType::CANVASRENDERER:
-		if (!canvasRendererComponents.Has(componentId)) return nullptr;
-		return &canvasRendererComponents.Get(componentId);
+		return canvasRendererComponents.Find(componentId);
 	case ComponentType::IMAGE:
-		if (!imageComponents.Has(componentId)) return nullptr;
-		return &imageComponents.Get(componentId);
+		return imageComponents.Find(componentId);
 	case ComponentType::TRANSFORM2D:
-		if (!transform2DComponents.Has(componentId)) return nullptr;
-		return &transform2DComponents.Get(componentId);
+		return transform2DComponents.Find(componentId);
 	case ComponentType::BUTTON:
-		if (!buttonComponents.Has(componentId)) return nullptr;
-		return &buttonComponents.Get(componentId);
+		return buttonComponents.Find(componentId);
 	case ComponentType::EVENT_SYSTEM:
-		if (!eventSystemComponents.Has(componentId)) return nullptr;
-		return &eventSystemComponents.Get(componentId);
+		return eventSystemComponents.Find(componentId);
 	case ComponentType::BOUNDING_BOX_2D:
-		if (!boundingBox2DComponents.Has(componentId)) return nullptr;
-		return &boundingBox2DComponents.Get(componentId);
+		return boundingBox2DComponents.Find(componentId);
 	case ComponentType::TOGGLE:
-		if (!toggleComponents.Has(componentId)) return nullptr;
-		return &toggleComponents.Get(componentId);
+		return toggleComponents.Find(componentId);
 	case ComponentType::TEXT:
-		if (!textComponents.Has(componentId)) return nullptr;
-		return &textComponents.Get(componentId);
+		return textComponents.Find(componentId);
 	case ComponentType::SELECTABLE:
-		if (!selectableComponents.Has(componentId)) return nullptr;
-		return &selectableComponents.Get(componentId);
+		return selectableComponents.Find(componentId);
+	case ComponentType::SLIDER:
+		return sliderComponents.Find(componentId);
 	case ComponentType::SKYBOX:
-		if (!skyboxComponents.Has(componentId)) return nullptr;
-		return &skyboxComponents.Get(componentId);
+		return skyboxComponents.Find(componentId);
 	case ComponentType::ANIMATION:
-		if (!animationComponents.Has(componentId)) return nullptr;
-		return &animationComponents.Get(componentId);
+		return animationComponents.Find(componentId);
 	case ComponentType::SCRIPT:
-		if (!scriptComponents.Has(componentId)) return nullptr;
-		return &scriptComponents.Get(componentId);
+		return scriptComponents.Find(componentId);
+	case ComponentType::PARTICLE:
+		return particleComponents.Find(componentId);
+	case ComponentType::AUDIO_SOURCE:
+		return audioSourceComponents.Find(componentId);
+	case ComponentType::AUDIO_LISTENER:
+		return audioListenerComponents.Find(componentId);
+	case ComponentType::PROGRESS_BAR:
+		return progressbarsComponents.Find(componentId);
 	default:
-		LOG("Component of type %i hasn't been registered in GaneObject::GetComponentByTypeAndId.", (unsigned) type);
+		LOG("Component of type %i hasn't been registered in Scene::GetComponentByTypeAndId.", (unsigned) type);
 		assert(false);
 		return nullptr;
 	}
@@ -151,43 +158,53 @@ Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType type, UID componentId) {
 	switch (type) {
 	case ComponentType::TRANSFORM:
-		return &transformComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return transformComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::MESH_RENDERER:
-		return &meshRendererComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return meshRendererComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::BOUNDING_BOX:
-		return &boundingBoxComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return boundingBoxComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::CAMERA:
-		return &cameraComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return cameraComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::LIGHT:
-		return &lightComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return lightComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::CANVAS:
-		return &canvasComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return canvasComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::CANVASRENDERER:
-		return &canvasRendererComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return canvasRendererComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::IMAGE:
-		return &imageComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return imageComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::TRANSFORM2D:
-		return &transform2DComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return transform2DComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::BUTTON:
-		return &buttonComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return buttonComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::EVENT_SYSTEM:
-		return &eventSystemComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return eventSystemComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::BOUNDING_BOX_2D:
-		return &boundingBox2DComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return boundingBox2DComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::TOGGLE:
-		return &toggleComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return toggleComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::TEXT:
-		return &textComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return textComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::SELECTABLE:
-		return &selectableComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return selectableComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::SLIDER:
+		return sliderComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::SKYBOX:
-		return &skyboxComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return skyboxComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::ANIMATION:
-		return &animationComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return animationComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::SCRIPT:
-		return &scriptComponents.Put(componentId, owner, componentId, owner->IsActive());
+		return scriptComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::PARTICLE:
+		return particleComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::AUDIO_SOURCE:
+		return audioSourceComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::AUDIO_LISTENER:
+		return audioListenerComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::PROGRESS_BAR:
+		return progressbarsComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	default:
-		LOG("Component of type %i hasn't been registered in GameObject::CreateComponentByTypeAndId.", (unsigned) type);
+		LOG("Component of type %i hasn't been registered in Scene::CreateComponentByTypeAndId.", (unsigned) type);
 		assert(false);
 		return nullptr;
 	}
@@ -196,80 +213,88 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 	switch (type) {
 	case ComponentType::TRANSFORM:
-		if (!transformComponents.Has(componentId)) return;
-		transformComponents.Remove(componentId);
+		transformComponents.Release(componentId);
 		break;
 	case ComponentType::MESH_RENDERER:
-		if (!meshRendererComponents.Has(componentId)) return;
-		meshRendererComponents.Remove(componentId);
+		meshRendererComponents.Release(componentId);
 		break;
 	case ComponentType::BOUNDING_BOX:
-		if (!boundingBoxComponents.Has(componentId)) return;
-		boundingBoxComponents.Remove(componentId);
+		boundingBoxComponents.Release(componentId);
 		break;
 	case ComponentType::CAMERA:
-		if (!cameraComponents.Has(componentId)) return;
-		cameraComponents.Remove(componentId);
+		cameraComponents.Release(componentId);
 		break;
 	case ComponentType::LIGHT:
-		if (!lightComponents.Has(componentId)) return;
-		lightComponents.Remove(componentId);
+		lightComponents.Release(componentId);
 		break;
 	case ComponentType::CANVAS:
-		if (!canvasComponents.Has(componentId)) return;
-		canvasComponents.Remove(componentId);
+		canvasComponents.Release(componentId);
 		break;
 	case ComponentType::CANVASRENDERER:
-		if (!canvasRendererComponents.Has(componentId)) return;
-		canvasRendererComponents.Remove(componentId);
+		canvasRendererComponents.Release(componentId);
 		break;
 	case ComponentType::IMAGE:
-		if (!imageComponents.Has(componentId)) return;
-		imageComponents.Remove(componentId);
+		imageComponents.Release(componentId);
 		break;
 	case ComponentType::TRANSFORM2D:
-		if (!transform2DComponents.Has(componentId)) return;
-		transform2DComponents.Remove(componentId);
+		transform2DComponents.Release(componentId);
 		break;
 	case ComponentType::BUTTON:
-		if (!buttonComponents.Has(componentId)) return;
-		buttonComponents.Remove(componentId);
+		buttonComponents.Release(componentId);
 		break;
 	case ComponentType::EVENT_SYSTEM:
-		if (!eventSystemComponents.Has(componentId)) return;
-		eventSystemComponents.Remove(componentId);
+		eventSystemComponents.Release(componentId);
 		break;
 	case ComponentType::BOUNDING_BOX_2D:
-		if (!boundingBox2DComponents.Has(componentId)) return;
-		boundingBox2DComponents.Remove(componentId);
+		boundingBox2DComponents.Release(componentId);
 		break;
 	case ComponentType::TOGGLE:
-		if (!toggleComponents.Has(componentId)) return;
-		toggleComponents.Remove(componentId);
+		toggleComponents.Release(componentId);
 		break;
 	case ComponentType::TEXT:
-		if (!textComponents.Has(componentId)) return;
-		textComponents.Remove(componentId);
+		textComponents.Release(componentId);
 		break;
 	case ComponentType::SELECTABLE:
-		if (!selectableComponents.Has(componentId)) return;
-		selectableComponents.Remove(componentId);
+		selectableComponents.Release(componentId);
+		break;
+	case ComponentType::SLIDER:
+		sliderComponents.Release(componentId);
 		break;
 	case ComponentType::SKYBOX:
-		if (!skyboxComponents.Has(componentId)) return;
-		skyboxComponents.Remove(componentId);
+		skyboxComponents.Release(componentId);
 		break;
 	case ComponentType::ANIMATION:
-		if (!animationComponents.Has(componentId)) return;
-		animationComponents.Remove(componentId);
+		animationComponents.Release(componentId);
 		break;
 	case ComponentType::SCRIPT:
-		if (!scriptComponents.Has(componentId)) return;
-		scriptComponents.Remove(componentId);
+		scriptComponents.Release(componentId);
+		break;
+	case ComponentType::PARTICLE:
+		particleComponents.Release(componentId);
+		break;
+	case ComponentType::AUDIO_SOURCE:
+		audioSourceComponents.Release(componentId);
+		break;
+	case ComponentType::AUDIO_LISTENER:
+		audioListenerComponents.Release(componentId);
+		break;
+	case ComponentType::PROGRESS_BAR:
+		progressbarsComponents.Release(componentId);
 		break;
 	default:
-		LOG("Component of type %i hasn't been registered in GameObject::RemoveComponentByTypeAndId.", (unsigned) type);
+		LOG("Component of type %i hasn't been registered in Scene::RemoveComponentByTypeAndId.", (unsigned) type);
 		assert(false);
 		break;
 	}
+}
+
+int Scene::GetTotalTriangles() const {
+	int triangles = 0;
+	for (const ComponentMeshRenderer& meshComponent : meshRendererComponents) {
+		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshComponent.meshId);
+		if (mesh != nullptr) {
+			triangles += mesh->numIndices / 3;
+		}
+	}
+	return triangles;
 }

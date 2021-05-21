@@ -10,6 +10,7 @@
 #include "Modules/ModuleRender.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleResources.h"
+#include "Scene.h"
 
 #include "GL/glew.h"
 #include "imgui.h"
@@ -44,10 +45,10 @@ void PanelConfiguration::Update() {
 
 			// FPS Graph
 			char title[25];
-			sprintf_s(title, 25, "Framerate %.1f", fpsLog[fpsLogIndex]);
-			ImGui::PlotHistogram("##framerate", &fpsLog[0], FPS_LOG_SIZE, fpsLogIndex, title, 0.0f, 100.0f, ImVec2(310, 100));
-			sprintf_s(title, 25, "Milliseconds %0.1f", msLog[fpsLogIndex]);
-			ImGui::PlotHistogram("##milliseconds", &msLog[0], FPS_LOG_SIZE, fpsLogIndex, title, 0.0f, 40.0f, ImVec2(310, 100));
+			sprintf_s(title, 25, "Framerate %.1f", logger->fpsLog[logger->fpsLogIndex]);
+			ImGui::PlotHistogram("##framerate", &logger->fpsLog[0], FPS_LOG_SIZE, logger->fpsLogIndex, title, 0.0f, 100.0f, ImVec2(310, 100));
+			sprintf_s(title, 25, "Milliseconds %0.1f", logger->msLog[logger->fpsLogIndex]);
+			ImGui::PlotHistogram("##milliseconds", &logger->msLog[0], FPS_LOG_SIZE, logger->fpsLogIndex, title, 0.0f, 40.0f, ImVec2(310, 100));
 		}
 
 		// Hardware
@@ -115,7 +116,7 @@ void PanelConfiguration::Update() {
 		// Window
 		if (ImGui::CollapsingHeader("Window")) {
 			// Window mode combo box
-			const char* items[] = {"Windowed", "Borderless", "Fullscreen", "Fullscreen desktop"};
+			const char* items[] = {"Windowed", "Fullscreen", "Fullscreen desktop"};
 			const char* itemCurrent = items[int(App->window->GetWindowMode())];
 			if (ImGui::BeginCombo("Window mode", itemCurrent)) {
 				for (int n = 0; n < IM_ARRAYSIZE(items); ++n) {
@@ -135,7 +136,7 @@ void PanelConfiguration::Update() {
 				App->window->SetBrightness(brightness);
 			}
 
-			if (App->window->GetWindowMode() == WindowMode::BORDERLESS || App->window->GetWindowMode() == WindowMode::WINDOWED) {
+			if (App->window->GetWindowMode() == WindowMode::WINDOWED) {
 				bool resizable = App->window->GetResizable();
 				if (ImGui::Checkbox("Resizable", &resizable)) {
 					App->window->SetResizable(resizable);
@@ -167,13 +168,13 @@ void PanelConfiguration::Update() {
 				}
 			} else {
 				int currentDisplayModeIndex = App->window->GetCurrentDisplayMode();
-				const SDL_DisplayMode& currentDisplayMode = App->window->displayModes[currentDisplayModeIndex];
+				const SDL_DisplayMode& currentDisplayMode = App->window->GetDisplayMode(currentDisplayModeIndex);
 				char currentDisplayModeLabel[40];
 				sprintf_s(currentDisplayModeLabel, " %i bpp\t%i x %i @ %iHz", SDL_BITSPERPIXEL(currentDisplayMode.format), currentDisplayMode.w, currentDisplayMode.h, currentDisplayMode.refresh_rate);
 
 				if (ImGui::BeginCombo("Display Modes", currentDisplayModeLabel)) {
-					int displayModeIndex = 0;
-					for (const SDL_DisplayMode& displayMode : App->window->displayModes) {
+					for (unsigned displayModeIndex = 0; displayModeIndex < App->window->GetNumDisplayModes(); ++displayModeIndex) {
+						const SDL_DisplayMode& displayMode = App->window->GetDisplayMode(currentDisplayModeIndex);
 						bool isSelected = (currentDisplayModeIndex == displayModeIndex);
 						char displayModeLabel[40];
 						sprintf_s(displayModeLabel, " %i bpp\t%i x %i @ %iHz", SDL_BITSPERPIXEL(displayMode.format), displayMode.w, displayMode.h, displayMode.refresh_rate);
@@ -181,8 +182,6 @@ void PanelConfiguration::Update() {
 						if (ImGui::Selectable(displayModeLabel, isSelected)) {
 							App->window->SetCurrentDisplayMode(displayModeIndex);
 						}
-
-						displayModeIndex += 1;
 					}
 					ImGui::EndCombo();
 				}
@@ -191,12 +190,8 @@ void PanelConfiguration::Update() {
 
 		// Scene
 		if (ImGui::CollapsingHeader("Scene")) {
-			// TODO: Change the Skybox images
 			Scene* scene = App->scene->scene;
-			ImGui::TextColored(App->editor->titleColor, "Gizmos");
-			ImGui::Checkbox("Draw Bounding Boxes", &App->renderer->drawAllBoundingBoxes);
-			ImGui::Checkbox("Draw Quadtree", &App->renderer->drawQuadtree);
-			ImGui::Separator();
+			ImGui::TextColored(App->editor->titleColor, "Quadtree");
 			ImGui::InputFloat2("Min Point", scene->quadtreeBounds.minPoint.ptr());
 			ImGui::InputFloat2("Max Point", scene->quadtreeBounds.maxPoint.ptr());
 			ImGui::InputScalar("Max Depth", ImGuiDataType_U32, &scene->quadtreeMaxDepth);
@@ -209,29 +204,9 @@ void PanelConfiguration::Update() {
 				scene->RebuildQuadtree();
 			}
 			ImGui::Separator();
-
-			ImGui::Checkbox("Skybox", &App->renderer->skyboxActive);
+			ImGui::TextColored(App->editor->titleColor, "Background Settings");
 			ImGui::ColorEdit3("Background", App->renderer->clearColor.ptr());
 			ImGui::ColorEdit3("Ambient Color", App->renderer->ambientColor.ptr());
-		}
-
-		// Camera
-		if (ImGui::CollapsingHeader("Engine Camera")) {
-			Frustum& frustum = App->camera->GetEngineFrustum();
-			vec front = frustum.Front();
-			vec up = frustum.Up();
-			ImGui::TextColored(App->editor->titleColor, "Frustum");
-			ImGui::InputFloat3("Front", front.ptr(), "%.3f", ImGuiInputTextFlags_ReadOnly);
-			ImGui::InputFloat3("Up", up.ptr(), "%.3f", ImGuiInputTextFlags_ReadOnly);
-
-			float nearPlane = frustum.NearPlaneDistance();
-			float farPlane = frustum.FarPlaneDistance();
-			if (ImGui::DragFloat("Near Plane", &nearPlane, 0.1f, 0.0f, farPlane, "%.2f")) {
-				App->camera->engineCameraFrustum.SetViewPlaneDistances(nearPlane, farPlane);
-			}
-			if (ImGui::DragFloat("Far Plane", &farPlane, 1.0f, nearPlane, inf, "%.2f")) {
-				App->camera->engineCameraFrustum.SetViewPlaneDistances(nearPlane, farPlane);
-			}
 		}
 	}
 	ImGui::End();

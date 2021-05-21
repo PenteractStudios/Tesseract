@@ -27,9 +27,12 @@
 
 Application::Application() {
 	// Order matters: they will Init/start/update in this order
+	modules.push_back(events = new ModuleEvents());
+
 	modules.push_back(hardware = new ModuleHardwareInfo());
 	modules.push_back(window = new ModuleWindow());
 	modules.push_back(files = new ModuleFiles());
+	modules.push_back(project = new ModuleProject());
 	modules.push_back(resources = new ModuleResources());
 	modules.push_back(programs = new ModulePrograms());
 	modules.push_back(audio = new ModuleAudio());
@@ -38,14 +41,12 @@ Application::Application() {
 	modules.push_back(input = new ModuleInput());
 	modules.push_back(camera = new ModuleCamera());
 
-	modules.push_back(project = new ModuleProject());
 	modules.push_back(scene = new ModuleScene());
 	modules.push_back(userInterface = new ModuleUserInterface());
 	modules.push_back(editor = new ModuleEditor());
 	modules.push_back(debugDraw = new ModuleDebugDraw());
 
 	modules.push_back(renderer = new ModuleRender());
-	modules.push_back(events = new ModuleEvents());
 }
 
 Application::~Application() {

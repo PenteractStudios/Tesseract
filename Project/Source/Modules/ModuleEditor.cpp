@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "Application.h"
+#include "GameObject.h"
 #include "FileSystem/SceneImporter.h"
 #include "Utils/FileDialog.h"
 #include "Modules/ModuleWindow.h"
@@ -9,8 +10,9 @@
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleFiles.h"
+#include "Modules/ModuleProject.h"
 #include "Modules/ModuleEvents.h"
-#include "Event.h"
+#include "TesseractEvent.h"
 #include "FileSystem/MaterialImporter.h"
 
 #include "ImGuizmo.h"
@@ -24,12 +26,13 @@
 #include "GL/glew.h"
 #include "SDL_video.h"
 #include "Brofiler.h"
+#include "Math/float2.h"
 
 #include "Utils/Leaks.h"
 
 static const ImWchar iconsRangesFa[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
 static const ImWchar iconsRangesFk[] = {ICON_MIN_FK, ICON_MAX_FK, 0};
-static std::string gamePath;
+
 static void ApplyCustomStyle() {
 	ImGuiStyle* style = &ImGui::GetStyle();
 	ImVec4* colors = style->Colors;
@@ -109,6 +112,7 @@ static void ApplyCustomStyle() {
 
 bool ModuleEditor::Init() {
 	ImGui::CreateContext();
+	FileDialog::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
@@ -122,10 +126,6 @@ bool ModuleEditor::Init() {
 	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
 		io.ConfigDockingTransparentPayload = true;
 	}
-
-	TCHAR NPath[MAX_PATH];
-	GetCurrentDirectory(MAX_PATH, NPath);
-	gamePath = NPath;
 
 	ApplyCustomStyle();
 
@@ -147,6 +147,9 @@ bool ModuleEditor::Start() {
 	panels.push_back(&panelHierarchy);
 	panels.push_back(&panelInspector);
 	panels.push_back(&panelAbout);
+	panels.push_back(&panelControlEditor);
+	panels.push_back(&panelResource);
+	panels.push_back(&panelGameControllerDebug);
 
 	return true;
 }
@@ -154,12 +157,17 @@ bool ModuleEditor::Start() {
 UpdateStatus ModuleEditor::PreUpdate() {
 	BROFILER_CATEGORY("ModuleEditor - PreUpdate", Profiler::Color::Azure)
 
+#if GAME
+	return UpdateStatus::CONTINUE;
+#else
+
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(App->window->window);
 	ImGui::NewFrame();
 	ImGuizmo::BeginFrame();
 
 	return UpdateStatus::CONTINUE;
+#endif
 }
 
 UpdateStatus ModuleEditor::Update() {
@@ -168,16 +176,20 @@ UpdateStatus ModuleEditor::Update() {
 	ImGui::CaptureMouseFromApp(true);
 	ImGui::CaptureKeyboardFromApp(true);
 
+#if GAME
+	return UpdateStatus::CONTINUE;
+#endif
+
 	// Main menu bar
 	ImGui::BeginMainMenuBar();
 	if (ImGui::BeginMenu("File")) {
-		if (ImGui::MenuItem("New")) {
+		if (ImGui::MenuItem("New Scene")) {
 			modalToOpen = Modal::NEW_SCENE;
 		}
-		if (ImGui::MenuItem("Load")) {
+		if (ImGui::MenuItem("Load Scene")) {
 			modalToOpen = Modal::LOAD_SCENE;
 		}
-		if (ImGui::MenuItem("Save")) {
+		if (ImGui::MenuItem("Save Scene")) {
 			modalToOpen = Modal::SAVE_SCENE;
 		}
 		if (ImGui::MenuItem("Quit")) {
@@ -185,10 +197,14 @@ UpdateStatus ModuleEditor::Update() {
 		}
 		ImGui::EndMenu();
 	}
+
 	if (ImGui::BeginMenu("Assets")) {
 		if (ImGui::BeginMenu("Create")) {
 			if (ImGui::MenuItem("Material")) {
 				modalToOpen = Modal::CREATE_MATERIAL;
+			}
+			if (ImGui::MenuItem("Script")) {
+				modalToOpen = Modal::CREATE_SCRIPT;
 			}
 			ImGui::EndMenu();
 		}
@@ -201,6 +217,9 @@ UpdateStatus ModuleEditor::Update() {
 		ImGui::MenuItem(panelInspector.name, "", &panelInspector.enabled);
 		ImGui::MenuItem(panelHierarchy.name, "", &panelHierarchy.enabled);
 		ImGui::MenuItem(panelConfiguration.name, "", &panelConfiguration.enabled);
+		ImGui::MenuItem(panelControlEditor.name, "", &panelControlEditor.enabled);
+		ImGui::MenuItem(panelResource.name, "", &panelResource.enabled);
+		ImGui::MenuItem(panelGameControllerDebug.name, "", &panelGameControllerDebug.enabled);
 		ImGui::EndMenu();
 	}
 	if (ImGui::BeginMenu("Help")) {
@@ -228,16 +247,16 @@ UpdateStatus ModuleEditor::Update() {
 		ImGui::OpenPopup("New scene");
 		break;
 	case Modal::LOAD_PROJECT:
-		FileDialog::Init("Load project", false, (AllowedExtensionsFlag::PROJECT), gamePath);
+		FileDialog::Init("Load project", false, (AllowedExtensionsFlag::PROJECT));
 		break;
 	case Modal::LOAD_SCENE:
-		FileDialog::Init("Load scene", false, (AllowedExtensionsFlag::SCENE), gamePath);
+		FileDialog::Init("Load scene", false, (AllowedExtensionsFlag::SCENE), SCENES_PATH);
 		break;
 	case Modal::SAVE_PROJECT:
-		FileDialog::Init("Save project", true, (AllowedExtensionsFlag::PROJECT), gamePath);
+		FileDialog::Init("Save project", true, (AllowedExtensionsFlag::PROJECT));
 		break;
 	case Modal::SAVE_SCENE:
-		FileDialog::Init("Save scene", true, (AllowedExtensionsFlag::SCENE), gamePath);
+		FileDialog::Init("Save scene", true, (AllowedExtensionsFlag::SCENE), SCENES_PATH);
 		break;
 	case Modal::QUIT:
 		ImGui::OpenPopup("Quit");
@@ -245,8 +264,14 @@ UpdateStatus ModuleEditor::Update() {
 	case Modal::COMPONENT_EXISTS:
 		ImGui::OpenPopup("Already existing Component");
 		break;
+	case Modal::CANT_REMOVE_COMPONENT:
+		ImGui::OpenPopup("Unable to remove component");
+		break;
 	case Modal::CREATE_MATERIAL:
 		ImGui::OpenPopup("Name the material");
+		break;
+	case Modal::CREATE_SCRIPT:
+		ImGui::OpenPopup("Name the script");
 		break;
 	}
 	modalToOpen = Modal::NONE;
@@ -269,12 +294,12 @@ UpdateStatus ModuleEditor::Update() {
 	}
 
 	std::string selectedFile;
-	/*
+
 	if (FileDialog::OpenDialog("Load scene", selectedFile)) {
-		SceneImporter::LoadScene(FileDialog::GetFileName(selectedFile.c_str()).c_str());
+		std::string filePath = std::string(SCENES_PATH "/") + FileDialog::GetFileName(selectedFile.c_str()) + SCENE_EXTENSION;
+		SceneImporter::LoadScene(filePath.c_str());
 		ImGui::CloseCurrentPopup();
 	}
-	*/
 
 	if (FileDialog::OpenDialog("Save scene", selectedFile)) {
 		std::string filePath = std::string(SCENES_PATH "/") + FileDialog::GetFileName(selectedFile.c_str()) + SCENE_EXTENSION;
@@ -291,6 +316,23 @@ UpdateStatus ModuleEditor::Update() {
 		if (ImGui::Button("Save", ImVec2(50, 20))) {
 			std::string path = MATERIALS_PATH "/" + std::string(name) + MATERIAL_EXTENSION;
 			MaterialImporter::CreateAndSaveMaterial(path.c_str());
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine(ImGui::GetWindowWidth() - 60);
+		if (ImGui::Button("Cancel")) {
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+
+	ImGui::SetNextWindowSize(ImVec2(260, 100), ImGuiCond_FirstUseEver);
+	if (ImGui::BeginPopupModal("Name the script", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar)) {
+		static char name[FILENAME_MAX] = "New script";
+		ImGui::InputText("Name##scriptName", name, IM_ARRAYSIZE(name));
+		ImGui::NewLine();
+		ImGui::SameLine(ImGui::GetWindowWidth() - 120);
+		if (ImGui::Button("Save", ImVec2(50, 20))) {
+			App->project->CreateScript(std::string(name));
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::SameLine(ImGui::GetWindowWidth() - 60);
@@ -327,22 +369,35 @@ UpdateStatus ModuleEditor::Update() {
 		ImGui::EndPopup();
 	}
 
+	// CANT REMOVE COMPONENT MODAL
+	ImGui::SetNextWindowSize(ImVec2(400, 120), ImGuiCond_FirstUseEver);
+	if (ImGui::BeginPopupModal("Unable to remove component", nullptr, ImGuiWindowFlags_NoResize)) {
+		ImGui::PushTextWrapPos();
+		ImGui::Text("This Component cannot be removed.There are other Components in this Game Object that require its functionality.");
+		if (ImGui::Button("Cancel")) {
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+
 	// Docking
 	ImGuiViewport* viewport = ImGui::GetMainViewport();
 	ImGuiID dockSpaceId = ImGui::GetID("DockSpace");
 
 	if (!ImGui::DockBuilderGetNode(dockSpaceId)) {
 		ImGui::DockBuilderAddNode(dockSpaceId);
-		ImGui::DockBuilderSetNodeSize(dockSpaceId, viewport->GetWorkSize());
+		ImGui::DockBuilderSetNodeSize(dockSpaceId, viewport->WorkSize);
 
 		dockMainId = dockSpaceId;
+		dockUpId = ImGui::DockBuilderSplitNode(dockMainId, ImGuiDir_Up, 0.2f, nullptr, &dockMainId);
+		ImGui::DockBuilderSetNodeSize(dockUpId, ImVec2(viewport->WorkSize.x, 40));
 		dockRightId = ImGui::DockBuilderSplitNode(dockMainId, ImGuiDir_Right, 0.2f, nullptr, &dockMainId);
 		dockDownId = ImGui::DockBuilderSplitNode(dockMainId, ImGuiDir_Down, 0.3f, nullptr, &dockMainId);
 		dockLeftId = ImGui::DockBuilderSplitNode(dockMainId, ImGuiDir_Left, 0.25f, nullptr, &dockMainId);
 	}
 
-	ImGui::SetNextWindowPos(viewport->GetWorkPos());
-	ImGui::SetNextWindowSize(viewport->GetWorkSize());
+	ImGui::SetNextWindowPos(viewport->WorkPos);
+	ImGui::SetNextWindowSize(viewport->WorkSize);
 
 	ImGuiWindowFlags dockSpaceWindowFlags = 0;
 	dockSpaceWindowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking;
@@ -369,9 +424,17 @@ UpdateStatus ModuleEditor::Update() {
 UpdateStatus ModuleEditor::PostUpdate() {
 	BROFILER_CATEGORY("ModuleEditor - PostUpdate", Profiler::Color::Azure)
 
+#if GAME
+	return UpdateStatus::CONTINUE;
+#endif //  GAME
+
 	// Deleting Components
 	if (panelInspector.GetComponentToDelete()) {
-		selectedGameObject->RemoveComponent(panelInspector.GetComponentToDelete());
+		if (panelInspector.GetComponentToDelete()->CanBeRemoved()) {
+			selectedGameObject->RemoveComponent(panelInspector.GetComponentToDelete());
+		} else {
+			App->editor->modalToOpen = Modal::CANT_REMOVE_COMPONENT;
+		}
 		panelInspector.SetComponentToDelete(nullptr);
 	}
 
@@ -399,26 +462,18 @@ bool ModuleEditor::CleanUp() {
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplSDL2_Shutdown();
+	FileDialog::DestroyContext();
 	ImGui::DestroyContext();
 
 	return true;
 }
 
-void ModuleEditor::OnMouseMoved() {
-	Event mouseEvent = Event(EventType::MOUSE_UPDATE);
-	mouseEvent.mouseUpdate.mouseX = panelScene.GetMousePosOnScene().x;
-	mouseEvent.mouseUpdate.mouseY = panelScene.GetMousePosOnScene().y;
-	App->events->AddEvent(mouseEvent);
-}
-
 void ModuleEditor::OnMouseClicked() {
-	Event mouseEvent = Event(EventType::MOUSE_CLICKED);
-	mouseEvent.mouseClicked.mouseX = panelScene.GetMousePosOnScene().x;
-	mouseEvent.mouseClicked.mouseY = panelScene.GetMousePosOnScene().y;
+	TesseractEvent mouseEvent = TesseractEvent(TesseractEventType::MOUSE_CLICKED);
 	App->events->AddEvent(mouseEvent);
 }
 
 void ModuleEditor::OnMouseReleased() {
-	Event mouseEvent = Event(EventType::MOUSE_RELEASED);
+	TesseractEvent mouseEvent = TesseractEvent(TesseractEventType::MOUSE_RELEASED);
 	App->events->AddEvent(mouseEvent);
 }

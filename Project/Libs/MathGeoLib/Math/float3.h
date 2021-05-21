@@ -698,23 +698,23 @@ public:
 std::ostream &operator <<(std::ostream &out, const float3 &rhs);
 #endif
 
-float3 operator *(float scalar, const float3 &rhs);
+TESSERACT_ENGINE_API float3 operator*(float scalar, const float3& rhs);
 
 #ifdef MATH_ENABLE_UNCOMMON_OPERATIONS
 inline float3 operator /(float scalar, const float3 &rhs) { return float3::FromScalar(scalar) / rhs; }
 #endif
 
-inline float Dot(const float3 &a, const float3 &b) { return a.Dot(b); }
-inline float3 Cross(const float3 &a, const float3 &b) { return a.Cross(b); }
-inline float3 Abs(const float3 &a) { return a.Abs(); }
-inline float Length(const float3 &a) { return a.Length(); }
-inline float Distance(const float3 &a, const float3 &b) { return a.Distance(b); }
-inline float3 Min(const float3 &a, const float3 &b) { return a.Min(b); }
-inline float3 Max(const float3 &a, const float3 &b) { return a.Max(b); }
-inline float3 Clamp(const float3 &a, float floor, float ceil) { return a.Clamp(floor, ceil); }
-inline float3 Clamp(const float3 &a, const float3 &floor, const float3 &ceil) { return a.Clamp(floor, ceil); }
-inline float3 Clamp01(const float3 &a) { return a.Clamp01(); }
-inline float3 Lerp(const float3 &a, const float3 &b, float t) { return a.Lerp(b, t); }
+TESSERACT_ENGINE_API inline float Dot(const float3 &a, const float3 &b) { return a.Dot(b); }
+TESSERACT_ENGINE_API inline float3 Cross(const float3 &a, const float3 &b) { return a.Cross(b); }
+TESSERACT_ENGINE_API inline float3 Abs(const float3 &a) { return a.Abs(); }
+TESSERACT_ENGINE_API inline float Length(const float3 &a) { return a.Length(); }
+TESSERACT_ENGINE_API inline float Distance(const float3 &a, const float3 &b) { return a.Distance(b); }
+TESSERACT_ENGINE_API inline float3 Min(const float3 &a, const float3 &b) { return a.Min(b); }
+TESSERACT_ENGINE_API inline float3 Max(const float3 &a, const float3 &b) { return a.Max(b); }
+TESSERACT_ENGINE_API inline float3 Clamp(const float3 &a, float floor, float ceil) { return a.Clamp(floor, ceil); }
+TESSERACT_ENGINE_API inline float3 Clamp(const float3 &a, const float3 &floor, const float3 &ceil) { return a.Clamp(floor, ceil); }
+TESSERACT_ENGINE_API inline float3 Clamp01(const float3 &a) { return a.Clamp01(); }
+TESSERACT_ENGINE_API inline float3 Lerp(const float3 &a, const float3 &b, float t) { return a.Lerp(b, t); }
 
 MATH_END_NAMESPACE
 
