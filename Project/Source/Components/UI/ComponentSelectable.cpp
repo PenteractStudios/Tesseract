@@ -305,7 +305,7 @@ ComponentSelectable::TransitionType ComponentSelectable::GetTransitionType() con
 	return transitionType;
 }
 
-void ComponentSelectable::TryToClickOn() const {
+void ComponentSelectable::TryToClickOn(bool internalClick) const {
 	UID toBeClicked = 0;
 	ComponentType typeToPress = ComponentType::UNKNOWN;
 
@@ -324,15 +324,27 @@ void ComponentSelectable::TryToClickOn() const {
 		switch (typeToPress) {
 		case ComponentType::BUTTON:
 			componentToPress = GetOwner().GetComponent<ComponentButton>();
-			static_cast<ComponentButton*>(componentToPress)->OnClickedInternal();
+			if (internalClick) {
+				static_cast<ComponentButton*>(componentToPress)->OnClickedInternal();
+			} else {
+				static_cast<ComponentButton*>(componentToPress)->OnClicked();
+			}
 			break;
 		case ComponentType::TOGGLE:
 			componentToPress = GetOwner().GetComponent<ComponentToggle>();
-			static_cast<ComponentToggle*>(componentToPress)->OnClickedInternal();
+			if (internalClick) {
+				static_cast<ComponentToggle*>(componentToPress)->OnClickedInternal();
+			} else {
+				static_cast<ComponentSlider*>(componentToPress)->OnClicked();
+			}
 			break;
 		case ComponentType::SLIDER:
 			componentToPress = GetOwner().GetComponent<ComponentSlider>();
-			static_cast<ComponentSlider*>(componentToPress)->OnClickedInternal();
+			if (internalClick) {
+				static_cast<ComponentSlider*>(componentToPress)->OnClickedInternal();
+			} else {
+				static_cast<ComponentSlider*>(componentToPress)->OnClicked();
+			}
 			break;
 		default:
 			assert("This is not supposed to ever happen");
