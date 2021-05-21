@@ -18,6 +18,7 @@
     <ClInclude Include="Source\Panels\PanelDebug.h" />
     <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />
     <ClInclude Include="Source\Components\ComponentParticleSystem.h" />
+    <ClInclude Include="Source\Components\ComponentTrail.h" />
     <ClInclude Include="Source\MaskType.h" />
     <ClInclude Include="Source\FileSystem\ClipImporter.h" />
     <ClInclude Include="Source\FileSystem\StateMachineImporter.h" />
@@ -294,6 +295,7 @@
     <ClCompile Include="Source\Panels\PanelDebug.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentProgressBar.cpp" />
     <ClCompile Include="Source\Components\ComponentParticleSystem.cpp" />
+    <ClCompile Include="Source\Components\ComponentTrail.cpp" />
     <ClCompile Include="Source\MaskType.cpp" />
     <ClCompile Include="Source\FileSystem\ClipImporter.cpp" />
     <ClCompile Include="Source\FileSystem\StateMachineImporter.cpp" />
