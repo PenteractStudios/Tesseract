@@ -9,6 +9,10 @@
 
 #include "Utils/Logging.h"
 
+#include "debugdraw.h"
+
+#include "Utils/Leaks.h"
+
 #define JSON_TAG_MASS "mass"
 #define JSON_TAG_RADIUS "radius"
 #define JSON_TAG_CENTER_OFFSET "centerOffset"

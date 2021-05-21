@@ -4,19 +4,18 @@
 #include "ModuleTime.h"
 #include "ModuleInput.h"
 #include "ModuleScene.h"
-#include "Components/Component.h"
-#include "Scene.h"
-#include "Utils/MotionState.h"
-
-#include "Utils/MotionState.h"
-#include "Utils/Logging.h"
-
 #include "ModuleCamera.h" // Remove this
 #include "Components/ComponentCamera.h"
 #include "GameObject.h"
 #include "Components/Physics/ComponentSphereCollider.h"
 #include "Components/Physics/ComponentCapsuleCollider.h"
 #include "Components/Physics/ComponentBoxCollider.h"
+#include "Components/ComponentTransform.h"
+#include "Scene.h"
+#include "Utils/MotionState.h"
+#include "Utils/Logging.h"
+
+#include "debugdraw.h"
 
 bool ModulePhysics::Init() {
 	LOG("Creating Physics environment using Bullet Physics.");
