@@ -50,13 +50,24 @@ UpdateStatus ModulePhysics::PreUpdate() {
 				Component* pbodyB = (Component*) obB->getUserPointer();
 
 				if (pbodyA && pbodyB) {
+					if (obA->isKinematicObject() && obB->isStaticOrKinematicObject()) {
+						pbodyA->GetOwner().GetComponent<ComponentTransform>()->SetGlobalPosition(
+							pbodyA->GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition() + 0.07f * float3(contactManifold->getContactPoint(0).m_normalWorldOnB));
+					}
+					if (obB->isKinematicObject() && obA->isStaticOrKinematicObject()) {
+						pbodyB->GetOwner().GetComponent<ComponentTransform>()->SetGlobalPosition(
+							pbodyB->GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition() - 0.07f * float3(contactManifold->getContactPoint(0).m_normalWorldOnB));
+					}
 					switch (pbodyA->GetType()) {
 					case ComponentType::SPHERE_COLLIDER:
 						((ComponentSphereCollider*) pbodyA)->OnCollision();
 						break;
-						//case
-						//case
-
+					case ComponentType::BOX_COLLIDER:
+						((ComponentBoxCollider*) pbodyA)->OnCollision();
+						break;
+					case ComponentType::CAPSULE_COLLIDER:
+						((ComponentCapsuleCollider*) pbodyA)->OnCollision();
+						break;
 					default:
 						break;
 					}
@@ -65,9 +76,12 @@ UpdateStatus ModulePhysics::PreUpdate() {
 					case ComponentType::SPHERE_COLLIDER:
 						((ComponentSphereCollider*) pbodyB)->OnCollision();
 						break;
-						//case
-						//case
-
+					case ComponentType::BOX_COLLIDER:
+						((ComponentBoxCollider*) pbodyB)->OnCollision();
+						break;
+					case ComponentType::CAPSULE_COLLIDER:
+						((ComponentCapsuleCollider*) pbodyB)->OnCollision();
+						break;
 					default:
 						break;
 					}
