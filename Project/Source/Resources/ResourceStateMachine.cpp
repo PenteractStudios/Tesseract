@@ -68,9 +68,9 @@ void ResourceStateMachine::Load() {
 		UID id = stateArray[i][JSON_TAG_ID];
 		std::string name = stateArray[i][JSON_TAG_NAME];
 		UID clipId = stateArray[i][JSON_TAG_CLIP_ID];
-		State *state = new State(name, clipId, 0, id);
-		states.push_back(*state);
-		stateMap.insert(std::make_pair(id, *state));
+		State state(name, clipId, 0, id);
+		states.push_back(state);
+		stateMap.insert(std::make_pair(id, state));
 
 		//Setting initial state
 		if (initialStateId == id) {
@@ -100,7 +100,6 @@ void ResourceStateMachine::Unload() {
 	for (itClip = clipsUids.begin(); itClip != clipsUids.end(); ++itClip) {
 		App->resources->DecreaseReferenceCount((*itClip));
 	}
-	RELEASE(initialState);
 }
 
 void ResourceStateMachine::SaveToFile(const char* filePath) {
@@ -117,7 +116,7 @@ void ResourceStateMachine::SaveToFile(const char* filePath) {
 	document.SetObject();
 
 	//Saving initial state
-	jStateMachine[JSON_TAG_INITIAL_STATE] = initialState->id;
+	jStateMachine[JSON_TAG_INITIAL_STATE] = initialState.id;
 
 	// Saving Clips UIDs
 	JsonValue clipArray = jStateMachine[JSON_TAG_CLIPS];

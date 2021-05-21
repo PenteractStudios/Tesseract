@@ -22,17 +22,13 @@ public:
 	void AddTransition(const State& from, const State& to, const float interpolation, const std::string& name);
 	Transition* FindTransitionGivenName(const std::string& name);
 
-	State* GetInitialState() const {
-		return initialState;
-	}
-
-	void SetInitialState(State *newState){
+	void SetInitialState(const State &newState){
 		initialState = newState;
 	}
 
 public:
 	std::list<State> states;
-	State* initialState;
+	State initialState;
 
 private:
 	std::list<UID> clipsUids;

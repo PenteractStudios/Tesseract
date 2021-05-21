@@ -54,7 +54,7 @@ void ComponentAnimation::OnEditorUpdate() {
 	if (oldStateMachineUID != stateMachineResourceUID) {
 		ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
 		if (resourceStateMachine) {
-			currentState = resourceStateMachine->GetInitialState();
+			currentState = &resourceStateMachine->initialState;
 		} else {
 			currentState = nullptr;
 		}
@@ -89,10 +89,18 @@ void ComponentAnimation::SendTrigger(const std::string& trigger) {
 
 	Transition* transition = resourceStateMachine->FindTransitionGivenName(trigger);
 	if (transition != nullptr) {
-		if (animationInterpolations.size() == 0) {
-			animationInterpolations.push_front(AnimationInterpolation(&transition->source, currentState->currentTime, 0, transition->interpolationDuration));
+		if(transition->source.id == currentState->id){
+			if (animationInterpolations.size() == 0) {
+				animationInterpolations.push_front(AnimationInterpolation(&transition->source, currentState->currentTime, 0, transition->interpolationDuration));
+			}
+
+			animationInterpolations.push_front(AnimationInterpolation(&transition->target, 0, 0, transition->interpolationDuration));
+			currentState = &transition->target;
+		} 
+		else {
+			LOG("Warning: transition target from %s to %s, and current state is %s ", transition->source.name.c_str(), transition->target.name.c_str(), currentState->name.c_str());
 		}
-		animationInterpolations.push_front(AnimationInterpolation(&transition->target, 0, 0, transition->interpolationDuration));
+		
 	}
 }
 
@@ -116,10 +124,7 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 
 		//Updating times
 		if (gameObject == GetOwner().GetRootBone()) { // Only udate currentTime for the rootBone
-			State* newState = AnimationController::UpdateTransitions(animationInterpolations, App->time->GetDeltaTime());
-			if (newState) {
-				currentState = newState;
-			}
+			AnimationController::UpdateTransitions(animationInterpolations, App->time->GetDeltaTime());
 		}
 
 	} else {
@@ -155,6 +160,6 @@ void ComponentAnimation::LoadResourceStateMachine() {
 	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
 
 	if (resourceStateMachine) {
-		currentState = resourceStateMachine->GetInitialState();
+		currentState = &resourceStateMachine->initialState;
 	}
 }
