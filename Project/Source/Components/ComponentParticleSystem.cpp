@@ -397,8 +397,7 @@ void ComponentParticleSystem::Draw() {
 }
 
 void ComponentParticleSystem::Play() {
-	particleSpawned = 0;
-	isPlaying = true;
+	SpawnParticle();
 }
 
 void ComponentParticleSystem::Stop() {
