@@ -587,6 +587,13 @@ void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix) const {
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, viewMatrix.ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, projMatrix.ptr());
 
+	// Skinning
+	if (palette.size() > 0) {
+		glUniformMatrix4fv(glGetUniformLocation(program, "palette"), palette.size(), GL_TRUE, palette[0].ptr());
+	}
+
+	glUniform1i(glGetUniformLocation(program, "hasBones"), goBones.size());
+
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
