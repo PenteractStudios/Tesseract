@@ -40,6 +40,7 @@ enum class ComponentType {
 	TEXT,
 	SCRIPT,
 	PARTICLE,
+	TRAIL,
 	AUDIO_SOURCE,
 	AUDIO_LISTENER,
 	PROGRESS_BAR

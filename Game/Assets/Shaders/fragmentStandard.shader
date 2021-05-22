@@ -19,6 +19,10 @@ uniform sampler2D normalMap;
 uniform bool hasNormalMap;
 uniform float normalStrength;
 uniform float smoothness;
+uniform sampler2D emissiveMap;
+uniform int hasEmissiveMap;
+uniform sampler2D ambientOcclusionMap;
+uniform int hasAmbientOcclusionMap;
 uniform int hasSmoothnessAlpha; // Generic used for Specular and Metallic
 uniform vec2 tiling;
 uniform vec2 offset;
@@ -84,6 +88,11 @@ vec2 GetTiledUVs(vec2 uv, vec2 tiling, vec2 offset)
 vec4 GetDiffuse(sampler2D diffuseMap, vec2 uv, vec3 diffuseColor, int hasDiffuseMap)
 {
     return hasDiffuseMap * pow(texture(diffuseMap, uv), vec4(2.2)) * vec4(diffuseColor, 1.0) + (1 - hasDiffuseMap) * vec4(diffuseColor, 1.0);
+}
+
+vec4 GetEmissive(sampler2D emissiveMap, vec2 uv, int hasEmissiveMap)
+{
+    return hasEmissiveMap * pow(texture(emissiveMap, uv), vec4(2.2));
 }
 
 vec3 GetNormal(sampler2D normalMap, vec2 uv, mat3 TBN, float normalStrength)
@@ -218,7 +227,10 @@ void main()
 
     float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorMetallic.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
 
-    vec3 colorAccumulative = colorDiffuse.rgb * light.ambient.color;
+    // Ambient Occlusion
+    vec3 colorAmbient = hasAmbientOcclusionMap * light.ambient.color * texture(ambientOcclusionMap, uv).rgb + (1 - hasAmbientOcclusionMap) * light.ambient.color;
+
+    vec3 colorAccumulative = colorDiffuse.rgb * colorAmbient;
 
     // Schlick Fresnel
     vec3 Cd = colorDiffuse.rgb * (1 - metalnessMask);
@@ -242,6 +254,9 @@ void main()
     	colorAccumulative += ProcessSpotLight(light.spots[i], normal, fragPos, viewDir, Cd, F0, roughness);
 	}
 
+    // Emission
+    colorAccumulative += GetEmissive(emissiveMap, uv, hasEmissiveMap).rgb;
+
     vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
 	ldr = pow(ldr, vec3(1/2.2)); // gamma correction
 	outColor = vec4(ldr, 1.0);
@@ -264,8 +279,11 @@ void main()
     vec4 colorSpecular = hasSpecularMap * pow(texture(specularMap, tiledUV), vec4(2.2)) + (1 - hasSpecularMap) * vec4(specularColor, 1.0);
 
     float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorSpecular.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
+    
+    // Ambient Occlusion
+    vec3 colorAmbient = hasAmbientOcclusionMap * light.ambient.color * texture(ambientOcclusionMap, uv).rgb + (1 - hasAmbientOcclusionMap) * light.ambient.color;
 
-    vec3 colorAccumulative = colorDiffuse.rgb * light.ambient.color;
+    vec3 colorAccumulative = colorDiffuse.rgb * colorAmbient;
 
     // Directional Light
     if (light.directional.isActive == 1)
@@ -284,6 +302,9 @@ void main()
     {
         colorAccumulative += ProcessSpotLight(light.spots[i], normal, fragPos, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
     }
+
+    // Emission
+    colorAccumulative += GetEmissive(emissiveMap, uv, hasEmissiveMap).rgb;
 
     vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
     ldr = pow(ldr, vec3(1/2.2)); // gamma correction
