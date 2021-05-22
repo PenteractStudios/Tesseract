@@ -7,6 +7,7 @@
 
 #include "imgui.h"
 #include "GL/glew.h"
+#include "IconsFontAwesome5.h"
 #include <functional>
 
 namespace ImGui {
@@ -66,8 +67,7 @@ inline void ImGui::ResourceSlot(const char* label, UID* target, std::function<vo
 
 template<>
 inline void ImGui::ResourceSlot<ResourceTexture>(const char* label, UID* target, std::function<void()> changeCallBack) {
-	ImGui::Text(label);
-	ImGui::BeginChildFrame(ImGui::GetID(target), ImVec2(200, 200));
+	ImGui::BeginChildFrame(ImGui::GetID(target), ImVec2(32, 32));
 	ResourceTexture* texture = App->resources->GetResource<ResourceTexture>(*target);
 	if (texture) {
 		ImTextureID texid = (ImTextureID) texture->glTexture;
@@ -89,22 +89,17 @@ inline void ImGui::ResourceSlot<ResourceTexture>(const char* label, UID* target,
 		ImGui::EndDragDropTarget();
 	}
 
+	ImGui::SameLine();
+	ImGui::Text(label);
+
+	std::string removeButton = std::string(ICON_FA_TIMES "##") + label;
+	if (ImGui::Button(removeButton.c_str())) {
+		if (*target != 0) {
+			App->resources->DecreaseReferenceCount(*target);
+			*target = 0;
+		}
+	}
+	ImGui::SameLine();
 	std::string resourceIdLabel = std::string("Id: ") + std::to_string(*target);
 	ImGui::Text(resourceIdLabel.c_str());
-
-	std::string resourceName = "None";
-	if (texture != nullptr) {
-		resourceName = texture->GetName();
-	}
-
-	std::string resourceNameLabel = std::string("Name: ") + resourceName;
-	ImGui::Text(resourceNameLabel.c_str());
-
-	if (texture) {
-		int width;
-		int height;
-		glGetTextureLevelParameteriv(texture->glTexture, 0, GL_TEXTURE_WIDTH, &width);
-		glGetTextureLevelParameteriv(texture->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
-		ImGui::TextWrapped("Size: %d x %d", width, height);
-	}
 }
