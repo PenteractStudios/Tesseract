@@ -33,7 +33,7 @@ private:
 	int maxVertices = 1500;
 	int trianglesCreated = 0;
 	int textureCreated = 0;
-	float width = 0.1;
+	float width = 0.1f;
 	float timePoint = 1.0f;
 	float minDistance = 2.0f;
 	float verticesPosition[1500] = {0.0f};

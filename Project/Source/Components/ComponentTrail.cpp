@@ -196,7 +196,7 @@ void ComponentTrail::SpawnParticle() {
 }
 
 void ComponentTrail::UpdateVerticesPosition() {
-	for (size_t i = 0; i < (maxVertices - 30); i++) {
+	for (int i = 0; i < (maxVertices - 30); i++) {
 		verticesPosition[i] = verticesPosition[i + 30];
 	}
 }
