@@ -217,7 +217,7 @@ void PanelScene::Update() {
 			float4x4 cameraProjection = engineFrustum->ProjectionMatrix().Transposed();
 
 			GameObject* selectedGameObject = App->editor->selectedGameObject;
-			if (selectedGameObject) {
+			if (selectedGameObject && !selectedGameObject->GetComponent<ComponentTransform2D>()) {
 				ComponentTransform* transform = selectedGameObject->GetComponent<ComponentTransform>();
 				float4x4 globalMatrix = transform->GetGlobalMatrix().Transposed();
 

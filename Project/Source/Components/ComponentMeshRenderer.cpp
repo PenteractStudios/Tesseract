@@ -282,6 +282,16 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	int hasNormalMap = normal ? 1 : 0;
 
 	unsigned gldepthMapTexture = App->renderer->depthMapTexture;
+	
+	unsigned glTextureEmissive = 0;
+	ResourceTexture* emissive = App->resources->GetResource<ResourceTexture>(material->emissiveMapId);
+	glTextureEmissive = emissive ? emissive->glTexture : 0;
+	int hasEmissiveMap = glTextureEmissive ? 1 : 0;
+
+	unsigned glTextureAmbientOcclusion = 0;
+	ResourceTexture* ambientOcclusion = App->resources->GetResource<ResourceTexture>(material->ambientOcclusionMapId);
+	glTextureAmbientOcclusion = ambientOcclusion ? ambientOcclusion->glTexture : 0;
+	int hasAmbientOcclusionMap = ambientOcclusion ? 1 : 0;
 
 	if (material->shaderType == MaterialShader::PHONG) {
 		// Phong-specific settings
@@ -390,9 +400,21 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, glTextureNormal);
 
-	// Depth Map
-	glUniform1i(glGetUniformLocation(program, "depthMapTexture"), 3);
+	// Emissive Map
+	glUniform1i(glGetUniformLocation(program, "emissiveMap"), 3);
+	glUniform1i(glGetUniformLocation(program, "hasEmissiveMap"), hasEmissiveMap);
 	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, glTextureEmissive);
+
+	// Ambient Occlusion Map
+	glUniform1i(glGetUniformLocation(program, "ambientOcclusionMap"), 4);
+	glUniform1i(glGetUniformLocation(program, "hasAmbientOcclusionMap"), hasAmbientOcclusionMap);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, glTextureAmbientOcclusion);
+
+	// Depth Map
+	glUniform1i(glGetUniformLocation(program, "depthMapTexture"), 5);
+	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_2D, gldepthMapTexture);
 
 	// Tilling settings
