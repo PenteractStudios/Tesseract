@@ -36,28 +36,32 @@ void ComponentCapsuleCollider::Init() {
 
 void ComponentCapsuleCollider::DrawGizmos() {
 	if (IsActive()) {
-		ComponentTransform* ownerTransform = GetOwner().GetComponent<ComponentTransform>();
-		switch (capsuleType) {
-		case CapsuleType::X:
-			dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), float3(height, 0, 0), dd::colors::LawnGreen, radius, radius);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(height / 2, 0, 0), dd::colors::LawnGreen, radius, 3);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), dd::colors::LawnGreen, radius, 4);
-			break;
-		case CapsuleType::Y:
-			dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), float3(0, height, 0), dd::colors::LawnGreen, radius, radius);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, height / 2, 0), dd::colors::LawnGreen, radius, 1);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), dd::colors::LawnGreen, radius, 2);
-			break;
-		case CapsuleType::Z:
-			dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), float3(0, 0, height), dd::colors::Green, radius, radius);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, 0, height / 2), dd::colors::Green, radius, 5);
-			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), dd::colors::Green, radius, 6);
-			break;
+		if (drawGizmo) {
+			ComponentTransform* ownerTransform = GetOwner().GetComponent<ComponentTransform>();
+			switch (capsuleType) {
+			case CapsuleType::X:
+				dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), float3(height, 0, 0), dd::colors::LawnGreen, radius, radius);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(height / 2, 0, 0), dd::colors::LawnGreen, radius, 3);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), dd::colors::LawnGreen, radius, 4);
+				break;
+			case CapsuleType::Y:
+				dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), float3(0, height, 0), dd::colors::LawnGreen, radius, radius);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, height / 2, 0), dd::colors::LawnGreen, radius, 1);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), dd::colors::LawnGreen, radius, 2);
+				break;
+			case CapsuleType::Z:
+				dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), float3(0, 0, height), dd::colors::LawnGreen, radius, radius);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, 0, height / 2), dd::colors::LawnGreen, radius, 5);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), dd::colors::LawnGreen, radius, 6);
+				break;
+			}
 		}
 	}
 }
 
 void ComponentCapsuleCollider::OnEditorUpdate() {
+	ImGui::Checkbox("Draw Shape", &drawGizmo);
+
 	// World Layers combo box
 	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Everything"};
 	const char* layerCurrent = layerTypeItems[layerIndex];

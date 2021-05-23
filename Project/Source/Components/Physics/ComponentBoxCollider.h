@@ -20,10 +20,9 @@ public:
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
-	//void DuplicateComponent(GameObject& owner) override;
 
 	// ----- Collider Functions ---- //
-	void OnCollision();
+	void OnCollision(); // Callback function for scripting
 	void CalculateWorldBoundingBox();
 
 public:
@@ -34,9 +33,9 @@ public:
 	WorldLayers layer = WorldLayers::WORLD_ELEMENTS;
 	float mass = 1.f;
 	float3 size = float3::one;
-	float3 centerOffset = float3::inf;
-	bool freezeRotation = false;
-
 	AABB localAABB = {float3(0.5f), float3(0.5f)}; // Axis Aligned Bounding Box, local to the GameObject
 	OBB worldOBB = {localAABB};
+	float3 centerOffset = float3::inf;
+	bool freezeRotation = false;
+	bool drawGizmo = true;
 };

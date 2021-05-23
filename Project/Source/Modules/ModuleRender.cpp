@@ -212,6 +212,18 @@ UpdateStatus ModuleRender::Update() {
 			}
 		}
 
+		if (drawColliders) {
+			for (ComponentBoxCollider& collider : scene->boxColliderComponents) {
+				collider.DrawGizmos();
+			}
+			for (ComponentSphereCollider& collider : scene->sphereColliderComponents) {
+				collider.DrawGizmos();
+			}
+			for (ComponentCapsuleCollider& collider : scene->capsuleColliderComponents) {
+				collider.DrawGizmos();
+			}
+		}
+
 		// Draw quadtree
 		if (drawQuadtree) DrawQuadtreeRecursive(App->scene->scene->quadtree.root, App->scene->scene->quadtree.bounds);
 

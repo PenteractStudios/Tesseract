@@ -36,25 +36,29 @@ void ComponentBoxCollider::Init() {
 
 void ComponentBoxCollider::DrawGizmos() {
 	if (IsActive()) {
-		float3 points[8];
-		// TODO: dirty{
-		CalculateWorldBoundingBox();
-		//}
-		worldOBB.GetCornerPoints(points);
+		if (drawGizmo) {
+			float3 points[8];
+			// TODO: dirty{
+			CalculateWorldBoundingBox();
+			//}
+			worldOBB.GetCornerPoints(points);
 
-		float3 aux;
-		aux = points[2];
-		points[2] = points[3];
-		points[3] = aux;
-		aux = points[6];
-		points[6] = points[7];
-		points[7] = aux;
+			float3 aux;
+			aux = points[2];
+			points[2] = points[3];
+			points[3] = aux;
+			aux = points[6];
+			points[6] = points[7];
+			points[7] = aux;
 
-		dd::box(points, dd::colors::LawnGreen);
+			dd::box(points, dd::colors::LawnGreen);
+		}
 	}
 }
 
 void ComponentBoxCollider::OnEditorUpdate() {
+	ImGui::Checkbox("Draw Shape", &drawGizmo);
+
 	// World Layers combo box
 	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Everything"};
 	const char* layerCurrent = layerTypeItems[layerIndex];

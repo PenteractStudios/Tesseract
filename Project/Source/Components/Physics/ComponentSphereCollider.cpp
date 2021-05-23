@@ -35,12 +35,16 @@ void ComponentSphereCollider::Init() {
 
 void ComponentSphereCollider::DrawGizmos() {
 	if (IsActive()) {
-		ComponentTransform* ownerTransform = GetOwner().GetComponent<ComponentTransform>();
-		dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset, dd::colors::LawnGreen, radius);
+		if (drawGizmo) {
+			ComponentTransform* ownerTransform = GetOwner().GetComponent<ComponentTransform>();
+			dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset, dd::colors::LawnGreen, radius);
+		}
 	}
 }
 
 void ComponentSphereCollider::OnEditorUpdate() {
+	ImGui::Checkbox("Draw Shape", &drawGizmo);
+
 	// World Layers combo box
 	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Everything"};
 	const char* layerCurrent = layerTypeItems[layerIndex];
@@ -134,5 +138,10 @@ void ComponentSphereCollider::Load(JsonValue jComponent) {
 }
 
 void ComponentSphereCollider::OnCollision() {
-	// TODO: Send event...
+	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
+		Script* script = scriptComponent.GetScriptInstance();
+		if (script != nullptr) {
+			script->OnCollision();
+		}
+	}
 }

@@ -29,7 +29,7 @@ enum class ColliderType {
 
 /* --- World Layers ----
 *	NO_COLLISION = Doesn't collide with anything.
-*	WOLRD_ELEMENTS = All Objects that are physically present in the scene, including map props and enemy bodies. Interaction with other WOLRD_ELEMENTS and PLAYER.
+*	WOLRD_ELEMENTS = All Objects that are physically present in the scene, including map props and enemies. Interaction with other WOLRD_ELEMENTS and PLAYER.
 *	EVENT_TRIGGERS = All trigger colliders that will be activated by the player. Interaction with PLAYER.
 *	PLAYER = The Player of the game, should only exist one of this type. Interaction with WORLD_ELEMENTS and EVENT_TRIGGERS. Doesnt itneract with itself.
 *	EVERYTHING = The default setting. Interaction with all other types except NO_COLLISION.
