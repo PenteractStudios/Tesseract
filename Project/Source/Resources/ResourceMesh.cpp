@@ -31,15 +31,22 @@ void ResourceMesh::Load() {
 	numBones = *((unsigned*) cursor);
 	cursor += sizeof(unsigned);
 
-	unsigned positionSize = sizeof(float) * 3;
-	unsigned normalSize = sizeof(float) * 3;
-	unsigned tangentSize = sizeof(float) * 3;
-	unsigned uvSize = sizeof(float) * 2;
-	unsigned bonesIDSize = sizeof(unsigned) * 4;
-	unsigned weightsSize = sizeof(float) * 4;
+	int positionsSizeQuantity = 3;
+	int normalSizeQuantity = 3;
+	int tangentSizeQuantity = 3;
+	int uvSizeQuantity = 2;
+	int bonesIDSizeQuantity = 4;
+	int weightSizeQuantity = 4;
+
+	unsigned positionSize = sizeof(float) * positionsSizeQuantity;
+	unsigned normalSize = sizeof(float) * normalSizeQuantity;
+	unsigned tangentSize = sizeof(float) * tangentSizeQuantity;
+	unsigned uvSize = sizeof(float) * uvSizeQuantity;
+	unsigned bonesIDSize = sizeof(unsigned) * bonesIDSizeQuantity;
+	unsigned weightsSize = sizeof(float) * weightSizeQuantity;
 	unsigned indexSize = sizeof(unsigned);
-	// Add to elementsPerVertex any other element that must be included in the Vertex
-	int elementsPerVertex = 3 + 3 + 2 + 4 + 4;
+	// IMPORTANT! Add to elementsPerVertex any other element that must be included in the Vertex
+	int elementsPerVertex = positionsSizeQuantity + normalSizeQuantity + tangentSizeQuantity + uvSizeQuantity + bonesIDSizeQuantity + weightSizeQuantity;
 
 	unsigned vertexSize = positionSize + normalSize + tangentSize + uvSize + bonesIDSize + weightsSize;
 	unsigned vertexBufferSize = vertexSize * numVertices;
@@ -98,17 +105,11 @@ void ResourceMesh::Load() {
 	float* vertices = (float*) cursor;
 	cursor += vertexBufferSize;
 
-
 	for (int i = 0; i < numVertices * elementsPerVertex; i += elementsPerVertex) {
 		meshVertices.push_back(vertices[i]);
 		meshVertices.push_back(vertices[i + 1]);
 		meshVertices.push_back(vertices[i + 2]);
 	}
-
-	//LOG("------");
-	//for (int i = 0; i < meshVertices.size(); i += 3) {
-	//	LOG("%f | %f | %f", meshVertices[i], meshVertices[i + 1], meshVertices[i+2]);
-	//}
 
 	// Indices
 	unsigned* indices = (unsigned*) cursor;

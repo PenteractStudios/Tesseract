@@ -769,7 +769,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 	}
 
 	// Create prefab resource
-	std::unique_ptr<ResourceMesh> prefab = ImporterCommon::CreateResource<ResourceMesh>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+	std::unique_ptr<ResourcePrefab> prefab = ImporterCommon::CreateResource<ResourcePrefab>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
 	// Save resource meta file
 	bool saved = ImporterCommon::SaveResourceMetaFile(prefab.get());
