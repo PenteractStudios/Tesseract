@@ -22,20 +22,20 @@ public:
 	void Load(JsonValue jComponent) override;
 
 	// ----- Collider Functions ---- //
-	void OnCollision(); // Callback function for scripting
-	void CalculateWorldBoundingBox();
+	void OnCollision();				  // Callback function for scripting
+	void CalculateWorldBoundingBox(); // Set the worldOBB from the localAABB and the GameObject transform
 
 public:
-	btRigidBody* rigidBody = nullptr;
-	MotionState motionState = MotionState(nullptr, float3::zero, false);
-	ColliderType colliderType = ColliderType::DYNAMIC;
-	int layerIndex = 4;
-	WorldLayers layer = WorldLayers::WORLD_ELEMENTS;
-	float mass = 1.f;
-	float3 size = float3::one;
-	AABB localAABB = {float3(0.5f), float3(0.5f)}; // Axis Aligned Bounding Box, local to the GameObject
-	OBB worldOBB = {localAABB};
-	float3 centerOffset = float3::inf;
-	bool freezeRotation = false;
+	btRigidBody* rigidBody = nullptr;										// Body that is represented in the physic world.
+	MotionState motionState = MotionState(nullptr, float3(0, 0, 0), false); // Interface between btTransform (transform in physical world) and ComponentTransform.
+	ColliderType colliderType = ColliderType::DYNAMIC;						// DYNAMIC, STATIC, KINEMATIC, TRIGGER. Refer to description in ModulePhysics.h
+	WorldLayers layer = WorldLayers::EVERYTHING;							// Interaction layers. Refer to ModulePhysics.h to see how objects in a layer interact between the others.
+	int layerIndex = 4;														// WorldLayers is a bitwise enum. This index is used to generate the dropdown selection box in the Inspector.
+	float mass = 1.f;														// Represents the weight of the GameObject. If set to 0 the object will act as STATIC.
+	float3 size = float3::one;												// Longitude of each side of the box
+	AABB localAABB = {float3(0.5f), float3(0.5f)};							// Box represented as 8 points, local to the origin on the Collider.
+	OBB worldOBB = {localAABB};												// Box represented as 8 points in world coordinates.
+	float3 centerOffset = float3::inf;										// Center of the Rigidbody shape relative to GameObject origin.
+	bool freezeRotation = false;											// If set to true, the GameObject will not rotate when interacted on a collision.
 	bool drawGizmo = true;
 };
