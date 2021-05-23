@@ -8,6 +8,8 @@
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleEvents.h"
+#include "Modules/ModuleAudio.h"
+#include "Scene.h"
 #include "SDL_timer.h"
 #include "Brofiler.h"
 #include <ctime>
@@ -137,6 +139,7 @@ void ModuleTime::StartGame() {
 
 #if !GAME
 	SceneImporter::SaveScene(TEMP_SCENE_FILE_NAME);
+	App->scene->scene->sceneLoaded = false;
 #endif // !GAME
 
 	if (App->camera->GetGameCamera()) {
@@ -154,6 +157,12 @@ void ModuleTime::StartGame() {
 void ModuleTime::StopGame() {
 	if (!gameStarted) return;
 
+	gameStarted = false;
+	gameRunning = false;
+
+	// Stop all audio sources
+	App->audio->StopAllSources();
+
 #if !GAME
 	SceneImporter::LoadScene(TEMP_SCENE_FILE_NAME);
 	App->files->Erase(TEMP_SCENE_FILE_NAME);
@@ -162,9 +171,6 @@ void ModuleTime::StopGame() {
 	// Reset to the Engine camera
 	App->camera->ChangeActiveCamera(nullptr, false);
 	App->camera->ChangeCullingCamera(nullptr, false);
-
-	gameStarted = false;
-	gameRunning = false;
 
 	timeLastMs = 0;
 }

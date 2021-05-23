@@ -3,34 +3,31 @@
 #include "Component.h"
 #include "Scripting/Member.h"
 #include "Utils/UID.h"
+#include "Scripting/Script.h"
 
 #include <unordered_map>
 #include <vector>
 #include <string>
-
-class Script;
+#include <memory>
 
 class ComponentScript : public Component {
 public:
 	REGISTER_COMPONENT(ComponentScript, ComponentType::SCRIPT, true);
 
-	void Update() override;
+	void Init() override;
+
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
-	void DuplicateComponent(GameObject& owner) override;
 
-	void Invalidate();
-
-	Script* GetScriptInstance();
-
-private:
-	void ReloadScriptInstance();
+	void CreateScriptInstance();
+	void ReleaseScriptInstance();
+	TESSERACT_ENGINE_API Script* GetScriptInstance() const;
+	TESSERACT_ENGINE_API const char* GetScriptName() const;
 
 private:
 	std::unordered_map<std::string, std::pair<MemberType, MEMBER_VARIANT>> changedValues;
 
 	UID scriptId = 0;
-	Script* scriptInstance = nullptr;
-	bool dirty = true;
+	std::unique_ptr<Script> scriptInstance = nullptr;
 };

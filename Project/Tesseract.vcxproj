@@ -48,6 +48,20 @@
     <ClInclude Include="Source\Navigation\NavMesh.h" />
     <ClInclude Include="Source\Panels\PanelNavigation.h" />
     <ClInclude Include="Source\Modules\ModuleNavigation.h" />
+    <ClInclude Include="Source\Panels\PanelDebug.h" />
+    <ClInclude Include="Source\FileSystem\ImportOptions.h" />
+    <ClInclude Include="Source\FileSystem\ImporterCommon.h" />
+    <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />
+    <ClInclude Include="Source\Components\ComponentParticleSystem.h" />
+    <ClInclude Include="Source\Components\ComponentTrail.h" />
+    <ClInclude Include="Source\MaskType.h" />
+    <ClInclude Include="Source\FileSystem\ClipImporter.h" />
+    <ClInclude Include="Source\FileSystem\StateMachineImporter.h" />
+    <ClInclude Include="Source\AnimationInterpolation.h" />
+    <ClInclude Include="Source\Panels\PanelResource.h" />
+    <ClInclude Include="Source\Resources\ResourceClip.h" />
+    <ClInclude Include="Source\State.h" />
+    <ClInclude Include="Source\Panels\PanelImportOptions.h" />
     <ClInclude Include="Source\FileSystem\AudioImporter.h" />
     <ClInclude Include="Libs\imgui\imgui_stdlib.h" />
     <ClInclude Include="Source\Resources\ResourceAudioClip.h" />
@@ -107,7 +121,8 @@
     <ClInclude Include="Source\UI\Interfaces\IPointerExitHandler.h" />
     <ClInclude Include="Source\Components\UI\ComponentCanvas.h" />
     <ClInclude Include="Source\Components\UI\ComponentCanvasRenderer.h" />
-    <ClInclude Include="Source\UI\FontImporter.h" />
+    <ClInclude Include="Source\FileSystem\FontImporter.h" />
+    <ClInclude Include="Source\Components\UI\ComponentSlider.h" />
     <ClInclude Include="Source\Components\UI\ComponentImage.h" />
     <ClInclude Include="Source\Components\UI\ComponentTransform2D.h" />
     <ClInclude Include="Source\GameplaySystems.h" />
@@ -139,7 +154,7 @@
     <ClInclude Include="Source\Utils\alcErrors.h" />
     <ClInclude Include="Source\Utils\alErrors.h" />
     <ClInclude Include="Source\Scripting\Factory.h" />
-    <ClInclude Include="Source\Utils\AssetFile.h" />
+    <ClInclude Include="Source\Utils\AssetCache.h" />
     <ClInclude Include="Source\Utils\FileDialog.h" />
     <ClInclude Include="Source\Resources\ResourceAnimation.h" />
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -165,6 +180,7 @@
     <ClInclude Include="Source\Resources\Resource.h" />
     <ClInclude Include="Source\Globals.h" />
     <ClInclude Include="Source\Application.h" />
+    <ClInclude Include="Source\Resources\ResourceStateMachine.h" />
     <ClInclude Include="Source\Components\UI\ComponentEventSystem.h" />
     <ClInclude Include="Source\Modules\ModuleUserInterface.h" />
     <ClInclude Include="Source\Components\UI\ComponentButton.h" />
@@ -306,9 +322,23 @@
     <ClInclude Include="Libs\MathGeoLib\Math\TransformOps.h" />
     <ClInclude Include="Libs\MathGeoLib\Math\vec2d.h" />
     <ClInclude Include="Libs\MathGeoLib\Time\Clock.h" />
+    <ClInclude Include="Source\Transition.h" />
+    <ClInclude Include="Source\Utils\VectorMap.h" />
     <ClInclude Include="Source\Utils\PoolMap.h" />
+    <ClInclude Include="Source\Utils\StringBlocksParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Panels\PanelDebug.cpp" />
+    <ClCompile Include="Source\FileSystem\ImportOptions.cpp" />
+    <ClCompile Include="Source\FileSystem\ImporterCommon.cpp" />
+    <ClCompile Include="Source\Components\UI\ComponentProgressBar.cpp" />
+    <ClCompile Include="Source\Components\ComponentParticleSystem.cpp" />
+    <ClCompile Include="Source\Components\ComponentTrail.cpp" />
+    <ClCompile Include="Source\MaskType.cpp" />
+    <ClCompile Include="Source\FileSystem\ClipImporter.cpp" />
+    <ClCompile Include="Source\FileSystem\StateMachineImporter.cpp" />
+    <ClCompile Include="Source\Panels\PanelResource.cpp" />
+    <ClCompile Include="Source\Resources\ResourceClip.cpp" />
     <ClCompile Include="Libs\imgui\imgui_tables.cpp" />
     <ClCompile Include="Libs\recastnavigation-1.5.1\DebugUtils\DebugDraw.cpp" />
     <ClCompile Include="Libs\recastnavigation-1.5.1\DebugUtils\DetourDebugDraw.cpp" />
@@ -347,6 +377,7 @@
     <ClCompile Include="Source\Navigation\NavMesh.cpp" />
     <ClCompile Include="Source\Panels\PanelNavigation.cpp" />
     <ClCompile Include="Source\Modules\ModuleNavigation.cpp" />
+    <ClCompile Include="Source\Panels\PanelImportOptions.cpp" />
     <ClCompile Include="Source\FileSystem\AudioImporter.cpp" />
     <ClCompile Include="Libs\imgui\imgui_stdlib.cpp" />
     <ClCompile Include="Source\Resources\ResourceAudioClip.cpp" />
@@ -356,11 +387,12 @@
     <ClCompile Include="Source\Scripting\Member.cpp" />
     <ClCompile Include="Source\TesseractEvent.cpp" />
     <ClCompile Include="Source\Resources\ResourceFont.cpp" />
+    <ClCompile Include="Source\Components\UI\ComponentSlider.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentToggle.cpp" />
     <ClCompile Include="Source\Components\ComponentBoundingBox2D.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentCanvas.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentCanvasRenderer.cpp" />
-    <ClCompile Include="Source\UI\FontImporter.cpp" />
+    <ClCompile Include="Source\FileSystem\FontImporter.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentImage.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentTransform2D.cpp" />
     <ClCompile Include="Source\GameplaySystems.cpp" />
@@ -377,7 +409,7 @@
     <ClCompile Include="Source\Scene.cpp" />
     <ClCompile Include="Source\Resources\ResourcePrefab.cpp" />
     <ClCompile Include="Source\Scripting\Factory.cpp" />
-    <ClCompile Include="Source\Utils\AssetFile.cpp" />
+    <ClCompile Include="Source\Utils\AssetCache.cpp" />
     <ClCompile Include="Source\Utils\FileDialog.cpp" />
     <ClCompile Include="Source\Components\ComponentAnimation.cpp" />
     <ClCompile Include="Source\Resources\ResourceAnimation.cpp" />
@@ -413,6 +445,7 @@
     <ClCompile Include="Source\Resources\Resource.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\Application.cpp" />
+    <ClCompile Include="Source\Resources\ResourceStateMachine.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentEventSystem.cpp" />
     <ClCompile Include="Source\Modules\ModuleUserInterface.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentButton.cpp" />
@@ -514,21 +547,12 @@
     <ClCompile Include="Libs\MathGeoLib\Time\Clock.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Game\Shaders\default_fragment.glsl" />
-    <None Include="..\Game\Shaders\default_vertex.glsl" />
-    <None Include="..\Game\Shaders\phong_fragment.glsl" />
-    <None Include="..\Game\Shaders\phong_pbr_fragment.glsl" />
-    <None Include="..\Game\Shaders\phong_pbr_vertex.glsl" />
-    <None Include="..\Game\Shaders\phong_vertex.glsl" />
-    <None Include="..\Game\Shaders\skybox_fragment.glsl" />
-    <None Include="..\Game\Shaders\skybox_vertex.glsl" />
-    <None Include="..\Game\Shaders\ui_fragment.glsl" />
-    <None Include="..\Game\Shaders\ui_vertex.glsl" />
     <None Include="..\LICENSE" />
     <None Include="..\PackageEngine.bat" />
     <None Include="..\PackageEngine.ps1" />
     <None Include="..\README.md" />
     <None Include=".clang-format" />
+    <None Include="cpp.hint" />
     <None Include="Debugging.props" />
     <None Include="Libs\MathGeoLib\Geometry\KDTree.inl" />
     <None Include="Libs\MathGeoLib\Geometry\QuadTree.inl" />
@@ -537,6 +561,7 @@
     <None Include="Libs\MathGeoLib\Geometry\TriangleMesh_IntersectRay_SSE.inl" />
     <None Include="Libs\MathGeoLib\Math\float2.inl" />
     <None Include="Libs\MathGeoLib\Math\Matrix.inl" />
+    <None Include="Source\Utils\dte80a.tlh" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />
@@ -622,6 +647,9 @@
       <Command>
       </Command>
     </PostBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -652,6 +680,9 @@
       <Command>
       </Command>
     </PostBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Game|Win32'">
     <ClCompile>
@@ -682,6 +713,9 @@
       <Command>
       </Command>
     </PostBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

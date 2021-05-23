@@ -2,21 +2,16 @@
 
 #include "Application.h"
 #include "Modules/ModuleResources.h"
+#include "Modules/ModuleFiles.h"
+#include "Modules/ModuleTime.h"
 #include "Resources/ResourceScript.h"
-
 #include "Globals.h"
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
-
-#include "Modules/ModuleResources.h"
-#include "Modules/ModuleFiles.h"
-#include "Modules/ModuleTime.h"
+#include "Utils/FileDialog.h"
+#include "ImporterCommon.h"
 
 #include "Utils/Leaks.h"
-
-#define JSON_TAG_RESOURCES "Resources"
-#define JSON_TAG_TYPE "Type"
-#define JSON_TAG_ID "Id"
 
 bool ScriptImporter::ImportScript(const char* filePath, JsonValue jMeta) {
 	LOG("Importing Script from path: \"%s\".", filePath);
@@ -32,23 +27,26 @@ bool ScriptImporter::ImportScript(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
-	// Script resource creation
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
-	JsonValue jResource = jResources[0];
-	UID id = jResource[JSON_TAG_ID];
-	ResourceScript* scriptResource = App->resources->CreateResource<ResourceScript>(filePath, id ? id : GenerateUID());
+	// Create script resource
+	unsigned resourceIndex = 0;
+	std::unique_ptr<ResourceScript> script = ImporterCommon::CreateResource<ResourceScript>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
-	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(scriptResource->GetType());
-	jResource[JSON_TAG_ID] = scriptResource->GetId();
-
-	// Save to file
-	const std::string& resourceFilePath = scriptResource->GetResourceFilePath();
-	bool saved = App->files->Save(resourceFilePath.c_str(), buffer);
+	// Save resource meta file
+	bool saved = ImporterCommon::SaveResourceMetaFile(script.get());
 	if (!saved) {
-		LOG("Failed to save script resource.");
+		LOG("Failed to save script resource meta file.");
 		return false;
 	}
+
+	// Save to file
+	saved = App->files->Save(script->GetResourceFilePath().c_str(), buffer);
+	if (!saved) {
+		LOG("Failed to save script resource file.");
+		return false;
+	}
+
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(script);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Script imported in %ums", timeMs);

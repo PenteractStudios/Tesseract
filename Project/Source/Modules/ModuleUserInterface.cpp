@@ -13,6 +13,8 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleInput.h"
+#include "Modules/ModuleEditor.h"
+#include "Panels/PanelScene.h"
 #include "ModuleScene.h"
 #include "UI/Interfaces/IPointerEnterHandler.h"
 #include "UI/Interfaces/IPointerExitHandler.h"
@@ -29,13 +31,19 @@
 #include "Utils/Leaks.h"
 
 bool ModuleUserInterface::Init() {
+#if GAME
+	view2DInternal = true;
+#endif
 	return true;
 }
 
 bool ModuleUserInterface::Start() {
 	CreateQuadVBO();
+	App->events->AddObserverToEvent(TesseractEventType::SCREEN_RESIZED, this);
 	App->events->AddObserverToEvent(TesseractEventType::MOUSE_CLICKED, this);
 	App->events->AddObserverToEvent(TesseractEventType::MOUSE_RELEASED, this);
+	App->events->AddObserverToEvent(TesseractEventType::PRESSED_PLAY, this);
+	ViewportResized();
 	return true;
 }
 
@@ -46,18 +54,30 @@ UpdateStatus ModuleUserInterface::Update() {
 		for (ComponentSelectable& selectable : App->scene->scene->selectableComponents) {
 			ComponentBoundingBox2D* bb = selectable.GetOwner().GetComponent<ComponentBoundingBox2D>();
 
-			if (!selectable.IsHovered()) {
-				if (bb->GetWorldAABB().Contains(mousePos)) {
-					selectable.OnPointerEnter();
-				}
-			} else {
-				if (!bb->GetWorldAABB().Contains(mousePos)) {
-					selectable.OnPointerExit();
+			if (bb) {
+				if (!selectable.IsHovered()) {
+					if (bb->GetWorldAABB().Contains(mousePos)) {
+						selectable.OnPointerEnter();
+					}
+				} else {
+					if (!bb->GetWorldAABB().Contains(mousePos)) {
+						selectable.OnPointerExit();
+					}
 				}
 			}
 		}
 	}
 
+	return UpdateStatus::CONTINUE;
+}
+
+//This is done like this because receiving a WINDOW RESIZE event from SDL takes one frame to take effect, so instead of directly calling OnViewportResized,
+//The behaviour implemented sets viewportWasResized to True, and the next PostUpdate iteration, when SDL event has taken effect, OnViewportResized is called
+UpdateStatus ModuleUserInterface::PostUpdate() {
+	if (viewportWasResized) {
+		viewportWasResized = false;
+		OnViewportResized();
+	}
 	return UpdateStatus::CONTINUE;
 }
 
@@ -69,27 +89,34 @@ bool ModuleUserInterface::CleanUp() {
 void ModuleUserInterface::ReceiveEvent(TesseractEvent& e) {
 	ComponentEventSystem* eventSystem = GetCurrentEventSystem();
 	switch (e.type) {
+	case TesseractEventType::SCREEN_RESIZED:
+		ViewportResized();
+		break;
+
 	case TesseractEventType::MOUSE_CLICKED:
-		if (!App->time->IsGameRunning()) break;
 		if (eventSystem != nullptr) {
 			ComponentSelectable* lastHoveredSelectable = eventSystem->GetCurrentlyHovered();
 			if (lastHoveredSelectable != nullptr) {
 				if (lastHoveredSelectable->IsInteractable()) {
 					lastHoveredSelectable->TryToClickOn();
 				}
+			} else {
+				eventSystem->SetSelected(0);
 			}
 		}
 		break;
 
 	case TesseractEventType::MOUSE_RELEASED:
-		if (!App->time->IsGameRunning()) break;
 		if (eventSystem != nullptr) {
 			ComponentSelectable* lastHoveredSelectable = eventSystem->GetCurrentlyHovered();
 			if (lastHoveredSelectable != nullptr) {
 				lastHoveredSelectable->OnDeselect();
 			}
 		}
-
+		break;
+	case TesseractEventType::PRESSED_PLAY:
+		//This is done to prevent the fact that (in editor) disabling internal 2D and pressing play generates a visual error
+		ViewportResized();
 		break;
 	default:
 		break;
@@ -117,14 +144,24 @@ void ModuleUserInterface::GetCharactersInString(UID font, const std::string& sen
 	}
 }
 
+void ModuleUserInterface::RecursiveRender(const GameObject* obj) {
+	ComponentCanvasRenderer* renderer = obj->GetComponent<ComponentCanvasRenderer>();
+
+	if (obj->IsActive()) {
+		if (renderer && renderer->IsActive()) {
+			renderer->Render(obj);
+		}
+
+		for (const GameObject* child : obj->GetChildren()) {
+			RecursiveRender(child);
+		}
+	}
+}
+
 void ModuleUserInterface::Render() {
 	Scene* scene = App->scene->scene;
 	if (scene != nullptr) {
-		for (ComponentCanvasRenderer& canvasRenderer : scene->canvasRendererComponents) {
-			if (canvasRenderer.GetOwner().IsActiveInHierarchy()) {
-				canvasRenderer.Render(&canvasRenderer.GetOwner());
-			}
-		}
+		RecursiveRender(scene->root);
 	}
 }
 
@@ -197,7 +234,27 @@ ComponentEventSystem* ModuleUserInterface::GetCurrentEventSystem() {
 }
 
 void ModuleUserInterface::ViewportResized() {
+	viewportWasResized = true;
+}
+
+bool ModuleUserInterface::IsUsing2D() const {
+	return view2DInternal || App->time->HasGameStarted();
+}
+
+float4 ModuleUserInterface::GetErrorColor() {
+	return errorColor;
+}
+
+void ModuleUserInterface::OnViewportResized() {
 	for (ComponentCanvas& canvas : App->scene->scene->canvasComponents) {
-		canvas.SetDirty(true);
+		canvas.Invalidate();
+	}
+
+	for (ComponentTransform2D& transform : App->scene->scene->transform2DComponents) {
+		transform.Invalidate();
+	}
+
+	for (ComponentText& text : App->scene->scene->textComponents) {
+		text.Invalidate();
 	}
 }

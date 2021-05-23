@@ -32,7 +32,7 @@
 
 static const ImWchar iconsRangesFa[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
 static const ImWchar iconsRangesFk[] = {ICON_MIN_FK, ICON_MAX_FK, 0};
-static std::string gamePath;
+
 static void ApplyCustomStyle() {
 	ImGuiStyle* style = &ImGui::GetStyle();
 	ImVec4* colors = style->Colors;
@@ -112,6 +112,7 @@ static void ApplyCustomStyle() {
 
 bool ModuleEditor::Init() {
 	ImGui::CreateContext();
+	FileDialog::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
@@ -125,10 +126,6 @@ bool ModuleEditor::Init() {
 	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
 		io.ConfigDockingTransparentPayload = true;
 	}
-
-	TCHAR NPath[MAX_PATH];
-	GetCurrentDirectory(MAX_PATH, NPath);
-	gamePath = NPath;
 
 	ApplyCustomStyle();
 
@@ -152,6 +149,9 @@ bool ModuleEditor::Start() {
 	panels.push_back(&panelAbout);
 	panels.push_back(&panelControlEditor);
 	panels.push_back(&panelNavigation);
+	panels.push_back(&panelResource);
+	panels.push_back(&panelGameControllerDebug);
+	panels.push_back(&panelImportOptions);
 
 	return true;
 }
@@ -185,13 +185,13 @@ UpdateStatus ModuleEditor::Update() {
 	// Main menu bar
 	ImGui::BeginMainMenuBar();
 	if (ImGui::BeginMenu("File")) {
-		if (ImGui::MenuItem("New")) {
+		if (ImGui::MenuItem("New Scene")) {
 			modalToOpen = Modal::NEW_SCENE;
 		}
-		if (ImGui::MenuItem("Load")) {
+		if (ImGui::MenuItem("Load Scene")) {
 			modalToOpen = Modal::LOAD_SCENE;
 		}
-		if (ImGui::MenuItem("Save")) {
+		if (ImGui::MenuItem("Save Scene")) {
 			modalToOpen = Modal::SAVE_SCENE;
 		}
 		if (ImGui::MenuItem("Quit")) {
@@ -221,6 +221,9 @@ UpdateStatus ModuleEditor::Update() {
 		ImGui::MenuItem(panelConfiguration.name, "", &panelConfiguration.enabled);
 		ImGui::MenuItem(panelControlEditor.name, "", &panelControlEditor.enabled);
 		ImGui::MenuItem(panelNavigation.name, "", &panelNavigation.enabled);
+		ImGui::MenuItem(panelResource.name, "", &panelResource.enabled);
+		ImGui::MenuItem(panelGameControllerDebug.name, "", &panelGameControllerDebug.enabled);
+		ImGui::MenuItem(panelImportOptions.name, "", &panelImportOptions.enabled);
 		ImGui::EndMenu();
 	}
 	if (ImGui::BeginMenu("Help")) {
@@ -248,16 +251,16 @@ UpdateStatus ModuleEditor::Update() {
 		ImGui::OpenPopup("New scene");
 		break;
 	case Modal::LOAD_PROJECT:
-		FileDialog::Init("Load project", false, (AllowedExtensionsFlag::PROJECT), gamePath);
+		FileDialog::Init("Load project", false, (AllowedExtensionsFlag::PROJECT));
 		break;
 	case Modal::LOAD_SCENE:
-		FileDialog::Init("Load scene", false, (AllowedExtensionsFlag::SCENE), gamePath);
+		FileDialog::Init("Load scene", false, (AllowedExtensionsFlag::SCENE), SCENES_PATH);
 		break;
 	case Modal::SAVE_PROJECT:
-		FileDialog::Init("Save project", true, (AllowedExtensionsFlag::PROJECT), gamePath);
+		FileDialog::Init("Save project", true, (AllowedExtensionsFlag::PROJECT));
 		break;
 	case Modal::SAVE_SCENE:
-		FileDialog::Init("Save scene", true, (AllowedExtensionsFlag::SCENE), gamePath);
+		FileDialog::Init("Save scene", true, (AllowedExtensionsFlag::SCENE), SCENES_PATH);
 		break;
 	case Modal::QUIT:
 		ImGui::OpenPopup("Quit");
@@ -295,12 +298,12 @@ UpdateStatus ModuleEditor::Update() {
 	}
 
 	std::string selectedFile;
-	/*
+
 	if (FileDialog::OpenDialog("Load scene", selectedFile)) {
-		SceneImporter::LoadScene(FileDialog::GetFileName(selectedFile.c_str()).c_str());
+		std::string filePath = std::string(SCENES_PATH "/") + FileDialog::GetFileName(selectedFile.c_str()) + SCENE_EXTENSION;
+		SceneImporter::LoadScene(filePath.c_str());
 		ImGui::CloseCurrentPopup();
 	}
-	*/
 
 	if (FileDialog::OpenDialog("Save scene", selectedFile)) {
 		std::string filePath = std::string(SCENES_PATH "/") + FileDialog::GetFileName(selectedFile.c_str()) + SCENE_EXTENSION;
@@ -463,6 +466,7 @@ bool ModuleEditor::CleanUp() {
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplSDL2_Shutdown();
+	FileDialog::DestroyContext();
 	ImGui::DestroyContext();
 
 	return true;

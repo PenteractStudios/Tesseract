@@ -4,6 +4,7 @@
 
 #include "Utils/UID.h"
 #include "FileSystem/JsonValue.h"
+#include "MaskType.h"
 #include "Scene.h"
 
 #include <string>
@@ -17,7 +18,8 @@ public:
 	class Iterator {
 	public:
 		Iterator(const ComponentView<T>& view__, std::vector<Component*>::const_iterator it__)
-			: view(view__), it(it__) {}
+			: view(view__)
+			, it(it__) {}
 
 		const Iterator& operator++() {
 			++it;
@@ -70,6 +72,7 @@ public:
 	void Disable();
 	bool IsActive() const;
 	bool IsActiveInHierarchy() const;
+	bool IsActiveInternal() const;
 	void SetStatic(bool value);
 	bool IsStatic() const;
 
@@ -89,6 +92,10 @@ public:
 
 	void SetRootBone(GameObject* gameObject);
 	GameObject* GetRootBone() const;
+
+	void AddMask(MaskType mask_);
+	void DeleteMask(MaskType mask_);
+	Mask& GetMask();
 
 	void AddChild(GameObject* gameObject);
 	void RemoveChild(GameObject* gameObject);
@@ -115,8 +122,14 @@ public:
 	std::vector<Component*> components;
 
 private:
+	void EnableInHierarchy();
+	void DisableInHierarchy();
+
+private:
 	bool active = true;
 	bool isStatic = false; // Used for NavMesh creation atm
+	bool activeInHierarchy = true;
+	Mask mask;
 	UID prefabId = 0;
 	GameObject* parent = nullptr;
 	GameObject* rootBoneHierarchy = nullptr;

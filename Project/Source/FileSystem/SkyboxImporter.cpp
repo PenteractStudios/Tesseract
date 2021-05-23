@@ -6,18 +6,16 @@
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleTime.h"
 #include "Globals.h"
+#include "Utils/Logging.h"
+#include "Utils/Buffer.h"
+#include "Utils/FileDialog.h"
+#include "ImporterCommon.h"
 
 #include "IL/il.h"
 #include "IL/ilu.h"
 #include "GL/glew.h"
 
-#include "Utils/Logging.h"
-#include "Utils/Buffer.h"
 #include "Utils/Leaks.h"
-
-#define JSON_TAG_RESOURCES "Resources"
-#define JSON_TAG_TYPE "Type"
-#define JSON_TAG_ID "Id"
 
 bool SkyboxImporter::ImportSkybox(const char* filePath, JsonValue jMeta) {
 	LOG("Importing skybox from path: \"%s\".", filePath);
@@ -32,21 +30,26 @@ bool SkyboxImporter::ImportSkybox(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
-	JsonValue jResource = jResources[0];
-	UID id = jResource[JSON_TAG_ID];
-	ResourceSkybox* resourceSkybox = App->resources->CreateResource<ResourceSkybox>(filePath, id ? id : GenerateUID());
+	// Create skybox resource
+	unsigned resourceIndex = 0;
+	std::unique_ptr<ResourceSkybox> skybox = ImporterCommon::CreateResource<ResourceSkybox>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
-	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(resourceSkybox->GetType());
-	jResource[JSON_TAG_ID] = resourceSkybox->GetId();
-
-	const std::string& resourceFilePath = resourceSkybox->GetResourceFilePath();
-	bool saved = App->files->Save(resourceFilePath.c_str(), buffer);
+	// Save resource meta file
+	bool saved = ImporterCommon::SaveResourceMetaFile(skybox.get());
 	if (!saved) {
-		LOG("Failed to save skybox resource.");
+		LOG("Failed to save skybox resource meta file.");
 		return false;
 	}
+
+	// Save to file
+	saved = App->files->Save(skybox->GetResourceFilePath().c_str(), buffer);
+	if (!saved) {
+		LOG("Failed to save skybox resource file.");
+		return false;
+	}
+
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(skybox);
 
 	unsigned timeMs = timer.Stop();
 	LOG("skybox imported in %ums", timeMs);

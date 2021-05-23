@@ -26,21 +26,29 @@
 #define JSON_TAG_TYPE "Type"
 #define JSON_TAG_VALUE "Value"
 
-void ComponentScript::Update() {
-	ReloadScriptInstance();
+void ComponentScript::Init() {
+	if (scriptInstance && App->time->HasGameStarted() && App->scene->scene->sceneLoaded) {
+		scriptInstance->Start();
+	}
 }
 
 void ComponentScript::OnEditorUpdate() {
-	bool active = IsActive();
 	if (ImGui::Checkbox("Active", &active)) {
-		active ? Enable() : Disable();
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
 	}
 	ImGui::Separator();
 	UID oldScriptId = scriptId;
 	ImGui::ResourceSlot<ResourceScript>("Script", &scriptId);
 	if (oldScriptId != scriptId) {
 		changedValues.clear();
-		Invalidate();
+		ReleaseScriptInstance();
+		CreateScriptInstance();
 	}
 
 	if (ImGui::Button("Create Script")) {
@@ -73,7 +81,7 @@ void ComponentScript::OnEditorUpdate() {
 		for (const Member& member : members) {
 			switch (member.type) {
 			case MemberType::BOOL: {
-				bool* memberPtr = (bool*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				bool* memberPtr = (bool*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				bool old = *memberPtr;
 				ImGui::Checkbox(member.name.c_str(), memberPtr);
 				if (old != *memberPtr) {
@@ -82,7 +90,7 @@ void ComponentScript::OnEditorUpdate() {
 				break;
 			}
 			case MemberType::INT: {
-				int* memberPtr = (int*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				int* memberPtr = (int*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				int old = *memberPtr;
 				ImGui::InputScalar(member.name.c_str(), ImGuiDataType_S32, memberPtr);
 				if (old != *memberPtr) {
@@ -91,7 +99,7 @@ void ComponentScript::OnEditorUpdate() {
 				break;
 			}
 			case MemberType::UINT: {
-				unsigned* memberPtr = (unsigned*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				unsigned* memberPtr = (unsigned*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				unsigned old = *memberPtr;
 				ImGui::InputScalar(member.name.c_str(), ImGuiDataType_U32, memberPtr);
 				if (old != *memberPtr) {
@@ -100,7 +108,7 @@ void ComponentScript::OnEditorUpdate() {
 				break;
 			}
 			case MemberType::LONGLONG: {
-				long long* memberPtr = (long long*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				long long* memberPtr = (long long*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				long long old = *memberPtr;
 				ImGui::InputScalar(member.name.c_str(), ImGuiDataType_S64, memberPtr);
 				if (old != *memberPtr) {
@@ -109,7 +117,7 @@ void ComponentScript::OnEditorUpdate() {
 				break;
 			}
 			case MemberType::ULONGLONG: {
-				unsigned long long* memberPtr = (unsigned long long*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				unsigned long long* memberPtr = (unsigned long long*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				unsigned long long old = *memberPtr;
 				ImGui::InputScalar(member.name.c_str(), ImGuiDataType_U64, memberPtr);
 				if (old != *memberPtr) {
@@ -118,7 +126,7 @@ void ComponentScript::OnEditorUpdate() {
 				break;
 			}
 			case MemberType::FLOAT: {
-				float* memberPtr = (float*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				float* memberPtr = (float*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				float old = *memberPtr;
 				ImGui::InputFloat(member.name.c_str(), memberPtr);
 				if (old != *memberPtr) {
@@ -127,7 +135,7 @@ void ComponentScript::OnEditorUpdate() {
 				break;
 			}
 			case MemberType::DOUBLE: {
-				double* memberPtr = (double*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				double* memberPtr = (double*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				double old = *memberPtr;
 				ImGui::InputDouble(member.name.c_str(), memberPtr);
 				if (old != *memberPtr) {
@@ -136,7 +144,7 @@ void ComponentScript::OnEditorUpdate() {
 				break;
 			}
 			case MemberType::STRING: {
-				std::string* memberPtr = (std::string*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				std::string* memberPtr = (std::string*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				std::string old = *memberPtr;
 				ImGui::InputText(member.name.c_str(), memberPtr);
 				if (old != *memberPtr) {
@@ -145,7 +153,7 @@ void ComponentScript::OnEditorUpdate() {
 				break;
 			}
 			case MemberType::GAME_OBJECT_UID: {
-				UID* memberPtr = (UID*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				UID* memberPtr = (UID*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				UID old = *memberPtr;
 				ImGui::GameObjectSlot(member.name.c_str(), memberPtr);
 				if (old != *memberPtr) {
@@ -154,10 +162,19 @@ void ComponentScript::OnEditorUpdate() {
 				break;
 			}
 			case MemberType::PREFAB_RESOURCE_UID: {
-				UID* memberPtr = (UID*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				UID* memberPtr = (UID*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				UID old = *memberPtr;
 				ImGui::ResourceSlot<ResourcePrefab>(member.name.c_str(), memberPtr);
 				if (old != *memberPtr) {
+					changedValues[member.name] = std::pair<MemberType, MEMBER_VARIANT>(member.type, *memberPtr);
+				}
+				break;
+			}
+			case MemberType::FLOAT3: {
+				float3* memberPtr = (float3*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
+				float3 old = *memberPtr;
+				ImGui::InputFloat3(member.name.c_str(), &memberPtr->x, "%.1f");
+				if (!old.Equals(*memberPtr)) {
 					changedValues[member.name] = std::pair<MemberType, MEMBER_VARIANT>(member.type, *memberPtr);
 				}
 				break;
@@ -176,7 +193,7 @@ void ComponentScript::Save(JsonValue jComponent) const {
 	JsonValue jValues = jComponent[JSON_TAG_VALUES];
 	unsigned i = 0;
 	for (auto& entry : changedValues) {
-		JsonValue jValue = jValues[i++]; 
+		JsonValue jValue = jValues[i++];
 		jValue[JSON_TAG_NAME] = entry.first.c_str();
 		jValue[JSON_TAG_TYPE] = GetMemberTypeName(entry.second.first);
 		switch (entry.second.first) {
@@ -210,6 +227,14 @@ void ComponentScript::Save(JsonValue jComponent) const {
 		case MemberType::PREFAB_RESOURCE_UID:
 			jValue[JSON_TAG_VALUE] = std::get<UID>(entry.second.second);
 			break;
+		case MemberType::FLOAT3: {
+			float3 aFloat3 = std::get<float3>(entry.second.second);
+			JsonValue float3JsonVal = jValue[JSON_TAG_VALUE];
+			float3JsonVal[0] = aFloat3.x;
+			float3JsonVal[1] = aFloat3.y;
+			float3JsonVal[2] = aFloat3.z;
+			break;
+		}
 		default:
 			LOG("Member of type %i hasn't been registered in ComponentScript's Save function.", (unsigned) type);
 			assert(false); // ERROR: Member type not registered
@@ -259,38 +284,29 @@ void ComponentScript::Load(JsonValue jComponent) {
 		case MemberType::PREFAB_RESOURCE_UID:
 			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, static_cast<UID>(jValue[JSON_TAG_VALUE]));
 			break;
+		case MemberType::FLOAT3: {
+			JsonValue jsonVal = jValue[JSON_TAG_VALUE];
+			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, float3(jsonVal[0], jsonVal[1], jsonVal[2]));
+			break;
+		}
 		default:
 			LOG("Member of type %i hasn't been registered in ComponentScript's Load function.", (unsigned) type);
 			assert(false); // ERROR: Member type not registered
 			break;
 		}
 	}
+	if (App->project->IsGameLoaded()) {
+		CreateScriptInstance();
+	}
 }
 
-void ComponentScript::DuplicateComponent(GameObject& owner) {
-	ComponentScript* component = owner.CreateComponent<ComponentScript>();
-	component->scriptId = scriptId;
-	component->changedValues = changedValues;
-	component->dirty = true;
-}
-
-void ComponentScript::Invalidate() {
-	dirty = true;
-}
-
-Script* ComponentScript::GetScriptInstance() {
-	return scriptInstance;
-}
-
-void ComponentScript::ReloadScriptInstance() {
-	if (!dirty) return;
-
-	RELEASE(scriptInstance);
+void ComponentScript::CreateScriptInstance() {
+	if (scriptInstance != nullptr) return;
 
 	ResourceScript* script = App->resources->GetResource<ResourceScript>(scriptId);
 	if (script == nullptr) return;
 
-	scriptInstance = Factory::Create(script->name, &GetOwner());
+	scriptInstance.reset(Factory::Create(script->name, &GetOwner()));
 	if (scriptInstance == nullptr) return;
 
 	const std::vector<Member>& members = scriptInstance->GetMembers();
@@ -299,53 +315,58 @@ void ComponentScript::ReloadScriptInstance() {
 		if (it != changedValues.end()) {
 			switch (member.type) {
 			case MemberType::BOOL: {
-				bool* memberPtr = (bool*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
-				*memberPtr= std::get<bool>(it->second.second);
+				bool* memberPtr = (bool*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
+				*memberPtr = std::get<bool>(it->second.second);
 				break;
 			}
 			case MemberType::INT: {
-				int* memberPtr = (int*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				int* memberPtr = (int*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				*memberPtr = std::get<int>(it->second.second);
 				break;
 			}
 			case MemberType::UINT: {
-				unsigned* memberPtr = (unsigned*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				unsigned* memberPtr = (unsigned*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				*memberPtr = std::get<unsigned>(it->second.second);
 				break;
 			}
 			case MemberType::LONGLONG: {
-				long long* memberPtr = (long long*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				long long* memberPtr = (long long*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				*memberPtr = std::get<long long>(it->second.second);
 				break;
 			}
 			case MemberType::ULONGLONG: {
-				unsigned long long* memberPtr = (unsigned long long*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				unsigned long long* memberPtr = (unsigned long long*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				*memberPtr = std::get<unsigned long long>(it->second.second);
 				break;
 			}
 			case MemberType::FLOAT: {
-				float* memberPtr = (float*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				float* memberPtr = (float*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				*memberPtr = std::get<float>(it->second.second);
 				break;
 			}
 			case MemberType::DOUBLE: {
-				double* memberPtr = (double*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				double* memberPtr = (double*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				*memberPtr = std::get<double>(it->second.second);
 				break;
 			}
 			case MemberType::STRING: {
-				std::string* memberPtr = (std::string*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				std::string* memberPtr = (std::string*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				*memberPtr = std::get<std::string>(it->second.second);
 				break;
 			}
 			case MemberType::GAME_OBJECT_UID: {
-				UID* memberPtr = (UID*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				UID* memberPtr = (UID*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				*memberPtr = std::get<UID>(it->second.second);
 				break;
 			}
 			case MemberType::PREFAB_RESOURCE_UID: {
-				UID* memberPtr = (UID*) GET_OFFSET_MEMBER(scriptInstance, member.offset);
+				UID* memberPtr = (UID*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				*memberPtr = std::get<UID>(it->second.second);
+				break;
+			}
+			case MemberType::FLOAT3: {
+				float3* memberPtr = (float3*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
+				*memberPtr = std::get<float3>(it->second.second);
 				break;
 			}
 			default:
@@ -355,6 +376,20 @@ void ComponentScript::ReloadScriptInstance() {
 			}
 		}
 	}
+}
 
-	dirty = false;
+void ComponentScript::ReleaseScriptInstance() {
+	scriptInstance.reset();
+}
+
+Script* ComponentScript::GetScriptInstance() const {
+	return scriptInstance.get();
+}
+
+const char* ComponentScript::GetScriptName() const {
+	if (scriptInstance != nullptr) {
+		ResourceScript* resourceScript = App->resources->GetResource<ResourceScript>(scriptId);
+		return (resourceScript != nullptr) ? (resourceScript->name).c_str() : nullptr;
+	}
+	return nullptr;
 }

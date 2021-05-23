@@ -12,7 +12,7 @@
 #include "Utils/Logging.h"
 
 #include "Utils/Leaks.h"
-	
+
 #define JSON_TAG_FIRST_SELECTED_ID "FirstSelectedId"
 
 ComponentEventSystem ::~ComponentEventSystem() {
@@ -104,12 +104,6 @@ void ComponentEventSystem::SetSelected(UID newSelectableComponentId) {
 	if (newSelectableComponent != nullptr) {
 		newSelectableComponent->OnSelect();
 	}
-}
-
-void ComponentEventSystem::DuplicateComponent(GameObject& owner) {
-	ComponentEventSystem* component = owner.CreateComponent<ComponentEventSystem>();
-	component->firstSelectedId = firstSelectedId;
-	LOG("%u", component->GetID());
 }
 
 void ComponentEventSystem::EnteredPointerOnSelectable(ComponentSelectable* newHoveredComponent) {

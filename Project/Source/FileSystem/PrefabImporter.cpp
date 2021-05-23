@@ -7,6 +7,7 @@
 #include "Utils/FileDialog.h"
 #include "Resources/ResourcePrefab.h"
 #include "Modules/ModuleResources.h"
+#include "ImporterCommon.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
@@ -14,9 +15,6 @@
 
 #include "Utils/Leaks.h"
 
-#define JSON_TAG_RESOURCES "Resources"
-#define JSON_TAG_TYPE "Type"
-#define JSON_TAG_ID "Id"
 #define JSON_TAG_ROOT "Root"
 
 bool PrefabImporter::ImportPrefab(const char* filePath, JsonValue jMeta) {
@@ -46,17 +44,25 @@ bool PrefabImporter::ImportPrefab(const char* filePath, JsonValue jMeta) {
 	document.Accept(writer);
 
 	// Create prefab resource
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
-	JsonValue jResource = jResources[0];
-	UID id = jResource[JSON_TAG_ID];
-	ResourcePrefab* prefab = App->resources->CreateResource<ResourcePrefab>(filePath, id ? id : GenerateUID());
+	unsigned resourceIndex = 0;
+	std::unique_ptr<ResourcePrefab> prefab = ImporterCommon::CreateResource<ResourcePrefab>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
-	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(prefab->GetType());
-	jResource[JSON_TAG_ID] = prefab->GetId();
+	// Save resource meta file
+	bool saved = ImporterCommon::SaveResourceMetaFile(prefab.get());
+	if (!saved) {
+		LOG("Failed to save prefab resource meta file.");
+		return false;
+	}
 
 	// Save to file
-	App->files->Save(prefab->GetResourceFilePath().c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
+	saved = App->files->Save(prefab->GetResourceFilePath().c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
+	if (!saved) {
+		LOG("Failed to save prefab resource file.");
+		return false;
+	}
+
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(prefab);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Prefab imported in %ums", timeMs);

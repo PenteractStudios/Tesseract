@@ -16,46 +16,12 @@ void ComponentCanvas::Init() {
 void ComponentCanvas::Save(JsonValue jComponent) const {
 }
 
-void ComponentCanvas::Update() {
-	if (dirty) {
-		dirty = false;
-		RecalculateScreenFactor();
-	}
-}
-
 void ComponentCanvas::Load(JsonValue jComponent) {
+	Invalidate();
 }
 
-void ComponentCanvas::DuplicateComponent(GameObject& owner) {
-	ComponentCanvas* component = owner.CreateComponent<ComponentCanvas>();
-	component->screenReferenceSize = screenReferenceSize;
-	dirty = true;
-}
-
-void ComponentCanvas::SetScreenReferenceSize(float2 screenReferenceSize_) {
-	screenReferenceSize = screenReferenceSize_;
-}
-
-float ComponentCanvas::GetScreenFactor() const {
-	return screenFactor;
-}
-
-void ComponentCanvas::SetDirty(bool dirty_) {
-	dirty = dirty_;
-}
-
-void ComponentCanvas::RecalculateScreenFactor() {
-	float2 factor = App->renderer->GetViewportSize().Div(screenReferenceSize);
-	screenFactor = factor.x < factor.y ? factor.x : factor.y;
-}
-
-bool ComponentCanvas::AnyChildHasCanvasRenderer(const GameObject* obj) const {
-	bool found = obj->GetComponent<ComponentCanvasRenderer>();
-
-	for (std::vector<GameObject*>::const_iterator it = obj->GetChildren().begin(); it != obj->GetChildren().end() && !found; ++it) {
-		found = AnyChildHasCanvasRenderer(*it);
-	}
-	return found;
+bool ComponentCanvas::CanBeRemoved() const {
+	return !AnyChildHasCanvasRenderer(&GetOwner());
 }
 
 void ComponentCanvas::OnEditorUpdate() {
@@ -66,6 +32,47 @@ void ComponentCanvas::OnEditorUpdate() {
 	}
 }
 
-bool ComponentCanvas::CanBeRemoved() const {
-	return !AnyChildHasCanvasRenderer(&GetOwner());
+void ComponentCanvas::Invalidate() {
+	dirty = true;
+}
+
+void ComponentCanvas::SetScreenReferenceSize(float2 screenReferenceSize_) {
+	screenReferenceSize = screenReferenceSize_;
+	Invalidate();
+}
+
+float2 ComponentCanvas::GetScreenReferenceSize() const {
+	return screenReferenceSize;
+}
+
+float2 ComponentCanvas::GetSize() {
+	RecalculateSizeAndScreenFactor();
+	return size;
+}
+
+float ComponentCanvas::GetScreenFactor() {
+	RecalculateSizeAndScreenFactor();
+	return screenFactor;
+}
+
+void ComponentCanvas::RecalculateSizeAndScreenFactor() {
+	if (dirty) {
+		if (App->userInterface->IsUsing2D()) {
+			size = App->renderer->GetViewportSize();
+		} else {
+			size = GetScreenReferenceSize() * SCENE_SCREEN_FACTOR;
+		}
+		float2 factor = size.Div(screenReferenceSize);
+		screenFactor = factor.x < factor.y ? factor.x : factor.y;
+		dirty = false;
+	}
+}
+
+bool ComponentCanvas::AnyChildHasCanvasRenderer(const GameObject* obj) const {
+	bool found = obj->GetComponent<ComponentCanvasRenderer>();
+
+	for (std::vector<GameObject*>::const_iterator it = obj->GetChildren().begin(); it != obj->GetChildren().end() && !found; ++it) {
+		found = AnyChildHasCanvasRenderer(*it);
+	}
+	return found;
 }

@@ -17,9 +17,11 @@
 #include "Resources/ResourceTexture.h"
 #include "Resources/ResourcePrefab.h"
 #include "Resources/ResourceAnimation.h"
+#include "Resources/ResourceClip.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleTime.h"
+#include "ImporterCommon.h"
 
 #include "assimp/mesh.h"
 #include "assimp/scene.h"
@@ -29,12 +31,11 @@
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/error/en.h"
 
-#define JSON_TAG_RESOURCES "Resources"
-#define JSON_TAG_TYPE "Type"
-#define JSON_TAG_ID "Id"
+#include <set>
+
 #define JSON_TAG_ROOT "Root"
 
-static ResourceMesh* ImportMesh(const char* modelFilePath, JsonValue jMeta, const aiMesh* assimpMesh, unsigned& resourceIndex, std::vector<const char*>& bones) {
+static UID ImportMesh(const char* modelFilePath, JsonValue jMeta, const aiMesh* assimpMesh, unsigned& resourceIndex, std::vector<const char*>& bones) {
 	// Timer to measure importing a mesh
 	MSTimer timer;
 	timer.Start();
@@ -47,6 +48,7 @@ static ResourceMesh* ImportMesh(const char* modelFilePath, JsonValue jMeta, cons
 	// Save to custom format buffer
 	unsigned positionSize = sizeof(float) * 3;
 	unsigned normalSize = sizeof(float) * 3;
+	unsigned tangentSize = sizeof(float) * 3;
 	unsigned uvSize = sizeof(float) * 2;
 	unsigned bonesIDSize = sizeof(unsigned) * 4;
 	unsigned weightsSize = sizeof(float) * 4;
@@ -54,7 +56,7 @@ static ResourceMesh* ImportMesh(const char* modelFilePath, JsonValue jMeta, cons
 	unsigned boneSize = sizeof(unsigned) + sizeof(char) * FILENAME_MAX + sizeof(float) * 10;
 
 	unsigned headerSize = sizeof(unsigned) * 3;
-	unsigned vertexSize = positionSize + normalSize + uvSize + bonesIDSize + weightsSize;
+	unsigned vertexSize = positionSize + normalSize + tangentSize + uvSize + bonesIDSize + weightsSize;
 	unsigned vertexBufferSize = vertexSize * numVertices;
 	unsigned indexBufferSize = indexSize * numIndices;
 	unsigned bonesBufferSize = boneSize * numBones;
@@ -126,6 +128,7 @@ static ResourceMesh* ImportMesh(const char* modelFilePath, JsonValue jMeta, cons
 	for (unsigned i = 0; i < assimpMesh->mNumVertices; ++i) {
 		aiVector3D& vertex = assimpMesh->mVertices[i];
 		aiVector3D& normal = assimpMesh->mNormals[i];
+		aiVector3D& tangent = assimpMesh->mTangents[i];
 		aiVector3D* textureCoords = assimpMesh->mTextureCoords[0];
 
 		*((float*) cursor) = vertex.x;
@@ -140,6 +143,23 @@ static ResourceMesh* ImportMesh(const char* modelFilePath, JsonValue jMeta, cons
 		cursor += sizeof(float);
 		*((float*) cursor) = normal.z;
 		cursor += sizeof(float);
+
+		// Check if Tangents exist
+		if ((aiVector3D*) assimpMesh->mTangents != nullptr) {
+			*((float*) cursor) = tangent.x;
+			cursor += sizeof(float);
+			*((float*) cursor) = tangent.y;
+			cursor += sizeof(float);
+			*((float*) cursor) = tangent.z;
+			cursor += sizeof(float);
+		} else {
+			*((float*) cursor) = 0;
+			cursor += sizeof(float);
+			*((float*) cursor) = 0;
+			cursor += sizeof(float);
+			*((float*) cursor) = 0;
+			cursor += sizeof(float);
+		}
 		*((float*) cursor) = textureCoords != nullptr ? textureCoords[i].x : 0;
 		cursor += sizeof(float);
 		*((float*) cursor) = textureCoords != nullptr ? textureCoords[i].y : 0;
@@ -190,31 +210,32 @@ static ResourceMesh* ImportMesh(const char* modelFilePath, JsonValue jMeta, cons
 		cursor += sizeof(unsigned);
 	}
 
-	// Create mesh
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
-	JsonValue jResource = jResources[resourceIndex];
-	UID id = jResource[JSON_TAG_ID];
-	ResourceMesh* mesh = App->resources->CreateResource<ResourceMesh>(modelFilePath, id ? id : GenerateUID());
+	// Create mesh resource
+	std::unique_ptr<ResourceMesh> mesh = ImporterCommon::CreateResource<ResourceMesh>(assimpMesh->mName.C_Str(), modelFilePath, jMeta, resourceIndex);
 
-	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(mesh->GetType());
-	jResource[JSON_TAG_ID] = mesh->GetId();
-	resourceIndex += 1;
-
-	// Save buffer to file
-	const std::string& resourceFilePath = mesh->GetResourceFilePath();
-	bool saved = App->files->Save(resourceFilePath.c_str(), buffer);
+	// Save resource meta file
+	bool saved = ImporterCommon::SaveResourceMetaFile(mesh.get());
 	if (!saved) {
-		LOG("Failed to save meshRenderer resource.");
+		LOG("Failed to save mesh resource meta file.");
 		return false;
 	}
 
+	// Save to file
+	saved = App->files->Save(mesh->GetResourceFilePath().c_str(), buffer);
+	if (!saved) {
+		LOG("Failed to save mesh resource file.");
+		return 0;
+	}
+
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(mesh);
+
 	unsigned timeMs = timer.Stop();
 	LOG("Mesh imported in %ums", timeMs);
-	return mesh;
+	return mesh->GetId();
 }
 
-static ResourceAnimation* ImportAnimation(const char* modelFilePath, JsonValue jMeta, const aiAnimation* aiAnim, const aiScene* assimpScene, unsigned& resourceIndex) {
+static std::pair<UID, UID> ImportAnimation(const char* modelFilePath, JsonValue jMeta, const aiAnimation* aiAnim, const aiScene* assimpScene, unsigned& resourceIndex, unsigned animationIndex) {
 	// Timer to measure importing an animation
 	MSTimer timer;
 	timer.Start();
@@ -244,27 +265,22 @@ static ResourceAnimation* ImportAnimation(const char* modelFilePath, JsonValue j
 
 	aiNode* rootNode = assimpScene->mRootNode;
 
+	std::set<std::string> uniqueChannels;
 	for (unsigned int i = 0; i < aiAnim->mNumChannels; ++i) {
 		aiNodeAnim* aiChannel = aiAnim->mChannels[i];
 		std::string channelName(aiChannel->mNodeName.C_Str());
 
-		aiNode* parent = rootNode->FindNode(aiChannel->mNodeName.C_Str())->mParent;
+		aiNode* selectedNode = rootNode->FindNode(channelName.c_str());
 
 		size_t pos = channelName.find("_$AssimpFbx$");
 		if (pos != std::string::npos) {
-			channelName = channelName.substr(0, pos);
-		}
-
-		float4x4 accumulatedTransform = float4x4::identity;
-		bool assimpNode = (std::string(parent->mName.C_Str()).find("$AssimpFbx$") != std::string::npos);
-
-		while (assimpNode) {
-			aiVector3D pos, scale;
-			aiQuaternion rot;
-			(parent->mTransformation).Decompose(scale, rot, pos);
-			accumulatedTransform = float4x4::FromTRS(float3(pos.x, pos.y, pos.z), Quat(rot.x, rot.y, rot.z, rot.w), float3(scale.x, scale.y, scale.z)) * accumulatedTransform;
-			parent = parent->mParent;
-			assimpNode = (std::string(parent->mName.C_Str()).find("$AssimpFbx$") != std::string::npos);
+			if (selectedNode->mNumChildren == 0) {
+				uniqueChannels.insert(channelName);
+			} else if (std::string(selectedNode->mChildren[0]->mName.C_Str()).find(channelName.substr(0, pos)) == std::string::npos) {
+				uniqueChannels.insert(channelName);
+			} else if (std::string(selectedNode->mChildren[0]->mName.C_Str()).find("_$AssimpFbx$") == std::string::npos) {
+				uniqueChannels.insert(channelName);
+			}
 		}
 
 		unsigned int frame = 0;
@@ -273,15 +289,52 @@ static ResourceAnimation* ImportAnimation(const char* modelFilePath, JsonValue j
 			aiQuaternion aiQuat = (aiChannel->mNumRotationKeys > 1) ? aiChannel->mRotationKeys[j].mValue : aiChannel->mRotationKeys[0].mValue;
 			aiVector3D aiV3D = (aiChannel->mNumPositionKeys > 1) ? aiChannel->mPositionKeys[j].mValue : aiChannel->mPositionKeys[0].mValue;
 
-			float3 accumulatedPosition, accumulatedScaling;
-			Quat accumulatedRotation;
-			accumulatedTransform.Decompose(accumulatedPosition, accumulatedRotation, accumulatedScaling);
-
 			ResourceAnimation::Channel channel = keyFrames[frame].channels[channelName];
-			channel.rotation = channel.rotation * accumulatedRotation * Quat(aiQuat.x, aiQuat.y, aiQuat.z, aiQuat.w);
-			channel.tranlation = channel.tranlation + accumulatedPosition + float3(aiV3D.x, aiV3D.y, aiV3D.z);
+			channel.rotation = Quat(aiQuat.x, aiQuat.y, aiQuat.z, aiQuat.w);
+			channel.tranlation = float3(aiV3D.x, aiV3D.y, aiV3D.z);
 
 			keyFrames[frame++].channels[channelName] = channel;
+		}
+	}
+
+	// Post-processing: fuse nodes with same name
+	for (ResourceAnimation::KeyFrameChannels& keyFrame : keyFrames) {
+		for (auto itj = uniqueChannels.begin(); itj != uniqueChannels.end(); ++itj) {
+			aiNode* node = rootNode->FindNode((*itj).c_str())->mParent;
+			ResourceAnimation::Channel channel = keyFrame.channels[*itj];
+			size_t pos = (*itj).find("_$AssimpFbx$");
+			if (pos != std::string::npos) {
+				std::string channelName = (*itj).substr(0, pos);
+				while (std::string(node->mName.C_Str()).find(channelName) != std::string::npos) {
+					if (keyFrame.channels.find(node->mName.C_Str()) != keyFrame.channels.end()) {
+						channel.rotation = keyFrame.channels[node->mName.C_Str()].rotation * channel.rotation;
+						channel.tranlation = keyFrame.channels[node->mName.C_Str()].tranlation + keyFrame.channels[node->mName.C_Str()].rotation.Transform(channel.tranlation);
+						keyFrame.channels.erase(node->mName.C_Str());
+					} else {
+						aiVector3D scaling, translation;
+						aiQuaternion rotation;
+						node->mTransformation.Decompose(scaling, rotation, translation);
+						channel.rotation = Quat(rotation.x, rotation.y, rotation.z, rotation.w) * channel.rotation;
+						channel.tranlation = float3(translation.x, translation.y, translation.z) + Quat(rotation.x, rotation.y, rotation.z, rotation.w).Transform(channel.tranlation);
+					}
+					node = node->mParent;
+				}
+				keyFrame.channels.erase(*itj);
+				aiNode* channelNode = rootNode->FindNode(channelName.c_str());
+				if (keyFrame.channels.find(channelName) == keyFrame.channels.end() && channelNode) {
+					aiVector3D scaling, translation;
+					aiQuaternion rotation;
+					channelNode->mTransformation.Decompose(scaling, rotation, translation);
+
+					ResourceAnimation::Channel& c = keyFrame.channels[channelName];
+					c.rotation = channel.rotation * Quat(rotation.x, rotation.y, rotation.z, rotation.w);
+					c.tranlation = channel.tranlation + channel.rotation.Transform(float3(translation.x, translation.y, translation.z));
+				} else {
+					ResourceAnimation::Channel& c = keyFrame.channels[channelName];
+					c.rotation = channel.rotation * c.rotation;
+					c.tranlation = channel.tranlation + channel.rotation.Transform(c.tranlation);
+				}
+			}
 		}
 	}
 
@@ -323,27 +376,54 @@ static ResourceAnimation* ImportAnimation(const char* modelFilePath, JsonValue j
 	}
 
 	// Create animation
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
-	JsonValue jResource = jResources[resourceIndex];
-	UID id = jResource[JSON_TAG_ID];
-	ResourceAnimation* animation = App->resources->CreateResource<ResourceAnimation>(modelFilePath, id ? id : GenerateUID());
+	std::unique_ptr<ResourceAnimation> animation = ImporterCommon::CreateResource<ResourceAnimation>(aiAnim->mName.C_Str(), modelFilePath, jMeta, resourceIndex);
 
-	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(animation->GetType());
-	jResource[JSON_TAG_ID] = animation->GetId();
-	resourceIndex += 1;
-
-	// Save buffer to file
-	const std::string& resourceFilePath = animation->GetResourceFilePath();
-	bool saved = App->files->Save(resourceFilePath.c_str(), buffer);
-	if (!saved) {
-		LOG("Failed to save animation resource.");
-		return false;
+	// Save resource meta file
+	bool animationSaved = ImporterCommon::SaveResourceMetaFile(animation.get());
+	if (!animationSaved) {
+		LOG("Failed to save animation resource meta file.");
+		return {0, 0};
 	}
+
+	// Save animation to file
+	animationSaved = App->files->Save(animation->GetResourceFilePath().c_str(), buffer);
+	if (!animationSaved) {
+		LOG("Failed to save animation resource file.");
+		return {0, 0};
+	}
+
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(animation);
+
+	// Load animation to create basic clip
+	animation->Load();
+	DEFER {
+		animation->Unload();
+	};
+
+	// Create clip
+	std::unique_ptr<ResourceClip> clip = ImporterCommon::CreateResource<ResourceClip>(aiAnim->mName.C_Str(), modelFilePath, jMeta, resourceIndex);
+	clip->Init("clip" + std::to_string(animationIndex), animation->GetId(), 0, animation->keyFrames.size() - 1, true);
+
+	// Save resource meta file
+	bool clipSaved = ImporterCommon::SaveResourceMetaFile(clip.get());
+	if (!clipSaved) {
+		LOG("Failed to save clip resource meta file.");
+		return {0, 0};
+	}
+
+	// Save clip to file
+	clipSaved = clip->SaveToFile(clip->GetResourceFilePath().c_str());
+	if (!clipSaved) {
+		return {0, 0};
+	}
+
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(clip);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Animation imported in %ums", timeMs);
-	return animation;
+	return {animation->GetId(), clip->GetId()};
 }
 
 static void ImportNode(const char* modelFilePath, JsonValue jMeta, const aiScene* assimpScene, const aiNode* node, Scene* scene, GameObject* parent, std::vector<UID>& materialIds, const float4x4& accumulatedTransform, unsigned& resourceIndex, std::vector<const char*>& bones) {
@@ -382,7 +462,7 @@ static void ImportNode(const char* modelFilePath, JsonValue jMeta, const aiScene
 			aiMesh* assimpMesh = assimpScene->mMeshes[node->mMeshes[i]];
 
 			ComponentMeshRenderer* meshRenderer = gameObject->CreateComponent<ComponentMeshRenderer>();
-			meshRenderer->meshId = ImportMesh(modelFilePath, jMeta, assimpMesh, resourceIndex, bones)->GetId();
+			meshRenderer->meshId = ImportMesh(modelFilePath, jMeta, assimpMesh, resourceIndex, bones);
 			meshRenderer->materialId = materialIds[assimpMesh->mMaterialIndex];
 
 			// Update min and max points
@@ -410,6 +490,43 @@ static void ImportNode(const char* modelFilePath, JsonValue jMeta, const aiScene
 	}
 }
 
+static bool IsInBones(aiNode* bone, const std::vector<const char*>& bones) {
+	for (const char* b : bones) {
+		if (std::strcmp(bone->mName.C_Str(), b) != 0) continue;
+
+		return true;
+	}
+	return false;
+}
+
+static aiNode* SearchRootBone(aiNode* rootBone, aiNode* rootBoneParent, const std::vector<const char*>& bones) {
+	bool foundInBones = false;
+	do {
+		// Ignore assimp middle nodes
+		std::string name = rootBoneParent->mName.C_Str();
+		while (name.find("$AssimpFbx$") != std::string::npos) {
+			rootBoneParent = rootBoneParent->mParent;
+			name = rootBoneParent->mName.C_Str();
+		}
+		// Find if node in bones
+		foundInBones = IsInBones(rootBoneParent, bones);
+		if (foundInBones) {
+			rootBone = rootBoneParent;
+			rootBoneParent = rootBone->mParent;
+		}
+	} while (foundInBones);
+	// Check whether selected root bone has siblings that are bones
+	for (unsigned int i = 0; i < rootBoneParent->mNumChildren; ++i) {
+		if (rootBoneParent->mChildren[i] == rootBone) continue;
+
+		if (IsInBones(rootBoneParent->mChildren[i], bones)) {
+			rootBone = rootBoneParent;
+			break;
+		}
+	}
+	return rootBone;
+}
+
 bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 	// Timer to measure importing a model
 	MSTimer timer;
@@ -435,7 +552,6 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 	// Initialize resource accumulator
 	unsigned resourceIndex = 0;
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
 
 	// Import materials
 	std::vector<UID> materialIds;
@@ -443,21 +559,12 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 		LOG("Loading material %i...", i);
 		aiMaterial* assimpMaterial = assimpScene->mMaterials[i];
 
-		JsonValue jResource = jResources[resourceIndex];
-		UID id = jResource[JSON_TAG_ID];
-		ResourceMaterial* material = App->resources->CreateResource<ResourceMaterial>(filePath, id ? id : GenerateUID());
+		std::unique_ptr<ResourceMaterial> material = ImporterCommon::CreateResource<ResourceMaterial>(assimpMaterial->GetName().C_Str(), filePath, jMeta, resourceIndex);
 
 		aiString materialFilePath;
 		aiTextureMapping mapping;
 		aiColor4D color;
 		unsigned uvIndex;
-
-		std::vector<UID>& shaderResourceIds = App->resources->ImportAsset(SHADERS_PATH "/" PHONG_SHADER_FILE);
-		if (shaderResourceIds.empty()) {
-			LOG("Unable to find phong shader file.");
-		} else {
-			material->shaderId = shaderResourceIds[0];
-		}
 
 		if (assimpMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &materialFilePath, &mapping, &uvIndex) == AI_SUCCESS) {
 			// Check if the material is valid for our purposes
@@ -466,14 +573,14 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 			// Try to load from the path given in the model file
 			LOG("Trying to import diffuse texture...");
-			std::vector<UID>& textureResourceIds = App->resources->ImportAsset(materialFilePath.C_Str());
+			std::list<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
 
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to model folder...");
 				std::string modelFolderPath = FileDialog::GetFileFolder(filePath);
 				std::string modelFolderMaterialFilePath = modelFolderPath + "/" + materialFilePath.C_Str();
-				textureResourceIds = App->resources->ImportAsset(modelFolderMaterialFilePath.c_str());
+				textureResourceIds = App->resources->ImportAssetResources(modelFolderMaterialFilePath.c_str());
 			}
 
 			// Try to load relative to the textures folder
@@ -481,14 +588,14 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 				LOG("Trying to import texture relative to textures folder...");
 				std::string materialFile = FileDialog::GetFileNameAndExtension(materialFilePath.C_Str());
 				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFile;
-				textureResourceIds = App->resources->ImportAsset(texturesFolderMaterialFileDir.c_str());
+				textureResourceIds = App->resources->ImportAssetResources(texturesFolderMaterialFileDir.c_str());
 			}
 
 			if (textureResourceIds.empty()) {
 				LOG("Unable to find diffuse texture file.");
 			} else {
 				LOG("Diffuse texture imported successfuly.");
-				material->diffuseMapId = textureResourceIds[0];
+				material->diffuseMapId = textureResourceIds.front();
 			}
 		} else {
 			LOG("Diffuse texture not found.");
@@ -501,29 +608,29 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 			// Try to load from the path given in the model file
 			LOG("Trying to import specular texture...");
-			std::vector<UID>& textureResourceIds = App->resources->ImportAsset(materialFilePath.C_Str());
+			std::list<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
 
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to model folder...");
 				std::string modelFolderPath = FileDialog::GetFileFolder(filePath);
 				std::string modelFolderMaterialFilePath = modelFolderPath + "/" + materialFilePath.C_Str();
-				textureResourceIds = App->resources->ImportAsset(modelFolderMaterialFilePath.c_str());
+				textureResourceIds = App->resources->ImportAssetResources(modelFolderMaterialFilePath.c_str());
 			}
 
 			// Try to load relative to the textures folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to textures folder...");
 				std::string materialFileName = FileDialog::GetFileName(materialFilePath.C_Str());
-				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFileName + TEXTURE_EXTENSION;
-				textureResourceIds = App->resources->ImportAsset(texturesFolderMaterialFileDir.c_str());
+				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFileName + DDS_TEXTURE_EXTENSION;
+				textureResourceIds = App->resources->ImportAssetResources(texturesFolderMaterialFileDir.c_str());
 			}
 
 			if (textureResourceIds.empty()) {
 				LOG("Unable to find specular texture file.");
 			} else {
 				LOG("Specular texture imported successfuly.");
-				material->specularMapId = textureResourceIds[0];
+				material->specularMapId = textureResourceIds.front();
 			}
 		} else {
 			LOG("Specular texture not found.");
@@ -536,29 +643,29 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 			// Try to load from the path given in the model file
 			LOG("Trying to import metalness texture...");
-			std::vector<UID>& textureResourceIds = App->resources->ImportAsset(materialFilePath.C_Str());
+			std::list<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
 
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to model folder...");
 				std::string modelFolderPath = FileDialog::GetFileFolder(filePath);
 				std::string modelFolderMaterialFilePath = modelFolderPath + "/" + materialFilePath.C_Str();
-				textureResourceIds = App->resources->ImportAsset(modelFolderMaterialFilePath.c_str());
+				textureResourceIds = App->resources->ImportAssetResources(modelFolderMaterialFilePath.c_str());
 			}
 
 			// Try to load relative to the textures folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to textures folder...");
 				std::string materialFileName = FileDialog::GetFileName(materialFilePath.C_Str());
-				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFileName + TEXTURE_EXTENSION;
-				textureResourceIds = App->resources->ImportAsset(texturesFolderMaterialFileDir.c_str());
+				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFileName + DDS_TEXTURE_EXTENSION;
+				textureResourceIds = App->resources->ImportAssetResources(texturesFolderMaterialFileDir.c_str());
 			}
 
 			if (textureResourceIds.empty()) {
 				LOG("Unable to find metalness texture file.");
 			} else {
 				LOG("Metalness texture imported successfuly.");
-				material->metallicMapId = textureResourceIds[0];
+				material->metallicMapId = textureResourceIds.front();
 			}
 		} else {
 			LOG("Metalness texture not found.");
@@ -571,29 +678,29 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 
 			// Try to load from the path given in the model file
 			LOG("Trying to import normals texture...");
-			std::vector<UID>& textureResourceIds = App->resources->ImportAsset(materialFilePath.C_Str());
+			std::list<UID>& textureResourceIds = App->resources->ImportAssetResources(materialFilePath.C_Str());
 
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to model folder...");
 				std::string modelFolderPath = FileDialog::GetFileFolder(filePath);
 				std::string modelFolderMaterialFilePath = modelFolderPath + "/" + materialFilePath.C_Str();
-				textureResourceIds = App->resources->ImportAsset(modelFolderMaterialFilePath.c_str());
+				textureResourceIds = App->resources->ImportAssetResources(modelFolderMaterialFilePath.c_str());
 			}
 
 			// Try to load relative to the textures folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to textures folder...");
 				std::string materialFileName = FileDialog::GetFileName(materialFilePath.C_Str());
-				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFileName + TEXTURE_EXTENSION;
-				textureResourceIds = App->resources->ImportAsset(texturesFolderMaterialFileDir.c_str());
+				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFileName + DDS_TEXTURE_EXTENSION;
+				textureResourceIds = App->resources->ImportAssetResources(texturesFolderMaterialFileDir.c_str());
 			}
 
 			if (textureResourceIds.empty()) {
 				LOG("Unable to find normals texture file.");
 			} else {
 				LOG("Normals texture imported successfuly.");
-				material->normalMapId = textureResourceIds[0];
+				material->normalMapId = textureResourceIds.front();
 			}
 		} else {
 			LOG("Normals texture not found.");
@@ -603,12 +710,15 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 		assimpMaterial->Get(AI_MATKEY_COLOR_SPECULAR, material->specularColor);
 		assimpMaterial->Get(AI_MATKEY_SHININESS, material->smoothness);
 
-		// Add resource to meta file
-		jResource[JSON_TAG_TYPE] = GetResourceTypeName(material->GetType());
-		jResource[JSON_TAG_ID] = material->GetId();
-		resourceIndex += 1;
+		// Save resource meta file
+		ImporterCommon::SaveResourceMetaFile(material.get());
 
+		// Save material
 		material->SaveToFile(material->GetResourceFilePath().c_str());
+
+		// Send resource creation event
+		App->resources->SendCreateResourceEvent(material);
+
 		materialIds.push_back(material->GetId());
 		LOG("Material imported.");
 	}
@@ -625,38 +735,22 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 	// Load animations
 	if (assimpScene->mNumAnimations > 0) {
 		LOG("Importing animations");
-		std::vector<ResourceAnimation*> animations;
-		ComponentAnimation* animationComponent = root->GetChildren()[0]->CreateComponent<ComponentAnimation>();
+
+		// Import animations
 		for (unsigned int i = 0; i < assimpScene->mNumAnimations; ++i) {
-			animationComponent->animationController.animationID = ImportAnimation(filePath, jMeta, assimpScene->mAnimations[i], assimpScene, resourceIndex)->GetId();
+			ImportAnimation(filePath, jMeta, assimpScene->mAnimations[i], assimpScene, resourceIndex, i);
 		}
-		// TODO: Improve for multiple animations
+
+		// Create empty animation component
+		root->GetChildren()[0]->CreateComponent<ComponentAnimation>();
 	}
 
-	// Cache bones for skinning
 	aiNode* rootBone = nullptr;
 
 	if (!bones.empty()) {
 		rootBone = assimpScene->mRootNode->FindNode(bones[0]);
 		aiNode* rootBoneParent = rootBone->mParent;
-		bool foundInBones = false;
-		do {
-			// Ignore assimp middle nodes
-			std::string name = rootBoneParent->mName.C_Str();
-			while (name.find("$AssimpFbx$") != std::string::npos) {
-				rootBoneParent = rootBoneParent->mParent;
-				name = rootBoneParent->mName.C_Str();
-			}
-			// Find if node in bones
-			foundInBones = false;
-			for (const char* bone : bones) {
-				if (std::strcmp(rootBoneParent->mName.C_Str(), bone) != 0) continue;
-
-				foundInBones = true;
-				rootBone = rootBoneParent;
-				rootBoneParent = rootBone->mParent;
-			}
-		} while (foundInBones);
+		rootBone = SearchRootBone(rootBone, rootBoneParent, bones);
 	}
 
 	if (!bones.empty()) {
@@ -664,7 +758,6 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 		root->GetChildren()[0]->SetRootBone(rootBoneGO);
 
 		std::unordered_map<std::string, GameObject*> goBones;
-		// TODO: check if CtrlGrp is generated always
 		goBones[rootBoneGO->name] = rootBoneGO;
 		CacheBones(rootBoneGO, goBones);
 
@@ -676,15 +769,20 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 	}
 
 	// Create prefab resource
-	JsonValue jResource = jResources[resourceIndex];
-	UID id = jResource[JSON_TAG_ID];
-	ResourcePrefab* prefabResource = App->resources->CreateResource<ResourcePrefab>(filePath, id ? id : GenerateUID());
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(prefabResource->GetType());
-	jResource[JSON_TAG_ID] = prefabResource->GetId();
-	resourceIndex += 1;
+	std::unique_ptr<ResourceMesh> prefab = ImporterCommon::CreateResource<ResourceMesh>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+
+	// Save resource meta file
+	bool saved = ImporterCommon::SaveResourceMetaFile(prefab.get());
+	if (!saved) {
+		LOG("Failed to save prefab resource meta file.");
+		return false;
+	}
 
 	// Save prefab
-	PrefabImporter::SavePrefab(prefabResource->GetResourceFilePath().c_str(), root->GetChildren()[0]);
+	PrefabImporter::SavePrefab(prefab->GetResourceFilePath().c_str(), root->GetChildren()[0]);
+
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(prefab);
 
 	// Delete temporary GameObject
 	scene.DestroyGameObject(root);

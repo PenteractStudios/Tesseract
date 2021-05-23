@@ -1,9 +1,18 @@
 #pragma once
 
+#include "Application.h"
 #include "Component.h"
 #include "AnimationController.h"
+#include "AnimationInterpolation.h"
+#include "State.h"
+#include "Modules/ModuleResources.h"
+#include "Resources/ResourceStateMachine.h"
+#include "Utils/UID.h"
+#include <string>
 
 class GameObject;
+class ResourceAnimation;
+class ResourceTransition;
 
 class ComponentAnimation : public Component {
 public:
@@ -13,14 +22,27 @@ public:
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
-	void DuplicateComponent(GameObject& owner) override;
 
 	void OnUpdate();
 
-private:
-	void UpdateAnimations(GameObject* gameObject);
+	TESSERACT_ENGINE_API void SendTrigger(const std::string& trigger); // Method to trigger the change of state
+
+	TESSERACT_ENGINE_API State* GetCurrentState() {
+		return currentState;
+	}
+	TESSERACT_ENGINE_API void SetCurrentState(State* mCurrentState) {
+		currentState = mCurrentState;
+	}
+
 
 public:
-	AnimationController animationController;
-	// TODO: State machine
+	UID stateMachineResourceUID = 0;
+	State* currentState = nullptr;
+
+private:
+	void UpdateAnimations(GameObject* gameObject);
+	void LoadResourceStateMachine();
+
+private:
+	std::list<AnimationInterpolation> animationInterpolations; //List of the current interpolations between states
 };

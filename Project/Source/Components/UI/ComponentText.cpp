@@ -11,19 +11,18 @@
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleEditor.h"
 #include "Resources/ResourceTexture.h"
-#include "Resources/ResourceShader.h"
 #include "Resources/ResourceFont.h"
 #include "FileSystem/JsonValue.h"
 
 #include "GL/glew.h"
 #include "Math/TransformOps.h"
+#include "Math/float3x3.h"
 #include "Utils/Logging.h"
 #include "Utils/ImGuiUtils.h"
 #include "imgui_stdlib.h"
 
 #include "Utils/Leaks.h"
 
-#define JSON_TAG_TEXT_SHADERID "ShaderID"
 #define JSON_TAG_TEXT_FONTID "FontID"
 #define JSON_TAG_TEXT_FONTSIZE "FontSize"
 #define JSON_TAG_TEXT_LINEHEIGHT "LineHeight"
@@ -45,9 +44,21 @@ void ComponentText::Init() {
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	Invalidate();
 }
 
 void ComponentText::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			} else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
 
 	bool mustRecalculateVertices = false;
@@ -55,7 +66,6 @@ void ComponentText::OnEditorUpdate() {
 	if (ImGui::InputTextMultiline("Text input", &text, ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 8), flags)) {
 		SetText(text);
 	}
-	ImGui::ResourceSlot<ResourceShader>("shader", &shaderID);
 	UID oldFontID = fontID;
 	ImGui::ResourceSlot<ResourceFont>("Font", &fontID);
 	if (oldFontID != fontID) {
@@ -69,28 +79,24 @@ void ComponentText::OnEditorUpdate() {
 		mustRecalculateVertices = true;
 	}
 
-	int type = static_cast<int>(textAlignment);
-	ImGui::RadioButton("Left", &type, 0);
+	mustRecalculateVertices |= ImGui::RadioButton("Left", &textAlignment, 0);
 	ImGui::SameLine();
-	ImGui::RadioButton("Center", &type, 1);
+	mustRecalculateVertices |= ImGui::RadioButton("Center", &textAlignment, 1);
 	ImGui::SameLine();
-	ImGui::RadioButton("Right", &type, 2);
-	textAlignment = static_cast<TextAlignment>(type);
+	mustRecalculateVertices |= ImGui::RadioButton("Right", &textAlignment, 2);
 
 	ImGui::ColorEdit4("Color##", color.ptr());
 
 	if (mustRecalculateVertices) {
-		RecalculcateVertices();
+		Invalidate();
 	}
-
 }
 
 void ComponentText::Save(JsonValue jComponent) const {
-	jComponent[JSON_TAG_TEXT_SHADERID] = shaderID;
 	jComponent[JSON_TAG_TEXT_FONTID] = fontID;
 	jComponent[JSON_TAG_TEXT_FONTSIZE] = fontSize;
 	jComponent[JSON_TAG_TEXT_LINEHEIGHT] = lineHeight;
-	jComponent[JSON_TAG_TEXT_ALIGNMENT] = static_cast<int>(textAlignment);
+	jComponent[JSON_TAG_TEXT_ALIGNMENT] = textAlignment;
 
 	jComponent[JSON_TAG_TEXT_VALUE] = text.c_str();
 
@@ -102,9 +108,6 @@ void ComponentText::Save(JsonValue jComponent) const {
 }
 
 void ComponentText::Load(JsonValue jComponent) {
-	shaderID = jComponent[JSON_TAG_TEXT_SHADERID];
-	App->resources->IncreaseReferenceCount(shaderID);
-
 	fontID = jComponent[JSON_TAG_TEXT_FONTID];
 	App->resources->IncreaseReferenceCount(fontID);
 
@@ -112,68 +115,50 @@ void ComponentText::Load(JsonValue jComponent) {
 
 	lineHeight = jComponent[JSON_TAG_TEXT_LINEHEIGHT];
 
-	textAlignment = static_cast<TextAlignment>((int) jComponent[JSON_TAG_TEXT_ALIGNMENT]);
+	textAlignment = jComponent[JSON_TAG_TEXT_ALIGNMENT];
 
 	text = jComponent[JSON_TAG_TEXT_VALUE];
 
 	JsonValue jColor = jComponent[JSON_TAG_COLOR];
 	color.Set(jColor[0], jColor[1], jColor[2], jColor[3]);
-
-	RecalculcateVertices();
 }
 
-void ComponentText::DuplicateComponent(GameObject& owner) {
-	ComponentText* component = owner.CreateComponent<ComponentText>();
-	component->shaderID = shaderID;
-	component->fontID = fontID;
-	component->fontSize = fontSize;
-	component->lineHeight = lineHeight;
-	component->color = color;
-	component->textAlignment = textAlignment;
-
-	if (shaderID != 0) {
-		App->resources->IncreaseReferenceCount(shaderID);
-	}
-	if (fontID != 0) {
-		App->resources->IncreaseReferenceCount(fontID);
-	}
-
-	component->SetText(text);
-}
-
-void ComponentText::Draw(const ComponentTransform2D* transform) const {
-	if (fontID == 0 || shaderID == 0) {
+void ComponentText::Draw(ComponentTransform2D* transform) {
+	if (fontID == 0) {
 		return;
 	}
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	unsigned int program = 0;
-	ResourceShader* shaderResouce = App->resources->GetResource<ResourceShader>(shaderID);
-	if (shaderResouce) {
-		program = shaderResouce->GetShaderProgram();
-	}
+	unsigned int program = App->programs->textUI;
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(vao);
 
 	glUseProgram(program);
 
-	float4x4 proj = App->camera->GetProjectionMatrix();
+	float4x4 model = transform->GetGlobalMatrix();
+	float4x4& proj = App->camera->GetProjectionMatrix();
+	float4x4& view = App->camera->GetViewMatrix();
 
-	if (App->time->IsGameRunning() || App->editor->panelScene.IsUsing2D()) {
+	if (App->userInterface->IsUsing2D()) {
 		proj = float4x4::D3DOrthoProjLH(-1, 1, App->renderer->GetViewportSize().x, App->renderer->GetViewportSize().y); //near plane. far plane, screen width, screen height
-		float4x4 view = float4x4::identity;
-
-		glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view.ptr());
-	} else {
-		float4x4 view = App->camera->GetViewMatrix();
-		glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view.ptr());
+		view = float4x4::identity;
 	}
 
+	ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
+	if (canvasRenderer != nullptr) {
+		float factor = canvasRenderer->GetCanvasScreenFactor();
+		view = view * float4x4::Scale(factor, factor, factor);
+	}
+
+	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view.ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_TRUE, proj.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, model.ptr());
 	glUniform4fv(glGetUniformLocation(program, "textColor"), 1, color.ptr());
+
+	RecalculateVertices();
 
 	for (size_t i = 0; i < text.size(); ++i) {
 		if (text.at(i) != '\n') {
@@ -198,11 +183,12 @@ void ComponentText::Draw(const ComponentTransform2D* transform) const {
 
 void ComponentText::SetText(const std::string& newText) {
 	text = newText;
-	RecalculcateVertices();
+	Invalidate();
 }
 
 void ComponentText::SetFontSize(float newfontSize) {
 	fontSize = newfontSize;
+	Invalidate();
 }
 
 void ComponentText::SetFontColor(const float4& newColor) {
@@ -213,8 +199,11 @@ float4 ComponentText::GetFontColor() const {
 	return color;
 }
 
-//TODO make this happen with a TesseractEvent or SDLevent related to OnWindowSizeChanged
-void ComponentText::RecalculcateVertices() {
+void ComponentText::RecalculateVertices() {
+	if (!dirty) {
+		return;
+	}
+
 	if (fontID == 0) {
 		return;
 	}
@@ -222,18 +211,15 @@ void ComponentText::RecalculcateVertices() {
 	verticesText.resize(text.size());
 
 	ComponentTransform2D* transform = GetOwner().GetComponent<ComponentTransform2D>();
-	float3 position = transform->GetPosition();
-	float screenFactor = GetOwner().GetComponent<ComponentCanvasRenderer>()->GetCanvasScreenFactor();
 
-	float x = position.x * screenFactor;
-	float y = position.y * screenFactor;
-	
-	float dy = 0;		// additional y shifting
-	int j = 0;			// index of row
+	float x = -transform->GetSize().x / 2.0f;
+	float y = 0;
 
-	float2 transformScale = transform->GetScale().xy();
+	float dy = 0; // additional y shifting
+	int j = 0;	  // index of row
+
 	// FontSize / size of imported font. 48 is due to FontImporter default PixelSize
-	float scale = (fontSize / 48) * (transformScale.x > transformScale.y ? transformScale.x : transformScale.y) * screenFactor;
+	float scale = (fontSize / 48);
 
 	for (size_t i = 0; i < text.size(); ++i) {
 		Character character = App->userInterface->GetCharacter(fontID, text.at(i));
@@ -245,26 +231,27 @@ void ComponentText::RecalculcateVertices() {
 		float h = character.size.y * scale;
 
 		switch (textAlignment) {
-			case TextAlignment::LEFT: {
-				// Default branch, could be deleted
-				break;
-			}
-			case TextAlignment::CENTER: {
-				xpos += (transform->GetSize().x * screenFactor / 2.0f - SubstringWidth(&text.c_str()[j], scale) / 2.0f);
-				break;
-			}
-			case TextAlignment::RIGHT: {
-				xpos += transform->GetSize().x * screenFactor - SubstringWidth(&text.c_str()[j], scale);
-				break;
-			}
+		case TextAlignment::LEFT: {
+			// Default branch, could be deleted
+			break;
+		}
+		case TextAlignment::CENTER: {
+			xpos += (transform->GetSize().x / 2.0f - SubstringWidth(&text.c_str()[j], scale) / 2.0f);
+			break;
+		}
+		case TextAlignment::RIGHT: {
+			xpos += transform->GetSize().x - SubstringWidth(&text.c_str()[j], scale);
+			break;
+		}
 		}
 
 		if (text.at(i) == '\n') {
 			dy += lineHeight;					// shifts to next line
-			x = position.x * screenFactor;		// reset to initial position
+			x = -transform->GetSize().x / 2.0f; // reset to initial position
 			j = i + 1;							// updated j variable in order to get the substringwidth of the following line in the next iteration
 		}
 
+		// clang-format off
 		verticesText[i] = {
 			xpos, ypos + h - dy, 0.0f, 0.0f,
 			xpos, ypos - dy, 0.0f, 1.0f,
@@ -273,12 +260,19 @@ void ComponentText::RecalculcateVertices() {
 			xpos + w, ypos - dy, 1.0f, 1.0f,
 			xpos + w, ypos + h - dy, 1.0f, 0.0f
 		};
+		// clang-format on
 
 		// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
 		if (text.at(i) != '\n') {
 			x += (character.advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64). Divides / 64
 		}
 	}
+
+	dirty = false;
+}
+
+void ComponentText::Invalidate() {
+	dirty = true;
 }
 
 float ComponentText::SubstringWidth(const char* substring, float scale) {

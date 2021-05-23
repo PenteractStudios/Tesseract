@@ -11,7 +11,7 @@
 // This includes the Constructor.
 #define REGISTER_RESOURCE(resourceClass, resourceType)   \
 	static const ResourceType staticType = resourceType; \
-	resourceClass(UID id, const char* assetFilePath, const char* resourceFilePath) : Resource(staticType, id, assetFilePath, resourceFilePath) {}
+	resourceClass(UID id, const char* name, const char* assetFilePath, const char* resourceFilePath) : Resource(staticType, id, name, assetFilePath, resourceFilePath) {}
 
 enum class ResourceType {
 	UNKNOWN,
@@ -25,8 +25,10 @@ enum class ResourceType {
 	SKYBOX,
 	SCRIPT,
 	ANIMATION,
-	AUDIO,
-	NAVMESH
+	NAVMESH,
+	STATE_MACHINE,
+	CLIP,
+	AUDIO
 };
 
 const char* GetResourceTypeName(ResourceType type);

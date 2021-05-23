@@ -1,17 +1,19 @@
 #pragma once
 
-#include <string>
-#include <variant>
+#include "Resources/ResourceType.h"
+#include "Utils/UID.h"
 
 #include "Math/float2.h"
+#include <string>
+#include <variant>
 
 class GameObject;
 class Component;
 class Resource;
 
-struct AssetFolder;
+struct AssetCache;
 
-#define EventVariant std::variant<int, DestroyGameObjectStruct, AddResourceStruct, UpdateFoldersStruct, ChangeSceneStruct>
+#define EventVariant std::variant<int, DestroyGameObjectStruct, CreateResourceStruct, DestroyResourceStruct, UpdateAssetCacheStruct, ChangeSceneStruct, ViewportResizedStruct>
 
 /* Creating a new event type:
 *    1. Add a new EventType for the new event (ALWAYS ABOVE COUNT)
@@ -28,20 +30,35 @@ enum class TesseractEventType {
 	PRESSED_RESUME,
 	PRESSED_STEP,
 	PRESSED_STOP,
-	ADD_RESOURCE,
-	UPDATE_FOLDERS,
+	CREATE_RESOURCE,
+	DESTROY_RESOURCE,
+	UPDATE_ASSET_CACHE,
 	MOUSE_CLICKED,
 	MOUSE_RELEASED,
 	CHANGE_SCENE,
 	RESOURCES_LOADED,
 	COMPILATION_FINISHED,
+	SCREEN_RESIZED,
+	ANIMATION_FINISHED,
 	COUNT
 };
 
-struct AddResourceStruct {
-	Resource* resource = nullptr;
-	AddResourceStruct(Resource* resource_)
-		: resource(resource_) {}
+struct CreateResourceStruct {
+	ResourceType type = ResourceType::UNKNOWN;
+	UID resourceId = 0;
+	std::string resourceName = "";
+	std::string assetFilePath = "";
+	CreateResourceStruct(ResourceType type_, UID resourceId_, const char* resourceName_, const char* assetFilePath_)
+		: type(type_)
+		, resourceId(resourceId_)
+		, resourceName(resourceName_)
+		, assetFilePath(assetFilePath_) {}
+};
+
+struct DestroyResourceStruct {
+	UID resourceId = 0;
+	DestroyResourceStruct(UID resourceId_)
+		: resourceId(resourceId_) {}
 };
 
 struct DestroyGameObjectStruct {
@@ -50,10 +67,10 @@ struct DestroyGameObjectStruct {
 		: gameObject(gameObject_) {}
 };
 
-struct UpdateFoldersStruct {
-	AssetFolder* folder = nullptr;
-	UpdateFoldersStruct(AssetFolder* folder_)
-		: folder(folder_) {
+struct UpdateAssetCacheStruct {
+	AssetCache* assetCache = nullptr;
+	UpdateAssetCacheStruct(AssetCache* assetCache_)
+		: assetCache(assetCache_) {
 	}
 };
 
@@ -61,6 +78,14 @@ struct ChangeSceneStruct {
 	const char* scenePath = nullptr;
 	ChangeSceneStruct(const char* scenePath_)
 		: scenePath(scenePath_) {}
+};
+
+struct ViewportResizedStruct {
+	ViewportResizedStruct(int newWidth_, int newHeight_)
+		: newWidth(newWidth_)
+		, newHeight(newHeight_) {}
+	int newWidth = 0;
+	int newHeight = 0;
 };
 
 struct TesseractEvent {
