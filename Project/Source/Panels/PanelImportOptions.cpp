@@ -19,7 +19,7 @@
 
 #include "Utils/Leaks.h"
 
-static bool UpdateMetaFile(const char* metaFilePath, ImportOptions* importOptions) {
+static bool UpdateMetaFile(const char* metaFilePath, ImportOptions& importOptions) {
 	rapidjson::Document document;
 
 	if (App->files->Exists(metaFilePath)) {
@@ -39,7 +39,7 @@ static bool UpdateMetaFile(const char* metaFilePath, ImportOptions* importOption
 	}
 
 	JsonValue jMeta(document, document);
-	importOptions->Save(jMeta);
+	importOptions.Save(jMeta);
 
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
@@ -81,7 +81,9 @@ void PanelImportOptions::Update() {
 
 			if (ImGui::Button("Save")) {
 				std::string metaFilePath = selected + META_EXTENSION;
-				UpdateMetaFile(metaFilePath.c_str(), importOptions);
+				if (importOptions) {
+					UpdateMetaFile(metaFilePath.c_str(), *importOptions);
+				}
 				App->resources->assetsToReimport.push(selected);
 			}
 		}
