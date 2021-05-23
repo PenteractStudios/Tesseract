@@ -9,6 +9,8 @@
 #include "Geometry/Plane.h"
 #include "Math/float3x3.h"
 
+#include "Utils/Leaks.h"
+
 LightFrustum::LightFrustum() {
 	frustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
 }
