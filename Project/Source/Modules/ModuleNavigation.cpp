@@ -22,25 +22,13 @@ void ModuleNavigation::BakeNavMesh() {
 }
 
 void ModuleNavigation::RenderNavMesh() {
-	if (generated) {
-		navMesh.Render();
-	}
+	navMesh.Render();
 }
 
 NavMesh& ModuleNavigation::GetNavMesh() {
 	return navMesh;
 }
 
-void ModuleNavigation::SaveNavMesh() {
-	if (!generated) {
-		return;
-	}
-}
+void ModuleNavigation::ReleaseNavMesh() {
 
-void ModuleNavigation::LoadNavMesh(const char* filePath) {
-	// Load file
-	Buffer<char> buffer = App->files->Load(filePath);
-	char* cursor = buffer.Data();
-
-	navMesh.Load(buffer);
 }

@@ -409,7 +409,8 @@ NavMesh::~NavMesh() {
 	pmesh = 0;
 	rcFreePolyMeshDetail(dmesh);
 	dmesh = 0;
-
+	
+	int navDataSize = 0;
 }
 
 bool NavMesh::Build() {
@@ -685,8 +686,8 @@ bool NavMesh::Build() {
 	// The GUI may allow more max points per polygon than Detour can handle.
 	// Only build the detour navmesh if we do not exceed the limit.
 	if (cfg.maxVertsPerPoly <= DT_VERTS_PER_POLYGON) {
-		unsigned char* navData = 0;
-		int navDataSize = 0;
+		navData = 0;
+		navDataSize = 0;
 
 		// Update poly flags from areas.
 		for (int i = 0; i < pmesh->npolys; ++i) {
@@ -740,6 +741,8 @@ bool NavMesh::Build() {
 		navMesh = dtAllocNavMesh();
 		if (!navMesh) {
 			dtFree(navData);
+			navData = nullptr;
+			navDataSize = 0;
 			LOG("Could not create Detour navmesh");
 			return false;
 		}
@@ -749,6 +752,8 @@ bool NavMesh::Build() {
 		status = navMesh->init(navData, navDataSize, DT_TILE_FREE_DATA);
 		if (dtStatusFailed(status)) {
 			dtFree(navData);
+			navData = nullptr;
+			navDataSize = 0;
 			LOG("Could not init Detour navmesh");
 			return false;
 		}
@@ -776,6 +781,9 @@ bool NavMesh::Build() {
 }
 
 void NavMesh::Render() {
+	if (navData == nullptr) {
+		return;
+	}
 
 	DebugDrawGL dds;
 
@@ -789,8 +797,6 @@ void NavMesh::Render() {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glLoadMatrixf(App->camera->GetViewMatrix().Transposed().ptr());
-	
-
 
 	glEnable(GL_FOG);
 	glDepthMask(GL_TRUE);
@@ -901,7 +907,6 @@ void NavMesh::Render() {
 
 	glDepthMask(GL_TRUE);
 
-
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
@@ -911,7 +916,8 @@ void NavMesh::Render() {
 }
 
 void NavMesh::Load(Buffer<char>& buffer) {
-	dtFreeNavMesh(navMesh);
+	CleanUp();
+
 	navMesh = dtAllocNavMesh();
 	if (!navMesh) {
 		LOG("Could not create Detour navmesh");
@@ -920,15 +926,40 @@ void NavMesh::Load(Buffer<char>& buffer) {
 
 	dtStatus status;
 
-	status = navMesh->init(reinterpret_cast<unsigned char*>(buffer.Data()), (unsigned int) buffer.Size(), DT_TILE_FREE_DATA);
+	unsigned int bufferSize = buffer.Size();
+	char* bufferData = buffer.ObtainData();
+
+	status = navMesh->init(reinterpret_cast<unsigned char*>(bufferData), bufferSize, DT_TILE_FREE_DATA);
 	if (dtStatusFailed(status)) {
 		LOG("Could not init Detour navmesh");
 		return;
 	}
+	navData = reinterpret_cast<unsigned char*>(bufferData);
+	navDataSize = bufferSize;
 
 	status = navQuery->init(navMesh, 2048);
 	if (dtStatusFailed(status)) {
 		LOG("Could not init Detour navmesh query");
 		return;
 	}
+}
+
+void NavMesh::CleanUp() {
+	dtFreeNavMesh(navMesh);
+	navMesh = nullptr;
+	navData = nullptr;
+	navDataSize = 0;
+	dtFreeTileCache(tileCache);
+	delete[] triareas;
+	triareas = nullptr;
+	rcFreeHeightField(solid);
+	solid = nullptr;
+	rcFreeCompactHeightfield(chf);
+	chf = nullptr;
+	rcFreeContourSet(cset);
+	cset = nullptr;
+	rcFreePolyMesh(pmesh);
+	pmesh = nullptr;
+	rcFreePolyMeshDetail(dmesh);
+	dmesh = nullptr;
 }

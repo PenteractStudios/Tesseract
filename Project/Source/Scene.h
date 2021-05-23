@@ -54,6 +54,9 @@ public:
 	std::vector<float> GetVertices();
 	std::vector<int> GetTriangles();
 
+	void SetNavMesh(UID navMesh);
+	UID GetNavMesh();
+
 public:
 	GameObject* root = nullptr;			  // GameObject Root. Parent of everything and god among gods (Game Object Deity) :D.
 	PoolMap<UID, GameObject> gameObjects; // Pool of GameObjects. Stores all the memory of all existing GameObject in a contiguous memory space.

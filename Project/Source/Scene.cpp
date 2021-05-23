@@ -42,6 +42,7 @@ void Scene::ClearScene() {
 	DestroyGameObject(root);
 	root = nullptr;
 	quadtree.Clear();
+	SetNavMesh(0);
 
 	assert(gameObjects.Count() == 0); // There should be no GameObjects outside the scene hierarchy
 	gameObjects.Clear();			  // This looks redundant, but it resets the free list so that GameObject order is mantained when saving/loading
@@ -356,4 +357,20 @@ std::vector<int> Scene::GetTriangles() {
 	}
 
 	return result;
+}
+
+void Scene::SetNavMesh(UID navMesh) {
+	if (navMeshId != 0) {
+		App->resources->DecreaseReferenceCount(navMeshId);
+	}
+
+	navMeshId = navMesh;
+
+	if (navMesh != 0) {
+		App->resources->IncreaseReferenceCount(navMesh);
+	}
+}
+
+UID Scene::GetNavMesh() {
+	return navMeshId;
 }

@@ -9,6 +9,9 @@
 #include "imgui.h"
 #include "IconsFontAwesome5.h"
 #include "IconsForkAwesome.h"
+#include "FileSystem/NavMeshImporter.h"
+
+#include "Globals.h"
 
 #include <string>
 
@@ -23,7 +26,6 @@ void PanelNavigation::Update() {
 	std::string windowName = std::string(ICON_FA_MAP " ") + name;
 	std::string optionsSymbol = std::string(ICON_FK_COG);
 	if (ImGui::Begin(windowName.c_str(), &enabled)) {
-		//ImGui::ShowDemoWindow();
 
 		NavMesh& navMesh = App->navigation->GetNavMesh();
 
@@ -80,8 +82,10 @@ void PanelNavigation::Update() {
 					App->navigation->BakeNavMesh();
 				}
 
-				if (ImGui::Button("Save")) {
-					App->navigation->SaveNavMesh();
+				ImGui::Separator();
+
+				if (ImGui::Button("Save")) {					
+					App->editor->modalToOpen = Modal::CREATE_NAVMESH;
 				}
 
 				ImGui::EndTabItem();
@@ -91,6 +95,4 @@ void PanelNavigation::Update() {
 		ImGui::Separator();
 	}
 	ImGui::End();
-
-	//if (ImGui::button)
 }

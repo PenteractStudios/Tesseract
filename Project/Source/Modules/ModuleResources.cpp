@@ -31,6 +31,7 @@
 #include "FileSystem/ClipImporter.h"
 #include "FileSystem/FontImporter.h"
 #include "FileSystem/ScriptImporter.h"
+#include "FileSystem/NavMeshImporter.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleInput.h"
@@ -211,6 +212,9 @@ bool ModuleResources::ImportAssetByExtension(JsonValue jMeta, const char* filePa
 	} else if (extension == ANIMATION_CLIP_EXTENSION) {
 		// Clip files
 		ClipImporter::ImportClip(filePath, jMeta);
+	} else if (extension == NAVMESH_EXTENSION) {
+		// NavMesh files
+		NavMeshImporter::ImportNavMesh(filePath, jMeta);
 	} else {
 		validExtension = false;
 	}

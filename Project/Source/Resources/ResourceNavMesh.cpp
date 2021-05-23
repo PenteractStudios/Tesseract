@@ -14,11 +14,13 @@ void ResourceNavMesh::Load() {
 	std::string filePath = GetResourceFilePath();
 	LOG("Loading mesh from path: \"%s\".", filePath.c_str());
 
-	App->navigation->LoadNavMesh(filePath.c_str());
+	Buffer<char> buffer = App->files->Load(filePath.c_str());
+	App->navigation->GetNavMesh().Load(buffer);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Mesh loaded in %ums", timeMs);
 }
 
 void ResourceNavMesh::Unload() {
+	App->navigation->GetNavMesh().CleanUp();
 }

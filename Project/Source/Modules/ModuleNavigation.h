@@ -4,6 +4,7 @@
 #include "Utils/Buffer.h"
 
 #include "Navigation/NavMesh.h"
+#include "Resources/ResourceNavMesh.h"
 
 class ModuleNavigation : public Module {
 public:
@@ -12,10 +13,11 @@ public:
 	
 	void RenderNavMesh();
 	NavMesh& GetNavMesh();
-	void SaveNavMesh();
-	void LoadNavMesh(const char* filePath);
+
+	void ReleaseNavMesh();
 
 private:
 	NavMesh navMesh;
+
 	bool generated = false;
 };

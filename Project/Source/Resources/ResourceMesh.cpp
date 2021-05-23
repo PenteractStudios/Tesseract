@@ -45,6 +45,7 @@ void ResourceMesh::Load() {
 	unsigned bonesIDSize = sizeof(unsigned) * bonesIDSizeQuantity;
 	unsigned weightsSize = sizeof(float) * weightSizeQuantity;
 	unsigned indexSize = sizeof(unsigned);
+
 	// IMPORTANT! Add to elementsPerVertex any other element that must be included in the Vertex
 	int elementsPerVertex = positionsSizeQuantity + normalSizeQuantity + tangentSizeQuantity + uvSizeQuantity + bonesIDSizeQuantity + weightSizeQuantity;
 

@@ -31,6 +31,7 @@ public:
 	bool Build();
 	void Render();
 	void Load(Buffer<char>& buffer);
+	void CleanUp();
 
 public:
 	enum SamplePartitionType {
@@ -95,10 +96,12 @@ public:
 	// DRAW MODE
 	DrawMode drawMode = DRAWMODE_NAVMESH;
 
+	// NAV DATA TO SAVE
+	unsigned char* navData = 0;
+	int navDataSize = 0;
+
 private:
 	
-
-
 	BuildContext* ctx;
 
 	class InputGeom* geom;
@@ -133,4 +136,5 @@ private:
 	unsigned char navMeshDrawFlags;
 
 	//NavMeshTesterTool* tool;
+
 };
