@@ -1,26 +1,26 @@
 {
-    "ShaderType": 2,
-    "HasDiffuseMap": false,
+    "ShaderType": 1,
     "DiffuseColor": [
         1.0,
         1.0,
         1.0,
         1.0
     ],
-    "DiffuseMap": 0,
-    "HasSpecularMap": false,
+    "DiffuseMap": 12655596251973795251,
     "SpecularColor": [
         0.15000000596046449,
         0.15000000596046449,
         0.15000000596046449,
         1.0
     ],
-    "SpecularMap": 0,
+    "SpecularMap": 2520166884799838265,
     "Metalness": 0.0,
-    "MetallicMap": 0,
-    "NormalMap": 0,
-    "Smoothness": 1,
-    "HasSmoothnessInAlphaChannel": false,
+    "MetallicMap": 2520166884799838265,
+    "NormalMap": 3704426711226414823,
+    "EmissiveMap": 5862507731794970432,
+    "AmbientOcclusionMap": 4424619907653175805,
+    "Smoothness": 1.0,
+    "HasSmoothnessInAlphaChannel": true,
     "Tiling": [
         1.0,
         1.0
