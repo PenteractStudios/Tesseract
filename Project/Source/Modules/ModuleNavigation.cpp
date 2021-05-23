@@ -1,5 +1,9 @@
 #include "ModuleNavigation.h"
 
+#include "Application.h"
+#include "Modules/ModuleFiles.h"
+#include "Utils/Buffer.h"
+
 #include "Utils/Logging.h"
 
 #include "Utils/Leaks.h"
@@ -25,4 +29,18 @@ void ModuleNavigation::RenderNavMesh() {
 
 NavMesh& ModuleNavigation::GetNavMesh() {
 	return navMesh;
+}
+
+void ModuleNavigation::SaveNavMesh() {
+	if (!generated) {
+		return;
+	}
+}
+
+void ModuleNavigation::LoadNavMesh(const char* filePath) {
+	// Load file
+	Buffer<char> buffer = App->files->Load(filePath);
+	char* cursor = buffer.Data();
+
+	navMesh.Load(buffer);
 }

@@ -44,6 +44,7 @@
     <ClInclude Include="Libs\recastnavigation-1.5.1\Recast\RecastAlloc.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\Recast\RecastAssert.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\Recast\SampleInterfaces.h" />
+    <ClInclude Include="Source\Resources\ResourceNavMesh.h" />
     <ClInclude Include="Source\Navigation\NavMesh.h" />
     <ClInclude Include="Source\Panels\PanelNavigation.h" />
     <ClInclude Include="Source\Modules\ModuleNavigation.h" />
@@ -342,6 +343,7 @@
     <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\RecastRasterization.cpp" />
     <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\RecastRegion.cpp" />
     <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\SampleInterfaces.cpp" />
+    <ClCompile Include="Source\Resources\ResourceNavMesh.cpp" />
     <ClCompile Include="Source\Navigation\NavMesh.cpp" />
     <ClCompile Include="Source\Panels\PanelNavigation.cpp" />
     <ClCompile Include="Source\Modules\ModuleNavigation.cpp" />

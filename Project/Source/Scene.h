@@ -82,6 +82,9 @@ public:
 	AABB2D quadtreeBounds = {{-1000, -1000}, {1000, 1000}};
 	unsigned quadtreeMaxDepth = 4;
 	unsigned quadtreeElementsPerNode = 200;
+
+	// ---- Nav Mesh ID parameters ---- //
+	UID navMeshId = 0;
 };
 
 template<class T>

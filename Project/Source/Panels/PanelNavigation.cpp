@@ -79,6 +79,11 @@ void PanelNavigation::Update() {
 				if (ImGui::Button("Bake")) {
 					App->navigation->BakeNavMesh();
 				}
+
+				if (ImGui::Button("Save")) {
+					App->navigation->SaveNavMesh();
+				}
+
 				ImGui::EndTabItem();
 			}
 			ImGui::EndTabBar();

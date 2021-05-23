@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Recast/SampleInterfaces.h"
-//#include "Recast/NavMeshTesterTool.h"
+#include "Utils/Buffer.h"
 
 /// These are just sample areas to use consistent values across the samples.
 /// The use should specify these base on his needs.
@@ -30,6 +30,7 @@ public:
 
 	bool Build();
 	void Render();
+	void Load(Buffer<char>& buffer);
 
 public:
 	enum SamplePartitionType {

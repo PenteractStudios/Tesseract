@@ -909,3 +909,26 @@ void NavMesh::Render() {
 	glLoadIdentity();
 
 }
+
+void NavMesh::Load(Buffer<char>& buffer) {
+	dtFreeNavMesh(navMesh);
+	navMesh = dtAllocNavMesh();
+	if (!navMesh) {
+		LOG("Could not create Detour navmesh");
+		return;
+	}
+
+	dtStatus status;
+
+	status = navMesh->init(reinterpret_cast<unsigned char*>(buffer.Data()), (unsigned int) buffer.Size(), DT_TILE_FREE_DATA);
+	if (dtStatusFailed(status)) {
+		LOG("Could not init Detour navmesh");
+		return;
+	}
+
+	status = navQuery->init(navMesh, 2048);
+	if (dtStatusFailed(status)) {
+		LOG("Could not init Detour navmesh query");
+		return;
+	}
+}

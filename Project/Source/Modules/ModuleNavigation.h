@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Module.h"
+#include "Utils/Buffer.h"
 
 #include "Navigation/NavMesh.h"
 
@@ -11,6 +12,8 @@ public:
 	
 	void RenderNavMesh();
 	NavMesh& GetNavMesh();
+	void SaveNavMesh();
+	void LoadNavMesh(const char* filePath);
 
 private:
 	NavMesh navMesh;

@@ -203,6 +203,7 @@
     <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\RecastRasterization.cpp" />
     <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\RecastRegion.cpp" />
     <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\SampleInterfaces.cpp" />
+    <ClCompile Include="Source\Resources\ResourceNavMesh.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -496,6 +497,7 @@
     <ClInclude Include="Libs\recastnavigation-1.5.1\Recast\RecastAlloc.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\Recast\RecastAssert.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\Recast\SampleInterfaces.h" />
+    <ClInclude Include="Source\Resources\ResourceNavMesh.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />

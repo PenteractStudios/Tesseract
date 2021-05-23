@@ -15,6 +15,7 @@
 #include "Resources/ResourceScript.h"
 #include "Resources/ResourceAnimation.h"
 #include "Resources/ResourceAudioClip.h"
+#include "Resources/ResourceNavMesh.h"
 #include "FileSystem/JsonValue.h"
 #include "FileSystem/SceneImporter.h"
 #include "FileSystem/ModelImporter.h"
@@ -89,8 +90,6 @@ bool ModuleResources::Init() {
 }
 
 bool ModuleResources::Start() {
-
-
 	stopImportThread = false;
 
 	importThread = std::thread(&ModuleResources::UpdateAsync, this);
@@ -432,6 +431,9 @@ Resource* ModuleResources::CreateResourceByType(ResourceType type, const char* a
 		break;
 	case ResourceType::AUDIO:
 		resource = new ResourceAudioClip(id, assetFilePath, resourceFilePath.c_str());
+		break;
+	case ResourceType::NAVMESH:
+		resource = new ResourceNavMesh(id, assetFilePath, resourceFilePath.c_str());
 		break;
 	default:
 		LOG("Resource of type %i hasn't been registered in ModuleResources::CreateResourceByType.", (unsigned) type);

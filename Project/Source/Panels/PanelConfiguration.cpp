@@ -10,7 +10,10 @@
 #include "Modules/ModuleRender.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleResources.h"
+#include "Resources/ResourceNavMesh.h"
 #include "Scene.h"
+#include "Utils/ImGuiUtils.h"
+
 
 #include "GL/glew.h"
 #include "imgui.h"
@@ -209,6 +212,8 @@ void PanelConfiguration::Update() {
 			ImGui::TextColored(App->editor->titleColor, "Background Settings");
 			ImGui::ColorEdit3("Background", App->renderer->clearColor.ptr());
 			ImGui::ColorEdit3("Ambient Color", App->renderer->ambientColor.ptr());
+
+			ImGui::ResourceSlot<ResourceNavMesh>("Nav Mesh", &scene->navMeshId);
 		}
 	}
 	ImGui::End();
