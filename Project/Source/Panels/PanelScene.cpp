@@ -249,10 +249,6 @@ void PanelScene::Update() {
 						transform->SetScale(scale);
 						break;
 					}
-
-					if ((selectedGameObject->GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0) {
-						App->renderer->lightFrustum.Invalidate();
-					}
 				}
 			}
 
