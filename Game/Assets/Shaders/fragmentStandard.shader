@@ -12,7 +12,7 @@ out vec4 outColor;
 uniform vec3 viewPos;
 
 // Material
-uniform vec3 diffuseColor;
+uniform vec4 diffuseColor;
 uniform sampler2D diffuseMap;
 uniform int hasDiffuseMap;
 uniform sampler2D normalMap;
@@ -87,7 +87,7 @@ vec2 GetTiledUVs()
 
 vec4 GetDiffuse(vec2 tiledUV)
 {
-    return hasDiffuseMap * pow(texture(diffuseMap, tiledUV), vec4(2.2)) * vec4(diffuseColor, 1.0) + (1 - hasDiffuseMap) * vec4(diffuseColor, 1.0);
+    return hasDiffuseMap * pow(texture(diffuseMap, tiledUV), vec4(2.2)) * diffuseColor + (1 - hasDiffuseMap) * diffuseColor;
 }
 
 vec4 GetEmissive(vec2 tiledUV)
@@ -263,8 +263,8 @@ void main()
     colorAccumulative += GetEmissive(tiledUV).rgb;
 
     vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
-	ldr = pow(ldr, vec3(1/2.2)); // gamma correction
-	outColor = vec4(ldr, 1.0);
+    ldr = pow(ldr, vec3(1/2.2)); // gamma correction
+    outColor = vec4(ldr, colorDiffuse.a);
 }
 
 --- fragMainSpecular
@@ -313,5 +313,5 @@ void main()
 
     vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
     ldr = pow(ldr, vec3(1/2.2)); // gamma correction
-    outColor = vec4(ldr, 1.0);
+    outColor = vec4(ldr, colorDiffuse.a);
 }

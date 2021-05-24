@@ -12,6 +12,11 @@ enum class MaterialShader {
 	STANDARD
 };
 
+enum class RenderingMode {
+	OPAQUE,
+	TRANSPARENT
+};
+
 class ResourceMaterial : public Resource {
 public:
 	REGISTER_RESOURCE(ResourceMaterial, ResourceType::MATERIAL);
@@ -22,9 +27,18 @@ public:
 
 	void SaveToFile(const char* filePath);
 
+	void AddGameObject(GameObject* gameObject);
+	void RemoveGameObject(GameObject* gameObject);
+	void UpdateMask();
+
 public:
+
+	std::vector<GameObject*> gameObjects;
 	// Material shader
 	MaterialShader shaderType = MaterialShader::STANDARD;
+
+	// Rendering Mode
+	RenderingMode renderingMode = RenderingMode::OPAQUE;
 
 	// Diffuse
 	float4 diffuseColor = {1.0f, 1.0f, 1.0f, 1.0f};
