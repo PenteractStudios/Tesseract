@@ -7,34 +7,31 @@
 #include "Scene.h"
 #include "Components/ComponentMeshRenderer.h"
 
-
 #include "Recast/Recast.h"
+#include "Recast/RecastAlloc.h"
+#include "Recast/RecastAssert.h"
 #include "Detour/DetourStatus.h"
 #include "Detour/DetourNavMesh.h"
 #include "Detour/DetourNavMeshBuilder.h"
 #include "Detour/DetourNavMeshQuery.h"
 #include "Detour/DetourCommon.h"
 #include "Detour/InputGeom.h"
+#include "Detour/DetourAssert.h"
 #include "DetourTileCache/DetourTileCache.h"
 #include "DetourTileCache/DetourTileCacheBuilder.h"
+#include "DetourCrowd/DetourCrowd.h"
 
 #include "DebugUtils/RecastDebugDraw.h"
-#include "Detour/DetourAssert.h"
 #include "DebugUtils/DetourDebugDraw.h"
-//#include "Recast/NavMeshTesterTool.h"
-//#include "Recast/OffMeshConnectionTool.h"
-//#include "Recast/ConvexVolumeTool.h"
-//#include "Recast/CrowdTool.h"
-#include "Recast/RecastAlloc.h"
-#include "Recast/RecastAssert.h"
+
 #include "fastlz/fastlz.h"
 
 #include "GL/glew.h"
 
-//#include "debugdraw.h"
-
 #include "Utils/Logging.h"
 #include "Utils/Leaks.h"
+
+#define MAX_AGENTS 128
 
 // This value specifies how many layers (or "floors") each navmesh tile is expected to have.
 static const int EXPECTED_LAYERS_PER_TILE = 4;
@@ -173,7 +170,6 @@ struct RasterizationContext {
 	TileCacheData tiles[MAX_LAYERS];
 	int ntiles;
 };
-
 
 //static int rasterizeTileLayers(BuildContext* ctx, const int tx, const int ty, const rcConfig& cfg, TileCacheData* tiles, const int maxTiles) {
 //	//if (!geom || !geom->getMesh() || !geom->getChunkyMesh()) {
@@ -341,56 +337,16 @@ static int calcLayerBufferSize(const int gridWidth, const int gridHeight) {
 	return headerSize + gridSize * 4;
 }
 
-NavMesh::NavMesh() :
-	// SAMPLE INIT
-	geom(0),
-	navMesh(0),
-	navQuery(0),
-	crowd(0),
-	//navMeshDrawFlags(DU_DRAWNAVMESH_OFFMESHCONS|DU_DRAWNAVMESH_CLOSEDLIST),
-	//tool(0),
-	ctx(0),
-	solid(0), 
-	triareas(0), 
-	chf(0),
-	cset(0),
-	pmesh(0),
-	dmesh(0),
-
-	// SAMPLE OBSTACLE INIT
-	keepInterResults(false),
-	tileCache(0),
-	cacheBuildTimeMs(0),
-	cacheCompressedSize(0),
-	cacheRawSize(0),
-	cacheLayerCount(0),
-	cacheBuildMemUsage(0),
-	//drawMode(DRAWMODE_NAVMESH),
-	maxTiles(0),
-	maxPolysPerTile(0),
-	tileSize(48),
-	
-	navMeshDrawFlags(DU_DRAWNAVMESH_OFFMESHCONS | DU_DRAWNAVMESH_CLOSEDLIST)
+NavMesh::NavMesh()
 {
-
-	// SAMPLE INIT
-	//resetCommonSettings();
+	navMeshDrawFlags = DU_DRAWNAVMESH_OFFMESHCONS | DU_DRAWNAVMESH_CLOSEDLIST;
 	navQuery = dtAllocNavMeshQuery();
-	//crowd = dtAllocCrowd();
-
-	//for (int i = 0; i < MAX_TOOLS; i++)
-	//	toolStates[i] = 0;
-
-	// SAMPLE OBSTACLE INIT
-
-	//resetCommonSettings();
+	crowd = dtAllocCrowd();
 
 	talloc = new LinearAllocator(32000);
 	tcomp = new FastLZCompressor;
 	tmproc = new MeshProcess;
 	ctx = new BuildContext();
-	//setTool(new TempObstacleCreateTool);
-
 }
 
 NavMesh::~NavMesh() {
@@ -409,20 +365,17 @@ NavMesh::~NavMesh() {
 	pmesh = 0;
 	rcFreePolyMeshDetail(dmesh);
 	dmesh = 0;
-	
+	dtFreeCrowd(crowd);
+	crowd = 0;
+	dtFreeNavMeshQuery(navQuery);
+	navQuery = 0;
+
 	int navDataSize = 0;
 }
 
 bool NavMesh::Build() {
-	//if (!geom || !geom->getMesh()) {
-	//	ctx->log(RC_LOG_ERROR, "buildNavigation: Input mesh is not specified.");
-	//	return false;
-	//}
+	CleanUp();
 
-	//cleanup();
-
-	//const float* bmin = geom->getNavMeshBoundsMin();
-	//const float* bmax = geom->getNavMeshBoundsMax();
 	std::vector<float> verts = App->scene->scene->GetVertices();
 	const int nverts = verts.size();
 	std::vector<int> tris = App->scene->scene->GetTriangles();
@@ -433,7 +386,6 @@ bool NavMesh::Build() {
 		LOG("There's no mesh to build");
 		return false;
 	}
-
 
 	float bmin[3] = {INT_MAX, INT_MAX, INT_MAX};
 	float bmax[3] = {INT_MIN, INT_MIN, INT_MIN};
@@ -776,6 +728,8 @@ bool NavMesh::Build() {
 	//if (tool)
 	//	tool->init(this);
 	//initToolStates(this);
+	//navMesh->init();
+	InitCrowd();
 
 	return true;
 }
@@ -789,7 +743,7 @@ void NavMesh::Render() {
 
 	glClearColor(.1f, .1f, .1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glLoadMatrixf(App->camera->GetProjectionMatrix().Transposed().ptr());
@@ -800,7 +754,7 @@ void NavMesh::Render() {
 
 	glEnable(GL_FOG);
 	glDepthMask(GL_TRUE);
-	
+
 	const float texScale = 1.0f / (cellSize * 10.0f);
 
 	// CHECK
@@ -912,7 +866,6 @@ void NavMesh::Render() {
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-
 }
 
 void NavMesh::Load(Buffer<char>& buffer) {
@@ -942,6 +895,8 @@ void NavMesh::Load(Buffer<char>& buffer) {
 		LOG("Could not init Detour navmesh query");
 		return;
 	}
+
+	InitCrowd();
 }
 
 void NavMesh::CleanUp() {
@@ -962,4 +917,57 @@ void NavMesh::CleanUp() {
 	pmesh = nullptr;
 	rcFreePolyMeshDetail(dmesh);
 	dmesh = nullptr;
+}
+
+dtCrowd* NavMesh::GetCrowd() {
+	return crowd;
+}
+
+bool NavMesh::IsGenerated() {
+	return navData != nullptr;
+}
+
+dtNavMeshQuery* NavMesh::GetNavMeshQuery() {
+	return navQuery;
+}
+
+void NavMesh::InitCrowd() {
+	crowd->init(MAX_AGENTS, agentRadius, navMesh);
+
+	// Make polygons with 'disabled' flag invalid.
+	crowd->getEditableFilter(0)->setExcludeFlags(SAMPLE_POLYFLAGS_DISABLED);
+
+	// Setup local avoidance params to different qualities.
+	dtObstacleAvoidanceParams params;
+	// Use mostly default settings, copy from dtCrowd.
+	memcpy(&params, crowd->getObstacleAvoidanceParams(0), sizeof(dtObstacleAvoidanceParams));
+
+	// Low (11)
+	params.velBias = 0.5f;
+	params.adaptiveDivs = 5;
+	params.adaptiveRings = 2;
+	params.adaptiveDepth = 1;
+	crowd->setObstacleAvoidanceParams(0, &params);
+
+	// Medium (22)
+	params.velBias = 0.5f;
+	params.adaptiveDivs = 5;
+	params.adaptiveRings = 2;
+	params.adaptiveDepth = 2;
+	crowd->setObstacleAvoidanceParams(1, &params);
+
+	// Good (45)
+	params.velBias = 0.5f;
+	params.adaptiveDivs = 7;
+	params.adaptiveRings = 2;
+	params.adaptiveDepth = 3;
+	crowd->setObstacleAvoidanceParams(2, &params);
+
+	// High (66)
+	params.velBias = 0.5f;
+	params.adaptiveDivs = 7;
+	params.adaptiveRings = 3;
+	params.adaptiveDepth = 3;
+
+	crowd->setObstacleAvoidanceParams(3, &params);
 }

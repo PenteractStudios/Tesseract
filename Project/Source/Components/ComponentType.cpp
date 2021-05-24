@@ -56,6 +56,8 @@ const char* GetComponentTypeName(ComponentType type) {
 		return "AudioSource";
 	case ComponentType::PROGRESS_BAR:
 		return "ProgressBar";
+	case ComponentType::AGENT:
+		return "Agent";
 	default:
 		LOG("Component of type %i hasn't been registered in GetComponentTypeName.", (unsigned) type);
 		assert(false); // ERROR: Component type not registered
@@ -112,6 +114,8 @@ ComponentType GetComponentTypeFromName(const char* name) {
 		return ComponentType::AUDIO_SOURCE;
 	} else if (strcmp(name, "ProgressBar") == 0) {
 		return ComponentType::PROGRESS_BAR;
+	} else if (strcmp(name, "Agent") == 0) {
+		return ComponentType::AGENT;
 	} else {
 		LOG("No component of name %s exists.", (unsigned) name);
 		assert(false); // ERROR: Invalid name

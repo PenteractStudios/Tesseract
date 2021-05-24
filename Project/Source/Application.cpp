@@ -42,9 +42,9 @@ Application::Application() {
 	modules.push_back(input = new ModuleInput());
 	modules.push_back(camera = new ModuleCamera());
 
+	modules.push_back(navigation = new ModuleNavigation());
 	modules.push_back(scene = new ModuleScene());
 	modules.push_back(userInterface = new ModuleUserInterface());
-	modules.push_back(navigation = new ModuleNavigation());
 	modules.push_back(editor = new ModuleEditor());
 	modules.push_back(debugDraw = new ModuleDebugDraw());
 

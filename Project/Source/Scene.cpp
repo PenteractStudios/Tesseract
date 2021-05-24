@@ -36,6 +36,7 @@ Scene::Scene(unsigned numGameObjects) {
 	audioSourceComponents.Allocate(numGameObjects);
 	audioListenerComponents.Allocate(numGameObjects);
 	progressbarsComponents.Allocate(numGameObjects);
+	agentComponents.Allocate(numGameObjects);
 }
 
 void Scene::ClearScene() {
@@ -152,6 +153,8 @@ Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 		return audioListenerComponents.Find(componentId);
 	case ComponentType::PROGRESS_BAR:
 		return progressbarsComponents.Find(componentId);
+	case ComponentType::AGENT:
+		return agentComponents.Find(componentId);
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::GetComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -209,6 +212,8 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 		return audioListenerComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::PROGRESS_BAR:
 		return progressbarsComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::AGENT:
+		return agentComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::CreateComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -290,6 +295,9 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 	case ComponentType::PROGRESS_BAR:
 		progressbarsComponents.Release(componentId);
 		break;
+	case ComponentType::AGENT:
+		agentComponents.Release(componentId);
+		break;
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::RemoveComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -315,12 +323,14 @@ std::vector<float> Scene::GetVertices() {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
 		if (mesh != nullptr) {
 			ComponentTransform* transform = meshRenderer.GetOwner().GetComponent<ComponentTransform>();
+			//if (transform->GetOwner().IsStatic()) {
 			for (size_t i = 0; i < mesh->meshVertices.size(); i += 3) {
 				float4 transformedVertex = transform->GetGlobalMatrix() * float4(mesh->meshVertices[i], mesh->meshVertices[i + 1], mesh->meshVertices[i + 2], 1);
 				result.push_back(transformedVertex.x);
 				result.push_back(transformedVertex.y);
 				result.push_back(transformedVertex.z);
 			}
+			//}
 		}
 	}
 
@@ -328,18 +338,19 @@ std::vector<float> Scene::GetVertices() {
 }
 
 std::vector<int> Scene::GetTriangles() {
-	
 	int triangles = 0;
 	int i = 0;
 	std::vector<int> maxVertMesh(meshRendererComponents.Count() + 1, 0);
 	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
+		//if (meshRenderer.GetOwner().IsStatic()) {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
 		triangles += mesh->numIndices / 3;
 		maxVertMesh[i + 1] = mesh->numVertices;
 		i++;
+		//}
 	}
 	std::vector<int> result(triangles * 3);
-	
+
 	int currentGlobalTri = 0;
 	int vertOverload = 0;
 	i = 0;

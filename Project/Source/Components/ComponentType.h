@@ -43,7 +43,8 @@ enum class ComponentType {
 	TRAIL,
 	AUDIO_SOURCE,
 	AUDIO_LISTENER,
-	PROGRESS_BAR
+	PROGRESS_BAR,
+	AGENT
 };
 
 const char* GetComponentTypeName(ComponentType type);

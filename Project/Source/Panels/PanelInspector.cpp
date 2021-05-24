@@ -10,6 +10,7 @@
 #include "Components/ComponentAnimation.h"
 #include "Components/ComponentScript.h"
 #include "Components/ComponentBoundingBox2D.h"
+#include "Components/ComponentAgent.h"
 #include "Components/UI/ComponentEventSystem.h"
 #include "Components/UI/ComponentCanvas.h"
 #include "Components/UI/ComponentImage.h"
@@ -173,6 +174,9 @@ void PanelInspector::Update() {
 				case ComponentType::PROGRESS_BAR:
 					cName = "Progress Bar";
 					break;
+				case ComponentType::AGENT:
+					cName = "Agent";
+					break;
 				default:
 					cName = "";
 					break;
@@ -289,6 +293,14 @@ void PanelInspector::Update() {
 					ComponentAudioListener* audioListener = selected->CreateComponent<ComponentAudioListener>();
 					if (audioListener != nullptr) {
 						audioListener->Init();
+					} else {
+						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+					}
+				}
+				if (ImGui::MenuItem("Agent")) {
+					ComponentAgent* agent = selected->CreateComponent<ComponentAgent>();
+					if (agent != nullptr) {
+						agent->Init();
 					} else {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}

@@ -26,6 +26,7 @@
 #include "Components/ComponentAudioListener.h"
 #include "Components/ComponentAudioSource.h"
 #include "Components/UI/ComponentProgressBar.h"
+#include "Components/ComponentAgent.h"
 
 class GameObject;
 
@@ -88,6 +89,7 @@ public:
 	PoolMap<UID, ComponentAudioSource> audioSourceComponents;
 	PoolMap<UID, ComponentAudioListener> audioListenerComponents;
 	PoolMap<UID, ComponentProgressBar> progressbarsComponents;
+	PoolMap<UID, ComponentAgent> agentComponents;
 
 	// ---- Quadtree Parameters ---- //
 	Quadtree<GameObject> quadtree;

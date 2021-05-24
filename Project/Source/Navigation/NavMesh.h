@@ -23,6 +23,9 @@ enum SamplePolyFlags {
 	SAMPLE_POLYFLAGS_ALL = 0xffff	  // All abilities.
 };
 
+class dtCrowd;
+class dtNavMeshQuery;
+
 class NavMesh {
 public:
 	NavMesh();
@@ -32,6 +35,10 @@ public:
 	void Render();
 	void Load(Buffer<char>& buffer);
 	void CleanUp();
+
+	bool IsGenerated();
+	dtCrowd* GetCrowd();
+	dtNavMeshQuery* GetNavMeshQuery();
 
 public:
 	enum SamplePartitionType {
@@ -101,31 +108,26 @@ public:
 	int navDataSize = 0;
 
 private:
+	void InitCrowd();
 	
-	BuildContext* ctx;
+	BuildContext* ctx = nullptr;
 
-	class InputGeom* geom;
-	class dtNavMesh* navMesh;
-	class dtNavMeshQuery* navQuery;
-	class dtCrowd* crowd;
+	class InputGeom* geom = nullptr;
+	class dtNavMesh* navMesh = nullptr;
+	class dtNavMeshQuery* navQuery = nullptr;
+	class dtCrowd* crowd = nullptr;
 
 	//BuildContext* m_ctx;
 
-	class dtTileCache* tileCache;
-	struct LinearAllocator* talloc;
-	struct FastLZCompressor* tcomp;
-	struct MeshProcess* tmproc;
+	class dtTileCache* tileCache = nullptr;
+	struct LinearAllocator* talloc = nullptr;
+	struct FastLZCompressor* tcomp = nullptr;
+	struct MeshProcess* tmproc = nullptr;
 
-	int maxTiles;
-	int maxPolysPerTile;
+	int maxTiles = 0;
+	int maxPolysPerTile = 0;
 
-	float cacheBuildTimeMs;
-	int cacheCompressedSize;
-	int cacheRawSize;
-	int cacheLayerCount;
-	int cacheBuildMemUsage;
-
-	rcHeightfield* solid;
+	rcHeightfield* solid = nullptr;
 	unsigned char* triareas = nullptr;
 
 	rcCompactHeightfield* chf;
@@ -133,7 +135,7 @@ private:
 	rcPolyMesh* pmesh;
 	rcPolyMeshDetail* dmesh;
 
-	unsigned char navMeshDrawFlags;
+	unsigned char navMeshDrawFlags = 0;
 
 	//NavMeshTesterTool* tool;
 

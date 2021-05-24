@@ -220,6 +220,7 @@
     <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Source\FileSystem\ImportOptions.cpp" />
     <ClCompile Include="Source\FileSystem\NavMeshImporter.cpp" />
+    <ClCompile Include="Source\Components\ComponentAgent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -535,6 +536,7 @@
     <ClInclude Include="Source\Panels\PanelDebug.h" />
     <ClInclude Include="Source\FileSystem\ImportOptions.h" />
     <ClInclude Include="Source\FileSystem\NavMeshImporter.h" />
+    <ClInclude Include="Source\Components\ComponentAgent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />

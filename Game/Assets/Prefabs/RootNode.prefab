@@ -1,0 +1,1359 @@
+{
+    "Root": {
+        "Name": "RootNode",
+        "Active": true,
+        "RootBoneName": "Root",
+        "Mask": 0,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    3.3099796772003176,
+                    10.437010765075684,
+                    -0.8355534076690674
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    0.029999999329447748,
+                    0.029999999329447748,
+                    0.029999999329447748
+                ],
+                "LocalEulerAngles": [
+                    -0.0,
+                    0.0,
+                    -0.0
+                ]
+            },
+            {
+                "Type": "Animation",
+                "Active": true,
+                "StateMachineId": 0
+            },
+            {
+                "Type": "Agent",
+                "Active": true
+            },
+            {
+                "Type": "Script",
+                "Active": true,
+                "Script": 8510101239232326426,
+                "Values": null
+            }
+        ],
+        "Children": [
+            {
+                "Name": "Zombunny",
+                "Active": true,
+                "RootBoneName": "",
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "MeshRenderer",
+                        "Active": true,
+                        "MeshID": 9218848821787111831,
+                        "MaterialID": 9964757237344865990
+                    },
+                    {
+                        "Type": "MeshRenderer",
+                        "Active": true,
+                        "MeshID": 9027867366580633265,
+                        "MaterialID": 8079755573114365741
+                    },
+                    {
+                        "Type": "BoundingBox",
+                        "Active": true,
+                        "LocalBoundingBox": [
+                            -76.11719512939453,
+                            -0.33393901586532595,
+                            -35.7611083984375,
+                            76.11719512939453,
+                            148.1706085205078,
+                            37.818817138671878
+                        ]
+                    }
+                ],
+                "Children": null
+            },
+            {
+                "Name": "Ctrl_Grp",
+                "Active": true,
+                "RootBoneName": "",
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Name": "Root",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": true,
+                                "Position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.7071068286895752,
+                                    0.7071068286895752
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    90.00000762939453
+                                ]
+                            }
+                        ],
+                        "Children": [
+                            {
+                                "Name": "Hips",
+                                "Active": true,
+                                "RootBoneName": "",
+                                "Mask": 0,
+                                "Components": [
+                                    {
+                                        "Type": "Transform",
+                                        "Active": true,
+                                        "Position": [
+                                            29.099836349487306,
+                                            0.2726428508758545,
+                                            0.0208236463367939
+                                        ],
+                                        "Rotation": [
+                                            -0.5340903401374817,
+                                            0.48241567611694338,
+                                            -0.47549596428871157,
+                                            0.5058915615081787
+                                        ],
+                                        "Scale": [
+                                            0.9999999403953552,
+                                            1.0,
+                                            1.0
+                                        ],
+                                        "LocalEulerAngles": [
+                                            -113.77668762207031,
+                                            84.88365936279297,
+                                            22.55625343322754
+                                        ]
+                                    }
+                                ],
+                                "Children": [
+                                    {
+                                        "Name": "Spine",
+                                        "Active": true,
+                                        "RootBoneName": "",
+                                        "Mask": 0,
+                                        "Components": [
+                                            {
+                                                "Type": "Transform",
+                                                "Active": true,
+                                                "Position": [
+                                                    0.02581339329481125,
+                                                    -0.0059600998647511009,
+                                                    19.40102767944336
+                                                ],
+                                                "Rotation": [
+                                                    0.09070306271314621,
+                                                    -0.1147945299744606,
+                                                    0.0038652897346764805,
+                                                    0.9892322421073914
+                                                ],
+                                                "Scale": [
+                                                    1.0,
+                                                    1.0,
+                                                    1.0
+                                                ],
+                                                "LocalEulerAngles": [
+                                                    10.669783592224121,
+                                                    -13.086141586303711,
+                                                    1.6750441789627076
+                                                ]
+                                            }
+                                        ],
+                                        "Children": [
+                                            {
+                                                "Name": "Head",
+                                                "Active": true,
+                                                "RootBoneName": "",
+                                                "Mask": 0,
+                                                "Components": [
+                                                    {
+                                                        "Type": "Transform",
+                                                        "Active": true,
+                                                        "Position": [
+                                                            5.3290705182007517e-15,
+                                                            8.881784197001253e-16,
+                                                            23.02861976623535
+                                                        ],
+                                                        "Rotation": [
+                                                            0.118906170129776,
+                                                            0.059647705405950549,
+                                                            -0.03455062583088875,
+                                                            0.9905099272727966
+                                                        ],
+                                                        "Scale": [
+                                                            1.0,
+                                                            1.0,
+                                                            0.9999999403953552
+                                                        ],
+                                                        "LocalEulerAngles": [
+                                                            13.95378303527832,
+                                                            6.312244415283203,
+                                                            -4.76875638961792
+                                                        ]
+                                                    }
+                                                ],
+                                                "Children": [
+                                                    {
+                                                        "Name": "HeadEnd",
+                                                        "Active": true,
+                                                        "RootBoneName": "",
+                                                        "Mask": 0,
+                                                        "Components": [
+                                                            {
+                                                                "Type": "Transform",
+                                                                "Active": true,
+                                                                "Position": [
+                                                                    1.6008797342230084e-14,
+                                                                    4.002199335557521e-15,
+                                                                    36.048606872558597
+                                                                ],
+                                                                "Rotation": [
+                                                                    0.0,
+                                                                    0.0,
+                                                                    0.0,
+                                                                    1.0
+                                                                ],
+                                                                "Scale": [
+                                                                    1.0,
+                                                                    1.0,
+                                                                    1.0
+                                                                ],
+                                                                "LocalEulerAngles": [
+                                                                    -0.0,
+                                                                    0.0,
+                                                                    -0.0
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "Children": null
+                                                    },
+                                                    {
+                                                        "Name": "LeftEar",
+                                                        "Active": true,
+                                                        "RootBoneName": "",
+                                                        "Mask": 0,
+                                                        "Components": [
+                                                            {
+                                                                "Type": "Transform",
+                                                                "Active": true,
+                                                                "Position": [
+                                                                    33.96649169921875,
+                                                                    6.945112705230713,
+                                                                    40.90422058105469
+                                                                ],
+                                                                "Rotation": [
+                                                                    -0.1281338930130005,
+                                                                    0.4601222276687622,
+                                                                    0.03681415319442749,
+                                                                    0.8777892589569092
+                                                                ],
+                                                                "Scale": [
+                                                                    1.0,
+                                                                    1.0,
+                                                                    0.9999999403953552
+                                                                ],
+                                                                "LocalEulerAngles": [
+                                                                    -25.455101013183595,
+                                                                    52.97248458862305,
+                                                                    17.64571762084961
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "Children": [
+                                                            {
+                                                                "Name": "LeftEarEnd",
+                                                                "Active": true,
+                                                                "RootBoneName": "",
+                                                                "Mask": 0,
+                                                                "Components": [
+                                                                    {
+                                                                        "Type": "Transform",
+                                                                        "Active": true,
+                                                                        "Position": [
+                                                                            4.636124298996796e-15,
+                                                                            3.019806626980426e-14,
+                                                                            21.37394142150879
+                                                                        ],
+                                                                        "Rotation": [
+                                                                            0.0,
+                                                                            0.0,
+                                                                            0.0,
+                                                                            1.0
+                                                                        ],
+                                                                        "Scale": [
+                                                                            1.0,
+                                                                            1.0,
+                                                                            1.0
+                                                                        ],
+                                                                        "LocalEulerAngles": [
+                                                                            -0.0,
+                                                                            0.0,
+                                                                            -0.0
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                "Children": null
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "Name": "RightEar",
+                                                        "Active": true,
+                                                        "RootBoneName": "",
+                                                        "Mask": 0,
+                                                        "Components": [
+                                                            {
+                                                                "Type": "Transform",
+                                                                "Active": true,
+                                                                "Position": [
+                                                                    -33.96649932861328,
+                                                                    6.945109844207764,
+                                                                    40.90425491333008
+                                                                ],
+                                                                "Rotation": [
+                                                                    0.9452946186065674,
+                                                                    -0.03366021439433098,
+                                                                    0.2971512973308563,
+                                                                    0.13033106923103333
+                                                                ],
+                                                                "Scale": [
+                                                                    1.0,
+                                                                    0.9999999403953552,
+                                                                    1.0
+                                                                ],
+                                                                "LocalEulerAngles": [
+                                                                    161.35214233398438,
+                                                                    33.574249267578128,
+                                                                    9.749778747558594
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "Children": [
+                                                            {
+                                                                "Name": "RightEarEnd",
+                                                                "Active": true,
+                                                                "RootBoneName": "",
+                                                                "Mask": 0,
+                                                                "Components": [
+                                                                    {
+                                                                        "Type": "Transform",
+                                                                        "Active": true,
+                                                                        "Position": [
+                                                                            -0.00008285293006338179,
+                                                                            -0.000009097042493522168,
+                                                                            -21.373830795288087
+                                                                        ],
+                                                                        "Rotation": [
+                                                                            0.0,
+                                                                            0.0,
+                                                                            0.0,
+                                                                            1.0
+                                                                        ],
+                                                                        "Scale": [
+                                                                            1.0,
+                                                                            1.0,
+                                                                            1.0
+                                                                        ],
+                                                                        "LocalEulerAngles": [
+                                                                            -0.0,
+                                                                            0.0,
+                                                                            -0.0
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                "Children": null
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "Name": "LeftUpperArm",
+                                                "Active": true,
+                                                "RootBoneName": "",
+                                                "Mask": 0,
+                                                "Components": [
+                                                    {
+                                                        "Type": "Transform",
+                                                        "Active": true,
+                                                        "Position": [
+                                                            17.286542892456056,
+                                                            6.917708873748779,
+                                                            19.190275192260743
+                                                        ],
+                                                        "Rotation": [
+                                                            0.37590309977531435,
+                                                            0.6522644758224487,
+                                                            -0.35642480850219729,
+                                                            0.5533618330955505
+                                                        ],
+                                                        "Scale": [
+                                                            0.9999999403953552,
+                                                            0.9999999403953552,
+                                                            0.9999999403953552
+                                                        ],
+                                                        "LocalEulerAngles": [
+                                                            98.61699676513672,
+                                                            26.995094299316408,
+                                                            -96.76580810546875
+                                                        ]
+                                                    }
+                                                ],
+                                                "Children": [
+                                                    {
+                                                        "Name": "LeftLowerArm",
+                                                        "Active": true,
+                                                        "RootBoneName": "",
+                                                        "Mask": 0,
+                                                        "Components": [
+                                                            {
+                                                                "Type": "Transform",
+                                                                "Active": true,
+                                                                "Position": [
+                                                                    -1.5285317279343505e-15,
+                                                                    1.5777218104420237e-30,
+                                                                    25.116106033325197
+                                                                ],
+                                                                "Rotation": [
+                                                                    0.01157606765627861,
+                                                                    -0.029623854905366899,
+                                                                    -0.008396320044994355,
+                                                                    0.9994588494300842
+                                                                ],
+                                                                "Scale": [
+                                                                    1.0,
+                                                                    1.0,
+                                                                    1.0
+                                                                ],
+                                                                "LocalEulerAngles": [
+                                                                    1.2997063398361207,
+                                                                    -3.4059500694274904,
+                                                                    -0.9240021705627441
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "Children": [
+                                                            {
+                                                                "Name": "LeftWrist",
+                                                                "Active": true,
+                                                                "RootBoneName": "",
+                                                                "Mask": 0,
+                                                                "Components": [
+                                                                    {
+                                                                        "Type": "Transform",
+                                                                        "Active": true,
+                                                                        "Position": [
+                                                                            3.899229436511373e-14,
+                                                                            -1.262177448353619e-29,
+                                                                            23.802845001220704
+                                                                        ],
+                                                                        "Rotation": [
+                                                                            0.0,
+                                                                            -0.014149602502584458,
+                                                                            0.0,
+                                                                            0.9998999834060669
+                                                                        ],
+                                                                        "Scale": [
+                                                                            1.0,
+                                                                            1.0,
+                                                                            1.0
+                                                                        ],
+                                                                        "LocalEulerAngles": [
+                                                                            0.0,
+                                                                            -1.6214792728424073,
+                                                                            0.0
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                "Children": [
+                                                                    {
+                                                                        "Name": "LeftWristEnd",
+                                                                        "Active": true,
+                                                                        "RootBoneName": "",
+                                                                        "Mask": 0,
+                                                                        "Components": [
+                                                                            {
+                                                                                "Type": "Transform",
+                                                                                "Active": true,
+                                                                                "Position": [
+                                                                                    -9.326514610792387e-15,
+                                                                                    6.310887241768095e-30,
+                                                                                    10.998556137084961
+                                                                                ],
+                                                                                "Rotation": [
+                                                                                    0.0,
+                                                                                    0.0,
+                                                                                    0.0,
+                                                                                    1.0
+                                                                                ],
+                                                                                "Scale": [
+                                                                                    1.0,
+                                                                                    1.0,
+                                                                                    1.0
+                                                                                ],
+                                                                                "LocalEulerAngles": [
+                                                                                    -0.0,
+                                                                                    0.0,
+                                                                                    -0.0
+                                                                                ]
+                                                                            }
+                                                                        ],
+                                                                        "Children": null
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "Name": "LeftUpperArmFK",
+                                                "Active": true,
+                                                "RootBoneName": "",
+                                                "Mask": 0,
+                                                "Components": [
+                                                    {
+                                                        "Type": "Transform",
+                                                        "Active": true,
+                                                        "Position": [
+                                                            17.286542892456056,
+                                                            6.917708873748779,
+                                                            19.190275192260743
+                                                        ],
+                                                        "Rotation": [
+                                                            0.37590309977531435,
+                                                            0.6522644758224487,
+                                                            -0.35642480850219729,
+                                                            0.5533618330955505
+                                                        ],
+                                                        "Scale": [
+                                                            0.9999999403953552,
+                                                            0.9999999403953552,
+                                                            0.9999999403953552
+                                                        ],
+                                                        "LocalEulerAngles": [
+                                                            98.61699676513672,
+                                                            26.995094299316408,
+                                                            -96.76580810546875
+                                                        ]
+                                                    }
+                                                ],
+                                                "Children": [
+                                                    {
+                                                        "Name": "LeftLowerArmFK",
+                                                        "Active": true,
+                                                        "RootBoneName": "",
+                                                        "Mask": 0,
+                                                        "Components": [
+                                                            {
+                                                                "Type": "Transform",
+                                                                "Active": true,
+                                                                "Position": [
+                                                                    -1.5285317279343505e-15,
+                                                                    1.5777218104420237e-30,
+                                                                    25.116106033325197
+                                                                ],
+                                                                "Rotation": [
+                                                                    0.01157606765627861,
+                                                                    -0.029623854905366899,
+                                                                    -0.008396320044994355,
+                                                                    0.9994588494300842
+                                                                ],
+                                                                "Scale": [
+                                                                    1.0,
+                                                                    1.0,
+                                                                    1.0
+                                                                ],
+                                                                "LocalEulerAngles": [
+                                                                    1.2997063398361207,
+                                                                    -3.4059500694274904,
+                                                                    -0.9240021705627441
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "Children": [
+                                                            {
+                                                                "Name": "LeftWristFK",
+                                                                "Active": true,
+                                                                "RootBoneName": "",
+                                                                "Mask": 0,
+                                                                "Components": [
+                                                                    {
+                                                                        "Type": "Transform",
+                                                                        "Active": true,
+                                                                        "Position": [
+                                                                            3.899229436511373e-14,
+                                                                            -1.262177448353619e-29,
+                                                                            23.802845001220704
+                                                                        ],
+                                                                        "Rotation": [
+                                                                            0.0,
+                                                                            -0.014149602502584458,
+                                                                            0.0,
+                                                                            0.9998999834060669
+                                                                        ],
+                                                                        "Scale": [
+                                                                            1.0,
+                                                                            1.0,
+                                                                            1.0
+                                                                        ],
+                                                                        "LocalEulerAngles": [
+                                                                            0.0,
+                                                                            -1.6214792728424073,
+                                                                            0.0
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                "Children": null
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "Name": "LeftUpperArmIK",
+                                                "Active": true,
+                                                "RootBoneName": "",
+                                                "Mask": 0,
+                                                "Components": [
+                                                    {
+                                                        "Type": "Transform",
+                                                        "Active": true,
+                                                        "Position": [
+                                                            17.286542892456056,
+                                                            6.917708873748779,
+                                                            19.190275192260743
+                                                        ],
+                                                        "Rotation": [
+                                                            0.8927686214447022,
+                                                            -0.0034948161337524654,
+                                                            0.4503646194934845,
+                                                            0.011125029996037484
+                                                        ],
+                                                        "Scale": [
+                                                            1.0,
+                                                            0.9999999403953552,
+                                                            1.0
+                                                        ],
+                                                        "LocalEulerAngles": [
+                                                            177.7817840576172,
+                                                            53.520050048828128,
+                                                            1.5672404766082764
+                                                        ]
+                                                    }
+                                                ],
+                                                "Children": [
+                                                    {
+                                                        "Name": "LeftLowerArmIK",
+                                                        "Active": true,
+                                                        "RootBoneName": "",
+                                                        "Mask": 0,
+                                                        "Components": [
+                                                            {
+                                                                "Type": "Transform",
+                                                                "Active": true,
+                                                                "Position": [
+                                                                    -1.5285317279343505e-15,
+                                                                    1.5777218104420237e-30,
+                                                                    25.116106033325197
+                                                                ],
+                                                                "Rotation": [
+                                                                    0.0,
+                                                                    0.0,
+                                                                    0.0,
+                                                                    1.0
+                                                                ],
+                                                                "Scale": [
+                                                                    1.0,
+                                                                    1.0,
+                                                                    1.0
+                                                                ],
+                                                                "LocalEulerAngles": [
+                                                                    -0.0,
+                                                                    0.0,
+                                                                    -0.0
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "Children": [
+                                                            {
+                                                                "Name": "LeftWristIK",
+                                                                "Active": true,
+                                                                "RootBoneName": "",
+                                                                "Mask": 0,
+                                                                "Components": [
+                                                                    {
+                                                                        "Type": "Transform",
+                                                                        "Active": true,
+                                                                        "Position": [
+                                                                            3.899229436511373e-14,
+                                                                            -1.262177448353619e-29,
+                                                                            23.802845001220704
+                                                                        ],
+                                                                        "Rotation": [
+                                                                            0.16060243546962739,
+                                                                            0.010572974570095539,
+                                                                            0.9848307371139526,
+                                                                            0.06483491510152817
+                                                                        ],
+                                                                        "Scale": [
+                                                                            1.0,
+                                                                            1.0,
+                                                                            1.0
+                                                                        ],
+                                                                        "LocalEulerAngles": [
+                                                                            0.000006640630545007298,
+                                                                            18.52409553527832,
+                                                                            172.46688842773438
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                "Children": null
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "Name": "RightUpperArm",
+                                                "Active": true,
+                                                "RootBoneName": "",
+                                                "Mask": 0,
+                                                "Components": [
+                                                    {
+                                                        "Type": "Transform",
+                                                        "Active": true,
+                                                        "Position": [
+                                                            -17.286500930786134,
+                                                            6.917709827423096,
+                                                            19.19027328491211
+                                                        ],
+                                                        "Rotation": [
+                                                            0.5234715938568115,
+                                                            0.4341411888599396,
+                                                            0.6424335241317749,
+                                                            -0.3532394468784332
+                                                        ],
+                                                        "Scale": [
+                                                            1.0,
+                                                            0.9999999403953552,
+                                                            0.9999999403953552
+                                                        ],
+                                                        "LocalEulerAngles": [
+                                                            -85.3777847290039,
+                                                            21.46173667907715,
+                                                            -102.56095886230469
+                                                        ]
+                                                    }
+                                                ],
+                                                "Children": [
+                                                    {
+                                                        "Name": "RightLowerArm",
+                                                        "Active": true,
+                                                        "RootBoneName": "",
+                                                        "Mask": 0,
+                                                        "Components": [
+                                                            {
+                                                                "Type": "Transform",
+                                                                "Active": true,
+                                                                "Position": [
+                                                                    -2.1316282072803007e-14,
+                                                                    -3.552713678800501e-15,
+                                                                    -25.116100311279298
+                                                                ],
+                                                                "Rotation": [
+                                                                    -0.0197119303047657,
+                                                                    0.03358307480812073,
+                                                                    0.006860698107630014,
+                                                                    0.9992179870605469
+                                                                ],
+                                                                "Scale": [
+                                                                    1.0,
+                                                                    0.9999999403953552,
+                                                                    0.9999999403953552
+                                                                ],
+                                                                "LocalEulerAngles": [
+                                                                    -2.289184093475342,
+                                                                    3.8326876163482668,
+                                                                    0.863385021686554
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "Children": [
+                                                            {
+                                                                "Name": "RightWrist",
+                                                                "Active": true,
+                                                                "RootBoneName": "",
+                                                                "Mask": 0,
+                                                                "Components": [
+                                                                    {
+                                                                        "Type": "Transform",
+                                                                        "Active": true,
+                                                                        "Position": [
+                                                                            -1.4210854715202005e-14,
+                                                                            -6.217248937900877e-15,
+                                                                            -23.802900314331056
+                                                                        ],
+                                                                        "Rotation": [
+                                                                            0.0,
+                                                                            0.0,
+                                                                            0.0,
+                                                                            1.0
+                                                                        ],
+                                                                        "Scale": [
+                                                                            1.0,
+                                                                            1.0,
+                                                                            1.0
+                                                                        ],
+                                                                        "LocalEulerAngles": [
+                                                                            -0.0,
+                                                                            0.0,
+                                                                            -0.0
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                "Children": [
+                                                                    {
+                                                                        "Name": "RightWristEnd",
+                                                                        "Active": true,
+                                                                        "RootBoneName": "",
+                                                                        "Mask": 0,
+                                                                        "Components": [
+                                                                            {
+                                                                                "Type": "Transform",
+                                                                                "Active": true,
+                                                                                "Position": [
+                                                                                    -7.105427357601002e-15,
+                                                                                    -2.6645352591003758e-15,
+                                                                                    -10.998499870300293
+                                                                                ],
+                                                                                "Rotation": [
+                                                                                    0.0,
+                                                                                    0.0,
+                                                                                    0.0,
+                                                                                    1.0
+                                                                                ],
+                                                                                "Scale": [
+                                                                                    1.0,
+                                                                                    1.0,
+                                                                                    1.0
+                                                                                ],
+                                                                                "LocalEulerAngles": [
+                                                                                    -0.0,
+                                                                                    0.0,
+                                                                                    -0.0
+                                                                                ]
+                                                                            }
+                                                                        ],
+                                                                        "Children": null
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "Name": "RightUpperArmFK",
+                                                "Active": true,
+                                                "RootBoneName": "",
+                                                "Mask": 0,
+                                                "Components": [
+                                                    {
+                                                        "Type": "Transform",
+                                                        "Active": true,
+                                                        "Position": [
+                                                            -17.286500930786134,
+                                                            6.917709827423096,
+                                                            19.19027328491211
+                                                        ],
+                                                        "Rotation": [
+                                                            0.5234715938568115,
+                                                            0.4341411888599396,
+                                                            0.6424335241317749,
+                                                            -0.3532394468784332
+                                                        ],
+                                                        "Scale": [
+                                                            1.0,
+                                                            0.9999999403953552,
+                                                            0.9999999403953552
+                                                        ],
+                                                        "LocalEulerAngles": [
+                                                            -85.3777847290039,
+                                                            21.46173667907715,
+                                                            -102.56095886230469
+                                                        ]
+                                                    }
+                                                ],
+                                                "Children": [
+                                                    {
+                                                        "Name": "RightLowerArmFK",
+                                                        "Active": true,
+                                                        "RootBoneName": "",
+                                                        "Mask": 0,
+                                                        "Components": [
+                                                            {
+                                                                "Type": "Transform",
+                                                                "Active": true,
+                                                                "Position": [
+                                                                    -2.1316282072803007e-14,
+                                                                    -3.552713678800501e-15,
+                                                                    -25.116100311279298
+                                                                ],
+                                                                "Rotation": [
+                                                                    -0.0197119303047657,
+                                                                    0.03358307480812073,
+                                                                    0.006860698107630014,
+                                                                    0.9992179870605469
+                                                                ],
+                                                                "Scale": [
+                                                                    1.0,
+                                                                    0.9999999403953552,
+                                                                    0.9999999403953552
+                                                                ],
+                                                                "LocalEulerAngles": [
+                                                                    -2.289184093475342,
+                                                                    3.8326876163482668,
+                                                                    0.863385021686554
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "Children": [
+                                                            {
+                                                                "Name": "RightWristFK",
+                                                                "Active": true,
+                                                                "RootBoneName": "",
+                                                                "Mask": 0,
+                                                                "Components": [
+                                                                    {
+                                                                        "Type": "Transform",
+                                                                        "Active": true,
+                                                                        "Position": [
+                                                                            -1.4210854715202005e-14,
+                                                                            -6.217248937900877e-15,
+                                                                            -23.802900314331056
+                                                                        ],
+                                                                        "Rotation": [
+                                                                            0.0,
+                                                                            0.0,
+                                                                            0.0,
+                                                                            1.0
+                                                                        ],
+                                                                        "Scale": [
+                                                                            1.0,
+                                                                            1.0,
+                                                                            1.0
+                                                                        ],
+                                                                        "LocalEulerAngles": [
+                                                                            -0.0,
+                                                                            0.0,
+                                                                            -0.0
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                "Children": null
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "Name": "RightUpperArmIK",
+                                                "Active": true,
+                                                "RootBoneName": "",
+                                                "Mask": 0,
+                                                "Components": [
+                                                    {
+                                                        "Type": "Transform",
+                                                        "Active": true,
+                                                        "Position": [
+                                                            -17.286500930786134,
+                                                            6.917709827423096,
+                                                            19.19027328491211
+                                                        ],
+                                                        "Rotation": [
+                                                            0.028749490156769754,
+                                                            0.558962345123291,
+                                                            -0.0024362336844205858,
+                                                            0.8286909461021423
+                                                        ],
+                                                        "Scale": [
+                                                            1.0,
+                                                            1.0,
+                                                            1.0
+                                                        ],
+                                                        "LocalEulerAngles": [
+                                                            7.681528568267822,
+                                                            67.86125946044922,
+                                                            -5.50885534286499
+                                                        ]
+                                                    }
+                                                ],
+                                                "Children": [
+                                                    {
+                                                        "Name": "RightLowerArmIK",
+                                                        "Active": true,
+                                                        "RootBoneName": "",
+                                                        "Mask": 0,
+                                                        "Components": [
+                                                            {
+                                                                "Type": "Transform",
+                                                                "Active": true,
+                                                                "Position": [
+                                                                    -2.1316282072803007e-14,
+                                                                    -3.552713678800501e-15,
+                                                                    -25.116100311279298
+                                                                ],
+                                                                "Rotation": [
+                                                                    0.0,
+                                                                    0.4854694604873657,
+                                                                    0.0,
+                                                                    0.8742536306381226
+                                                                ],
+                                                                "Scale": [
+                                                                    1.0,
+                                                                    1.0,
+                                                                    1.0
+                                                                ],
+                                                                "LocalEulerAngles": [
+                                                                    -0.0,
+                                                                    58.08647155761719,
+                                                                    -0.0
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "Children": [
+                                                            {
+                                                                "Name": "RightWristIK",
+                                                                "Active": true,
+                                                                "RootBoneName": "",
+                                                                "Mask": 0,
+                                                                "Components": [
+                                                                    {
+                                                                        "Type": "Transform",
+                                                                        "Active": true,
+                                                                        "Position": [
+                                                                            -1.4210854715202005e-14,
+                                                                            -6.217248937900877e-15,
+                                                                            -23.802900314331056
+                                                                        ],
+                                                                        "Rotation": [
+                                                                            -0.157288059592247,
+                                                                            -0.015486224554479123,
+                                                                            0.9826798439025879,
+                                                                            0.09675236791372299
+                                                                        ],
+                                                                        "Scale": [
+                                                                            0.9999999403953552,
+                                                                            1.0,
+                                                                            1.0
+                                                                        ],
+                                                                        "LocalEulerAngles": [
+                                                                            0.000001011003746498318,
+                                                                            -18.187294006347658,
+                                                                            168.7538299560547
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                "Children": null
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "Name": "LeftLeg",
+                                        "Active": true,
+                                        "RootBoneName": "",
+                                        "Mask": 0,
+                                        "Components": [
+                                            {
+                                                "Type": "Transform",
+                                                "Active": true,
+                                                "Position": [
+                                                    15.48828125,
+                                                    -12.964345932006836,
+                                                    0.01975155808031559
+                                                ],
+                                                "Rotation": [
+                                                    0.9999510049819946,
+                                                    4.3272238570146728e-10,
+                                                    0.009899534285068512,
+                                                    -4.370924600038961e-8
+                                                ],
+                                                "Scale": [
+                                                    1.0,
+                                                    1.0,
+                                                    1.0
+                                                ],
+                                                "LocalEulerAngles": [
+                                                    -180.0,
+                                                    1.1344215869903565,
+                                                    -9.918724686031055e-8
+                                                ]
+                                            }
+                                        ],
+                                        "Children": [
+                                            {
+                                                "Name": "LeftFoot",
+                                                "Active": true,
+                                                "RootBoneName": "",
+                                                "Mask": 0,
+                                                "Components": [
+                                                    {
+                                                        "Type": "Transform",
+                                                        "Active": true,
+                                                        "Position": [
+                                                            4.864466667175293,
+                                                            7.756918907165527,
+                                                            12.021666526794434
+                                                        ],
+                                                        "Rotation": [
+                                                            -0.5085271000862122,
+                                                            -0.008523808792233467,
+                                                            -0.0050344280898571018,
+                                                            0.8609890937805176
+                                                        ],
+                                                        "Scale": [
+                                                            1.0,
+                                                            1.0,
+                                                            1.0
+                                                        ],
+                                                        "LocalEulerAngles": [
+                                                            -61.13960647583008,
+                                                            -0.5476142764091492,
+                                                            -0.9935094118118286
+                                                        ]
+                                                    }
+                                                ],
+                                                "Children": [
+                                                    {
+                                                        "Name": "LeftFootEnd",
+                                                        "Active": true,
+                                                        "RootBoneName": "",
+                                                        "Mask": 0,
+                                                        "Components": [
+                                                            {
+                                                                "Type": "Transform",
+                                                                "Active": true,
+                                                                "Position": [
+                                                                    -7.29076833085561e-15,
+                                                                    0.0,
+                                                                    5.998485565185547
+                                                                ],
+                                                                "Rotation": [
+                                                                    0.0,
+                                                                    0.0,
+                                                                    0.0,
+                                                                    1.0
+                                                                ],
+                                                                "Scale": [
+                                                                    1.0,
+                                                                    1.0,
+                                                                    1.0
+                                                                ],
+                                                                "LocalEulerAngles": [
+                                                                    -0.0,
+                                                                    0.0,
+                                                                    -0.0
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "Children": null
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "Name": "RightLeg",
+                                        "Active": true,
+                                        "RootBoneName": "",
+                                        "Mask": 0,
+                                        "Components": [
+                                            {
+                                                "Type": "Transform",
+                                                "Active": true,
+                                                "Position": [
+                                                    -15.488300323486329,
+                                                    -12.964300155639649,
+                                                    0.019738737493753434
+                                                ],
+                                                "Rotation": [
+                                                    0.0,
+                                                    0.009899534285068512,
+                                                    0.0,
+                                                    0.9999510049819946
+                                                ],
+                                                "Scale": [
+                                                    1.0,
+                                                    1.0,
+                                                    1.0
+                                                ],
+                                                "LocalEulerAngles": [
+                                                    -0.0,
+                                                    1.1344215869903565,
+                                                    -0.0
+                                                ]
+                                            }
+                                        ],
+                                        "Children": [
+                                            {
+                                                "Name": "RightFoot",
+                                                "Active": true,
+                                                "RootBoneName": "",
+                                                "Mask": 0,
+                                                "Components": [
+                                                    {
+                                                        "Type": "Transform",
+                                                        "Active": true,
+                                                        "Position": [
+                                                            -0.9827580451965332,
+                                                            9.173906326293946,
+                                                            -24.03310775756836
+                                                        ],
+                                                        "Rotation": [
+                                                            -0.5085271000862122,
+                                                            -0.008523808792233467,
+                                                            -0.0050344280898571018,
+                                                            0.8609890937805176
+                                                        ],
+                                                        "Scale": [
+                                                            1.0,
+                                                            1.0,
+                                                            1.0
+                                                        ],
+                                                        "LocalEulerAngles": [
+                                                            -61.13960647583008,
+                                                            -0.5476142764091492,
+                                                            -0.9935094118118286
+                                                        ]
+                                                    }
+                                                ],
+                                                "Children": [
+                                                    {
+                                                        "Name": "RightFootEnd",
+                                                        "Active": true,
+                                                        "RootBoneName": "",
+                                                        "Mask": 0,
+                                                        "Components": [
+                                                            {
+                                                                "Type": "Transform",
+                                                                "Active": true,
+                                                                "Position": [
+                                                                    9.414691248821328e-14,
+                                                                    -0.000034134402085328478,
+                                                                    -5.998554229736328
+                                                                ],
+                                                                "Rotation": [
+                                                                    0.0,
+                                                                    0.0,
+                                                                    0.0,
+                                                                    1.0
+                                                                ],
+                                                                "Scale": [
+                                                                    1.0,
+                                                                    1.0,
+                                                                    1.0
+                                                                ],
+                                                                "LocalEulerAngles": [
+                                                                    -0.0,
+                                                                    0.0,
+                                                                    -0.0
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "Children": null
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
