@@ -69,7 +69,11 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 		for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {
 			if (ImGui::Selectable(layerTypeItems[n])) {
 				layerIndex = n;
-				layer = WorldLayers(1 << layerIndex);
+				if (n == 4) {
+					layer = WorldLayers::EVERYTHING;
+				} else {
+					layer = WorldLayers(1 << layerIndex);
+				}
 				if (App->time->IsGameRunning()) {
 					App->physics->UpdateCapsuleRigidbody(this);
 				}

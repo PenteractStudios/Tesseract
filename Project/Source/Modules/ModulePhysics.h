@@ -35,10 +35,10 @@ enum class ColliderType {
 *	EVERYTHING = The default setting. Interaction with all other types except NO_COLLISION.
 */
 enum WorldLayers {
-	NO_COLLISION = 0,
-	EVENT_TRIGGERS = 1 << 1,
-	WORLD_ELEMENTS = 1 << 2,
-	PLAYER = 1 << 3,
+	NO_COLLISION = 1 << 1,
+	EVENT_TRIGGERS = 1 << 2,
+	WORLD_ELEMENTS = 1 << 3,
+	PLAYER = 1 << 4,
 	EVERYTHING = -1
 };
 
@@ -71,8 +71,8 @@ public:
 
 	void AddBodyToWorld(btRigidBody* rigidbody, ColliderType colliderType, WorldLayers layer);
 
-	void InitializeRigidBodies();
-	void ClearPhysicBodies();
+	void InitializeRigidBodies(); // Called on Play(), this function adds all the collision objects to the physics world.
+	void ClearPhysicBodies();	  // Called on Stop(), this function removes all the collision objects from the physics world.
 
 	// ----------- Setters --------- //
 	void SetGravity(float newGravity);
@@ -81,21 +81,15 @@ public:
 	float gravity = -9.81f;
 
 private:
-	btDiscreteDynamicsWorld* world = nullptr;
-
+	// ----- Physics World Config ----- //
 	btDefaultCollisionConfiguration* collisionConfiguration = nullptr;
 	btCollisionDispatcher* dispatcher = nullptr;
 	btBroadphaseInterface* broadPhase = nullptr;
 	btSequentialImpulseConstraintSolver* constraintSolver = nullptr;
+	btDiscreteDynamicsWorld* world = nullptr;
 
 	DebugDrawer* debugDrawer;
-
 	bool debug = true;
-
-	/*p2List<btCollisionShape*> shapes;
-	p2List<PhysBody3D*> bodies;
-	p2List<btDefaultMotionState*> motions;
-	p2List<btTypedConstraint*> constraints;*/
 };
 
 class DebugDrawer : public btIDebugDraw {

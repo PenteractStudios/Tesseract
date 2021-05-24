@@ -15,7 +15,7 @@ public:
 	void setWorldTransform(const btTransform& centerOfMassWorldTrans);
 
 public:
-	bool freezeRotation = false;
+	bool freezeRotation = false;	// This boolean is set from the boolean with the same name in the attached ComponentCollider. Defines if the GameObject will rotate due to a collision.
 
 private:
 	Component* collider = nullptr;

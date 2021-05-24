@@ -112,7 +112,7 @@ UpdateStatus ModulePhysics::Update() {
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(3.0f, myMotionState, colShape, localInertia);
 			btRigidBody* body = new btRigidBody(rbInfo);
 
-			world->addRigidBody(body, WorldLayers::WORLD_ELEMENTS, WorldLayers::PLAYER | WorldLayers::WORLD_ELEMENTS);
+			world->addRigidBody(body, WorldLayers::WORLD_ELEMENTS, WorldLayers::PLAYER | WorldLayers::WORLD_ELEMENTS | WorldLayers::EVERYTHING);
 			float3 f = App->camera->GetEngineCamera()->frustum.Front();
 			body->applyCentralImpulse(btVector3(f.x * 73.f, f.y * 73.f, f.z * 73.f));
 			/*
@@ -296,7 +296,7 @@ void ModulePhysics::InitializeRigidBodies() {
 		btRigidBody::btRigidBodyConstructionInfo rbInfo(0.0f, myMotionState, colShape);
 
 		btRigidBody* body = new btRigidBody(rbInfo);
-		world->addRigidBody(body);
+		world->addRigidBody(body, WorldLayers::WORLD_ELEMENTS, WorldLayers::PLAYER | WorldLayers::WORLD_ELEMENTS | WorldLayers::EVERYTHING);
 	}
 
 	for (ComponentSphereCollider& sphereCollider : App->scene->scene->sphereColliderComponents) {

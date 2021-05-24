@@ -49,10 +49,16 @@ void ComponentSphereCollider::OnEditorUpdate() {
 	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Everything"};
 	const char* layerCurrent = layerTypeItems[layerIndex];
 	if (ImGui::BeginCombo("Layer", layerCurrent)) {
+		LOG("Layer i: %d", layerIndex);
+		LOG("ll %d", layer);
 		for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {
 			if (ImGui::Selectable(layerTypeItems[n])) {
 				layerIndex = n;
-				layer = WorldLayers(1 << layerIndex);
+				if (n == 4) {
+					layer = WorldLayers::EVERYTHING;
+				} else {
+					layer = WorldLayers(1 << layerIndex);
+				}
 				if (App->time->IsGameRunning()) {
 					App->physics->UpdateSphereRigidbody(this);
 				}
