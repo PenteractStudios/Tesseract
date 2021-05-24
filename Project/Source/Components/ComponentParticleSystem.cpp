@@ -43,6 +43,8 @@
 #define JSON_TAG_INITCOLOR "InitColor"
 #define JSON_TAG_FINALCOLOR "FinalColor"
 #define JSON_TAG_ANIMATIONSPEED "AnimationSpeed"
+#define JSON_TAG_ISBULLET "IsBullet"
+
 #include <random>
 
 void ComponentParticleSystem::OnEditorUpdate() {
@@ -61,6 +63,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 	ImGui::Checkbox("isPlaying: ", &isPlaying);
 	ImGui::Checkbox("Loop: ", &looping);
+	ImGui::Checkbox("isBullet: ", &isBullet);
 	if (ImGui::Button("Play")) Play();
 	if (ImGui::Button("Stop")) Stop();
 	ImGui::Separator();
@@ -198,6 +201,7 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 		App->resources->IncreaseReferenceCount(textureID);
 	}
 
+	isBullet = jComponent[JSON_TAG_ISBULLET];
 	isPlaying = jComponent[JSON_TAG_ISPLAYING];
 	looping = jComponent[JSON_TAG_LOOPING];
 	isRandomFrame = jComponent[JSON_TAG_ISRANDOMFRAME];
@@ -234,6 +238,8 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_XTILES] = Xtiles;
 	jComponent[JSON_TAG_ANIMATIONSPEED] = animationSpeed;
 
+	jComponent[JSON_TAG_ISBULLET] = isBullet;
+
 	JsonValue jColor = jComponent[JSON_TAG_INITCOLOR];
 	jColor[0] = initC.x;
 	jColor[1] = initC.y;
@@ -252,7 +258,12 @@ void ComponentParticleSystem::Update() {
 		} else {
 			currentParticle.life -= App->time->GetRealTimeDeltaTime();
 		}
-		currentParticle.position += currentParticle.direction * velocity;
+		if (isBullet) {
+			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
+			currentParticle.position = transform->GetGlobalPosition();
+		} else {
+			currentParticle.position += currentParticle.direction * velocity;
+		}
 		currentParticle.model = float4x4::FromTRS(currentParticle.position, currentParticle.rotation, currentParticle.scale);
 		if (currentParticle.life < 0) {
 			deadParticles.push_back(&currentParticle);

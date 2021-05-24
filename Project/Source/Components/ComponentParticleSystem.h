@@ -63,6 +63,7 @@ private:
 	UID textureID = 0; // ID of the image
 	UID shaderID = 0;  // ID of the shader
 
+	bool isBullet = false;
 	bool looping = false;
 	bool isPlaying = true;
 	bool alphaTransparency = false; // Enables Alpha Transparency of the image and the color
