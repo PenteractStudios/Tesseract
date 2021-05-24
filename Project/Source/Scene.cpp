@@ -321,16 +321,14 @@ std::vector<float> Scene::GetVertices() {
 
 	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
-		if (mesh != nullptr) {
-			ComponentTransform* transform = meshRenderer.GetOwner().GetComponent<ComponentTransform>();
-			//if (transform->GetOwner().IsStatic()) {
+		ComponentTransform* transform = meshRenderer.GetOwner().GetComponent<ComponentTransform>();
+		if (mesh != nullptr && transform->GetOwner().IsStatic()) {
 			for (size_t i = 0; i < mesh->meshVertices.size(); i += 3) {
 				float4 transformedVertex = transform->GetGlobalMatrix() * float4(mesh->meshVertices[i], mesh->meshVertices[i + 1], mesh->meshVertices[i + 2], 1);
 				result.push_back(transformedVertex.x);
 				result.push_back(transformedVertex.y);
 				result.push_back(transformedVertex.z);
 			}
-			//}
 		}
 	}
 
@@ -339,32 +337,33 @@ std::vector<float> Scene::GetVertices() {
 
 std::vector<int> Scene::GetTriangles() {
 	int triangles = 0;
-	int i = 0;
-	std::vector<int> maxVertMesh(meshRendererComponents.Count() + 1, 0);
+	std::vector<int> maxVertMesh;
+	maxVertMesh.push_back(0);
 	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
-		//if (meshRenderer.GetOwner().IsStatic()) {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
-		triangles += mesh->numIndices / 3;
-		maxVertMesh[i + 1] = mesh->numVertices;
-		i++;
-		//}
+		if (mesh != nullptr && meshRenderer.GetOwner().IsStatic()) {
+			triangles += mesh->numIndices / 3;
+			maxVertMesh.push_back(mesh->numVertices);
+		}
 	}
 	std::vector<int> result(triangles * 3);
 
 	int currentGlobalTri = 0;
 	int vertOverload = 0;
-	i = 0;
-
+	int i = 0;
+	
 	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
-		vertOverload += maxVertMesh[i];
-		for (int j = 0; j < mesh->meshIndices.size(); j += 3) {
-			result[currentGlobalTri] = mesh->meshIndices[j] + vertOverload;
-			result[currentGlobalTri + 1] = mesh->meshIndices[j + 1] + vertOverload;
-			result[currentGlobalTri + 2] = mesh->meshIndices[j + 2] + vertOverload;
-			currentGlobalTri += 3;
+		if (mesh != nullptr && meshRenderer.GetOwner().IsStatic()) {
+			vertOverload += maxVertMesh[i];
+			for (int j = 0; j < mesh->meshIndices.size(); j += 3) {
+				result[currentGlobalTri] = mesh->meshIndices[j] + vertOverload;
+				result[currentGlobalTri + 1] = mesh->meshIndices[j + 1] + vertOverload;
+				result[currentGlobalTri + 2] = mesh->meshIndices[j + 2] + vertOverload;
+				currentGlobalTri += 3;
+			}
+			i++;
 		}
-		i++;
 	}
 
 	return result;
