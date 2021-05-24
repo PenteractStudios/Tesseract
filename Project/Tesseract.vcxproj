@@ -663,7 +663,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include;$(ProjectDir)/Libs\recastnavigation-1.5.1</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS; _MBCS; %(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -696,7 +696,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include;$(ProjectDir)/Libs\recastnavigation-1.5.1</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS; _MBCS;GAME; %(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
