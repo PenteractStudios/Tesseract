@@ -52,8 +52,8 @@ public:
 	void RemoveComponentByTypeAndId(ComponentType type, UID componentId);
 
 	int GetTotalTriangles() const;
-	std::vector<float> GetVertices();
-	std::vector<int> GetTriangles();
+	std::vector<float> GetVertices();		// Gets all the vertices from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
+	std::vector<int> GetTriangles();		// Gets all the triangles from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
 
 	void SetNavMesh(UID navMesh);
 	UID GetNavMesh();
