@@ -163,6 +163,7 @@ bool ModulePrograms::CleanUp() {
 	glDeleteProgram(specularNormal);
 	glDeleteProgram(specularNotNormal);
 	glDeleteProgram(shadowMap);
+	glDeleteProgram(drawDepthMapTexture);
 	glDeleteProgram(textUI);
 	glDeleteProgram(imageUI);
 
