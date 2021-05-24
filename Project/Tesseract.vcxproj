@@ -25,7 +25,6 @@
     <ClInclude Include="Source\FileSystem\ClipImporter.h" />
     <ClInclude Include="Source\FileSystem\StateMachineImporter.h" />
     <ClInclude Include="Source\AnimationInterpolation.h" />
-    <ClInclude Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Source\Resources\ResourceClip.h" />
     <ClInclude Include="Source\State.h" />
     <ClInclude Include="Source\Panels\PanelResource.h" />

@@ -180,7 +180,6 @@
     <ClCompile Include="Source\MaskType.cpp" />
     <ClCompile Include="Source\Panels\PanelDebug.cpp" />
     <ClCompile Include="Source\FileSystem\ImporterCommon.cpp" />
-    <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Source\FileSystem\ImportOptions.cpp" />
     <ClCompile Include="Source\Modules\ModulePhysics.cpp" />
     <ClCompile Include="Source\Components\Physics\ComponentSphereCollider.cpp" />
