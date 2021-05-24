@@ -83,7 +83,6 @@ void PanelNavigation::Update() {
 
 			ImGui::Text("");
 			ImGui::TextWrapped("IMPORTANT! NavMesh will be saved, but NavMesh Configuration data won't be saved. Please, take note of the parameters before exiting.");
-			ImGui::ShowDemoWindow();
 
 			ImGui::EndTabBar();
 		}
