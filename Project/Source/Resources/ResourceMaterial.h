@@ -42,6 +42,12 @@ public:
 	UID normalMapId = 0;
 	float normalStrength = 1.f;
 
+	// Emissive
+	UID emissiveMapId = 0;
+
+	// Ambien occlusion
+	UID ambientOcclusionMapId = 0;
+
 	// Smoothness
 	float smoothness = 1;
 	bool hasSmoothnessInAlphaChannel = false;

@@ -3,13 +3,13 @@
 #include "Utils/Logging.h"
 #include "Utils/MSTimer.h"
 #include "Utils/Buffer.h"
-
+#include "Utils/FileDialog.h"
 #include "Application.h"
 #include "Modules/ModuleResources.h"
 #include "Resources/ResourceMaterial.h"
-
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleTime.h"
+#include "ImporterCommon.h"
 
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
@@ -17,10 +17,6 @@
 #include "rapidjson/document.h"
 
 #include "Utils/Leaks.h"
-
-#define JSON_TAG_RESOURCES "Resources"
-#define JSON_TAG_TYPE "Type"
-#define JSON_TAG_ID "Id"
 
 #define JSON_TAG_SHADER "ShaderType"
 #define JSON_TAG_HAS_DIFFUSE_MAP "HasDiffuseMap"
@@ -59,29 +55,31 @@ bool MaterialImporter::ImportMaterial(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
-	// Material resource creation
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
-	JsonValue jResource = jResources[0];
-	UID metaId = jResource[JSON_TAG_ID];
-	UID id = metaId ? metaId : GenerateUID();
-	App->resources->CreateResource<ResourceMaterial>(filePath, id);
-
-	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceMaterial::staticType);
-	jResource[JSON_TAG_ID] = id;
-
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
 	rapidjson::PrettyWriter<rapidjson::StringBuffer, rapidjson::UTF8<>, rapidjson::UTF8<>, rapidjson::CrtAllocator, rapidjson::kWriteNanAndInfFlag> writer(stringBuffer);
 	document.Accept(writer);
 
-	// Save to file
-	const std::string& resourceFilePath = App->resources->GenerateResourcePath(id);
-	bool saved = App->files->Save(resourceFilePath.c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
+	// Create material resource
+	unsigned resourceIndex = 0;
+	std::unique_ptr<ResourceMaterial> material = ImporterCommon::CreateResource<ResourceMaterial>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+
+	// Save resource meta file
+	bool saved = ImporterCommon::SaveResourceMetaFile(material.get());
 	if (!saved) {
-		LOG("Failed to save material resource.");
+		LOG("Failed to save material resource meta file.");
 		return false;
 	}
+
+	// Save to file
+	saved = App->files->Save(material->GetResourceFilePath().c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
+	if (!saved) {
+		LOG("Failed to save material resource file.");
+		return false;
+	}
+
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(material);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Material imported in %ums", timeMs);
