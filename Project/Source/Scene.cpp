@@ -36,6 +36,7 @@ Scene::Scene(unsigned numGameObjects) {
 	audioSourceComponents.Allocate(numGameObjects);
 	audioListenerComponents.Allocate(numGameObjects);
 	progressbarsComponents.Allocate(numGameObjects);
+	bilboardComponents.Allocate(numGameObjects);
 }
 
 void Scene::ClearScene() {
@@ -145,6 +146,8 @@ Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 		return particleComponents.Find(componentId);
 	case ComponentType::TRAIL:
 		return trailComponents.Find(componentId);
+	case ComponentType::BILBOARD_RENDER:
+		return bilboardComponents.Find(componentId);
 	case ComponentType::AUDIO_SOURCE:
 		return audioSourceComponents.Find(componentId);
 	case ComponentType::AUDIO_LISTENER:
@@ -202,6 +205,8 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 		return particleComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::TRAIL:
 		return trailComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::BILBOARD_RENDER:
+		return bilboardComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::AUDIO_SOURCE:
 		return audioSourceComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::AUDIO_LISTENER:
@@ -279,6 +284,9 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		break;
 	case ComponentType::TRAIL:
 		trailComponents.Release(componentId);
+		break;
+	case ComponentType::BILBOARD_RENDER:
+		bilboardComponents.Release(componentId);
 		break;
 	case ComponentType::AUDIO_SOURCE:
 		audioSourceComponents.Release(componentId);

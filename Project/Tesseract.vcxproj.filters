@@ -178,6 +178,7 @@
     <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Source\MaskType.cpp" />
     <ClCompile Include="Source\Panels\PanelDebug.cpp" />
+    <ClCompile Include="Source\Components\ComponentBilboardRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -455,6 +456,7 @@
     <ClInclude Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Source\MaskType.h" />
     <ClInclude Include="Source\Panels\PanelDebug.h" />
+    <ClInclude Include="Source\Components\ComponentBilboardRender.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />
