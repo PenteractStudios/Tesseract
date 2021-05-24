@@ -34,7 +34,7 @@ ComponentSelectable::~ComponentSelectable() {
 	ComponentEventSystem* eventSystem = App->userInterface->GetCurrentEventSystem();
 	if (eventSystem) {
 		if (eventSystem->GetCurrentSelected() == this) {
-			App->userInterface->GetCurrentEventSystem()->SetSelected(0);
+			App->userInterface->GetCurrentEventSystem()->SetSelected(nullptr);
 		}
 	}
 }
@@ -180,7 +180,7 @@ void ComponentSelectable::OnDisable() {
 	ComponentEventSystem* evSys = App->userInterface->GetCurrentEventSystem();
 	if (evSys != nullptr) {
 		if (selected) {
-			evSys->SetSelected(0);
+			evSys->SetSelected(nullptr);
 		}
 		if (hovered) {
 			hovered = false;
@@ -211,6 +211,10 @@ void ComponentSelectable::OnPointerExit() {
 
 bool ComponentSelectable::IsHovered() const {
 	return hovered;
+}
+
+void ComponentSelectable::SetHovered(bool hovered_) {
+	hovered = hovered_;
 }
 
 bool ComponentSelectable::IsSelected() const {
@@ -301,7 +305,7 @@ ComponentSelectable::TransitionType ComponentSelectable::GetTransitionType() con
 	return transitionType;
 }
 
-void ComponentSelectable::TryToClickOn() const {
+void ComponentSelectable::TryToClickOn(bool internalClick) const {
 	UID toBeClicked = 0;
 	ComponentType typeToPress = ComponentType::UNKNOWN;
 
@@ -320,15 +324,27 @@ void ComponentSelectable::TryToClickOn() const {
 		switch (typeToPress) {
 		case ComponentType::BUTTON:
 			componentToPress = GetOwner().GetComponent<ComponentButton>();
-			((ComponentButton*) componentToPress)->OnClicked();
+			if (internalClick) {
+				static_cast<ComponentButton*>(componentToPress)->OnClickedInternal();
+			} else {
+				static_cast<ComponentButton*>(componentToPress)->OnClicked();
+			}
 			break;
 		case ComponentType::TOGGLE:
 			componentToPress = GetOwner().GetComponent<ComponentToggle>();
-			((ComponentToggle*) componentToPress)->OnClicked();
+			if (internalClick) {
+				static_cast<ComponentToggle*>(componentToPress)->OnClickedInternal();
+			} else {
+				static_cast<ComponentSlider*>(componentToPress)->OnClicked();
+			}
 			break;
 		case ComponentType::SLIDER:
 			componentToPress = GetOwner().GetComponent<ComponentSlider>();
-			((ComponentSlider*) componentToPress)->OnClicked();
+			if (internalClick) {
+				static_cast<ComponentSlider*>(componentToPress)->OnClickedInternal();
+			} else {
+				static_cast<ComponentSlider*>(componentToPress)->OnClicked();
+			}
 			break;
 		default:
 			assert("This is not supposed to ever happen");
