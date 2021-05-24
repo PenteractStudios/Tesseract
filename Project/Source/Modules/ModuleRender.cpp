@@ -229,7 +229,7 @@ UpdateStatus ModuleRender::Update() {
 	}
 
 	if (drawNavMesh) {
-		App->navigation->RenderNavMesh();
+		App->navigation->DrawGizmos();
 	}
 
 

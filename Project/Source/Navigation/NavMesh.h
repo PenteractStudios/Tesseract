@@ -3,49 +3,24 @@
 #include "Recast/SampleInterfaces.h"
 #include "Utils/Buffer.h"
 
-/// These are just sample areas to use consistent values across the samples.
-/// The use should specify these base on his needs.
-enum SamplePolyAreas {
-	SAMPLE_POLYAREA_GROUND,
-	SAMPLE_POLYAREA_WATER,
-	SAMPLE_POLYAREA_ROAD,
-	SAMPLE_POLYAREA_DOOR,
-	SAMPLE_POLYAREA_GRASS,
-	SAMPLE_POLYAREA_JUMP,
-};
-
-enum SamplePolyFlags {
-	SAMPLE_POLYFLAGS_WALK = 0x01,	  // Ability to walk (ground, grass, road)
-	SAMPLE_POLYFLAGS_SWIM = 0x02,	  // Ability to swim (water).
-	SAMPLE_POLYFLAGS_DOOR = 0x04,	  // Ability to move through doors.
-	SAMPLE_POLYFLAGS_JUMP = 0x08,	  // Ability to jump.
-	SAMPLE_POLYFLAGS_DISABLED = 0x10, // Disabled polygon
-	SAMPLE_POLYFLAGS_ALL = 0xffff	  // All abilities.
-};
-
 class dtCrowd;
 class dtNavMeshQuery;
 
 class NavMesh {
 public:
-	NavMesh();
-	~NavMesh();
+	NavMesh();				// Allocates navQuery data and crowd memory
+	~NavMesh();				// Releases memory
 
-	bool Build();
-	void Render();
-	void Load(Buffer<char>& buffer);
-	void CleanUp();
+	bool Build();			// Generates the navMesh from Scene Meshes (Vertices and triangles of MeshRenderer), and saves the data in navData and navDataSize. Also inits navMesh, navQuery and crowd.
+	void DrawGizmos();		// Drawas the Bounding Box and the NavMesh
+	void Load(Buffer<char>& buffer);	// Loads NavMesh from buffer and Inits data
+	void CleanUp();						// Releases memory
 
-	bool IsGenerated();
-	dtCrowd* GetCrowd();
-	dtNavMeshQuery* GetNavMeshQuery();
+	bool IsGenerated();					// Returns true if navMesh is valid
+	dtCrowd* GetCrowd();				// Returns crowd
+	dtNavMeshQuery* GetNavMeshQuery();	// Returns navQuery
 
 public:
-	enum SamplePartitionType {
-		SAMPLE_PARTITION_WATERSHED,
-		SAMPLE_PARTITION_MONOTONE,
-		SAMPLE_PARTITION_LAYERS,
-	};
 
 	enum DrawMode {
 		DRAWMODE_NAVMESH,
@@ -68,10 +43,11 @@ public:
 		MAX_DRAWMODE
 	};
 
+	// NAV MESH BUILD PARAMETERS
 	// AGENT
 	float agentHeight = 2.0f;
 	float agentRadius = 0.5f;
-	float agentMaxClimb = 0.9f; // Step height in Unity
+	float agentMaxClimb = 0.9f;
 	float agentMaxSlope = 45;
 
 	// RASTERIZATION
@@ -108,24 +84,14 @@ public:
 	int navDataSize = 0;
 
 private:
-	void InitCrowd();
-	
+	void InitCrowd();			// Inits crowd with MAX_AGENTS
+
+private:
 	BuildContext* ctx = nullptr;
 
-	class InputGeom* geom = nullptr;
 	class dtNavMesh* navMesh = nullptr;
 	class dtNavMeshQuery* navQuery = nullptr;
 	class dtCrowd* crowd = nullptr;
-
-	//BuildContext* m_ctx;
-
-	class dtTileCache* tileCache = nullptr;
-	struct LinearAllocator* talloc = nullptr;
-	struct FastLZCompressor* tcomp = nullptr;
-	struct MeshProcess* tmproc = nullptr;
-
-	int maxTiles = 0;
-	int maxPolysPerTile = 0;
 
 	rcHeightfield* solid = nullptr;
 	unsigned char* triareas = nullptr;
@@ -136,7 +102,4 @@ private:
 	rcPolyMeshDetail* dmesh;
 
 	unsigned char navMeshDrawFlags = 0;
-
-	//NavMeshTesterTool* tool;
-
 };

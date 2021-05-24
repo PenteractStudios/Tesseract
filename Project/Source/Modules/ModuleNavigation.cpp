@@ -52,14 +52,10 @@ void ModuleNavigation::BakeNavMesh() {
 	}
 }
 
-void ModuleNavigation::RenderNavMesh() {
-	navMesh.Render();
+void ModuleNavigation::DrawGizmos() {
+	navMesh.DrawGizmos();
 }
 
 NavMesh& ModuleNavigation::GetNavMesh() {
 	return navMesh;
-}
-
-void ModuleNavigation::ReleaseNavMesh() {
-	
 }

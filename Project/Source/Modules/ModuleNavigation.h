@@ -9,15 +9,14 @@
 
 class ModuleNavigation : public Module {
 public:
-	bool Init() override;
-	UpdateStatus Update() override;
-	void ReceiveEvent(TesseractEvent& e) override;
+	bool Init() override;								// Listens to PRESSED_PLAY and PRESSED_STOP events
+	UpdateStatus Update() override;						// Updates agents of navMesh's crowd
+	void ReceiveEvent(TesseractEvent& e) override;		// If PRESSED_PLAY Adds each agent. If PRESSED_STOP removes each agent.
 
-	void BakeNavMesh();
+	void BakeNavMesh();				// Builds new navMesh
 	
-	void RenderNavMesh();
-	NavMesh& GetNavMesh();
-	void ReleaseNavMesh();
+	void DrawGizmos();				// Draws NavMesh Gizmos
+	NavMesh& GetNavMesh();			// Returns navMesh
 
 private:
 	NavMesh navMesh;
