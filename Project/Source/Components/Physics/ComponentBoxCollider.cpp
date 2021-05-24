@@ -168,7 +168,12 @@ void ComponentBoxCollider::Load(JsonValue jComponent) {
 }
 
 void ComponentBoxCollider::OnCollision() {
-	// TODO: Send event...
+	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
+		Script* script = scriptComponent.GetScriptInstance();
+		if (script != nullptr) {
+			script->OnCollision();
+		}
+	}
 }
 
 void ComponentBoxCollider::CalculateWorldBoundingBox() {

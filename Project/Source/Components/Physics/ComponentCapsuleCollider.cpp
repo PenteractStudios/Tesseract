@@ -215,5 +215,10 @@ void ComponentCapsuleCollider::Load(JsonValue jComponent) {
 }
 
 void ComponentCapsuleCollider::OnCollision() {
-	// TODO: Send event...
+	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
+		Script* script = scriptComponent.GetScriptInstance();
+		if (script != nullptr) {
+			script->OnCollision();
+		}
+	}
 }
