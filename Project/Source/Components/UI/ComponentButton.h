@@ -18,6 +18,7 @@ public:
 	void Save(JsonValue jComponent) const override; // Serializes object
 	void Load(JsonValue jComponent) override;		// Deserializes object
 
+	void OnClickedInternal() override;				   // Internal Action to perform when the button is clicked
 	void OnClicked() override;						   // Action to perform when the button is clicked
 	void Update() override;							   // Updates clicked variable if the button is Left-clicked mouse
 

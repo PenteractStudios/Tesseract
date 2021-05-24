@@ -12,6 +12,7 @@ public:
 	REGISTER_COMPONENT(ComponentToggle, ComponentType::TOGGLE, false);
 
 	void OnClicked() override; // Action to perform when the button is clicked
+	void OnClickedInternal() override; // Action to perform when the button is clicked
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
 	void OnEditorUpdate() override;

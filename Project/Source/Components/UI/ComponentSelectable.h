@@ -44,6 +44,7 @@ public:
 	void OnEnable() override;
 	void OnDisable() override;
 	bool IsHovered() const;
+	void SetHovered(bool hovered_);
 	bool IsSelected() const;
 	void Save(JsonValue jsonVal) const override;
 	void Load(JsonValue jsonVal) override;
@@ -59,7 +60,7 @@ public:
 	const float4 GetHoverColor() const;			 // Returns colorHovered
 	const float4 GetSelectedColor() const;		 // Returns colorSelected
 	TransitionType GetTransitionType() const;
-	void TryToClickOn() const;
+	void TryToClickOn(bool internalCall) const;
 
 public:
 	UID onAxisUp = 0;

@@ -56,15 +56,17 @@ void ComponentButton::Load(JsonValue jComponent) {
 }
 
 void ComponentButton::OnClicked() {
-	clicked = true;
-	App->userInterface->GetCurrentEventSystem()->SetSelected(GetOwner().GetComponent<ComponentSelectable>()->GetID());
-
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
 		if (script != nullptr) {
 			script->OnButtonClick();
 		}
 	}
+}
+
+void ComponentButton::OnClickedInternal() {
+	clicked = true;
+	App->userInterface->GetCurrentEventSystem()->SetSelected(GetOwner().GetComponent<ComponentSelectable>()->GetID());
 }
 
 bool ComponentButton::IsClicked() const {
