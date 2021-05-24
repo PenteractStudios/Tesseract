@@ -1,5 +1,5 @@
 ${EngineName} = "Tesseract"
-${Version} = "0.2.1"
+${Version} = "0.3.1"
 
 ${ReleaseDir} = "Build/Release"
 ${GameReleaseDir} = "Build/Game"

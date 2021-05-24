@@ -5,6 +5,7 @@
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleScene.h"
+#include "Modules/ModuleResources.h"
 
 #include "imgui.h"
 #include "IconsFontAwesome5.h"
@@ -17,10 +18,9 @@ PanelResource::PanelResource()
 
 void PanelResource::Update() {
 	ImGui::SetNextWindowDockID(App->editor->dockRightId, ImGuiCond_FirstUseEver);
-	std::string windowName = std::string(ICON_FA_IMAGE " ") + name;
-	std::string optionsSymbol = std::string(ICON_FK_COG);
+	std::string windowName = std::string(ICON_FA_FILE " ") + name;
 	if (ImGui::Begin(windowName.c_str(), &enabled)) {
-		Resource* selected = App->editor->selectedResource;
+		Resource* selected = App->resources->GetResource<Resource>(App->editor->selectedResource);
 		if (selected != nullptr) {
 			ImGui::TextUnformatted("Id:");
 			ImGui::SameLine();

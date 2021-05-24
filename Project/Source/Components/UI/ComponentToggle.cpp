@@ -26,6 +26,9 @@ void ComponentToggle::OnClicked() {
 	App->userInterface->GetCurrentEventSystem()->SetSelected(GetOwner().GetComponent<ComponentSelectable>()->GetID());
 }
 
+void ComponentToggle::OnClickedInternal() {
+	SetClicked(true);
+}
 
 //TODO, Set a new functionality allowing toggle to actually work as a toggle, currently working only as checkbox, which enables/disables checkbox
 //A toggle would modify the shown image depending on its value.

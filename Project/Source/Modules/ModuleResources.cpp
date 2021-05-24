@@ -34,7 +34,6 @@
 #include "Modules/ModuleInput.h"
 #include "Modules/ModuleEvents.h"
 #include "TesseractEvent.h"
-#include "Utils/AssetFile.h"
 
 #include "IL/il.h"
 #include "IL/ilu.h"
@@ -53,6 +52,7 @@
 #define JSON_TAG_RESOURCES "Resources"
 #define JSON_TAG_TYPE "Type"
 #define JSON_TAG_ID "Id"
+#define JSON_TAG_NAME "Name"
 
 static bool ReadMetaFile(const char* filePath, rapidjson::Document& document) {
 	// Read from file
@@ -87,7 +87,7 @@ bool ModuleResources::Init() {
 	iluInit();
 	App->events->AddObserverToEvent(TesseractEventType::CREATE_RESOURCE, this);
 	App->events->AddObserverToEvent(TesseractEventType::DESTROY_RESOURCE, this);
-	App->events->AddObserverToEvent(TesseractEventType::UPDATE_FOLDERS, this);
+	App->events->AddObserverToEvent(TesseractEventType::UPDATE_ASSET_CACHE, this);
 	return true;
 }
 
@@ -120,12 +120,14 @@ bool ModuleResources::CleanUp() {
 void ModuleResources::ReceiveEvent(TesseractEvent& e) {
 	if (e.type == TesseractEventType::CREATE_RESOURCE) {
 		CreateResourceStruct& createResourceStruct = e.Get<CreateResourceStruct>();
-		Resource* resource = DoCreateResourceByType(createResourceStruct.type, createResourceStruct.assetFilePath.c_str(), createResourceStruct.resourceId);
+		Resource* resource = CreateResourceByType(createResourceStruct.type, createResourceStruct.resourceName.c_str(), createResourceStruct.assetFilePath.c_str(), createResourceStruct.resourceId);
 		UID id = resource->GetId();
-		if (GetReferenceCount(id) > 0) {
-			resource->Load();
-		}
 		resources[id].reset(resource);
+
+		if (GetReferenceCount(id) > 0) {
+			LoadResource(resource);
+		}
+
 	} else if (e.type == TesseractEventType::DESTROY_RESOURCE) {
 		UID id = e.Get<DestroyResourceStruct>().resourceId;
 		auto& it = resources.find(id);
@@ -133,11 +135,11 @@ void ModuleResources::ReceiveEvent(TesseractEvent& e) {
 			it->second->Unload();
 			resources.erase(it);
 		}
-	} else if (e.type == TesseractEventType::UPDATE_FOLDERS) {
-		AssetFolder* folder = e.Get<UpdateFoldersStruct>().folder;
-		rootFolder.reset(folder);
+	} else if (e.type == TesseractEventType::UPDATE_ASSET_CACHE) {
+		AssetCache* newAssetCache = e.Get<UpdateAssetCacheStruct>().assetCache;
+		assetCache.reset(newAssetCache);
 
-		e.Get<UpdateFoldersStruct>().folder = nullptr;
+		e.Get<UpdateAssetCacheStruct>().assetCache = nullptr;
 	}
 }
 
@@ -153,7 +155,7 @@ void ModuleResources::ValidateAssetResources(JsonValue jMeta, bool& validResourc
 	}
 }
 
-void ModuleResources::ReimportResources(JsonValue jMeta, const char* filePath) {
+void ModuleResources::RecreateResources(JsonValue jMeta, const char* filePath) {
 	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
 	for (unsigned i = 0; i < jResources.Size(); ++i) {
 		JsonValue jResource = jResources[i];
@@ -161,7 +163,7 @@ void ModuleResources::ReimportResources(JsonValue jMeta, const char* filePath) {
 		if (GetResource<Resource>(id) == nullptr) {
 			std::string typeName = jResource[JSON_TAG_TYPE];
 			ResourceType type = GetResourceTypeFromName(typeName.c_str());
-			CreateResourceByType(type, filePath, id);
+			SendCreateResourceEventByType(type, "", filePath, id);
 		}
 	}
 }
@@ -213,8 +215,8 @@ bool ModuleResources::ImportAssetByExtension(JsonValue jMeta, const char* filePa
 	return validExtension;
 }
 
-std::vector<UID> ModuleResources::ImportAssetResources(const char* filePath) {
-	std::vector<UID> resources;
+std::list<UID> ModuleResources::ImportAssetResources(const char* filePath, bool force) {
+	std::list<UID> resources;
 
 	// Return an empty list if the asset couldn't be found
 	if (!App->files->Exists(filePath)) return resources;
@@ -238,9 +240,9 @@ std::vector<UID> ModuleResources::ImportAssetResources(const char* filePath) {
 		}
 	}
 
-	// if resources are valid resources, reimport them or import them if needed
-	if (validMetaFile && validResourceFiles) {
-		ReimportResources(jMeta, filePath);
+	// if resources are valid resources, reimport them or import them if needed or forced to
+	if (!force && validMetaFile && validResourceFiles) {
+		RecreateResources(jMeta, filePath);
 	} else {
 		if (ImportAssetByExtension(jMeta, filePath)) {
 			if (!validMetaFile) {
@@ -258,8 +260,8 @@ std::vector<UID> ModuleResources::ImportAssetResources(const char* filePath) {
 	return resources;
 }
 
-AssetFolder* ModuleResources::GetRootFolder() const {
-	return rootFolder.get();
+AssetCache* ModuleResources::GetAssetCache() const {
+	return assetCache.get();
 }
 
 void ModuleResources::IncreaseReferenceCount(UID id) {
@@ -270,7 +272,7 @@ void ModuleResources::IncreaseReferenceCount(UID id) {
 	} else {
 		Resource* resource = GetResource<Resource>(id);
 		if (resource != nullptr) {
-			resource->Load();
+			LoadResource(resource);
 		}
 		referenceCounts[id] = 1;
 	}
@@ -311,7 +313,7 @@ void ModuleResources::UpdateAsync() {
 	while (!stopImportThread) {
 		// Check if any asset file has been modified / deleted
 		std::vector<UID> resourcesToRemove;
-		std::vector<std::string> assetsToReimport;
+		std::vector<std::string> assetsToImport;
 
 		for (const auto& entry : concurrentResourceUIDToAssetFilePath) {
 			UID resourceId = entry.first;
@@ -343,8 +345,8 @@ void ModuleResources::UpdateAsync() {
 							resourcesToRemove.push_back(resourceId);
 						} else {
 							resourcesToRemove.push_back(resourceId);
-							if (std::find(assetsToReimport.begin(), assetsToReimport.end(), assetFilePath) == assetsToReimport.end()) {
-								assetsToReimport.push_back(assetFilePath);
+							if (std::find(assetsToImport.begin(), assetsToImport.end(), assetFilePath) == assetsToImport.end()) {
+								assetsToImport.push_back(assetFilePath);
 								SaveMetaFile(metaFilePath.c_str(), document);
 							}
 						}
@@ -358,8 +360,8 @@ void ModuleResources::UpdateAsync() {
 			}
 			// Check for deleted resources
 			if (!App->files->Exists(resourceFilePath.c_str())) {
-				if (std::find(assetsToReimport.begin(), assetsToReimport.end(), assetFilePath) == assetsToReimport.end()) {
-					assetsToReimport.push_back(assetFilePath);
+				if (std::find(assetsToImport.begin(), assetsToImport.end(), assetFilePath) == assetsToImport.end()) {
+					assetsToImport.push_back(assetFilePath);
 				}
 			}
 		}
@@ -367,7 +369,7 @@ void ModuleResources::UpdateAsync() {
 			const std::string& assetFilePath = concurrentResourceUIDToAssetFilePath.at(resourceId);
 			const std::string& resourceFilePath = GenerateResourcePath(resourceId);
 			std::string metaFilePath = assetFilePath + META_EXTENSION;
-			if (App->files->Exists(metaFilePath.c_str()) && std::find(assetsToReimport.begin(), assetsToReimport.end(), assetFilePath) == assetsToReimport.end()) {
+			if (App->files->Exists(metaFilePath.c_str()) && std::find(assetsToImport.begin(), assetsToImport.end(), assetFilePath) == assetsToImport.end()) {
 				App->files->Erase(metaFilePath.c_str());
 			}
 			if (App->files->Exists(resourceFilePath.c_str())) {
@@ -376,17 +378,22 @@ void ModuleResources::UpdateAsync() {
 
 			DestroyResource(resourceId);
 		}
-		for (const std::string& assetFilePath : assetsToReimport) {
+		for (const std::string& assetFilePath : assetsToImport) {
 			ImportAssetResources(assetFilePath.c_str());
+		}
+		while (!assetsToReimport.empty()) {
+			std::string assetFilePath = "";
+			assetsToReimport.try_pop(assetFilePath);
+			ImportAssetResources(assetFilePath.c_str(), true);
 		}
 
 		// Check if there are any new assets and build cached folder structure
-		AssetFolder* newFolder = new AssetFolder(ASSETS_PATH);
-		CheckForNewAssetsRecursive(ASSETS_PATH, newFolder);
+		AssetCache* newAssetCache = new AssetCache(ASSETS_PATH);
+		CheckForNewAssetsRecursive(ASSETS_PATH, *newAssetCache, newAssetCache->root);
 
-		TesseractEvent updateFoldersEv(TesseractEventType::UPDATE_FOLDERS);
-		updateFoldersEv.Set<UpdateFoldersStruct>(newFolder);
-		App->events->AddEvent(updateFoldersEv);
+		TesseractEvent updateAssetCacheEv(TesseractEventType::UPDATE_ASSET_CACHE);
+		updateAssetCacheEv.Set<UpdateAssetCacheStruct>(newAssetCache);
+		App->events->AddEvent(updateAssetCacheEv);
 
 		App->events->AddEvent(TesseractEventType::RESOURCES_LOADED);
 
@@ -394,75 +401,76 @@ void ModuleResources::UpdateAsync() {
 	}
 }
 
-void ModuleResources::CheckForNewAssetsRecursive(const char* path, AssetFolder* assetFolder) {
+void ModuleResources::CheckForNewAssetsRecursive(const char* path, AssetCache& assetCache, AssetFolder& parentFolder) {
 	for (std::string& file : App->files->GetFilesInFolder(path)) {
 		std::string filePath = std::string(path) + "/" + file;
 		std::string extension = FileDialog::GetFileExtension(file.c_str());
 		if (App->files->IsDirectory(filePath.c_str())) {
-			assetFolder->folders.push_back(AssetFolder(filePath.c_str()));
-			CheckForNewAssetsRecursive(filePath.c_str(), &assetFolder->folders.back());
+			parentFolder.folders.push_back(AssetFolder(filePath.c_str()));
+			assetCache.foldersMap[filePath] = &parentFolder.folders.back();
+			CheckForNewAssetsRecursive(filePath.c_str(), assetCache, parentFolder.folders.back());
 		} else if (extension != META_EXTENSION) {
-			std::vector<UID>& resourceIds = ImportAssetResources(filePath.c_str());
+			std::list<UID>& resourceIds = ImportAssetResources(filePath.c_str());
 			if (!resourceIds.empty()) {
 				AssetFile assetFile(filePath.c_str());
 				assetFile.resourceIds = std::move(resourceIds);
-				assetFolder->files.push_back(std::move(assetFile));
+				parentFolder.files.push_back(std::move(assetFile));
+				assetCache.filesMap[filePath] = &parentFolder.files.back();
 			}
 		}
 	}
 }
 
-void ModuleResources::CreateResourceByType(ResourceType type, const char* assetFilePath, UID id) {
+void ModuleResources::SendCreateResourceEventByType(ResourceType type, const char* resourceName, const char* assetFilePath, UID id) {
 	concurrentResourceUIDToAssetFilePath[id] = assetFilePath;
 
 	TesseractEvent addResourceEvent(TesseractEventType::CREATE_RESOURCE);
-	addResourceEvent.Set<CreateResourceStruct>(type, id, assetFilePath);
+	addResourceEvent.Set<CreateResourceStruct>(type, id, resourceName, assetFilePath);
 	App->events->AddEvent(addResourceEvent);
 }
 
-Resource* ModuleResources::DoCreateResourceByType(ResourceType type, const char* assetFilePath, UID id) {
+Resource* ModuleResources::CreateResourceByType(ResourceType type, const char* resourceName, const char* assetFilePath, UID id) {
 	std::string resourceFilePath = GenerateResourcePath(id);
 	Resource* resource = nullptr;
 	switch (type) {
 	case ResourceType::MATERIAL:
-		resource = new ResourceMaterial(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceMaterial(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::MESH:
-		resource = new ResourceMesh(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceMesh(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::PREFAB:
-		resource = new ResourcePrefab(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourcePrefab(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::SCENE:
-		resource = new ResourceScene(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceScene(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::SHADER:
-		resource = new ResourceShader(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceShader(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::TEXTURE:
-		resource = new ResourceTexture(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceTexture(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::FONT:
-		resource = new ResourceFont(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceFont(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::SKYBOX:
-		resource = new ResourceSkybox(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceSkybox(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::SCRIPT:
-		resource = new ResourceScript(id, assetFilePath, resourceFilePath.c_str());
-		resource->Load();
+		resource = new ResourceScript(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::ANIMATION:
-		resource = new ResourceAnimation(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceAnimation(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::STATE_MACHINE:
-		resource = new ResourceStateMachine(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceStateMachine(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::CLIP:
-		resource = new ResourceClip(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceClip(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::AUDIO:
-		resource = new ResourceAudioClip(id, assetFilePath, resourceFilePath.c_str());
+		resource = new ResourceAudioClip(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	default:
 		LOG("Resource of type %i hasn't been registered in ModuleResources::CreateResourceByType.", (unsigned) type);
@@ -478,4 +486,69 @@ void ModuleResources::DestroyResource(UID id) {
 	TesseractEvent destroyResourceEvent(TesseractEventType::DESTROY_RESOURCE);
 	destroyResourceEvent.Set<DestroyResourceStruct>(id);
 	App->events->AddEvent(destroyResourceEvent);
+}
+
+void ModuleResources::LoadResource(Resource* resource) {
+	// Read resource meta file
+	bool resourceMetaLoaded = true;
+	std::string resourceMetaFile = resource->GetResourceFilePath() + META_EXTENSION;
+	Buffer<char> buffer = App->files->Load(resourceMetaFile.c_str());
+	if (buffer.Size() == 0) {
+		LOG("Error loading meta file path %s", resourceMetaFile);
+		resourceMetaLoaded = false;
+	}
+
+	// Parse document from file
+	rapidjson::Document document;
+	if (resourceMetaLoaded) {
+		document.ParseInsitu<rapidjson::kParseNanAndInfFlag>(buffer.Data());
+		if (document.HasParseError()) {
+			LOG("Error parsing JSON: %s (offset: %u)", rapidjson::GetParseError_En(document.GetParseError()), document.GetErrorOffset());
+			resourceMetaLoaded = false;
+		}
+	}
+
+	// Load resource meta
+	if (resourceMetaLoaded) {
+		JsonValue jResourceMeta(document, document);
+		std::string resourceName = jResourceMeta[JSON_TAG_NAME];
+		resource->SetName(resourceName.c_str());
+		resource->LoadResourceMeta(jResourceMeta);
+	}
+
+	// Load resource
+	resource->Load();
+}
+
+void ModuleResources::LoadImportOptions(std::unique_ptr<ImportOptions>& importOptions, const char* filePath) {
+	if (importOptions == nullptr) {
+		std::string extension = FileDialog::GetFileExtension(filePath);
+		if (extension == JPG_TEXTURE_EXTENSION || extension == PNG_TEXTURE_EXTENSION || extension == TIF_TEXTURE_EXTENSION || extension == DDS_TEXTURE_EXTENSION || extension == TGA_TEXTURE_EXTENSION) {
+			// Texture files
+			importOptions.reset(new TextureImportOptions());
+		} else {
+			return;
+		}
+	}
+
+	std::string metaFilePath = std::string(filePath) + META_EXTENSION;
+	if (!App->files->Exists(metaFilePath.c_str())) return;
+
+	// Read meta file
+	Buffer<char> buffer = App->files->Load(metaFilePath.c_str());
+	if (buffer.Size() == 0) {
+		LOG("Error reading meta file %s", metaFilePath.c_str());
+		return;
+	}
+
+	// Parse document from file
+	rapidjson::Document document;
+	document.Parse<rapidjson::kParseNanAndInfFlag>(buffer.Data());
+	if (document.HasParseError()) {
+		LOG("Error parsing JSON: %s (offset: %u)", rapidjson::GetParseError_En(document.GetParseError()), document.GetErrorOffset());
+		return;
+	}
+
+	JsonValue jMeta(document, document);
+	importOptions->Load(jMeta);
 }

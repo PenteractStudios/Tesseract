@@ -22,7 +22,7 @@ bool ModuleInput::Init() {
 	bool ret = true;
 	SDL_Init(0);
 
-	if (SDL_InitSubSystem(SDL_INIT_EVENTS) < 0) {
+	if (SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) < 0) {
 		LOG("SDL_EVENTS could not initialize! SDL_Error: %s\n", SDL_GetError());
 		ret = false;
 	}
@@ -60,6 +60,19 @@ UpdateStatus ModuleInput::PreUpdate() {
 		}
 	}
 
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		if (playerControllers[i] == nullptr) continue;
+		for (int j = 0; j < SDL_CONTROLLER_BUTTON_MAX; ++j) {
+			if (playerControllers[i]->gameControllerButtons[j] == KS_DOWN) {
+				playerControllers[i]->gameControllerButtons[j] = KS_REPEAT;
+			}
+
+			if (playerControllers[i]->gameControllerButtons[j] == KS_UP) {
+				playerControllers[i]->gameControllerButtons[j] = KS_IDLE;
+			}
+		}
+	}
+
 	int auxMouseX;
 	int auxMouseY;
 	SDL_GetGlobalMouseState(&auxMouseX, &auxMouseY);
@@ -71,7 +84,48 @@ UpdateStatus ModuleInput::PreUpdate() {
 		switch (event.type) {
 		case SDL_QUIT:
 			return UpdateStatus::STOP;
+		case SDL_CONTROLLERDEVICEADDED:
+			OnControllerAdded(event.cdevice.which);
+			break;
+		case SDL_CONTROLLERDEVICEREMAPPED:
+			LOG("Controllerd %d was remapped", event.cdevice.which);
+			break;
+		case SDL_CONTROLLERDEVICEREMOVED:
+			OnControllerRemoved(event.cdevice.which);
+			break;
+		case SDL_CONTROLLERAXISMOTION: {
+			PlayerController* player = GetPlayerControllerWithJoystickIndex(event.cdevice.which);
+			if (!player) break;
 
+			if (event.caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT || event.caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT) {
+				player->gameControllerAxises[event.caxis.axis] = event.caxis.value;
+
+				break;
+			}
+			//Left of dead zone
+			if (event.caxis.value < -JOYSTICK_DEAD_ZONE) {
+				player->gameControllerAxises[event.caxis.axis] = event.caxis.value;
+			}
+			//Right of dead zone
+			else if (event.caxis.value > JOYSTICK_DEAD_ZONE) {
+				player->gameControllerAxises[event.caxis.axis] = event.caxis.value;
+
+			} else {
+				player->gameControllerAxises[event.caxis.axis] = 0;
+			}
+			break;
+		}
+		case SDL_CONTROLLERBUTTONDOWN: {
+			if (GetPlayerControllerWithJoystickIndex(event.cdevice.which)) {
+				GetPlayerControllerWithJoystickIndex(event.cdevice.which)->gameControllerButtons[event.cbutton.button] = KS_DOWN;
+			}
+			break;
+		}
+		case SDL_CONTROLLERBUTTONUP:
+			if (GetPlayerControllerWithJoystickIndex(event.cdevice.which)) {
+				GetPlayerControllerWithJoystickIndex(event.cdevice.which)->gameControllerButtons[event.cbutton.button] = KS_UP;
+			}
+			break;
 		case SDL_WINDOWEVENT:
 			if (event.window.windowID == windowId) {
 				switch (event.window.event) {
@@ -168,7 +222,12 @@ UpdateStatus ModuleInput::PreUpdate() {
 bool ModuleInput::CleanUp() {
 	ReleaseDroppedFilePath();
 	LOG("Quitting SDL input event subsystem");
-	SDL_QuitSubSystem(SDL_INIT_EVENTS);
+
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		RELEASE(playerControllers[i]);
+	}
+
+	SDL_QuitSubSystem(SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
 	return true;
 }
 
@@ -221,4 +280,63 @@ KeyState* ModuleInput::GetMouseButtons() {
 
 KeyState* ModuleInput::GetKeyboard() {
 	return keyboard;
+}
+
+void ModuleInput::OnControllerAdded(int index) {
+	LOG("Added controller");
+	if (SDL_IsGameController(index)) {
+		LOG("New controller was deemed compatible, type is %s", GetControllerTypeAsString(SDL_GameControllerTypeForIndex(index)));
+
+		if (playerControllers[0] == nullptr) {
+			LOG("New controller took player slot 0");
+			playerControllers[0] = new PlayerController(index);
+		} else if (playerControllers[1] == nullptr) {
+			LOG("New controller took player slot 1");
+			playerControllers[1] = new PlayerController(index);
+		} else {
+			LOG("No available slots found, Game Controller will be ignored");
+		}
+	}
+}
+
+void ModuleInput::OnControllerRemoved(int index) {
+	LOG("Disconnected controller");
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		if (playerControllers[i] == nullptr) continue;
+		if (playerControllers[i]->joystickIndex == index) {
+			RELEASE(playerControllers[i]);
+			LOG("Player slot %d is now empty", i);
+		}
+	}
+}
+
+PlayerController* ModuleInput::GetPlayerControllerWithJoystickIndex(int joystickIndex) const {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		if (playerControllers[i] == nullptr) continue;
+		if (playerControllers[i]->joystickIndex == joystickIndex) {
+			return playerControllers[i];
+		}
+	}
+	return nullptr;
+}
+
+PlayerController* ModuleInput::GetPlayerController(int index) const {
+	return playerControllers[index];
+}
+
+const char* ModuleInput::GetControllerTypeAsString(SDL_GameControllerType type) {
+	switch (type) {
+	case SDL_GameControllerType::SDL_CONTROLLER_TYPE_PS3:
+		return "PS3 Controller";
+	case SDL_GameControllerType::SDL_CONTROLLER_TYPE_PS4:
+		return "PS4 Controller";
+	case SDL_GameControllerType::SDL_CONTROLLER_TYPE_XBOX360:
+		return "XBOX 360 Controller";
+	case SDL_GameControllerType::SDL_CONTROLLER_TYPE_XBOXONE:
+		return "XBOX One Controller";
+	case SDL_GameControllerType::SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO:
+		return "Nintendo Switch Pro Controller";
+	default:
+		return "UNKNOWN";
+	}
 }

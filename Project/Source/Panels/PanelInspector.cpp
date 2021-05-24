@@ -158,6 +158,9 @@ void PanelInspector::Update() {
 				case ComponentType::PARTICLE:
 					cName = "Particle";
 					break;
+				case ComponentType::TRAIL:
+					cName = "Trail";
+					break;
 				case ComponentType::AUDIO_SOURCE:
 					cName = "Audio Source";
 					break;
@@ -272,6 +275,26 @@ void PanelInspector::Update() {
 					ComponentParticleSystem* particle = selected->CreateComponent<ComponentParticleSystem>();
 					if (particle != nullptr) {
 						particle->Init();
+					}
+				}
+				if (ImGui::MenuItem("Trail")) {
+					ComponentTrail* trail = selected->CreateComponent<ComponentTrail>();
+					if (trail != nullptr) {
+						trail->Init();
+					}
+				}
+				if (ImGui::MenuItem("Audio Source")) {
+					ComponentAudioSource* audioSource = selected->CreateComponent<ComponentAudioSource>();
+					if (audioSource != nullptr) {
+						audioSource->Init();
+					} else {
+						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+					}
+				}
+				if (ImGui::MenuItem("Audio Listener")) {
+					ComponentAudioListener* audioListener = selected->CreateComponent<ComponentAudioListener>();
+					if (audioListener != nullptr) {
+						audioListener->Init();
 					} else {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}

@@ -2,15 +2,15 @@
 
 #include "Utils/Logging.h"
 #include "Resources/Resource.h"
-#include "Utils/AssetFile.h"
+#include "Utils/AssetCache.h"
 
 #include "Utils/Leaks.h"
 
 //TODO see why these cleanups generate errors
 static void CleanUpEvent(TesseractEvent& e) {
 	switch (e.type) {
-	case TesseractEventType::UPDATE_FOLDERS:
-		RELEASE(e.Get<UpdateFoldersStruct>().folder);
+	case TesseractEventType::UPDATE_ASSET_CACHE:
+		RELEASE(e.Get<UpdateAssetCacheStruct>().assetCache);
 		break;
 	}
 }

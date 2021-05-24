@@ -15,15 +15,21 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Panels\PanelDebug.h" />
+    <ClInclude Include="Source\FileSystem\ImportOptions.h" />
+    <ClInclude Include="Source\FileSystem\ImporterCommon.h" />
     <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />
     <ClInclude Include="Source\Components\ComponentParticleSystem.h" />
+    <ClInclude Include="Source\Components\ComponentTrail.h" />
     <ClInclude Include="Source\MaskType.h" />
     <ClInclude Include="Source\FileSystem\ClipImporter.h" />
     <ClInclude Include="Source\FileSystem\StateMachineImporter.h" />
     <ClInclude Include="Source\AnimationInterpolation.h" />
+    <ClInclude Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Source\Resources\ResourceClip.h" />
     <ClInclude Include="Source\State.h" />
     <ClInclude Include="Source\Panels\PanelResource.h" />
+    <ClInclude Include="Source\Panels\PanelImportOptions.h" />
     <ClInclude Include="Source\Components\Physics\ComponentBoxCollider.h" />
     <ClInclude Include="Source\Components\Physics\ComponentCapsuleCollider.h" />
     <ClInclude Include="Source\Utils\MotionState.h" />
@@ -121,7 +127,7 @@
     <ClInclude Include="Source\Utils\alcErrors.h" />
     <ClInclude Include="Source\Utils\alErrors.h" />
     <ClInclude Include="Source\Scripting\Factory.h" />
-    <ClInclude Include="Source\Utils\AssetFile.h" />
+    <ClInclude Include="Source\Utils\AssetCache.h" />
     <ClInclude Include="Source\Utils\FileDialog.h" />
     <ClInclude Include="Source\Resources\ResourceAnimation.h" />
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -295,14 +301,19 @@
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Panels\PanelDebug.cpp" />
+    <ClCompile Include="Source\FileSystem\ImportOptions.cpp" />
+    <ClCompile Include="Source\FileSystem\ImporterCommon.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentProgressBar.cpp" />
     <ClCompile Include="Source\Components\ComponentParticleSystem.cpp" />
+    <ClCompile Include="Source\Components\ComponentTrail.cpp" />
     <ClCompile Include="Source\MaskType.cpp" />
     <ClCompile Include="Source\FileSystem\ClipImporter.cpp" />
     <ClCompile Include="Source\FileSystem\StateMachineImporter.cpp" />
-    <ClCompile Include="Source\Resources\ResourceClip.cpp" />
-    <ClCompile Include="Libs\imgui\imgui_tables.cpp" />
     <ClCompile Include="Source\Panels\PanelResource.cpp" />
+    <ClCompile Include="Source\Resources\ResourceClip.cpp" />
+    <ClCompile Include="Source\Panels\PanelImportOptions.cpp" />
+    <ClCompile Include="Libs\imgui\imgui_tables.cpp" />
     <ClCompile Include="Source\Components\Physics\ComponentBoxCollider.cpp" />
     <ClCompile Include="Source\Components\Physics\ComponentCapsuleCollider.cpp" />
     <ClCompile Include="Source\Utils\MotionState.cpp" />
@@ -339,7 +350,7 @@
     <ClCompile Include="Source\Scene.cpp" />
     <ClCompile Include="Source\Resources\ResourcePrefab.cpp" />
     <ClCompile Include="Source\Scripting\Factory.cpp" />
-    <ClCompile Include="Source\Utils\AssetFile.cpp" />
+    <ClCompile Include="Source\Utils\AssetCache.cpp" />
     <ClCompile Include="Source\Utils\FileDialog.cpp" />
     <ClCompile Include="Source\Components\ComponentAnimation.cpp" />
     <ClCompile Include="Source\Resources\ResourceAnimation.cpp" />

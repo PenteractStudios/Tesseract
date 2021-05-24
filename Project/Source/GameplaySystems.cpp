@@ -39,6 +39,15 @@ GameObject* GameplaySystems::GetGameObject(const char* name) {
 GameObject* GameplaySystems::GetGameObject(UID id) {
 	return App->scene->scene->GetGameObject(id);
 }
+// --------- Instantiating --------- //
+GameObject* GameplaySystems::Instantiate(ResourcePrefab* prefab, float3 position, Quat rotation) {
+	UID prefabId = prefab->BuildPrefab(App->scene->scene->root);
+	GameObject* go = GameplaySystems::GetGameObject(prefabId);
+	ComponentTransform* transform = go->GetComponent<ComponentTransform>();
+	transform->SetGlobalRotation(rotation);
+	transform->SetGlobalPosition(position);
+	return go;
+}
 
 template<typename T>
 T* GameplaySystems::GetResource(UID id) {
@@ -150,6 +159,7 @@ void Time::ResumeGame() {
 }
 
 // ------------- INPUT ------------- //
+const int JOYSTICK_MAX_VALUE = 32767;
 
 bool Input::GetMouseButtonDown(int button) {
 	return App->input->GetMouseButtons()[button] == KS_DOWN;
@@ -214,6 +224,36 @@ bool Input::GetKeyCodeRepeat(KEYCODE keycode) {
 
 bool Input::GetKeyCode(KEYCODE keycode) {
 	return App->input->GetKeyboard()[keycode];
+}
+
+bool Input::GetControllerButtonDown(SDL_GameControllerButton button, int playerID) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+	return player ? false : player->gameControllerButtons[button] == KS_DOWN;
+}
+
+bool Input::GetControllerButtonUp(SDL_GameControllerButton button, int playerID) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+	return player ? false : player->gameControllerButtons[button] == KS_UP;
+}
+
+bool Input::GetControllerButtonRepeat(SDL_GameControllerButton button, int playerID) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+	return player ? false : player->gameControllerButtons[button] == KS_REPEAT;
+}
+
+bool Input::GetControllerButton(SDL_GameControllerButton button, int playerID) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+	return player ? false : player->gameControllerButtons[button];
+}
+
+float Input::GetControllerAxisValue(SDL_GameControllerAxis axis, int playerID) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+
+	return player ? player->gameControllerAxises[axis] / JOYSTICK_MAX_VALUE : 0.0f;
+}
+
+bool Input::IsGamepadConnected(int index) {
+	return App->input->GetPlayerController(index) != nullptr;
 }
 
 // --------- SCENE MANAGER --------- //
@@ -320,15 +360,19 @@ Screen::DisplayMode Screen::GetDisplayMode(unsigned index) {
 }
 
 int Screen::GetWidth() {
-	return App->window->GetWidth();
+	return static_cast<float>(App->window->GetWidth());
 }
 
 int Screen::GetHeight() {
-	return App->window->GetHeight();
+	return static_cast<float>(App->window->GetHeight());
 }
 
 float Screen::GetBrightness() {
 	return App->window->GetBrightness();
+}
+
+float2 Screen::GetResolution() {
+	return float2(static_cast<float>(App->window->GetWidth()), static_cast<float>(App->window->GetHeight()));
 }
 
 // --------- Camera --------- //

@@ -19,6 +19,7 @@
 #include "Components/UI/ComponentSlider.h"
 #include "Components/ComponentBoundingBox2D.h"
 #include "Components/ComponentSkybox.h"
+#include "Components/ComponentTrail.h"
 #include "Components/ComponentParticleSystem.h"
 #include "Components/ComponentScript.h"
 #include "Components/ComponentAnimation.h"
@@ -81,6 +82,7 @@ public:
 	PoolMap<UID, ComponentScript> scriptComponents;
 	PoolMap<UID, ComponentAnimation> animationComponents;
 	PoolMap<UID, ComponentParticleSystem> particleComponents;
+	PoolMap<UID, ComponentTrail> trailComponents;
 	PoolMap<UID, ComponentAudioSource> audioSourceComponents;
 	PoolMap<UID, ComponentAudioListener> audioListenerComponents;
 	PoolMap<UID, ComponentProgressBar> progressbarsComponents;

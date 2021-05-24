@@ -34,6 +34,7 @@ Scene::Scene(unsigned numGameObjects) {
 	scriptComponents.Allocate(numGameObjects);
 	animationComponents.Allocate(numGameObjects);
 	particleComponents.Allocate(numGameObjects);
+	trailComponents.Allocate(numGameObjects);
 	audioSourceComponents.Allocate(numGameObjects);
 	audioListenerComponents.Allocate(numGameObjects);
 	progressbarsComponents.Allocate(numGameObjects);
@@ -147,6 +148,8 @@ Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 		return scriptComponents.Find(componentId);
 	case ComponentType::PARTICLE:
 		return particleComponents.Find(componentId);
+	case ComponentType::TRAIL:
+		return trailComponents.Find(componentId);
 	case ComponentType::AUDIO_SOURCE:
 		return audioSourceComponents.Find(componentId);
 	case ComponentType::AUDIO_LISTENER:
@@ -208,6 +211,8 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 		return scriptComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::PARTICLE:
 		return particleComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::TRAIL:
+		return trailComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::AUDIO_SOURCE:
 		return audioSourceComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::AUDIO_LISTENER:
@@ -288,6 +293,9 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		break;
 	case ComponentType::PARTICLE:
 		particleComponents.Release(componentId);
+		break;
+	case ComponentType::TRAIL:
+		trailComponents.Release(componentId);
 		break;
 	case ComponentType::AUDIO_SOURCE:
 		audioSourceComponents.Release(componentId);

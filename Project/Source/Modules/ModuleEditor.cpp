@@ -149,6 +149,8 @@ bool ModuleEditor::Start() {
 	panels.push_back(&panelAbout);
 	panels.push_back(&panelControlEditor);
 	panels.push_back(&panelResource);
+	panels.push_back(&panelGameControllerDebug);
+	panels.push_back(&panelImportOptions);
 
 	return true;
 }
@@ -218,6 +220,8 @@ UpdateStatus ModuleEditor::Update() {
 		ImGui::MenuItem(panelConfiguration.name, "", &panelConfiguration.enabled);
 		ImGui::MenuItem(panelControlEditor.name, "", &panelControlEditor.enabled);
 		ImGui::MenuItem(panelResource.name, "", &panelResource.enabled);
+		ImGui::MenuItem(panelGameControllerDebug.name, "", &panelGameControllerDebug.enabled);
+		ImGui::MenuItem(panelImportOptions.name, "", &panelImportOptions.enabled);
 		ImGui::EndMenu();
 	}
 	if (ImGui::BeginMenu("Help")) {

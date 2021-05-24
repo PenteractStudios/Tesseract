@@ -1,18 +1,19 @@
 --- fragMainPhong
 
-void main() {
+void main() 
+{
 
-    vec3 viewN = normalize(viewPos - fragPos);
-    vec2 tiledUV = GetTiledUVs(uv, tiling, offset); 
+    vec3 viewDir = normalize(viewPos - fragPos);
+    vec2 tiledUV = GetTiledUVs(); 
     vec3 normal = fragNormal;
 
     if (hasNormalMap)
     {
-	    normal = GetNormal(normalMap, tiledUV, TBN, normalStrength);
+	    normal = GetNormal(tiledUV);
     }
 
     // diffuse
-    vec4 colorDiffuse = GetDiffuse(diffuseMap, tiledUV, diffuseColor, hasDiffuseMap);
+    vec4 colorDiffuse = GetDiffuse(tiledUV);
 
     // specular
     vec4 colorSpecular = hasSpecularMap * pow(texture(specularMap, tiledUV), vec4(2.2)) + (1 - hasSpecularMap) * vec4(specularColor, 1.0);
@@ -22,9 +23,9 @@ void main() {
     float shininess = hasSmoothnessAlpha * exp2(colorSpecular.a * 7 + 1) + (1 - hasSmoothnessAlpha) * smoothness;
 
     // Ambient Color
-    vec3 ambientColor = colorDiffuse.rgb * light.ambient.color;
+    vec3 colorAmbient = GetAmbientOcclusion(tiledUV);
 
-    vec3 accumulativeColor = ambientColor;
+    vec3 colorAccumulative = colorDiffuse.rgb * colorAmbient;
 
     // Directional Light
     if (light.directional.isActive == 1) {
@@ -32,14 +33,14 @@ void main() {
         float NL = max(dot(normal, - directionalDir), 0.0);
 
         vec3 reflectDir = reflect(directionalDir, normal);
-        float VRn = pow(max(dot(viewN, reflectDir), 0.0), shininess);
+        float VRn = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
 
 
         vec3 Rf = Rf0 + (1 - Rf0) * pow(1 - NL, 5);
 
         vec3 directionalColor = (colorDiffuse.rgb * (1 - Rf0) + (shininess + 2) / 2 * Rf * VRn) * light.directional.color * light.directional.intensity * NL;
 
-        accumulativeColor = accumulativeColor + directionalColor;
+        colorAccumulative += directionalColor;
     }
 
     // Point Light
@@ -51,13 +52,13 @@ void main() {
         float NL = max(dot(normal, -pointDir), 0.0);
 
         vec3 reflectDir = reflect(pointDir, normal);
-        float VRn = pow(max(dot(viewN, reflectDir), 0.0), shininess);
+        float VRn = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
 
         vec3 Rf = Rf0 + (1 - Rf0) * pow(1 - NL, 5);
 
         vec3 pointColor = (colorDiffuse.rgb * (1 - Rf0) + (shininess + 2) / 2 * Rf * VRn) * light.points[i].color * light.points[i].intensity * distAttenuation * NL;
 
-        accumulativeColor = accumulativeColor + pointColor;
+        colorAccumulative += pointColor;
     }
 
     // Spot Light
@@ -81,16 +82,19 @@ void main() {
         float NL = max(dot(normal, -spotDir), 0.0);
 
         vec3 reflectDir = reflect(spotDir, normal);
-        float VRn = pow(max(dot(viewN, reflectDir), 0.0), shininess);
+        float VRn = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
 
         vec3 Rf = Rf0 + (1 - Rf0) * pow(1 - NL, 5);
 
         vec3 spotColor = (colorDiffuse.rgb * (1 - Rf0) + (shininess + 2) / 2 * Rf * VRn) * light.spots[i].color * light.spots[i].intensity * distAttenuation * cAttenuation * NL;
 
-        accumulativeColor = accumulativeColor + spotColor;
+        colorAccumulative += spotColor;
     }
 
-    vec3 ldr = accumulativeColor.rgb / (accumulativeColor.rgb + vec3(1.0)); // reinhard tone mapping
+    // Emission
+    colorAccumulative += GetEmissive(tiledUV).rgb;
+
+    vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
     ldr = pow(ldr, vec3(1/2.2)); // gamma correction
     outColor = vec4(ldr, 1.0);
 }
