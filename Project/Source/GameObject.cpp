@@ -142,6 +142,9 @@ void GameObject::AddMask(MaskType mask_) {
 	case MaskType::ENEMY:
 		mask.bitMask |= static_cast<int>(mask_);
 		break;
+	case MaskType::CAST_SHADOWS:
+		mask.bitMask |= static_cast<int>(mask_);
+		break;
 	default:
 		LOG("The solicitated mask doesn't exist");
 		break;
@@ -151,6 +154,9 @@ void GameObject::AddMask(MaskType mask_) {
 void GameObject::DeleteMask(MaskType mask_) {
 	switch (mask_) {
 	case MaskType::ENEMY:
+		mask.bitMask ^= static_cast<int>(mask_);
+		break;
+	case MaskType::CAST_SHADOWS:
 		mask.bitMask ^= static_cast<int>(mask_);
 		break;
 	default:
@@ -258,6 +264,15 @@ void GameObject::Load(JsonValue jGameObject) {
 		}
 		components.push_back(component);
 		component->Load(jComponent);
+
+		// Save in the Scene the GameObject with the directional light
+		if (type == ComponentType::LIGHT) {
+			ComponentLight* light = static_cast<ComponentLight*>(component);
+			if (light && light->lightType == LightType::DIRECTIONAL) {
+				scene->directionalLight = this;
+			}
+		}
+
 	}
 
 	JsonValue jChildren = jGameObject[JSON_TAG_CHILDREN];

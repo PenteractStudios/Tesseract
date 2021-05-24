@@ -134,9 +134,15 @@ bool ModulePrograms::Start() {
 	specularNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
 	specularNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
 
+	// Shadow Shaders
+	shadowMap = CreateProgram(filePath, "vertDepthMap", "fragDepthMap");
+
 	//UI shaders
 	textUI = CreateProgram(filePath, "vertTextUI", "fragTextUI");
 	imageUI = CreateProgram(filePath, "vertImageUI", "fragImageUI");
+
+	// Engine Shaders
+	drawDepthMapTexture = CreateProgram(filePath, "vertDrawDepthMapTexture", "fragDrawDepthMapTexture");
 
 	unsigned timeMs = timer.Stop();
 	LOG("Shaders loaded in %ums", timeMs);
@@ -156,6 +162,8 @@ bool ModulePrograms::CleanUp() {
 	glDeleteProgram(standardNotNormal);
 	glDeleteProgram(specularNormal);
 	glDeleteProgram(specularNotNormal);
+	glDeleteProgram(shadowMap);
+	glDeleteProgram(drawDepthMapTexture);
 	glDeleteProgram(textUI);
 	glDeleteProgram(imageUI);
 

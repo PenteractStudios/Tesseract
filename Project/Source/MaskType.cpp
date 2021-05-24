@@ -11,6 +11,8 @@ const char* GetMaskTypeName(MaskType type) {
 		return "NONE";
 	case MaskType::ENEMY:
 		return "ENEMY";
+	case MaskType::CAST_SHADOWS:
+		return "Cast Shadows";
 	default:
 		LOG("The mask selected is not registered.");
 		assert(false);
@@ -25,6 +27,8 @@ MaskType GetMaskTypeFromName(const char* name) {
 		return MaskType::NONE;
 	} else if (strcmp(name, "Enemy") == 0) {
 		return MaskType::ENEMY;
+	}  else if (strcmp(name, "Cast Shadows") == 0) {
+		return MaskType::CAST_SHADOWS;
 	} else {
 		assert(false);
 		return MaskType::NONE;

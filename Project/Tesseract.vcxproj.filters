@@ -172,6 +172,7 @@
     <ClCompile Include="Source\Components\UI\ComponentSlider.cpp" />
     <ClCompile Include="Source\Utils\ImGuiUtils.cpp" />
     <ClCompile Include="Source\Scripting\Member.cpp" />
+    <ClCompile Include="Source\LightFrustum.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentProgressBar.cpp" />
     <ClCompile Include="Source\Components\ComponentParticleSystem.cpp" />
     <ClCompile Include="Source\Panels\PanelImportOptions.cpp" />
@@ -453,6 +454,9 @@
     <ClInclude Include="Source\Components\UI\ComponentSlider.h" />
     <ClInclude Include="Source\Scripting\Member.h" />
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
+    <ClInclude Include="Source\LightFrustum.h" />
+    <ClInclude Include="Source\Panels\PanelResource.h" />
+    <ClInclude Include="Source\Mask.h" />
     <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />
     <ClInclude Include="Source\Components\ComponentParticleSystem.h" />
     <ClInclude Include="Source\Panels\PanelImportOptions.h" />
