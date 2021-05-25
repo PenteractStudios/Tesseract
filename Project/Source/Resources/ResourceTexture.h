@@ -30,19 +30,19 @@ public:
 
 	void Load() override;
 	void Unload() override;
-	void OnEditorUpdate() override;
 
-	void UpdateMinFilter(TextureMinFilter filter);
-	void UpdateMagFilter(TextureMagFilter filter);
-	void UpdateWrap(TextureWrap wrap);
-	void Apply();
+	void LoadResourceMeta(JsonValue jResourceMeta) override;
+	void SaveResourceMeta(JsonValue jResourceMeta) override;
 
 public:
 	unsigned int glTexture = 0;
 
-	bool hasChanged = false;
-
 	TextureWrap wrap = TextureWrap::REPEAT;
 	TextureMinFilter minFilter = TextureMinFilter::NEAREST;
 	TextureMagFilter magFilter = TextureMagFilter::NEAREST;
+
+private:
+	void UpdateMinFilter(TextureMinFilter filter);
+	void UpdateMagFilter(TextureMagFilter filter);
+	void UpdateWrap(TextureWrap wrap);
 };

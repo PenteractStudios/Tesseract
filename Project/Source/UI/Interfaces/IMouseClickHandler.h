@@ -6,4 +6,5 @@ class IMouseClickHandler { //Interace that must be implemented by those Selectab
 public:
 	~IMouseClickHandler() {}
 	virtual void OnClicked() = 0;
+	virtual void OnClickedInternal() = 0;
 };

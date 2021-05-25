@@ -23,11 +23,12 @@
 #define JSON_TAG_WRAP "Wrap"
 
 void ResourceTexture::Load() {
+	std::string filePath = GetResourceFilePath();
+	LOG("Loading texture from path: \"%s\".", filePath.c_str());
+
 	// Timer to measure loading a texture
 	MSTimer timer;
 	timer.Start();
-	std::string filePath = GetResourceFilePath();
-	LOG("Loading texture from path: \"%s\".", filePath.c_str());
 
 	// Generate image handler
 	unsigned image;
@@ -71,68 +72,16 @@ void ResourceTexture::Unload() {
 	glDeleteTextures(1, &glTexture);
 }
 
-void ResourceTexture::OnEditorUpdate() {
-	ImGui::TextColored(App->editor->titleColor, "Filters");
+void ResourceTexture::LoadResourceMeta(JsonValue jResourceMeta) {
+	wrap = (TextureWrap)(int) jResourceMeta[JSON_TAG_WRAP];
+	minFilter = (TextureMinFilter)(int) jResourceMeta[JSON_TAG_MINFILTER];
+	magFilter = (TextureMagFilter)(int) jResourceMeta[JSON_TAG_MAGFILTER];
+}
 
-	// Min filter combo box
-	const char* min_filter_items[] = {"Nearest", "Linear", "Nearest Mipmap Nearest", "Linear Mipmap Nearest", "Nearest Mipmap Linear", "Linear Mipmap Linear"};
-	const char* min_filter_item_current = min_filter_items[int(minFilter)];
-	if (ImGui::BeginCombo("Min filter", min_filter_item_current)) {
-		for (int n = 0; n < IM_ARRAYSIZE(min_filter_items); ++n) {
-			bool is_selected = (min_filter_item_current == min_filter_items[n]);
-			if (ImGui::Selectable(min_filter_items[n], is_selected)) {
-				minFilter = TextureMinFilter(n);
-				hasChanged = true;
-			}
-			if (is_selected) {
-				ImGui::SetItemDefaultFocus();
-			}
-		}
-		ImGui::EndCombo();
-	}
-
-	// Mag filter combo box
-	const char* mag_filter_items[] = {"Nearest", "Linear"};
-	const char* mag_filter_item_current = mag_filter_items[int(magFilter)];
-	if (ImGui::BeginCombo("Mag filter", mag_filter_item_current)) {
-		for (int n = 0; n < IM_ARRAYSIZE(mag_filter_items); ++n) {
-			bool is_selected = (mag_filter_item_current == mag_filter_items[n]);
-			if (ImGui::Selectable(mag_filter_items[n], is_selected)) {
-				magFilter = TextureMagFilter(n);
-				hasChanged = true;
-			}
-			if (is_selected) {
-				ImGui::SetItemDefaultFocus();
-			}
-		}
-		ImGui::EndCombo();
-	}
-
-	// Texture wrap combo box
-	const char* wrap_items[] = {"Repeat", "Clamp to Edge", "Clamp to Border", "Mirrored Repeat", "Mirrored Clamp to Edge"};
-	const char* wrap_item_current = wrap_items[int(wrap)];
-	if (ImGui::BeginCombo("Wrap", wrap_item_current)) {
-		for (int n = 0; n < IM_ARRAYSIZE(wrap_items); ++n) {
-			bool is_selected = (wrap_item_current == wrap_items[n]);
-			if (ImGui::Selectable(wrap_items[n], is_selected)) {
-				wrap = TextureWrap(n);
-				hasChanged = true;
-			}
-			if (is_selected) {
-				ImGui::SetItemDefaultFocus();
-			}
-		}
-		ImGui::EndCombo();
-	}
-
-	ImGui::Separator();
-
-	if (hasChanged) {
-		if (ImGui::Button("Apply")) {
-			Apply();
-			hasChanged = false;
-		}
-	}
+void ResourceTexture::SaveResourceMeta(JsonValue jResourceMeta) {
+	jResourceMeta[JSON_TAG_WRAP] = (int) wrap;
+	jResourceMeta[JSON_TAG_MINFILTER] = (int) minFilter;
+	jResourceMeta[JSON_TAG_MAGFILTER] = (int) magFilter;
 }
 
 void ResourceTexture::UpdateMinFilter(TextureMinFilter filter) {
@@ -171,9 +120,9 @@ void ResourceTexture::UpdateMagFilter(TextureMagFilter filter) {
 	}
 }
 
-void ResourceTexture::UpdateWrap(TextureWrap wrap) {
+void ResourceTexture::UpdateWrap(TextureWrap textureWrap) {
 	glBindTexture(GL_TEXTURE_2D, glTexture);
-	switch (wrap) {
+	switch (textureWrap) {
 	case TextureWrap::REPEAT:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -195,10 +144,4 @@ void ResourceTexture::UpdateWrap(TextureWrap wrap) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRROR_CLAMP_TO_EDGE);
 		break;
 	}
-}
-
-void ResourceTexture::Apply() {
-	UpdateWrap(wrap);
-	UpdateMinFilter(minFilter);
-	UpdateMagFilter(magFilter);
 }

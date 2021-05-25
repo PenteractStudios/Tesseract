@@ -144,7 +144,7 @@
     <ClCompile Include="Source\FileSystem\SkyboxImporter.cpp" />
     <ClCompile Include="Source\FileSystem\ScriptImporter.cpp" />
     <ClCompile Include="Source\GameplaySystems.cpp" />
-    <ClCompile Include="Source\Utils\AssetFile.cpp" />
+    <ClCompile Include="Source\Utils\AssetCache.cpp" />
     <ClCompile Include="Source\Modules\ModuleEvents.cpp" />
     <ClCompile Include="Source\FileSystem\StateMachineImporter.cpp" />
     <ClCompile Include="Source\Resources\ResourceClip.cpp" />
@@ -174,9 +174,14 @@
     <ClCompile Include="Source\Scripting\Member.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentProgressBar.cpp" />
     <ClCompile Include="Source\Components\ComponentParticleSystem.cpp" />
+    <ClCompile Include="Source\Panels\PanelImportOptions.cpp" />
+    <ClCompile Include="Source\Components\ComponentTrail.cpp" />
     <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Source\MaskType.cpp" />
     <ClCompile Include="Source\Panels\PanelDebug.cpp" />
+    <ClCompile Include="Source\FileSystem\ImporterCommon.cpp" />
+    <ClCompile Include="Source\Panels\PanelResource.cpp" />
+    <ClCompile Include="Source\FileSystem\ImportOptions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -418,7 +423,7 @@
     <ClInclude Include="Source\GameplaySystems.h" />
     <ClInclude Include="Source\Components\ComponentSkyBox.h" />
     <ClInclude Include="Source\FileSystem\SkyboxImporter.h" />
-    <ClInclude Include="Source\Utils\AssetFile.h" />
+    <ClInclude Include="Source\Utils\AssetCache.h" />
     <ClInclude Include="Source\Modules\ModuleEvents.h" />
     <ClInclude Include="Source\FileSystem\StateMachineImporter.h" />
     <ClInclude Include="Source\Resources\ResourceClip.h" />
@@ -450,9 +455,14 @@
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
     <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />
     <ClInclude Include="Source\Components\ComponentParticleSystem.h" />
+    <ClInclude Include="Source\Panels\PanelImportOptions.h" />
+    <ClInclude Include="Source\MaskType.h" />
+    <ClInclude Include="Source\FileSystem\ImporterCommon.h" />
+    <ClInclude Include="Source\Components\ComponentTrail.h" />
     <ClInclude Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Source\MaskType.h" />
     <ClInclude Include="Source\Panels\PanelDebug.h" />
+    <ClInclude Include="Source\FileSystem\ImportOptions.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />

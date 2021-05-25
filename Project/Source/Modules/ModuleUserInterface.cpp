@@ -99,10 +99,12 @@ void ModuleUserInterface::ReceiveEvent(TesseractEvent& e) {
 			ComponentSelectable* lastHoveredSelectable = eventSystem->GetCurrentlyHovered();
 			if (lastHoveredSelectable != nullptr) {
 				if (lastHoveredSelectable->IsInteractable()) {
-					lastHoveredSelectable->TryToClickOn();
+					eventSystem->SetClickedGameObject(&lastHoveredSelectable->GetOwner());
+					lastHoveredSelectable->TryToClickOn(true);
 				}
 			} else {
-				eventSystem->SetSelected(0);
+				//Set selected to null
+				eventSystem->SetSelected(nullptr);
 			}
 		}
 		break;
@@ -111,7 +113,10 @@ void ModuleUserInterface::ReceiveEvent(TesseractEvent& e) {
 		if (eventSystem != nullptr) {
 			ComponentSelectable* lastHoveredSelectable = eventSystem->GetCurrentlyHovered();
 			if (lastHoveredSelectable != nullptr) {
-				lastHoveredSelectable->OnDeselect();
+				if (&lastHoveredSelectable->GetOwner() == eventSystem->GetClickedGameObject()) {
+					lastHoveredSelectable->TryToClickOn(false);
+					eventSystem->SetSelected(nullptr);
+				}
 			}
 		}
 		break;

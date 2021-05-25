@@ -14,10 +14,6 @@ public:
 
 private:
 	void UpdateFoldersRecursive(const AssetFolder& folder);
-	void UpdateAssetsRecursive(const AssetFolder& folder);
-	void UpdateResourcesRecursive(const AssetFolder& folder);
-
-private:
-	std::string selectedFolder = "";
-	std::string selectedAsset = "";
+	void UpdateAssets();
+	void UpdateResources();
 };
