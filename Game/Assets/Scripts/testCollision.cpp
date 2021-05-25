@@ -11,13 +11,13 @@ EXPOSE_MEMBERS(testCollision) {
 GENERATE_BODY_IMPL(testCollision);
 
 void testCollision::Start() {
-	
+
 }
 
 void testCollision::Update() {
-	
+
 }
 
-void OnCollision() {
+void testCollision::OnCollision() {
     Debug::Log("Collision Detected");
 }
