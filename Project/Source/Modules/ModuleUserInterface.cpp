@@ -76,20 +76,26 @@ UpdateStatus ModuleUserInterface::Update() {
 }
 
 void ModuleUserInterface::ManageInputsOnSelected(ComponentSelectable* currentlySelected) {
-	pressingOnSelected = App->input->GetKey(SDL_SCANCODE_RETURN) == KeyState::KS_REPEAT;
+	//pressingOnSelected = App->input->GetKey(SDL_SCANCODE_RETURN) == KeyState::KS_REPEAT;
 
-	if (!pressingOnSelected) {
-		pressingOnSelected = App->input->GetPlayerController(0) && App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A) == KeyState::KS_REPEAT;
-	}
+	//if (!pressingOnSelected) {
+	//	pressingOnSelected = App->input->GetPlayerController(0) && App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A) == KeyState::KS_REPEAT;
+	//}
+	bool confirmedPressOnSelected = App->input->GetKey(SDL_SCANCODE_RETURN) == KeyState::KS_UP || (App->input->GetPlayerController(0) && App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A) == KeyState::KS_REPEAT);
 
 	//Sliders are handled separately, all other UI components can be managed through this code
 	ComponentSlider* slider = currentlySelected->GetOwner().GetComponent<ComponentSlider>();
 	if (!slider) {
-		bool confirmedPressOnSelected = App->input->GetKey(SDL_SCANCODE_RETURN) == KeyState::KS_UP || (App->input->GetPlayerController(0) && App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A) == KeyState::KS_REPEAT);
 		if (confirmedPressOnSelected) {
 			currentlySelected->TryToClickOn(true);
 		}
 	} else {
+		if (confirmedPressOnSelected) {
+			handlingSlider = slider->beingHandled = !slider->beingHandled;
+		}
+
+		if (!slider->beingHandled) return;
+
 		float directionToMoveSlider = 0;
 		if (App->input->GetPlayerController(0)) {
 			directionToMoveSlider = App->input->GetPlayerController(0)->GetAxis(SDL_CONTROLLER_AXIS_LEFTX);
@@ -109,7 +115,7 @@ void ModuleUserInterface::ManageInputsOnSelected(ComponentSelectable* currentlyS
 				directionToMoveSlider = 1.0f;
 			}
 		}
-		if (pressingOnSelected && directionToMoveSlider != 0) slider->ModifyValue(directionToMoveSlider);
+		if (directionToMoveSlider != 0) slider->ModifyValue(directionToMoveSlider);
 	}
 }
 

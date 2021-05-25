@@ -44,7 +44,7 @@ void ComponentEventSystem::Update() {
 		}
 	}
 
-	if (!App->userInterface->pressingOnSelected) {
+	if (!App->userInterface->handlingSlider) {
 		float2 selectionDir = float2(0.f, 0.f);
 		bool keyPressed = false;
 		if (App->input->GetKey(SDL_SCANCODE_UP) == KS_DOWN) {

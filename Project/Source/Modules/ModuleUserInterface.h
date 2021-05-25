@@ -36,7 +36,7 @@ public:
 
 public:
 	bool view2DInternal = false;
-	bool pressingOnSelected = false;
+	bool handlingSlider = false;
 	float4 GetErrorColor(); // Gets the representation of the color
 
 private:

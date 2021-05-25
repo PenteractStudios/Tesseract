@@ -49,6 +49,7 @@ public:
 
 public:
 	bool handleStopsOnEdge = false;
+	bool beingHandled = false;
 
 private:
 	void SetNormalizedValue();
@@ -66,7 +67,7 @@ private:
 
 	float2 newPosition = float2(0, 0); // Click position inside the slider
 
-	float sliderSensitivity = 100.0f; //Speed at which the slider's value will increase via keyboard/game controller input
+	float sliderSensitivity = 100.0f;						//Speed at which the slider's value will increase via keyboard/game controller input
 	bool clicked = false;									// Clicked state
 	float4 colorClicked = float4(0.64f, 0.64f, 0.64f, 1.f); // The color when the button is clicked
 
