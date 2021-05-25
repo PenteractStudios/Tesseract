@@ -20,7 +20,6 @@ public:
 
 	// ------- Core Functions ------ //
 	void Init() override;
-	//void Update() override;
 	void DrawGizmos() override;
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;

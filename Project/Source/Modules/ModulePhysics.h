@@ -4,7 +4,9 @@
 #include "Math/float4x4.h"
 #include "btBulletDynamicsCommon.h"
 
+/* BULLET DEBUG: Uncomment to activate it
 class DebugDrawer;
+*/
 class MotionState;
 class btBroadphaseInterface;
 class ComponentSphereCollider;
@@ -46,12 +48,9 @@ class ModulePhysics : public Module {
 public:
 	// ------- Core Functions ------ //
 	bool Init() override;
-	//bool Start();
 	UpdateStatus PreUpdate();
 	UpdateStatus Update();
-	//UpdateStatus PostUpdate();
 	bool CleanUp();
-	//void ReceiveEvent(TesseractEvent& e);
 
 	// -- Add/Remove Sphere Body --- //
 	void CreateSphereRigidbody(ComponentSphereCollider* sphereCollider);
@@ -88,10 +87,13 @@ private:
 	btSequentialImpulseConstraintSolver* constraintSolver = nullptr;
 	btDiscreteDynamicsWorld* world = nullptr;
 
+	/* BULLET DEBUG: Uncomment to activate it
 	DebugDrawer* debugDrawer;
+	*/
 	bool debug = true;
 };
 
+/* BULLET DEBUG: Uncomment to activate it
 class DebugDrawer : public btIDebugDraw {
 public:
 	DebugDrawer() {}
@@ -104,3 +106,4 @@ public:
 
 	DebugDrawModes mode; // How to initialise this enum?
 };
+*/

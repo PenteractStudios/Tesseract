@@ -1,11 +1,8 @@
-#include "Globals.h"
-#include "Application.h"
 #include "ModulePhysics.h"
+
+#include "Application.h"
 #include "ModuleTime.h"
-#include "ModuleInput.h"
 #include "ModuleScene.h"
-#include "ModuleCamera.h" // Remove this
-#include "Components/ComponentCamera.h"
 #include "GameObject.h"
 #include "Components/Physics/ComponentSphereCollider.h"
 #include "Components/Physics/ComponentCapsuleCollider.h"
@@ -15,8 +12,6 @@
 #include "Utils/MotionState.h"
 #include "Utils/Logging.h"
 
-#include "debugdraw.h"
-
 bool ModulePhysics::Init() {
 	LOG("Creating Physics environment using Bullet Physics.");
 
@@ -24,12 +19,13 @@ bool ModulePhysics::Init() {
 	dispatcher = new btCollisionDispatcher(collisionConfiguration);
 	broadPhase = new btDbvtBroadphase();
 	constraintSolver = new btSequentialImpulseConstraintSolver();
-	debugDrawer = new DebugDrawer();
-
 	world = new btDiscreteDynamicsWorld(dispatcher, broadPhase, constraintSolver, collisionConfiguration);
-	world->setDebugDrawer(debugDrawer);
 	world->setGravity(btVector3(0.f, gravity, 0.f));
 
+	/* BULLET DEBUG: Uncomment to activate it
+	debugDrawer = new DebugDrawer();
+	world->setDebugDrawer(debugDrawer);
+	*/
 	return true;
 }
 
@@ -51,12 +47,10 @@ UpdateStatus ModulePhysics::PreUpdate() {
 				bool moveBodyA = false;
 				bool moveBodyB = false;
 				if (pbodyA && pbodyB) {
-					if (obA->isKinematicObject() && obB->isStaticOrKinematicObject() &&
-						(obB->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE) == 0) {
+					if (obA->isKinematicObject() && obB->isStaticOrKinematicObject() && (obB->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE) == 0) {
 						moveBodyA = true;
 					}
-					if (obB->isKinematicObject() && obA->isStaticOrKinematicObject() &&
-						(obA->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE) == 0) {
+					if (obB->isKinematicObject() && obA->isStaticOrKinematicObject() && (obA->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE) == 0) {
 						moveBodyB = true;
 					}
 
@@ -137,56 +131,26 @@ UpdateStatus ModulePhysics::PreUpdate() {
 }
 
 UpdateStatus ModulePhysics::Update() {
-	if (App->time->IsGameRunning()) {
-		/*if (App->input->GetKey(SDL_SCANCODE_F1) == KS_DOWN) //TODO: DOnt do it by keyboard!!
-		debug = !debug;*/
-
-		if (debug == true) {
-			world->debugDrawWorld();
-		}
-
-		if (App->input->GetKey(SDL_SCANCODE_SPACE) == KS_DOWN) {
-			//btCollisionShape* colShape = new btSphereShape(2.f);
-			btCollisionShape* colShape = new btBoxShape(btVector3(1, 1, 1));
-
-			btVector3 localInertia(0, 0, 0);
-			colShape->calculateLocalInertia(3.0f, localInertia);
-
-			float3 position = App->camera->GetEngineCamera()->frustum.Pos();
-			btDefaultMotionState* myMotionState = new btDefaultMotionState(btTransform(btQuaternion::getIdentity(), btVector3(position.x, position.y, position.z)));
-			btRigidBody::btRigidBodyConstructionInfo rbInfo(3.0f, myMotionState, colShape, localInertia);
-			btRigidBody* body = new btRigidBody(rbInfo);
-
-			world->addRigidBody(body, WorldLayers::WORLD_ELEMENTS, WorldLayers::PLAYER | WorldLayers::WORLD_ELEMENTS | WorldLayers::EVERYTHING);
-			float3 f = App->camera->GetEngineCamera()->frustum.Front();
-			body->applyCentralImpulse(btVector3(f.x * 73.f, f.y * 73.f, f.z * 73.f));
-			/*
-
-
-
-			Sphere bullet;
-			bullet.color = Green;
-			bullet.radius = 1.0f;
-			bullet.SetPos(App->camera->Position.x, App->camera->Position.y, App->camera->Position.z);
-
-			App->physics->AddBody(bullet)->Push(-App->camera->Z.x * 20.0f, -App->camera->Z.y * 20.0f, -App->camera->Z.z * 20.0f);*/
-		}
+	/* BULLET DEBUG: Uncomment to activate it
+	if (debug == true) {
+		world->debugDrawWorld();
 	}
+	*/
 	return UpdateStatus::CONTINUE;
 }
 
 bool ModulePhysics::CleanUp() {
-	// TODO: clean necessary module lists/vectors
 	ClearPhysicBodies();
 
 	RELEASE(world);
 
+	/* BULLET DEBUG: Uncomment to activate it
 	RELEASE(debugDrawer);
+	*/
 	RELEASE(constraintSolver);
 	RELEASE(broadPhase);
 	RELEASE(dispatcher);
 	RELEASE(collisionConfiguration);
-	// world
 
 	return true;
 }
@@ -202,8 +166,9 @@ btRigidBody* ModulePhysics::AddSphereBody(MotionState* myMotionState, float radi
 	btCollisionShape* colShape = new btSphereShape(radius);
 
 	btVector3 localInertia(0, 0, 0);
-	if (mass != 0.f)
+	if (mass != 0.f) {
 		colShape->calculateLocalInertia(mass, localInertia);
+	}
 
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
 	btRigidBody* body = new btRigidBody(rbInfo);
@@ -232,8 +197,9 @@ btRigidBody* ModulePhysics::AddBoxBody(MotionState* myMotionState, float3 size, 
 	btCollisionShape* colShape = new btBoxShape(btVector3(size.x, size.y, size.z));
 
 	btVector3 localInertia(0, 0, 0);
-	if (mass != 0.f)
+	if (mass != 0.f) {
 		colShape->calculateLocalInertia(mass, localInertia);
+	}
 
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
 	btRigidBody* body = new btRigidBody(rbInfo);
@@ -274,8 +240,9 @@ btRigidBody* ModulePhysics::AddCapsuleBody(MotionState* myMotionState, float rad
 	}
 
 	btVector3 localInertia(0, 0, 0);
-	if (mass != 0.f)
+	if (mass != 0.f) {
 		colShape->calculateLocalInertia(mass, localInertia);
+	}
 
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
 	btRigidBody* body = new btRigidBody(rbInfo);
@@ -332,18 +299,6 @@ void ModulePhysics::AddBodyToWorld(btRigidBody* rigidbody, ColliderType collider
 }
 
 void ModulePhysics::InitializeRigidBodies() {
-	// TODO: Remove this hardcode
-	// Big plane as ground
-	{
-		btCollisionShape* colShape = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
-
-		btDefaultMotionState* myMotionState = new btDefaultMotionState();
-		btRigidBody::btRigidBodyConstructionInfo rbInfo(0.0f, myMotionState, colShape);
-
-		btRigidBody* body = new btRigidBody(rbInfo);
-		world->addRigidBody(body, WorldLayers::WORLD_ELEMENTS, WorldLayers::PLAYER | WorldLayers::WORLD_ELEMENTS | WorldLayers::EVERYTHING);
-	}
-
 	for (ComponentSphereCollider& sphereCollider : App->scene->scene->sphereColliderComponents) {
 		if (!sphereCollider.rigidBody) CreateSphereRigidbody(&sphereCollider);
 	}
@@ -369,8 +324,8 @@ void ModulePhysics::SetGravity(float newGravity) {
 	world->setGravity(btVector3(0.f, newGravity, 0.f));
 }
 
-// TODO: Remove Bullet Debug
-// =================== DEBUG CALLBACKS ==========================
+/* BULLET DEBUG: Uncomment to activate it. #include "debugdraw.h" in this file if using it.
+// =================== BULLET DEBUG CALLBACKS ==========================
 void DebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color) {
 	dd::line((ddVec3) from, (ddVec3) to, (ddVec3) color); // TODO: Test if this actually works
 }
@@ -394,3 +349,4 @@ void DebugDrawer::setDebugMode(int debugMode) {
 int DebugDrawer::getDebugMode() const {
 	return mode;
 }
+*/
