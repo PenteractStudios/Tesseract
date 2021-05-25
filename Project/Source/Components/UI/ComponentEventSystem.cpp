@@ -44,32 +44,34 @@ void ComponentEventSystem::Update() {
 		}
 	}
 
-	float2 selectionDir = float2(0.f, 0.f);
-	bool keyPressed = false;
-	if (App->input->GetKey(SDL_SCANCODE_UP) == KS_DOWN) {
-		selectionDir = float2(0.f, 1.f);
-		keyPressed = true;
-	}
-	if (App->input->GetKey(SDL_SCANCODE_DOWN) == KS_DOWN) {
-		selectionDir = float2(0.f, -1.f);
-		keyPressed = true;
-	}
-	if (App->input->GetKey(SDL_SCANCODE_LEFT) == KS_DOWN) {
-		selectionDir = float2(-1.f, 0.f);
-		keyPressed = true;
-	}
-	if (App->input->GetKey(SDL_SCANCODE_RIGHT) == KS_DOWN) {
-		selectionDir = float2(1.f, 0.f);
-		keyPressed = true;
-	}
+	if (!App->userInterface->pressingOnSelected) {
+		float2 selectionDir = float2(0.f, 0.f);
+		bool keyPressed = false;
+		if (App->input->GetKey(SDL_SCANCODE_UP) == KS_DOWN) {
+			selectionDir = float2(0.f, 1.f);
+			keyPressed = true;
+		}
+		if (App->input->GetKey(SDL_SCANCODE_DOWN) == KS_DOWN) {
+			selectionDir = float2(0.f, -1.f);
+			keyPressed = true;
+		}
+		if (App->input->GetKey(SDL_SCANCODE_LEFT) == KS_DOWN) {
+			selectionDir = float2(-1.f, 0.f);
+			keyPressed = true;
+		}
+		if (App->input->GetKey(SDL_SCANCODE_RIGHT) == KS_DOWN) {
+			selectionDir = float2(1.f, 0.f);
+			keyPressed = true;
+		}
 
-	if (keyPressed) {
-		if (selectedId != 0) {
-			ComponentSelectable* currentSel = GetCurrentSelected();
-			if (currentSel != nullptr) {
-				ComponentSelectable* newSel = currentSel->FindSelectableOnDir(selectionDir);
-				if (newSel != nullptr) {
-					SetSelected(newSel->GetID());
+		if (keyPressed) {
+			if (selectedId != 0) {
+				ComponentSelectable* currentSel = GetCurrentSelected();
+				if (currentSel != nullptr) {
+					ComponentSelectable* newSel = currentSel->FindSelectableOnDir(selectionDir);
+					if (newSel != nullptr) {
+						SetSelected(newSel->GetID());
+					}
 				}
 			}
 		}

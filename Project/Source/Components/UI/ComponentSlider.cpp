@@ -7,6 +7,7 @@
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleWindow.h"
+#include "Modules/ModuleTime.h"
 #include "imgui.h"
 #include "Utils/Logging.h"
 #include "Scripting/Script.h"
@@ -51,7 +52,7 @@ void ComponentSlider::Update() {
 			float2 auxNewPosition = float2(((mousePos.x - (App->renderer->GetViewportSize().x / 2.0f)) / canvas->GetScreenFactor()) - GetOwner().GetComponent<ComponentTransform2D>()->GetScreenPosition().x, 0);
 			if (newPosition.x != auxNewPosition.x) {
 				newPosition = auxNewPosition;
-				OnValueChanged();
+				OnSliderDragged();
 			}
 		}
 	}
@@ -122,6 +123,11 @@ void ComponentSlider::OnEditorUpdate() {
 		SetNormalizedValue();
 	}
 
+	float localSensitivity = sliderSensitivity;
+	if (ImGui::InputFloat("Sensitivity", &localSensitivity)) {
+		sliderSensitivity = localSensitivity;
+	}
+
 	const char* availableDirections[] = {"Left to right", "Right to left"};
 	const char* currentDirection = availableDirections[(int) direction];
 	if (ImGui::BeginCombo("Direction", currentDirection)) {
@@ -154,10 +160,10 @@ void ComponentSlider::OnClickedInternal() {
 	float2 mousePos = App->input->GetMousePosition(true);
 	newPosition.x = ((mousePos.x - (App->renderer->GetViewportSize().x / 2.0f)) / canvas->GetScreenFactor()) - GetOwner().GetComponent<ComponentTransform2D>()->GetScreenPosition().x;
 
-	OnValueChanged();
+	OnSliderDragged();
 }
 
-void ComponentSlider::OnValueChanged() {
+void ComponentSlider::OnSliderDragged() {
 	// TODO: support for vertical sliders
 	ComponentTransform2D* backgroundTransform = background->GetComponent<ComponentTransform2D>();
 
@@ -171,6 +177,15 @@ void ComponentSlider::OnValueChanged() {
 
 	normalizedValue = size / backgroundTransform->GetSize().x;
 	currentValue = (maxValue - minValue) * normalizedValue;
+
+	OnValueChanged(true);
+}
+
+//If innerCall is true, means that this is being called from an OnSliderDragged event, meaning that no visual update is required
+void ComponentSlider::OnValueChanged(bool innerCall) {
+	if (!innerCall) {
+		SetNormalizedValue();
+	}
 
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
@@ -222,6 +237,10 @@ float2 ComponentSlider::GetClickedPosition() const {
 	return newPosition;
 }
 
+UID ComponentSlider::GetHandleID() const {
+	return handle ? handle->GetID() : 0;
+}
+
 float ComponentSlider::GetCurrentValue() const {
 	return currentValue;
 }
@@ -236,6 +255,16 @@ float ComponentSlider::GetMinValue() const {
 
 float ComponentSlider::GetNormalizedValue() const {
 	return normalizedValue;
+}
+
+void ComponentSlider::ModifyValue(float mulitplier) {
+#if GAME
+	currentValue = Max(Min(currentValue + mulitplier * App->time->GetDeltaTime() * sliderSensitivity, maxValue), minValue);
+#else
+	currentValue = Max(Min(currentValue + mulitplier * App->time->GetRealTimeDeltaTime() * sliderSensitivity, maxValue), minValue);
+#endif
+	if (mulitplier != 0.0f)
+		OnValueChanged();
 }
 
 float4 ComponentSlider::GetTintColor() const {
