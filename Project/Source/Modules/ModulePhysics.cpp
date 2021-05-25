@@ -44,45 +44,21 @@ UpdateStatus ModulePhysics::PreUpdate() {
 				Component* pbodyA = (Component*) obA->getUserPointer();
 				Component* pbodyB = (Component*) obB->getUserPointer();
 
-				bool moveBodyA = false;
-				bool moveBodyB = false;
 				if (pbodyA && pbodyB) {
-					if (obA->isKinematicObject() && obB->isStaticOrKinematicObject() && (obB->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE) == 0) {
-						moveBodyA = true;
-					}
-					if (obB->isKinematicObject() && obA->isStaticOrKinematicObject() && (obA->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE) == 0) {
-						moveBodyB = true;
-					}
-
 					switch (pbodyA->GetType()) {
 					case ComponentType::SPHERE_COLLIDER: {
 						ComponentSphereCollider* sphereCol = (ComponentSphereCollider*) pbodyA;
 						sphereCol->OnCollision();
-						if (moveBodyA) {
-							float3 contactPos = pbodyB->GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition() + float3(contactManifold->getContactPoint(0).m_localPointB);
-							float3 newPos = contactPos + float3(contactManifold->getContactPoint(0).m_normalWorldOnB) * sphereCol->radius;
-							newPos.y = sphereCol->GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition().y;
-							sphereCol->GetOwner().GetComponent<ComponentTransform>()->SetGlobalPosition(newPos);
-						}
 						break;
 					}
 					case ComponentType::BOX_COLLIDER: {
 						ComponentBoxCollider* boxCol = (ComponentBoxCollider*) pbodyA;
 						boxCol->OnCollision();
-						if (moveBodyA) {
-							// TODO: Not implementing it since it is much more complicated and we won't use boxes as kinematic objects.
-						}
 						break;
 					}
 					case ComponentType::CAPSULE_COLLIDER: {
 						ComponentCapsuleCollider* capsuleCol = (ComponentCapsuleCollider*) pbodyA;
 						capsuleCol->OnCollision();
-						if (moveBodyA) {
-							float3 contactPos = pbodyB->GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition() + float3(contactManifold->getContactPoint(0).m_localPointB);
-							float3 newPos = contactPos + float3(contactManifold->getContactPoint(0).m_normalWorldOnB) * capsuleCol->radius;
-							newPos.y = capsuleCol->GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition().y;
-							capsuleCol->GetOwner().GetComponent<ComponentTransform>()->SetGlobalPosition(newPos);
-						}
 						break;
 					}
 					default:
@@ -93,31 +69,16 @@ UpdateStatus ModulePhysics::PreUpdate() {
 					case ComponentType::SPHERE_COLLIDER: {
 						ComponentSphereCollider* sphereCol = (ComponentSphereCollider*) pbodyB;
 						sphereCol->OnCollision();
-						if (moveBodyB) {
-							float3 contactPos = pbodyA->GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition() + float3(contactManifold->getContactPoint(0).m_localPointA);
-							float3 newPos = contactPos - float3(contactManifold->getContactPoint(0).m_normalWorldOnB) * sphereCol->radius;
-							newPos.y = sphereCol->GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition().y;
-							sphereCol->GetOwner().GetComponent<ComponentTransform>()->SetGlobalPosition(newPos);
-						}
 						break;
 					}
 					case ComponentType::BOX_COLLIDER: {
 						ComponentBoxCollider* boxCol = (ComponentBoxCollider*) pbodyB;
 						boxCol->OnCollision();
-						if (moveBodyB) {
-							// TODO: Not implementing it since it is much more complicated and we won't use boxes as kinematic objects.
-						}
 						break;
 					}
 					case ComponentType::CAPSULE_COLLIDER: {
 						ComponentCapsuleCollider* capsuleCol = (ComponentCapsuleCollider*) pbodyB;
 						capsuleCol->OnCollision();
-						if (moveBodyB) {
-							float3 contactPos = pbodyA->GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition() + float3(contactManifold->getContactPoint(0).m_localPointA);
-							float3 newPos = contactPos - float3(contactManifold->getContactPoint(0).m_normalWorldOnB) * capsuleCol->radius;
-							newPos.y = capsuleCol->GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition().y;
-							capsuleCol->GetOwner().GetComponent<ComponentTransform>()->SetGlobalPosition(newPos);
-						}
 						break;
 					}
 					default:
