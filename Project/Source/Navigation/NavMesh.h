@@ -96,10 +96,10 @@ private:
 	rcHeightfield* solid = nullptr;
 	unsigned char* triareas = nullptr;
 
-	rcCompactHeightfield* chf;
-	rcContourSet* cset;
-	rcPolyMesh* pmesh;
-	rcPolyMeshDetail* dmesh;
+	rcCompactHeightfield* chf = nullptr;
+	rcContourSet* cset = nullptr;
+	rcPolyMesh* pmesh = nullptr;
+	rcPolyMeshDetail* dmesh = nullptr;
 
 	unsigned char navMeshDrawFlags = 0;
 };

@@ -10,6 +10,8 @@
 #include "Utils/Buffer.h"
 #include "Utils/MSTimer.h"
 
+#include "Utils/Leaks.h"
+
 void ResourceNavMesh::Load() {
 	// Timer to measure loading a mesh
 	MSTimer timer;
