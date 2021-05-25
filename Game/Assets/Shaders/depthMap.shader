@@ -18,7 +18,7 @@ out vec2 texcoords;
 
 void main() {
 
-	vec4 position = vec4(pos, 1.0);
+    vec4 position = vec4(pos, 1.0);
     vec4 normal = vec4(norm, 0.0);
 
     if (hasBones)
@@ -30,7 +30,7 @@ void main() {
         normal = skinT * vec4(norm, 0.0);
     }
 
-	gl_Position = proj * view * model * position;
+    gl_Position = proj * view * model * position;
 }
 
 --- fragDepthMap
