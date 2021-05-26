@@ -136,8 +136,14 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 				if (!clip->loop) {
 					int currentSample = AnimationController::GetCurrentSample(*clip, currentState->currentTime);
 					if (currentSample == clip->endIndex) {
-						TesseractEvent animationFinishedEvent = TesseractEvent(TesseractEventType::ANIMATION_FINISHED);
-						App->events->AddEvent(animationFinishedEvent);
+						for (ComponentScript& script : GetOwner().GetComponents<ComponentScript>()) {
+							if (script.IsActive()) {
+								Script* scriptInstance = script.GetScriptInstance();
+								if (scriptInstance != nullptr) {
+									scriptInstance->OnAnimationFinished();
+								}
+							}
+						}
 					}
 				}
 			}
