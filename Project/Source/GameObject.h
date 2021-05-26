@@ -134,6 +134,7 @@ private:
 	GameObject* parent = nullptr;
 	GameObject* rootBoneHierarchy = nullptr;
 	std::vector<GameObject*> children;
+
 };
 
 template<class T>

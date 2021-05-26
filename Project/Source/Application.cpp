@@ -18,6 +18,7 @@
 #include "Modules/ModuleProject.h"
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleUserInterface.h"
+#include "Modules/ModulePhysics.h"
 #include "Modules/ModuleNavigation.h"
 
 #include "SDL_timer.h"
@@ -41,6 +42,7 @@ Application::Application() {
 	modules.push_back(time = new ModuleTime());
 	modules.push_back(input = new ModuleInput());
 	modules.push_back(camera = new ModuleCamera());
+	modules.push_back(physics = new ModulePhysics());
 
 	modules.push_back(navigation = new ModuleNavigation());
 	modules.push_back(scene = new ModuleScene());

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -15,6 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\LightFrustum.h" />
     <ClInclude Include="Source\Components\ComponentAgent.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\DebugUtils\DebugDraw.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\DebugUtils\DetourDebugDraw.h" />
@@ -60,10 +61,15 @@
     <ClInclude Include="Source\FileSystem\ClipImporter.h" />
     <ClInclude Include="Source\FileSystem\StateMachineImporter.h" />
     <ClInclude Include="Source\AnimationInterpolation.h" />
-    <ClInclude Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Source\Resources\ResourceClip.h" />
     <ClInclude Include="Source\State.h" />
+    <ClInclude Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Source\Panels\PanelImportOptions.h" />
+    <ClInclude Include="Source\Components\Physics\ComponentBoxCollider.h" />
+    <ClInclude Include="Source\Components\Physics\ComponentCapsuleCollider.h" />
+    <ClInclude Include="Source\Utils\MotionState.h" />
+    <ClInclude Include="Source\Components\Physics\ComponentSphereCollider.h" />
+    <ClInclude Include="Source\Modules\ModulePhysics.h" />
     <ClInclude Include="Source\FileSystem\AudioImporter.h" />
     <ClInclude Include="Libs\imgui\imgui_stdlib.h" />
     <ClInclude Include="Source\Resources\ResourceAudioClip.h" />
@@ -330,6 +336,7 @@
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\LightFrustum.cpp" />
     <ClCompile Include="Source\Components\ComponentAgent.cpp" />
     <ClCompile Include="Source\FileSystem\NavMeshImporter.cpp" />
     <ClCompile Include="Source\Panels\PanelDebug.cpp" />
@@ -382,6 +389,12 @@
     <ClCompile Include="Source\Panels\PanelNavigation.cpp" />
     <ClCompile Include="Source\Modules\ModuleNavigation.cpp" />
     <ClCompile Include="Source\Panels\PanelImportOptions.cpp" />
+    <ClCompile Include="Libs\imgui\imgui_tables.cpp" />
+    <ClCompile Include="Source\Components\Physics\ComponentBoxCollider.cpp" />
+    <ClCompile Include="Source\Components\Physics\ComponentCapsuleCollider.cpp" />
+    <ClCompile Include="Source\Utils\MotionState.cpp" />
+    <ClCompile Include="Source\Components\Physics\ComponentSphereCollider.cpp" />
+    <ClCompile Include="Source\Modules\ModulePhysics.cpp" />
     <ClCompile Include="Source\FileSystem\AudioImporter.cpp" />
     <ClCompile Include="Libs\imgui\imgui_stdlib.cpp" />
     <ClCompile Include="Source\Resources\ResourceAudioClip.cpp" />
@@ -634,18 +647,19 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include;$(ProjectDir)/Libs\recastnavigation-1.5.1</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\recastnavigation-1.5.1;$(ProjectDir)/Libs\Bullet/include;$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS; _MBCS; %(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(ProjectDir)/Libs\freetype/lib;$(ProjectDir)/Libs\brofiler/lib;$(ProjectDir)/Libs\assimp/lib;$(ProjectDir)/Libs\DeviL/lib;$(ProjectDir)/Libs\SDL/lib;$(ProjectDir)/Libs\glew-2.1.0/lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>freetype.lib;ProfilerCore32.lib;assimp-vc141-mt.lib;DeviL.lib;ILU.lib;ILUT.lib;SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)/Libs\brofiler/lib;$(ProjectDir)/Libs\assimp/lib;$(ProjectDir)/Libs\DeviL/lib;$(ProjectDir)/Libs\SDL/lib;$(ProjectDir)/Libs\glew-2.1.0/lib;$(ProjectDir)/Libs\OpenAL-soft/lib;$(ProjectDir)/Libs\libsndfile/lib;$(ProjectDir)/Libs\freetype\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ProfilerCore32.lib;assimp-vc141-mt.lib;DeviL.lib;ILU.lib;ILUT.lib;SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;OpenAL32.lib;sndfile.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)/Libs\Bullet/lib;$(ProjectDir)/Libs\brofiler/lib;$(ProjectDir)/Libs\assimp/lib;$(ProjectDir)/Libs\DeviL/lib;$(ProjectDir)/Libs\SDL/lib;$(ProjectDir)/Libs\glew-2.1.0/lib;$(ProjectDir)/Libs\OpenAL-soft/lib;$(ProjectDir)/Libs\libsndfile/lib;$(ProjectDir)/Libs\freetype\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>BulletCollision_debug.lib;BulletDynamics_debug.lib;LinearMath_debug.lib;ProfilerCore32.lib;assimp-vc141-mt.lib;DeviL.lib;ILU.lib;ILUT.lib;SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;OpenAL32.lib;sndfile.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -663,10 +677,11 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include;$(ProjectDir)/Libs\recastnavigation-1.5.1</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\recastnavigation-1.5.1;$(ProjectDir)/Libs\Bullet/include;$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS; _MBCS; %(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -675,8 +690,8 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(ProjectDir)/Libs\freetype/lib;$(ProjectDir)/Libs\brofiler/lib; $(ProjectDir)/Libs\assimp/lib; $(ProjectDir)/Libs\DeviL/lib; $(ProjectDir)/Libs\SDL/lib; $(ProjectDir)/Libs\glew-2.1.0/lib;</AdditionalLibraryDirectories>
       <AdditionalDependencies>freetype.lib;ProfilerCore32.lib; assimp-vc141-mt.lib; DeviL.lib; ILU.lib; ILUT.lib; SDL2.lib; SDL2main.lib; glew32.lib; opengl32.lib; kernel32.lib; user32.lib; gdi32.lib; winspool.lib; comdlg32.lib; advapi32.lib; shell32.lib; ole32.lib; oleaut32.lib; uuid.lib; odbc32.lib; odbccp32.lib; %(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)/Libs\brofiler/lib;$(ProjectDir)/Libs\assimp/lib;$(ProjectDir)/Libs\DeviL/lib;$(ProjectDir)/Libs\SDL/lib;$(ProjectDir)/Libs\glew-2.1.0/lib;$(ProjectDir)/Libs\libsndfile/lib;$(ProjectDir)/Libs\OpenAL-soft/lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ProfilerCore32.lib;assimp-vc141-mt.lib;DeviL.lib;ILU.lib;ILUT.lib;SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;OpenAL32.lib;sndfile.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)/Libs\Bullet/lib;$(ProjectDir)/Libs\brofiler/lib;$(ProjectDir)/Libs\assimp/lib;$(ProjectDir)/Libs\DeviL/lib;$(ProjectDir)/Libs\SDL/lib;$(ProjectDir)/Libs\glew-2.1.0/lib;$(ProjectDir)/Libs\libsndfile/lib;$(ProjectDir)/Libs\OpenAL-soft/lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;ProfilerCore32.lib;assimp-vc141-mt.lib;DeviL.lib;ILU.lib;ILUT.lib;SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;OpenAL32.lib;sndfile.lib</AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <PerUserRedirection>true</PerUserRedirection>
     </Link>
@@ -696,9 +711,10 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include;$(ProjectDir)/Libs\recastnavigation-1.5.1</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\recastnavigation-1.5.1;$(ProjectDir)/Libs\Bullet/include;$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS; _MBCS;GAME; %(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -708,8 +724,8 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(ProjectDir)/Libs\freetype/lib;$(ProjectDir)/Libs\brofiler/lib; $(ProjectDir)/Libs\assimp/lib; $(ProjectDir)/Libs\DeviL/lib; $(ProjectDir)/Libs\SDL/lib; $(ProjectDir)/Libs\glew-2.1.0/lib;</AdditionalLibraryDirectories>
       <AdditionalDependencies>freetype.lib;ProfilerCore32.lib; assimp-vc141-mt.lib; DeviL.lib; ILU.lib; ILUT.lib; SDL2.lib; SDL2main.lib; glew32.lib; opengl32.lib; kernel32.lib; user32.lib; gdi32.lib; winspool.lib; comdlg32.lib; advapi32.lib; shell32.lib; ole32.lib; oleaut32.lib; uuid.lib; odbc32.lib; odbccp32.lib; %(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)/Libs\brofiler/lib;$(ProjectDir)/Libs\assimp/lib;$(ProjectDir)/Libs\DeviL/lib;$(ProjectDir)/Libs\SDL/lib;$(ProjectDir)/Libs\glew-2.1.0/lib;$(ProjectDir)/Libs\libsndfile/lib;$(ProjectDir)/Libs\OpenAL-soft/lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ProfilerCore32.lib;assimp-vc141-mt.lib;DeviL.lib;ILU.lib;ILUT.lib;SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;OpenAL32.lib;sndfile.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)/Libs\Bullet/lib;$(ProjectDir)/Libs\brofiler/lib;$(ProjectDir)/Libs\assimp/lib;$(ProjectDir)/Libs\DeviL/lib;$(ProjectDir)/Libs\SDL/lib;$(ProjectDir)/Libs\glew-2.1.0/lib;$(ProjectDir)/Libs\libsndfile/lib;$(ProjectDir)/Libs\OpenAL-soft/lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;ProfilerCore32.lib;assimp-vc141-mt.lib;DeviL.lib;ILU.lib;ILUT.lib;SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;OpenAL32.lib;sndfile.lib</AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <PerUserRedirection>true</PerUserRedirection>
     </Link>

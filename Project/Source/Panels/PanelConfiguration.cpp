@@ -10,6 +10,7 @@
 #include "Modules/ModuleRender.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleResources.h"
+#include "Modules/ModulePhysics.h"
 #include "Resources/ResourceNavMesh.h"
 #include "Scene.h"
 #include "Utils/ImGuiUtils.h"
@@ -54,6 +55,13 @@ void PanelConfiguration::Update() {
 			ImGui::PlotHistogram("##milliseconds", &logger->msLog[0], FPS_LOG_SIZE, logger->fpsLogIndex, title, 0.0f, 40.0f, ImVec2(310, 100));
 		}
 
+		// Physics
+		if (ImGui::CollapsingHeader("Physics")) {
+			if (ImGui::DragFloat("Radius", &App->physics->gravity, App->editor->dragSpeed3f, -100.f, 100.f)) {
+				App->physics->SetGravity(App->physics->gravity);
+			}
+		}
+
 		// Hardware
 		if (ImGui::CollapsingHeader("Hardware")) {
 			ImGui::Text("GLEW version:");
@@ -68,6 +76,9 @@ void PanelConfiguration::Update() {
 			ImGui::Text("DeviL version:");
 			ImGui::SameLine();
 			ImGui::TextColored(App->editor->textColor, App->hardware->devilVersion);
+			ImGui::Text("Bullet Physics version:");
+			ImGui::SameLine();
+			ImGui::TextColored(App->editor->textColor, App->hardware->bulletVersion);
 
 			ImGui::Separator();
 

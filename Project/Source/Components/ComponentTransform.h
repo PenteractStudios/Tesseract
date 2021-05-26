@@ -40,6 +40,9 @@ public:
 	TESSERACT_ENGINE_API float3 GetGlobalScale();
 	TESSERACT_ENGINE_API const float4x4& GetLocalMatrix();
 	TESSERACT_ENGINE_API const float4x4& GetGlobalMatrix();
+	TESSERACT_ENGINE_API float3 GetFront() const;
+	TESSERACT_ENGINE_API float3 GetRight() const;
+	TESSERACT_ENGINE_API float3 GetUp() const;
 
 private:
 	float3 position = float3::zero;			// Position of the GameObject in world coordinates.
