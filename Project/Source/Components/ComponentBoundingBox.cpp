@@ -80,7 +80,7 @@ void ComponentBoundingBox::DrawBoundingBox() {
 	points[6] = points[7];
 	points[7] = aux;
 
-	dd::box(points, dd::colors::White);
+	dd::box(points, dd::colors::Red);
 }
 
 void ComponentBoundingBox::Invalidate() {

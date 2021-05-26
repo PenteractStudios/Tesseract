@@ -10,6 +10,7 @@
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleAudio.h"
 #include "Scene.h"
+#include "Modules/ModulePhysics.h"
 #include "SDL_timer.h"
 #include "Brofiler.h"
 #include <ctime>
@@ -137,11 +138,15 @@ unsigned int ModuleTime::GetFrameCount() const {
 void ModuleTime::StartGame() {
 	if (gameStarted) return;
 
+	gameStarted = true;
+	gameRunning = true;
+
 #if !GAME
 	SceneImporter::SaveScene(TEMP_SCENE_FILE_NAME);
 	App->scene->scene->sceneLoaded = false;
 #endif // !GAME
 
+	//TODO: this goes inside !GAME?
 	if (App->camera->GetGameCamera()) {
 		// Set the Game Camera as active
 		App->camera->ChangeActiveCamera(App->camera->GetGameCamera(), true);
@@ -150,8 +155,7 @@ void ModuleTime::StartGame() {
 		// TODO: Modal window. Warning - camera not set.
 	}
 
-	gameStarted = true;
-	gameRunning = true;
+	App->physics->InitializeRigidBodies();
 }
 
 void ModuleTime::StopGame() {
@@ -159,6 +163,7 @@ void ModuleTime::StopGame() {
 
 	gameStarted = false;
 	gameRunning = false;
+	timeLastMs = 0;
 
 	// Stop all audio sources
 	App->audio->StopAllSources();
@@ -167,12 +172,10 @@ void ModuleTime::StopGame() {
 	SceneImporter::LoadScene(TEMP_SCENE_FILE_NAME);
 	App->files->Erase(TEMP_SCENE_FILE_NAME);
 #endif
-
-	// Reset to the Engine camera
 	App->camera->ChangeActiveCamera(nullptr, false);
 	App->camera->ChangeCullingCamera(nullptr, false);
 
-	timeLastMs = 0;
+	App->physics->ClearPhysicBodies();
 }
 
 void ModuleTime::PauseGame() {
