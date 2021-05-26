@@ -162,11 +162,12 @@ void ComponentBilboardRender::Draw() {
 	float4x4* proj = &App->camera->GetProjectionMatrix();
 	float4x4* view = &App->camera->GetViewMatrix();
 
-	float4x4 newModelMatrix = transform->GetGlobalMatrix().LookAt(rotatePart.Col(2), -frustum->Front(), rotatePart.Col(1), float3::unitY);
-	/*float4x4 Final = float4x4::FromTRS(newModelMatrix.GetGlobalMatrix() position, newModelMatrix.RotatePart(), currentParticle.scale);*/
+	float4x4 newModelMatrix = transform->GetGlobalMatrix();
+	newModelMatrix = newModelMatrix.LookAt(rotatePart.Col(2), -frustum->Front(), rotatePart.Col(1), float3::unitY);
+	float4x4 Final = float4x4::FromTRS(transform->GetGlobalPosition(), newModelMatrix.RotatePart(), transform->GetGlobalScale());
 	//-> glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, newModelMatrix.ptr());
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, newModelMatrix.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, Final.ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view->ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
 	//TODO: ADD delta Time
@@ -183,6 +184,7 @@ void ComponentBilboardRender::Draw() {
 	glUniform1i(glGetUniformLocation(program, "diffuse"), 0);
 	glUniform1f(glGetUniformLocation(program, "currentFrame"), currentFrame);
 	glUniform1f(glGetUniformLocation(program, "colorFrame"), colorFrame);
+	//TODO WAIT NIL MAY NEED TO IMPROVE THIS FEATURE
 	glUniform4fv(glGetUniformLocation(program, "initColor"), 1, initC.ptr());
 	glUniform4fv(glGetUniformLocation(program, "finalColor"), 1, finalC.ptr());
 
