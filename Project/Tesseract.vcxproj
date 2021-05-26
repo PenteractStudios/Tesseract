@@ -350,7 +350,6 @@
     <ClCompile Include="Source\FileSystem\StateMachineImporter.cpp" />
     <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Source\Resources\ResourceClip.cpp" />
-    <ClCompile Include="Libs\imgui\imgui_tables.cpp" />
     <ClCompile Include="Libs\recastnavigation-1.5.1\DebugUtils\DebugDraw.cpp" />
     <ClCompile Include="Libs\recastnavigation-1.5.1\DebugUtils\DetourDebugDraw.cpp" />
     <ClCompile Include="Libs\recastnavigation-1.5.1\DebugUtils\RecastDebugDraw.cpp" />
