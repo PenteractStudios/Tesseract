@@ -149,8 +149,8 @@ bool NavMesh::Build() {
 		return false;
 	}
 
-	float bmin[3] = {INT_MAX, INT_MAX, INT_MAX};
-	float bmax[3] = {INT_MIN, INT_MIN, INT_MIN};
+	float bmin[3] = {FLT_MAX, FLT_MAX, FLT_MAX};
+	float bmax[3] = {FLT_MIN, FLT_MIN, FLT_MIN};
 	for (ComponentBoundingBox boundingBox : App->scene->scene->boundingBoxComponents) {
 		AABB currentBB = boundingBox.GetWorldAABB();
 		float3 currentBBMin = currentBB.minPoint;
@@ -502,8 +502,8 @@ void NavMesh::DrawGizmos() {
 	glDepthMask(GL_FALSE);
 
 	// Draw bounds
-	float bmin[3] = {INT_MAX, INT_MAX, INT_MAX};
-	float bmax[3] = {INT_MIN, INT_MIN, INT_MIN};
+	float bmin[3] = {FLT_MAX, FLT_MAX, FLT_MAX};
+	float bmax[3] = {FLT_MIN, FLT_MIN, FLT_MIN};
 	for (ComponentBoundingBox boundingBox : App->scene->scene->boundingBoxComponents) {
 		AABB currentBB = boundingBox.GetWorldAABB();
 		float3 currentBBMin = currentBB.minPoint;

@@ -106,7 +106,7 @@ void ResourceMesh::Load() {
 	float* vertices = (float*) cursor;
 	cursor += vertexBufferSize;
 
-	for (int i = 0; i < numVertices * elementsPerVertex; i += elementsPerVertex) {
+	for (unsigned i = 0; i < numVertices * elementsPerVertex; i += elementsPerVertex) {
 		meshVertices.push_back(vertices[i]);
 		meshVertices.push_back(vertices[i + 1]);
 		meshVertices.push_back(vertices[i + 2]);
@@ -115,7 +115,7 @@ void ResourceMesh::Load() {
 	// Indices
 	unsigned* indices = (unsigned*) cursor;
 
-	for (int i = 0; i < numIndices; ++i) {
+	for (unsigned i = 0; i < numIndices; ++i) {
 		meshIndices.push_back(indices[i]);
 	}
 
