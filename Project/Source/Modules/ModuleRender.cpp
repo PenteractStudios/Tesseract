@@ -146,7 +146,7 @@ bool ModuleRender::Init() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	
+
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
@@ -166,9 +166,14 @@ void ModuleRender::ShadowMapPass() {
 }
 
 void ModuleRender::RenderPass() {
+#if GAME
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#else
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+#endif
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	DrawScene();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void ModuleRender::DrawScene(bool shadowPass) {
@@ -210,6 +215,8 @@ void ModuleRender::DrawDepthMapTexture() {
 	glActiveTexture(GL_TEXTURE0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 bool ModuleRender::Start() {
@@ -591,7 +598,6 @@ void ModuleRender::DrawGameObject(GameObject* gameObject) {
 }
 
 void ModuleRender::DrawGameObjectShadowPass(GameObject* gameObject) {
-
 	if ((gameObject->GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) == 0) return;
 
 	ComponentView<ComponentMeshRenderer> meshes = gameObject->GetComponents<ComponentMeshRenderer>();

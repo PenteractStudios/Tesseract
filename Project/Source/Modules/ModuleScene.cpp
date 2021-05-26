@@ -94,7 +94,7 @@ bool ModuleScene::Start() {
 
 #if GAME
 	App->events->AddEvent(TesseractEventType::PRESSED_PLAY);
-	SceneImporter::LoadScene("Assets/Scenes/StartScene.scene");
+	SceneImporter::LoadScene("Assets/Scenes/ShadowsTest14.scene");
 	if (App->scene->scene->root == nullptr) {
 		App->scene->CreateEmptyScene();
 	}
