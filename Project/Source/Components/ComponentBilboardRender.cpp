@@ -33,6 +33,7 @@
 #define JSON_TAG_COLOR "Color"
 #define JSON_TAG_YTILES "Ytiles"
 #define JSON_TAG_XTILES "Xtiles"
+#define JSON_TAG_ANIMATIONSPEED "AnimationSpeed"
 
 void ComponentBilboardRender::Update() {
 	Draw();
@@ -110,6 +111,7 @@ void ComponentBilboardRender::Load(JsonValue jComponent) {
 	}
 	Ytiles = jComponent[JSON_TAG_YTILES];
 	Xtiles = jComponent[JSON_TAG_XTILES];
+	animationSpeed = jComponent[JSON_TAG_ANIMATIONSPEED];
 
 	JsonValue jColor = jComponent[JSON_TAG_INITCOLOR];
 	initC.Set(jColor[0], jColor[1], jColor[2]);
@@ -123,6 +125,7 @@ void ComponentBilboardRender::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_TEXTURE_TEXTUREID] = textureID;
 	jComponent[JSON_TAG_YTILES] = Ytiles;
 	jComponent[JSON_TAG_XTILES] = Xtiles;
+	jComponent[JSON_TAG_ANIMATIONSPEED] = animationSpeed;
 
 	JsonValue jColor = jComponent[JSON_TAG_INITCOLOR];
 	jColor[0] = initC.x;
