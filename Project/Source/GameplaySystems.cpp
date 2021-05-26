@@ -110,6 +110,10 @@ void Debug::ToggleDrawParticleGizmos() {
 	App->renderer->ToggleDrawParticleGizmos();
 }
 
+void Debug::ToggleDrawLightFrustumGizmo() {
+	App->renderer->ToggleDrawLightFrustumGizmo();
+}
+
 void Debug::UpdateShadingMode(const char* shadingMode) {
 	App->renderer->UpdateShadingMode(shadingMode);
 }
@@ -360,11 +364,11 @@ Screen::DisplayMode Screen::GetDisplayMode(unsigned index) {
 }
 
 int Screen::GetWidth() {
-	return static_cast<float>(App->window->GetWidth());
+	return App->window->GetWidth();
 }
 
 int Screen::GetHeight() {
-	return static_cast<float>(App->window->GetHeight());
+	return App->window->GetHeight();
 }
 
 float Screen::GetBrightness() {

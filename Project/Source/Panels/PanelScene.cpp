@@ -49,7 +49,7 @@ void PanelScene::Update() {
 
 		if (ImGui::BeginMenuBar()) {
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
-			const char* shadingMode[2] = {"Shaded", "Wireframe"};
+			const char* shadingMode[3] = {"Shaded", "Wireframe", "Depth"};
 			if (ImGui::Button(currentShadingMode)) {
 				ImGui::OpenPopup("DrawMode");
 			}
@@ -123,6 +123,7 @@ void PanelScene::Update() {
 				ImGui::Checkbox("Camera Frustums", &App->renderer->drawCameraFrustums);
 				ImGui::Checkbox("Light Gizmos", &App->renderer->drawLightGizmos);
 				ImGui::Checkbox("Animation Bones", &App->renderer->drawAllBones);
+				ImGui::Checkbox("Light frustum", &App->renderer->drawLightFrustumGizmo);
 				ImGui::Checkbox("Particle Gizmos", &App->renderer->drawParticleGizmos);
 				ImGui::Checkbox("Colliders", &App->renderer->drawColliders);
 				ImGui::Separator();

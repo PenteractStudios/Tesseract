@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -15,6 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\LightFrustum.h" />
     <ClInclude Include="Source\Panels\PanelDebug.h" />
     <ClInclude Include="Source\FileSystem\ImportOptions.h" />
     <ClInclude Include="Source\FileSystem\ImporterCommon.h" />
@@ -300,6 +301,7 @@
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\LightFrustum.cpp" />
     <ClCompile Include="Source\Panels\PanelDebug.cpp" />
     <ClCompile Include="Source\FileSystem\ImportOptions.cpp" />
     <ClCompile Include="Source\FileSystem\ImporterCommon.cpp" />

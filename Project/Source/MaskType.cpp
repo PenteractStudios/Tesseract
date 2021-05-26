@@ -10,6 +10,8 @@ const char* GetMaskTypeName(MaskType type) {
 		return "NONE";
 	case MaskType::ENEMY:
 		return "ENEMY";
+	case MaskType::CAST_SHADOWS:
+		return "CAST SHADOWS";
 	case MaskType::PLAYER:
 		return "PLAYER";
 	default:
@@ -24,9 +26,11 @@ const char* GetMaskTypeName(MaskType type) {
 MaskType GetMaskTypeFromName(const char* name) {
 	if (strcmp(name, "NONE") == 0) {
 		return MaskType::NONE;
-	} else if (strcmp(name, "Enemy") == 0) {
+	} else if (strcmp(name, "ENEMY") == 0) {
 		return MaskType::ENEMY;
-	} else if (strcmp(name, "Player") == 0) {
+	}  else if (strcmp(name, "CAST SHADOWS") == 0) {
+		return MaskType::CAST_SHADOWS;
+	} else if (strcmp(name, "PLAYER") == 0) {
 		return MaskType::PLAYER;
 	} else {
 		assert(false);
