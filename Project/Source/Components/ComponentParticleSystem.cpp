@@ -43,6 +43,10 @@
 #define JSON_TAG_INITCOLOR "InitColor"
 #define JSON_TAG_FINALCOLOR "FinalColor"
 #define JSON_TAG_ANIMATIONSPEED "AnimationSpeed"
+
+#define JSON_TAG_EMITTERTYPE "EmitterType"
+#define JSON_TAG_BILDBOARTYPE "BildBoardtype"
+
 #include <random>
 
 void ComponentParticleSystem::OnEditorUpdate() {
@@ -63,6 +67,24 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	ImGui::Checkbox("Loop: ", &looping);
 	if (ImGui::Button("Play")) Play();
 	if (ImGui::Button("Stop")) Stop();
+
+	ImGui::Separator();
+	const char* bildboarTypeCombo[] = {"LoockAt", "Stretch"};
+	const char* bildboarTypeComboCurrent = bildboarTypeCombo[(int) bildboarType];
+	ImGui::TextColored(App->editor->textColor, "Shape:");
+	if (ImGui::BeginCombo("##Shape", bildboarTypeComboCurrent)) {
+		for (int n = 0; n < IM_ARRAYSIZE(bildboarTypeCombo); ++n) {
+			bool isSelected = (bildboarTypeComboCurrent == bildboarTypeCombo[n]);
+			if (ImGui::Selectable(bildboarTypeCombo[n], isSelected)) {
+				bildboarType = n;
+			}
+			if (isSelected) {
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+
 	ImGui::Separator();
 	const char* emitterTypeCombo[] = {"Cone", "Sphere", "Hemisphere", "Donut", "Circle", "Rectangle"};
 	const char* emitterTypeComboCurrent = emitterTypeCombo[(int) emitterType];
@@ -71,7 +93,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		for (int n = 0; n < IM_ARRAYSIZE(emitterTypeCombo); ++n) {
 			bool isSelected = (emitterTypeComboCurrent == emitterTypeCombo[n]);
 			if (ImGui::Selectable(emitterTypeCombo[n], isSelected)) {
-				emitterType = (EmitterType) n;
+				emitterType = n;
 			}
 			if (isSelected) {
 				ImGui::SetItemDefaultFocus();
@@ -130,7 +152,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 //TODO: DINAMIC PARTICLE NOT HARCODED
 float3 ComponentParticleSystem::CreateVelocity() {
 	float x, y, z;
-	if (emitterType == EmitterType::CONE) {
+	if (emitterType == 0) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 		x = (float(rand()) / float((RAND_MAX)) * 0.2f) - 0.2f;
 		y = (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.0f;
@@ -140,7 +162,7 @@ float3 ComponentParticleSystem::CreateVelocity() {
 		return float3(forward.x + x, forward.y + y, forward.z + z);
 	}
 	//TODO: DINAMIC PARTICLE NOT HARCODED
-	if (emitterType == EmitterType::SPHERE) {
+	if (emitterType == 1) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 		x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
 		y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
@@ -155,7 +177,7 @@ float3 ComponentParticleSystem::CreatePosition() {
 	//TODO: DINAMIC PARTICLE NOT HARCODED
 	float x, y, z;
 
-	if (emitterType == EmitterType::CONE) {
+	if (emitterType == 0) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 		x = (transform->GetGlobalPosition().x);
 		z = (transform->GetGlobalPosition().z);
@@ -163,7 +185,7 @@ float3 ComponentParticleSystem::CreatePosition() {
 		return (float3(x, y, z));
 	}
 	//TODO: DINAMIC PARTICLE NOT HARCODED
-	if (emitterType == EmitterType::SPHERE) {
+	if (emitterType == 1) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 		x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.5f;
 		z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.5f;
@@ -208,6 +230,10 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	particleLife = jComponent[JSON_TAG_LIFE];
 	Ytiles = jComponent[JSON_TAG_YTILES];
 	Xtiles = jComponent[JSON_TAG_XTILES];
+
+	emitterType = jComponent[JSON_TAG_EMITTERTYPE];
+	bildboarType = jComponent[JSON_TAG_BILDBOARTYPE];
+
 	animationSpeed = jComponent[JSON_TAG_ANIMATIONSPEED];
 	JsonValue jColor = jComponent[JSON_TAG_INITCOLOR];
 	initC.Set(jColor[0], jColor[1], jColor[2]);
@@ -232,6 +258,9 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_LIFE] = particleLife;
 	jComponent[JSON_TAG_YTILES] = Ytiles;
 	jComponent[JSON_TAG_XTILES] = Xtiles;
+	jComponent[JSON_TAG_EMITTERTYPE] = emitterType;
+	jComponent[JSON_TAG_BILDBOARTYPE] = bildboarType;
+
 	jComponent[JSON_TAG_ANIMATIONSPEED] = animationSpeed;
 
 	JsonValue jColor = jComponent[JSON_TAG_INITCOLOR];
@@ -298,11 +327,11 @@ void ComponentParticleSystem::killParticles() {
 void ComponentParticleSystem::DrawGizmos() {
 	//TODO: IMPROVE DRAWS
 	if (IsActive()) {
-		if (emitterType == EmitterType::CONE) {
+		if (emitterType == 0) {
 			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 			dd::cone(transform->GetGlobalPosition(), transform->GetGlobalRotation() * float3::unitY * 1, dd::colors::White, 1.0f, 0.3f);
 		}
-		if (emitterType == EmitterType::SPHERE) {
+		if (emitterType == 1) {
 			float delta = kl * kl - 4 * (kc - 10) * kq;
 			float distance = Max(abs((-kl + sqrt(delta))) / (2 * kq), abs((-kl - sqrt(delta)) / (2 * kq)));
 			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();

@@ -21,6 +21,11 @@ enum class EmitterType {
 	RECTANGLE
 };
 
+enum class BildboarType {
+	LoockAt,
+	Stretch
+};
+
 class ComponentParticleSystem : public Component {
 public:
 	struct Particle {
@@ -90,7 +95,8 @@ private:
 	unsigned Ytiles = 1;
 
 private:
-	EmitterType emitterType = EmitterType::CONE;
+	int emitterType = 0;
+	int bildboarType = 0;
 
 	Pool<Particle> particles;
 	std::vector<Particle*> deadParticles;
