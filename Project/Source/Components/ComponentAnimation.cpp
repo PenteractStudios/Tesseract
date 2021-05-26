@@ -70,6 +70,7 @@ void ComponentAnimation::Load(JsonValue jComponent) {
 	if (stateMachineResourceUID != 0) App->resources->IncreaseReferenceCount(stateMachineResourceUID);
 
 	LoadResourceStateMachine();
+	InitCurrentTimeStates();
 }
 
 void ComponentAnimation::OnUpdate() {
@@ -80,7 +81,7 @@ void ComponentAnimation::OnUpdate() {
 
 	if (currentState) {
 		ResourceClip* currentClip = App->resources->GetResource<ResourceClip>(currentState->clipUid);
-		currentState->currentTime += App->time->GetDeltaTime() * currentClip->speed;
+		currentTimeStates[currentState->id] += App->time->GetDeltaTime() * currentClip->speed;
 	}
 }
 
@@ -91,7 +92,7 @@ void ComponentAnimation::SendTrigger(const std::string& trigger) {
 	if (transition != nullptr) {
 		if(transition->source.id == currentState->id){
 			if (animationInterpolations.size() == 0) {
-				animationInterpolations.push_front(AnimationInterpolation(&transition->source, currentState->currentTime, 0, transition->interpolationDuration));
+				animationInterpolations.push_front(AnimationInterpolation(&transition->source, currentTimeStates[currentState->id], 0, transition->interpolationDuration));
 			}
 
 			animationInterpolations.push_front(AnimationInterpolation(&transition->target, 0, 0, transition->interpolationDuration));
@@ -124,17 +125,17 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 
 		//Updating times
 		if (gameObject == GetOwner().GetRootBone()) { // Only udate currentTime for the rootBone
-			AnimationController::UpdateTransitions(animationInterpolations, App->time->GetDeltaTime());
+			AnimationController::UpdateTransitions(animationInterpolations, currentTimeStates, App->time->GetDeltaTime());
 		}
 
 	} else {
 		if (currentState) {
 			ResourceClip* clip = App->resources->GetResource<ResourceClip>(currentState->clipUid);
-			result = AnimationController::GetTransform(*clip, currentState->currentTime, gameObject->name.c_str(), position, rotation);
+			result = AnimationController::GetTransform(*clip, currentTimeStates[currentState->id], gameObject->name.c_str(), position, rotation);
 			
 			if (gameObject == GetOwner().GetRootBone()) {
 				if (!clip->loop) {
-					int currentSample = AnimationController::GetCurrentSample(*clip, currentState->currentTime);
+					int currentSample = AnimationController::GetCurrentSample(*clip, currentTimeStates[currentState->id]);
 					if (currentSample == clip->endIndex) {
 						TesseractEvent animationFinishedEvent = TesseractEvent(TesseractEventType::ANIMATION_FINISHED);
 						App->events->AddEvent(animationFinishedEvent);
@@ -161,5 +162,16 @@ void ComponentAnimation::LoadResourceStateMachine() {
 
 	if (resourceStateMachine) {
 		currentState = &resourceStateMachine->initialState;
+	}
+}
+
+void ComponentAnimation::InitCurrentTimeStates() {
+	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
+
+	if (resourceStateMachine) {
+		std::list<State>::iterator itState;
+		for (itState = resourceStateMachine->states.begin(); itState != resourceStateMachine->states.end(); ++itState) {
+			currentTimeStates.insert({itState->id, 0.0f});
+		}
 	}
 }
