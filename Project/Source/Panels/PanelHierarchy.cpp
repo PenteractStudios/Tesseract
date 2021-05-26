@@ -82,7 +82,7 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 				if (isSelected) App->editor->selectedGameObject = nullptr;
 				App->scene->DestroyGameObjectDeferred(gameObject);
 				if (App->userInterface->GetCurrentEventSystem()) {
-					App->userInterface->GetCurrentEventSystem()->SetSelected(0);
+					App->userInterface->GetCurrentEventSystem()->SetSelected(nullptr);
 				}
 			}
 
