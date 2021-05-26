@@ -180,8 +180,12 @@
     <ClCompile Include="Source\MaskType.cpp" />
     <ClCompile Include="Source\Panels\PanelDebug.cpp" />
     <ClCompile Include="Source\FileSystem\ImporterCommon.cpp" />
-    <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Source\FileSystem\ImportOptions.cpp" />
+    <ClCompile Include="Source\Modules\ModulePhysics.cpp" />
+    <ClCompile Include="Source\Components\Physics\ComponentSphereCollider.cpp" />
+    <ClCompile Include="Source\Utils\MotionState.cpp" />
+    <ClCompile Include="Source\Components\Physics\ComponentBoxCollider.cpp" />
+    <ClCompile Include="Source\Components\Physics\ComponentCapsuleCollider.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -463,6 +467,11 @@
     <ClInclude Include="Source\MaskType.h" />
     <ClInclude Include="Source\Panels\PanelDebug.h" />
     <ClInclude Include="Source\FileSystem\ImportOptions.h" />
+    <ClInclude Include="Source\Modules\ModulePhysics.h" />
+    <ClInclude Include="Source\Components\Physics\ComponentSphereCollider.h" />
+    <ClInclude Include="Source\Utils\MotionState.h" />
+    <ClInclude Include="Source\Components\Physics\ComponentBoxCollider.h" />
+    <ClInclude Include="Source\Components\Physics\ComponentCapsuleCollider.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />

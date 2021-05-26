@@ -19,6 +19,8 @@
 #include "Components/UI/ComponentText.h"
 #include "Components/UI/ComponentTransform2D.h"
 #include "Components/UI/ComponentSlider.h"
+#include "Components/Physics/ComponentSphereCollider.h"
+#include "Components/Physics/ComponentBoxCollider.h"
 #include "Application.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleUserInterface.h"
@@ -168,6 +170,15 @@ void PanelInspector::Update() {
 				case ComponentType::PROGRESS_BAR:
 					cName = "Progress Bar";
 					break;
+				case ComponentType::SPHERE_COLLIDER:
+					cName = "Sphere Collider";
+					break;
+				case ComponentType::BOX_COLLIDER:
+					cName = "Box Collider";
+					break;
+				case ComponentType::CAPSULE_COLLIDER:
+					cName = "Capsule Collider";
+					break;
 				default:
 					cName = "";
 					break;
@@ -292,6 +303,8 @@ void PanelInspector::Update() {
 
 				AddAudioComponentsOptions(selected);
 				AddUIComponentsOptions(selected);
+
+				AddColliderComponentsOptions(selected);
 
 				ImGui::EndPopup();
 			}
@@ -476,6 +489,41 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 			}
 			break;
 		}
+		}
+
+		ImGui::EndMenu();
+	}
+}
+void PanelInspector::AddColliderComponentsOptions(GameObject* selected) {
+	if (ImGui::BeginMenu("Collider")) {
+		if (ImGui::MenuItem("Sphere Collider")) {
+			ComponentSphereCollider* sphereCollider = selected->CreateComponent<ComponentSphereCollider>();
+			if (sphereCollider != nullptr) {
+				sphereCollider->Init();
+			}
+			else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS; // TODO: Control other colliders exists.
+			}
+		}
+
+		if (ImGui::MenuItem("Box Collider")) {
+			ComponentBoxCollider* boxCollider = selected->CreateComponent<ComponentBoxCollider>();
+			if (boxCollider != nullptr) {
+				boxCollider->Init();
+			}
+			else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS; // TODO: Control other colliders exists.
+			}
+		}
+
+		if (ImGui::MenuItem("Capsule Collider")) {
+			ComponentCapsuleCollider* capsuleComponent = selected->CreateComponent<ComponentCapsuleCollider>();
+			if (capsuleComponent != nullptr) {
+				capsuleComponent->Init();
+			}
+			else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS; // TODO: Control other colliders exists.
+			}
 		}
 
 		ImGui::EndMenu();

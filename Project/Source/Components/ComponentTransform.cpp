@@ -3,11 +3,8 @@
 #include "Globals.h"
 #include "Application.h"
 #include "GameObject.h"
-#include "Components/ComponentCamera.h"
-#include "Components/ComponentBoundingBox.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleInput.h"
-#include "Modules/ModuleCamera.h"
 
 #include "Math/float3x3.h"
 #include "SDL.h"
@@ -101,7 +98,7 @@ void ComponentTransform::CalculateGlobalMatrix(bool force) {
 
 			parentTransform->CalculateGlobalMatrix();
 			globalMatrix = parentTransform->globalMatrix * localMatrix;
-			globalMatrix.Orthogonalize3();	// Solution for non-uniform scaled objects
+			globalMatrix.Orthogonalize3(); // Solution for non-uniform scaled objects
 		} else {
 			globalMatrix = localMatrix;
 		}

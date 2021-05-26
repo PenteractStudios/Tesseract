@@ -64,6 +64,7 @@ public:
 	bool drawCameraFrustums = false;
 	bool drawLightGizmos = false;
 	bool drawParticleGizmos = false;
+	bool drawColliders = false;
 	int culledTriangles = 0;
 
 	float3 ambientColor = {0.25f, 0.25f, 0.25f}; // Color of ambient Light

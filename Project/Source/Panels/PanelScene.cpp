@@ -124,6 +124,7 @@ void PanelScene::Update() {
 				ImGui::Checkbox("Light Gizmos", &App->renderer->drawLightGizmos);
 				ImGui::Checkbox("Animation Bones", &App->renderer->drawAllBones);
 				ImGui::Checkbox("Particle Gizmos", &App->renderer->drawParticleGizmos);
+				ImGui::Checkbox("Colliders", &App->renderer->drawColliders);
 				ImGui::Separator();
 				ImGui::EndPopup();
 			}
