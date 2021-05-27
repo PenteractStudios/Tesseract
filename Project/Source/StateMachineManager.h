@@ -19,5 +19,5 @@ namespace StateMachineManager {
 		std::list<AnimationInterpolation> &animationInterpolationsSecondary, const UID &stateMachineResourceUIDSecondary, 
 		State* currentStateSecondary, float3 &position , Quat &rotation);
 
-	bool CalculateAnimation(GameObject* gameObject, const std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State* currentState)
+	bool CalculateAnimation(GameObject* gameObject, const std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State* currentState, float3 &position , Quat &rotation);
 };
