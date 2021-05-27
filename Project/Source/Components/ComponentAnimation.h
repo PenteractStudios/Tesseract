@@ -9,6 +9,7 @@
 #include "Resources/ResourceStateMachine.h"
 #include "Utils/UID.h"
 #include <string>
+#include <unordered_map>
 
 class GameObject;
 class ResourceAnimation;
@@ -42,7 +43,9 @@ public:
 private:
 	void UpdateAnimations(GameObject* gameObject);
 	void LoadResourceStateMachine();
+	void InitCurrentTimeStates();
 
 private:
 	std::list<AnimationInterpolation> animationInterpolations; //List of the current interpolations between states
+	std::unordered_map<UID, float> currentTimeStates;
 };

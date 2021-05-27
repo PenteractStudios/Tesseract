@@ -68,7 +68,7 @@ void ResourceStateMachine::Load() {
 		UID id = stateArray[i][JSON_TAG_ID];
 		std::string name = stateArray[i][JSON_TAG_NAME];
 		UID clipId = stateArray[i][JSON_TAG_CLIP_ID];
-		State state(name, clipId, 0, id);
+		State state(name, clipId, id);
 		states.push_back(state);
 		stateMap.insert(std::make_pair(id, state));
 
