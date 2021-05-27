@@ -24,20 +24,9 @@
 void ComponentBoundingBox2D::Init() {
 	ComponentTransform2D* transform2D = GetOwner().GetComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
-	if (transform2D != nullptr && canvasRenderer != nullptr) {
-		float2 size = transform2D->GetSize();
-		float3 scale = transform2D->GetScale();
-		float screenFactor = canvasRenderer->GetCanvasScreenFactor();
-		float2 screenSize = canvasRenderer->GetCanvasSize();
-		float3 position = transform2D->GetCenterPositionObject();
-
-		float3 minPoint = position.xyz().Mul(float3(1.0f, -1.0f, 0.0f).Mul(screenFactor)) + float3(screenSize, 0.0f) / 2.0f
-							- 0.5f * (float3(transform2D->GetSize(), 0.0f).Mul(transform2D->GetScale().xyz()).Mul(screenFactor));
-		float3 maxPoint = position.xyz().Mul(float3(1.0f, -1.0f, 0.0f).Mul(screenFactor)) + float3(screenSize, 0.0f) / 2.0f
-							+ 0.5f * (float3(transform2D->GetSize(), 0.0f).Mul(transform2D->GetScale().xyz()).Mul(screenFactor));
-
-		//float3 minPoint = float3(-0.5f, -0.5f, 0.0f);
-		//float3 maxPoint = float3(0.5f, 0.5f, 0.0f);
+	if (transform2D != nullptr) {
+		float3 minPoint = float3(-0.5f, -0.5f, 0.0f);
+		float3 maxPoint = float3(0.5f, 0.5f, 0.0f);
 
 		SetLocalBoundingBox(AABB(minPoint, maxPoint));
 		CalculateWorldBoundingBox();
@@ -77,26 +66,29 @@ void ComponentBoundingBox2D::CalculateWorldBoundingBox(bool force) {
 		float2 screenSize(0, 0);
 		float3 position(0, 0, 0);
 		if (canvasRenderer != nullptr) {
-			screenFactor = canvasRenderer->GetCanvasScreenFactor();
-			screenSize = canvasRenderer->GetCanvasSize();
-			position = transform2d->GetScreenPosition();
+			float2 size = transform2d->GetSize();
+			float3 scale = transform2d->GetScale();
+			float screenFactor = canvasRenderer->GetCanvasScreenFactor();
+			float2 screenSize = canvasRenderer->GetCanvasSize();
+			float3 position = transform2d->GetCenterPositionObject();
+
+			float3 minPoint = position.xyz().Mul(float3(1.0f, -1.0f, 0.0f).Mul(screenFactor)) + float3(screenSize, 0.0f) / 2.0f
+							  - 0.5f * (float3(transform2d->GetSize(), 0.0f).Mul(transform2d->GetScale().xyz()).Mul(screenFactor));
+			float3 maxPoint = position.xyz().Mul(float3(1.0f, -1.0f, 0.0f).Mul(screenFactor)) + float3(screenSize, 0.0f) / 2.0f
+							  + 0.5f * (float3(transform2d->GetSize(), 0.0f).Mul(transform2d->GetScale().xyz()).Mul(screenFactor));
+
+			SetLocalBoundingBox(AABB(minPoint, maxPoint));
 		}
 
 		worldOBB = OBB(localAABB);
 		worldOBB.Transform(transform2d->GetGlobalMatrix());
 		worldAABB = worldOBB.MinimalEnclosingAABB();
 
-		// Hay que sumarselo al worldOBB para ponerlo en la posicion
-		//worldAABB.minPoint = position.xyz().Mul(float3(1.0f, -1.0f, 0.0f).Mul(screenFactor)) + float3(screenSize, 0.0f) / 2.0f
-							 //+ localAABB.minPoint.Mul(float3(transform2d->GetSize(), 0.0f).Mul(transform2d->GetScale().xyz()).Mul(screenFactor));
-		//worldAABB.maxPoint = position.xyz().Mul(float3(1.0f, -1.0f, 0.0f).Mul(screenFactor)) + float3(screenSize, 0.0f) / 2.0f
-							 //+ localAABB.maxPoint.Mul(float3(transform2d->GetSize(), 0.0f).Mul(transform2d->GetScale().xyz()).Mul(screenFactor));
-
 #if GAME
 		float2 windowPos = float2(App->window->GetPositionX(), App->window->GetPositionY());
-		worldAABB.minPoint += windowPos;
+		//worldAABB.minPoint += windowPos;
 		//worldOBB.minPoint += windowPos;
-		worldAABB.maxPoint += windowPos;
+		//worldAABB.maxPoint += windowPos;
 		//worldOBB.maxPoint += windowPos;
 #endif
 	}
