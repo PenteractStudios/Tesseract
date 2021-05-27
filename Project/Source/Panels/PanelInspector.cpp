@@ -6,6 +6,8 @@
 #include "Components/ComponentType.h"
 #include "Components/ComponentLight.h"
 #include "Components/ComponentSkybox.h"
+#include "Components/ComponentAnimation.h"
+#include "Components/ComponentBilboardRender.h"
 #include "Components/ComponentScript.h"
 #include "Components/ComponentCamera.h"
 #include "Components/ComponentAnimation.h"
@@ -168,6 +170,9 @@ void PanelInspector::Update() {
 				case ComponentType::TRAIL:
 					cName = "Trail";
 					break;
+				case ComponentType::BILBOARD_RENDER:
+					cName = "Bilboard";
+					break;
 				case ComponentType::AUDIO_SOURCE:
 					cName = "Audio Source";
 					break;
@@ -285,12 +290,25 @@ void PanelInspector::Update() {
 					ComponentParticleSystem* particle = selected->CreateComponent<ComponentParticleSystem>();
 					if (particle != nullptr) {
 						particle->Init();
+					} else {
+						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
 				}
+				if (ImGui::MenuItem("Bilboard Render")) {
+					ComponentBilboardRender* bilboard = selected->CreateComponent<ComponentBilboardRender>();
+					if (bilboard != nullptr) {
+						bilboard->Init();
+					} else {
+						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+					}
+				}
+
 				if (ImGui::MenuItem("Trail")) {
 					ComponentTrail* trail = selected->CreateComponent<ComponentTrail>();
 					if (trail != nullptr) {
 						trail->Init();
+					} else {
+						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
 				}
 				if (ImGui::MenuItem("Audio Source")) {

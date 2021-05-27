@@ -15,6 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Components\ComponentBilboardRender.h" />
     <ClInclude Include="Source\LightFrustum.h" />
     <ClInclude Include="Source\Components\ComponentAgent.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\DebugUtils\DebugDraw.h" />
@@ -336,6 +337,7 @@
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Components\ComponentBilboardRender.cpp" />
     <ClCompile Include="Source\LightFrustum.cpp" />
     <ClCompile Include="Source\Components\ComponentAgent.cpp" />
     <ClCompile Include="Source\FileSystem\NavMeshImporter.cpp" />
