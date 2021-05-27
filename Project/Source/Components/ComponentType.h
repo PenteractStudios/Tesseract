@@ -44,7 +44,10 @@ enum class ComponentType {
 	BILBOARD_RENDER,
 	AUDIO_SOURCE,
 	AUDIO_LISTENER,
-	PROGRESS_BAR
+	PROGRESS_BAR,
+	SPHERE_COLLIDER,
+	BOX_COLLIDER,
+	CAPSULE_COLLIDER
 };
 
 const char* GetComponentTypeName(ComponentType type);

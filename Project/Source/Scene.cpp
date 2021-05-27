@@ -4,6 +4,8 @@
 #include "Application.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleResources.h"
+#include "Modules/ModulePhysics.h"
+#include "Modules/ModuleTime.h"
 #include "Resources/ResourceMesh.h"
 #include "Utils/Logging.h"
 
@@ -37,6 +39,9 @@ Scene::Scene(unsigned numGameObjects) {
 	audioListenerComponents.Allocate(numGameObjects);
 	progressbarsComponents.Allocate(numGameObjects);
 	bilboardComponents.Allocate(numGameObjects);
+	sphereColliderComponents.Allocate(numGameObjects);
+	boxColliderComponents.Allocate(numGameObjects);
+	capsuleColliderComponents.Allocate(numGameObjects);
 }
 
 void Scene::ClearScene() {
@@ -154,6 +159,12 @@ Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 		return audioListenerComponents.Find(componentId);
 	case ComponentType::PROGRESS_BAR:
 		return progressbarsComponents.Find(componentId);
+	case ComponentType::SPHERE_COLLIDER:
+		return sphereColliderComponents.Find(componentId);
+	case ComponentType::BOX_COLLIDER:
+		return boxColliderComponents.Find(componentId);
+	case ComponentType::CAPSULE_COLLIDER:
+		return capsuleColliderComponents.Find(componentId);
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::GetComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -213,6 +224,12 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 		return audioListenerComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::PROGRESS_BAR:
 		return progressbarsComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::SPHERE_COLLIDER:
+		return sphereColliderComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::BOX_COLLIDER:
+		return boxColliderComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::CAPSULE_COLLIDER:
+		return capsuleColliderComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::CreateComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -296,6 +313,18 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		break;
 	case ComponentType::PROGRESS_BAR:
 		progressbarsComponents.Release(componentId);
+		break;
+	case ComponentType::SPHERE_COLLIDER:
+		if (App->time->IsGameRunning()) App->physics->RemoveSphereRigidbody(sphereColliderComponents.Find(componentId));
+		sphereColliderComponents.Release(componentId);
+		break;
+	case ComponentType::BOX_COLLIDER:
+		if (App->time->IsGameRunning()) App->physics->RemoveBoxRigidbody(boxColliderComponents.Find(componentId));
+		boxColliderComponents.Release(componentId);
+		break;
+	case ComponentType::CAPSULE_COLLIDER:
+		if (App->time->IsGameRunning()) App->physics->RemoveCapsuleRigidbody(capsuleColliderComponents.Find(componentId));
+		capsuleColliderComponents.Release(componentId);
 		break;
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::RemoveComponentByTypeAndId.", (unsigned) type);

@@ -172,6 +172,7 @@
     <ClCompile Include="Source\Components\UI\ComponentSlider.cpp" />
     <ClCompile Include="Source\Utils\ImGuiUtils.cpp" />
     <ClCompile Include="Source\Scripting\Member.cpp" />
+    <ClCompile Include="Source\LightFrustum.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentProgressBar.cpp" />
     <ClCompile Include="Source\Components\ComponentParticleSystem.cpp" />
     <ClCompile Include="Source\Panels\PanelImportOptions.cpp" />
@@ -181,8 +182,12 @@
     <ClCompile Include="Source\Panels\PanelDebug.cpp" />
     <ClCompile Include="Source\Components\ComponentBilboardRender.cpp" />
     <ClCompile Include="Source\FileSystem\ImporterCommon.cpp" />
-    <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Source\FileSystem\ImportOptions.cpp" />
+    <ClCompile Include="Source\Modules\ModulePhysics.cpp" />
+    <ClCompile Include="Source\Components\Physics\ComponentSphereCollider.cpp" />
+    <ClCompile Include="Source\Utils\MotionState.cpp" />
+    <ClCompile Include="Source\Components\Physics\ComponentBoxCollider.cpp" />
+    <ClCompile Include="Source\Components\Physics\ComponentCapsuleCollider.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -454,6 +459,9 @@
     <ClInclude Include="Source\Components\UI\ComponentSlider.h" />
     <ClInclude Include="Source\Scripting\Member.h" />
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
+    <ClInclude Include="Source\LightFrustum.h" />
+    <ClInclude Include="Source\Panels\PanelResource.h" />
+    <ClInclude Include="Source\Mask.h" />
     <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />
     <ClInclude Include="Source\Components\ComponentParticleSystem.h" />
     <ClInclude Include="Source\Panels\PanelImportOptions.h" />
@@ -465,6 +473,11 @@
     <ClInclude Include="Source\Panels\PanelDebug.h" />
     <ClInclude Include="Source\Components\ComponentBilboardRender.h" />
     <ClInclude Include="Source\FileSystem\ImportOptions.h" />
+    <ClInclude Include="Source\Modules\ModulePhysics.h" />
+    <ClInclude Include="Source\Components\Physics\ComponentSphereCollider.h" />
+    <ClInclude Include="Source\Utils\MotionState.h" />
+    <ClInclude Include="Source\Components\Physics\ComponentBoxCollider.h" />
+    <ClInclude Include="Source\Components\Physics\ComponentCapsuleCollider.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />

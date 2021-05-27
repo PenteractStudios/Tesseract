@@ -19,6 +19,7 @@
 #include "AL/al.h"
 
 #include "Brofiler.h"
+#include "LinearMath/btScalar.h"
 
 #include "Utils/Leaks.h"
 
@@ -40,6 +41,7 @@ bool ModuleHardwareInfo::Start() {
 	sprintf_s(physFSVersion, "%i.%i.%i", PHYSFS_VER_MAJOR, PHYSFS_VER_MINOR, PHYSFS_VER_PATCH);
 	sprintf_s(rapidJsonVersion, "%i.%i.%i", RAPIDJSON_MAJOR_VERSION, RAPIDJSON_MINOR_VERSION, RAPIDJSON_PATCH_VERSION);
 	sprintf_s(openALVersion, alGetString(AL_VERSION));
+	sprintf_s(bulletVersion, "%i.%i", btGetVersion() / 100, (btGetVersion() % 100));
 
 	cpuCount = SDL_GetCPUCount();
 	cacheSizeKb = SDL_GetCPUCacheLineSize();

@@ -267,6 +267,10 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	float4x4 viewMatrix = App->camera->GetViewMatrix();
 	float4x4 projMatrix = App->camera->GetProjectionMatrix();
 
+	// Light frustum
+	float4x4 viewLight = App->renderer->GetLightViewMatrix();
+	float4x4 projLight = App->renderer->GetLightProjectionMatrix();
+
 	unsigned glTextureDiffuse = 0;
 	ResourceTexture* diffuse = App->resources->GetResource<ResourceTexture>(material->diffuseMapId);
 	glTextureDiffuse = diffuse ? diffuse->glTexture : 0;
@@ -277,6 +281,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glTextureNormal = normal ? normal->glTexture : 0;
 	int hasNormalMap = normal ? 1 : 0;
 
+	unsigned gldepthMapTexture = App->renderer->depthMapTexture;
+	
 	unsigned glTextureEmissive = 0;
 	ResourceTexture* emissive = App->resources->GetResource<ResourceTexture>(material->emissiveMapId);
 	glTextureEmissive = emissive ? emissive->glTexture : 0;
@@ -323,6 +329,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		} else {
 			program = App->programs->specularNotNormal;
 		}
+
 		glUseProgram(program);
 
 		glUniform3fv(glGetUniformLocation(program, "specularColor"), 1, material->specularColor.ptr());
@@ -345,6 +352,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		} else {
 			program = App->programs->standardNotNormal;
 		}
+
 		glUseProgram(program);
 
 		glUniform1f(glGetUniformLocation(program, "metalness"), material->metallic);
@@ -362,9 +370,14 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, modelMatrix.ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, viewMatrix.ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, projMatrix.ptr());
+
+	glUniformMatrix4fv(glGetUniformLocation(program, "viewLight"), 1, GL_TRUE, viewLight.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "projLight"), 1, GL_TRUE, projLight.ptr());
+
 	if (palette.size() > 0) {
 		glUniformMatrix4fv(glGetUniformLocation(program, "palette"), palette.size(), GL_TRUE, palette[0].ptr());
 	}
+
 	glUniform1i(glGetUniformLocation(program, "hasBones"), goBones.size());
 
 	glUniform1i(glGetUniformLocation(program, "light.numSpots"), spotLightsArraySize);
@@ -398,6 +411,11 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform1i(glGetUniformLocation(program, "hasAmbientOcclusionMap"), hasAmbientOcclusionMap);
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, glTextureAmbientOcclusion);
+
+	// Depth Map
+	glUniform1i(glGetUniformLocation(program, "depthMapTexture"), 5);
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, gldepthMapTexture);
 
 	// Tilling settings
 	glUniform2fv(glGetUniformLocation(program, "tiling"), 1, material->tiling.ptr());
@@ -567,6 +585,36 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform1f(glGetUniformLocation(program, "light.spots[7].innerAngle"), spotLightsArray[7]->innerAngle);
 		glUniform1f(glGetUniformLocation(program, "light.spots[7].outerAngle"), spotLightsArray[7]->outerAngle);
 	}
+
+	glBindVertexArray(mesh->vao);
+	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
+	glBindVertexArray(0);
+}
+
+void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix) const {
+
+	if (!IsActive()) return;
+
+	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
+	if (mesh == nullptr) return;
+
+	unsigned program = App->programs->shadowMap;
+	float4x4 viewMatrix = App->renderer->GetLightViewMatrix();
+	float4x4 projMatrix = App->renderer->GetLightProjectionMatrix();
+
+	glUseProgram(program);
+
+	// Common uniform settings
+	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, modelMatrix.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, viewMatrix.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, projMatrix.ptr());
+
+	// Skinning
+	if (palette.size() > 0) {
+		glUniformMatrix4fv(glGetUniformLocation(program, "palette"), palette.size(), GL_TRUE, palette[0].ptr());
+	}
+
+	glUniform1i(glGetUniformLocation(program, "hasBones"), goBones.size());
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);

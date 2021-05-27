@@ -131,13 +131,93 @@ bool ModuleRender::Init() {
 #endif
 
 	glGenFramebuffers(1, &framebuffer);
-	glGenRenderbuffers(1, &depthRenderbuffer);
+	glGenRenderbuffers(1, &renderBuffer);
 	glGenTextures(1, &renderTexture);
+
+	// Shadow Mapping buffer / texture configuration
+
+	glGenFramebuffers(1, &depthMapTextureBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
+
+	glGenTextures(1, &depthMapTexture);
+	glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	ViewportResized(App->window->GetWidth(), App->window->GetHeight());
 	UpdateFramebuffer();
 
 	return true;
+}
+
+void ModuleRender::ShadowMapPass() {
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	DrawScene(true);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void ModuleRender::RenderPass() {
+#if GAME
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#else
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+#endif
+	
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	DrawScene();
+
+}
+
+void ModuleRender::DrawScene(bool shadowPass) {
+	// Draw the scene
+	App->camera->CalculateFrustumPlanes();
+	Scene* scene = App->scene->scene;
+	for (ComponentBoundingBox& boundingBox : scene->boundingBoxComponents) {
+		GameObject& gameObject = boundingBox.GetOwner();
+		gameObject.flag = false;
+		if (gameObject.isInQuadtree) continue;
+
+		const AABB& gameObjectAABB = boundingBox.GetWorldAABB();
+		const OBB& gameObjectOBB = boundingBox.GetWorldOBB();
+		if (CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
+			if (shadowPass) {
+				DrawGameObjectShadowPass(&gameObject);
+			} else {
+				DrawGameObject(&gameObject);
+			}
+		}
+	}
+
+	if (scene->quadtree.IsOperative()) {
+		DrawSceneRecursive(scene->quadtree.root, scene->quadtree.bounds, shadowPass);
+	}
+}
+
+void ModuleRender::DrawDepthMapTexture() {
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	unsigned program = App->programs->drawDepthMapTexture;
+
+	glUseProgram(program);
+
+	glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+	glUniform1i(glGetUniformLocation(program, "depthMapTexture"), 0);
+	glActiveTexture(GL_TEXTURE0);
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 bool ModuleRender::Start() {
@@ -147,6 +227,8 @@ bool ModuleRender::Start() {
 
 UpdateStatus ModuleRender::PreUpdate() {
 	BROFILER_CATEGORY("ModuleRender - PreUpdate", Profiler::Color::Green)
+
+	lightFrustum.ReconstructFrustum();
 
 #if !GAME
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -167,24 +249,17 @@ UpdateStatus ModuleRender::Update() {
 
 	culledTriangles = 0;
 
-	// Draw the scene
-	App->camera->CalculateFrustumPlanes();
+	// Pass 1. Build the depth map
+	ShadowMapPass();
+
+	if (drawDepthMapTexture) {
+		DrawDepthMapTexture();
+	} else {
+		// Pass 2. Draw the scene with the depth map
+		RenderPass();
+	}
+
 	Scene* scene = App->scene->scene;
-	for (ComponentBoundingBox& boundingBox : scene->boundingBoxComponents) {
-		GameObject& gameObject = boundingBox.GetOwner();
-		gameObject.flag = false;
-		if (gameObject.isInQuadtree) continue;
-
-		const AABB& gameObjectAABB = boundingBox.GetWorldAABB();
-		const OBB& gameObjectOBB = boundingBox.GetWorldOBB();
-		if (CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
-			DrawGameObject(&gameObject);
-		}
-	}
-	if (scene->quadtree.IsOperative()) {
-		DrawSceneRecursive(scene->quadtree.root, scene->quadtree.bounds);
-	}
-
 	// Draw particles (TODO: improve with culling)
 	for (ComponentParticleSystem& particleSystem : scene->particleComponents) {
 		if (particleSystem.IsActive()) particleSystem.Draw();
@@ -212,6 +287,18 @@ UpdateStatus ModuleRender::Update() {
 			}
 		}
 
+		if (drawColliders) {
+			for (ComponentBoxCollider& collider : scene->boxColliderComponents) {
+				collider.DrawGizmos();
+			}
+			for (ComponentSphereCollider& collider : scene->sphereColliderComponents) {
+				collider.DrawGizmos();
+			}
+			for (ComponentCapsuleCollider& collider : scene->capsuleColliderComponents) {
+				collider.DrawGizmos();
+			}
+		}
+
 		// Draw quadtree
 		if (drawQuadtree) DrawQuadtreeRecursive(App->scene->scene->quadtree.root, App->scene->scene->quadtree.bounds);
 
@@ -224,6 +311,11 @@ UpdateStatus ModuleRender::Update() {
 				GameObject* rootBone = animationComponent.GetOwner().GetRootBone();
 				if (rootBone) DrawAnimation(rootBone);
 			}
+		}
+
+		// Draw debug draw Light Frustum
+		if (drawLightFrustumGizmo) {
+			lightFrustum.DrawGizmos();
 		}
 	}
 
@@ -250,7 +342,7 @@ UpdateStatus ModuleRender::PostUpdate() {
 
 bool ModuleRender::CleanUp() {
 	glDeleteTextures(1, &renderTexture);
-	glDeleteRenderbuffers(1, &depthRenderbuffer);
+	glDeleteRenderbuffers(1, &renderBuffer);
 	glDeleteFramebuffers(1, &framebuffer);
 
 	return true;
@@ -286,9 +378,22 @@ void ModuleRender::UpdateFramebuffer() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTexture, 0);
 
-	glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
+	glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		LOG("ERROR: Framebuffer is not complete!");
@@ -306,6 +411,7 @@ void ModuleRender::ToggleDebugMode() {
 void ModuleRender::ToggleDebugDraw() {
 	drawDebugDraw = !drawDebugDraw;
 }
+
 void ModuleRender::ToggleDrawQuadtree() {
 	drawQuadtree = !drawQuadtree;
 }
@@ -333,12 +439,28 @@ void ModuleRender::ToggleDrawParticleGizmos() {
 	drawParticleGizmos = !drawParticleGizmos;
 }
 
+void ModuleRender::ToggleDrawLightFrustumGizmo() {
+	drawLightFrustumGizmo = !drawLightFrustumGizmo;
+}
+
 void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 	if (strcmp(shadingMode, "Shaded") == 0) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		drawDepthMapTexture = false;
 	} else if (strcmp(shadingMode, "Wireframe") == 0) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		drawDepthMapTexture = false;
+	} else if (strcmp(shadingMode, "Depth") == 0) {
+		drawDepthMapTexture = true;
 	}
+}
+
+float4x4 ModuleRender::GetLightViewMatrix() const {
+	return lightFrustum.GetFrustum().ViewMatrix();
+}
+
+float4x4 ModuleRender::GetLightProjectionMatrix() const {
+	return lightFrustum.GetFrustum().ProjectionMatrix();
 }
 
 int ModuleRender::GetCulledTriangles() const {
@@ -379,7 +501,7 @@ void ModuleRender::DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node,
 	}
 }
 
-void ModuleRender::DrawSceneRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb) {
+void ModuleRender::DrawSceneRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb, bool shadowPass) {
 	AABB aabb3d = AABB({aabb.minPoint.x, -1000000.0f, aabb.minPoint.y}, {aabb.maxPoint.x, 1000000.0f, aabb.maxPoint.y});
 	if (CheckIfInsideFrustum(aabb3d, OBB(aabb3d))) {
 		if (node.IsBranch()) {
@@ -387,19 +509,19 @@ void ModuleRender::DrawSceneRecursive(const Quadtree<GameObject>::Node& node, co
 
 			const Quadtree<GameObject>::Node& topLeft = node.childNodes->nodes[0];
 			AABB2D topLeftAABB = {{aabb.minPoint.x, center.y}, {center.x, aabb.maxPoint.y}};
-			DrawSceneRecursive(topLeft, topLeftAABB);
+			DrawSceneRecursive(topLeft, topLeftAABB, shadowPass);
 
 			const Quadtree<GameObject>::Node& topRight = node.childNodes->nodes[1];
 			AABB2D topRightAABB = {{center.x, center.y}, {aabb.maxPoint.x, aabb.maxPoint.y}};
-			DrawSceneRecursive(topRight, topRightAABB);
+			DrawSceneRecursive(topRight, topRightAABB, shadowPass);
 
 			const Quadtree<GameObject>::Node& bottomLeft = node.childNodes->nodes[2];
 			AABB2D bottomLeftAABB = {{aabb.minPoint.x, aabb.minPoint.y}, {center.x, center.y}};
-			DrawSceneRecursive(bottomLeft, bottomLeftAABB);
+			DrawSceneRecursive(bottomLeft, bottomLeftAABB, shadowPass);
 
 			const Quadtree<GameObject>::Node& bottomRight = node.childNodes->nodes[3];
 			AABB2D bottomRightAABB = {{center.x, aabb.minPoint.y}, {aabb.maxPoint.x, center.y}};
-			DrawSceneRecursive(bottomRight, bottomRightAABB);
+			DrawSceneRecursive(bottomRight, bottomRightAABB, shadowPass);
 		} else {
 			const Quadtree<GameObject>::Element* element = node.firstElement;
 			while (element != nullptr) {
@@ -409,7 +531,11 @@ void ModuleRender::DrawSceneRecursive(const Quadtree<GameObject>::Node& node, co
 					const AABB& gameObjectAABB = boundingBox->GetWorldAABB();
 					const OBB& gameObjectOBB = boundingBox->GetWorldOBB();
 					if (CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
-						DrawGameObject(gameObject);
+						if (shadowPass) {
+							DrawGameObjectShadowPass(gameObject);
+						} else {
+							DrawGameObject(gameObject);
+						}
 					}
 
 					gameObject->flag = true;
@@ -481,6 +607,18 @@ void ModuleRender::DrawGameObject(GameObject* gameObject) {
 		if (resourceMesh != nullptr) {
 			culledTriangles += resourceMesh->numIndices / 3;
 		}
+	}
+}
+
+void ModuleRender::DrawGameObjectShadowPass(GameObject* gameObject) {
+	if ((gameObject->GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) == 0) return;
+
+	ComponentView<ComponentMeshRenderer> meshes = gameObject->GetComponents<ComponentMeshRenderer>();
+	ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
+	assert(transform);
+
+	for (ComponentMeshRenderer& mesh : meshes) {
+		mesh.DrawShadow(transform->GetGlobalMatrix());
 	}
 }
 
