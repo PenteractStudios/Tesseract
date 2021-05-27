@@ -11,6 +11,7 @@
 #include "Panels/PanelHierarchy.h"
 #include "Panels/PanelAbout.h"
 #include "Panels/PanelControlEditor.h"
+#include "Panels/PanelNavigation.h"
 #include "Panels/PanelResource.h"
 #include "Panels/PanelDebug.h"
 #include "Panels/PanelImportOptions.h"
@@ -31,6 +32,7 @@ enum class Modal {
 	COMPONENT_EXISTS,
 	CREATE_MATERIAL,
 	CREATE_SCRIPT,
+	CREATE_NAVMESH,
 	CANT_REMOVE_COMPONENT,
 	QUIT
 };
@@ -66,6 +68,7 @@ public:
 	PanelHierarchy panelHierarchy;
 	PanelAbout panelAbout;
 	PanelControlEditor panelControlEditor;
+	PanelNavigation panelNavigation;
 	PanelResource panelResource;
 	PanelDebug panelGameControllerDebug;
 	PanelImportOptions panelImportOptions;

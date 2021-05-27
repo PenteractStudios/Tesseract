@@ -38,6 +38,6 @@ public:
 	unsigned int beginIndex = 0;
 	unsigned int endIndex = 0;
 	float speed = 1.0f;
-	float duration = 0;
+	float duration = 1.0f;
 	unsigned int keyFramesSize = 0;
 };

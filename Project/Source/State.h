@@ -8,14 +8,12 @@ public:
 	State(const State& mState)
 		: id(mState.id)
 		, name(mState.name)
-		, clipUid(mState.clipUid)
-		, currentTime(mState.currentTime) {
+		, clipUid(mState.clipUid) {
 	}
 
-	State(const std::string& mName, UID mClipUid, float mCurrentTime = 0, UID mid = 0)
+	State(const std::string& mName, UID mClipUid, UID mid = 0)
 		: name(mName)
-		, clipUid(mClipUid)
-		, currentTime(mCurrentTime) {
+		, clipUid(mClipUid) {
 		id = mid != 0 ? mid : GenerateUID();
 	}
 
@@ -23,5 +21,4 @@ public:
 	UID id = 0;
 	UID clipUid = 0;
 	std::string name = "";
-	float currentTime = 0;
 };

@@ -33,6 +33,7 @@
 #define JSON_TAG_QUADTREE_ELEMENTS_PER_NODE "QuadtreeElementsPerNode"
 #define JSON_TAG_GAME_CAMERA "GameCamera"
 #define JSON_TAG_AMBIENTLIGHT "AmbientLight"
+#define JSON_TAG_NAVMESH "NavMesh"
 
 bool SceneImporter::ImportScene(const char* filePath, JsonValue jMeta) {
 	// Timer to measure importing a scene
@@ -133,6 +134,9 @@ void SceneImporter::LoadScene(const char* filePath) {
 	JsonValue ambientLight = jScene[JSON_TAG_AMBIENTLIGHT];
 	App->renderer->ambientColor = {ambientLight[0], ambientLight[1], ambientLight[2]};
 
+	// NavMesh
+	scene->SetNavMesh(jScene[JSON_TAG_NAVMESH]);
+
 	unsigned timeMs = timer.Stop();
 	LOG("Scene loaded in %ums.", timeMs);
 }
@@ -160,6 +164,9 @@ bool SceneImporter::SaveScene(const char* filePath) {
 	ambientLight[0] = App->renderer->ambientColor.x;
 	ambientLight[1] = App->renderer->ambientColor.y;
 	ambientLight[2] = App->renderer->ambientColor.z;
+
+	// NavMesh
+	jScene[JSON_TAG_NAVMESH] = scene->navMeshId;
 
 	// Save GameObjects
 	JsonValue jRoot = jScene[JSON_TAG_ROOT];
