@@ -15,6 +15,7 @@
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_COLOR_CLICK "ColorClick"
+#define JSON_TAG_COLOR_MANUAL_INPUT "ColorManualInput"
 #define JSON_TAG_MAX_VALUE "MaxValue"
 #define JSON_TAG_MIN_VALUE "MinValue"
 #define JSON_TAG_CURRENT_VALUE "CurrentValue"
@@ -147,6 +148,9 @@ void ComponentSlider::OnEditorUpdate() {
 	if (ImGui::SliderFloat("Value", &currentValue, minValue, maxValue)) {
 		SetNormalizedValue();
 	}
+
+	ImGui::ColorEdit4("Clicked Color##", colorClicked.ptr());
+	ImGui::ColorEdit4("Manual Input Color##", colorManualInput.ptr());
 }
 
 void ComponentSlider::OnClicked() {
@@ -207,6 +211,12 @@ void ComponentSlider::Save(JsonValue jComponent) const {
 	jColorClick[1] = colorClicked.y;
 	jColorClick[2] = colorClicked.z;
 	jColorClick[3] = colorClicked.w;
+
+	JsonValue jScolorManualInput = jComponent[JSON_TAG_COLOR_MANUAL_INPUT];
+	jScolorManualInput[0] = colorManualInput.x;
+	jScolorManualInput[1] = colorManualInput.y;
+	jScolorManualInput[2] = colorManualInput.z;
+	jScolorManualInput[3] = colorManualInput.w;
 }
 
 void ComponentSlider::Load(JsonValue jComponent) {
@@ -219,6 +229,9 @@ void ComponentSlider::Load(JsonValue jComponent) {
 
 	JsonValue jColorClick = jComponent[JSON_TAG_COLOR_CLICK];
 	colorClicked = float4(jColorClick[0], jColorClick[1], jColorClick[2], jColorClick[3]);
+
+	JsonValue jColorManualInput = jComponent[JSON_TAG_COLOR_MANUAL_INPUT];
+	colorManualInput = float4(jColorManualInput[0], jColorManualInput[1], jColorManualInput[2], jColorManualInput[3]);
 }
 
 bool ComponentSlider::IsClicked() const {
@@ -277,6 +290,8 @@ float4 ComponentSlider::GetTintColor() const {
 	if (sel->GetTransitionType() == ComponentSelectable::TransitionType::COLOR_CHANGE) {
 		if (!sel->IsInteractable()) {
 			return sel->GetDisabledColor();
+		} else if (beingHandled) {
+			return colorManualInput;
 		} else if (IsClicked()) {
 			return colorClicked;
 		} else if (sel->IsSelected()) {
@@ -286,7 +301,7 @@ float4 ComponentSlider::GetTintColor() const {
 		}
 	}
 
-	return App->userInterface->GetErrorColor();
+	return float4::one;
 }
 
 void ComponentSlider::SetNormalizedValue() {

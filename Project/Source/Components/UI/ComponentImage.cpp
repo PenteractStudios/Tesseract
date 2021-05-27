@@ -138,7 +138,7 @@ float4 ComponentImage::GetMainColor() const {
 			ComponentSlider* slider = parentObj->GetComponent<ComponentSlider>();
 			if (slider != nullptr) {
 				if (slider->GetHandleID() == GetOwner().GetID()) {
-					componentColor = slider->GetTintColor();
+					componentColor = color.Mul(slider->GetTintColor());
 					found = true;
 				}
 			}
