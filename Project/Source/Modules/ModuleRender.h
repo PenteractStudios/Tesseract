@@ -72,6 +72,7 @@ public:
 	bool drawCameraFrustums = false;
 	bool drawLightGizmos = false;
 	bool drawLightFrustumGizmo = false;
+	bool drawNavMesh = false;
 	bool drawParticleGizmos = false;
 	bool drawColliders = false;
 	int culledTriangles = 0;

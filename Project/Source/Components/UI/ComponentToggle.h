@@ -11,7 +11,7 @@ class ComponentToggle : public Component
 public:
 	REGISTER_COMPONENT(ComponentToggle, ComponentType::TOGGLE, false);
 
-	void OnClicked() override; // Action to perform when the button is clicked
+	void OnClicked() override;		   // Action to perform when the button is clicked
 	void OnClickedInternal() override; // Action to perform when the button is clicked
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
@@ -28,7 +28,7 @@ public:
 	bool IsClicked() const;
 	float4 GetTintColor() const;  // Returns the correspondant color of the current state
 	float4 GetClickColor() const; // Returns colorClicked
-	bool IsChecked() const;
+	TESSERACT_ENGINE_API bool IsChecked() const;
 	ComponentImage* GetEnabledImage() const; //Getter for image that will be drawn when isChecked is true
 
 private:

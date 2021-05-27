@@ -71,7 +71,10 @@ public:
 	void Enable();
 	void Disable();
 	bool IsActive() const;
+	bool IsActiveInHierarchy() const;
 	bool IsActiveInternal() const;
+	void SetStatic(bool value);
+	bool IsStatic() const;
 
 	UID GetID() const;
 
@@ -124,6 +127,7 @@ private:
 
 private:
 	bool active = true;
+	bool isStatic = false; // Used for NavMesh creation atm
 	bool activeInHierarchy = true;
 	Mask mask;
 	UID prefabId = 0;
