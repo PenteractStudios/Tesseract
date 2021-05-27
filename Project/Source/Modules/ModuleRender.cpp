@@ -168,7 +168,12 @@ void ModuleRender::ShadowMapPass() {
 }
 
 void ModuleRender::RenderPass() {
+#if GAME
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#else
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+#endif
+	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Draw Opaque
@@ -232,6 +237,8 @@ void ModuleRender::DrawDepthMapTexture() {
 	glActiveTexture(GL_TEXTURE0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 bool ModuleRender::Start() {
@@ -300,6 +307,18 @@ UpdateStatus ModuleRender::Update() {
 		if (drawParticleGizmos) {
 			for (ComponentParticleSystem& particle : scene->particleComponents) {
 				particle.DrawGizmos();
+			}
+		}
+
+		if (drawColliders) {
+			for (ComponentBoxCollider& collider : scene->boxColliderComponents) {
+				collider.DrawGizmos();
+			}
+			for (ComponentSphereCollider& collider : scene->sphereColliderComponents) {
+				collider.DrawGizmos();
+			}
+			for (ComponentCapsuleCollider& collider : scene->capsuleColliderComponents) {
+				collider.DrawGizmos();
 			}
 		}
 

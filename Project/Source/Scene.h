@@ -26,6 +26,9 @@
 #include "Components/ComponentAudioListener.h"
 #include "Components/ComponentAudioSource.h"
 #include "Components/UI/ComponentProgressBar.h"
+#include "Components/Physics/ComponentSphereCollider.h"
+#include "Components/Physics/ComponentBoxCollider.h"
+#include "Components/Physics/ComponentCapsuleCollider.h"
 
 class GameObject;
 
@@ -85,6 +88,9 @@ public:
 	PoolMap<UID, ComponentAudioSource> audioSourceComponents;
 	PoolMap<UID, ComponentAudioListener> audioListenerComponents;
 	PoolMap<UID, ComponentProgressBar> progressbarsComponents;
+	PoolMap<UID, ComponentSphereCollider> sphereColliderComponents;
+	PoolMap<UID, ComponentBoxCollider> boxColliderComponents;
+	PoolMap<UID, ComponentCapsuleCollider> capsuleColliderComponents;
 
 	// ---- Quadtree Parameters ---- //
 	Quadtree<GameObject> quadtree;

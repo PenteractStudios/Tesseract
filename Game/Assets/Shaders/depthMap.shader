@@ -12,7 +12,6 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
 
-
 uniform mat4 palette[MAX_BONES];
 uniform bool hasBones;
 
@@ -20,7 +19,7 @@ out vec2 uv;
 
 void main() {
 
-	vec4 position = vec4(pos, 1.0);
+    vec4 position = vec4(pos, 1.0);
     vec4 normal = vec4(norm, 0.0);
 
     if (hasBones)
@@ -47,12 +46,10 @@ uniform vec2 tiling;
 uniform vec2 offset;
 
 void main() {
-
     float diffuseAlpha = (hasDiffuseMap * pow(texture(diffuseMap, uv * tiling + offset), vec4(2.2)) + (1 - hasDiffuseMap) * diffuseColor).a;
     if(diffuseAlpha < 0.78)  // Tweakable value
     {
         discard;
     }
 	// gl_FragDepth = gl_FragCoord.z;
-
 }

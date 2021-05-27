@@ -5,14 +5,15 @@
 #include <cassert>
 
 const char* GetMaskTypeName(MaskType type) {
-	
 	switch (type) {
 	case MaskType::NONE:
 		return "NONE";
 	case MaskType::ENEMY:
 		return "ENEMY";
 	case MaskType::CAST_SHADOWS:
-		return "Cast Shadows";
+		return "CAST SHADOWS";
+	case MaskType::PLAYER:
+		return "PLAYER";
 	default:
 		LOG("The mask selected is not registered.");
 		assert(false);
@@ -25,13 +26,14 @@ const char* GetMaskTypeName(MaskType type) {
 MaskType GetMaskTypeFromName(const char* name) {
 	if (strcmp(name, "NONE") == 0) {
 		return MaskType::NONE;
-	} else if (strcmp(name, "Enemy") == 0) {
+	} else if (strcmp(name, "ENEMY") == 0) {
 		return MaskType::ENEMY;
-	}  else if (strcmp(name, "Cast Shadows") == 0) {
+	}  else if (strcmp(name, "CAST SHADOWS") == 0) {
 		return MaskType::CAST_SHADOWS;
+	} else if (strcmp(name, "PLAYER") == 0) {
+		return MaskType::PLAYER;
 	} else {
 		assert(false);
 		return MaskType::NONE;
 	}
-
 }

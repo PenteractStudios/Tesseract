@@ -146,6 +146,9 @@ void GameObject::AddMask(MaskType mask_) {
 	case MaskType::ENEMY:
 		mask.bitMask |= static_cast<int>(mask_);
 		break;
+	case MaskType::PLAYER:
+		mask.bitMask |= static_cast<int>(mask_);
+		break;
 	case MaskType::CAST_SHADOWS:
 		mask.bitMask |= static_cast<int>(mask_);
 		break;
@@ -166,6 +169,9 @@ void GameObject::DeleteMask(MaskType mask_) {
 
 	switch (mask_) {
 	case MaskType::ENEMY:
+		mask.bitMask ^= static_cast<int>(mask_);
+		break;
+	case MaskType::PLAYER:
 		mask.bitMask ^= static_cast<int>(mask_);
 		break;
 	case MaskType::CAST_SHADOWS:
