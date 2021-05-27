@@ -27,13 +27,9 @@ public:
 
 	void SaveToFile(const char* filePath);
 
-	void AddGameObject(GameObject* gameObject);
-	void RemoveGameObject(GameObject* gameObject);
 	void UpdateMask();
 
 public:
-
-	std::vector<GameObject*> gameObjects;
 	// Material shader
 	MaterialShader shaderType = MaterialShader::STANDARD;
 

@@ -146,7 +146,7 @@ bool ModuleRender::Init() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	
+
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
@@ -161,19 +161,37 @@ bool ModuleRender::Init() {
 void ModuleRender::ShadowMapPass() {
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	DrawScene(true);
+	for (GameObject* gameObject : shadowGameObjects) {
+		DrawGameObjectShadowPass(gameObject);
+	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void ModuleRender::RenderPass() {
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	DrawScene();
+
+	// Draw Opaque
+	for (GameObject* gameObject : opaqueGameObjects) {
+		DrawGameObject(gameObject);
+	}
+
+	// Draw Transparent
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	for (std::map<float, GameObject*>::reverse_iterator it = transparentGameObjects.rbegin(); it != transparentGameObjects.rend(); ++it) {
+		DrawGameObject((*it).second);
+	}
+	glDisable(GL_BLEND);
 }
 
-void ModuleRender::DrawScene(bool shadowPass) {
-	// Draw the scene
+void ModuleRender::ClassifyGameObjects() {
+	shadowGameObjects.clear();
+	opaqueGameObjects.clear();
+	transparentGameObjects.clear();
+
 	App->camera->CalculateFrustumPlanes();
+	float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
 	Scene* scene = App->scene->scene;
 	for (ComponentBoundingBox& boundingBox : scene->boundingBoxComponents) {
 		GameObject& gameObject = boundingBox.GetOwner();
@@ -183,16 +201,20 @@ void ModuleRender::DrawScene(bool shadowPass) {
 		const AABB& gameObjectAABB = boundingBox.GetWorldAABB();
 		const OBB& gameObjectOBB = boundingBox.GetWorldOBB();
 		if (CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
-			if (shadowPass) {
-				DrawGameObjectShadowPass(&gameObject);
+			if ((gameObject.GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0) {
+				shadowGameObjects.push_back(&gameObject);
+			}
+			if ((gameObject.GetMask().bitMask & static_cast<int>(MaskType::TRANSPARENT)) == 0) {
+				opaqueGameObjects.push_back(&gameObject);
 			} else {
-				DrawGameObject(&gameObject);
+				ComponentTransform* transform = gameObject.GetComponent<ComponentTransform>();
+				float dist = Length(cameraPos - transform->GetGlobalPosition());
+				transparentGameObjects[dist] = &gameObject;
 			}
 		}
 	}
-
 	if (scene->quadtree.IsOperative()) {
-		DrawSceneRecursive(scene->quadtree.root, scene->quadtree.bounds, shadowPass);
+		ClassifyGameObjectsFromQuadrtee(scene->quadtree.root, scene->quadtree.bounds);
 	}
 }
 
@@ -240,6 +262,8 @@ UpdateStatus ModuleRender::Update() {
 	BROFILER_CATEGORY("ModuleRender - Update", Profiler::Color::Green)
 
 	culledTriangles = 0;
+
+	ClassifyGameObjects();
 
 	// Pass 1. Build the depth map
 	ShadowMapPass();
@@ -415,6 +439,7 @@ void ModuleRender::ToggleDrawCameraFrustums() {
 void ModuleRender::ToggleDrawLightGizmos() {
 	drawLightGizmos = !drawLightGizmos;
 }
+
 void ModuleRender::ToggleDrawParticleGizmos() {
 	drawParticleGizmos = !drawParticleGizmos;
 }
@@ -481,7 +506,7 @@ void ModuleRender::DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node,
 	}
 }
 
-void ModuleRender::DrawSceneRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb, bool shadowPass) {
+void ModuleRender::ClassifyGameObjectsFromQuadrtee(const Quadtree<GameObject>::Node& node, const AABB2D& aabb) {
 	AABB aabb3d = AABB({aabb.minPoint.x, -1000000.0f, aabb.minPoint.y}, {aabb.maxPoint.x, 1000000.0f, aabb.maxPoint.y});
 	if (CheckIfInsideFrustum(aabb3d, OBB(aabb3d))) {
 		if (node.IsBranch()) {
@@ -489,20 +514,22 @@ void ModuleRender::DrawSceneRecursive(const Quadtree<GameObject>::Node& node, co
 
 			const Quadtree<GameObject>::Node& topLeft = node.childNodes->nodes[0];
 			AABB2D topLeftAABB = {{aabb.minPoint.x, center.y}, {center.x, aabb.maxPoint.y}};
-			DrawSceneRecursive(topLeft, topLeftAABB, shadowPass);
+			ClassifyGameObjectsFromQuadrtee(topLeft, topLeftAABB);
 
 			const Quadtree<GameObject>::Node& topRight = node.childNodes->nodes[1];
 			AABB2D topRightAABB = {{center.x, center.y}, {aabb.maxPoint.x, aabb.maxPoint.y}};
-			DrawSceneRecursive(topRight, topRightAABB, shadowPass);
+			ClassifyGameObjectsFromQuadrtee(topRight, topRightAABB);
 
 			const Quadtree<GameObject>::Node& bottomLeft = node.childNodes->nodes[2];
 			AABB2D bottomLeftAABB = {{aabb.minPoint.x, aabb.minPoint.y}, {center.x, center.y}};
-			DrawSceneRecursive(bottomLeft, bottomLeftAABB, shadowPass);
+			ClassifyGameObjectsFromQuadrtee(bottomLeft, bottomLeftAABB);
 
 			const Quadtree<GameObject>::Node& bottomRight = node.childNodes->nodes[3];
 			AABB2D bottomRightAABB = {{center.x, aabb.minPoint.y}, {aabb.maxPoint.x, center.y}};
-			DrawSceneRecursive(bottomRight, bottomRightAABB, shadowPass);
+			ClassifyGameObjectsFromQuadrtee(bottomRight, bottomRightAABB);
 		} else {
+			float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
+
 			const Quadtree<GameObject>::Element* element = node.firstElement;
 			while (element != nullptr) {
 				GameObject* gameObject = element->object;
@@ -511,10 +538,15 @@ void ModuleRender::DrawSceneRecursive(const Quadtree<GameObject>::Node& node, co
 					const AABB& gameObjectAABB = boundingBox->GetWorldAABB();
 					const OBB& gameObjectOBB = boundingBox->GetWorldOBB();
 					if (CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
-						if (shadowPass) {
-							DrawGameObjectShadowPass(gameObject);
+						if ((gameObject->GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0) {
+							shadowGameObjects.push_back(gameObject);
+						}
+						if ((gameObject->GetMask().bitMask & static_cast<int>(MaskType::TRANSPARENT)) == 0) {
+							opaqueGameObjects.push_back(gameObject);
 						} else {
-							DrawGameObject(gameObject);
+							ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
+							float dist = Length(cameraPos - transform->GetGlobalPosition());
+							transparentGameObjects[dist] = gameObject;
 						}
 					}
 
@@ -591,9 +623,6 @@ void ModuleRender::DrawGameObject(GameObject* gameObject) {
 }
 
 void ModuleRender::DrawGameObjectShadowPass(GameObject* gameObject) {
-
-	if ((gameObject->GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) == 0) return;
-
 	ComponentView<ComponentMeshRenderer> meshes = gameObject->GetComponents<ComponentMeshRenderer>();
 	ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
 	assert(transform);

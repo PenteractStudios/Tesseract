@@ -20,6 +20,9 @@ public:
 	void Draw(const float4x4& modelMatrix) const;
 	void DrawShadow(const float4x4& modelMatrix) const;
 
+	void AddRenderingModeMask();
+	void DeleteRenderingModeMask();
+
 public:
 	UID meshId = 0;
 	UID materialId = 0;

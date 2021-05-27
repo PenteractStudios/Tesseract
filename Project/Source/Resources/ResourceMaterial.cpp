@@ -8,6 +8,7 @@
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleEditor.h"
+#include "Modules/ModuleScene.h"
 #include "ResourceTexture.h"
 #include "Utils/FileDialog.h"
 #include "Utils/Logging.h"
@@ -162,23 +163,15 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	LOG("Material saved in %ums", timeMs);
 }
 
-void ResourceMaterial::AddGameObject(GameObject* gameObject) {
-	gameObjects.push_back(gameObject);
-}
-
-void ResourceMaterial::RemoveGameObject(GameObject* gameObject) {
-	auto it = find(gameObjects.begin(), gameObjects.end(), gameObject);
-	if (it != gameObjects.end()) {
-		gameObjects.erase(it);
-	}
-}
-
 void ResourceMaterial::UpdateMask() {
-	for (GameObject* gameObject : gameObjects) {
-		if (renderingMode == RenderingMode::TRANSPARENT) {
-			gameObject->AddMask();
-		} else {
-			gameObject->DeleteMask();
+	for (GameObject& gameObject : App->scene->scene->gameObjects) {
+		ComponentMeshRenderer* meshRenderer = gameObject.GetComponent<ComponentMeshRenderer>();
+		if (meshRenderer && meshRenderer->materialId == GetId()) {
+			if (renderingMode == RenderingMode::TRANSPARENT) {
+				gameObject.AddMask(MaskType::TRANSPARENT);
+			} else {
+				gameObject.DeleteMask(MaskType::TRANSPARENT);
+			}
 		}
 	}
 }
