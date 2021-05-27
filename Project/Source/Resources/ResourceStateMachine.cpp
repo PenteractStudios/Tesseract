@@ -27,6 +27,7 @@
 
 #define JSON_TAG_NAME "Name"
 #define JSON_TAG_ID "Id"
+#define JSON_TAG_BONES "Bones"
 
 #define JSON_TAG_SOURCE "Source"
 #define JSON_TAG_TARGET "Target"
@@ -61,16 +62,20 @@ void ResourceStateMachine::Load() {
 		clipsUids.push_back(clipUID);
 	}
 
-	std::unordered_map<UID, State> stateMap;
+	JsonValue bonesArray = jStateMachine[JSON_TAG_BONES];
+	for (unsigned int i = 0; i < bonesArray.Size(); ++i) {
+		std::string name = bonesArray[i];
+		bones.insert(name);
+	}
+
 	UID initialStateId = jStateMachine[JSON_TAG_INITIAL_STATE];
 	JsonValue stateArray = jStateMachine[JSON_TAG_STATES];
 	for (unsigned int i = 0; i < stateArray.Size(); ++i) {
 		UID id = stateArray[i][JSON_TAG_ID];
 		std::string name = stateArray[i][JSON_TAG_NAME];
 		UID clipId = stateArray[i][JSON_TAG_CLIP_ID];
-		State state(name, clipId, 0, id);
-		states.push_back(state);
-		stateMap.insert(std::make_pair(id, state));
+		State state(name, clipId, id);
+		states.insert(std::make_pair(id, state));
 
 		//Setting initial state
 		if (initialStateId == id) {
@@ -87,7 +92,7 @@ void ResourceStateMachine::Load() {
 		UID source = transitionArray[i][JSON_TAG_SOURCE];
 		UID target = transitionArray[i][JSON_TAG_TARGET];
 		float interpolationDuration = transitionArray[i][JSON_TAG_INTERPOLATION_DURATION];
-		Transition transition(stateMap.find(source)->second, stateMap.find(target)->second, interpolationDuration, id);
+		Transition transition(states.find(source)->second, states.find(target)->second, interpolationDuration, id);
 		transitions.insert(std::make_pair(triggerName, transition));
 	}
 
@@ -127,16 +132,25 @@ void ResourceStateMachine::SaveToFile(const char* filePath) {
 		++i;
 	}
 
+	// Saving Bones Strings
+	JsonValue bonesArray = jStateMachine[JSON_TAG_BONES];
+	int i = 0;
+	std::set<std::string>::iterator bone;
+	for (bone = bones.begin(); bone != bones.end(); ++bone) {
+		bonesArray[i] = (*bone->c_str());
+		++i;
+	}
+
 	// Saving States
 	JsonValue stateArray = jStateMachine[JSON_TAG_STATES];
 	i = 0;
-	std::list<State>::iterator itState;
-	for (itState = states.begin(); itState != states.end(); ++itState) {
-		stateArray[i][JSON_TAG_ID] = (*itState).id;
-		stateArray[i][JSON_TAG_NAME] = (*itState).name.c_str();
-		stateArray[i][JSON_TAG_CLIP_ID] = (*itState).clipUid;
+	for (const auto& element : states) {
+		stateArray[i][JSON_TAG_ID] = element.second.id;
+		stateArray[i][JSON_TAG_NAME] = element.second.name.c_str();
+		stateArray[i][JSON_TAG_CLIP_ID] = element.second.clipUid;
 		++i;
 	}
+
 
 	//Saving transitions
 	JsonValue transitionArray = jStateMachine[JSON_TAG_TRANSITIONS];
@@ -168,7 +182,8 @@ void ResourceStateMachine::SaveToFile(const char* filePath) {
 
 State ResourceStateMachine::AddState(const std::string& name, UID clipUID) {
 	State state(name, clipUID);
-	states.push_back(state);
+	states.insert(std::make_pair(state.id, state));
+
 	AddClip(clipUID);
 
 	return state;

@@ -90,6 +90,7 @@ bool ModuleScene::Start() {
 	App->files->CreateFolder(SCENES_PATH);
 	App->files->CreateFolder(MATERIALS_PATH);
 	App->files->CreateFolder(PREFABS_PATH);
+	App->files->CreateFolder(NAVMESH_PATH);
 #endif
 
 #if GAME
@@ -167,6 +168,7 @@ void ModuleScene::CreateEmptyScene() {
 
 	// Create Directional Light
 	GameObject* dirLight = scene->CreateGameObject(root, GenerateUID(), "Directional Light");
+	scene->directionalLight = dirLight;
 	ComponentTransform* dirLightTransform = dirLight->CreateComponent<ComponentTransform>();
 	dirLightTransform->SetPosition(float3(0, 300, 0));
 	dirLightTransform->SetRotation(Quat::FromEulerXYZ(pi / 2, 0.0f, 0.0));

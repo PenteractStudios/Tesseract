@@ -7,6 +7,7 @@
 
 #include <list>
 #include <unordered_map>
+#include <set>
 
 class ResourceAnimation;
 class ResourceStateMachine : public Resource {
@@ -27,8 +28,9 @@ public:
 	}
 
 public:
-	std::list<State> states;
+	std::unordered_map<UID, State> states;
 	State initialState;
+	std::set<std::string> bones;
 
 private:
 	std::list<UID> clipsUids;

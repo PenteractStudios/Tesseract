@@ -77,8 +77,7 @@ struct CheckFinishInterpolation {
 	}
 };
 
-State* AnimationController::UpdateTransitions(std::list<AnimationInterpolation>& animationInterpolations, const float time) {
-	State* state = nullptr;
+bool AnimationController::UpdateTransitions(std::list<AnimationInterpolation>& animationInterpolations, std::unordered_map<UID, float>& currentTimeStates, const float time) {
 	bool finished = false;
 	for (auto& interpolation = animationInterpolations.rbegin(); interpolation != animationInterpolations.rend(); ++interpolation) {
 		(*interpolation).currentTime += time;
@@ -90,8 +89,7 @@ State* AnimationController::UpdateTransitions(std::list<AnimationInterpolation>&
 
 		if ((*interpolation).fadeTime >= (*interpolation).transitionTime) {
 			finished = true;
-			state = (*interpolation).state;
-			state->currentTime = (*interpolation).currentTime;
+			currentTimeStates[(*interpolation).state->id] = (*interpolation).currentTime;
 		}
 	}
 
@@ -101,7 +99,7 @@ State* AnimationController::UpdateTransitions(std::list<AnimationInterpolation>&
 		animationInterpolations.clear();
 	}
 
-	return state;
+	return finished;
 }
 
 Quat AnimationController::Interpolate(const Quat& first, const Quat& second, float lambda) {
