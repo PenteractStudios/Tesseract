@@ -45,6 +45,12 @@ public:
 		return size;
 	}
 
+	T* ObtainData() {
+		T* auxData = data;
+		data = nullptr;
+		return auxData;
+	}
+
 	Buffer<T>& operator=(Buffer<T>&& buffer) {
 		size = buffer.size;
 		T* oldData = data;

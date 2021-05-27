@@ -26,6 +26,10 @@
 #include "Components/ComponentAudioListener.h"
 #include "Components/ComponentAudioSource.h"
 #include "Components/UI/ComponentProgressBar.h"
+#include "Components/Physics/ComponentSphereCollider.h"
+#include "Components/Physics/ComponentBoxCollider.h"
+#include "Components/Physics/ComponentCapsuleCollider.h"
+#include "Components/ComponentAgent.h"
 
 class GameObject;
 
@@ -51,9 +55,16 @@ public:
 	void RemoveComponentByTypeAndId(ComponentType type, UID componentId);
 
 	int GetTotalTriangles() const;
+	std::vector<float> GetVertices();		// Gets all the vertices from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
+	std::vector<int> GetTriangles();		// Gets all the triangles from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
+
+	void SetNavMesh(UID navMesh);
+	UID GetNavMesh();
 
 public:
 	GameObject* root = nullptr;			  // GameObject Root. Parent of everything and god among gods (Game Object Deity) :D.
+	GameObject* directionalLight = nullptr;		  // GameObject of directional light
+
 	PoolMap<UID, GameObject> gameObjects; // Pool of GameObjects. Stores all the memory of all existing GameObject in a contiguous memory space.
 
 	bool sceneLoaded = false; // This is set to true when all scene resources have been loaded
@@ -83,12 +94,19 @@ public:
 	PoolMap<UID, ComponentAudioSource> audioSourceComponents;
 	PoolMap<UID, ComponentAudioListener> audioListenerComponents;
 	PoolMap<UID, ComponentProgressBar> progressbarsComponents;
+	PoolMap<UID, ComponentSphereCollider> sphereColliderComponents;
+	PoolMap<UID, ComponentBoxCollider> boxColliderComponents;
+	PoolMap<UID, ComponentCapsuleCollider> capsuleColliderComponents;
+	PoolMap<UID, ComponentAgent> agentComponents;
 
 	// ---- Quadtree Parameters ---- //
 	Quadtree<GameObject> quadtree;
 	AABB2D quadtreeBounds = {{-1000, -1000}, {1000, 1000}};
 	unsigned quadtreeMaxDepth = 4;
 	unsigned quadtreeElementsPerNode = 200;
+
+	// ---- Nav Mesh ID parameters ---- //
+	UID navMeshId = 0;
 };
 
 template<class T>
