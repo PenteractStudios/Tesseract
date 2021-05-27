@@ -44,10 +44,16 @@ void ComponentAgent::SetMoveTarget(float3 newTargetPosition, bool usePathfinding
 
 void ComponentAgent::SetMaxSpeed(float newSpeed) {
 	maxSpeed = newSpeed;
+	NavMesh& navMesh = App->navigation->GetNavMesh();
+	dtCrowdAgent* ag = navMesh.GetCrowd()->getEditableAgent(agentId);
+	ag->params.maxSpeed = maxSpeed;
 }
 
 void ComponentAgent::SetMaxAcceleration(float newAcceleration) {
 	maxAcceleration = newAcceleration;
+	NavMesh& navMesh = App->navigation->GetNavMesh();
+	dtCrowdAgent* ag = navMesh.GetCrowd()->getEditableAgent(agentId);
+	ag->params.maxAcceleration = maxAcceleration;
 }
 
 void ComponentAgent::AddAgentToCrowd() {
@@ -110,8 +116,12 @@ void ComponentAgent::OnEditorUpdate() {
 	}
 	ImGui::Separator();
 
-	ImGui::InputFloat("Agent speed", &maxSpeed, App->editor->dragSpeed2f, 0);
-	ImGui::InputFloat("Agent max acceleration", &maxAcceleration, App->editor->dragSpeed2f, 0);
+	if (ImGui::InputFloat("Agent max speed", &maxSpeed, App->editor->dragSpeed2f, 0)) {
+		SetMaxSpeed(maxSpeed);
+	}
+	if (ImGui::InputFloat("Agent max acceleration", &maxAcceleration, App->editor->dragSpeed2f, 0)) {
+		SetMaxAcceleration(maxAcceleration);
+	}
 }
 
 void ComponentAgent::OnEnable() {
