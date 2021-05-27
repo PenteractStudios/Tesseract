@@ -16,6 +16,41 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\LightFrustum.h" />
+    <ClInclude Include="Source\Components\ComponentAgent.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\DebugUtils\DebugDraw.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\DebugUtils\DetourDebugDraw.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\DebugUtils\RecastDebugDraw.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\DebugUtils\RecastDump.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\DetourCrowd\DetourCrowd.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\DetourCrowd\DetourLocalBoundary.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\DetourCrowd\DetourObstacleAvoidance.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\DetourCrowd\DetourPathCorridor.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\DetourCrowd\DetourPathQueue.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\DetourCrowd\DetourProximityGrid.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\DetourTileCache\DetourTileCache.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\DetourTileCache\DetourTileCacheBuilder.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Detour\ChunkyTriMesh.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Detour\DetourAlloc.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Detour\DetourAssert.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Detour\DetourCommon.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Detour\DetourMath.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Detour\DetourNavMesh.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Detour\DetourNavMeshBuilder.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Detour\DetourNavMeshQuery.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Detour\DetourNode.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Detour\DetourStatus.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Detour\InputGeom.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Detour\MeshLoaderObj.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\fastlz\fastlz.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Recast\Recast.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Recast\RecastAlloc.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Recast\RecastAssert.h" />
+    <ClInclude Include="Libs\recastnavigation-1.5.1\Recast\SampleInterfaces.h" />
+    <ClInclude Include="Source\FileSystem\NavMeshImporter.h" />
+    <ClInclude Include="Source\Resources\ResourceNavMesh.h" />
+    <ClInclude Include="Source\Navigation\NavMesh.h" />
+    <ClInclude Include="Source\Panels\PanelNavigation.h" />
+    <ClInclude Include="Source\Modules\ModuleNavigation.h" />
     <ClInclude Include="Source\Panels\PanelDebug.h" />
     <ClInclude Include="Source\FileSystem\ImportOptions.h" />
     <ClInclude Include="Source\FileSystem\ImporterCommon.h" />
@@ -302,6 +337,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\LightFrustum.cpp" />
+    <ClCompile Include="Source\Components\ComponentAgent.cpp" />
+    <ClCompile Include="Source\FileSystem\NavMeshImporter.cpp" />
     <ClCompile Include="Source\Panels\PanelDebug.cpp" />
     <ClCompile Include="Source\FileSystem\ImportOptions.cpp" />
     <ClCompile Include="Source\FileSystem\ImporterCommon.cpp" />
@@ -313,6 +350,43 @@
     <ClCompile Include="Source\FileSystem\StateMachineImporter.cpp" />
     <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Source\Resources\ResourceClip.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\DebugUtils\DebugDraw.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\DebugUtils\DetourDebugDraw.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\DebugUtils\RecastDebugDraw.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\DebugUtils\RecastDump.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\DetourCrowd\DetourCrowd.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\DetourCrowd\DetourLocalBoundary.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\DetourCrowd\DetourObstacleAvoidance.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\DetourCrowd\DetourPathCorridor.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\DetourCrowd\DetourPathQueue.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\DetourCrowd\DetourProximityGrid.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\DetourTileCache\DetourTileCache.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\DetourTileCache\DetourTileCacheBuilder.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Detour\ChunkyTriMesh.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Detour\DetourAlloc.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Detour\DetourCommon.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Detour\DetourNavMesh.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Detour\DetourNavMeshBuilder.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Detour\DetourNavMeshQuery.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Detour\DetourNode.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Detour\InputGeom.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Detour\MeshLoaderObj.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\fastlz\fastlz.c" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\Recast.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\RecastAlloc.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\RecastArea.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\RecastContour.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\RecastFilter.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\RecastLayers.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\RecastMesh.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\RecastMeshDetail.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\RecastRasterization.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\RecastRegion.cpp" />
+    <ClCompile Include="Libs\recastnavigation-1.5.1\Recast\SampleInterfaces.cpp" />
+    <ClCompile Include="Source\Resources\ResourceNavMesh.cpp" />
+    <ClCompile Include="Source\Navigation\NavMesh.cpp" />
+    <ClCompile Include="Source\Panels\PanelNavigation.cpp" />
+    <ClCompile Include="Source\Modules\ModuleNavigation.cpp" />
     <ClCompile Include="Source\Panels\PanelImportOptions.cpp" />
     <ClCompile Include="Libs\imgui\imgui_tables.cpp" />
     <ClCompile Include="Source\Components\Physics\ComponentBoxCollider.cpp" />
@@ -572,7 +646,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\Bullet/include;$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\recastnavigation-1.5.1;$(ProjectDir)/Libs\Bullet/include;$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS; _MBCS; %(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -602,7 +676,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\Bullet/include;$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\recastnavigation-1.5.1;$(ProjectDir)/Libs\Bullet/include;$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS; _MBCS; %(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -636,7 +710,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\Bullet/include;$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\recastnavigation-1.5.1;$(ProjectDir)/Libs\Bullet/include;$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS; _MBCS;GAME; %(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

@@ -23,6 +23,7 @@ class ModuleAudio;
 class ModuleProject;
 class ModuleEvents;
 class ModulePhysics;
+class ModuleNavigation;
 
 struct Event;
 
@@ -57,6 +58,7 @@ public:
 	ModuleProject* project = nullptr;
 	ModuleEvents* events = nullptr;
 	ModulePhysics* physics = nullptr;
+	ModuleNavigation* navigation = nullptr;
 
 	// - Application Configuration - //
 	char appName[20] = "Tesseract";

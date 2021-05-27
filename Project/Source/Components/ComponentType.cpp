@@ -62,6 +62,8 @@ const char* GetComponentTypeName(ComponentType type) {
 		return "BoxCollider";
 	case ComponentType::CAPSULE_COLLIDER:
 		return "CapsuleCollider";
+	case ComponentType::AGENT:
+		return "Agent";
 	default:
 		LOG("Component of type %i hasn't been registered in GetComponentTypeName.", (unsigned) type);
 		assert(false); // ERROR: Component type not registered
@@ -124,6 +126,8 @@ ComponentType GetComponentTypeFromName(const char* name) {
 		return ComponentType::BOX_COLLIDER;
 	} else if (strcmp(name, "CapsuleCollider") == 0) {
 		return ComponentType::CAPSULE_COLLIDER;
+	} else if (strcmp(name, "Agent") == 0) {
+		return ComponentType::AGENT;
 	} else {
 		LOG("No component of name %s exists.", (unsigned) name);
 		assert(false); // ERROR: Invalid name
