@@ -48,7 +48,7 @@ public:
 	float agentHeight = 2.0f;
 	float agentRadius = 0.5f;
 	float agentMaxClimb = 0.9f;
-	float agentMaxSlope = 45;
+	float agentMaxSlope = 45.0f;
 
 	// RASTERIZATION
 	float cellSize = 0.30f;
@@ -80,7 +80,7 @@ public:
 	DrawMode drawMode = DRAWMODE_NAVMESH;
 
 	// NAV DATA TO SAVE
-	unsigned char* navData = 0;
+	unsigned char* navData =  nullptr;
 	int navDataSize = 0;
 
 private:

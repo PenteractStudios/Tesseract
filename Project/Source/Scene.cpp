@@ -385,7 +385,7 @@ std::vector<int> Scene::GetTriangles() {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
 		if (mesh != nullptr && meshRenderer.GetOwner().IsStatic()) {
 			vertOverload += maxVertMesh[i];
-			for (int j = 0; j < mesh->meshIndices.size(); j += 3) {
+			for (unsigned j = 0; j < mesh->meshIndices.size(); j += 3) {
 				result[currentGlobalTri] = mesh->meshIndices[j] + vertOverload;
 				result[currentGlobalTri + 1] = mesh->meshIndices[j + 1] + vertOverload;
 				result[currentGlobalTri + 2] = mesh->meshIndices[j + 2] + vertOverload;

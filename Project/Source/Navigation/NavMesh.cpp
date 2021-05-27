@@ -6,6 +6,7 @@
 #include "Modules/ModuleCamera.h"
 #include "Scene.h"
 #include "Components/ComponentMeshRenderer.h"
+#include "Utils/Logging.h"
 
 #include "Recast/Recast.h"
 #include "Recast/RecastAlloc.h"
@@ -20,21 +21,14 @@
 #include "DetourTileCache/DetourTileCache.h"
 #include "DetourTileCache/DetourTileCacheBuilder.h"
 #include "DetourCrowd/DetourCrowd.h"
-
 #include "DebugUtils/RecastDebugDraw.h"
 #include "DebugUtils/DetourDebugDraw.h"
-
 #include "fastlz/fastlz.h"
-
 #include "GL/glew.h"
 
-#include "Utils/Logging.h"
 #include "Utils/Leaks.h"
 
 #define MAX_AGENTS 128
-
-// This value specifies how many layers (or "floors") each navmesh tile is expected to have.
-static const int EXPECTED_LAYERS_PER_TILE = 4;
 
 /// These are just sample areas to use consistent values across the samples.
 /// The use should specify these base on his needs.
@@ -62,46 +56,6 @@ enum SamplePartitionType {
 	SAMPLE_PARTITION_LAYERS,
 };
 
-struct MeshProcess : public dtTileCacheMeshProcess {
-	InputGeom* geom;
-
-	inline MeshProcess()
-		: geom(0) {
-	}
-
-	inline void init(InputGeom* geom) {
-		geom = geom;
-	}
-
-	virtual void process(struct dtNavMeshCreateParams* params, unsigned char* polyAreas, unsigned short* polyFlags) {
-		// Update poly flags from areas.
-		for (int i = 0; i < params->polyCount; ++i) {
-			if (polyAreas[i] == DT_TILECACHE_WALKABLE_AREA) {
-				polyAreas[i] = SAMPLE_POLYAREA_GROUND;
-			}
-			if (polyAreas[i] == SAMPLE_POLYAREA_GROUND || polyAreas[i] == SAMPLE_POLYAREA_GRASS || polyAreas[i] == SAMPLE_POLYAREA_ROAD) {
-				polyFlags[i] = SAMPLE_POLYFLAGS_WALK;
-			} else if (polyAreas[i] == SAMPLE_POLYAREA_WATER) {
-				polyFlags[i] = SAMPLE_POLYFLAGS_SWIM;
-			} else if (polyAreas[i] == SAMPLE_POLYAREA_DOOR) {
-				polyFlags[i] = SAMPLE_POLYFLAGS_WALK | SAMPLE_POLYFLAGS_DOOR;
-			}
-		}
-
-		// Pass in off-mesh connections.
-		if (geom) {
-			params->offMeshConVerts = geom->getOffMeshConnectionVerts();
-			params->offMeshConRad = geom->getOffMeshConnectionRads();
-			params->offMeshConDir = geom->getOffMeshConnectionDirs();
-			params->offMeshConAreas = geom->getOffMeshConnectionAreas();
-			params->offMeshConFlags = geom->getOffMeshConnectionFlags();
-			params->offMeshConUserID = geom->getOffMeshConnectionId();
-			params->offMeshConCount = geom->getOffMeshConnectionCount();
-		}
-	}
-};
-
-
 NavMesh::NavMesh()
 {
 	navMeshDrawFlags = DU_DRAWNAVMESH_OFFMESHCONS | DU_DRAWNAVMESH_CLOSEDLIST;
@@ -112,27 +66,14 @@ NavMesh::NavMesh()
 }
 
 NavMesh::~NavMesh() {
-	dtFreeNavMesh(navMesh);
-	navMesh = 0;
-	delete[] triareas;
-	triareas = 0;
-	rcFreeHeightField(solid);
-	solid = 0;
-	rcFreeCompactHeightfield(chf);
-	chf = 0;
-	rcFreeContourSet(cset);
-	cset = 0;
-	rcFreePolyMesh(pmesh);
-	pmesh = 0;
-	rcFreePolyMeshDetail(dmesh);
-	dmesh = 0;
-	dtFreeCrowd(crowd);
-	crowd = 0;
-	dtFreeNavMeshQuery(navQuery);
-	navQuery = 0;
-	delete ctx;
+	CleanUp();
 
-	int navDataSize = 0;
+	dtFreeCrowd(crowd);
+	crowd = nullptr;
+	dtFreeNavMeshQuery(navQuery);
+	navQuery = nullptr;
+	delete ctx;
+	ctx = nullptr;
 }
 
 bool NavMesh::Build() {
@@ -173,14 +114,14 @@ bool NavMesh::Build() {
 	cfg.cs = cellSize;
 	cfg.ch = cellHeight;
 	cfg.walkableSlopeAngle = agentMaxSlope;
-	cfg.walkableHeight = (int) ceilf(agentHeight / cfg.ch);
-	cfg.walkableClimb = (int) floorf(agentMaxClimb / cfg.ch);
-	cfg.walkableRadius = (int) ceilf(agentRadius / cfg.cs);
-	cfg.maxEdgeLen = (int) (edgeMaxLen / cellSize);
+	cfg.walkableHeight = static_cast<int>(ceilf(agentHeight / cfg.ch));
+	cfg.walkableClimb = static_cast<int>(floorf(agentMaxClimb / cfg.ch));
+	cfg.walkableRadius = static_cast<int>(ceilf(agentRadius / cfg.cs));
+	cfg.maxEdgeLen = static_cast<int>(edgeMaxLen / cellSize);
 	cfg.maxSimplificationError = edgeMaxError;
-	cfg.minRegionArea = (int) rcSqr(regionMinSize);		// Note: area = size*size
-	cfg.mergeRegionArea = (int) rcSqr(regionMergeSize); // Note: area = size*size
-	cfg.maxVertsPerPoly = (int) vertsPerPoly;
+	cfg.minRegionArea = static_cast<int>(rcSqr(regionMinSize));		// Note: area = size*size
+	cfg.mergeRegionArea = static_cast<int>(rcSqr(regionMergeSize)); // Note: area = size*size
+	cfg.maxVertsPerPoly = static_cast<int>(vertsPerPoly);
 	cfg.detailSampleDist = detailSampleDist < 0.9f ? 0 : cellSize * detailSampleDist;
 	cfg.detailSampleMaxError = cellHeight * detailSampleMaxError;
 
@@ -264,7 +205,7 @@ bool NavMesh::Build() {
 
 	if (!keepInterResults) {
 		rcFreeHeightField(solid);
-		solid = 0;
+		solid = nullptr;
 	}
 
 	// Erode the walkable area by agent radius.
@@ -379,9 +320,9 @@ bool NavMesh::Build() {
 
 	if (!keepInterResults) {
 		rcFreeCompactHeightfield(chf);
-		chf = 0;
+		chf = nullptr;
 		rcFreeContourSet(cset);
-		cset = 0;
+		cset = nullptr;
 	}
 
 	// At this point the navigation mesh data is ready, you can access it from pmesh.
@@ -394,7 +335,7 @@ bool NavMesh::Build() {
 	// The GUI may allow more max points per polygon than Detour can handle.
 	// Only build the detour navmesh if we do not exceed the limit.
 	if (cfg.maxVertsPerPoly <= DT_VERTS_PER_POLYGON) {
-		navData = 0;
+		navData = nullptr;
 		navDataSize = 0;
 
 		// Update poly flags from areas.
