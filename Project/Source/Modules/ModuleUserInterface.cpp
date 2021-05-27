@@ -10,6 +10,7 @@
 #include "Application.h"
 #include "ModuleFiles.h"
 #include "ModuleEvents.h"
+#include "Modules/ModuleCamera.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleInput.h"
@@ -26,6 +27,7 @@
 #include "FileSystem/TextureImporter.h"
 #include "Utils/Logging.h"
 
+#include "Geometry/LineSegment.h"
 #include "GL/glew.h"
 
 #include "Utils/Leaks.h"
@@ -49,6 +51,7 @@ bool ModuleUserInterface::Start() {
 
 UpdateStatus ModuleUserInterface::Update() {
 	float2 mousePos = App->input->GetMousePosition(true);
+	LineSegment ray = App->camera->GetActiveCamera()->GetFrustum()->UnProjectLineSegment(mousePos.x, mousePos.y);
 
 	if (currentEvSys) {
 		for (ComponentSelectable& selectable : App->scene->scene->selectableComponents) {
@@ -57,11 +60,11 @@ UpdateStatus ModuleUserInterface::Update() {
 			if (bb) {
 				if (!selectable.IsHovered()) {
 					float2 auxMouse = mousePos;
-					if (bb->GetWorldOBB().Contains(float3(mousePos, 0.0f))) {
+					if (bb->GetWorldOBB().Intersects(ray)) {
 						selectable.OnPointerEnter();
 					}
 				} else {
-					if (!bb->GetWorldOBB().Contains(float3(mousePos, 0.0f))) {
+					if (!bb->GetWorldOBB().Intersects(ray)) {
 						selectable.OnPointerExit();
 					}
 				}

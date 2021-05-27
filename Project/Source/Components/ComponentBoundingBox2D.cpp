@@ -70,7 +70,7 @@ void ComponentBoundingBox2D::CalculateWorldBoundingBox(bool force) {
 			float3 scale = transform2d->GetScale();
 			float screenFactor = canvasRenderer->GetCanvasScreenFactor();
 			float2 screenSize = canvasRenderer->GetCanvasSize();
-			float3 position = transform2d->GetCenterPositionObject();
+			position = transform2d->GetScreenPosition();
 
 			float3 minPoint = position.xyz().Mul(float3(1.0f, -1.0f, 0.0f).Mul(screenFactor)) + float3(screenSize, 0.0f) / 2.0f
 							  - 0.5f * (float3(transform2d->GetSize(), 0.0f).Mul(transform2d->GetScale().xyz()).Mul(screenFactor));
