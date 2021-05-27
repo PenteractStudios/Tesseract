@@ -182,6 +182,7 @@
     <ClCompile Include="Source\FileSystem\ImporterCommon.cpp" />
     <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Source\FileSystem\ImportOptions.cpp" />
+    <ClCompile Include="Source\StateMachineManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libs\imgui\IconsFontAwesome5.h" />
@@ -463,6 +464,8 @@
     <ClInclude Include="Source\MaskType.h" />
     <ClInclude Include="Source\Panels\PanelDebug.h" />
     <ClInclude Include="Source\FileSystem\ImportOptions.h" />
+    <ClInclude Include="Source\StateMachineEnum.h" />
+    <ClInclude Include="Source\StateMachineManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />

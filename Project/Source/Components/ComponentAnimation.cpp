@@ -17,6 +17,7 @@
 #include "Utils/UID.h"
 #include "Utils/Logging.h"
 #include "Utils/ImGuiUtils.h"
+#include "StateMachineEnum.h"
 
 #include <algorithm> // std::find
 
@@ -24,12 +25,16 @@
 
 #define JSON_TAG_LOOP "Controller"
 #define JSON_TAG_ANIMATION_ID "AnimationId"
-#define JSON_TAG_STATE_MACHINE_ID "StateMachineId"
+#define JSON_TAG_STATE_MACHINE_PRINCIPAL_ID "StateMachinePrincipalId"
+#define JSON_TAG_STATE_MACHINE_SECONDARY_ID "StateMachineSecondaryId"
 #define JSON_TAG_CLIP "Clip"
 
 void ComponentAnimation::Update() {
-	if (!currentState) { //Checking if there is no state machine
-		LoadResourceStateMachine();
+	if (!currentStatePrincipal) { //Checking if there is no state machine
+		LoadResourceStateMachine(stateMachineResourceUIDPrincipal, StateMachineEnum::PRIMARY);
+	}
+	if (!currentStateSecondary) { //Checking if there is no state machine
+		LoadResourceStateMachine(stateMachineResourceUIDSecondary, StateMachineEnum::SECONDARY);
 	}
 
 	OnUpdate();
@@ -49,27 +54,46 @@ void ComponentAnimation::OnEditorUpdate() {
 
 	ImGui::TextColored(App->editor->titleColor, "Animation");
 
-	UID oldStateMachineUID = stateMachineResourceUID;
-	ImGui::ResourceSlot<ResourceStateMachine>("State Machine", &stateMachineResourceUID);
-	if (oldStateMachineUID != stateMachineResourceUID) {
-		ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
+	// Principal
+	UID oldStateMachineUID = stateMachineResourceUIDPrincipal;
+	ImGui::ResourceSlot<ResourceStateMachine>("State Machine Principal", &stateMachineResourceUIDPrincipal);
+	if (oldStateMachineUID != stateMachineResourceUIDPrincipal) {
+		ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUIDPrincipal);
 		if (resourceStateMachine) {
-			currentState = &resourceStateMachine->initialState;
+			currentStatePrincipal = &resourceStateMachine->initialState;
 		} else {
-			currentState = nullptr;
+			currentStatePrincipal = nullptr;
+		}
+	}
+
+	// Secondary
+	UID oldStateMachineUID = stateMachineResourceUIDSecondary;
+	ImGui::ResourceSlot<ResourceStateMachine>("State Machine Secondary", &stateMachineResourceUIDSecondary);
+	if (oldStateMachineUID != stateMachineResourceUIDSecondary) {
+		ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUIDSecondary);
+		if (resourceStateMachine) {
+			currentStateSecondary = &resourceStateMachine->initialState;
+		} else {
+			currentStateSecondary = nullptr;
 		}
 	}
 }
 
 void ComponentAnimation::Save(JsonValue jComponent) const {
-	jComponent[JSON_TAG_STATE_MACHINE_ID] = stateMachineResourceUID;
+	jComponent[JSON_TAG_STATE_MACHINE_PRINCIPAL_ID] = stateMachineResourceUIDPrincipal;
+	jComponent[JSON_TAG_STATE_MACHINE_SECONDARY_ID] = stateMachineResourceUIDSecondary;
 }
 
 void ComponentAnimation::Load(JsonValue jComponent) {
-	stateMachineResourceUID = jComponent[JSON_TAG_STATE_MACHINE_ID];
-	if (stateMachineResourceUID != 0) App->resources->IncreaseReferenceCount(stateMachineResourceUID);
+	stateMachineResourceUIDPrincipal = jComponent[JSON_TAG_STATE_MACHINE_PRINCIPAL_ID];
+	stateMachineResourceUIDSecondary = jComponent[JSON_TAG_STATE_MACHINE_SECONDARY_ID];
 
-	LoadResourceStateMachine();
+	if (stateMachineResourceUIDPrincipal != 0) App->resources->IncreaseReferenceCount(stateMachineResourceUIDPrincipal);
+	if (stateMachineResourceUIDSecondary != 0) App->resources->IncreaseReferenceCount(stateMachineResourceUIDSecondary);
+
+	LoadResourceStateMachine(stateMachineResourceUIDPrincipal, StateMachineEnum::PRIMARY);
+	LoadResourceStateMachine(stateMachineResourceUIDSecondary, StateMachineEnum::SECONDARY);
+
 }
 
 void ComponentAnimation::OnUpdate() {
@@ -156,10 +180,16 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 	}
 }
 
-void ComponentAnimation::LoadResourceStateMachine() {
-	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
+void ComponentAnimation::LoadResourceStateMachine(UID stateMachineResourceUid, StateMachineEnum stateMachineEnum) {
+	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUid);
 
 	if (resourceStateMachine) {
-		currentState = &resourceStateMachine->initialState;
+		switch (stateMachineEnum) {
+		case StateMachineEnum::PRIMARY:
+			currentStatePrincipal = &resourceStateMachine->initialState;
+		break;
+		case StateMachineEnum::SECONDARY:
+			currentStateSecondary = &resourceStateMachine->initialState;
+		break;
 	}
 }
