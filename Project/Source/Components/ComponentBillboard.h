@@ -5,12 +5,10 @@
 #include "Math/float2.h"
 #include "Math/float4x4.h"
 #include "Math/Quat.h"
-class ComponentBilboardRender : public Component {
+class ComponentBillboard : public Component {
 public:
-	REGISTER_COMPONENT(ComponentBilboardRender, ComponentType::BILBOARD_RENDER, false);
-	void Update() override;
-	void Init() override;
-	void DrawGizmos() override;
+	REGISTER_COMPONENT(ComponentBillboard, ComponentType::BILLBOARD, false);
+
 	void OnEditorUpdate() override;
 	void Load(JsonValue jComponent) override;
 	void Save(JsonValue jComponent) const override;

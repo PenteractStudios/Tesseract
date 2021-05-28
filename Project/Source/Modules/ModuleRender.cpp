@@ -10,6 +10,9 @@
 #include "Components/ComponentAnimation.h"
 #include "Components/ComponentCamera.h"
 #include "Components/ComponentParticleSystem.h"
+#include "Components/ComponentTrail.h"
+#include "Components/ComponentBillboard.h"
+#include "Components/ComponentSkyBox.h"
 #include "Components/ComponentLight.h"
 #include "Modules/ModuleInput.h"
 #include "Modules/ModuleWindow.h"
@@ -168,29 +171,6 @@ void ModuleRender::ShadowMapPass() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ModuleRender::RenderPass() {
-#if GAME
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#else
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-#endif
-	
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Draw Opaque
-	for (GameObject* gameObject : opaqueGameObjects) {
-		DrawGameObject(gameObject);
-	}
-
-	// Draw Transparent
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	for (std::map<float, GameObject*>::reverse_iterator it = transparentGameObjects.rbegin(); it != transparentGameObjects.rend(); ++it) {
-		DrawGameObject((*it).second);
-	}
-	glDisable(GL_BLEND);
-}
-
 void ModuleRender::ClassifyGameObjects() {
 	shadowGameObjects.clear();
 	opaqueGameObjects.clear();
@@ -225,10 +205,6 @@ void ModuleRender::ClassifyGameObjects() {
 }
 
 void ModuleRender::DrawDepthMapTexture() {
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	unsigned program = App->programs->drawDepthMapTexture;
 
 	glUseProgram(program);
@@ -270,23 +246,54 @@ UpdateStatus ModuleRender::Update() {
 	BROFILER_CATEGORY("ModuleRender - Update", Profiler::Color::Green)
 
 	culledTriangles = 0;
+	Scene* scene = App->scene->scene;
 
 	ClassifyGameObjects();
 
 	// Pass 1. Build the depth map
 	ShadowMapPass();
 
+#if GAME
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#else
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+#endif
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	if (drawDepthMapTexture) {
 		DrawDepthMapTexture();
-	} else {
-		// Pass 2. Draw the scene with the depth map
-		RenderPass();
+		return UpdateStatus::CONTINUE;
 	}
 
-	Scene* scene = App->scene->scene;
+	// Pass 2. Draw the scene with the depth map
+
+	// Draw SkyBox (Always first element)
+	for (ComponentSkyBox& skybox : scene->skyboxComponents) {
+		if (skybox.IsActive()) skybox.Draw();
+	}
+
+	// Draw Opaque
+	for (GameObject* gameObject : opaqueGameObjects) {
+		DrawGameObject(gameObject);
+	}
+
+	// Draw Transparent
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	for (std::map<float, GameObject*>::reverse_iterator it = transparentGameObjects.rbegin(); it != transparentGameObjects.rend(); ++it) {
+		DrawGameObject((*it).second);
+	}
+	glDisable(GL_BLEND);
+
 	// Draw particles (TODO: improve with culling)
 	for (ComponentParticleSystem& particleSystem : scene->particleComponents) {
 		if (particleSystem.IsActive()) particleSystem.Draw();
+	}
+	for (ComponentBillboard& billboard : scene->billboardComponents) {
+		if (billboard.IsActive()) billboard.Draw();
+	}
+	for (ComponentTrail& trail : scene->trailComponents) {
+		if (trail.IsActive()) trail.Draw();
 	}
 
 	// Draw Gizmos
@@ -346,7 +353,6 @@ UpdateStatus ModuleRender::Update() {
 	if (drawNavMesh) {
 		App->navigation->DrawGizmos();
 	}
-
 
 	//Render UI
 	RenderUI();

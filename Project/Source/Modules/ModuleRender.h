@@ -96,7 +96,6 @@ private:
 	void SetPerspectiveRender();
 
 	void ShadowMapPass();
-	void RenderPass();
 	void DrawDepthMapTexture();
 
 private:
