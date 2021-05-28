@@ -32,8 +32,6 @@ PanelProject::PanelProject()
 	: Panel("Project", true) {}
 
 void PanelProject::Update() {
-	ImGui::ShowDemoWindow();
-
 	ImGui::SetNextWindowDockID(App->editor->dockDownId, ImGuiCond_FirstUseEver);
 	std::string windowName = std::string(ICON_FA_FOLDER " ") + name;
 	if (ImGui::Begin(windowName.c_str(), &enabled)) {
