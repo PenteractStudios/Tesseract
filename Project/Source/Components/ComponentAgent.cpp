@@ -46,6 +46,9 @@ void ComponentAgent::SetMaxSpeed(float newSpeed) {
 	maxSpeed = newSpeed;
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	dtCrowdAgent* ag = navMesh.GetCrowd()->getEditableAgent(agentId);
+	if (ag == nullptr) {
+		return;
+	}
 	ag->params.maxSpeed = maxSpeed;
 }
 
@@ -53,6 +56,9 @@ void ComponentAgent::SetMaxAcceleration(float newAcceleration) {
 	maxAcceleration = newAcceleration;
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	dtCrowdAgent* ag = navMesh.GetCrowd()->getEditableAgent(agentId);
+	if (ag == nullptr) {
+		return;
+	}
 	ag->params.maxAcceleration = maxAcceleration;
 }
 
