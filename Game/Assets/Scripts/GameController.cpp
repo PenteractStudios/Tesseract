@@ -18,8 +18,9 @@ EXPOSE_MEMBERS(GameController) {
 	MEMBER(MemberType::GAME_OBJECT_UID, staticCamera3UID),
 	MEMBER(MemberType::GAME_OBJECT_UID, staticCamera4UID),
 	MEMBER(MemberType::GAME_OBJECT_UID, playerUID),
+	MEMBER(MemberType::GAME_OBJECT_UID, pauseUID),
+	MEMBER(MemberType::GAME_OBJECT_UID, hudUID),
 	MEMBER(MemberType::GAME_OBJECT_UID, enemySpawnPointsUID),
-	
 	MEMBER(MemberType::FLOAT, speed),
 	MEMBER(MemberType::FLOAT, rotationSpeedX),
 	MEMBER(MemberType::FLOAT, rotationSpeedY),
@@ -44,59 +45,79 @@ void GameController::Start() {
 
 	player = GameplaySystems::GetGameObject(playerUID);
 
+	pauseCanvas = GameplaySystems::GetGameObject(pauseUID);
+	hudCanvas = GameplaySystems::GetGameObject(hudUID);
+
 	if (gameCamera) {
 		camera = gameCamera->GetComponent<ComponentCamera>();
 		GameplaySystems::SetRenderCamera(camera);
 	}
 
-
-	godCameraActive = false;
+	Debug::SetGodModeOn(false);
 	if (gameCamera && godCamera) godModeAvailable = true;
 }
 
 void GameController::Update() {
-	if (!transitionFinished) {
-		DoTransition();
-	}
 
-	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_G)) {
+	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_G) && !isPaused) {
 		if (godModeAvailable) {
 			Debug::ToggleDebugMode();
-			if (godCameraActive) {
+			if (Debug::IsGodModeOn()) {
 				camera = gameCamera->GetComponent<ComponentCamera>();
 				GameplaySystems::SetRenderCamera(camera);
-				godCameraActive = false;
-			}
-			else {
+				Debug::SetGodModeOn(false);
+			} else {
 				camera = godCamera->GetComponent<ComponentCamera>();
 				GameplaySystems::SetRenderCamera(camera);
-				godCameraActive = true;
+				Debug::SetGodModeOn(true);
+			}
+		}
+	}
+
+	if (pauseCanvas) {
+		if (pauseCanvas->IsActive()) {
+			isPaused = true;
+		} else {
+			isPaused = false;
+		}
+	}
+
+	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_ESCAPE)) {
+		if (pauseCanvas) {
+			if (!isPaused) {
+				Time::PauseGame();
+				if (hudCanvas) hudCanvas->Disable();
+				pauseCanvas->Enable();
+			} else {
+				Time::ResumeGame();
+				if (hudCanvas) hudCanvas->Enable();
+				pauseCanvas->Disable();
 			}
 		}
 	}
 
 	// Static cameras
-	if (!godCameraActive) {
+	if (!Debug::IsGodModeOn() && !isPaused) {
 		if (Input::GetKeyCode(Input::KEYCODE::KEY_0) && gameCamera) {
 			camera = gameCamera->GetComponent<ComponentCamera>();
 			GameplaySystems::SetRenderCamera(camera);
-			godCameraActive = false;
+			Debug::SetGodModeOn(false);
 		}
 		if (Input::GetKeyCode(Input::KEYCODE::KEY_1) && staticCamera1) {
 			GameplaySystems::SetRenderCamera(staticCamera1);
-			godCameraActive = false;
+			Debug::SetGodModeOn(false);
 		}
 		if (Input::GetKeyCode(Input::KEYCODE::KEY_2) && staticCamera2) {
 			GameplaySystems::SetRenderCamera(staticCamera2);
-			godCameraActive = false;
+			Debug::SetGodModeOn(false);
 		}
 		if (Input::GetKeyCode(Input::KEYCODE::KEY_3) && staticCamera3) {
 			GameplaySystems::SetRenderCamera(staticCamera3);
-			godCameraActive = false;
+			Debug::SetGodModeOn(false);
 		}
 		if (Input::GetKeyCode(Input::KEYCODE::KEY_4) && staticCamera4) {
 			GameplaySystems::SetRenderCamera(staticCamera4);
-			godCameraActive = false;
+			Debug::SetGodModeOn(false);
 		}
 	}
 
@@ -110,7 +131,7 @@ void GameController::Update() {
 	if (!transform) return;
 	if (!cameraGodMode) return;
 
-	if (godCameraActive) {
+	if (Debug::IsGodModeOn()) {
 		// Movement
 		// --- Forward
 		if (Input::GetKeyCode(Input::KEYCODE::KEY_UP)) {
@@ -143,8 +164,7 @@ void GameController::Update() {
 				Rotate(Input::GetMouseMotion(), cameraGodMode->GetFrustum(), transform);
 				vec newFocus = transform->GetPosition() + transform->GetLocalMatrix().Col3(2) * focusDistance;
 				transform->SetPosition(transform->GetPosition() + (oldFocus - newFocus));
-			}
-			else {
+			} else {
 				// --- Panning
 				Rotate(Input::GetMouseMotion(), cameraGodMode->GetFrustum(), transform);
 			}
@@ -159,8 +179,7 @@ void GameController::Update() {
 		if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_X)) {
 			if (showWireframe) {
 				Debug::UpdateShadingMode("Shaded");
-			}
-			else {
+			} else {
 				Debug::UpdateShadingMode("Wireframe");
 			}
 			showWireframe = !showWireframe;
@@ -190,8 +209,7 @@ void GameController::Update() {
 			ComponentSkyBox* skybox = gameCamera->GetComponent<ComponentSkyBox>();
 			if (skybox->IsActive()) {
 				skybox->Disable();
-			}
-			else {
+			} else {
 				skybox->Enable();
 			}
 		}
@@ -208,8 +226,7 @@ void GameController::Rotate(float2 mouseMotion, Frustum* frustum, ComponentTrans
 	transform->SetRotation(yIncrement * xIncrement * transform->GetRotation());
 }
 
-void GameController::DoTransition()
-{
+void GameController::DoTransition() {
 	if (player != nullptr) {
 		float3 finalPosition = float3(-164, 478, 449);
 		float3 currentPosition = gameCamera->GetComponent<ComponentTransform>()->GetPosition();
@@ -217,8 +234,7 @@ void GameController::DoTransition()
 		if (currentPosition.x > finalPosition.x) {
 			currentPosition.x -= transitionSpeed * Time::GetDeltaTime();
 			gameCamera->GetComponent<ComponentTransform>()->SetPosition(currentPosition);
-		}
-		else {
+		} else {
 			transitionFinished = true;
 			gameCamera->GetComponent<ComponentTransform>()->SetPosition(finalPosition);
 		}

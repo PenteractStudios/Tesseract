@@ -15,7 +15,6 @@ public:
 
 public:
 	UID winUID;
-	UID loseUID;
 	UID playerUID;
 
 	float LoseOffsetX = 2.0f;
@@ -23,7 +22,6 @@ public:
 
 private:
 	GameObject* winCon = nullptr;
-	GameObject* loseCon = nullptr;
 	GameObject* player = nullptr;
 
 

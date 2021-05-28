@@ -29,13 +29,13 @@ void AIMovement::Update() {
 
     if (hitTaken && lifePoints > 0) {
         if (state == AIState::IDLE || state == AIState::HURT) {
-            animation->SendTrigger("IdleHurt");
+            animation->SendTriggerPrincipal("IdleHurt");
         }
         else if (state == AIState::RUN) {
-            animation->SendTrigger("RunHurt");
+            animation->SendTriggerPrincipal("RunHurt");
         }
         else if (state == AIState::ATTACK) {
-            animation->SendTrigger("AttackHurt");
+            animation->SendTriggerPrincipal("AttackHurt");
         }
         lifePoints -= damageRecieved;
         state = AIState::HURT;
@@ -48,7 +48,7 @@ void AIMovement::Update() {
         if (Camera::CheckObjectInsideFrustum(&GetOwner())) {
             Seek(float3(parentTransform->GetGlobalPosition().x, 0, parentTransform->GetGlobalPosition().z), fallingSpeed);
             if (parentTransform->GetGlobalPosition().y < 2.7 + 0e-5f) {
-                animation->SendTrigger("StartSpawn");
+                animation->SendTriggerPrincipal("StartSpawn");
                 state = AIState::SPAWN;
             }
         }
@@ -58,7 +58,7 @@ void AIMovement::Update() {
     case AIState::IDLE:
         if (player) {
             if (CharacterInSight(player)) {
-                animation->SendTrigger("IdleRun");
+                animation->SendTriggerPrincipal("IdleRun");
                 state = AIState::RUN;
             }
         }
@@ -66,7 +66,7 @@ void AIMovement::Update() {
     case AIState::RUN:
         Seek(player->GetComponent<ComponentTransform>()->GetGlobalPosition(), maxSpeed);
         if (CharacterInMeleeRange(player)) {
-            animation->SendTrigger("RunAttack");
+            animation->SendTriggerPrincipal("RunAttack");
             state = AIState::ATTACK;
         }
         break;
@@ -93,14 +93,11 @@ void AIMovement::Update() {
     	
 }
 
-void AIMovement::ReceiveEvent(TesseractEvent& e)
+void AIMovement::OnAnimationFinished()
 {
-    switch (e.type)
-    {
-    case TesseractEventType::ANIMATION_FINISHED:
 
         if (state == AIState::SPAWN) {
-            animation->SendTrigger("SpawnIdle");
+            animation->SendTriggerPrincipal("SpawnIdle");
             state = AIState::IDLE;
         }
 
@@ -108,23 +105,21 @@ void AIMovement::ReceiveEvent(TesseractEvent& e)
         {
             PlayerController* playerController = GET_SCRIPT(player, PlayerController);
             playerController->HitDetected();
-            animation->SendTrigger("AttackIdle");
+            animation->SendTriggerPrincipal("AttackIdle");
             state = AIState::IDLE;
         }
         else if (state == AIState::HURT && lifePoints > 0) {
-            animation->SendTrigger("HurtIdle");
+            animation->SendTriggerPrincipal("HurtIdle");
             state = AIState::IDLE;
         }
 
         else if (state == AIState::HURT && lifePoints <= 0) {
-            animation->SendTrigger("HurtDeath");
+            animation->SendTriggerPrincipal("HurtDeath");
             state = AIState::DEATH;
         }
         else if (state == AIState::DEATH) {
             dead = true;
         }
-        break;
-    }
 }
 
 void AIMovement::HitDetected(int damage_) {

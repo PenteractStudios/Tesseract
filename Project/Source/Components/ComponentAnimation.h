@@ -58,8 +58,8 @@ private:
 	void InitCurrentTimeStates(UID stateMachineResourceUid, StateMachineEnum stateMachineEnum);
 
 private:
-	std::list<AnimationInterpolation> animationInterpolationsPrimary; //List of the current interpolations between states
+	std::list<AnimationInterpolation> animationInterpolationsPrincipal; //List of the current interpolations between states
 	std::list<AnimationInterpolation> animationInterpolationsSecondary; //List of the current interpolations between states
-	std::unordered_map<UID, float> currentTimeStatesPrimary;
+	std::unordered_map<UID, float> currentTimeStatesPrincipal;
 	std::unordered_map<UID, float> currentTimeStatesSecondary;
 };

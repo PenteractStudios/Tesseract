@@ -134,7 +134,7 @@ void ResourceStateMachine::SaveToFile(const char* filePath) {
 
 	// Saving Bones Strings
 	JsonValue bonesArray = jStateMachine[JSON_TAG_BONES];
-	int i = 0;
+	i = 0;
 	std::set<std::string>::iterator bone;
 	for (bone = bones.begin(); bone != bones.end(); ++bone) {
 		bonesArray[i] = (*bone->c_str());

@@ -1,6 +1,6 @@
 #pragma once
 
 enum StateMachineEnum {
-	PRIMARY,
+	PRINCIPAL,
 	SECONDARY
 };
