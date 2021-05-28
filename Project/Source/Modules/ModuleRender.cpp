@@ -22,6 +22,7 @@
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleTime.h"
+#include "Modules/ModuleNavigation.h"
 #include "Resources/ResourceMesh.h"
 #include "TesseractEvent.h"
 
@@ -341,6 +342,11 @@ UpdateStatus ModuleRender::Update() {
 			lightFrustum.DrawGizmos();
 		}
 	}
+
+	if (drawNavMesh) {
+		App->navigation->DrawGizmos();
+	}
+
 
 	//Render UI
 	RenderUI();

@@ -17,6 +17,8 @@
 #include "Resources/ResourceStateMachine.h"
 #include "Resources/ResourceClip.h"
 #include "Resources/ResourceAudioClip.h"
+#include "Resources/ResourceNavMesh.h"
+#include "FileSystem/JsonValue.h"
 #include "FileSystem/SceneImporter.h"
 #include "FileSystem/ModelImporter.h"
 #include "FileSystem/PrefabImporter.h"
@@ -29,6 +31,7 @@
 #include "FileSystem/ClipImporter.h"
 #include "FileSystem/FontImporter.h"
 #include "FileSystem/ScriptImporter.h"
+#include "FileSystem/NavMeshImporter.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleInput.h"
@@ -209,6 +212,9 @@ bool ModuleResources::ImportAssetByExtension(JsonValue jMeta, const char* filePa
 	} else if (extension == ANIMATION_CLIP_EXTENSION) {
 		// Clip files
 		ClipImporter::ImportClip(filePath, jMeta);
+	} else if (extension == NAVMESH_EXTENSION) {
+		// NavMesh files
+		NavMeshImporter::ImportNavMesh(filePath, jMeta);
 	} else {
 		validExtension = false;
 	}
@@ -471,6 +477,9 @@ Resource* ModuleResources::CreateResourceByType(ResourceType type, const char* r
 		break;
 	case ResourceType::AUDIO:
 		resource = new ResourceAudioClip(id, resourceName, assetFilePath, resourceFilePath.c_str());
+		break;
+	case ResourceType::NAVMESH:
+		resource = new ResourceNavMesh(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	default:
 		LOG("Resource of type %i hasn't been registered in ModuleResources::CreateResourceByType.", (unsigned) type);

@@ -42,6 +42,7 @@ public:
 	virtual void OnButtonClick() {}
 	virtual void OnToggled(bool val) {}
 	virtual void OnValueChanged() {}
+	virtual void OnAnimationFinished() {}
 	virtual void OnCollision() {}
 
 private:

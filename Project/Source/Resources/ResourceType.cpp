@@ -34,6 +34,8 @@ const char* GetResourceTypeName(ResourceType type) {
 		return "Clip";
 	case ResourceType::AUDIO:
 		return "Audio";
+	case ResourceType::NAVMESH:
+		return "NavMesh";
 	default:
 		LOG("Resource of type %i hasn't been registered in GetResourceTypeName.", (unsigned) type);
 		assert(false); // ERROR: Resource type not registered
@@ -68,6 +70,8 @@ ResourceType GetResourceTypeFromName(const char* name) {
 		return ResourceType::CLIP;
 	} else if (strcmp(name, "Audio") == 0) {
 		return ResourceType::AUDIO;
+	} else if (strcmp(name, "NavMesh") == 0) {
+		return ResourceType::NAVMESH;
 	} else {
 		LOG("No resource of name %s exists.", (unsigned) name);
 		assert(false); // ERROR: Invalid name

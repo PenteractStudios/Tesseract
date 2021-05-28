@@ -90,6 +90,7 @@ bool ModuleScene::Start() {
 	App->files->CreateFolder(SCENES_PATH);
 	App->files->CreateFolder(MATERIALS_PATH);
 	App->files->CreateFolder(PREFABS_PATH);
+	App->files->CreateFolder(NAVMESH_PATH);
 #endif
 
 #if GAME

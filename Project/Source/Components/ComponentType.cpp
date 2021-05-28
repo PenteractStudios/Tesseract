@@ -50,6 +50,8 @@ const char* GetComponentTypeName(ComponentType type) {
 		return "Trail";
 	case ComponentType::PARTICLE:
 		return "Particle";
+	case ComponentType::BILBOARD_RENDER:
+		return "BilboardRender";
 	case ComponentType::AUDIO_LISTENER:
 		return "AudioListener";
 	case ComponentType::AUDIO_SOURCE:
@@ -62,6 +64,8 @@ const char* GetComponentTypeName(ComponentType type) {
 		return "BoxCollider";
 	case ComponentType::CAPSULE_COLLIDER:
 		return "CapsuleCollider";
+	case ComponentType::AGENT:
+		return "Agent";
 	default:
 		LOG("Component of type %i hasn't been registered in GetComponentTypeName.", (unsigned) type);
 		assert(false); // ERROR: Component type not registered
@@ -112,6 +116,8 @@ ComponentType GetComponentTypeFromName(const char* name) {
 		return ComponentType::PARTICLE;
 	} else if (strcmp(name, "Trail") == 0) {
 		return ComponentType::TRAIL;
+	} else if (strcmp(name, "BilboardRender") == 0) {
+		return ComponentType::BILBOARD_RENDER;
 	} else if (strcmp(name, "AudioListener") == 0) {
 		return ComponentType::AUDIO_LISTENER;
 	} else if (strcmp(name, "AudioSource") == 0) {
@@ -124,6 +130,8 @@ ComponentType GetComponentTypeFromName(const char* name) {
 		return ComponentType::BOX_COLLIDER;
 	} else if (strcmp(name, "CapsuleCollider") == 0) {
 		return ComponentType::CAPSULE_COLLIDER;
+	} else if (strcmp(name, "Agent") == 0) {
+		return ComponentType::AGENT;
 	} else {
 		LOG("No component of name %s exists.", (unsigned) name);
 		assert(false); // ERROR: Invalid name

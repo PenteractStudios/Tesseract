@@ -26,6 +26,7 @@ enum class UpdateStatus {
 #define SCENES_PATH "Assets/Scenes"
 #define AUDIO_PATH "Assets/Audio"
 #define MATERIALS_PATH "Assets/Materials"
+#define NAVMESH_PATH "Assets/NavMesh"
 
 #define JPG_TEXTURE_EXTENSION ".jpg"
 #define PNG_TEXTURE_EXTENSION ".png"
@@ -47,6 +48,8 @@ enum class UpdateStatus {
 #define MODEL_EXTENSION ".fbx"
 
 #define SKYBOX_EXTENSION ".sky"
+
+#define NAVMESH_EXTENSION ".navmesh"
 
 #define FONT_EXTENSION ".ttf"
 #define SCRIPT_EXTENSION ".h"

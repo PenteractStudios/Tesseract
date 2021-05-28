@@ -6,11 +6,14 @@
 #include "Components/ComponentType.h"
 #include "Components/ComponentLight.h"
 #include "Components/ComponentSkybox.h"
+#include "Components/ComponentAnimation.h"
+#include "Components/ComponentBilboardRender.h"
 #include "Components/ComponentScript.h"
 #include "Components/ComponentCamera.h"
 #include "Components/ComponentAnimation.h"
 #include "Components/ComponentMeshRenderer.h"
 #include "Components/ComponentBoundingBox2D.h"
+#include "Components/ComponentAgent.h"
 #include "Components/UI/ComponentEventSystem.h"
 #include "Components/UI/ComponentText.h"
 #include "Components/UI/ComponentImage.h"
@@ -67,6 +70,11 @@ void PanelInspector::Update() {
 				selected->name = name;
 			}
 
+			bool isStatic = selected->IsStatic();
+			if (ImGui::Checkbox("Static##game_object_static", &isStatic)) {
+				selected->SetStatic(isStatic);
+			}
+			
 			if (ImGui::Button("Mask")) {
 				ImGui::OpenPopup("Mask");
 			}
@@ -162,6 +170,9 @@ void PanelInspector::Update() {
 				case ComponentType::TRAIL:
 					cName = "Trail";
 					break;
+				case ComponentType::BILBOARD_RENDER:
+					cName = "Bilboard";
+					break;
 				case ComponentType::AUDIO_SOURCE:
 					cName = "Audio Source";
 					break;
@@ -179,6 +190,9 @@ void PanelInspector::Update() {
 					break;
 				case ComponentType::CAPSULE_COLLIDER:
 					cName = "Capsule Collider";
+					break;
+				case ComponentType::AGENT:
+					cName = "Agent";
 					break;
 				default:
 					cName = "";
@@ -276,12 +290,25 @@ void PanelInspector::Update() {
 					ComponentParticleSystem* particle = selected->CreateComponent<ComponentParticleSystem>();
 					if (particle != nullptr) {
 						particle->Init();
+					} else {
+						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
 				}
+				if (ImGui::MenuItem("Bilboard Render")) {
+					ComponentBilboardRender* bilboard = selected->CreateComponent<ComponentBilboardRender>();
+					if (bilboard != nullptr) {
+						bilboard->Init();
+					} else {
+						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+					}
+				}
+
 				if (ImGui::MenuItem("Trail")) {
 					ComponentTrail* trail = selected->CreateComponent<ComponentTrail>();
 					if (trail != nullptr) {
 						trail->Init();
+					} else {
+						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
 				}
 				if (ImGui::MenuItem("Audio Source")) {
@@ -296,6 +323,14 @@ void PanelInspector::Update() {
 					ComponentAudioListener* audioListener = selected->CreateComponent<ComponentAudioListener>();
 					if (audioListener != nullptr) {
 						audioListener->Init();
+					} else {
+						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+					}
+				}
+				if (ImGui::MenuItem("Agent")) {
+					ComponentAgent* agent = selected->CreateComponent<ComponentAgent>();
+					if (agent != nullptr) {
+						agent->Init();
 					} else {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
