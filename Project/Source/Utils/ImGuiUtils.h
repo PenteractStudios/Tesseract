@@ -86,6 +86,7 @@ inline void ImGui::ResourceSlot<ResourceTexture>(const char* label, UID* target,
 			}
 			*target = *(UID*) payload->Data;
 			App->resources->IncreaseReferenceCount(*target);
+			newCallBack();
 		}
 
 		ImGui::EndDragDropTarget();
