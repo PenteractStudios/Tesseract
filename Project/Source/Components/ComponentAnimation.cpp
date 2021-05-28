@@ -125,7 +125,7 @@ void ComponentAnimation::OnUpdate() {
 
 
 void ComponentAnimation::SendTriggerPrincipal(const std::string& trigger) {
-	StateMachineManager::SendTrigger(trigger, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal,currentStatePrincipal);
+	StateMachineManager::SendTrigger(trigger, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal, *currentStatePrincipal);
 }
 void ComponentAnimation::SendTriggerSecondary(const std::string& trigger) {
 	if (currentStateSecondary == nullptr) {
@@ -134,7 +134,7 @@ void ComponentAnimation::SendTriggerSecondary(const std::string& trigger) {
 		assert(it != resourceStateMachine->states.end());
 		currentStateSecondary = &(*it).second;
 	}
-	StateMachineManager::SendTrigger(trigger, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary,currentStateSecondary);
+	StateMachineManager::SendTrigger(trigger, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary,*currentStateSecondary);
 }
 
 void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
@@ -148,7 +148,7 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 
 	bool result = StateMachineManager::UpdateAnimations(
 		gameObject,
-		&GetOwner(),
+		GetOwner(),
 		currentTimeStatesPrincipal,
 		animationInterpolationsPrincipal,
 		stateMachineResourceUIDPrincipal,
