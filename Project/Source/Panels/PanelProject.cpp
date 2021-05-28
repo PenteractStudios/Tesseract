@@ -32,17 +32,25 @@ PanelProject::PanelProject()
 	: Panel("Project", true) {}
 
 void PanelProject::Update() {
+	ImGui::ShowDemoWindow();
+
 	ImGui::SetNextWindowDockID(App->editor->dockDownId, ImGuiCond_FirstUseEver);
 	std::string windowName = std::string(ICON_FA_FOLDER " ") + name;
 	if (ImGui::Begin(windowName.c_str(), &enabled)) {
 		AssetCache* assetCache = App->resources->GetAssetCache();
 		if (assetCache != nullptr) {
 			ImGui::Columns(3);
+			ImGui::BeginChild("Folders");
 			UpdateFoldersRecursive(assetCache->root);
+			ImGui::EndChild();
 			ImGui::NextColumn();
+			ImGui::BeginChild("Assets");
 			UpdateAssets();
+			ImGui::EndChild();
 			ImGui::NextColumn();
+			ImGui::BeginChild("Resources");
 			UpdateResources();
+			ImGui::EndChild();
 		}
 	}
 	ImGui::End();
@@ -51,7 +59,7 @@ void PanelProject::Update() {
 void PanelProject::UpdateFoldersRecursive(const AssetFolder& folder) {
 	std::string name = std::string(ICON_FA_FOLDER " ") + FileDialog::GetFileName(folder.path.c_str());
 
-	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen;
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
 	if (folder.folders.empty()) flags |= ImGuiTreeNodeFlags_Leaf;
 	bool isSelected = App->editor->selectedFolder == folder.path;
 	if (isSelected) flags |= ImGuiTreeNodeFlags_Selected;
