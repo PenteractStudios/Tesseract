@@ -36,7 +36,13 @@ void ComponentAgent::SetMoveTarget(float3 newTargetPosition, bool usePathfinding
 		// Request velocity
 		const dtCrowdAgent* ag = crowd->getAgent(agentId);
 		if (ag && ag->active) {
-			float3 vel = (newTargetPosition - float3(ag->npos)).Normalized() * maxSpeed;
+			float3 targetResultPosition = (newTargetPosition - float3(ag->npos));
+			if (targetResultPosition.Equals(float3::zero)) {
+				targetResultPosition = float3::zero;
+			} else {
+				targetResultPosition.Normalize();
+			}
+			float3 vel = targetResultPosition * maxSpeed;
 			crowd->requestMoveVelocity(agentId, vel.ptr());
 		}
 	}
