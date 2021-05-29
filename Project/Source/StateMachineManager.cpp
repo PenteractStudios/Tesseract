@@ -38,7 +38,7 @@ bool StateMachineManager::UpdateAnimations(GameObject* gameObject, const GameObj
 	bool result = true;
 	StateMachineEnum stateMachineSelected = StateMachineEnum::PRINCIPAL;
 	//The currentStateSecondary could be an empty State object with the id of zero in case for the second state machine
-	if (currentStateSecondary->id != 0) {
+	if (currentStateSecondary && currentStateSecondary->id != 0) {
 		ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUIDSecondary);
 		//Looking for the bone if is it in the state machine in order to be applied
 		if (resourceStateMachine && !resourceStateMachine->bones.empty()) {
