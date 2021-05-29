@@ -96,7 +96,7 @@ void ResourceClip::Unload() {
 	App->resources->DecreaseReferenceCount(animationUID);
 }
 
-void ResourceClip::OnEditorUpdate() {	
+void ResourceClip::OnEditorUpdate() {
 	ImGui::TextColored(App->editor->titleColor, "Clip");
 	ImGui::SameLine();
 	if (ImGui::Button("Get info from Json##clip")) {
@@ -107,7 +107,7 @@ void ResourceClip::OnEditorUpdate() {
 	sprintf_s(nameClip, 100, "%s", name.c_str());
 	if (ImGui::InputText("##clip_name", nameClip, 100)) {
 		name = nameClip;
-	}	
+	}
 
 	ImGui::ResourceSlot<ResourceAnimation>("Animaton", &animationUID);
 
@@ -126,7 +126,6 @@ void ResourceClip::OnEditorUpdate() {
 		SaveToFile(GetAssetFilePath().c_str());
 	}
 }
-
 
 bool ResourceClip::SaveToFile(const char* filePath) {
 	LOG("Saving ResourceClip to path: \"%s\".", filePath);

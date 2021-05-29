@@ -45,7 +45,6 @@ public:
 		currentStateSecondary = mCurrentState;
 	}
 
-
 public:
 	UID stateMachineResourceUIDPrincipal = 0;
 	UID stateMachineResourceUIDSecondary = 0;

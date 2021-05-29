@@ -117,12 +117,11 @@ void ComponentAnimation::OnUpdate() {
 		ResourceClip* currentClip = App->resources->GetResource<ResourceClip>(currentStatePrincipal->clipUid);
 		currentTimeStatesPrincipal[currentStatePrincipal->id] += App->time->GetDeltaTime() * currentClip->speed;
 	}
-	if (currentStateSecondary && currentStateSecondary->id != 0) { 
+	if (currentStateSecondary && currentStateSecondary->id != 0) {
 		ResourceClip* currentClip = App->resources->GetResource<ResourceClip>(currentStateSecondary->clipUid);
 		currentTimeStatesSecondary[currentStateSecondary->id] += App->time->GetDeltaTime() * currentClip->speed;
 	}
 }
-
 
 void ComponentAnimation::SendTriggerPrincipal(const std::string& trigger) {
 	StateMachineManager::SendTrigger(trigger, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal, *currentStatePrincipal, currentTimeStatesPrincipal);
@@ -150,7 +149,7 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 	float3 position = float3::zero;
 	Quat rotation = Quat::identity;
 	bool resetSecondaryStatemachine = false;
-		
+
 	bool result = StateMachineManager::UpdateAnimations(
 		gameObject,
 		GetOwner(),
@@ -169,13 +168,12 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 	//If finishedTransition and currentStateSecondary equals to currentStatePrincipal we must reset the currentStateSecondary to "empty" state
 	//See line 84 of StateMachineManager.cpp
 	if (resetSecondaryStatemachine) {
-
 		ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUIDSecondary);
 		std::unordered_map<UID, State>::iterator it = resourceStateMachine->states.find(0); // Get "empty" state
 		assert(it != resourceStateMachine->states.end());
 		currentStateSecondary = &(*it).second;
 	}
-	
+
 	ComponentTransform* componentTransform = gameObject->GetComponent<ComponentTransform>();
 
 	if (componentTransform && result) {
@@ -203,23 +201,21 @@ void ComponentAnimation::LoadResourceStateMachine(UID stateMachineResourceUid, S
 	}
 }
 
-
 void ComponentAnimation::InitCurrentTimeStates(UID stateMachineResourceUid, StateMachineEnum stateMachineEnum) {
 	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUid);
 
 	if (resourceStateMachine) {
 		switch (stateMachineEnum) {
-			case StateMachineEnum::PRINCIPAL:
-				for (const auto& element : resourceStateMachine->states) {
-					currentTimeStatesPrincipal.insert({element.first, 0.0f});
-				}
+		case StateMachineEnum::PRINCIPAL:
+			for (const auto& element : resourceStateMachine->states) {
+				currentTimeStatesPrincipal.insert({element.first, 0.0f});
+			}
 			break;
-			case StateMachineEnum::SECONDARY:
-				for (const auto& element : resourceStateMachine->states) {
-					currentTimeStatesSecondary.insert({element.first, 0.0f});
-				}
-				break;
+		case StateMachineEnum::SECONDARY:
+			for (const auto& element : resourceStateMachine->states) {
+				currentTimeStatesSecondary.insert({element.first, 0.0f});
+			}
+			break;
 		}
-		
 	}
 }

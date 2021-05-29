@@ -6,14 +6,17 @@
 #include "Resources/ResourceClip.h"
 #include "Modules/ModuleFiles.h"
 #include "FileSystem/JsonValue.h"
+#include "FileSystem/StateMachinGenerator.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleResources.h"
+#include "Modules/ModuleEditor.h"
 
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/document.h"
 
+#include "imgui.h"
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
 #include "Utils/Leaks.h"
@@ -52,7 +55,7 @@ void ResourceStateMachine::Load() {
 	}
 	JsonValue jStateMachine(document, document);
 	assert(document.IsObject());
-	assert(document.HasMember(JSON_TAG_INITIAL_STATE)); 
+	assert(document.HasMember(JSON_TAG_INITIAL_STATE));
 
 	JsonValue clipArray = jStateMachine[JSON_TAG_CLIPS];
 	for (unsigned int i = 0; i < clipArray.Size(); ++i) {
@@ -82,9 +85,7 @@ void ResourceStateMachine::Load() {
 			SetInitialState(state);
 		}
 	}
-	states.insert(std::make_pair(0, State()));  // create state "empty" for clean secondary State Machin
-
-	
+	states.insert(std::make_pair(0, State())); // create state "empty" for clean secondary State Machin
 
 	JsonValue transitionArray = jStateMachine[JSON_TAG_TRANSITIONS];
 	for (unsigned int i = 0; i < transitionArray.Size(); ++i) {
@@ -152,7 +153,6 @@ void ResourceStateMachine::SaveToFile(const char* filePath) {
 		++i;
 	}
 
-
 	//Saving transitions
 	JsonValue transitionArray = jStateMachine[JSON_TAG_TRANSITIONS];
 	i = 0;
@@ -179,6 +179,22 @@ void ResourceStateMachine::SaveToFile(const char* filePath) {
 
 	unsigned timeMs = timer.Stop();
 	LOG("Material saved in %ums", timeMs);
+}
+
+void ResourceStateMachine::OnEditorUpdate() {
+	ImGui::TextColored(App->editor->titleColor, "Resource State Machine");
+
+	if (ImGui::Button("Generate JSON State Machin##StateMacghin")) {
+		LOG("Generate JSON State Machin");
+		std::string filePath = GetAssetFilePath();
+		StateMachinGenerator::GenerateStateMachine(filePath.c_str());
+	}
+	/*
+	char nameStateMachine[100];
+	sprintf_s(nameClip, 100, "%s", name.c_str());
+	if (ImGui::InputText("##clip_name", nameClip, 100)) {
+		name = nameClip;
+	}*/
 }
 
 State ResourceStateMachine::AddState(const std::string& name, UID clipUID) {

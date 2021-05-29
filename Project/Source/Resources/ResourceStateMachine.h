@@ -17,13 +17,14 @@ public:
 	void Load() override;
 	void Unload() override;
 	void SaveToFile(const char* filePath);
+	void OnEditorUpdate() override;
 
 	State AddState(const std::string& name, UID clipUid); //Add state to list of states and add clip to list of clips if dosen't contains him
 	void AddClip(UID clipUid);
 	void AddTransition(const State& from, const State& to, const float interpolation, const std::string& name);
 	Transition* FindTransitionGivenName(const std::string& name);
 
-	void SetInitialState(const State &newState){
+	void SetInitialState(const State& newState) {
 		initialState = newState;
 	}
 

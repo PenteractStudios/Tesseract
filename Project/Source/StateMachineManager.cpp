@@ -9,8 +9,7 @@
 #include <Utils/Logging.h>
 #include "GameObject.h"
 
-void StateMachineManager::SendTrigger(const std::string& trigger,  std::unordered_map<UID, float>& currentTimeStates, 
-	std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State& currentState, std::unordered_map<UID, float>& currentTimeStatesPrincipal) {
+void StateMachineManager::SendTrigger(const std::string& trigger, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State& currentState, std::unordered_map<UID, float>& currentTimeStatesPrincipal) {
 	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
 
 	Transition* transition = resourceStateMachine->FindTransitionGivenName(trigger);
@@ -29,12 +28,7 @@ void StateMachineManager::SendTrigger(const std::string& trigger,  std::unordere
 	}
 }
 
-bool StateMachineManager::UpdateAnimations(GameObject* gameObject, const GameObject& owner, std::unordered_map<UID, float>& currentTimeStatesPrincipal, 
-	std::list<AnimationInterpolation>& animationInterpolationsPrincipal, const  UID& stateMachineResourceUIDPrincipal, 
-	State* currentStatePrincipal,  std::unordered_map<UID, float>& currentTimeStatesSecondary, 
-	std::list<AnimationInterpolation>& animationInterpolationsSecondary,const  UID& stateMachineResourceUIDSecondary, 
-	State* currentStateSecondary, float3& position, Quat& rotation, bool& resetSecondaryStatemachine) {
-
+bool StateMachineManager::UpdateAnimations(GameObject* gameObject, const GameObject& owner, std::unordered_map<UID, float>& currentTimeStatesPrincipal, std::list<AnimationInterpolation>& animationInterpolationsPrincipal, const UID& stateMachineResourceUIDPrincipal, State* currentStatePrincipal, std::unordered_map<UID, float>& currentTimeStatesSecondary, std::list<AnimationInterpolation>& animationInterpolationsSecondary, const UID& stateMachineResourceUIDSecondary, State* currentStateSecondary, float3& position, Quat& rotation, bool& resetSecondaryStatemachine) {
 	bool result = true;
 	StateMachineEnum stateMachineSelected = StateMachineEnum::PRINCIPAL;
 	//The currentStateSecondary could be an empty State object with the id of zero in case for the second state machine
@@ -47,10 +41,9 @@ bool StateMachineManager::UpdateAnimations(GameObject* gameObject, const GameObj
 				stateMachineSelected = StateMachineEnum::SECONDARY;
 			}
 		}
-
 	}
 
-	//Selecting which state machine is going to be used 
+	//Selecting which state machine is going to be used
 	switch (stateMachineSelected) {
 	case StateMachineEnum::PRINCIPAL:
 		result = StateMachineManager::CalculateAnimation(gameObject, owner, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal, currentStatePrincipal, position, rotation, resetSecondaryStatemachine, StateMachineEnum::PRINCIPAL);
@@ -60,12 +53,10 @@ bool StateMachineManager::UpdateAnimations(GameObject* gameObject, const GameObj
 		break;
 	}
 
-
 	return result;
 }
 
-bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameObject& owner,  std::unordered_map<UID, float>& currentTimeStates, 
-	std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State* currentState, float3& position, Quat& rotation, bool& resetSecondaryStatemachine, StateMachineEnum stateMachineEnum, bool principalEqualSecondary) {
+bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameObject& owner, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State* currentState, float3& position, Quat& rotation, bool& resetSecondaryStatemachine, StateMachineEnum stateMachineEnum, bool principalEqualSecondary) {
 	bool result = false;
 
 	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
@@ -94,7 +85,7 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 			if (gameObject->name == (*resourceStateMachine->bones.begin())) { //Only call this once
 				if (!clip->loop) {
 					int currentSample = AnimationController::GetCurrentSample(*clip, currentTimeStates[currentState->id]);
-					// Checking if the current sample is the last keyframe in order to send the event 
+					// Checking if the current sample is the last keyframe in order to send the event
 					if (currentSample == clip->endIndex) {
 						for (ComponentScript& script : owner.GetComponents<ComponentScript>()) {
 							if (script.IsActive()) {
