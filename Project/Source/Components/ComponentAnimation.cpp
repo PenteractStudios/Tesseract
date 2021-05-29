@@ -117,7 +117,7 @@ void ComponentAnimation::OnUpdate() {
 		ResourceClip* currentClip = App->resources->GetResource<ResourceClip>(currentStatePrincipal->clipUid);
 		currentTimeStatesPrincipal[currentStatePrincipal->id] += App->time->GetDeltaTime() * currentClip->speed;
 	}
-	if(currentStateSecondary){ // TODO:: set currentStateSecondary to null when its not used
+	if(currentStateSecondary->id != 0){ 
 		ResourceClip* currentClip = App->resources->GetResource<ResourceClip>(currentStateSecondary->clipUid);
 		currentTimeStatesSecondary[currentStateSecondary->id] += App->time->GetDeltaTime() * currentClip->speed;
 	}
@@ -125,16 +125,20 @@ void ComponentAnimation::OnUpdate() {
 
 
 void ComponentAnimation::SendTriggerPrincipal(const std::string& trigger) {
-	StateMachineManager::SendTrigger(trigger, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal, *currentStatePrincipal);
+	StateMachineManager::SendTrigger(trigger, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal, *currentStatePrincipal, currentTimeStatesPrincipal);
 }
 void ComponentAnimation::SendTriggerSecondary(const std::string& trigger) {
-	if (currentStateSecondary == nullptr) {
+	if (currentStateSecondary->id == 0) {
+		//For doing the interpolation between states correctly it is necessary to set the current state of the principal state machine to be the same as the second state machine current state
 		ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUIDSecondary);
 		std::unordered_map<UID, State>::iterator it = resourceStateMachine->states.find(currentStatePrincipal->id);
 		assert(it != resourceStateMachine->states.end());
 		currentStateSecondary = &(*it).second;
+		//Updating current time to the currentTimeStatesSecondary to sync the times between the current state machine of the first one and the second one
+		currentTimeStatesSecondary[currentStateSecondary->id] = currentTimeStatesPrincipal[currentStatePrincipal->id];
 	}
-	StateMachineManager::SendTrigger(trigger, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary,*currentStateSecondary);
+
+	StateMachineManager::SendTrigger(trigger, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary, *currentStateSecondary, currentTimeStatesPrincipal);
 }
 
 void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
@@ -145,7 +149,8 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 	//find gameobject in hash
 	float3 position = float3::zero;
 	Quat rotation = Quat::identity;
-
+	bool resetSecondaryStatemachine = false;
+		
 	bool result = StateMachineManager::UpdateAnimations(
 		gameObject,
 		GetOwner(),
@@ -158,43 +163,19 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 		stateMachineResourceUIDSecondary,
 		currentStateSecondary,
 		position,
-		rotation);
-	/*ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
-	if (!resourceStateMachine) {
-		return;
+		rotation,
+		resetSecondaryStatemachine);
+
+	//If finishedTransition and currentStateSecondary equals to currentStatePrincipal we must reset the currentStateSecondary to "empty" state
+	//See line 84 of StateMachineManager.cpp
+	if (resetSecondaryStatemachine) {
+
+		ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUIDSecondary);
+		std::unordered_map<UID, State>::iterator it = resourceStateMachine->states.find(0); // Get "empty" state
+		assert(it != resourceStateMachine->states.end());
+		currentStateSecondary = &(*it).second;
 	}
-
-	if (animationInterpolations.size() > 1) {
-		result = AnimationController::InterpolateTransitions(animationInterpolations.begin(), animationInterpolations, *GetOwner().GetRootBone(), *gameObject, position, rotation);
-
-		//Updating times
-		if (gameObject == GetOwner().GetRootBone()) { // Only udate currentTime for the rootBone
-			AnimationController::UpdateTransitions(animationInterpolations, currentTimeStates, App->time->GetDeltaTime());
-		}
-
-	} else {
-		if (currentState) {
-			ResourceClip* clip = App->resources->GetResource<ResourceClip>(currentState->clipUid);
-			result = AnimationController::GetTransform(*clip, currentTimeStates[currentState->id], gameObject->name.c_str(), position, rotation);
-			
-			if (gameObject == GetOwner().GetRootBone()) {
-				if (!clip->loop) {
-					int currentSample = AnimationController::GetCurrentSample(*clip, currentTimeStates[currentState->id]);
-					if (currentSample == clip->endIndex) {
-						for (ComponentScript& script : GetOwner().GetComponents<ComponentScript>()) {
-							if (script.IsActive()) {
-								Script* scriptInstance = script.GetScriptInstance();
-								if (scriptInstance != nullptr) {
-									scriptInstance->OnAnimationFinished();
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	*/
+	
 	ComponentTransform* componentTransform = gameObject->GetComponent<ComponentTransform>();
 
 	if (componentTransform && result) {

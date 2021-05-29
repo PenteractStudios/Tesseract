@@ -15,6 +15,7 @@ public:
 	void Start() override;
 	void Update() override;
 	void OnAnimationFinished() override;
+	void OnAnimationSecondaryFinished() override;
 
 private:
 	ComponentAnimation* animation = nullptr;

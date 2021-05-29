@@ -32,30 +32,37 @@ void MeleeGrunt_AnimationSet_testStateMachin::Update() {
 		currentState = animation->GetCurrentStatePrincipal();
 	}
 
+	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_0)) {
+		animation->SendTriggerSecondary("IdleAttack");
+	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_1)) {
 		animation->SendTriggerPrincipal("SpawnIdle");
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_2)) {
 		animation->SendTriggerPrincipal("IdleRun");
 	}
+
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_3)) {
-		animation->SendTriggerPrincipal("IdleHurt");
-	}
+		animation->SendTriggerSecondary("RunAttack");
+	}	
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_4)) {
-		animation->SendTriggerPrincipal("IdleAttack");
+		animation->SendTriggerSecondary("RunHurt");
 	}
+
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_5)) {
-		animation->SendTriggerPrincipal("IdleDeath");
+		animation->SendTriggerSecondary("AttackRun");
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_6)) {
-		animation->SendTriggerPrincipal("RunIdle");
+		animation->SendTriggerSecondary("HurtRun");
 	}
+
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_7)) {
 		animation->SendTriggerPrincipal("RunHurt");
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_8)) {
 		animation->SendTriggerPrincipal("RunAttack");
 	}
+
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_9)) {
 		animation->SendTriggerPrincipal("RunDeath");
 	}
@@ -96,10 +103,26 @@ void MeleeGrunt_AnimationSet_testStateMachin::OnAnimationFinished() {
 		currentState = animation->GetCurrentStatePrincipal();
 	}
 
-	if (currentState->name == "StateHurt") {
+	if (currentState->name == "Hurt") {
 		animation->SendTriggerPrincipal("HurtIdle");
 	}
-	if (currentState->name == "StateAttack") {
+	if (currentState->name == "Attack") {
 		animation->SendTriggerPrincipal("AttackIdle");
+	}
+}
+
+void MeleeGrunt_AnimationSet_testStateMachin::OnAnimationSecondaryFinished() {
+	Debug::Log("ANIMATION_SECONDARY_FINISHED!!");
+
+	if (currentState != animation->GetCurrentStateSecondary())
+	{
+		currentState = animation->GetCurrentStateSecondary();
+	}
+
+	if (currentState->name == "Hurt") {
+		animation->SendTriggerSecondary("HurtRun");
+	}
+	if (currentState->name == "Attack") {
+		animation->SendTriggerSecondary("AttackRun");
 	}
 }

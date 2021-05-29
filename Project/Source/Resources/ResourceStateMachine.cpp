@@ -78,10 +78,11 @@ void ResourceStateMachine::Load() {
 		states.insert(std::make_pair(id, state));
 
 		//Setting initial state
-		if (initialStateId == id) {
+		if (initialStateId != 0 && initialStateId == id) {
 			SetInitialState(state);
 		}
 	}
+	states.insert(std::make_pair(0, State()));  // create state "empty" for clean secondary State Machin
 
 	
 
