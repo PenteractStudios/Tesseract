@@ -10,6 +10,7 @@
 #define MAX_PLAYERS 2
 //This
 #define D_JOYSTICK_MAX_VALUE 32767.0f
+#define D_JOYSTICK_DEADZONE 8000.0f
 
 enum KeyState {
 	KS_IDLE = 0,
@@ -40,8 +41,8 @@ public:
 		return gameControllerAxises[axisIndex];
 	}
 
-	float GetAxisNormalized(int axisIndex) { //Returns Normalized game controller axis value, from -1 to 1, except for triggers which go from 0 to 1
-		return gameControllerAxises[axisIndex] / D_JOYSTICK_MAX_VALUE; //TODO THIS DEFINE SHOULD BE A CONST, BUT IT RETURNS AN ERROR
+	float GetAxisNormalized(int axisIndex) {																							//Returns Normalized game controller axis value, from -1 to 1, except for triggers which go from 0 to 1
+		return abs(gameControllerAxises[axisIndex]) > D_JOYSTICK_DEADZONE ? gameControllerAxises[axisIndex] / D_JOYSTICK_MAX_VALUE : 0; //TODO THIS DEFINE SHOULD BE A CONST, BUT IT RETURNS AN ERROR
 	}
 
 	KeyState GetButtonState(int buttonIndex) {
