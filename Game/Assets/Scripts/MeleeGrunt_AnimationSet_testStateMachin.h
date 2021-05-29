@@ -14,8 +14,7 @@ public:
 
 	void Start() override;
 	void Update() override;
-	void OnAnimationFinished() override;
-	void OnAnimationSecondaryFinished() override;
+	void ReceiveEvent(TesseractEvent& e) override;
 
 private:
 	ComponentAnimation* animation = nullptr;

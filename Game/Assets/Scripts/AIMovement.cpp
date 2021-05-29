@@ -5,9 +5,11 @@
 #include "TesseractEvent.h"
 
 #include "PlayerController.h"
+#include "HUDController.h"
 
 EXPOSE_MEMBERS(AIMovement) {
     MEMBER(MemberType::GAME_OBJECT_UID, playerUID),
+    MEMBER(MemberType::GAME_OBJECT_UID, canvasUID),
     MEMBER(MemberType::INT, maxSpeed),
     MEMBER(MemberType::INT, lifePoints),
     MEMBER(MemberType::FLOAT, searchRadius),
@@ -22,6 +24,10 @@ void AIMovement::Start() {
     player = GameplaySystems::GetGameObject(playerUID);
     animation = GetOwner().GetParent()->GetComponent<ComponentAnimation>();   
     parentTransform = GetOwner().GetParent()->GetComponent<ComponentTransform>();
+    GameObject* canvas = GameplaySystems::GetGameObject(canvasUID);
+    if (canvas) {
+        hudControllerScript = GET_SCRIPT(canvas, HUDController);
+    }
 }
 
 void AIMovement::Update() {
@@ -29,13 +35,13 @@ void AIMovement::Update() {
 
     if (hitTaken && lifePoints > 0) {
         if (state == AIState::IDLE || state == AIState::HURT) {
-            animation->SendTriggerPrincipal("IdleHurt");
+            animation->SendTrigger("IdleHurt");
         }
         else if (state == AIState::RUN) {
-            animation->SendTriggerPrincipal("RunHurt");
+            animation->SendTrigger("RunHurt");
         }
         else if (state == AIState::ATTACK) {
-            animation->SendTriggerPrincipal("AttackHurt");
+            animation->SendTrigger("AttackHurt");
         }
         lifePoints -= damageRecieved;
         state = AIState::HURT;
@@ -48,7 +54,7 @@ void AIMovement::Update() {
         if (Camera::CheckObjectInsideFrustum(&GetOwner())) {
             Seek(float3(parentTransform->GetGlobalPosition().x, 0, parentTransform->GetGlobalPosition().z), fallingSpeed);
             if (parentTransform->GetGlobalPosition().y < 2.7 + 0e-5f) {
-                animation->SendTriggerPrincipal("StartSpawn");
+                animation->SendTrigger("StartSpawn");
                 state = AIState::SPAWN;
             }
         }
@@ -58,7 +64,7 @@ void AIMovement::Update() {
     case AIState::IDLE:
         if (player) {
             if (CharacterInSight(player)) {
-                animation->SendTriggerPrincipal("IdleRun");
+                animation->SendTrigger("IdleRun");
                 state = AIState::RUN;
             }
         }
@@ -66,7 +72,7 @@ void AIMovement::Update() {
     case AIState::RUN:
         Seek(player->GetComponent<ComponentTransform>()->GetGlobalPosition(), maxSpeed);
         if (CharacterInMeleeRange(player)) {
-            animation->SendTriggerPrincipal("RunAttack");
+            animation->SendTrigger("RunAttack");
             state = AIState::ATTACK;
         }
         break;
@@ -88,16 +94,22 @@ void AIMovement::Update() {
         }
         else {
             GameplaySystems::DestroyGameObject(GetOwner().GetParent());
+            if (hudControllerScript) {
+                hudControllerScript->UpdateScore(10);
+            }
         }
     }
     	
 }
 
-void AIMovement::OnAnimationFinished()
+void AIMovement::ReceiveEvent(TesseractEvent& e)
 {
+    switch (e.type)
+    {
+    case TesseractEventType::ANIMATION_FINISHED:
 
         if (state == AIState::SPAWN) {
-            animation->SendTriggerPrincipal("SpawnIdle");
+            animation->SendTrigger("SpawnIdle");
             state = AIState::IDLE;
         }
 
@@ -105,21 +117,24 @@ void AIMovement::OnAnimationFinished()
         {
             PlayerController* playerController = GET_SCRIPT(player, PlayerController);
             playerController->HitDetected();
-            animation->SendTriggerPrincipal("AttackIdle");
+            animation->SendTrigger("AttackIdle");
             state = AIState::IDLE;
         }
         else if (state == AIState::HURT && lifePoints > 0) {
-            animation->SendTriggerPrincipal("HurtIdle");
+            animation->SendTrigger("HurtIdle");
             state = AIState::IDLE;
         }
 
         else if (state == AIState::HURT && lifePoints <= 0) {
-            animation->SendTriggerPrincipal("HurtDeath");
+            animation->SendTrigger("HurtDeath");
+            Debug::Log("Death");
             state = AIState::DEATH;
         }
         else if (state == AIState::DEATH) {
             dead = true;
         }
+        break;
+    }
 }
 
 void AIMovement::HitDetected(int damage_) {

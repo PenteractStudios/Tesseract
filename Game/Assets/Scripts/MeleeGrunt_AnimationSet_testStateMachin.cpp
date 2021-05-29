@@ -17,112 +17,98 @@ EXPOSE_MEMBERS(MeleeGrunt_AnimationSet_testStateMachin) {
 GENERATE_BODY_IMPL(MeleeGrunt_AnimationSet_testStateMachin);
 
 void MeleeGrunt_AnimationSet_testStateMachin::Start() {
-	GameObject goAnimated = GetOwner();
-	animation = goAnimated.GetComponent<ComponentAnimation>();
-	currentState = animation->GetCurrentStatePrincipal();
+	GameObject* goAnimated = GameplaySystems::GetGameObject("RootNode");
+	if (goAnimated) {
+		animation = goAnimated->GetComponent<ComponentAnimation>();
+		currentState = animation->GetCurrentState();
+	}
 }
 
 void MeleeGrunt_AnimationSet_testStateMachin::Update() {
 
-	if (currentState != animation->GetCurrentStatePrincipal())
+	if (currentState != animation->GetCurrentState())
 	{
 		// TODO: LOG NOT WORKING PROPERLY YET
-		std::string logMSG = "Old State:" + currentState->name + ", New State: " + animation->GetCurrentStatePrincipal()->name;
+		std::string logMSG = "Old State:" + currentState->name + ", New State: " + animation->GetCurrentState()->name;
 		Debug::Log(logMSG.c_str());
-		currentState = animation->GetCurrentStatePrincipal();
+		currentState = animation->GetCurrentState();
 	}
 
-	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_0)) {
-		animation->SendTriggerSecondary("IdleAttack");
-	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_1)) {
-		animation->SendTriggerPrincipal("SpawnIdle");
+		animation->SendTrigger("SpawnIdle");
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_2)) {
-		animation->SendTriggerPrincipal("IdleRun");
+		animation->SendTrigger("IdleRun");
 	}
-
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_3)) {
-		animation->SendTriggerSecondary("RunAttack");
-	}	
-	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_4)) {
-		animation->SendTriggerSecondary("RunHurt");
+		animation->SendTrigger("IdleHurt");
 	}
-
+	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_4)) {
+		animation->SendTrigger("IdleAttack");
+	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_5)) {
-		animation->SendTriggerSecondary("AttackRun");
+		animation->SendTrigger("IdleDeath");
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_6)) {
-		animation->SendTriggerSecondary("HurtRun");
+		animation->SendTrigger("RunIdle");
 	}
-
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_7)) {
-		animation->SendTriggerPrincipal("RunHurt");
+		animation->SendTrigger("RunHurt");
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_8)) {
-		animation->SendTriggerPrincipal("RunAttack");
+		animation->SendTrigger("RunAttack");
 	}
-
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_9)) {
-		animation->SendTriggerPrincipal("RunDeath");
+		animation->SendTrigger("RunDeath");
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_Q)) { //10
-		animation->SendTriggerPrincipal("HurtIdle");
+		animation->SendTrigger("HurtIdle");
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_W)) { //11
-		animation->SendTriggerPrincipal("HurtRun");
+		animation->SendTrigger("HurtRun");
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_E)) { //12
-		animation->SendTriggerPrincipal("HurtAttack");
+		animation->SendTrigger("HurtAttack");
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_R)) { //13
-		animation->SendTriggerPrincipal("HurtDeath");
+		animation->SendTrigger("HurtDeath");
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_T)) { //14
-		animation->SendTriggerPrincipal("AttackIdle");
+		animation->SendTrigger("AttackIdle");
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_Y)) { //15
-		animation->SendTriggerPrincipal("AttackRun");
+		animation->SendTrigger("AttackRun");
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_U)) { //16
-		animation->SendTriggerPrincipal("AttackHurt");
+		animation->SendTrigger("AttackHurt");
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_I)) { //17
-		animation->SendTriggerPrincipal("AttackDeath");
+		animation->SendTrigger("AttackDeath");
 	}
 	if (Input::GetKeyCodeDown(Input::KEYCODE::KEY_O)) { //18
-		animation->SendTriggerPrincipal("DeathSpawn");
+		animation->SendTrigger("DeathSpawn");
 	}
 }
 
-void MeleeGrunt_AnimationSet_testStateMachin::OnAnimationFinished() {
-	Debug::Log("ANIMATION_FINISHED!!");
+void MeleeGrunt_AnimationSet_testStateMachin::ReceiveEvent(TesseractEvent& e) {
+	switch (e.type) {
+	case TesseractEventType::ANIMATION_FINISHED:
+		Debug::Log("ANIMATION_FINISHED!!");
 
-	if (currentState != animation->GetCurrentStatePrincipal())
-	{
-		currentState = animation->GetCurrentStatePrincipal();
-	}
+		if (currentState != animation->GetCurrentState())
+		{
+			currentState = animation->GetCurrentState();
+		}
 
-	if (currentState->name == "Hurt") {
-		animation->SendTriggerPrincipal("HurtIdle");
-	}
-	if (currentState->name == "Attack") {
-		animation->SendTriggerPrincipal("AttackIdle");
-	}
-}
+		if (currentState->name == "StateHurt") {
+			animation->SendTrigger("HurtIdle");
+		}
+		if (currentState->name == "StateAttack") {
+			animation->SendTrigger("AttackIdle");
+		}
 
-void MeleeGrunt_AnimationSet_testStateMachin::OnAnimationSecondaryFinished() {
-	Debug::Log("ANIMATION_SECONDARY_FINISHED!!");
-
-	if (currentState != animation->GetCurrentStateSecondary())
-	{
-		currentState = animation->GetCurrentStateSecondary();
-	}
-
-	if (currentState->name == "Hurt") {
-		animation->SendTriggerSecondary("HurtRun");
-	}
-	if (currentState->name == "Attack") {
-		animation->SendTriggerSecondary("AttackRun");
+		break;
+	default:
+		break;
 	}
 }

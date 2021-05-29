@@ -1,6 +1,5 @@
 {
-    "Shader": 16251459929527452948,
-    "HasDiffuseMap": true,
+    "ShaderType": 0,
     "DiffuseColor": [
         1.0,
         1.0,
@@ -8,7 +7,6 @@
         1.0
     ],
     "DiffuseMap": 13888220783837359179,
-    "HasSpecularMap": true,
     "SpecularColor": [
         1.0,
         1.0,
@@ -20,5 +18,13 @@
     "MetallicMap": 0,
     "NormalMap": 0,
     "Smoothness": 0.0,
-    "HasSmoothnessInAlphaChannel": true
+    "HasSmoothnessInAlphaChannel": true,
+    "Tiling": [
+        0.0,
+        0.0
+    ],
+    "Offset": [
+        0.0,
+        0.0
+    ]
 }

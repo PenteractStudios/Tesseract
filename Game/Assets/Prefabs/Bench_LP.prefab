@@ -1,0 +1,54 @@
+{
+    "Root": {
+        "Name": "Bench_LP",
+        "Active": true,
+        "RootBoneName": "",
+        "Mask": 0,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    0.0,
+                    0.0,
+                    3.288693761760442e-8
+                ],
+                "Rotation": [
+                    -0.7071068286895752,
+                    0.0,
+                    0.0,
+                    0.7071067094802856
+                ],
+                "Scale": [
+                    1.0,
+                    1.0000001192092896,
+                    1.0000001192092896
+                ],
+                "LocalEulerAngles": [
+                    -90.00000762939453,
+                    0.0,
+                    0.0
+                ]
+            },
+            {
+                "Type": "MeshRenderer",
+                "Active": true,
+                "MeshID": 6502205586171298846,
+                "MaterialID": 11777440438545206635
+            },
+            {
+                "Type": "BoundingBox",
+                "Active": true,
+                "LocalBoundingBox": [
+                    -0.6018734574317932,
+                    -2.1920082569122316,
+                    0.0,
+                    0.6018734574317932,
+                    2.1920082569122316,
+                    1.5047309398651124
+                ]
+            }
+        ],
+        "Children": null
+    }
+}

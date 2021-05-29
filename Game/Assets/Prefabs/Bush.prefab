@@ -1,0 +1,138 @@
+{
+    "Root": {
+        "Name": "Bush",
+        "Active": true,
+        "RootBoneName": "",
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    0.0,
+                    3.526128053665161,
+                    0.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "LocalEulerAngles": [
+                    -0.0,
+                    0.0,
+                    -0.0
+                ]
+            }
+        ],
+        "Children": [
+            {
+                "Name": "Bush_PotLP",
+                "Active": true,
+                "RootBoneName": "",
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            0.8607499599456787,
+                            -0.0000012516975402832032
+                        ],
+                        "Rotation": [
+                            0.5,
+                            0.5,
+                            0.5000001192092896,
+                            -0.49999988079071047
+                        ],
+                        "Scale": [
+                            0.45500001311302187,
+                            0.4550340175628662,
+                            0.455034077167511
+                        ],
+                        "LocalEulerAngles": [
+                            -90.0,
+                            0.00001366037849948043,
+                            -90.00001525878906
+                        ]
+                    },
+                    {
+                        "Type": "MeshRenderer",
+                        "Active": true,
+                        "MeshID": 87819114365023593,
+                        "MaterialID": 2663741589848380028
+                    },
+                    {
+                        "Type": "BoundingBox",
+                        "Active": true,
+                        "LocalBoundingBox": [
+                            -8.426313400268555,
+                            -1.0994772911071778,
+                            -1.303331732749939,
+                            6.562461853027344,
+                            1.0994772911071778,
+                            -0.0629538893699646
+                        ]
+                    }
+                ],
+                "Children": null
+            },
+            {
+                "Name": "BushLeaves",
+                "Active": true,
+                "RootBoneName": "",
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Active": true,
+                        "Position": [
+                            -0.0505828857421875,
+                            1.24996018409729,
+                            -0.21480706334114076
+                        ],
+                        "Rotation": [
+                            -0.7071068286895752,
+                            0.0,
+                            0.0,
+                            0.7071067094802856
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0000001192092896,
+                            1.0000001192092896
+                        ],
+                        "LocalEulerAngles": [
+                            -90.00000762939453,
+                            0.0,
+                            0.0
+                        ]
+                    },
+                    {
+                        "Type": "MeshRenderer",
+                        "Active": true,
+                        "MeshID": 13878475639416119386,
+                        "MaterialID": 11052617873197009435
+                    },
+                    {
+                        "Type": "BoundingBox",
+                        "Active": true,
+                        "LocalBoundingBox": [
+                            -0.5973854064941406,
+                            -3.7142457962036135,
+                            -0.42962831258773806,
+                            0.6985586881637573,
+                            3.857172727584839,
+                            0.6018407344818115
+                        ]
+                    }
+                ],
+                "Children": null
+            }
+        ]
+    }
+}

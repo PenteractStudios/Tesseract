@@ -13,7 +13,7 @@ void FullScreenSetter::Start() {
 	ComponentToggle* toggle = GetOwner().GetComponent< ComponentToggle>();
 	if (toggle) {
 		if (toggle->IsActive()) {
-			toggle->SetChecked(Screen::GetWindowMode() == WindowMode::FULLSCREEN);
+			toggle->SetChecked(Screen::IsBorderless());
 		}
 	}
 }
@@ -23,5 +23,5 @@ void FullScreenSetter::Update() {
 }
 
 void FullScreenSetter::OnToggled(bool toggled_) {
-	Screen::SetWindowMode(toggled_ ? WindowMode::FULLSCREEN : WindowMode::WINDOWED);
+	Screen::SetBorderless(toggled_);
 }

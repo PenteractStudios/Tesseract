@@ -77,16 +77,16 @@ void PlayerController::Start() {
 		fang->Enable();
 		fangAnimation = fang->GetComponent<ComponentAnimation>();
 		if (fangAnimation) {
-			fangCurrentState = fangAnimation->GetCurrentStatePrincipal();
-			fangAnimation->SendTriggerPrincipal("RunBackwardHurt");
+			fangCurrentState = fangAnimation->GetCurrentState();
+			fangAnimation->SendTrigger("RunBackwardHurt");
 		}
 	}
 	if (onimaru) {
 		onimaru->Disable();
 		onimaruAnimation = onimaru->GetComponent<ComponentAnimation>();
 		if (onimaruAnimation) {
-			onimaruCurrentState = onimaruAnimation->GetCurrentStatePrincipal();
-			onimaruAnimation->SendTriggerPrincipal("");
+			onimaruCurrentState = onimaruAnimation->GetCurrentState();
+			onimaruAnimation->SendTrigger("");
 		}
 	}
 	if (fangParticle) {
@@ -309,8 +309,8 @@ void PlayerController::PlayAnimation(MovementDirection md, bool isFang) {
 		currentState = onimaruCurrentState;
 	}
 
-	if (currentState != animation->GetCurrentStatePrincipal()) {
-		currentState = animation->GetCurrentStatePrincipal();
+	if (currentState != animation->GetCurrentState()) {
+		currentState = animation->GetCurrentState();
 	}
 
 	int dashAnimation = 0;
@@ -321,19 +321,19 @@ void PlayerController::PlayAnimation(MovementDirection md, bool isFang) {
 
 	switch (md) {
 	case MovementDirection::NONE:
-		animation->SendTriggerPrincipal(currentState->name + PlayerController::states[0]);
+		animation->SendTrigger(currentState->name + PlayerController::states[0]);
 		break;
 	case MovementDirection::LEFT:
-		animation->SendTriggerPrincipal(currentState->name + PlayerController::states[GetMouseDirectionState(md) + dashAnimation]);
+		animation->SendTrigger(currentState->name + PlayerController::states[GetMouseDirectionState(md) + dashAnimation]);
 		break;
 	case MovementDirection::RIGHT:
-		animation->SendTriggerPrincipal(currentState->name + PlayerController::states[GetMouseDirectionState(md) + dashAnimation]);
+		animation->SendTrigger(currentState->name + PlayerController::states[GetMouseDirectionState(md) + dashAnimation]);
 		break;
 	case MovementDirection::UP:
-		animation->SendTriggerPrincipal(currentState->name + PlayerController::states[GetMouseDirectionState(md) + dashAnimation]);
+		animation->SendTrigger(currentState->name + PlayerController::states[GetMouseDirectionState(md) + dashAnimation]);
 		break;
 	case MovementDirection::DOWN:
-		animation->SendTriggerPrincipal(currentState->name + PlayerController::states[GetMouseDirectionState(md) + dashAnimation]);
+		animation->SendTrigger(currentState->name + PlayerController::states[GetMouseDirectionState(md) + dashAnimation]);
 		break;
 	}
 

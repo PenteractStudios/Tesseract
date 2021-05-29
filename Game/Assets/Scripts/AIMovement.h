@@ -2,9 +2,11 @@
 
 #include "Scripting/Script.h"
 
+struct TesseractEvent;
 class ComponentAnimation;
 class ComponentTransform;
-struct TesseractEvent;
+
+class HUDController;
 
 enum class AIState {
 	START,
@@ -24,8 +26,7 @@ public:
 
 	void Start() override;
 	void Update() override;
-	void OnAnimationFinished() override;
-
+	void ReceiveEvent(TesseractEvent& e) override;
 	void HitDetected(int damage_ = 1);
 
 private:
@@ -36,8 +37,11 @@ private:
 
 public:
 
-	UID playerUID;
+	UID playerUID = 0;
+	UID canvasUID = 0;
+
 	GameObject* player = nullptr;
+	
 	int maxSpeed = 8;
 	int fallingSpeed = 30;
 	float searchRadius = 40.f;
@@ -55,6 +59,8 @@ private:
 	ComponentAnimation* animation = nullptr;
 	ComponentTransform* parentTransform = nullptr;
 	int damageRecieved = 0;
+
+	HUDController* hudControllerScript = nullptr;
 
 };
 

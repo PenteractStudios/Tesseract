@@ -1,0 +1,740 @@
+{
+    "QuadtreeBounds": [
+        -1000.0,
+        -1000.0,
+        1000.0,
+        1000.0
+    ],
+    "QuadtreeMaxDepth": 4,
+    "QuadtreeElementsPerNode": 200,
+    "GameCamera": 6081818133168106238,
+    "AmbientLight": [
+        0.25,
+        0.25,
+        0.25
+    ],
+    "Root": {
+        "Id": 10869400547198176331,
+        "Name": "Scene",
+        "Active": true,
+        "ActiveHierarchy": true,
+        "RootBoneId": 0,
+        "Mask": 0,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Id": 14696287072623670427,
+                "Active": true,
+                "Position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "LocalEulerAngles": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        ],
+        "Children": [
+            {
+                "Id": 11695067996738379528,
+                "Name": "Directional Light",
+                "Active": true,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 3523799654141798596,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            300.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.7071068286895752,
+                            0.0,
+                            0.0,
+                            0.7071068286895752
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            90.00000762939453,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "Light",
+                        "Id": 1161557434021205718,
+                        "Active": true,
+                        "LightType": 0,
+                        "Color": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Intensity": 1.0,
+                        "Kl": 0.04500000178813934,
+                        "Kq": 0.007499999832361937,
+                        "InnerAngle": 0.2617993950843811,
+                        "OuterAngle": 0.5235987901687622
+                    }
+                ],
+                "Children": null
+            },
+            {
+                "Id": 14499810532902842447,
+                "Name": "Game Camera",
+                "Active": true,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 9704854655448996686,
+                        "Active": true,
+                        "Position": [
+                            2.0,
+                            3.0,
+                            -5.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "Camera",
+                        "Id": 10144456666304509270,
+                        "Active": true,
+                        "Frustum": {
+                            "Pos": [
+                                2.0,
+                                3.0,
+                                -5.0
+                            ],
+                            "Up": [
+                                0.0,
+                                1.0,
+                                0.0
+                            ],
+                            "Front": [
+                                0.0,
+                                0.0,
+                                1.0
+                            ],
+                            "NearPlaneDistance": 0.10000000149011612,
+                            "FarPlaneDistance": 200.0,
+                            "HorizontalFov": 2.0666987895965578,
+                            "VerticalFov": 1.3113912343978882
+                        }
+                    },
+                    {
+                        "Type": "Skybox",
+                        "Id": 15706341566880259329,
+                        "Active": true,
+                        "Shader": 0,
+                        "Skybox": 0
+                    },
+                    {
+                        "Type": "AudioListener",
+                        "Id": 10596060551738345402,
+                        "Active": true,
+                        "Gain": 1.0
+                    }
+                ],
+                "Children": null
+            },
+            {
+                "Id": 8700395532944511032,
+                "Name": "RootNode",
+                "Active": true,
+                "ActiveHierarchy": true,
+                "RootBoneId": 11918130732604668126,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 17955570006099442872,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "Animation",
+                        "Id": 10507553975823876771,
+                        "Active": true,
+                        "StateMachineId": 14529106831039474007,
+                        "InitalState": 8514878981633895468
+                    }
+                ],
+                "Children": [
+                    {
+                        "Id": 17921699606059349251,
+                        "Name": "MilibotBanner",
+                        "Active": true,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 1671327997550039652,
+                                "Active": true,
+                                "Position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 16173453459442098121,
+                                "Active": true,
+                                "MeshID": 17231360200466875748,
+                                "MaterialID": 16185998673053437593
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 18159623246843334264,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -8.788036346435547,
+                                    -25.17914390563965,
+                                    -0.2199907898902893,
+                                    8.869752883911133,
+                                    25.17915153503418,
+                                    0.21995818614959718
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 11918130732604668126,
+                        "Name": "Banner1",
+                        "Active": true,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 11526762991692769487,
+                                "Active": true,
+                                "Position": [
+                                    0.0,
+                                    24.925222396850587,
+                                    -0.000012271556443010923
+                                ],
+                                "Rotation": [
+                                    -0.0073859915137290958,
+                                    0.0,
+                                    0.0,
+                                    0.9999728202819824
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.8463800549507141,
+                                    0.0,
+                                    0.0
+                                ]
+                            }
+                        ],
+                        "Children": [
+                            {
+                                "Id": 6723285079927680961,
+                                "Name": "Banner2",
+                                "Active": true,
+                                "ActiveHierarchy": true,
+                                "RootBoneId": 0,
+                                "Mask": 0,
+                                "Components": [
+                                    {
+                                        "Type": "Transform",
+                                        "Id": 14362199337571476372,
+                                        "Active": true,
+                                        "Position": [
+                                            0.0,
+                                            -4.687250137329102,
+                                            0.0
+                                        ],
+                                        "Rotation": [
+                                            -0.0073859915137290958,
+                                            0.0,
+                                            0.0,
+                                            0.9999728202819824
+                                        ],
+                                        "Scale": [
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                        ],
+                                        "LocalEulerAngles": [
+                                            -0.8463800549507141,
+                                            0.0,
+                                            0.0
+                                        ]
+                                    }
+                                ],
+                                "Children": [
+                                    {
+                                        "Id": 12067481452672377055,
+                                        "Name": "Banner3",
+                                        "Active": true,
+                                        "ActiveHierarchy": true,
+                                        "RootBoneId": 0,
+                                        "Mask": 0,
+                                        "Components": [
+                                            {
+                                                "Type": "Transform",
+                                                "Id": 17378843451776669562,
+                                                "Active": true,
+                                                "Position": [
+                                                    0.0,
+                                                    -4.497321128845215,
+                                                    0.0
+                                                ],
+                                                "Rotation": [
+                                                    -0.0073859915137290958,
+                                                    0.0,
+                                                    0.0,
+                                                    0.9999728202819824
+                                                ],
+                                                "Scale": [
+                                                    1.0,
+                                                    1.0,
+                                                    1.0
+                                                ],
+                                                "LocalEulerAngles": [
+                                                    -0.8463800549507141,
+                                                    0.0,
+                                                    0.0
+                                                ]
+                                            }
+                                        ],
+                                        "Children": [
+                                            {
+                                                "Id": 14050908910031352744,
+                                                "Name": "Banner4",
+                                                "Active": true,
+                                                "ActiveHierarchy": true,
+                                                "RootBoneId": 0,
+                                                "Mask": 0,
+                                                "Components": [
+                                                    {
+                                                        "Type": "Transform",
+                                                        "Id": 8419131274506980870,
+                                                        "Active": true,
+                                                        "Position": [
+                                                            0.0,
+                                                            -4.497321128845215,
+                                                            0.0
+                                                        ],
+                                                        "Rotation": [
+                                                            -0.0073859915137290958,
+                                                            0.0,
+                                                            0.0,
+                                                            0.9999728202819824
+                                                        ],
+                                                        "Scale": [
+                                                            1.0,
+                                                            1.0,
+                                                            1.0
+                                                        ],
+                                                        "LocalEulerAngles": [
+                                                            -0.8463800549507141,
+                                                            0.0,
+                                                            0.0
+                                                        ]
+                                                    }
+                                                ],
+                                                "Children": [
+                                                    {
+                                                        "Id": 15682749530814115076,
+                                                        "Name": "Banner5",
+                                                        "Active": true,
+                                                        "ActiveHierarchy": true,
+                                                        "RootBoneId": 0,
+                                                        "Mask": 0,
+                                                        "Components": [
+                                                            {
+                                                                "Type": "Transform",
+                                                                "Id": 15473846572152960970,
+                                                                "Active": true,
+                                                                "Position": [
+                                                                    0.0,
+                                                                    -4.497335433959961,
+                                                                    0.0
+                                                                ],
+                                                                "Rotation": [
+                                                                    -0.0073859915137290958,
+                                                                    0.0,
+                                                                    0.0,
+                                                                    0.9999728202819824
+                                                                ],
+                                                                "Scale": [
+                                                                    1.0,
+                                                                    1.0,
+                                                                    1.0
+                                                                ],
+                                                                "LocalEulerAngles": [
+                                                                    -0.8463800549507141,
+                                                                    0.0,
+                                                                    0.0
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "Children": [
+                                                            {
+                                                                "Id": 8317268456820494620,
+                                                                "Name": "Banner6",
+                                                                "Active": true,
+                                                                "ActiveHierarchy": true,
+                                                                "RootBoneId": 0,
+                                                                "Mask": 0,
+                                                                "Components": [
+                                                                    {
+                                                                        "Type": "Transform",
+                                                                        "Id": 3864446499813184677,
+                                                                        "Active": true,
+                                                                        "Position": [
+                                                                            0.0,
+                                                                            -4.49732780456543,
+                                                                            0.0
+                                                                        ],
+                                                                        "Rotation": [
+                                                                            -0.0073859915137290958,
+                                                                            0.0,
+                                                                            0.0,
+                                                                            0.9999728202819824
+                                                                        ],
+                                                                        "Scale": [
+                                                                            1.0,
+                                                                            1.0,
+                                                                            1.0
+                                                                        ],
+                                                                        "LocalEulerAngles": [
+                                                                            -0.8463800549507141,
+                                                                            0.0,
+                                                                            0.0
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                "Children": [
+                                                                    {
+                                                                        "Id": 147000873697182868,
+                                                                        "Name": "Banner7",
+                                                                        "Active": true,
+                                                                        "ActiveHierarchy": true,
+                                                                        "RootBoneId": 0,
+                                                                        "Mask": 0,
+                                                                        "Components": [
+                                                                            {
+                                                                                "Type": "Transform",
+                                                                                "Id": 8475796435709083009,
+                                                                                "Active": true,
+                                                                                "Position": [
+                                                                                    0.0,
+                                                                                    -4.497325897216797,
+                                                                                    0.0
+                                                                                ],
+                                                                                "Rotation": [
+                                                                                    -0.0073859915137290958,
+                                                                                    0.0,
+                                                                                    0.0,
+                                                                                    0.9999728202819824
+                                                                                ],
+                                                                                "Scale": [
+                                                                                    1.0,
+                                                                                    1.0,
+                                                                                    1.0
+                                                                                ],
+                                                                                "LocalEulerAngles": [
+                                                                                    -0.8463800549507141,
+                                                                                    0.0,
+                                                                                    0.0
+                                                                                ]
+                                                                            }
+                                                                        ],
+                                                                        "Children": [
+                                                                            {
+                                                                                "Id": 6396848884283232970,
+                                                                                "Name": "Banner8",
+                                                                                "Active": true,
+                                                                                "ActiveHierarchy": true,
+                                                                                "RootBoneId": 0,
+                                                                                "Mask": 0,
+                                                                                "Components": [
+                                                                                    {
+                                                                                        "Type": "Transform",
+                                                                                        "Id": 15694911027217078088,
+                                                                                        "Active": true,
+                                                                                        "Position": [
+                                                                                            0.0,
+                                                                                            -4.497331619262695,
+                                                                                            0.0
+                                                                                        ],
+                                                                                        "Rotation": [
+                                                                                            -0.0073859915137290958,
+                                                                                            0.0,
+                                                                                            0.0,
+                                                                                            0.9999728202819824
+                                                                                        ],
+                                                                                        "Scale": [
+                                                                                            1.0,
+                                                                                            1.0,
+                                                                                            1.0
+                                                                                        ],
+                                                                                        "LocalEulerAngles": [
+                                                                                            -0.8463800549507141,
+                                                                                            0.0,
+                                                                                            0.0
+                                                                                        ]
+                                                                                    }
+                                                                                ],
+                                                                                "Children": [
+                                                                                    {
+                                                                                        "Id": 8207601570984634407,
+                                                                                        "Name": "Banner9",
+                                                                                        "Active": true,
+                                                                                        "ActiveHierarchy": true,
+                                                                                        "RootBoneId": 0,
+                                                                                        "Mask": 0,
+                                                                                        "Components": [
+                                                                                            {
+                                                                                                "Type": "Transform",
+                                                                                                "Id": 6557289281949836775,
+                                                                                                "Active": true,
+                                                                                                "Position": [
+                                                                                                    0.0,
+                                                                                                    -4.49732780456543,
+                                                                                                    0.0
+                                                                                                ],
+                                                                                                "Rotation": [
+                                                                                                    -0.0073859915137290958,
+                                                                                                    0.0,
+                                                                                                    0.0,
+                                                                                                    0.9999728202819824
+                                                                                                ],
+                                                                                                "Scale": [
+                                                                                                    1.0,
+                                                                                                    1.0,
+                                                                                                    1.0
+                                                                                                ],
+                                                                                                "LocalEulerAngles": [
+                                                                                                    -0.8463800549507141,
+                                                                                                    0.0,
+                                                                                                    0.0
+                                                                                                ]
+                                                                                            }
+                                                                                        ],
+                                                                                        "Children": [
+                                                                                            {
+                                                                                                "Id": 11816461214881675347,
+                                                                                                "Name": "Banner10",
+                                                                                                "Active": true,
+                                                                                                "ActiveHierarchy": true,
+                                                                                                "RootBoneId": 0,
+                                                                                                "Mask": 0,
+                                                                                                "Components": [
+                                                                                                    {
+                                                                                                        "Type": "Transform",
+                                                                                                        "Id": 202827711159804509,
+                                                                                                        "Active": true,
+                                                                                                        "Position": [
+                                                                                                            0.0,
+                                                                                                            -4.497322082519531,
+                                                                                                            0.0
+                                                                                                        ],
+                                                                                                        "Rotation": [
+                                                                                                            -0.0073859915137290958,
+                                                                                                            0.0,
+                                                                                                            0.0,
+                                                                                                            0.9999728202819824
+                                                                                                        ],
+                                                                                                        "Scale": [
+                                                                                                            1.0,
+                                                                                                            1.0,
+                                                                                                            1.0
+                                                                                                        ],
+                                                                                                        "LocalEulerAngles": [
+                                                                                                            -0.8463800549507141,
+                                                                                                            0.0,
+                                                                                                            0.0
+                                                                                                        ]
+                                                                                                    }
+                                                                                                ],
+                                                                                                "Children": [
+                                                                                                    {
+                                                                                                        "Id": 12411919654408718547,
+                                                                                                        "Name": "Banner11",
+                                                                                                        "Active": true,
+                                                                                                        "ActiveHierarchy": true,
+                                                                                                        "RootBoneId": 0,
+                                                                                                        "Mask": 0,
+                                                                                                        "Components": [
+                                                                                                            {
+                                                                                                                "Type": "Transform",
+                                                                                                                "Id": 1640666581892044273,
+                                                                                                                "Active": true,
+                                                                                                                "Position": [
+                                                                                                                    0.0,
+                                                                                                                    -4.497325897216797,
+                                                                                                                    0.0
+                                                                                                                ],
+                                                                                                                "Rotation": [
+                                                                                                                    -0.0073859915137290958,
+                                                                                                                    0.0,
+                                                                                                                    0.0,
+                                                                                                                    0.9999728202819824
+                                                                                                                ],
+                                                                                                                "Scale": [
+                                                                                                                    1.0,
+                                                                                                                    1.0,
+                                                                                                                    1.0
+                                                                                                                ],
+                                                                                                                "LocalEulerAngles": [
+                                                                                                                    -0.8463800549507141,
+                                                                                                                    0.0,
+                                                                                                                    0.0
+                                                                                                                ]
+                                                                                                            }
+                                                                                                        ],
+                                                                                                        "Children": [
+                                                                                                            {
+                                                                                                                "Id": 8612202109832648206,
+                                                                                                                "Name": "Banner12",
+                                                                                                                "Active": true,
+                                                                                                                "ActiveHierarchy": true,
+                                                                                                                "RootBoneId": 0,
+                                                                                                                "Mask": 0,
+                                                                                                                "Components": [
+                                                                                                                    {
+                                                                                                                        "Type": "Transform",
+                                                                                                                        "Id": 6866626540355756010,
+                                                                                                                        "Active": true,
+                                                                                                                        "Position": [
+                                                                                                                            0.0,
+                                                                                                                            -4.497341156005859,
+                                                                                                                            0.0
+                                                                                                                        ],
+                                                                                                                        "Rotation": [
+                                                                                                                            -0.0073859915137290958,
+                                                                                                                            0.0,
+                                                                                                                            0.0,
+                                                                                                                            0.9999728202819824
+                                                                                                                        ],
+                                                                                                                        "Scale": [
+                                                                                                                            1.0,
+                                                                                                                            1.0,
+                                                                                                                            1.0
+                                                                                                                        ],
+                                                                                                                        "LocalEulerAngles": [
+                                                                                                                            -0.8463800549507141,
+                                                                                                                            0.0,
+                                                                                                                            0.0
+                                                                                                                        ]
+                                                                                                                    }
+                                                                                                                ],
+                                                                                                                "Children": null
+                                                                                                            }
+                                                                                                        ]
+                                                                                                    }
+                                                                                                ]
+                                                                                            }
+                                                                                        ]
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        ]
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

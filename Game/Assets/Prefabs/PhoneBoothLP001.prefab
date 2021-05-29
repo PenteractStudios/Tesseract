@@ -1,0 +1,53 @@
+{
+    "Root": {
+        "Name": "PhoneBoothLP001",
+        "Active": true,
+        "RootBoneName": "",
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    0.0,
+                    4.537197589874268,
+                    0.0
+                ],
+                "Rotation": [
+                    -0.5,
+                    0.5,
+                    0.5,
+                    0.5
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "LocalEulerAngles": [
+                    -90.0,
+                    0.0,
+                    90.0
+                ]
+            },
+            {
+                "Type": "MeshRenderer",
+                "Active": true,
+                "MeshID": 1110826564227212390,
+                "MaterialID": 6024159363083348910
+            },
+            {
+                "Type": "BoundingBox",
+                "Active": true,
+                "LocalBoundingBox": [
+                    -0.30998069047927859,
+                    -0.49685293436050417,
+                    -1.556286096572876,
+                    0.6900192499160767,
+                    0.5031481385231018,
+                    1.0389142036437989
+                ]
+            }
+        ],
+        "Children": null
+    }
+}

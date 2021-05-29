@@ -7,7 +7,7 @@
 #include "ScreenResolutionConfirmer.h"
 
 bool screenResolutionChangeConfirmationWasRequested;
-unsigned preSelectedScreenResolutionPreset;
+int preSelectedScreenResolutionPreset;
 
 EXPOSE_MEMBERS(ScreenResolutionSetter) {
 
@@ -31,9 +31,9 @@ void ScreenResolutionSetter::Start() {
 
 void ScreenResolutionSetter::Update() {
 	if (screenResolutionChangeConfirmationWasRequested) {
-		if (Screen::GetCurrentDisplayMode() != preSelectedScreenResolutionPreset) {
+		if (Screen::GetResolutionPreset() != preSelectedScreenResolutionPreset) {
 
-			Screen::SetCurrentDisplayMode(preSelectedScreenResolutionPreset);
+			Screen::SetResolutionPreset(preSelectedScreenResolutionPreset);
 
 		}
 		screenResolutionChangeConfirmationWasRequested = false;
@@ -48,8 +48,10 @@ void ScreenResolutionSetter::IncreaseResolution(int multiplier) {
 	preSelectedScreenResolutionPreset = preSelectedScreenResolutionPreset + multiplier;
 
 	//Avoid getting out of bounds
-	if (preSelectedScreenResolutionPreset >= Screen::GetNumDisplayModes()) {
-		preSelectedScreenResolutionPreset = Screen::GetNumDisplayModes() - 1;
+	if (preSelectedScreenResolutionPreset < 0) {
+		preSelectedScreenResolutionPreset = 0;
+	} else if (preSelectedScreenResolutionPreset >= Screen::RESOLUTION_PRESET::MAX) {
+		preSelectedScreenResolutionPreset = Screen::RESOLUTION_PRESET::MAX - 1;
 	}
 
 	UpdateText();
@@ -58,6 +60,29 @@ void ScreenResolutionSetter::IncreaseResolution(int multiplier) {
 void ScreenResolutionSetter::UpdateText() {
 	if (!text) return;
 
-	Screen::DisplayMode displayMode = Screen::GetDisplayMode(preSelectedScreenResolutionPreset);
-	text->SetText(std::to_string(displayMode.width) + " X " + std::to_string(displayMode.height) + " (" + std::to_string(displayMode.hz) + "hz)");
+	text->SetText(std::to_string(GetPreSelectedWidth()) + "x" + std::to_string(GetPreSelectedHeight()));
+}
+
+int ScreenResolutionSetter::GetPreSelectedWidth() {
+	switch (preSelectedScreenResolutionPreset) {
+	case Screen::RESOLUTION_PRESET::m_1920x1080:
+		return 1920;
+	case Screen::RESOLUTION_PRESET::m_1280x720:
+		return 1280;
+	case Screen::RESOLUTION_PRESET::m_1024x576:
+		return 1024;
+	}
+	return 0;
+}
+
+int ScreenResolutionSetter::GetPreSelectedHeight() {
+	switch (preSelectedScreenResolutionPreset) {
+	case Screen::RESOLUTION_PRESET::m_1920x1080:
+		return 1080;
+	case Screen::RESOLUTION_PRESET::m_1280x720:
+		return 720;
+	case Screen::RESOLUTION_PRESET::m_1024x576:
+		return 576;
+	}
+	return 0;
 }
