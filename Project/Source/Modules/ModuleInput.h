@@ -10,7 +10,7 @@
 #define MAX_PLAYERS 2
 //This
 #define D_JOYSTICK_MAX_VALUE 32767.0f
-#define D_JOYSTICK_DEADZONE 8000.0f
+#define D_JOYSTICK_DEADZONE 10000.0f
 
 enum KeyState {
 	KS_IDLE = 0,
@@ -59,7 +59,7 @@ public:
 
 class ModuleInput : public Module {
 public:
-	const float JOYSTICK_DEAD_ZONE = 8000.0f;  //Hardcoded value considered Game controller "Dead zone"
+	const float JOYSTICK_DEAD_ZONE = 10000.0f;  //Hardcoded value considered Game controller "Dead zone"
 	const float JOYSTICK_MAX_VALUE = 32767.0f; //MAXIUM RAW DATA obtainable through axis
 
 public:
