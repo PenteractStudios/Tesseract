@@ -115,7 +115,6 @@ void ComponentImage::Load(JsonValue jComponent) {
 }
 
 float4 ComponentImage::GetMainColor() const {
-
 	float4 componentColor = App->userInterface->GetErrorColor();
 
 	ComponentButton* button = GetOwner().GetComponent<ComponentButton>();
@@ -132,7 +131,7 @@ float4 ComponentImage::GetMainColor() const {
 	if (toggle != nullptr) {
 		componentColor = toggle->GetTintColor();
 	}
-	
+
 	return componentColor.Equals(App->userInterface->GetErrorColor()) ? color : componentColor;
 }
 
@@ -196,6 +195,10 @@ void ComponentImage::SetColor(float4 color_) {
 	color = color_;
 }
 
+float4 ComponentImage::GetColor() const {
+	return color;
+}
+
 void ComponentImage::SetFillValue(float val) {
 	if (val >= 1.0f) {
 		fillVal = 1.0f;
@@ -244,16 +247,16 @@ void ComponentImage::RebuildFillQuadVBO() {
 		1.0f,
 		0.0f, //  v1 texcoord
 
-		0.0f ,
+		0.0f,
 		1.0f * fillVal, //  v2 texcoord
 
 		1.0f,
 		0.0f, //  v3 texcoord
 
-		1.0f ,
+		1.0f,
 		1.0f * fillVal, //  v4 texcoord
 
-		0.0f ,
+		0.0f,
 		1.0f * fillVal //  v5 texcoord
 	};
 	glGenBuffers(1, &fillQuadVBO);
