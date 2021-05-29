@@ -36,7 +36,7 @@ void PanelDebug::DisplayGamepadInfo(int index, PlayerController* playerControlle
 		ImGui::TextColored(App->editor->textColor, "Left Trigger:");
 		ImGui::SameLine();
 		ImGui::TextColored(std::abs(playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_TRIGGERLEFT]) > 0.05f ? yellow : App->editor->textColor, "%.2f",
-			playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_TRIGGERLEFT] / App->input->JOYSTICK_MAX_VALUE);
+			playerController->GetAxisNormalized(SDL_CONTROLLER_AXIS_TRIGGERLEFT));
 
 		ImGui::SameLine();
 		ImGui::TextColored(App->editor->textColor, "---");
@@ -46,13 +46,15 @@ void PanelDebug::DisplayGamepadInfo(int index, PlayerController* playerControlle
 		ImGui::TextColored(App->editor->textColor, "Right Trigger:");
 		ImGui::SameLine();
 		ImGui::TextColored(std::abs(playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_TRIGGERRIGHT]) > 0.05f ? yellow : App->editor->textColor, "%.2f", 
-			playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_TRIGGERRIGHT] / App->input->JOYSTICK_MAX_VALUE);
+			playerController->GetAxisNormalized(SDL_CONTROLLER_AXIS_TRIGGERRIGHT));
+
 
 		//LEFT JOYSTICK HORIZONTAL
 		ImGui::TextColored(App->editor->textColor, "Left joystick horizontal:");
 		ImGui::SameLine();
 		ImGui::TextColored(std::abs(playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_LEFTX]) > 0.05f ? yellow : App->editor->textColor, "%.2f",
-			playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_LEFTX] / App->input->JOYSTICK_MAX_VALUE);
+			playerController->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTX));
+
 		
 		ImGui::SameLine();
 		ImGui::TextColored(App->editor->textColor, "---");
@@ -61,14 +63,14 @@ void PanelDebug::DisplayGamepadInfo(int index, PlayerController* playerControlle
 		//LEFT JOYSTICK VERTICAL
 		ImGui::TextColored(App->editor->textColor, "Left joystick vertical:");
 		ImGui::SameLine();
-		ImGui::TextColored(std::abs(playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_LEFTY]) > 0.05f ? yellow : App->editor->textColor, "%.2f",
-			playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_LEFTY] / App->input->JOYSTICK_MAX_VALUE);
+		ImGui::TextColored(std::abs(playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_LEFTY]) > 0.05f ? yellow : App->editor->textColor, "%.2f", 
+			playerController->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTY));
 
 		//RIGHT JOYSTICK HORIZONTAL
 		ImGui::TextColored(App->editor->textColor, "Right joystick horizontal:");
 		ImGui::SameLine();
-		ImGui::TextColored(std::abs(playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_RIGHTX]) > 0.05f ? yellow : App->editor->textColor, "%.2f",
-			playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_RIGHTX] / App->input->JOYSTICK_MAX_VALUE);
+		ImGui::TextColored(std::abs(playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_RIGHTX]) > 0.05f ? yellow : App->editor->textColor, "%.2f", 
+			playerController->GetAxisNormalized(SDL_CONTROLLER_AXIS_RIGHTX));
 
 		ImGui::SameLine();
 		ImGui::TextColored(App->editor->textColor, "---");
@@ -77,8 +79,8 @@ void PanelDebug::DisplayGamepadInfo(int index, PlayerController* playerControlle
 		//RIGHT JOYSTICK VERTICAL
 		ImGui::TextColored(App->editor->textColor, "Right joystick vertical");
 		ImGui::SameLine();
-		ImGui::TextColored(std::abs(playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_RIGHTY]) > 0.05f ? yellow : App->editor->textColor, "%.2f",
-			playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_RIGHTY] / App->input->JOYSTICK_MAX_VALUE);
+		ImGui::TextColored(std::abs(playerController->gameControllerAxises[SDL_CONTROLLER_AXIS_RIGHTY]) > 0.05f ? yellow : App->editor->textColor, "%.2f", 
+			playerController->GetAxisNormalized(SDL_CONTROLLER_AXIS_RIGHTY));
 
 		//BUTTON A
 		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_A] ? yellow : App->editor->textColor, "Button A");

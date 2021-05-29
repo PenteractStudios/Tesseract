@@ -61,6 +61,7 @@ public:
 	const float4 GetSelectedColor() const;		 // Returns colorSelected
 	TransitionType GetTransitionType() const;
 	void TryToClickOn(bool internalCall) const; //internalCall means if the buttons is supposed to show it's been pressed (false) or if its supposed to actually do whatever it does when pressed (true)
+	bool IsClicked() const;
 
 public:
 	UID onAxisUp = 0;

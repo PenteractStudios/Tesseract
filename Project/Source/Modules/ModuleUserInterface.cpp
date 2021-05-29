@@ -81,13 +81,13 @@ void ModuleUserInterface::ManageInputsOnSelected(ComponentSelectable* currentlyS
 	//if (!pressingOnSelected) {
 	//	pressingOnSelected = App->input->GetPlayerController(0) && App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A) == KeyState::KS_REPEAT;
 	//}
-	bool confirmedPressOnSelected = App->input->GetKey(SDL_SCANCODE_RETURN) == KeyState::KS_UP || (App->input->GetPlayerController(0) && App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A) == KeyState::KS_REPEAT);
+	bool confirmedPressOnSelected = App->input->GetKey(SDL_SCANCODE_RETURN) == KeyState::KS_UP || (App->input->GetPlayerController(0) && App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A) == KeyState::KS_DOWN);
 
 	//Sliders are handled separately, all other UI components can be managed through this code
 	ComponentSlider* slider = currentlySelected->GetOwner().GetComponent<ComponentSlider>();
 	if (!slider) {
 		if (confirmedPressOnSelected) {
-			currentlySelected->TryToClickOn(true);
+			currentlySelected->TryToClickOn(false);
 		}
 	} else {
 		if (confirmedPressOnSelected) {
@@ -98,11 +98,11 @@ void ModuleUserInterface::ManageInputsOnSelected(ComponentSelectable* currentlyS
 
 		float directionToMoveSlider = 0;
 		if (App->input->GetPlayerController(0)) {
-			directionToMoveSlider = App->input->GetPlayerController(0)->GetAxis(SDL_CONTROLLER_AXIS_LEFTX);
+			directionToMoveSlider = App->input->GetPlayerController(0)->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTX);
 			if (directionToMoveSlider == 0) {
-				if (App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_LEFT) == KeyState::KS_DOWN) {
+				if (App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_LEFT) == KeyState::KS_DOWN || App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_LEFT) == KeyState::KS_REPEAT) {
 					directionToMoveSlider = -1.0f;
-				} else if (App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == KeyState::KS_DOWN) {
+				} else if (App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == KeyState::KS_DOWN || App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == KeyState::KS_REPEAT) {
 					directionToMoveSlider = 1.0f;
 				}
 			}
@@ -115,7 +115,9 @@ void ModuleUserInterface::ManageInputsOnSelected(ComponentSelectable* currentlyS
 				directionToMoveSlider = 1.0f;
 			}
 		}
-		if (directionToMoveSlider != 0) slider->ModifyValue(directionToMoveSlider);
+		if (directionToMoveSlider != 0) {
+			slider->ModifyValue(directionToMoveSlider);
+		}
 	}
 }
 
