@@ -76,22 +76,41 @@ UpdateStatus ModuleUserInterface::Update() {
 }
 
 void ModuleUserInterface::ManageInputsOnSelected(ComponentSelectable* currentlySelected) {
-	//pressingOnSelected = App->input->GetKey(SDL_SCANCODE_RETURN) == KeyState::KS_REPEAT;
+	bool pressingOnSelected = App->input->GetKey(SDL_SCANCODE_RETURN) == KeyState::KS_REPEAT
+							  || App->input->GetKey(SDL_SCANCODE_RETURN) == KeyState::KS_DOWN
+							  || (App->input->GetPlayerController(0)
+								  && (App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A) == KeyState::KS_REPEAT
+									  || App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A) == KeyState::KS_DOWN));
 
-	//if (!pressingOnSelected) {
-	//	pressingOnSelected = App->input->GetPlayerController(0) && App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A) == KeyState::KS_REPEAT;
-	//}
-	bool confirmedPressOnSelected = App->input->GetKey(SDL_SCANCODE_RETURN) == KeyState::KS_UP || (App->input->GetPlayerController(0) && App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A) == KeyState::KS_DOWN);
-
-	//Sliders are handled separately, all other UI components can be managed through this code
 	ComponentSlider* slider = currentlySelected->GetOwner().GetComponent<ComponentSlider>();
+
 	if (!slider) {
-		if (confirmedPressOnSelected) {
-			currentlySelected->TryToClickOn(false);
+		if (pressingOnSelected) {
+			if (currentlySelected->IsClicked()) {
+				if (!wasPressConfirmed) {
+					currentlySelected->TryToClickOn(false);
+					wasPressConfirmed = true;
+					//CONFIRM PRESS
+				}
+			} else {
+				currentlySelected->TryToClickOn(true);
+				//SETCLICKEDINTERNAL
+			}
+		} else {
+			wasPressConfirmed = false;
 		}
+
+		//Sliders are handled separately, all other UI components can be managed through this code
 	} else {
-		if (confirmedPressOnSelected) {
-			handlingSlider = slider->beingHandled = !slider->beingHandled;
+		//TODO MANAGE BEING HANDLED BOOl
+
+		if (pressingOnSelected) {
+			if (!wasPressConfirmed) {
+				wasPressConfirmed = true;
+				handlingSlider = slider->beingHandled = !slider->beingHandled;
+			}
+		} else {
+			wasPressConfirmed = false;
 		}
 
 		if (!slider->beingHandled) return;

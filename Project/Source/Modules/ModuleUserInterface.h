@@ -49,4 +49,5 @@ private:
 	unsigned int quadVBO = 0;					// VBO of the ComponentImage generic Quad
 	float4 errorColor = float4(-1, -1, -1, -1); // Representation of error in color (not a color to display)
 	bool viewportWasResized = false;
+	bool wasPressConfirmed = false;
 };
