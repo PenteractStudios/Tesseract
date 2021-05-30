@@ -32,6 +32,7 @@
 #define JSON_TAG_COLOR "Color"
 
 #define JSON_TAG_ALPHATRANSPARENCY "AlphaTransparency"
+
 // clang-format off
 static const float textureCords[12] = {
 	// Front (x, y, z)
@@ -44,6 +45,7 @@ static const float textureCords[12] = {
 	0.0f, 1.0f,
 	};
 // clang-format on
+
 void ComponentTrail::Update() {
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 	if (isStarted) {
@@ -77,7 +79,6 @@ void ComponentTrail::Update() {
 		InsertTextureCoords();
 
 		quadsCreated++;
-		Draw();
 	} else {
 		isStarted = true;
 		currentPosition = transform->GetGlobalPosition();
@@ -88,14 +89,9 @@ void ComponentTrail::Update() {
 	}
 }
 
-void ComponentTrail::Init() {
-}
-void ComponentTrail::DrawGizmos() {
-}
-
 void ComponentTrail::OnEditorUpdate() {
 	ImGui::ResourceSlot<ResourceShader>("shader", &shaderID);
-	ImGui::InputFloat("Witdh: ", &width);
+	ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
 
 	UID oldID = textureID;
 	ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
@@ -112,7 +108,7 @@ void ComponentTrail::OnEditorUpdate() {
 				transform2D->SetSize(float2((float) width, (float) height));
 			}
 		}
-		ImGui::Text("");
+		ImGui::NewLine();
 		ImGui::Separator();
 		ImGui::TextColored(App->editor->titleColor, "Texture Preview");
 		ImGui::TextWrapped("Size:");

@@ -115,21 +115,35 @@ void ComponentImage::Load(JsonValue jComponent) {
 }
 
 float4 ComponentImage::GetMainColor() const {
+	bool found = false;
+
 	float4 componentColor = App->userInterface->GetErrorColor();
 
 	ComponentButton* button = GetOwner().GetComponent<ComponentButton>();
 	if (button != nullptr) {
 		componentColor = button->GetTintColor();
+		found = true;
 	}
 
-	ComponentSlider* slider = GetOwner().GetComponent<ComponentSlider>();
-	if (slider != nullptr) {
-		componentColor = slider->GetTintColor();
+	if (!found) {
+		ComponentToggle* toggle = GetOwner().GetComponent<ComponentToggle>();
+		if (toggle != nullptr) {
+			componentColor = toggle->GetTintColor();
+			found = true;
+		}
 	}
 
-	ComponentToggle* toggle = GetOwner().GetComponent<ComponentToggle>();
-	if (toggle != nullptr) {
-		componentColor = toggle->GetTintColor();
+	if (!found) {
+		const GameObject* parentObj = GetOwner().GetParent();
+		if (parentObj) {
+			ComponentSlider* slider = parentObj->GetComponent<ComponentSlider>();
+			if (slider != nullptr) {
+				if (slider->GetHandleID() == GetOwner().GetID()) {
+					componentColor = color.Mul(slider->GetTintColor());
+					found = true;
+				}
+			}
+		}
 	}
 
 	return componentColor.Equals(App->userInterface->GetErrorColor()) ? color : componentColor;

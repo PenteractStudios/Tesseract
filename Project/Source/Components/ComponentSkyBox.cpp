@@ -16,10 +16,6 @@
 #define JSON_TAG_SHADER "Shader"
 #define JSON_TAG_SKYBOX "Skybox"
 
-void ComponentSkyBox::Update() {
-	Draw();
-}
-
 void ComponentSkyBox::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_SHADER] = shaderId;
 	jComponent[JSON_TAG_SKYBOX] = skyboxId;

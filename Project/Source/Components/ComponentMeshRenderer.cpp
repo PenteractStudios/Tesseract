@@ -79,9 +79,15 @@ void ComponentMeshRenderer::OnEditorUpdate() {
 	}
 	ImGui::Separator();
 
-	ImGui::ResourceSlot<ResourceMaterial>("Material", &materialId);
+	ImGui::ResourceSlot<ResourceMaterial>(
+		"Material",
+		&materialId,
+		[this]() { DeleteRenderingModeMask(); },
+		[this]() { AddRenderingModeMask(); });
+
 	if (ImGui::Button("Remove##material")) {
 		if (materialId != 0) {
+			DeleteRenderingModeMask();
 			App->resources->DecreaseReferenceCount(materialId);
 			materialId = 0;
 		}
@@ -124,10 +130,10 @@ void ComponentMeshRenderer::Update() {
 		const GameObject* rootBoneParent = rootBone->GetParent();
 		const float4x4& invertedRootBoneTransform = rootBoneParent ? rootBoneParent->GetComponent<ComponentTransform>()->GetGlobalMatrix().Inverted() : float4x4::identity;
 
-		const float4x4 &localMatrix = GetOwner().GetComponent<ComponentTransform>()->GetLocalMatrix();
+		const float4x4& localMatrix = GetOwner().GetComponent<ComponentTransform>()->GetLocalMatrix();
 		for (unsigned i = 0; i < mesh->numBones; ++i) {
 			const GameObject* bone = goBones.at(mesh->bones[i].boneName);
-			palette[i] = localMatrix * invertedRootBoneTransform * bone->GetComponent<ComponentTransform>()->GetGlobalMatrix() * mesh->bones[i].transform ;
+			palette[i] = localMatrix * invertedRootBoneTransform * bone->GetComponent<ComponentTransform>()->GetGlobalMatrix() * mesh->bones[i].transform;
 		}
 	}
 }
@@ -141,7 +147,10 @@ void ComponentMeshRenderer::Load(JsonValue jComponent) {
 	meshId = jComponent[JSON_TAG_MESH_ID];
 	if (meshId != 0) App->resources->IncreaseReferenceCount(meshId);
 	materialId = jComponent[JSON_TAG_MATERIAL_ID];
-	if (materialId != 0) App->resources->IncreaseReferenceCount(materialId);
+	if (materialId != 0) {
+		AddRenderingModeMask();
+		App->resources->IncreaseReferenceCount(materialId);
+	}
 }
 
 void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
@@ -282,7 +291,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	int hasNormalMap = normal ? 1 : 0;
 
 	unsigned gldepthMapTexture = App->renderer->depthMapTexture;
-	
+
 	unsigned glTextureEmissive = 0;
 	ResourceTexture* emissive = App->resources->GetResource<ResourceTexture>(material->emissiveMapId);
 	glTextureEmissive = emissive ? emissive->glTexture : 0;
@@ -385,7 +394,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 	// Diffuse
 	glUniform1i(glGetUniformLocation(program, "diffuseMap"), 0);
-	glUniform3fv(glGetUniformLocation(program, "diffuseColor"), 1, material->diffuseColor.ptr());
+	glUniform4fv(glGetUniformLocation(program, "diffuseColor"), 1, material->diffuseColor.ptr());
 	glUniform1i(glGetUniformLocation(program, "hasDiffuseMap"), hasDiffuseMap);
 	glUniform1f(glGetUniformLocation(program, "smoothness"), material->smoothness);
 	glUniform1i(glGetUniformLocation(program, "hasSmoothnessAlpha"), material->hasSmoothnessInAlphaChannel);
@@ -592,15 +601,20 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 }
 
 void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix) const {
-
 	if (!IsActive()) return;
 
 	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
-	if (mesh == nullptr) return;
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+	if (mesh == nullptr || material == nullptr) return;
 
 	unsigned program = App->programs->shadowMap;
 	float4x4 viewMatrix = App->renderer->GetLightViewMatrix();
 	float4x4 projMatrix = App->renderer->GetLightProjectionMatrix();
+
+	unsigned glTextureDiffuse = 0;
+	ResourceTexture* diffuse = App->resources->GetResource<ResourceTexture>(material->diffuseMapId);
+	glTextureDiffuse = diffuse ? diffuse->glTexture : 0;
+	int hasDiffuseMap = diffuse ? 1 : 0;
 
 	glUseProgram(program);
 
@@ -608,6 +622,16 @@ void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix) const {
 	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, modelMatrix.ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, viewMatrix.ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, projMatrix.ptr());
+
+	glUniform1i(glGetUniformLocation(program, "diffuseMap"), 0);
+	glUniform4fv(glGetUniformLocation(program, "diffuseColor"), 1, material->diffuseColor.ptr());
+	glUniform1i(glGetUniformLocation(program, "hasDiffuseMap"), hasDiffuseMap);
+
+	glUniform2fv(glGetUniformLocation(program, "tiling"), 1, material->tiling.ptr());
+	glUniform2fv(glGetUniformLocation(program, "offset"), 1, material->offset.ptr());
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, glTextureDiffuse);
 
 	// Skinning
 	if (palette.size() > 0) {
@@ -619,4 +643,20 @@ void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix) const {
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
+}
+
+void ComponentMeshRenderer::AddRenderingModeMask() {
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+	if (material && material->renderingMode == RenderingMode::TRANSPARENT) {
+		GameObject& gameObject = GetOwner();
+		gameObject.AddMask(MaskType::TRANSPARENT);
+	}
+}
+
+void ComponentMeshRenderer::DeleteRenderingModeMask() {
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+	if (material && material->renderingMode == RenderingMode::TRANSPARENT) {
+		GameObject& gameObject = GetOwner();
+		gameObject.DeleteMask(MaskType::TRANSPARENT);
+	}
 }

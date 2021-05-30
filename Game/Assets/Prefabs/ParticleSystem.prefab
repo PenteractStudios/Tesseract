@@ -1,0 +1,63 @@
+{
+    "Root": {
+        "Name": "ParticleSystem",
+        "Active": true,
+        "RootBoneName": "",
+        "Mask": 0,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "LocalEulerAngles": [
+                    -0.0,
+                    0.0,
+                    -0.0
+                ]
+            },
+            {
+                "Type": "Particle",
+                "Active": true,
+                "ShaderId": 11379545950448947673,
+                "TextureId": 12655596251973795251,
+                "IsPlaying": true,
+                "IsLooping": false,
+                "IsRandomFrame": false,
+                "IsRandomDirection": false,
+                "ParticleScale": 5.0,
+                "MaxParticle": 100,
+                "Velocity": 0.10000000149011612,
+                "LifeParticle": 5.0,
+                "Ytiles": 1,
+                "Xtiles": 1,
+                "AnimationSpeed": 0.0,
+                "InitColor": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "FinalColor": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            }
+        ],
+        "Children": null
+    }
+}
