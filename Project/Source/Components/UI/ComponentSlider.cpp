@@ -276,8 +276,9 @@ void ComponentSlider::ModifyValue(float mulitplier) {
 #else
 	currentValue = Max(Min(currentValue + mulitplier * App->time->GetRealTimeDeltaTime() * sliderSensitivity, maxValue), minValue);
 #endif
-	if (mulitplier != 0.0f)
+	if (mulitplier != 0.0f) {
 		OnValueChanged();
+	}
 }
 
 float4 ComponentSlider::GetTintColor() const {

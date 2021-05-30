@@ -65,8 +65,8 @@ void ComponentEventSystem::Update() {
 			keyPressed = true;
 		}
 
-		PlayerController* controller = nullptr;
-		if (controller = App->input->GetPlayerController(0)) {
+		PlayerController* controller = App->input->GetPlayerController(0);
+		if (controller) {
 			if (selectionDir.x == 0 && selectionDir.y == 0) {
 				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_UP) == KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_UP) == KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTY) < -0.5f) {
 					selectionDir = float2(0.f, 1.f);
