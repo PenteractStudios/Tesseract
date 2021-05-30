@@ -187,7 +187,7 @@ void ResourceStateMachine::OnEditorUpdate() {
 	if (ImGui::Button("Generate JSON State Machin##StateMacghin")) {
 		LOG("Generate JSON State Machin");
 		std::string filePath = GetAssetFilePath();
-		StateMachinGenerator::GenerateStateMachine(filePath.c_str());
+		StateMachineGenerator::GenerateStateMachine(filePath.c_str());
 	}
 	/*
 	char nameStateMachine[100];

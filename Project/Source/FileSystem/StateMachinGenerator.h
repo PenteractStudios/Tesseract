@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 
-namespace StateMachinGenerator {
+namespace StateMachineGenerator {
 	bool GenerateStateMachine(const char* filePath);
 	void SaveToFile(const char* filePath, std::unordered_map<UID, std::string>& listClips);
 }; // namespace StateMachinGenerator

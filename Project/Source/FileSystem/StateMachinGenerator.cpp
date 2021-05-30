@@ -32,7 +32,7 @@
 #define JSON_TAG_TRIGGER_NAME "Trigger"
 #define JSON_TAG_INTERPOLATION_DURATION "Interpolation"
 
-bool StateMachinGenerator::GenerateStateMachine(const char* filePath) {
+bool StateMachineGenerator::GenerateStateMachine(const char* filePath) {
 	std::string filePath2 = FileDialog::GetFileFolder(filePath);
 
 	std::vector<std::string> files = App->files->GetFilesInFolder(filePath2.c_str());
@@ -68,7 +68,7 @@ bool StateMachinGenerator::GenerateStateMachine(const char* filePath) {
 	return true;
 }
 
-void StateMachinGenerator::SaveToFile(const char* filePath, std::unordered_map<UID, std::string>& listClips) {
+void StateMachineGenerator::SaveToFile(const char* filePath, std::unordered_map<UID, std::string>& listClips) {
 	LOG("Saving ResourceStateMachine to path: \"%s\".", filePath);
 
 	MSTimer timer;
