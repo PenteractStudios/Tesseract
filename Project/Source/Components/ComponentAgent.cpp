@@ -66,6 +66,18 @@ void ComponentAgent::SetMaxAcceleration(float newAcceleration) {
 	ag->params.maxAcceleration = maxAcceleration;
 }
 
+float ComponentAgent::GetMaxSpeed() {
+	return maxSpeed;
+}
+
+float ComponentAgent::GetMaxAcceleration() {
+	return maxAcceleration;
+}
+
+float3 ComponentAgent::GetTargetPosition() {
+	return targetPosition;
+}
+
 void ComponentAgent::AddAgentToCrowd() {
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	if (!navMesh.IsGenerated() || agentId != -1) return;
