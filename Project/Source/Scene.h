@@ -8,6 +8,7 @@
 #include "Components/ComponentBoundingBox.h"
 #include "Components/ComponentCamera.h"
 #include "Components/ComponentLight.h"
+#include "Components/ComponentBilboardRender.h"
 #include "Components/UI/ComponentCanvas.h"
 #include "Components/UI/ComponentCanvasRenderer.h"
 #include "Components/UI/ComponentImage.h"
@@ -91,6 +92,7 @@ public:
 	PoolMap<UID, ComponentAnimation> animationComponents;
 	PoolMap<UID, ComponentParticleSystem> particleComponents;
 	PoolMap<UID, ComponentTrail> trailComponents;
+	PoolMap<UID, ComponentBilboardRender> bilboardComponents;
 	PoolMap<UID, ComponentAudioSource> audioSourceComponents;
 	PoolMap<UID, ComponentAudioListener> audioListenerComponents;
 	PoolMap<UID, ComponentProgressBar> progressbarsComponents;

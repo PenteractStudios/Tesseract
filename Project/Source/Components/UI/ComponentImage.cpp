@@ -116,6 +116,7 @@ void ComponentImage::Load(JsonValue jComponent) {
 
 float4 ComponentImage::GetMainColor() const {
 	bool found = false;
+
 	float4 componentColor = App->userInterface->GetErrorColor();
 
 	ComponentButton* button = GetOwner().GetComponent<ComponentButton>();
@@ -206,6 +207,10 @@ void ComponentImage::Draw(ComponentTransform2D* transform) const {
 
 void ComponentImage::SetColor(float4 color_) {
 	color = color_;
+}
+
+float4 ComponentImage::GetColor() const {
+	return color;
 }
 
 void ComponentImage::SetFillValue(float val) {

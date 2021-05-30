@@ -19,6 +19,9 @@ public:
 	TESSERACT_ENGINE_API void SetMoveTarget(float3 newTargetPosition, bool usePathfinding = true);		// This will set the parameters of the Agent to move to the target position
 	TESSERACT_ENGINE_API void SetMaxSpeed(float newSpeed);												// Sets agent MaxSpeed
 	TESSERACT_ENGINE_API void SetMaxAcceleration(float newAcceleration);								// Sets agent MaxAcceleration
+	TESSERACT_ENGINE_API float GetMaxSpeed();															// Returns maxSpeed
+	TESSERACT_ENGINE_API float GetMaxAcceleration();													// Returns maxAcceleration
+	TESSERACT_ENGINE_API float3 GetTargetPosition();													// Returns targetPosition
 
 	void AddAgentToCrowd();						// If possible, generates a new Agent and adds it to the NavMesh's crowd
 	void RemoveAgentFromCrowd();				// If possible, removes Agent and adds it to the NavMesh's crowd

@@ -36,7 +36,11 @@ void ComponentAgent::SetMoveTarget(float3 newTargetPosition, bool usePathfinding
 		// Request velocity
 		const dtCrowdAgent* ag = crowd->getAgent(agentId);
 		if (ag && ag->active) {
-			float3 vel = (newTargetPosition - float3(ag->npos)).Normalized() * maxSpeed;
+			float3 targetResultPosition = (newTargetPosition - float3(ag->npos));
+			if (!targetResultPosition.Equals(float3::zero)) {
+				targetResultPosition.Normalize();
+			}
+			float3 vel = targetResultPosition * maxSpeed;
 			crowd->requestMoveVelocity(agentId, vel.ptr());
 		}
 	}
@@ -46,6 +50,9 @@ void ComponentAgent::SetMaxSpeed(float newSpeed) {
 	maxSpeed = newSpeed;
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	dtCrowdAgent* ag = navMesh.GetCrowd()->getEditableAgent(agentId);
+	if (ag == nullptr) {
+		return;
+	}
 	ag->params.maxSpeed = maxSpeed;
 }
 
@@ -53,7 +60,22 @@ void ComponentAgent::SetMaxAcceleration(float newAcceleration) {
 	maxAcceleration = newAcceleration;
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	dtCrowdAgent* ag = navMesh.GetCrowd()->getEditableAgent(agentId);
+	if (ag == nullptr) {
+		return;
+	}
 	ag->params.maxAcceleration = maxAcceleration;
+}
+
+float ComponentAgent::GetMaxSpeed() {
+	return maxSpeed;
+}
+
+float ComponentAgent::GetMaxAcceleration() {
+	return maxAcceleration;
+}
+
+float3 ComponentAgent::GetTargetPosition() {
+	return targetPosition;
 }
 
 void ComponentAgent::AddAgentToCrowd() {
