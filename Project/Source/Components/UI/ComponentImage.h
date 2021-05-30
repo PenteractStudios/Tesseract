@@ -23,11 +23,11 @@ public:
 	TESSERACT_ENGINE_API void SetColor(float4 color_);
 	TESSERACT_ENGINE_API void SetFillValue(float val);
 	TESSERACT_ENGINE_API float4 GetColor() const;
+	TESSERACT_ENGINE_API float4 GetMainColor() const; // Gets an additional color that needs to be applied to the image. Currently gets the color of the Button, Slider and Checkbox
 	TESSERACT_ENGINE_API void SetIsFill(bool b);
 	TESSERACT_ENGINE_API bool IsFill() const;
 
 private:
-	float4 GetMainColor() const; // Gets an additional color that needs to be applied to the image. Currently gets the color of the Button, Slider and Checkbox
 	void RebuildFillQuadVBO();
 
 private:
