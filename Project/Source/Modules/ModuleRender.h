@@ -7,6 +7,8 @@
 #include "Math/float3.h"
 #include "LightFrustum.h"
 
+#include <map>
+
 class GameObject;
 
 class ModuleRender : public Module {
@@ -23,7 +25,6 @@ public:
 
 	void ViewportResized(int width, int height); // Updates the viewport aspect ratio with the new one given by parameters. It will set 'viewportUpdated' to true, to regenerate the framebuffer to its new size using UpdateFramebuffer().
 	void UpdateFramebuffer();					 // Generates the rendering framebuffer on Init(). If 'viewportUpdated' was set to true, it will be also called at PostUpdate().
-	void DrawScene(bool shadowPass = false);	 // Draw the Scene
 
 	void SetVSync(bool vsync);
 
@@ -83,11 +84,11 @@ public:
 	LightFrustum lightFrustum;
 
 private:
-
-	void DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb); // Draws the quadrtee nodes if 'drawQuadtree' is set to true.
-	void DrawSceneRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb, bool shadowPass); // ??
-	bool CheckIfInsideFrustum(const AABB& aabb, const OBB& obb);							// ??
-	void DrawGameObject(GameObject* gameObject);											// ??
+	void DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb);			  // Draws the quadrtee nodes if 'drawQuadtree' is set to true.
+	void ClassifyGameObjects();																		  // Classify Game Objects from Scene taking into account Frustum Culling, Shadows and Rendering Mode
+	void ClassifyGameObjectsFromQuadrtee(const Quadtree<GameObject>::Node& node, const AABB2D& aabb); // Classify Game Objects from Scene taking into account Frustum Culling, Quadtree, Shadows and Rendering Mode
+	bool CheckIfInsideFrustum(const AABB& aabb, const OBB& obb);									  // ??
+	void DrawGameObject(GameObject* gameObject);													  // ??
 	void DrawGameObjectShadowPass(GameObject* gameObject);
 	void DrawAnimation(const GameObject* gameObject, bool hasAnimation = false);
 	void RenderUI();
@@ -95,11 +96,14 @@ private:
 	void SetPerspectiveRender();
 
 	void ShadowMapPass();
-	void RenderPass();
 	void DrawDepthMapTexture();
 
 private:
 	// ------- Viewport Size ------- //
 	float2 viewportSize = float2::zero;
 	bool drawDepthMapTexture = false;
+
+	std::vector<GameObject*> shadowGameObjects;			 // Vector of Shadow Casted GameObjects
+	std::vector<GameObject*> opaqueGameObjects;			 // Vector of Opaque GameObjects
+	std::map<float, GameObject*> transparentGameObjects; // Map with Transparent GameObjects
 };

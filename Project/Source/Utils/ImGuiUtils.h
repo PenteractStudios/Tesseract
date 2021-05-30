@@ -14,12 +14,13 @@ namespace ImGui {
 	template<typename T> void ResourceSlot(
 		const char* label,
 		UID* target,
-		std::function<void()> changeCallBack = []() {});
+		std::function<void()> oldCallBack = []() {},
+		std::function<void()> newCallBack = []() {});
 	void GameObjectSlot(const char* label, UID* target);
 } // namespace ImGui
 
 template<typename T>
-inline void ImGui::ResourceSlot(const char* label, UID* target, std::function<void()> changeCallBack) {
+inline void ImGui::ResourceSlot(const char* label, UID* target, std::function<void()> oldCallBack, std::function<void()> newCallBack) {
 	ImGui::Text(label);
 
 	if (ImGui::BeginTable(label, 2)) {
@@ -36,11 +37,12 @@ inline void ImGui::ResourceSlot(const char* label, UID* target, std::function<vo
 				UID oldUID = *target;
 				if (oldUID != newUID) {
 					if (oldUID != 0) {
-						changeCallBack();
+						oldCallBack();
 						App->resources->DecreaseReferenceCount(oldUID);
 					}
 					*target = newUID;
 					App->resources->IncreaseReferenceCount(newUID);
+					newCallBack();
 				}
 			}
 			ImGui::EndDragDropTarget();
@@ -66,7 +68,7 @@ inline void ImGui::ResourceSlot(const char* label, UID* target, std::function<vo
 }
 
 template<>
-inline void ImGui::ResourceSlot<ResourceTexture>(const char* label, UID* target, std::function<void()> changeCallBack) {
+inline void ImGui::ResourceSlot<ResourceTexture>(const char* label, UID* target, std::function<void()> oldCallBack, std::function<void()> newCallBack) {
 	ImGui::BeginChildFrame(ImGui::GetID(target), ImVec2(32, 32));
 	ResourceTexture* texture = App->resources->GetResource<ResourceTexture>(*target);
 	if (texture) {
@@ -79,11 +81,12 @@ inline void ImGui::ResourceSlot<ResourceTexture>(const char* label, UID* target,
 		std::string payloadType = std::string("_RESOURCE_") + GetResourceTypeName(ResourceTexture::staticType);
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadType.c_str())) {
 			if (*target != 0) {
-				changeCallBack();
+				oldCallBack();
 				App->resources->DecreaseReferenceCount(*target);
 			}
 			*target = *(UID*) payload->Data;
 			App->resources->IncreaseReferenceCount(*target);
+			newCallBack();
 		}
 
 		ImGui::EndDragDropTarget();

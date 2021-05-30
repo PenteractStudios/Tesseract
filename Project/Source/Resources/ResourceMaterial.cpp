@@ -2,11 +2,13 @@
 
 #include "Application.h"
 
+#include "GameObject.h"
 #include "Modules/ModuleFiles.h"
 #include "FileSystem/JsonValue.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleEditor.h"
+#include "Modules/ModuleScene.h"
 #include "ResourceTexture.h"
 #include "Utils/FileDialog.h"
 #include "Utils/Logging.h"
@@ -23,6 +25,7 @@
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_SHADER "ShaderType"
+#define JSON_TAG_RENDERING_MODE "RenderingMode"
 #define JSON_TAG_DIFFUSE_COLOR "DiffuseColor"
 #define JSON_TAG_DIFFUSE_MAP "DiffuseMap"
 #define JSON_TAG_SPECULAR_COLOR "SpecularColor"
@@ -56,6 +59,8 @@ void ResourceMaterial::Load() {
 	JsonValue jMaterial(document, document);
 
 	shaderType = (MaterialShader)(int) jMaterial[JSON_TAG_SHADER];
+
+	renderingMode = (RenderingMode)(int) jMaterial[JSON_TAG_RENDERING_MODE];
 
 	diffuseColor = float4(jMaterial[JSON_TAG_DIFFUSE_COLOR][0], jMaterial[JSON_TAG_DIFFUSE_COLOR][1], jMaterial[JSON_TAG_DIFFUSE_COLOR][2], jMaterial[JSON_TAG_DIFFUSE_COLOR][3]);
 	diffuseMapId = jMaterial[JSON_TAG_DIFFUSE_MAP];
@@ -110,6 +115,8 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	// Save JSON values
 	jMaterial[JSON_TAG_SHADER] = (int) shaderType;
 
+	jMaterial[JSON_TAG_RENDERING_MODE] = (int) renderingMode;
+
 	JsonValue jDiffuseColor = jMaterial[JSON_TAG_DIFFUSE_COLOR];
 	jDiffuseColor[0] = diffuseColor.x;
 	jDiffuseColor[1] = diffuseColor.y;
@@ -156,6 +163,19 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	LOG("Material saved in %ums", timeMs);
 }
 
+void ResourceMaterial::UpdateMask() {
+	for (GameObject& gameObject : App->scene->scene->gameObjects) {
+		ComponentMeshRenderer* meshRenderer = gameObject.GetComponent<ComponentMeshRenderer>();
+		if (meshRenderer && meshRenderer->materialId == GetId()) {
+			if (renderingMode == RenderingMode::TRANSPARENT) {
+				gameObject.AddMask(MaskType::TRANSPARENT);
+			} else {
+				gameObject.DeleteMask(MaskType::TRANSPARENT);
+			}
+		}
+	}
+}
+
 void ResourceMaterial::OnEditorUpdate() {
 	// Save Material
 	if (FileDialog::GetFileExtension(GetAssetFilePath().c_str()) == MATERIAL_EXTENSION) {
@@ -181,6 +201,24 @@ void ResourceMaterial::OnEditorUpdate() {
 		ImGui::EndCombo();
 	}
 
+	ImGui::NewLine();
+
+	// Rendering Mode
+	const char* renderingModes[] = {"Opaque", "Transparent"};
+	const char* renderingModeCurrent = renderingModes[(int) renderingMode];
+	if (ImGui::BeginCombo("Rendering Mode", renderingModeCurrent)) {
+		for (int n = 0; n < IM_ARRAYSIZE(renderingModes); ++n) {
+			bool isSelected = (renderingModeCurrent == renderingModes[n]);
+			if (ImGui::Selectable(renderingModes[n], isSelected)) {
+				renderingMode = (RenderingMode) n;
+				UpdateMask();
+			}
+			if (isSelected) {
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
 	ImGui::NewLine();
 
 	//Diffuse
@@ -279,7 +317,6 @@ void ResourceMaterial::OnEditorUpdate() {
 		}
 
 		// Smoothness Options
-		//ImGui::TextColored(App->editor->titleColor, "Smoothness");
 		ImGui::Text("Smoothness");
 		ImGui::BeginColumns("##smoothness_material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
 		{
