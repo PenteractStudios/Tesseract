@@ -8,6 +8,7 @@
 #include "Modules/ModuleEditor.h"
 #include "Resources/ResourceScript.h"
 #include "Resources/ResourcePrefab.h"
+#include "Resources/ResourceScene.h"
 #include "Utils/FileDialog.h"
 #include "Utils/ImGuiUtils.h"
 #include "Utils/Logging.h"
@@ -134,6 +135,15 @@ void ComponentScript::OnEditorUpdate() {
 				}
 				break;
 			}
+			case MemberType::FLOAT3: {
+				float3* memberPtr = (float3*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
+				float3 old = *memberPtr;
+				ImGui::InputFloat3(member.name.c_str(), &memberPtr->x, "%.1f");
+				if (!old.Equals(*memberPtr)) {
+					changedValues[member.name] = std::pair<MemberType, MEMBER_VARIANT>(member.type, *memberPtr);
+				}
+				break;
+			}
 			case MemberType::DOUBLE: {
 				double* memberPtr = (double*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				double old = *memberPtr;
@@ -170,11 +180,11 @@ void ComponentScript::OnEditorUpdate() {
 				}
 				break;
 			}
-			case MemberType::FLOAT3: {
-				float3* memberPtr = (float3*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
-				float3 old = *memberPtr;
-				ImGui::InputFloat3(member.name.c_str(), &memberPtr->x, "%.1f");
-				if (!old.Equals(*memberPtr)) {
+			case MemberType::SCENE_RESOURCE_UID: {
+				UID* memberPtr = (UID*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
+				UID old = *memberPtr;
+				ImGui::ResourceSlot<ResourceScene>(member.name.c_str(), memberPtr);
+				if (old != *memberPtr) {
 					changedValues[member.name] = std::pair<MemberType, MEMBER_VARIANT>(member.type, *memberPtr);
 				}
 				break;
@@ -215,6 +225,14 @@ void ComponentScript::Save(JsonValue jComponent) const {
 		case MemberType::FLOAT:
 			jValue[JSON_TAG_VALUE] = std::get<float>(entry.second.second);
 			break;
+		case MemberType::FLOAT3: {
+			float3 aFloat3 = std::get<float3>(entry.second.second);
+			JsonValue float3JsonVal = jValue[JSON_TAG_VALUE];
+			float3JsonVal[0] = aFloat3.x;
+			float3JsonVal[1] = aFloat3.y;
+			float3JsonVal[2] = aFloat3.z;
+			break;
+		}
 		case MemberType::DOUBLE:
 			jValue[JSON_TAG_VALUE] = std::get<double>(entry.second.second);
 			break;
@@ -227,14 +245,9 @@ void ComponentScript::Save(JsonValue jComponent) const {
 		case MemberType::PREFAB_RESOURCE_UID:
 			jValue[JSON_TAG_VALUE] = std::get<UID>(entry.second.second);
 			break;
-		case MemberType::FLOAT3: {
-			float3 aFloat3 = std::get<float3>(entry.second.second);
-			JsonValue float3JsonVal = jValue[JSON_TAG_VALUE];
-			float3JsonVal[0] = aFloat3.x;
-			float3JsonVal[1] = aFloat3.y;
-			float3JsonVal[2] = aFloat3.z;
+		case MemberType::SCENE_RESOURCE_UID:
+			jValue[JSON_TAG_VALUE] = std::get<UID>(entry.second.second);
 			break;
-		}
 		default:
 			LOG("Member of type %i hasn't been registered in ComponentScript's Save function.", (unsigned) type);
 			assert(false); // ERROR: Member type not registered
@@ -272,6 +285,11 @@ void ComponentScript::Load(JsonValue jComponent) {
 		case MemberType::FLOAT:
 			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, static_cast<float>(jValue[JSON_TAG_VALUE]));
 			break;
+		case MemberType::FLOAT3: {
+			JsonValue jsonVal = jValue[JSON_TAG_VALUE];
+			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, float3(jsonVal[0], jsonVal[1], jsonVal[2]));
+			break;
+		}
 		case MemberType::DOUBLE:
 			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, static_cast<double>(jValue[JSON_TAG_VALUE]));
 			break;
@@ -284,11 +302,9 @@ void ComponentScript::Load(JsonValue jComponent) {
 		case MemberType::PREFAB_RESOURCE_UID:
 			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, static_cast<UID>(jValue[JSON_TAG_VALUE]));
 			break;
-		case MemberType::FLOAT3: {
-			JsonValue jsonVal = jValue[JSON_TAG_VALUE];
-			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, float3(jsonVal[0], jsonVal[1], jsonVal[2]));
+		case MemberType::SCENE_RESOURCE_UID:
+			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, static_cast<UID>(jValue[JSON_TAG_VALUE]));
 			break;
-		}
 		default:
 			LOG("Member of type %i hasn't been registered in ComponentScript's Load function.", (unsigned) type);
 			assert(false); // ERROR: Member type not registered
@@ -306,7 +322,7 @@ void ComponentScript::CreateScriptInstance() {
 	ResourceScript* script = App->resources->GetResource<ResourceScript>(scriptId);
 	if (script == nullptr) return;
 
-	scriptInstance.reset(Factory::Create(script->name, &GetOwner()));
+	scriptInstance.reset(Factory::Create(script->GetName(), &GetOwner()));
 	if (scriptInstance == nullptr) return;
 
 	const std::vector<Member>& members = scriptInstance->GetMembers();
@@ -344,6 +360,11 @@ void ComponentScript::CreateScriptInstance() {
 				*memberPtr = std::get<float>(it->second.second);
 				break;
 			}
+			case MemberType::FLOAT3: {
+				float3* memberPtr = (float3*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
+				*memberPtr = std::get<float3>(it->second.second);
+				break;
+			}
 			case MemberType::DOUBLE: {
 				double* memberPtr = (double*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				*memberPtr = std::get<double>(it->second.second);
@@ -364,9 +385,9 @@ void ComponentScript::CreateScriptInstance() {
 				*memberPtr = std::get<UID>(it->second.second);
 				break;
 			}
-			case MemberType::FLOAT3: {
-				float3* memberPtr = (float3*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
-				*memberPtr = std::get<float3>(it->second.second);
+			case MemberType::SCENE_RESOURCE_UID: {
+				UID* memberPtr = (UID*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
+				*memberPtr = std::get<UID>(it->second.second);
 				break;
 			}
 			default:
@@ -389,7 +410,7 @@ Script* ComponentScript::GetScriptInstance() const {
 const char* ComponentScript::GetScriptName() const {
 	if (scriptInstance != nullptr) {
 		ResourceScript* resourceScript = App->resources->GetResource<ResourceScript>(scriptId);
-		return (resourceScript != nullptr) ? (resourceScript->name).c_str() : nullptr;
+		return (resourceScript != nullptr) ? resourceScript->GetName().c_str() : nullptr;
 	}
 	return nullptr;
 }

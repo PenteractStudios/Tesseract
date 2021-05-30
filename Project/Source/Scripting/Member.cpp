@@ -30,6 +30,8 @@ const char* GetMemberTypeName(MemberType type) {
 		return "GameObjectUID";
 	case MemberType::PREFAB_RESOURCE_UID:
 		return "PrefabResourceUID";
+	case MemberType::SCENE_RESOURCE_UID:
+		return "SceneResourceUID";
 	default:
 		LOG("Member of type %i hasn't been registered in GetMemberTypeName.", (unsigned) type);
 		assert(false); // ERROR: Member type not registered
@@ -50,6 +52,8 @@ MemberType GetMemberTypeFromName(const char* name) {
 		return MemberType::ULONGLONG;
 	} else if (strcmp(name, "Float") == 0) {
 		return MemberType::FLOAT;
+	} else if (strcmp(name, "Float3") == 0) {
+		return MemberType::FLOAT3;
 	} else if (strcmp(name, "Double") == 0) {
 		return MemberType::DOUBLE;
 	} else if (strcmp(name, "String") == 0) {
@@ -58,8 +62,8 @@ MemberType GetMemberTypeFromName(const char* name) {
 		return MemberType::GAME_OBJECT_UID;
 	} else if (strcmp(name, "PrefabResourceUID") == 0) {
 		return MemberType::PREFAB_RESOURCE_UID;
-	} else if (strcmp(name, "Float3") == 0) {
-		return MemberType::FLOAT3;
+	} else if (strcmp(name, "SceneResourceUID") == 0) {
+		return MemberType::SCENE_RESOURCE_UID;
 	} else {
 		LOG("No member of name %s exists.", (unsigned) name);
 		assert(false); // ERROR: Invalid name

@@ -45,6 +45,7 @@ public:
 
 private:
 	void UpdateAsync();
+	void ImportLibrary();
 
 	void CheckForNewAssetsRecursive(const char* path, AssetCache& assetCache, AssetFolder& parentFolder);
 
@@ -55,6 +56,7 @@ private:
 	void ValidateAssetResources(JsonValue jMeta, bool& validResourceFiles);
 	void RecreateResources(JsonValue jMeta, const char* filePath);
 	bool ImportAssetByExtension(JsonValue jMeta, const char* filePath);
+	void ImportLibraryResource(const char* filePath);
 
 	void LoadResource(Resource* resource);
 	void LoadImportOptions(std::unique_ptr<ImportOptions>& importOptions, const char* filePath);
