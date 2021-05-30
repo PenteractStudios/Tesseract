@@ -42,34 +42,60 @@ void ComponentEventSystem::Update() {
 				SetSelected(selectable->GetID());
 			}
 		}
+		navigationTimer = Max(0.0f, navigationTimer - App->time->GetRealTimeDeltaTime());
 	}
-
-	float2 selectionDir = float2(0.f, 0.f);
 	bool keyPressed = false;
-	if (App->input->GetKey(SDL_SCANCODE_UP) == KS_DOWN) {
-		selectionDir = float2(0.f, 1.f);
-		keyPressed = true;
-	}
-	if (App->input->GetKey(SDL_SCANCODE_DOWN) == KS_DOWN) {
-		selectionDir = float2(0.f, -1.f);
-		keyPressed = true;
-	}
-	if (App->input->GetKey(SDL_SCANCODE_LEFT) == KS_DOWN) {
-		selectionDir = float2(-1.f, 0.f);
-		keyPressed = true;
-	}
-	if (App->input->GetKey(SDL_SCANCODE_RIGHT) == KS_DOWN) {
-		selectionDir = float2(1.f, 0.f);
-		keyPressed = true;
-	}
+	if (!App->userInterface->handlingSlider && navigationTimer == 0) {
+		float2 selectionDir = float2(0.f, 0.f);
 
-	if (keyPressed) {
-		if (selectedId != 0) {
-			ComponentSelectable* currentSel = GetCurrentSelected();
-			if (currentSel != nullptr) {
-				ComponentSelectable* newSel = currentSel->FindSelectableOnDir(selectionDir);
-				if (newSel != nullptr) {
-					SetSelected(newSel->GetID());
+		if (App->input->GetKey(SDL_SCANCODE_UP) == KS_DOWN) {
+			selectionDir = float2(0.f, 1.f);
+			keyPressed = true;
+		}
+		if (App->input->GetKey(SDL_SCANCODE_DOWN) == KS_DOWN) {
+			selectionDir = float2(0.f, -1.f);
+			keyPressed = true;
+		}
+		if (App->input->GetKey(SDL_SCANCODE_LEFT) == KS_DOWN) {
+			selectionDir = float2(-1.f, 0.f);
+			keyPressed = true;
+		}
+		if (App->input->GetKey(SDL_SCANCODE_RIGHT) == KS_DOWN) {
+			selectionDir = float2(1.f, 0.f);
+			keyPressed = true;
+		}
+
+		PlayerController* controller = App->input->GetPlayerController(0);
+		if (controller) {
+			if (selectionDir.x == 0 && selectionDir.y == 0) {
+				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_UP) == KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_UP) == KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTY) < -0.5f) {
+					selectionDir = float2(0.f, 1.f);
+					keyPressed = true;
+				}
+				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_DOWN) == KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_DOWN) == KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTY) > 0.5f) {
+					selectionDir = float2(0.f, -1.f);
+					keyPressed = true;
+				}
+				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_LEFT) == KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_LEFT) == KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTX) < -0.5f) {
+					selectionDir = float2(-1.f, 0.f);
+					keyPressed = true;
+				}
+				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTX) > 0.5f) {
+					selectionDir = float2(1.f, 0.f);
+					keyPressed = true;
+				}
+			}
+		}
+
+		if (keyPressed) {
+			if (selectedId != 0) {
+				ComponentSelectable* currentSel = GetCurrentSelected();
+				if (currentSel != nullptr) {
+					ComponentSelectable* newSel = currentSel->FindSelectableOnDir(selectionDir);
+					if (newSel != nullptr) {
+						navigationTimer = timeBetweenNavigations;
+						SetSelected(newSel->GetID());
+					}
 				}
 			}
 		}

@@ -7,6 +7,7 @@
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleWindow.h"
+#include "Modules/ModuleTime.h"
 #include "imgui.h"
 #include "Utils/Logging.h"
 #include "Scripting/Script.h"
@@ -14,6 +15,7 @@
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_COLOR_CLICK "ColorClick"
+#define JSON_TAG_COLOR_MANUAL_INPUT "ColorManualInput"
 #define JSON_TAG_MAX_VALUE "MaxValue"
 #define JSON_TAG_MIN_VALUE "MinValue"
 #define JSON_TAG_CURRENT_VALUE "CurrentValue"
@@ -51,7 +53,7 @@ void ComponentSlider::Update() {
 			float2 auxNewPosition = float2(((mousePos.x - (App->renderer->GetViewportSize().x / 2.0f)) / canvas->GetScreenFactor()) - GetOwner().GetComponent<ComponentTransform2D>()->GetScreenPosition().x, 0);
 			if (newPosition.x != auxNewPosition.x) {
 				newPosition = auxNewPosition;
-				OnValueChanged();
+				OnSliderDragged();
 			}
 		}
 	}
@@ -122,6 +124,11 @@ void ComponentSlider::OnEditorUpdate() {
 		SetNormalizedValue();
 	}
 
+	float localSensitivity = sliderSensitivity;
+	if (ImGui::InputFloat("Sensitivity", &localSensitivity)) {
+		sliderSensitivity = localSensitivity;
+	}
+
 	const char* availableDirections[] = {"Left to right", "Right to left"};
 	const char* currentDirection = availableDirections[(int) direction];
 	if (ImGui::BeginCombo("Direction", currentDirection)) {
@@ -141,6 +148,9 @@ void ComponentSlider::OnEditorUpdate() {
 	if (ImGui::SliderFloat("Value", &currentValue, minValue, maxValue)) {
 		SetNormalizedValue();
 	}
+
+	ImGui::ColorEdit4("Clicked Color##", colorClicked.ptr());
+	ImGui::ColorEdit4("Manual Input Color##", colorManualInput.ptr());
 }
 
 void ComponentSlider::OnClicked() {
@@ -154,10 +164,10 @@ void ComponentSlider::OnClickedInternal() {
 	float2 mousePos = App->input->GetMousePosition(true);
 	newPosition.x = ((mousePos.x - (App->renderer->GetViewportSize().x / 2.0f)) / canvas->GetScreenFactor()) - GetOwner().GetComponent<ComponentTransform2D>()->GetScreenPosition().x;
 
-	OnValueChanged();
+	OnSliderDragged();
 }
 
-void ComponentSlider::OnValueChanged() {
+void ComponentSlider::OnSliderDragged() {
 	// TODO: support for vertical sliders
 	ComponentTransform2D* backgroundTransform = background->GetComponent<ComponentTransform2D>();
 
@@ -171,6 +181,15 @@ void ComponentSlider::OnValueChanged() {
 
 	normalizedValue = size / backgroundTransform->GetSize().x;
 	currentValue = (maxValue - minValue) * normalizedValue;
+
+	OnValueChanged(true);
+}
+
+//If innerCall is true, means that this is being called from an OnSliderDragged event, meaning that no visual update is required
+void ComponentSlider::OnValueChanged(bool innerCall) {
+	if (!innerCall) {
+		SetNormalizedValue();
+	}
 
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
@@ -192,6 +211,12 @@ void ComponentSlider::Save(JsonValue jComponent) const {
 	jColorClick[1] = colorClicked.y;
 	jColorClick[2] = colorClicked.z;
 	jColorClick[3] = colorClicked.w;
+
+	JsonValue jScolorManualInput = jComponent[JSON_TAG_COLOR_MANUAL_INPUT];
+	jScolorManualInput[0] = colorManualInput.x;
+	jScolorManualInput[1] = colorManualInput.y;
+	jScolorManualInput[2] = colorManualInput.z;
+	jScolorManualInput[3] = colorManualInput.w;
 }
 
 void ComponentSlider::Load(JsonValue jComponent) {
@@ -204,6 +229,9 @@ void ComponentSlider::Load(JsonValue jComponent) {
 
 	JsonValue jColorClick = jComponent[JSON_TAG_COLOR_CLICK];
 	colorClicked = float4(jColorClick[0], jColorClick[1], jColorClick[2], jColorClick[3]);
+
+	JsonValue jColorManualInput = jComponent[JSON_TAG_COLOR_MANUAL_INPUT];
+	colorManualInput = float4(jColorManualInput[0], jColorManualInput[1], jColorManualInput[2], jColorManualInput[3]);
 }
 
 bool ComponentSlider::IsClicked() const {
@@ -222,6 +250,10 @@ float2 ComponentSlider::GetClickedPosition() const {
 	return newPosition;
 }
 
+UID ComponentSlider::GetHandleID() const {
+	return handle ? handle->GetID() : 0;
+}
+
 float ComponentSlider::GetCurrentValue() const {
 	return currentValue;
 }
@@ -238,6 +270,17 @@ float ComponentSlider::GetNormalizedValue() const {
 	return normalizedValue;
 }
 
+void ComponentSlider::ModifyValue(float mulitplier) {
+#if GAME
+	currentValue = Max(Min(currentValue + mulitplier * App->time->GetDeltaTime() * sliderSensitivity, maxValue), minValue);
+#else
+	currentValue = Max(Min(currentValue + mulitplier * App->time->GetRealTimeDeltaTime() * sliderSensitivity, maxValue), minValue);
+#endif
+	if (mulitplier != 0.0f) {
+		OnValueChanged();
+	}
+}
+
 float4 ComponentSlider::GetTintColor() const {
 	if (!IsActive()) return App->userInterface->GetErrorColor();
 
@@ -248,6 +291,8 @@ float4 ComponentSlider::GetTintColor() const {
 	if (sel->GetTransitionType() == ComponentSelectable::TransitionType::COLOR_CHANGE) {
 		if (!sel->IsInteractable()) {
 			return sel->GetDisabledColor();
+		} else if (beingHandled) {
+			return colorManualInput;
 		} else if (IsClicked()) {
 			return colorClicked;
 		} else if (sel->IsSelected()) {
@@ -257,7 +302,7 @@ float4 ComponentSlider::GetTintColor() const {
 		}
 	}
 
-	return App->userInterface->GetErrorColor();
+	return float4::one;
 }
 
 void ComponentSlider::SetNormalizedValue() {

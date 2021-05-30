@@ -305,6 +305,37 @@ ComponentSelectable::TransitionType ComponentSelectable::GetTransitionType() con
 	return transitionType;
 }
 
+bool ComponentSelectable::IsClicked() const {
+	UID toBeClicked = 0;
+	ComponentType typeToPress = ComponentType::UNKNOWN;
+
+	std::vector<Component*>::const_iterator it = GetOwner().components.begin();
+	while (toBeClicked == 0 && it != GetOwner().components.end()) {
+		if ((*it)->GetType() == ComponentType::BUTTON || (*it)->GetType() == ComponentType::TOGGLE || (*it)->GetType() == ComponentType::SLIDER) {
+			toBeClicked = (*it)->GetID();
+			typeToPress = (*it)->GetType();
+		} else {
+			++it;
+		}
+	}
+	if (toBeClicked != 0) {
+		Component* componentToPress = nullptr;
+		switch (typeToPress) {
+		case ComponentType::BUTTON:
+			componentToPress = GetOwner().GetComponent<ComponentButton>();
+			return static_cast<ComponentButton*>(componentToPress)->IsClicked();
+		case ComponentType::TOGGLE:
+			componentToPress = GetOwner().GetComponent<ComponentToggle>();
+			return static_cast<ComponentToggle*>(componentToPress)->IsClicked();
+		case ComponentType::SLIDER:
+			componentToPress = GetOwner().GetComponent<ComponentSlider>();
+			return static_cast<ComponentSlider*>(componentToPress)->IsClicked();
+		default:
+			return false;
+		}
+	}
+}
+
 void ComponentSelectable::TryToClickOn(bool internalClick) const {
 	UID toBeClicked = 0;
 	ComponentType typeToPress = ComponentType::UNKNOWN;
@@ -335,7 +366,7 @@ void ComponentSelectable::TryToClickOn(bool internalClick) const {
 			if (internalClick) {
 				static_cast<ComponentToggle*>(componentToPress)->OnClickedInternal();
 			} else {
-				static_cast<ComponentSlider*>(componentToPress)->OnClicked();
+				static_cast<ComponentToggle*>(componentToPress)->OnClicked();
 			}
 			break;
 		case ComponentType::SLIDER:
