@@ -184,12 +184,13 @@ void ModuleRender::ClassifyGameObjects() {
 		gameObject.flag = false;
 		if (gameObject.isInQuadtree) continue;
 
+		if ((gameObject.GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0) {
+			shadowGameObjects.push_back(&gameObject);
+		}
+
 		const AABB& gameObjectAABB = boundingBox.GetWorldAABB();
 		const OBB& gameObjectOBB = boundingBox.GetWorldOBB();
 		if (CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
-			if ((gameObject.GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0) {
-				shadowGameObjects.push_back(&gameObject);
-			}
 			if ((gameObject.GetMask().bitMask & static_cast<int>(MaskType::TRANSPARENT)) == 0) {
 				opaqueGameObjects.push_back(&gameObject);
 			} else {
@@ -568,10 +569,12 @@ void ModuleRender::ClassifyGameObjectsFromQuadrtee(const Quadtree<GameObject>::N
 					ComponentBoundingBox* boundingBox = gameObject->GetComponent<ComponentBoundingBox>();
 					const AABB& gameObjectAABB = boundingBox->GetWorldAABB();
 					const OBB& gameObjectOBB = boundingBox->GetWorldOBB();
+
+					if ((gameObject->GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0) {
+						shadowGameObjects.push_back(gameObject);
+					}
+
 					if (CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
-						if ((gameObject->GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0) {
-							shadowGameObjects.push_back(gameObject);
-						}
 						if ((gameObject->GetMask().bitMask & static_cast<int>(MaskType::TRANSPARENT)) == 0) {
 							opaqueGameObjects.push_back(gameObject);
 						} else {
