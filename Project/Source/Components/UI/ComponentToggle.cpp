@@ -146,8 +146,11 @@ void ComponentToggle::OnEditorUpdate() {
 }
 
 void ComponentToggle::Update() {
+
+	bool gameControllerConnected = App->input->GetPlayerController(0);
+
 	if (clicked) {
-		if (!App->input->GetMouseButton(1)) {
+		if (!App->input->GetMouseButton(1) && !App->input->GetKey(SDL_SCANCODE_RETURN) && (!gameControllerConnected || gameControllerConnected && !App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A))) {
 			clicked = false;
 		}
 	}

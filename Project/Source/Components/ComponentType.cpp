@@ -50,6 +50,8 @@ const char* GetComponentTypeName(ComponentType type) {
 		return "Trail";
 	case ComponentType::PARTICLE:
 		return "Particle";
+	case ComponentType::BILLBOARD:
+		return "Billboard";
 	case ComponentType::AUDIO_LISTENER:
 		return "AudioListener";
 	case ComponentType::AUDIO_SOURCE:
@@ -114,6 +116,8 @@ ComponentType GetComponentTypeFromName(const char* name) {
 		return ComponentType::PARTICLE;
 	} else if (strcmp(name, "Trail") == 0) {
 		return ComponentType::TRAIL;
+	} else if (strcmp(name, "Billboard") == 0) {
+		return ComponentType::BILLBOARD;
 	} else if (strcmp(name, "AudioListener") == 0) {
 		return ComponentType::AUDIO_LISTENER;
 	} else if (strcmp(name, "AudioSource") == 0) {

@@ -146,6 +146,10 @@ GameObject* GameObject::GetRootBone() const {
 }
 
 void GameObject::AddMask(MaskType mask_) {
+	if ((mask.bitMask & static_cast<int>(mask_)) != 0) {
+		LOG("Mask already added");
+		return;
+	}
 
 	switch (mask_) {
 	case MaskType::ENEMY:
@@ -155,6 +159,9 @@ void GameObject::AddMask(MaskType mask_) {
 		mask.bitMask |= static_cast<int>(mask_);
 		break;
 	case MaskType::CAST_SHADOWS:
+		mask.bitMask |= static_cast<int>(mask_);
+		break;
+	case MaskType::TRANSPARENT:
 		mask.bitMask |= static_cast<int>(mask_);
 		break;
 	default:
@@ -164,6 +171,11 @@ void GameObject::AddMask(MaskType mask_) {
 }
 
 void GameObject::DeleteMask(MaskType mask_) {
+	if ((mask.bitMask & static_cast<int>(mask_)) == 0) {
+		LOG("Mask already deleted");
+		return;
+	}
+
 	switch (mask_) {
 	case MaskType::ENEMY:
 		mask.bitMask ^= static_cast<int>(mask_);
@@ -172,6 +184,9 @@ void GameObject::DeleteMask(MaskType mask_) {
 		mask.bitMask ^= static_cast<int>(mask_);
 		break;
 	case MaskType::CAST_SHADOWS:
+		mask.bitMask ^= static_cast<int>(mask_);
+		break;
+	case MaskType::TRANSPARENT:
 		mask.bitMask ^= static_cast<int>(mask_);
 		break;
 	default:
@@ -289,7 +304,6 @@ void GameObject::Load(JsonValue jGameObject) {
 				scene->directionalLight = this;
 			}
 		}
-
 	}
 
 	JsonValue jChildren = jGameObject[JSON_TAG_CHILDREN];

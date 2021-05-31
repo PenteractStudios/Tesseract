@@ -8,6 +8,7 @@
 #include "Components/ComponentBoundingBox.h"
 #include "Components/ComponentCamera.h"
 #include "Components/ComponentLight.h"
+#include "Components/ComponentBillboard.h"
 #include "Components/UI/ComponentCanvas.h"
 #include "Components/UI/ComponentCanvasRenderer.h"
 #include "Components/UI/ComponentImage.h"
@@ -55,15 +56,15 @@ public:
 	void RemoveComponentByTypeAndId(ComponentType type, UID componentId);
 
 	int GetTotalTriangles() const;
-	std::vector<float> GetVertices();		// Gets all the vertices from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
-	std::vector<int> GetTriangles();		// Gets all the triangles from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
+	std::vector<float> GetVertices(); // Gets all the vertices from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
+	std::vector<int> GetTriangles();  // Gets all the triangles from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
 
 	void SetNavMesh(UID navMesh);
 	UID GetNavMesh();
 
 public:
-	GameObject* root = nullptr;			  // GameObject Root. Parent of everything and god among gods (Game Object Deity) :D.
-	GameObject* directionalLight = nullptr;		  // GameObject of directional light
+	GameObject* root = nullptr;				// GameObject Root. Parent of everything and god among gods (Game Object Deity) :D.
+	GameObject* directionalLight = nullptr; // GameObject of directional light
 
 	PoolMap<UID, GameObject> gameObjects; // Pool of GameObjects. Stores all the memory of all existing GameObject in a contiguous memory space.
 
@@ -91,6 +92,7 @@ public:
 	PoolMap<UID, ComponentAnimation> animationComponents;
 	PoolMap<UID, ComponentParticleSystem> particleComponents;
 	PoolMap<UID, ComponentTrail> trailComponents;
+	PoolMap<UID, ComponentBillboard> billboardComponents;
 	PoolMap<UID, ComponentAudioSource> audioSourceComponents;
 	PoolMap<UID, ComponentAudioListener> audioListenerComponents;
 	PoolMap<UID, ComponentProgressBar> progressbarsComponents;

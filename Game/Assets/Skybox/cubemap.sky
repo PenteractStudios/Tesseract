@@ -1,0 +1,10 @@
+{
+	"Skybox": [
+		"Assets/Skybox/px.png",
+		"Assets/Skybox/nx.png",
+		"Assets/Skybox/ny.png",
+		"Assets/Skybox/py.png",
+		"Assets/Skybox/pz.png",
+		"Assets/Skybox/nz.png"
+	]
+}

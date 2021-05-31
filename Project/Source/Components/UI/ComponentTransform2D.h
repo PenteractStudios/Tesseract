@@ -67,7 +67,7 @@ public:
 	TESSERACT_ENGINE_API void SetSize(float2 size);			// Sets this size to value
 	void SetRotation(Quat rotation);						// Sets this rotation to value and calculates Euler Angles rotation
 	void SetRotation(float3 rotation);						// Sets this eulerAngles to value and calculates Quat rotation
-	void SetScale(float3 scale);							// Sets this scale to value
+	TESSERACT_ENGINE_API void SetScale(float3 scale);		// Sets this scale to value
 	void SetAnchorMin(float2 anchorMin);					// Sets this anchorMin to value
 	void SetAnchorMax(float2 anchorMax);					// Sets this anchorMax to value
 	void SetPivot(float2 pivotPosition);					// Sets this pivot to value
@@ -78,7 +78,7 @@ public:
 
 	TESSERACT_ENGINE_API float3 GetPosition() const; // Returns the position
 	TESSERACT_ENGINE_API float2 GetSize() const;	 // Returns the size
-	float3 GetScale() const;						 // Returns the scale
+	TESSERACT_ENGINE_API float3 GetScale() const;	// Returns the scale
 	float2 GetPivot() const;						 // Returns the pivot
 	float3 GetPositionRelativeToParent() const;		 // Returns the position of the object relative to its parent
 	float3 GetScreenPosition() const;				 // Returns the position of the object respect the screen

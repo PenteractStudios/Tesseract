@@ -7,18 +7,17 @@
 #include "Math/float2.h"
 #include "Math/float4x4.h"
 #include "Math/Quat.h"
+
 class ComponentTrail : public Component {
 public:
 	REGISTER_COMPONENT(ComponentTrail, ComponentType::TRAIL, false);
 
 	void Update() override;
-	void Init() override;
-	void DrawGizmos() override;
 	void OnEditorUpdate() override;
 	void Load(JsonValue jComponent) override;
 	void Save(JsonValue jComponent) const override;
-	void Draw();
 
+	void Draw();
 	void SpawnParticle();
 	void UpdateVerticesPosition();
 	void InsertVertex(float3 vertex);

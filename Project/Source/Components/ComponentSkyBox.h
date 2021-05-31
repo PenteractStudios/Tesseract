@@ -10,7 +10,6 @@ public:
 	void OnEditorUpdate() override;
 	void Load(JsonValue jComponent) override;
 	void Save(JsonValue jComponent) const override;
-	void Update() override;
 	void Draw();
 
 private:

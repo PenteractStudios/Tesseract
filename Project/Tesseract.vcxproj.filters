@@ -217,6 +217,7 @@
     <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Source\MaskType.cpp" />
     <ClCompile Include="Source\Panels\PanelDebug.cpp" />
+    <ClCompile Include="Source\Components\ComponentBillboard.cpp" />
     <ClCompile Include="Source\FileSystem\ImporterCommon.cpp" />
     <ClCompile Include="Source\FileSystem\ImportOptions.cpp" />
     <ClCompile Include="Source\Modules\ModulePhysics.cpp" />
@@ -532,7 +533,6 @@
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
     <ClInclude Include="Source\LightFrustum.h" />
     <ClInclude Include="Source\Panels\PanelResource.h" />
-    <ClInclude Include="Source\Mask.h" />
     <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />
     <ClInclude Include="Source\Components\ComponentParticleSystem.h" />
     <ClInclude Include="Source\Panels\PanelImportOptions.h" />
@@ -542,6 +542,7 @@
     <ClInclude Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Source\MaskType.h" />
     <ClInclude Include="Source\Panels\PanelDebug.h" />
+    <ClInclude Include="Source\Components\ComponentBillboard.h" />
     <ClInclude Include="Source\FileSystem\ImportOptions.h" />
     <ClInclude Include="Source\Modules\ModulePhysics.h" />
     <ClInclude Include="Source\Components\Physics\ComponentSphereCollider.h" />

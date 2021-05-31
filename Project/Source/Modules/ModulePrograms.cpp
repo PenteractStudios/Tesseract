@@ -65,6 +65,9 @@ static unsigned CompileShader(unsigned type, const char* filePath, const char* s
 void ModulePrograms::LoadShaderBinFile() {
 	// Clean file on Start
 	Buffer<char> cleanBuffer;
+	if (!App->files->IsDirectory(LIBRARY_PATH)) {
+		App->files->CreateFolder(LIBRARY_PATH);
+	}
 	App->files->Save(filePath, cleanBuffer);
 
 	// Save all .shader from Assets/Shaders/ into one bin file
@@ -75,6 +78,51 @@ void ModulePrograms::LoadShaderBinFile() {
 			App->files->Save(filePath, buffer, true);
 		}
 	}
+}
+
+void ModulePrograms::LoadShaders() {
+	MSTimer timer;
+	timer.Start();
+
+	LoadShaderBinFile();
+
+	//SkyBox shader
+	skybox = CreateProgram(filePath, "vertSkybox", "fragSkybox");
+
+	//General shaders
+	phongNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragMainPhong");
+	phongNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragMainPhong");
+	standardNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic");
+	standardNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic");
+	specularNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
+	specularNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
+
+	// Shadow Shaders
+	shadowMap = CreateProgram(filePath, "vertDepthMap", "fragDepthMap");
+
+	//UI shaders
+	textUI = CreateProgram(filePath, "vertTextUI", "fragTextUI");
+	imageUI = CreateProgram(filePath, "vertImageUI", "fragImageUI");
+
+	// Engine Shaders
+	drawDepthMapTexture = CreateProgram(filePath, "vertDrawDepthMapTexture", "fragDrawDepthMapTexture");
+
+	unsigned timeMs = timer.Stop();
+	LOG("Shaders loaded in %ums", timeMs);
+}
+
+void ModulePrograms::UnloadShaders() {
+	glDeleteProgram(skybox);
+	glDeleteProgram(phongNormal);
+	glDeleteProgram(phongNotNormal);
+	glDeleteProgram(standardNormal);
+	glDeleteProgram(standardNotNormal);
+	glDeleteProgram(specularNormal);
+	glDeleteProgram(specularNotNormal);
+	glDeleteProgram(shadowMap);
+	glDeleteProgram(drawDepthMapTexture);
+	glDeleteProgram(textUI);
+	glDeleteProgram(imageUI);
 }
 
 unsigned ModulePrograms::CreateProgram(const char* shaderFile, const char* vertexSnippets, const char* fragmentSnippets) {
@@ -118,35 +166,7 @@ unsigned ModulePrograms::CreateProgram(const char* shaderFile, const char* verte
 }
 
 bool ModulePrograms::Start() {
-	MSTimer timer;
-	timer.Start();
-
-	LoadShaderBinFile();
-
-	//SkyBox shader
-	skybox = CreateProgram(filePath, "vertSkybox", "fragSkybox");
-
-	//General shaders
-	phongNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragMainPhong");
-	phongNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragMainPhong");
-	standardNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic");
-	standardNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic");
-	specularNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
-	specularNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
-
-	// Shadow Shaders
-	shadowMap = CreateProgram(filePath, "vertDepthMap", "fragDepthMap");
-
-	//UI shaders
-	textUI = CreateProgram(filePath, "vertTextUI", "fragTextUI");
-	imageUI = CreateProgram(filePath, "vertImageUI", "fragImageUI");
-
-	// Engine Shaders
-	drawDepthMapTexture = CreateProgram(filePath, "vertDrawDepthMapTexture", "fragDrawDepthMapTexture");
-
-	unsigned timeMs = timer.Stop();
-	LOG("Shaders loaded in %ums", timeMs);
-
+	LoadShaders();
 	return true;
 }
 
@@ -155,17 +175,6 @@ void ModulePrograms::DeleteProgram(unsigned int IdProgram) {
 }
 
 bool ModulePrograms::CleanUp() {
-	glDeleteProgram(skybox);
-	glDeleteProgram(phongNormal);
-	glDeleteProgram(phongNotNormal);
-	glDeleteProgram(standardNormal);
-	glDeleteProgram(standardNotNormal);
-	glDeleteProgram(specularNormal);
-	glDeleteProgram(specularNotNormal);
-	glDeleteProgram(shadowMap);
-	glDeleteProgram(drawDepthMapTexture);
-	glDeleteProgram(textUI);
-	glDeleteProgram(imageUI);
-
+	UnloadShaders();
 	return true;
 }

@@ -115,24 +115,37 @@ void ComponentImage::Load(JsonValue jComponent) {
 }
 
 float4 ComponentImage::GetMainColor() const {
+	bool found = false;
 
 	float4 componentColor = App->userInterface->GetErrorColor();
 
 	ComponentButton* button = GetOwner().GetComponent<ComponentButton>();
 	if (button != nullptr) {
 		componentColor = button->GetTintColor();
+		found = true;
 	}
 
-	ComponentSlider* slider = GetOwner().GetComponent<ComponentSlider>();
-	if (slider != nullptr) {
-		componentColor = slider->GetTintColor();
+	if (!found) {
+		ComponentToggle* toggle = GetOwner().GetComponent<ComponentToggle>();
+		if (toggle != nullptr) {
+			componentColor = toggle->GetTintColor();
+			found = true;
+		}
 	}
 
-	ComponentToggle* toggle = GetOwner().GetComponent<ComponentToggle>();
-	if (toggle != nullptr) {
-		componentColor = toggle->GetTintColor();
+	if (!found) {
+		const GameObject* parentObj = GetOwner().GetParent();
+		if (parentObj) {
+			ComponentSlider* slider = parentObj->GetComponent<ComponentSlider>();
+			if (slider != nullptr) {
+				if (slider->GetHandleID() == GetOwner().GetID()) {
+					componentColor = color.Mul(slider->GetTintColor());
+					found = true;
+				}
+			}
+		}
 	}
-	
+
 	return componentColor.Equals(App->userInterface->GetErrorColor()) ? color : componentColor;
 }
 
@@ -196,6 +209,10 @@ void ComponentImage::SetColor(float4 color_) {
 	color = color_;
 }
 
+float4 ComponentImage::GetColor() const {
+	return color;
+}
+
 void ComponentImage::SetFillValue(float val) {
 	if (val >= 1.0f) {
 		fillVal = 1.0f;
@@ -210,6 +227,14 @@ void ComponentImage::SetIsFill(bool b) {
 
 bool ComponentImage::IsFill() const {
 	return isFill;
+}
+
+bool ComponentImage::HasAlphaTransparency() const {
+	return alphaTransparency;
+}
+
+void ComponentImage::SetAlphaTransparency(bool alphaTransparency_) {
+	alphaTransparency = alphaTransparency_;
 }
 
 void ComponentImage::RebuildFillQuadVBO() {
@@ -244,16 +269,16 @@ void ComponentImage::RebuildFillQuadVBO() {
 		1.0f,
 		0.0f, //  v1 texcoord
 
-		0.0f ,
+		0.0f,
 		1.0f * fillVal, //  v2 texcoord
 
 		1.0f,
 		0.0f, //  v3 texcoord
 
-		1.0f ,
+		1.0f,
 		1.0f * fillVal, //  v4 texcoord
 
-		0.0f ,
+		0.0f,
 		1.0f * fillVal //  v5 texcoord
 	};
 	glGenBuffers(1, &fillQuadVBO);
