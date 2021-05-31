@@ -9,6 +9,7 @@
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleProject.h"
+#include "Modules/ModulePrograms.h"
 
 #include "imgui_internal.h"
 #include "IconsFontAwesome5.h"
@@ -61,7 +62,7 @@ void PanelControlEditor::Update() {
 				if (ImGui::RadioButton(global.c_str(), currentGuizmoMode == ImGuizmo::WORLD)) currentGuizmoMode = ImGuizmo::WORLD;
 			} else {
 				currentGuizmoMode = ImGuizmo::LOCAL;
-				ImGui::Dummy(ImVec2(78,0));
+				ImGui::Dummy(ImVec2(78, 0));
 			}
 
 			ImGui::SameLine();
@@ -153,6 +154,12 @@ void PanelControlEditor::Update() {
 #else
 				App->project->CompileProject(Configuration::RELEASE_EDITOR);
 #endif
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Compile Shaders")) {
+				App->programs->UnloadShaders();
+				App->programs->LoadShaders();
 			}
 
 			ImGui::PopItemWidth();

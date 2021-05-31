@@ -7,7 +7,7 @@
 #include "Components/ComponentLight.h"
 #include "Components/ComponentSkybox.h"
 #include "Components/ComponentAnimation.h"
-#include "Components/ComponentBilboardRender.h"
+#include "Components/ComponentBillboard.h"
 #include "Components/ComponentScript.h"
 #include "Components/ComponentCamera.h"
 #include "Components/ComponentAnimation.h"
@@ -74,7 +74,7 @@ void PanelInspector::Update() {
 			if (ImGui::Checkbox("Static##game_object_static", &isStatic)) {
 				selected->SetStatic(isStatic);
 			}
-			
+
 			if (ImGui::Button("Mask")) {
 				ImGui::OpenPopup("Mask");
 			}
@@ -170,8 +170,8 @@ void PanelInspector::Update() {
 				case ComponentType::TRAIL:
 					cName = "Trail";
 					break;
-				case ComponentType::BILBOARD_RENDER:
-					cName = "Bilboard";
+				case ComponentType::BILLBOARD:
+					cName = "Billboard";
 					break;
 				case ComponentType::AUDIO_SOURCE:
 					cName = "Audio Source";
@@ -294,10 +294,10 @@ void PanelInspector::Update() {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
 				}
-				if (ImGui::MenuItem("Bilboard Render")) {
-					ComponentBilboardRender* bilboard = selected->CreateComponent<ComponentBilboardRender>();
-					if (bilboard != nullptr) {
-						bilboard->Init();
+				if (ImGui::MenuItem("Billboard")) {
+					ComponentBillboard* billboard = selected->CreateComponent<ComponentBillboard>();
+					if (billboard != nullptr) {
+						billboard->Init();
 					} else {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
@@ -536,8 +536,7 @@ void PanelInspector::AddColliderComponentsOptions(GameObject* selected) {
 			ComponentSphereCollider* sphereCollider = selected->CreateComponent<ComponentSphereCollider>();
 			if (sphereCollider != nullptr) {
 				sphereCollider->Init();
-			}
-			else {
+			} else {
 				App->editor->modalToOpen = Modal::COMPONENT_EXISTS; // TODO: Control other colliders exists.
 			}
 		}
@@ -546,8 +545,7 @@ void PanelInspector::AddColliderComponentsOptions(GameObject* selected) {
 			ComponentBoxCollider* boxCollider = selected->CreateComponent<ComponentBoxCollider>();
 			if (boxCollider != nullptr) {
 				boxCollider->Init();
-			}
-			else {
+			} else {
 				App->editor->modalToOpen = Modal::COMPONENT_EXISTS; // TODO: Control other colliders exists.
 			}
 		}
@@ -556,8 +554,7 @@ void PanelInspector::AddColliderComponentsOptions(GameObject* selected) {
 			ComponentCapsuleCollider* capsuleComponent = selected->CreateComponent<ComponentCapsuleCollider>();
 			if (capsuleComponent != nullptr) {
 				capsuleComponent->Init();
-			}
-			else {
+			} else {
 				App->editor->modalToOpen = Modal::COMPONENT_EXISTS; // TODO: Control other colliders exists.
 			}
 		}

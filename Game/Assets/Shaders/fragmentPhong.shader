@@ -97,5 +97,5 @@ void main()
 
     vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
     ldr = pow(ldr, vec3(1/2.2)); // gamma correction
-    outColor = vec4(ldr, 1.0);
+    outColor = vec4(ldr, colorDiffuse.a);
 }

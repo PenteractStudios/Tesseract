@@ -102,6 +102,7 @@ UpdateStatus ModuleInput::PreUpdate() {
 
 				break;
 			}
+
 			//Left of dead zone
 			if (event.caxis.value < -JOYSTICK_DEAD_ZONE) {
 				player->gameControllerAxises[event.caxis.axis] = event.caxis.value;
@@ -113,6 +114,7 @@ UpdateStatus ModuleInput::PreUpdate() {
 			} else {
 				player->gameControllerAxises[event.caxis.axis] = 0;
 			}
+
 			break;
 		}
 		case SDL_CONTROLLERBUTTONDOWN: {

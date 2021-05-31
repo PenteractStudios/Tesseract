@@ -50,7 +50,7 @@ bool ModuleUserInterface::Start() {
 UpdateStatus ModuleUserInterface::Update() {
 	float2 mousePos = App->input->GetMousePosition(true);
 
-	if (currentEvSys) {
+	if (currentEvSys != 0) {
 		for (ComponentSelectable& selectable : App->scene->scene->selectableComponents) {
 			ComponentBoundingBox2D* bb = selectable.GetOwner().GetComponent<ComponentBoundingBox2D>();
 
@@ -66,9 +66,78 @@ UpdateStatus ModuleUserInterface::Update() {
 				}
 			}
 		}
+		ComponentSelectable* currentlySelected = GetCurrentEventSystem()->GetCurrentSelected();
+		if (currentlySelected) {
+			ManageInputsOnSelected(currentlySelected);
+		}
 	}
 
 	return UpdateStatus::CONTINUE;
+}
+
+void ModuleUserInterface::ManageInputsOnSelected(ComponentSelectable* currentlySelected) {
+	bool pressingOnSelected = App->input->GetKey(SDL_SCANCODE_RETURN) == KeyState::KS_REPEAT
+							  || App->input->GetKey(SDL_SCANCODE_RETURN) == KeyState::KS_DOWN
+							  || (App->input->GetPlayerController(0)
+								  && (App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A) == KeyState::KS_REPEAT
+									  || App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A) == KeyState::KS_DOWN));
+
+	ComponentSlider* slider = currentlySelected->GetOwner().GetComponent<ComponentSlider>();
+
+	if (!slider) {
+		if (pressingOnSelected) {
+			if (currentlySelected->IsClicked()) {
+				if (!wasPressConfirmed) {
+					currentlySelected->TryToClickOn(false);
+					wasPressConfirmed = true;
+					//CONFIRM PRESS
+				}
+			} else {
+				currentlySelected->TryToClickOn(true);
+				//SETCLICKEDINTERNAL
+			}
+		} else {
+			wasPressConfirmed = false;
+		}
+
+		//Sliders are handled separately, all other UI components can be managed through this code
+	} else {
+		//TODO MANAGE BEING HANDLED BOOl
+
+		if (pressingOnSelected) {
+			if (!wasPressConfirmed) {
+				wasPressConfirmed = true;
+				handlingSlider = slider->beingHandled = !slider->beingHandled;
+			}
+		} else {
+			wasPressConfirmed = false;
+		}
+
+		if (!slider->beingHandled) return;
+
+		float directionToMoveSlider = 0;
+		if (App->input->GetPlayerController(0)) {
+			directionToMoveSlider = App->input->GetPlayerController(0)->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTX);
+			if (directionToMoveSlider == 0) {
+				if (App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_LEFT) == KeyState::KS_DOWN || App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_LEFT) == KeyState::KS_REPEAT) {
+					directionToMoveSlider = -1.0f;
+				} else if (App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == KeyState::KS_DOWN || App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == KeyState::KS_REPEAT) {
+					directionToMoveSlider = 1.0f;
+				}
+			}
+		}
+
+		if (directionToMoveSlider == 0) {
+			if (App->input->GetKey(SDL_SCANCODE_LEFT) == KeyState::KS_DOWN) {
+				directionToMoveSlider = -1.0f;
+			} else if (App->input->GetKey(SDL_SCANCODE_RIGHT) == KeyState::KS_DOWN) {
+				directionToMoveSlider = 1.0f;
+			}
+		}
+		if (directionToMoveSlider != 0) {
+			slider->ModifyValue(directionToMoveSlider);
+		}
+	}
 }
 
 //This is done like this because receiving a WINDOW RESIZE event from SDL takes one frame to take effect, so instead of directly calling OnViewportResized,

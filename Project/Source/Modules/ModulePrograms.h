@@ -8,6 +8,8 @@ public:
 	bool CleanUp() override;
 
 	void LoadShaderBinFile();
+	void LoadShaders();
+	void UnloadShaders();
 	unsigned CreateProgram(const char* shaderFile, const char* vertexSnippets = "vertex", const char* fragmentSnippets = "fragment");
 	void DeleteProgram(unsigned int idProgram);
 
@@ -24,7 +26,7 @@ public:
 	unsigned standardNotNormal = 0;
 	unsigned specularNormal = 0;
 	unsigned specularNotNormal = 0;
-	
+
 	// Shadow Shaders
 	unsigned shadowMap = 0;
 

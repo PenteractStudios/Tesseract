@@ -25,7 +25,7 @@ public:
 	TESSERACT_ENGINE_API void SetText(const std::string& newText);	// Sets text
 	TESSERACT_ENGINE_API void SetFontSize(float newfontSize);		// Sets fontSize
 	TESSERACT_ENGINE_API void SetFontColor(const float4& newColor); // Sets color
-	float4 GetFontColor() const;									// Returns Color
+	TESSERACT_ENGINE_API float4 GetFontColor() const;				// Returns Color
 
 	void Invalidate();
 

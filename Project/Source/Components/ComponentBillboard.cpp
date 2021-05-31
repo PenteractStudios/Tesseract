@@ -1,4 +1,4 @@
-#include "ComponentBilboardRender.h"
+#include "ComponentBillboard.h"
 
 #include "GameObject.h"
 #include "Components/ComponentTransform.h"
@@ -35,17 +35,7 @@
 #define JSON_TAG_XTILES "Xtiles"
 #define JSON_TAG_ANIMATIONSPEED "AnimationSpeed"
 
-void ComponentBilboardRender::Update() {
-	Draw();
-}
-
-void ComponentBilboardRender::Init() {
-}
-
-void ComponentBilboardRender::DrawGizmos() {
-}
-
-void ComponentBilboardRender::OnEditorUpdate() {
+void ComponentBillboard::OnEditorUpdate() {
 	if (ImGui::Checkbox("Active", &active)) {
 		if (GetOwner().IsActive()) {
 			if (active) {
@@ -57,7 +47,7 @@ void ComponentBilboardRender::OnEditorUpdate() {
 	}
 	ImGui::Separator();
 
-	ImGui::TextColored(App->editor->textColor, "Texture Settings:");
+	ImGui::TextColored(App->editor->textColor, "Texture Settings");
 	ImGui::Separator();
 
 	ImGui::Checkbox("Random Frame", &isRandomFrame);
@@ -81,23 +71,23 @@ void ComponentBilboardRender::OnEditorUpdate() {
 			}
 		}
 
-		ImGui::Text("");
+		ImGui::NewLine();
 		ImGui::Separator();
 		ImGui::TextColored(App->editor->titleColor, "Texture Preview");
 		ImGui::TextWrapped("Size:");
 		ImGui::SameLine();
 		ImGui::TextWrapped("%i x %i", width, height);
 		ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
-		ImGui::InputScalar("Xtiles: ", ImGuiDataType_U32, &Xtiles);
-		ImGui::InputScalar("Ytiles: ", ImGuiDataType_U32, &Ytiles);
-		ImGui::InputFloat("Animation Speed: ", &animationSpeed);
+		ImGui::DragScalar("Xtiles", ImGuiDataType_U32, &Xtiles);
+		ImGui::DragScalar("Ytiles", ImGuiDataType_U32, &Ytiles);
+		ImGui::DragFloat("Animation Speed", &animationSpeed, App->editor->dragSpeed2f, -inf, inf);
 
 		ImGui::ColorEdit3("InitColor##", initC.ptr());
 		ImGui::ColorEdit3("FinalColor##", finalC.ptr());
 	}
 }
 
-void ComponentBilboardRender::Load(JsonValue jComponent) {
+void ComponentBillboard::Load(JsonValue jComponent) {
 	shaderID = jComponent[JSON_TAG_TEXTURE_SHADERID];
 
 	if (shaderID != 0) {
@@ -120,7 +110,7 @@ void ComponentBilboardRender::Load(JsonValue jComponent) {
 	finalC.Set(jColor2[0], jColor2[1], jColor2[2]);
 }
 
-void ComponentBilboardRender::Save(JsonValue jComponent) const {
+void ComponentBillboard::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_TEXTURE_SHADERID] = shaderID;
 	jComponent[JSON_TAG_TEXTURE_TEXTUREID] = textureID;
 	jComponent[JSON_TAG_YTILES] = Ytiles;
@@ -137,7 +127,7 @@ void ComponentBilboardRender::Save(JsonValue jComponent) const {
 	jColor2[2] = finalC.z;
 }
 
-void ComponentBilboardRender::Draw() {
+void ComponentBillboard::Draw() {
 	unsigned int program = 0;
 	ResourceShader* shaderResouce = App->resources->GetResource<ResourceShader>(shaderID);
 	if (shaderResouce) {
@@ -165,15 +155,14 @@ void ComponentBilboardRender::Draw() {
 	float4x4* proj = &App->camera->GetProjectionMatrix();
 	float4x4* view = &App->camera->GetViewMatrix();
 
-	float4x4 newModelMatrix = transform->GetGlobalMatrix();
-	newModelMatrix = newModelMatrix.LookAt(rotatePart.Col(2), -frustum->Front(), rotatePart.Col(1), float3::unitY);
-	float4x4 Final = float4x4::FromTRS(transform->GetGlobalPosition(), newModelMatrix.RotatePart(), transform->GetGlobalScale());
-	//-> glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, newModelMatrix.ptr());
+	float4x4 modelMatrix = transform->GetGlobalMatrix();
+	float4x4 newModelMatrix = modelMatrix.LookAt(rotatePart.Col(2), -frustum->Front(), rotatePart.Col(1), float3::unitY);
+	newModelMatrix = float4x4::FromTRS(transform->GetGlobalPosition(), newModelMatrix.RotatePart(), transform->GetGlobalScale());
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, Final.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, newModelMatrix.ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view->ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
-	//TODO: ADD delta Time
+
 	if (!isRandomFrame) {
 		if (App->time->IsGameRunning()) {
 			currentFrame += animationSpeed * App->time->GetDeltaTime();
