@@ -229,6 +229,14 @@ bool ComponentImage::IsFill() const {
 	return isFill;
 }
 
+bool ComponentImage::HasAlphaTransparency() const {
+	return alphaTransparency;
+}
+
+void ComponentImage::SetAlphaTransparency(bool alphaTransparency_) {
+	alphaTransparency = alphaTransparency_;
+}
+
 void ComponentImage::RebuildFillQuadVBO() {
 	float buffer_data[] = {
 		-0.5f,

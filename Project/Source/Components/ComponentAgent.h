@@ -27,6 +27,7 @@ public:
 
 	TESSERACT_ENGINE_API void AddAgentToCrowd();	  // If possible, generates a new Agent and adds it to the NavMesh's crowd
 	TESSERACT_ENGINE_API void RemoveAgentFromCrowd(); // If possible, removes Agent and adds it to the NavMesh's crowd
+	TESSERACT_ENGINE_API float3 GetVelocity() const;
 
 private:
 	unsigned int targetPolygon = 0;		  // Target Polygon of the NavMesh to navigate

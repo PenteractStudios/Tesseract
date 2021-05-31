@@ -132,6 +132,18 @@ void ComponentAgent::RemoveAgentFromCrowd() {
 	agentId = -1;
 }
 
+float3 ComponentAgent::GetVelocity() const {
+	NavMesh& navMesh = App->navigation->GetNavMesh();
+	if (!navMesh.IsGenerated() || agentId == -1) return float3::zero;
+
+	const dtCrowdAgent* ag = navMesh.GetCrowd()->getAgent(agentId);
+
+	if (ag) {
+		return float3(ag->vel);
+	}
+	return float3::zero;
+}
+
 ComponentAgent::~ComponentAgent() {
 	RemoveAgentFromCrowd();
 }
