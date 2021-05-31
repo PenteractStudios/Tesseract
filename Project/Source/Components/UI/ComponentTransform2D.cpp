@@ -138,12 +138,10 @@ void ComponentTransform2D::OnEditorUpdate() {
 	}
 
 	float2 piv = pivot;
-	float3 pivPos = pivotPosition;
 	ImGui::TextColored(App->editor->titleColor, "Pivot");
 	if (ImGui::DragFloat2("Pivot (X, Y)", piv.ptr(), App->editor->dragSpeed2f, -inf, inf)) {
 		SetPivot(piv);
 	}
-	ImGui::InputFloat3("Pivot World Position (X,Y,Z)", pivPos.ptr(), "%.3f", ImGuiInputTextFlags_ReadOnly);
 
 	ImGui::Separator();
 }
@@ -173,11 +171,6 @@ void ComponentTransform2D::Save(JsonValue jComponent) const {
 	JsonValue jPivot = jComponent[JSON_TAG_PIVOT];
 	jPivot[0] = pivot.x;
 	jPivot[1] = pivot.y;
-
-	JsonValue jPivotPosition = jComponent[JSON_TAG_PIVOT_POSITION];
-	jPivotPosition[0] = pivotPosition.x;
-	jPivotPosition[1] = pivotPosition.y;
-	jPivotPosition[2] = pivotPosition.z;
 
 	JsonValue jSize = jComponent[JSON_TAG_SIZE];
 	jSize[0] = size.x;
@@ -212,9 +205,6 @@ void ComponentTransform2D::Load(JsonValue jComponent) {
 	JsonValue jPivot = jComponent[JSON_TAG_PIVOT];
 	pivot.Set(jPivot[0], jPivot[1]);
 
-	JsonValue jPivotPosition = jComponent[JSON_TAG_PIVOT_POSITION];
-	pivotPosition.Set(jPivotPosition[0], jPivotPosition[1], jPivotPosition[2]);
-
 	JsonValue jSize = jComponent[JSON_TAG_SIZE];
 	size.Set(jSize[0], jSize[1]);
 
@@ -237,7 +227,7 @@ void ComponentTransform2D::DrawGizmos() {
 	float factor = canvasRenderer ? canvasRenderer->GetCanvasScreenFactor() : 1.0f;
 	if (!App->time->IsGameRunning()) {
 		//dd::box(GetPosition(), dd::colors::Yellow, size.x * scale.x / 100, size.y * scale.y / 100, 0);
-		//dd::box(pivotPosition * factor, dd::colors::OrangeRed, 0.1f, 0.1f, 0.f);
+		dd::box(GetScreenPosition() * factor, dd::colors::OrangeRed, 0.1f, 0.1f, 0.f); // Pivot Position
 	}
 }
 
@@ -263,15 +253,18 @@ void ComponentTransform2D::SetPosition(float3 position_) {
 }
 
 void ComponentTransform2D::SetPivot(float2 pivot_) {
+	float2 pivotDifference = pivot_ - pivot;
+
+	position.x += size.x * pivotDifference.x;
+	position.y += size.y * pivotDifference.y;
+
 	pivot = pivot_;
-	CalculatePivotPosition(false);
 
 	InvalidateHierarchy();
 }
 
 void ComponentTransform2D::SetSize(float2 size_) {
 	size = size_;
-	CalculatePivotPosition(false);
 
 	InvalidateHierarchy();
 }
@@ -292,7 +285,6 @@ void ComponentTransform2D::SetRotation(float3 rotation_) {
 
 void ComponentTransform2D::SetScale(float3 scale_) {
 	scale = scale_;
-	CalculatePivotPosition(true);
 	InvalidateHierarchy();
 }
 
@@ -328,7 +320,7 @@ float3 ComponentTransform2D::GetGlobalPosition() {
 
 void ComponentTransform2D::CalculateGlobalMatrix() {
 	if (dirty) {
-		localMatrix = float4x4::Translate(pivotPosition) * float4x4::FromTRS(GetPositionRelativeToParent(), rotation, scale) * float4x4::Translate(-pivotPosition);
+		localMatrix = float4x4::FromTRS(GetPositionRelativeToParent(), rotation, scale) * float4x4::Translate(float3((-pivot + float2(0.5f, 0.5f)).Mul(size), 0.0f));
 
 		GameObject* parent = GetOwner().GetParent();
 
@@ -371,11 +363,9 @@ float3 ComponentTransform2D::GetScale() const {
 	return scale;
 }
 
-float3 ComponentTransform2D::GetPivotPosition() const {
-	return pivotPosition;
+float2 ComponentTransform2D::GetPivot() const {
+	return pivot;
 }
-
-
 
 float3 ComponentTransform2D::GetPositionRelativeToParent() const {
 	float2 parentSize(0, 0);
@@ -410,23 +400,6 @@ float3 ComponentTransform2D::GetScreenPosition() const {
 		parent = parent->GetParent();
 	}
 	return screenPosition;
-}
-
-float3 ComponentTransform2D::GetCenterPositionObject() const {
-	float4x4 rotateCenterPos = float4x4::FromQuat(rotation, pivotPosition) * float4x4::Translate(GetScreenPosition());
-	return float3(rotateCenterPos.x, rotateCenterPos.y, 0.0f);
-}
-
-void ComponentTransform2D::CalculatePivotPosition(bool changeScale) {
-	pivotPosition.x = size.x * pivot.x - size.x * 0.5f;
-	pivotPosition.y = size.y * pivot.y - size.y * 0.5f;
-	
-	if (changeScale) { // Change position only when the object change the scale
-		position.x += (pivotPosition.x * scale.x) - pivotPosition.x;
-		position.y += (pivotPosition.y * scale.x) - pivotPosition.y;
-	}
-
-	InvalidateHierarchy();
 }
 
 void ComponentTransform2D::InvalidateHierarchy() {

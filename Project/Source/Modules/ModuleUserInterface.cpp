@@ -51,7 +51,6 @@ bool ModuleUserInterface::Start() {
 
 UpdateStatus ModuleUserInterface::Update() {
 	float2 mousePos = App->input->GetMousePosition(true);
-	LineSegment ray = App->camera->GetActiveCamera()->GetFrustum()->UnProjectLineSegment(mousePos.x, mousePos.y);
 
 	if (currentEvSys) {
 		for (ComponentSelectable& selectable : App->scene->scene->selectableComponents) {
@@ -60,11 +59,11 @@ UpdateStatus ModuleUserInterface::Update() {
 			if (bb) {
 				if (!selectable.IsHovered()) {
 					float2 auxMouse = mousePos;
-					if (bb->GetWorldOBB().Intersects(ray)) {
+					if (bb->GetWorldAABB().Contains(mousePos)) {
 						selectable.OnPointerEnter();
 					}
 				} else {
-					if (!bb->GetWorldOBB().Intersects(ray)) {
+					if (!bb->GetWorldAABB().Contains(mousePos)) {
 						selectable.OnPointerExit();
 					}
 				}
