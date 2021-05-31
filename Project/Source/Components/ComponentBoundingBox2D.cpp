@@ -71,9 +71,9 @@ void ComponentBoundingBox2D::CalculateWorldBoundingBox(bool force) {
 		}
 
 		worldAABB.minPoint = position.xy().Mul(float2(1.0f, -1.0f).Mul(screenFactor)) + screenSize / 2.0f
-							 + (localAABB.minPoint - (pivotPosition - float2(0.5, 0.5))).Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy()).Mul(screenFactor));
+							 + (localAABB.minPoint + (pivotPosition - float2(0.5, 0.5))).Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy()).Mul(screenFactor));
 		worldAABB.maxPoint = position.xy().Mul(float2(1.0f, -1.0f).Mul(screenFactor)) + screenSize / 2.0f
-							 + (localAABB.maxPoint - (pivotPosition - float2(0.5, 0.5))).Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy()).Mul(screenFactor));
+							 + (localAABB.maxPoint + (pivotPosition - float2(0.5, 0.5))).Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy()).Mul(screenFactor));
 #if GAME
 		float2 windowPos = float2(App->window->GetPositionX(), App->window->GetPositionY());
 		worldAABB.minPoint += windowPos;
