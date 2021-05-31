@@ -36,6 +36,9 @@ private:
 	UID hoveredSelectableID = 0;
 	bool started = false;
 
+	float navigationTimer = 0.0f;
+	float timeBetweenNavigations = 0.2f;
+
 public:
 	UID firstSelectedId = 0; //Reference to the "first selected selectableComponent", this is not used directly but Unity implements it so that users can access it
 };

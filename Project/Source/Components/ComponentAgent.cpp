@@ -13,6 +13,7 @@
 
 #define JSON_TAG_MAXSPEED "MaxSpeed"
 #define JSON_TAG_MAXACCELERATION "MaxAcceleration"
+#define JSON_TAG_AVOIDINGOBSTACLE "AvoidingObstacle"
 
 void ComponentAgent::SetMoveTarget(float3 newTargetPosition, bool usePathfinding) {
 	NavMesh& navMesh = App->navigation->GetNavMesh();
@@ -66,6 +67,36 @@ void ComponentAgent::SetMaxAcceleration(float newAcceleration) {
 	ag->params.maxAcceleration = maxAcceleration;
 }
 
+void ComponentAgent::SetAgentObstacleAvoidance(bool avoidanceActive) {
+	avoidingObstacle = avoidanceActive;
+	NavMesh& navMesh = App->navigation->GetNavMesh();
+	dtCrowdAgent* ag = navMesh.GetCrowd()->getEditableAgent(agentId);
+	if (ag == nullptr) {
+		return;
+	}
+	if (avoidanceActive) {
+		ag->params.updateFlags |= DT_CROWD_OBSTACLE_AVOIDANCE;
+	} else {
+		ag->params.updateFlags ^= DT_CROWD_OBSTACLE_AVOIDANCE;
+	}
+}
+
+float ComponentAgent::GetMaxSpeed() {
+	return maxSpeed;
+}
+
+float ComponentAgent::GetMaxAcceleration() {
+	return maxAcceleration;
+}
+
+float3 ComponentAgent::GetTargetPosition() {
+	return targetPosition;
+}
+
+bool ComponentAgent::IsAvoidingObstacle() {
+	return avoidingObstacle;
+}
+
 void ComponentAgent::AddAgentToCrowd() {
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	if (!navMesh.IsGenerated() || agentId != -1) return;
@@ -84,7 +115,9 @@ void ComponentAgent::AddAgentToCrowd() {
 	ap.updateFlags |= DT_CROWD_ANTICIPATE_TURNS;
 	ap.updateFlags |= DT_CROWD_OPTIMIZE_VIS;
 	ap.updateFlags |= DT_CROWD_OPTIMIZE_TOPO;
-	ap.updateFlags |= DT_CROWD_OBSTACLE_AVOIDANCE;
+	if (avoidingObstacle) {
+		ap.updateFlags |= DT_CROWD_OBSTACLE_AVOIDANCE;
+	}
 
 	ap.obstacleAvoidanceType = 3;
 	ap.separationWeight = 2;
@@ -97,6 +130,18 @@ void ComponentAgent::RemoveAgentFromCrowd() {
 	if (!navMesh.IsGenerated() || agentId == -1) return;
 	navMesh.GetCrowd()->removeAgent(agentId);
 	agentId = -1;
+}
+
+float3 ComponentAgent::GetVelocity() const {
+	NavMesh& navMesh = App->navigation->GetNavMesh();
+	if (!navMesh.IsGenerated() || agentId == -1) return float3::zero;
+
+	const dtCrowdAgent* ag = navMesh.GetCrowd()->getAgent(agentId);
+
+	if (ag) {
+		return float3(ag->vel);
+	}
+	return float3::zero;
 }
 
 ComponentAgent::~ComponentAgent() {
@@ -129,8 +174,13 @@ void ComponentAgent::OnEditorUpdate() {
 	if (ImGui::InputFloat("Agent max speed", &maxSpeed, App->editor->dragSpeed2f, 0)) {
 		SetMaxSpeed(maxSpeed);
 	}
+
 	if (ImGui::InputFloat("Agent max acceleration", &maxAcceleration, App->editor->dragSpeed2f, 0)) {
 		SetMaxAcceleration(maxAcceleration);
+	}
+
+	if (ImGui::Checkbox("Obstacle Avoidance", &avoidingObstacle)) {
+		SetAgentObstacleAvoidance(avoidingObstacle);
 	}
 }
 
@@ -149,9 +199,11 @@ void ComponentAgent::OnDisable() {
 void ComponentAgent::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_MAXSPEED] = maxSpeed;
 	jComponent[JSON_TAG_MAXACCELERATION] = maxAcceleration;
+	jComponent[JSON_TAG_AVOIDINGOBSTACLE] = avoidingObstacle;
 }
 
 void ComponentAgent::Load(JsonValue jComponent) {
 	maxSpeed = jComponent[JSON_TAG_MAXSPEED];
 	maxAcceleration = jComponent[JSON_TAG_MAXACCELERATION];
+	avoidingObstacle = jComponent[JSON_TAG_AVOIDINGOBSTACLE];
 }
