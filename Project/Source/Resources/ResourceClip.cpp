@@ -30,7 +30,7 @@
 #define JSON_TAG_LOOP "Loop"
 #define JSON_TAG_SPEED "Speed"
 #define JSON_TAG_ID "Id"
-#define JSON_TAG_DURATION_BY_KEYFRAMES_SIZE "DurationByKeyframesSize"
+#define JSON_TAG_FRAMERATE "DurationByKeyframesSize"
 
 void ResourceClip::Load() {
 	// Timer to measure loading a clip
@@ -57,7 +57,7 @@ void ResourceClip::Load() {
 	beginIndex = jStateMachine[JSON_TAG_BEGIN_INDEX];
 	loop = jStateMachine[JSON_TAG_LOOP];
 	speed = jStateMachine[JSON_TAG_SPEED];
-	durationByKeyframesSize = jStateMachine[JSON_TAG_DURATION_BY_KEYFRAMES_SIZE];
+	frameRate = jStateMachine[JSON_TAG_FRAMERATE];
 
 	Init(name, animationUID, beginIndex, endIndex, loop, speed, 0);
 
@@ -89,7 +89,7 @@ void ResourceClip::GetInfoJson() {
 	beginIndex = jStateMachine[JSON_TAG_BEGIN_INDEX];
 	loop = jStateMachine[JSON_TAG_LOOP];
 	speed = jStateMachine[JSON_TAG_SPEED];
-	durationByKeyframesSize = jStateMachine[JSON_TAG_DURATION_BY_KEYFRAMES_SIZE];
+	frameRate = jStateMachine[JSON_TAG_FRAMERATE];
 	unsigned timeMs = timer.Stop();
 	LOG("Clip info received in %ums", timeMs);
 }
@@ -146,7 +146,7 @@ bool ResourceClip::SaveToFile(const char* filePath) {
 	jStateMachine[JSON_TAG_END_INDEX] = endIndex;
 	jStateMachine[JSON_TAG_LOOP] = loop;
 	jStateMachine[JSON_TAG_SPEED] = speed;
-	jStateMachine[JSON_TAG_DURATION_BY_KEYFRAMES_SIZE] = durationByKeyframesSize;
+	jStateMachine[JSON_TAG_FRAMERATE] = frameRate;
 
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
@@ -185,7 +185,7 @@ void ResourceClip::SetBeginIndex(unsigned int index) {
 		if (keyFramesSize == 0) {
 			duration = 1;
 		} else {
-			duration = keyFramesSize * durationByKeyframesSize;
+			duration = keyFramesSize * frameRate;
 		}
 	}
 }
@@ -197,7 +197,7 @@ void ResourceClip::SetEndIndex(unsigned int index) {
 		if (keyFramesSize == 0) {
 			duration = 1;
 		} else {
-			duration = keyFramesSize * durationByKeyframesSize;
+			duration = keyFramesSize * frameRate;
 		}
 	}
 }

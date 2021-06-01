@@ -39,6 +39,6 @@ public:
 	unsigned int endIndex = 0;
 	float speed = 1.0f;
 	float duration = 1.0f;
-	float durationByKeyframesSize = 1.0f;
+	float frameRate = 1.0f;
 	unsigned int keyFramesSize = 0;
 };
