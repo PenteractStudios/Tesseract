@@ -21,15 +21,18 @@ enum class EmitterType {
 	RECTANGLE
 };
 
-enum class BildboarType {
-	LoockAt,
-	Stretch
+enum class BillboardType {
+	LOOK_AT,
+	STRETCH,
+	HORITZONTAL,
+	VERTICAL
 };
 
 class ComponentParticleSystem : public Component {
 public:
 	struct Particle {
 		float4x4 model = float4x4::identity;
+		float4x4 modelStrech = float4x4::identity;
 
 		float3 initialPosition = float3(0.0f, 0.0f, 0.0f);
 		float3 position = float3(0.0f, 0.0f, 0.0f);
@@ -73,11 +76,11 @@ private:
 	bool alphaTransparency = false; // Enables Alpha Transparency of the image and the color
 	bool isRandomFrame = false;
 	bool randomDirection = false;
-	//TODO USE THIS FETURE
+	//TODO USE THIS FEATURE
 	bool sizeOverTime = false;
 
-	float3 initC = float3::one;
-	float3 finalC = float3::one;
+	float4 initC = float4::one;
+	float4 finalC = float4::one;
 	float4 color = float4::one; // Color used as default tainter
 	float animationSpeed = 0.0f;
 	float scale = 5;
@@ -94,9 +97,13 @@ private:
 	unsigned Xtiles = 1;
 	unsigned Ytiles = 1;
 
+	bool flipTexture[2] = {false, false};
+
+	float3 cameraDir = {0.f, 0.f, 0.f};
+
 private:
-	int emitterType = 0;
-	int bildboarType = 0;
+	EmitterType emitterType = EmitterType::CONE;
+	BillboardType billboardType = BillboardType::LOOK_AT;
 
 	Pool<Particle> particles;
 	std::vector<Particle*> deadParticles;

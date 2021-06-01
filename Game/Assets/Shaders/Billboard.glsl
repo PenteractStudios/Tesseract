@@ -31,6 +31,9 @@ uniform float currentFrame;
 uniform int Xtiles;
 uniform int Ytiles;
 
+uniform bool flipX;
+uniform bool flipY;
+
 uniform float colorFrame;
 uniform vec4 initColor;
 uniform vec4 finalColor;
@@ -44,13 +47,25 @@ out vec4 outColor;
 
 void main()
 {	
-		X = trunc(mod(currentFrame,Xtiles));
-		Y = trunc(currentFrame/Ytiles);
-		
-		X = mix(X,X+1, uv0.x);
-		Y = mix(Y,Y+1, uv0.y);
-		u = X/Xtiles;
-		v = Y/Ytiles;
+	vec2 uvs = uv0;
+	if (flipX) 
+	{
+		uvs.x = 1 - uv0.x;
+	}
+
+	if (flipY) 
+	{
+		uvs.y = 1 - uv0.y;
+	}
+
+	X = trunc(mod(currentFrame,Xtiles));
+	Y = trunc(currentFrame/Ytiles);
+
+	X = mix(X,X+1, uvs.x);
+	Y = mix(Y,Y+1, uvs.y);
+	u = X/Xtiles;
+	v = Y/Ytiles;
+	
 	if(colorFrame<1){
 		float a = colorFrame - int(colorFrame);
 		outColor = mix(initColor, finalColor, a) * texture2D(diffuse,  vec2(u, v) ) ;
