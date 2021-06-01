@@ -167,11 +167,11 @@ void ComponentBoxCollider::Load(JsonValue jComponent) {
 	freezeRotation = jFreeze;
 }
 
-void ComponentBoxCollider::OnCollision() {
+void ComponentBoxCollider::OnCollision(const GameObject& collidedWith) {
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
 		if (script != nullptr) {
-			script->OnCollision();
+			script->OnCollision(collidedWith);
 		}
 	}
 }
