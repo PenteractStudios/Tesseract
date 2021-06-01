@@ -30,7 +30,7 @@
 #define JSON_TAG_LOOP "Loop"
 #define JSON_TAG_SPEED "Speed"
 #define JSON_TAG_ID "Id"
-#define JSON_TAG_FRAMERATE "DurationByKeyframesSize"
+#define JSON_TAG_FRAMERATE "FrameRate"
 
 void ResourceClip::Load() {
 	// Timer to measure loading a clip
