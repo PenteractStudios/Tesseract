@@ -4,7 +4,6 @@ layout(location = 1) in vec2 vertexUV0;
 
 uniform mat4 proj;
 uniform mat4 view;
-uniform mat4 model;
 
 out vec2 uv0;
 

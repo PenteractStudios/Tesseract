@@ -4,6 +4,8 @@
 #include "Application.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleResources.h"
+#include "Modules/ModulePhysics.h"
+#include "Modules/ModuleTime.h"
 #include "Resources/ResourceMesh.h"
 #include "Utils/Logging.h"
 
@@ -36,12 +38,18 @@ Scene::Scene(unsigned numGameObjects) {
 	audioSourceComponents.Allocate(numGameObjects);
 	audioListenerComponents.Allocate(numGameObjects);
 	progressbarsComponents.Allocate(numGameObjects);
+	billboardComponents.Allocate(numGameObjects);
+	sphereColliderComponents.Allocate(numGameObjects);
+	boxColliderComponents.Allocate(numGameObjects);
+	capsuleColliderComponents.Allocate(numGameObjects);
+	agentComponents.Allocate(numGameObjects);
 }
 
 void Scene::ClearScene() {
 	DestroyGameObject(root);
 	root = nullptr;
 	quadtree.Clear();
+	SetNavMesh(0);
 
 	assert(gameObjects.Count() == 0); // There should be no GameObjects outside the scene hierarchy
 	gameObjects.Clear();			  // This looks redundant, but it resets the free list so that GameObject order is mantained when saving/loading
@@ -145,12 +153,22 @@ Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 		return particleComponents.Find(componentId);
 	case ComponentType::TRAIL:
 		return trailComponents.Find(componentId);
+	case ComponentType::BILLBOARD:
+		return billboardComponents.Find(componentId);
 	case ComponentType::AUDIO_SOURCE:
 		return audioSourceComponents.Find(componentId);
 	case ComponentType::AUDIO_LISTENER:
 		return audioListenerComponents.Find(componentId);
 	case ComponentType::PROGRESS_BAR:
 		return progressbarsComponents.Find(componentId);
+	case ComponentType::SPHERE_COLLIDER:
+		return sphereColliderComponents.Find(componentId);
+	case ComponentType::BOX_COLLIDER:
+		return boxColliderComponents.Find(componentId);
+	case ComponentType::CAPSULE_COLLIDER:
+		return capsuleColliderComponents.Find(componentId);
+	case ComponentType::AGENT:
+		return agentComponents.Find(componentId);
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::GetComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -202,12 +220,22 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 		return particleComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::TRAIL:
 		return trailComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::BILLBOARD:
+		return billboardComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::AUDIO_SOURCE:
 		return audioSourceComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::AUDIO_LISTENER:
 		return audioListenerComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::PROGRESS_BAR:
 		return progressbarsComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::SPHERE_COLLIDER:
+		return sphereColliderComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::BOX_COLLIDER:
+		return boxColliderComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::CAPSULE_COLLIDER:
+		return capsuleColliderComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::AGENT:
+		return agentComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::CreateComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -280,6 +308,9 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 	case ComponentType::TRAIL:
 		trailComponents.Release(componentId);
 		break;
+	case ComponentType::BILLBOARD:
+		billboardComponents.Release(componentId);
+		break;
 	case ComponentType::AUDIO_SOURCE:
 		audioSourceComponents.Release(componentId);
 		break;
@@ -288,6 +319,21 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		break;
 	case ComponentType::PROGRESS_BAR:
 		progressbarsComponents.Release(componentId);
+		break;
+	case ComponentType::SPHERE_COLLIDER:
+		if (App->time->IsGameRunning()) App->physics->RemoveSphereRigidbody(sphereColliderComponents.Find(componentId));
+		sphereColliderComponents.Release(componentId);
+		break;
+	case ComponentType::BOX_COLLIDER:
+		if (App->time->IsGameRunning()) App->physics->RemoveBoxRigidbody(boxColliderComponents.Find(componentId));
+		boxColliderComponents.Release(componentId);
+		break;
+	case ComponentType::CAPSULE_COLLIDER:
+		if (App->time->IsGameRunning()) App->physics->RemoveCapsuleRigidbody(capsuleColliderComponents.Find(componentId));
+		capsuleColliderComponents.Release(componentId);
+		break;
+	case ComponentType::AGENT:
+		agentComponents.Release(componentId);
 		break;
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::RemoveComponentByTypeAndId.", (unsigned) type);
@@ -305,4 +351,73 @@ int Scene::GetTotalTriangles() const {
 		}
 	}
 	return triangles;
+}
+
+std::vector<float> Scene::GetVertices() {
+	std::vector<float> result;
+
+	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
+		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
+		ComponentTransform* transform = meshRenderer.GetOwner().GetComponent<ComponentTransform>();
+		if (mesh != nullptr && transform->GetOwner().IsStatic()) {
+			for (size_t i = 0; i < mesh->meshVertices.size(); i += 3) {
+				float4 transformedVertex = transform->GetGlobalMatrix() * float4(mesh->meshVertices[i], mesh->meshVertices[i + 1], mesh->meshVertices[i + 2], 1);
+				result.push_back(transformedVertex.x);
+				result.push_back(transformedVertex.y);
+				result.push_back(transformedVertex.z);
+			}
+		}
+	}
+
+	return result;
+}
+
+std::vector<int> Scene::GetTriangles() {
+	int triangles = 0;
+	std::vector<int> maxVertMesh;
+	maxVertMesh.push_back(0);
+	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
+		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
+		if (mesh != nullptr && meshRenderer.GetOwner().IsStatic()) {
+			triangles += mesh->numIndices / 3;
+			maxVertMesh.push_back(mesh->numVertices);
+		}
+	}
+	std::vector<int> result(triangles * 3);
+
+	int currentGlobalTri = 0;
+	int vertOverload = 0;
+	int i = 0;
+
+	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
+		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
+		if (mesh != nullptr && meshRenderer.GetOwner().IsStatic()) {
+			vertOverload += maxVertMesh[i];
+			for (unsigned j = 0; j < mesh->meshIndices.size(); j += 3) {
+				result[currentGlobalTri] = mesh->meshIndices[j] + vertOverload;
+				result[currentGlobalTri + 1] = mesh->meshIndices[j + 1] + vertOverload;
+				result[currentGlobalTri + 2] = mesh->meshIndices[j + 2] + vertOverload;
+				currentGlobalTri += 3;
+			}
+			i++;
+		}
+	}
+
+	return result;
+}
+
+void Scene::SetNavMesh(UID navMesh) {
+	if (navMeshId != 0) {
+		App->resources->DecreaseReferenceCount(navMeshId);
+	}
+
+	navMeshId = navMesh;
+
+	if (navMesh != 0) {
+		App->resources->IncreaseReferenceCount(navMesh);
+	}
+}
+
+UID Scene::GetNavMesh() {
+	return navMeshId;
 }

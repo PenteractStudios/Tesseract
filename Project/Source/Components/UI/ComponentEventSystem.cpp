@@ -6,9 +6,10 @@
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleInput.h"
 #include "Modules/ModuleScene.h"
+#include "Modules/ModuleTime.h"
 #include "Scene.h"
 
-#include "imgui.h"
+#include "Utils/ImGuiUtils.h"
 #include "Utils/Logging.h"
 
 #include "Utils/Leaks.h"
@@ -27,36 +28,74 @@ ComponentEventSystem ::~ComponentEventSystem() {
 void ComponentEventSystem::Init() {
 	App->userInterface->SetCurrentEventSystem(GetID());
 	LOG("established %u as CurrentEventSystem", GetID());
-	SetSelected(firstSelectedId);
+	started = false;
 }
 
 void ComponentEventSystem::Update() {
-	float2 selectionDir = float2(0.f, 0.f);
-	bool keyPressed = false;
-	if (App->input->GetKey(SDL_SCANCODE_UP) == KS_DOWN) {
-		selectionDir = float2(0.f, 1.f);
-		keyPressed = true;
-	}
-	if (App->input->GetKey(SDL_SCANCODE_DOWN) == KS_DOWN) {
-		selectionDir = float2(0.f, -1.f);
-		keyPressed = true;
-	}
-	if (App->input->GetKey(SDL_SCANCODE_LEFT) == KS_DOWN) {
-		selectionDir = float2(-1.f, 0.f);
-		keyPressed = true;
-	}
-	if (App->input->GetKey(SDL_SCANCODE_RIGHT) == KS_DOWN) {
-		selectionDir = float2(1.f, 0.f);
-		keyPressed = true;
-	}
+	if (App->time->IsGameRunning()) {
+		if (!started) {
+			started = true;
+			GameObject* objectToSelect = App->scene->scene->GetGameObject(firstSelectedId);
+			if (objectToSelect) {
+				ComponentSelectable* selectable = objectToSelect->GetComponent<ComponentSelectable>();
 
-	if (keyPressed) {
-		if (selectedId != 0) {
-			ComponentSelectable* currentSel = GetCurrentSelected();
-			if (currentSel != nullptr) {
-				ComponentSelectable* newSel = currentSel->FindSelectableOnDir(selectionDir);
-				if (newSel != nullptr) {
-					SetSelected(newSel->GetID());
+				SetSelected(selectable->GetID());
+			}
+		}
+		navigationTimer = Max(0.0f, navigationTimer - App->time->GetRealTimeDeltaTime());
+	}
+	bool keyPressed = false;
+	if (!App->userInterface->handlingSlider && navigationTimer == 0) {
+		float2 selectionDir = float2(0.f, 0.f);
+
+		if (App->input->GetKey(SDL_SCANCODE_UP) == KS_DOWN) {
+			selectionDir = float2(0.f, 1.f);
+			keyPressed = true;
+		}
+		if (App->input->GetKey(SDL_SCANCODE_DOWN) == KS_DOWN) {
+			selectionDir = float2(0.f, -1.f);
+			keyPressed = true;
+		}
+		if (App->input->GetKey(SDL_SCANCODE_LEFT) == KS_DOWN) {
+			selectionDir = float2(-1.f, 0.f);
+			keyPressed = true;
+		}
+		if (App->input->GetKey(SDL_SCANCODE_RIGHT) == KS_DOWN) {
+			selectionDir = float2(1.f, 0.f);
+			keyPressed = true;
+		}
+
+		PlayerController* controller = App->input->GetPlayerController(0);
+		if (controller) {
+			if (selectionDir.x == 0 && selectionDir.y == 0) {
+				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_UP) == KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_UP) == KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTY) < -0.5f) {
+					selectionDir = float2(0.f, 1.f);
+					keyPressed = true;
+				}
+				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_DOWN) == KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_DOWN) == KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTY) > 0.5f) {
+					selectionDir = float2(0.f, -1.f);
+					keyPressed = true;
+				}
+				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_LEFT) == KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_LEFT) == KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTX) < -0.5f) {
+					selectionDir = float2(-1.f, 0.f);
+					keyPressed = true;
+				}
+				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTX) > 0.5f) {
+					selectionDir = float2(1.f, 0.f);
+					keyPressed = true;
+				}
+			}
+		}
+
+		if (keyPressed) {
+			if (selectedId != 0) {
+				ComponentSelectable* currentSel = GetCurrentSelected();
+				if (currentSel != nullptr) {
+					ComponentSelectable* newSel = currentSel->FindSelectableOnDir(selectionDir);
+					if (newSel != nullptr) {
+						navigationTimer = timeBetweenNavigations;
+						SetSelected(newSel->GetID());
+					}
 				}
 			}
 		}
@@ -71,7 +110,7 @@ void ComponentEventSystem::OnEditorUpdate() {
 		ImGui::TextColored(ImVec4(1.f, 1.f, 1.f, 1.f), GetCurrentSelected()->GetOwner().name.c_str());
 	}
 
-	//TO DO FIRST SELECTED RESOURCE SLOT <GAMEOBJECT>
+	ImGui::GameObjectSlot("First selected object", &firstSelectedId);
 }
 
 void ComponentEventSystem::Save(JsonValue jComponent) const {
@@ -92,6 +131,20 @@ void ComponentEventSystem::OnDisable() {
 	}
 }
 
+void ComponentEventSystem::SetSelected(ComponentSelectable* newSelectableComponent) {
+	ComponentSelectable* currentSel = GetCurrentSelected();
+
+	if (currentSel != nullptr) {
+		currentSel->OnDeselect();
+	}
+
+	if (!newSelectableComponent) return;
+
+	selectedId = newSelectableComponent->GetID();
+
+	newSelectableComponent->OnSelect();
+}
+
 void ComponentEventSystem::SetSelected(UID newSelectableComponentId) {
 	ComponentSelectable* currentSel = GetCurrentSelected();
 	if (currentSel != nullptr) {
@@ -99,34 +152,27 @@ void ComponentEventSystem::SetSelected(UID newSelectableComponentId) {
 	}
 	selectedId = newSelectableComponentId;
 
-	ComponentSelectable* newSelectableComponent = GetOwner().scene->GetComponent<ComponentSelectable>(newSelectableComponentId);
+	if (newSelectableComponentId != 0) {
+		ComponentSelectable* newSelectableComponent = GetOwner().scene->GetComponent<ComponentSelectable>(newSelectableComponentId);
 
-	if (newSelectableComponent != nullptr) {
-		newSelectableComponent->OnSelect();
+		if (newSelectableComponent != nullptr) {
+			newSelectableComponent->OnSelect();
+		}
 	}
 }
 
 void ComponentEventSystem::EnteredPointerOnSelectable(ComponentSelectable* newHoveredComponent) {
-	for (std::vector<UID>::const_iterator it = hoveredSelectableIds.begin(); it != hoveredSelectableIds.end(); ++it) {
-		if ((*it) == newHoveredComponent->GetID()) {
-			return;
-		}
+	if (hoveredSelectableID != 0) {
+		ComponentSelectable* selectableToUnHover = App->scene->scene->selectableComponents.Find(hoveredSelectableID);
+		if (selectableToUnHover) selectableToUnHover->SetHovered(false);
 	}
-	hoveredSelectableIds.push_back(newHoveredComponent->GetID());
+
+	hoveredSelectableID = newHoveredComponent->GetID();
 }
 
 void ComponentEventSystem::ExitedPointerOnSelectable(ComponentSelectable* newUnHoveredComponent) {
-	std::vector<UID>::iterator itToRemove;
-	ComponentSelectable* selectableToRemove = nullptr;
-	for (std::vector<UID>::iterator it = hoveredSelectableIds.begin(); it != hoveredSelectableIds.end() && selectableToRemove == nullptr; ++it) {
-		if ((*it) == newUnHoveredComponent->GetID()) {
-			itToRemove = it;
-			selectableToRemove = GetOwner().scene->GetComponent<ComponentSelectable>(*it);
-		}
-	}
-
-	if (selectableToRemove != nullptr) {
-		hoveredSelectableIds.erase(itToRemove);
+	if (hoveredSelectableID == newUnHoveredComponent->GetID()) {
+		hoveredSelectableID = 0;
 	}
 }
 
@@ -137,6 +183,14 @@ ComponentSelectable* ComponentEventSystem::GetCurrentSelected() const {
 }
 
 ComponentSelectable* ComponentEventSystem::GetCurrentlyHovered() const {
-	if (hoveredSelectableIds.size() == 0) return nullptr;
-	return GetOwner().scene->GetComponent<ComponentSelectable>(hoveredSelectableIds.front());
+	if (hoveredSelectableID == 0) return nullptr;
+	return GetOwner().scene->GetComponent<ComponentSelectable>(hoveredSelectableID);
+}
+
+void ComponentEventSystem::SetClickedGameObject(GameObject* clickedObj_) {
+	clickedObj = clickedObj_;
+}
+
+GameObject* ComponentEventSystem::GetClickedGameObject() {
+	return clickedObj;
 }

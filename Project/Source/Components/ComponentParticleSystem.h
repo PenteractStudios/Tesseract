@@ -9,6 +9,7 @@
 #include "Math/Quat.h"
 
 #include <vector>
+
 class ComponentTransform;
 class ParticleModule;
 
@@ -55,6 +56,7 @@ public:
 	void OnEditorUpdate() override;
 	void Load(JsonValue jComponent) override;
 	void Save(JsonValue jComponent) const override;
+
 	void Draw();
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Stop();

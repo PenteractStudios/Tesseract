@@ -6,12 +6,16 @@
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleResources.h"
+#include "Modules/ModuleEditor.h"
+#include "Utils/ImGuiUtils.h"
+#include "Utils/UID.h"
 
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/document.h"
 
+#include "imgui.h"
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
 #include "Utils/Leaks.h"
@@ -59,9 +63,70 @@ void ResourceClip::Load() {
 	LOG("Clip loaded in %ums", timeMs);
 }
 
+void ResourceClip::GetInfoJson() {
+	// Timer to measure getting info from a clip
+	MSTimer timer;
+	timer.Start();
+	std::string filePath = GetResourceFilePath();
+	LOG("Getting info of ResourceClip from path: \"%s\".", filePath.c_str());
+
+	Buffer<char> buffer = App->files->Load(filePath.c_str());
+	if (buffer.Size() == 0) return;
+
+	rapidjson::Document document;
+	document.ParseInsitu<rapidjson::kParseNanAndInfFlag>(buffer.Data());
+	if (document.HasParseError()) {
+		LOG("Error parsing JSON: %s (offset: %u)", rapidjson::GetParseError_En(document.GetParseError()), document.GetErrorOffset());
+		return;
+	}
+	JsonValue jStateMachine(document, document);
+
+	name = jStateMachine[JSON_TAG_NAME];
+	animationUID = jStateMachine[JSON_TAG_ANIMATION_UID];
+	endIndex = jStateMachine[JSON_TAG_END_INDEX];
+	beginIndex = jStateMachine[JSON_TAG_BEGIN_INDEX];
+	loop = jStateMachine[JSON_TAG_LOOP];
+	speed = jStateMachine[JSON_TAG_SPEED];
+
+	unsigned timeMs = timer.Stop();
+	LOG("Clip info received in %ums", timeMs);
+}
+
 void ResourceClip::Unload() {
 	App->resources->DecreaseReferenceCount(animationUID);
 }
+
+void ResourceClip::OnEditorUpdate() {	
+	ImGui::TextColored(App->editor->titleColor, "Clip");
+	ImGui::SameLine();
+	if (ImGui::Button("Get info from Json##clip")) {
+		GetInfoJson();
+	}
+
+	char nameClip[100];
+	sprintf_s(nameClip, 100, "%s", name.c_str());
+	if (ImGui::InputText("##clip_name", nameClip, 100)) {
+		name = nameClip;
+	}	
+
+	ImGui::ResourceSlot<ResourceAnimation>("Animaton", &animationUID);
+
+	ImGui::Checkbox("Loop", &loop);
+
+	ImGui::DragScalar("Begin Index", ImGuiDataType_U32, &beginIndex);
+	SetBeginIndex(beginIndex);
+
+	ImGui::DragScalar("End Index", ImGuiDataType_U32, &endIndex);
+	SetEndIndex(endIndex);
+
+	ImGui::DragFloat("Speed", &speed, 0.001);
+
+	ImGui::NewLine();
+	if (ImGui::Button("Save##clip")) {
+		SaveToFile(GetAssetFilePath().c_str());
+	}
+}
+
 
 bool ResourceClip::SaveToFile(const char* filePath) {
 	LOG("Saving ResourceClip to path: \"%s\".", filePath);

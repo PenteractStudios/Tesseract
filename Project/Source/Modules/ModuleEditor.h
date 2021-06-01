@@ -11,8 +11,11 @@
 #include "Panels/PanelHierarchy.h"
 #include "Panels/PanelAbout.h"
 #include "Panels/PanelControlEditor.h"
+#include "Panels/PanelNavigation.h"
 #include "Panels/PanelResource.h"
 #include "Panels/PanelDebug.h"
+#include "Panels/PanelImportOptions.h"
+#include "Utils/UID.h"
 
 #include "imgui.h"
 #include <vector>
@@ -29,6 +32,7 @@ enum class Modal {
 	COMPONENT_EXISTS,
 	CREATE_MATERIAL,
 	CREATE_SCRIPT,
+	CREATE_NAVMESH,
 	CANT_REMOVE_COMPONENT,
 	QUIT
 };
@@ -64,11 +68,15 @@ public:
 	PanelHierarchy panelHierarchy;
 	PanelAbout panelAbout;
 	PanelControlEditor panelControlEditor;
+	PanelNavigation panelNavigation;
 	PanelResource panelResource;
 	PanelDebug panelGameControllerDebug;
+	PanelImportOptions panelImportOptions;
 
 	GameObject* selectedGameObject = nullptr;			   // Pointer to the GameObject that will be shown in the inspector.
-	Resource* selectedResource = nullptr;				   // Pointer to the Resource that will be shown in the PanelResource.
+	std::string selectedFolder = "";					   // Currently selected folder in the PanelProject.
+	std::string selectedAsset = "";						   // Currently selected asset in the PanelProject.
+	UID selectedResource = 0;							   // Currently selected resource in the PanelProject.
 	ImVec4 titleColor = ImVec4(0.35f, 0.69f, 0.87f, 1.0f); // Color used for the titles in ImGui
 	ImVec4 textColor = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);	   // Color used for text and information in ImGui
 
@@ -77,7 +85,4 @@ public:
 	float dragSpeed2f = 0.05f;
 	float dragSpeed3f = 0.005f;
 	float dragSpeed5f = 0.00005f;
-
-private:
-	std::string selectedFile = "";
 };

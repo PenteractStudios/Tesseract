@@ -19,5 +19,6 @@ private:
 
 	void AddAudioComponentsOptions(GameObject* selected);
 	void AddUIComponentsOptions(GameObject* selected);
-
+	void AddColliderComponentsOptions(GameObject* selected);
+	
 };

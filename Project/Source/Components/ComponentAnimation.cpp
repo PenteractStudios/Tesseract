@@ -25,11 +25,10 @@
 #define JSON_TAG_LOOP "Controller"
 #define JSON_TAG_ANIMATION_ID "AnimationId"
 #define JSON_TAG_STATE_MACHINE_ID "StateMachineId"
-#define JSON_TAG_INITAL_STATE_ID "InitalState"
 #define JSON_TAG_CLIP "Clip"
 
 void ComponentAnimation::Update() {
-	if (!initialState) { //Checking if there is no state machine
+	if (!currentState) { //Checking if there is no state machine
 		LoadResourceStateMachine();
 	}
 
@@ -55,26 +54,23 @@ void ComponentAnimation::OnEditorUpdate() {
 	if (oldStateMachineUID != stateMachineResourceUID) {
 		ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
 		if (resourceStateMachine) {
-			currentState = &resourceStateMachine->states.front();
-			initialState = &resourceStateMachine->states.front();
+			currentState = &resourceStateMachine->initialState;
 		} else {
 			currentState = nullptr;
-			initialState = nullptr;
 		}
 	}
 }
 
 void ComponentAnimation::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_STATE_MACHINE_ID] = stateMachineResourceUID;
-	jComponent[JSON_TAG_INITAL_STATE_ID] = initialState ? initialState->id : 0;
 }
 
 void ComponentAnimation::Load(JsonValue jComponent) {
 	stateMachineResourceUID = jComponent[JSON_TAG_STATE_MACHINE_ID];
 	if (stateMachineResourceUID != 0) App->resources->IncreaseReferenceCount(stateMachineResourceUID);
 
-	initalStateUid = jComponent[JSON_TAG_INITAL_STATE_ID];
 	LoadResourceStateMachine();
+	InitCurrentTimeStates();
 }
 
 void ComponentAnimation::OnUpdate() {
@@ -85,7 +81,7 @@ void ComponentAnimation::OnUpdate() {
 
 	if (currentState) {
 		ResourceClip* currentClip = App->resources->GetResource<ResourceClip>(currentState->clipUid);
-		currentState->currentTime += App->time->GetDeltaTime() * currentClip->speed;
+		currentTimeStates[currentState->id] += App->time->GetDeltaTime() * currentClip->speed;
 	}
 }
 
@@ -94,10 +90,18 @@ void ComponentAnimation::SendTrigger(const std::string& trigger) {
 
 	Transition* transition = resourceStateMachine->FindTransitionGivenName(trigger);
 	if (transition != nullptr) {
-		if (animationInterpolations.size() == 0) {
-			animationInterpolations.push_front(AnimationInterpolation(&transition->source, currentState->currentTime, 0, transition->interpolationDuration));
+		if(transition->source.id == currentState->id){
+			if (animationInterpolations.size() == 0) {
+				animationInterpolations.push_front(AnimationInterpolation(&transition->source, currentTimeStates[currentState->id], 0, transition->interpolationDuration));
+			}
+
+			animationInterpolations.push_front(AnimationInterpolation(&transition->target, 0, 0, transition->interpolationDuration));
+			currentState = &transition->target;
+		} 
+		else {
+			LOG("Warning: transition target from %s to %s, and current state is %s ", transition->source.name.c_str(), transition->target.name.c_str(), currentState->name.c_str());
 		}
-		animationInterpolations.push_front(AnimationInterpolation(&transition->target, 0, 0, transition->interpolationDuration));
+		
 	}
 }
 
@@ -121,23 +125,26 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 
 		//Updating times
 		if (gameObject == GetOwner().GetRootBone()) { // Only udate currentTime for the rootBone
-			State* newState = AnimationController::UpdateTransitions(animationInterpolations, App->time->GetDeltaTime());
-			if (newState) {
-				currentState = newState;
-			}
+			AnimationController::UpdateTransitions(animationInterpolations, currentTimeStates, App->time->GetDeltaTime());
 		}
 
 	} else {
 		if (currentState) {
 			ResourceClip* clip = App->resources->GetResource<ResourceClip>(currentState->clipUid);
-			result = AnimationController::GetTransform(*clip, currentState->currentTime, gameObject->name.c_str(), position, rotation);
+			result = AnimationController::GetTransform(*clip, currentTimeStates[currentState->id], gameObject->name.c_str(), position, rotation);
 			
 			if (gameObject == GetOwner().GetRootBone()) {
 				if (!clip->loop) {
-					int currentSample = AnimationController::GetCurrentSample(*clip, currentState->currentTime);
+					int currentSample = AnimationController::GetCurrentSample(*clip, currentTimeStates[currentState->id]);
 					if (currentSample == clip->endIndex) {
-						TesseractEvent animationFinishedEvent = TesseractEvent(TesseractEventType::ANIMATION_FINISHED);
-						App->events->AddEvent(animationFinishedEvent);
+						for (ComponentScript& script : GetOwner().GetComponents<ComponentScript>()) {
+							if (script.IsActive()) {
+								Script* scriptInstance = script.GetScriptInstance();
+								if (scriptInstance != nullptr) {
+									scriptInstance->OnAnimationFinished();
+								}
+							}
+						}
 					}
 				}
 			}
@@ -160,12 +167,17 @@ void ComponentAnimation::LoadResourceStateMachine() {
 	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
 
 	if (resourceStateMachine) {
-		for (auto& state : resourceStateMachine->states) {
-			if (initalStateUid == state.id) {
-				initialState = &state;
-				currentState = &state;
-				break;
-			}
+		currentState = &resourceStateMachine->initialState;
+	}
+}
+
+void ComponentAnimation::InitCurrentTimeStates() {
+	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
+
+	if (resourceStateMachine) {
+		std::list<State>::iterator itState;
+		for (itState = resourceStateMachine->states.begin(); itState != resourceStateMachine->states.end(); ++itState) {
+			currentTimeStates.insert({itState->id, 0.0f});
 		}
 	}
 }

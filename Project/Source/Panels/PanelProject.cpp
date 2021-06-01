@@ -13,7 +13,7 @@
 #include "Modules/ModuleRender.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleResources.h"
-#include "Utils/AssetFile.h"
+#include "Utils/AssetCache.h"
 #include "Resources/Resource.h"
 
 #include "imgui.h"
@@ -35,14 +35,20 @@ void PanelProject::Update() {
 	ImGui::SetNextWindowDockID(App->editor->dockDownId, ImGuiCond_FirstUseEver);
 	std::string windowName = std::string(ICON_FA_FOLDER " ") + name;
 	if (ImGui::Begin(windowName.c_str(), &enabled)) {
-		AssetFolder* rootFolder = App->resources->GetRootFolder();
-		if (rootFolder != nullptr) {
+		AssetCache* assetCache = App->resources->GetAssetCache();
+		if (assetCache != nullptr) {
 			ImGui::Columns(3);
-			UpdateFoldersRecursive(*rootFolder);
+			ImGui::BeginChild("Folders");
+			UpdateFoldersRecursive(assetCache->root);
+			ImGui::EndChild();
 			ImGui::NextColumn();
-			UpdateAssetsRecursive(*rootFolder);
+			ImGui::BeginChild("Assets");
+			UpdateAssets();
+			ImGui::EndChild();
 			ImGui::NextColumn();
-			UpdateResourcesRecursive(*rootFolder);
+			ImGui::BeginChild("Resources");
+			UpdateResources();
+			ImGui::EndChild();
 		}
 	}
 	ImGui::End();
@@ -51,15 +57,16 @@ void PanelProject::Update() {
 void PanelProject::UpdateFoldersRecursive(const AssetFolder& folder) {
 	std::string name = std::string(ICON_FA_FOLDER " ") + FileDialog::GetFileName(folder.path.c_str());
 
-	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen;
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
 	if (folder.folders.empty()) flags |= ImGuiTreeNodeFlags_Leaf;
-	bool isSelected = selectedFolder == folder.path;
+	bool isSelected = App->editor->selectedFolder == folder.path;
 	if (isSelected) flags |= ImGuiTreeNodeFlags_Selected;
 
 	bool open = ImGui::TreeNodeEx(folder.path.c_str(), flags, name.c_str());
 
 	if (ImGui::IsItemClicked()) {
-		selectedFolder = folder.path;
+		App->editor->selectedFolder = folder.path;
+		App->editor->selectedAsset = "";
 	}
 
 	if (open) {
@@ -70,62 +77,58 @@ void PanelProject::UpdateFoldersRecursive(const AssetFolder& folder) {
 	}
 }
 
-void PanelProject::UpdateAssetsRecursive(const AssetFolder& folder) {
-	if (folder.path == selectedFolder) {
-		for (const AssetFile& assetFile : folder.files) {
-			std::string name = std::string(ICON_FA_BOX " ") + FileDialog::GetFileNameAndExtension(assetFile.path.c_str());
+void PanelProject::UpdateAssets() {
+	AssetCache* assetCache = App->resources->GetAssetCache();
+	if (assetCache == nullptr) return;
+	auto it = assetCache->foldersMap.find(App->editor->selectedFolder);
+	if (it == assetCache->foldersMap.end()) return;
+	AssetFolder* folder = it->second;
 
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf;
-			bool isSelected = selectedAsset == assetFile.path;
-			if (isSelected) flags |= ImGuiTreeNodeFlags_Selected;
+	for (const AssetFile& assetFile : folder->files) {
+		std::string name = std::string(ICON_FA_BOX " ") + FileDialog::GetFileNameAndExtension(assetFile.path.c_str());
 
-			bool open = ImGui::TreeNodeEx(assetFile.path.c_str(), flags, name.c_str());
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf;
+		bool isSelected = App->editor->selectedAsset == assetFile.path;
+		if (isSelected) flags |= ImGuiTreeNodeFlags_Selected;
 
-			if (ImGui::IsItemClicked()) {
-				selectedAsset = assetFile.path;
-			}
+		bool open = ImGui::TreeNodeEx(assetFile.path.c_str(), flags, name.c_str());
 
-			if (open) {
-				ImGui::TreePop();
-			}
+		if (ImGui::IsItemClicked()) {
+			App->editor->selectedAsset = assetFile.path;
 		}
-	} else {
-		for (const AssetFolder& childFolder : folder.folders) {
-			UpdateAssetsRecursive(childFolder);
+
+		if (open) {
+			ImGui::TreePop();
 		}
 	}
 }
 
-void PanelProject::UpdateResourcesRecursive(const AssetFolder& folder) {
-	if (folder.path == selectedFolder) {
-		for (const AssetFile& assetFile : folder.files) {
-			if (assetFile.path != selectedAsset) continue;
+void PanelProject::UpdateResources() {
+	AssetCache* assetCache = App->resources->GetAssetCache();
+	if (assetCache == nullptr) return;
+	auto it = assetCache->filesMap.find(App->editor->selectedAsset);
+	if (it == assetCache->filesMap.end()) return;
+	AssetFile* assetFile = it->second;
 
-			for (UID resourceId : assetFile.resourceIds) {
-				Resource* resource = App->resources->GetResource<Resource>(resourceId);
-				if (resource == nullptr) continue;
+	for (UID resourceId : assetFile->resourceIds) {
+		Resource* resource = App->resources->GetResource<Resource>(resourceId);
+		if (resource == nullptr) continue;
 
-				std::string resourceName = std::to_string(resourceId);
-				std::string resourceTypeName = GetResourceTypeName(resource->GetType());
-				std::string name = std::string(ICON_FA_FILE " ") + "[" + resourceTypeName + "] " + resourceName.c_str();
+		std::string resourceName = std::to_string(resourceId);
+		std::string resourceTypeName = GetResourceTypeName(resource->GetType());
+		std::string name = std::string(ICON_FA_FILE " ") + "[" + resourceTypeName + "] " + resourceName.c_str();
 
-				ImGuiSelectableFlags flags = ImGuiSelectableFlags_None;
-				ImGui::PushID(resourceName.c_str());
-				if (ImGui::Selectable(name.c_str(), flags)) {
-					App->editor->selectedResource = resource;
-				}
-				ImGui::PopID();
-
-				if (ImGui::BeginDragDropSource()) {
-					std::string payloadType = std::string("_RESOURCE_") + resourceTypeName;
-					ImGui::SetDragDropPayload(payloadType.c_str(), &resourceId, sizeof(UID));
-					ImGui::EndDragDropSource();
-				}
-			}
+		ImGuiSelectableFlags flags = ImGuiSelectableFlags_None;
+		ImGui::PushID(resourceName.c_str());
+		if (ImGui::Selectable(name.c_str(), flags)) {
+			App->editor->selectedResource = resource->GetId();
 		}
-	} else {
-		for (const AssetFolder& childFolder : folder.folders) {
-			UpdateResourcesRecursive(childFolder);
+		ImGui::PopID();
+
+		if (ImGui::BeginDragDropSource()) {
+			std::string payloadType = std::string("_RESOURCE_") + resourceTypeName;
+			ImGui::SetDragDropPayload(payloadType.c_str(), &resourceId, sizeof(UID));
+			ImGui::EndDragDropSource();
 		}
 	}
 }

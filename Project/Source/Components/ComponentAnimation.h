@@ -9,6 +9,7 @@
 #include "Resources/ResourceStateMachine.h"
 #include "Utils/UID.h"
 #include <string>
+#include <unordered_map>
 
 class GameObject;
 class ResourceAnimation;
@@ -34,24 +35,17 @@ public:
 		currentState = mCurrentState;
 	}
 
-	TESSERACT_ENGINE_API State* GetInitialState() {
-		return initialState;
-	}
-
-	void SetInitialState(State* mInitalState) {
-		initialState = mInitalState;
-	}
 
 public:
 	UID stateMachineResourceUID = 0;
 	State* currentState = nullptr;
-	State* initialState = nullptr;
 
 private:
 	void UpdateAnimations(GameObject* gameObject);
 	void LoadResourceStateMachine();
-	UID initalStateUid = 0; 
+	void InitCurrentTimeStates();
 
 private:
 	std::list<AnimationInterpolation> animationInterpolations; //List of the current interpolations between states
+	std::unordered_map<UID, float> currentTimeStates;
 };

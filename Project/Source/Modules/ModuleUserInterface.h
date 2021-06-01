@@ -9,6 +9,7 @@
 
 class GameObject;
 class ComponentEventSystem;
+class ComponentSelectable;
 class ResourceFont;
 
 struct Character;
@@ -35,16 +36,18 @@ public:
 
 public:
 	bool view2DInternal = false;
-
+	bool handlingSlider = false;
 	float4 GetErrorColor(); // Gets the representation of the color
 
 private:
 	void CreateQuadVBO();	  // Creates a vbo made by two triangles centered that form a Quad
 	void OnViewportResized(); // Sets all bool dirty required to recalculate ScreenFactors
+	void ManageInputsOnSelected(ComponentSelectable* currentlySelected);
 
 private:
 	UID currentEvSys = 0;						// Module's Event System UID
 	unsigned int quadVBO = 0;					// VBO of the ComponentImage generic Quad
 	float4 errorColor = float4(-1, -1, -1, -1); // Representation of error in color (not a color to display)
 	bool viewportWasResized = false;
+	bool wasPressConfirmed = false;
 };

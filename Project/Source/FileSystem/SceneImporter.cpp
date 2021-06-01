@@ -19,6 +19,7 @@
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleRender.h"
 #include "Scripting/Script.h"
+#include "ImporterCommon.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
@@ -26,15 +27,13 @@
 
 #include "Utils/Leaks.h"
 
-#define JSON_TAG_RESOURCES "Resources"
-#define JSON_TAG_TYPE "Type"
-#define JSON_TAG_ID "Id"
 #define JSON_TAG_ROOT "Root"
 #define JSON_TAG_QUADTREE_BOUNDS "QuadtreeBounds"
 #define JSON_TAG_QUADTREE_MAX_DEPTH "QuadtreeMaxDepth"
 #define JSON_TAG_QUADTREE_ELEMENTS_PER_NODE "QuadtreeElementsPerNode"
 #define JSON_TAG_GAME_CAMERA "GameCamera"
 #define JSON_TAG_AMBIENTLIGHT "AmbientLight"
+#define JSON_TAG_NAVMESH "NavMesh"
 
 bool SceneImporter::ImportScene(const char* filePath, JsonValue jMeta) {
 	// Timer to measure importing a scene
@@ -63,19 +62,25 @@ bool SceneImporter::ImportScene(const char* filePath, JsonValue jMeta) {
 	document.Accept(writer);
 
 	// Create scene resource
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
-	JsonValue jResource = jResources[0];
-	UID metaId = jResource[JSON_TAG_ID];
-	UID id = metaId ? metaId : GenerateUID();
-	App->resources->CreateResource<ResourceScene>(filePath, id);
+	unsigned resourceIndex = 0;
+	std::unique_ptr<ResourceScene> scene = ImporterCommon::CreateResource<ResourceScene>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
-	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceScene::staticType);
-	jResource[JSON_TAG_ID] = id;
+	// Save resource meta file
+	bool saved = ImporterCommon::SaveResourceMetaFile(scene.get());
+	if (!saved) {
+		LOG("Failed to save scene resource meta file.");
+		return false;
+	}
 
 	// Save to file
-	std::string resourceFilePath = App->resources->GenerateResourcePath(id);
-	App->files->Save(resourceFilePath.c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
+	saved = App->files->Save(scene->GetResourceFilePath().c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
+	if (!saved) {
+		LOG("Failed to save state machine resource file.");
+		return false;
+	}
+
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(scene);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Scene imported in %ums", timeMs);
@@ -129,6 +134,9 @@ void SceneImporter::LoadScene(const char* filePath) {
 	JsonValue ambientLight = jScene[JSON_TAG_AMBIENTLIGHT];
 	App->renderer->ambientColor = {ambientLight[0], ambientLight[1], ambientLight[2]};
 
+	// NavMesh
+	scene->SetNavMesh(jScene[JSON_TAG_NAVMESH]);
+
 	unsigned timeMs = timer.Stop();
 	LOG("Scene loaded in %ums.", timeMs);
 }
@@ -156,6 +164,9 @@ bool SceneImporter::SaveScene(const char* filePath) {
 	ambientLight[0] = App->renderer->ambientColor.x;
 	ambientLight[1] = App->renderer->ambientColor.y;
 	ambientLight[2] = App->renderer->ambientColor.z;
+
+	// NavMesh
+	jScene[JSON_TAG_NAVMESH] = scene->navMeshId;
 
 	// Save GameObjects
 	JsonValue jRoot = jScene[JSON_TAG_ROOT];

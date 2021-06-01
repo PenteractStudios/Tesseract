@@ -3,13 +3,13 @@
 #include "Utils/Logging.h"
 #include "Utils/MSTimer.h"
 #include "Utils/Buffer.h"
-
+#include "Utils/FileDialog.h"
 #include "Application.h"
 #include "Modules/ModuleResources.h"
-#include "Resources/Resourceclip.h"
-
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleTime.h"
+#include "Resources/Resourceclip.h"
+#include "ImporterCommon.h"
 
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
@@ -17,10 +17,6 @@
 #include "rapidjson/document.h"
 
 #include "Utils/Leaks.h"
-
-#define JSON_TAG_RESOURCES "Resources"
-#define JSON_TAG_TYPE "Type"
-#define JSON_TAG_ID "Id"
 
 bool ClipImporter::ImportClip(const char* filePath, JsonValue jMeta) {
 	LOG("Importing clip from path: \"%s\".", filePath);
@@ -44,29 +40,31 @@ bool ClipImporter::ImportClip(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
-	// Clip resource creation
-	JsonValue jResources = jMeta[JSON_TAG_RESOURCES];
-	JsonValue jResource = jResources[0];
-	UID metaId = jResource[JSON_TAG_ID];
-	UID id = metaId ? metaId : GenerateUID();
-	App->resources->CreateResource<ResourceClip>(filePath, id);
-
-	// Add resource to meta file
-	jResource[JSON_TAG_TYPE] = GetResourceTypeName(ResourceClip::staticType);
-	jResource[JSON_TAG_ID] = id;
-
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
 	rapidjson::PrettyWriter<rapidjson::StringBuffer, rapidjson::UTF8<>, rapidjson::UTF8<>, rapidjson::CrtAllocator, rapidjson::kWriteNanAndInfFlag> writer(stringBuffer);
 	document.Accept(writer);
 
-	// Save to file
-	const std::string& resourceFilePath = App->resources->GenerateResourcePath(id);
-	bool saved = App->files->Save(resourceFilePath.c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
+	// Create clip resource
+	unsigned resourceIndex = 0;
+	std::unique_ptr<ResourceClip> clip = ImporterCommon::CreateResource<ResourceClip>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+
+	// Save resource meta file
+	bool saved = ImporterCommon::SaveResourceMetaFile(clip.get());
 	if (!saved) {
-		LOG("Failed to save clip resource.");
+		LOG("Failed to save clip resource meta file.");
 		return false;
 	}
+
+	// Save to file
+	saved = App->files->Save(clip->GetResourceFilePath().c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
+	if (!saved) {
+		LOG("Failed to save clip resource file.");
+		return false;
+	}
+
+	// Send resource creation event
+	App->resources->SendCreateResourceEvent(clip);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Clip imported in %ums", timeMs);

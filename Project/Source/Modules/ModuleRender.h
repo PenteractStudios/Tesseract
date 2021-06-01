@@ -5,6 +5,9 @@
 
 #include "MathGeoLibFwd.h"
 #include "Math/float3.h"
+#include "LightFrustum.h"
+
+#include <map>
 
 class GameObject;
 
@@ -26,17 +29,21 @@ public:
 	void SetVSync(bool vsync);
 
 	// -------- Game Debug --------- //
-	TESSERACT_ENGINE_API void ToggleDebugMode();
-	TESSERACT_ENGINE_API void ToggleDebugDraw();
-	TESSERACT_ENGINE_API void ToggleDrawQuadtree();
-	TESSERACT_ENGINE_API void ToggleDrawBBoxes();
-	TESSERACT_ENGINE_API void ToggleDrawSkybox(); // TODO: review Godmodecamera
-	TESSERACT_ENGINE_API void ToggleDrawAnimationBones();
-	TESSERACT_ENGINE_API void ToggleDrawCameraFrustums();
-	TESSERACT_ENGINE_API void ToggleDrawLightGizmos();
-	TESSERACT_ENGINE_API void ToggleDrawParticleGizmos();
+	void ToggleDebugMode();
+	void ToggleDebugDraw();
+	void ToggleDrawQuadtree();
+	void ToggleDrawBBoxes();
+	void ToggleDrawSkybox(); // TODO: review Godmodecamera
+	void ToggleDrawAnimationBones();
+	void ToggleDrawCameraFrustums();
+	void ToggleDrawLightGizmos();
+	void ToggleDrawLightFrustumGizmo();
+	void ToggleDrawParticleGizmos();
 
 	void UpdateShadingMode(const char* shadingMode);
+
+	float4x4 GetLightViewMatrix() const;
+	float4x4 GetLightProjectionMatrix() const;
 
 	int GetCulledTriangles() const;
 	const float2 GetViewportSize();
@@ -48,8 +55,10 @@ public:
 
 	// - Render Buffer GL pointers - //
 	unsigned renderTexture = 0;
-	unsigned depthRenderbuffer = 0;
+	unsigned renderBuffer = 0;
 	unsigned framebuffer = 0;
+	unsigned depthMapTexture = 0;
+	unsigned depthMapTextureBuffer = 0;
 
 	// ------- Viewport Updated ------- //
 	bool viewportUpdated = true;
@@ -60,27 +69,41 @@ public:
 	bool drawQuadtree = true;
 	bool drawAllBoundingBoxes = false;
 	bool skyboxActive = true; // TODO: review Godmodecamera
-	bool drawAllBones = true;
+	bool drawAllBones = false;
 	bool drawCameraFrustums = false;
 	bool drawLightGizmos = false;
+	bool drawLightFrustumGizmo = false;
+	bool drawNavMesh = false;
 	bool drawParticleGizmos = false;
+	bool drawColliders = false;
 	int culledTriangles = 0;
 
 	float3 ambientColor = {0.25f, 0.25f, 0.25f}; // Color of ambient Light
 	float3 clearColor = {0.1f, 0.1f, 0.1f};		 // Color of the viewport between frames
 
+	LightFrustum lightFrustum;
+
 private:
-	void DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb); // Draws the quadrtee nodes if 'drawQuadtree' is set to true.
-	void DrawSceneRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb);	// ??
-	bool CheckIfInsideFrustum(const AABB& aabb, const OBB& obb);							// ??
-	void DrawGameObject(GameObject* gameObject);											// ??
-	void DrawSkyBox();																		// Draws a default skybox if 'skyboxActive' is set to true.
+	void DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb);			  // Draws the quadrtee nodes if 'drawQuadtree' is set to true.
+	void ClassifyGameObjects();																		  // Classify Game Objects from Scene taking into account Frustum Culling, Shadows and Rendering Mode
+	void ClassifyGameObjectsFromQuadrtee(const Quadtree<GameObject>::Node& node, const AABB2D& aabb); // Classify Game Objects from Scene taking into account Frustum Culling, Quadtree, Shadows and Rendering Mode
+	bool CheckIfInsideFrustum(const AABB& aabb, const OBB& obb);									  // ??
+	void DrawGameObject(GameObject* gameObject);													  // ??
+	void DrawGameObjectShadowPass(GameObject* gameObject);
 	void DrawAnimation(const GameObject* gameObject, bool hasAnimation = false);
 	void RenderUI();
 	void SetOrtographicRender();
 	void SetPerspectiveRender();
 
+	void ShadowMapPass();
+	void DrawDepthMapTexture();
+
 private:
 	// ------- Viewport Size ------- //
 	float2 viewportSize = float2::zero;
+	bool drawDepthMapTexture = false;
+
+	std::vector<GameObject*> shadowGameObjects;			 // Vector of Shadow Casted GameObjects
+	std::vector<GameObject*> opaqueGameObjects;			 // Vector of Opaque GameObjects
+	std::map<float, GameObject*> transparentGameObjects; // Map with Transparent GameObjects
 };

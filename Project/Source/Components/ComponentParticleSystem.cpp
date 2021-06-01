@@ -16,13 +16,15 @@
 #include "Resources/ResourceShader.h"
 #include "FileSystem/TextureImporter.h"
 #include "FileSystem/JsonValue.h"
+#include "Utils/Logging.h"
+
 #include "Math/float3x3.h"
 #include "Utils/ImGuiUtils.h"
 #include "Math/TransformOps.h"
 #include "imgui.h"
 #include "GL/glew.h"
 #include "debugdraw.h"
-#include "Utils/Logging.h"
+#include <random>
 
 #include "Utils/Leaks.h"
 
@@ -49,8 +51,6 @@
 #define JSON_TAG_EMITTERTYPE "EmitterType"
 #define JSON_TAG_BILLBOARDTYPE "BillboardType"
 
-#include <random>
-
 void ComponentParticleSystem::OnEditorUpdate() {
 	if (ImGui::Checkbox("Active", &active)) {
 		if (GetOwner().IsActive()) {
@@ -63,10 +63,10 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	}
 	ImGui::Separator();
 
-	ImGui::TextColored(App->editor->textColor, "Texture Settings:");
+	ImGui::TextColored(App->editor->textColor, "Texture Settings");
 
-	ImGui::Checkbox("isPlaying: ", &isPlaying);
-	ImGui::Checkbox("Loop: ", &looping);
+	ImGui::Checkbox("isPlaying", &isPlaying);
+	ImGui::Checkbox("Loop", &looping);
 	if (ImGui::Button("Play")) Play();
 	if (ImGui::Button("Stop")) Stop();
 
@@ -90,7 +90,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	ImGui::Separator();
 	const char* emitterTypeCombo[] = {"Cone", "Sphere", "Hemisphere", "Donut", "Circle", "Rectangle"};
 	const char* emitterTypeComboCurrent = emitterTypeCombo[(int) emitterType];
-	ImGui::TextColored(App->editor->textColor, "Shape:");
+	ImGui::TextColored(App->editor->textColor, "Shape");
 	if (ImGui::BeginCombo("##Shape", emitterTypeComboCurrent)) {
 		for (int n = 0; n < IM_ARRAYSIZE(emitterTypeCombo); ++n) {
 			bool isSelected = (emitterTypeComboCurrent == emitterTypeCombo[n]);
@@ -105,7 +105,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	}
 
 	ImGui::Checkbox("Random Frame", &isRandomFrame);
-	ImGui::Checkbox("Random Direction: ", &randomDirection);
+	ImGui::Checkbox("Random Direction", &randomDirection);
 	ImGui::ResourceSlot<ResourceShader>("shader", &shaderID);
 
 	UID oldID = textureID;
@@ -126,25 +126,29 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			}
 		}
 
-		ImGui::Text("");
+		ImGui::NewLine();
 		ImGui::Separator();
 		ImGui::TextColored(App->editor->titleColor, "Texture Preview");
 		ImGui::TextWrapped("Size:");
 		ImGui::SameLine();
 		ImGui::TextWrapped("%i x %i", width, height);
 		ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
-		ImGui::InputScalar("Xtiles: ", ImGuiDataType_U32, &Xtiles);
-		ImGui::InputScalar("Ytiles: ", ImGuiDataType_U32, &Ytiles);
-		ImGui::InputFloat("Scale: ", &scale);
-		ImGui::InputFloat("Life: ", &particleLife);
-		ImGui::InputFloat("Animation Speed: ", &animationSpeed);
+		ImGui::DragScalar("Xtiles", ImGuiDataType_U32, &Xtiles);
+		ImGui::DragScalar("Ytiles", ImGuiDataType_U32, &Ytiles);
+		ImGui::DragFloat("Scale", &scale, App->editor->dragSpeed2f, 0, 1);
+		ImGui::DragFloat("Life", &particleLife, App->editor->dragSpeed2f, 0, 1);
+		ImGui::DragFloat("Animation Speed", &animationSpeed, App->editor->dragSpeed2f, -inf, inf);
 
-		if (ImGui::InputFloat("Speed: ", &velocity)) {
+		if (ImGui::DragFloat("Speed", &velocity, App->editor->dragSpeed2f, 0, inf)) {
 			CreateParticles(maxParticles, velocity);
 		}
 
-		if (ImGui::InputScalar("MaxParticles: ", ImGuiDataType_U32, &maxParticles)) {
-			CreateParticles(maxParticles, velocity);
+		if (ImGui::DragScalar("MaxParticles", ImGuiDataType_U32, &maxParticles)) {
+			if (maxParticles <= 2000) {
+				CreateParticles(maxParticles, velocity);
+			} else {
+				LOG("Warning: Max particles: 2000")
+			}
 		}
 
 		ImGui::ColorEdit4("InitColor##", initC.ptr());
@@ -486,12 +490,11 @@ void ComponentParticleSystem::Draw() {
 }
 
 void ComponentParticleSystem::Play() {
-	particleSpawned = 0;
 	isPlaying = true;
+	SpawnParticle();
 }
 
 void ComponentParticleSystem::Stop() {
 	particleSpawned = maxParticles;
-	killParticles();
 	isPlaying = false;
 }
