@@ -135,11 +135,11 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
 		ImGui::DragScalar("Xtiles", ImGuiDataType_U32, &Xtiles);
 		ImGui::DragScalar("Ytiles", ImGuiDataType_U32, &Ytiles);
-		ImGui::DragFloat("Scale", &scale, App->editor->dragSpeed2f, 0, 1);
-		ImGui::DragFloat("Life", &particleLife, App->editor->dragSpeed2f, 0, 1);
+		ImGui::DragFloat("Scale", &scale, App->editor->dragSpeed2f, 0, inf);
+		ImGui::DragFloat("Life", &particleLife, App->editor->dragSpeed2f, 0, inf);
 		ImGui::DragFloat("Animation Speed", &animationSpeed, App->editor->dragSpeed2f, -inf, inf);
 
-		if (ImGui::DragFloat("Speed", &velocity, App->editor->dragSpeed2f, 0, inf)) {
+		if (ImGui::DragFloat("Speed", &velocity, App->editor->dragSpeed3f, 0, inf)) {
 			CreateParticles(maxParticles, velocity);
 		}
 
@@ -306,7 +306,7 @@ void ComponentParticleSystem::Update() {
 		if (billboardType == BillboardType::LOOK_AT) {
 			currentParticle.model = float4x4::FromTRS(currentParticle.position, currentParticle.rotation, currentParticle.scale);
 		} else {
-			currentParticle.modelStrech.SetTranslatePart(currentParticle.position);
+			currentParticle.modelStretch.SetTranslatePart(currentParticle.position);
 		}
 
 		// Life time
@@ -350,8 +350,8 @@ void ComponentParticleSystem::SpawnParticle() {
 		currentParticle->scale = float3(0.1f, 0.1f, 0.1f) * scale;
 
 		if (billboardType == BillboardType::STRETCH) {
-			//float3x3 newRotation = float3x3::FromEulerXYZ(0, pi/2, 0);
-			//currentParticle->modelStrech = currentParticle->model * newRotation;
+			float3x3 newRotation = float3x3::FromEulerXYZ(0.f, 0.f, pi / 2);
+			currentParticle->modelStretch = currentParticle->model * newRotation;
 		}
 	}
 }
@@ -424,7 +424,7 @@ void ComponentParticleSystem::Draw() {
 
 			} else if (billboardType == BillboardType::STRETCH) {
 				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
-				float3 cameraDir = (cameraPos - currentParticle.position).Normalized();
+				float3 cameraDir = (cameraPos - currentParticle.initialPosition).Normalized();
 				float3 upDir = Cross(currentParticle.direction, cameraDir);
 				float3 newCameraDir = Cross(currentParticle.direction, upDir);
 
@@ -433,7 +433,7 @@ void ComponentParticleSystem::Draw() {
 				newRotation.SetCol(1, currentParticle.direction);
 				newRotation.SetCol(2, newCameraDir);
 
-				modelMatrix = float4x4::FromTRS(currentParticle.position, currentParticle.modelStrech * newRotation, currentParticle.scale);
+				modelMatrix = float4x4::FromTRS(currentParticle.position, newRotation * currentParticle.modelStretch.RotatePart(), currentParticle.scale);
 
 			} else if (billboardType == BillboardType::HORITZONTAL) {
 				float4x4 newModelMatrix = currentParticle.model.LookAt(rotatePart.Col(2), float3::unitY, rotatePart.Col(1), float3::unitY);
