@@ -30,6 +30,7 @@
 #define JSON_TAG_LOOP "Loop"
 #define JSON_TAG_SPEED "Speed"
 #define JSON_TAG_ID "Id"
+#define JSON_TAG_DURATION_BY_KEYFRAMES_SIZE "DurationByKeyframesSize"
 
 void ResourceClip::Load() {
 	// Timer to measure loading a clip
@@ -56,6 +57,7 @@ void ResourceClip::Load() {
 	beginIndex = jStateMachine[JSON_TAG_BEGIN_INDEX];
 	loop = jStateMachine[JSON_TAG_LOOP];
 	speed = jStateMachine[JSON_TAG_SPEED];
+	durationByKeyframesSize = jStateMachine[JSON_TAG_DURATION_BY_KEYFRAMES_SIZE];
 
 	Init(name, animationUID, beginIndex, endIndex, loop, speed, 0);
 
@@ -87,7 +89,7 @@ void ResourceClip::GetInfoJson() {
 	beginIndex = jStateMachine[JSON_TAG_BEGIN_INDEX];
 	loop = jStateMachine[JSON_TAG_LOOP];
 	speed = jStateMachine[JSON_TAG_SPEED];
-
+	durationByKeyframesSize = jStateMachine[JSON_TAG_DURATION_BY_KEYFRAMES_SIZE];
 	unsigned timeMs = timer.Stop();
 	LOG("Clip info received in %ums", timeMs);
 }
@@ -136,6 +138,7 @@ bool ResourceClip::SaveToFile(const char* filePath) {
 	// Create document
 	rapidjson::Document document;
 	JsonValue jStateMachine(document, document);
+	
 
 	jStateMachine[JSON_TAG_NAME] = name.c_str();
 	jStateMachine[JSON_TAG_ANIMATION_UID] = animationUID;
@@ -143,6 +146,7 @@ bool ResourceClip::SaveToFile(const char* filePath) {
 	jStateMachine[JSON_TAG_END_INDEX] = endIndex;
 	jStateMachine[JSON_TAG_LOOP] = loop;
 	jStateMachine[JSON_TAG_SPEED] = speed;
+	jStateMachine[JSON_TAG_DURATION_BY_KEYFRAMES_SIZE] = durationByKeyframesSize;
 
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
@@ -170,41 +174,30 @@ void ResourceClip::Init(std::string& mName, UID mAnimationUID, unsigned int mBeg
 		return;
 	}
 
-	ResourceAnimation* animationResource = GetResourceAnimation();
-	App->resources->IncreaseReferenceCount(mAnimationUID);
 	SetEndIndex(mEndIndex);
 	SetBeginIndex(mBeginIndex);
 }
 
 void ResourceClip::SetBeginIndex(unsigned int index) {
-	ResourceAnimation* animationResource = GetResourceAnimation();
-	if (!animationResource) {
-		return;
-	}
 	if (endIndex >= index) {
 		beginIndex = index;
 		keyFramesSize = endIndex - beginIndex;
 		if (keyFramesSize == 0) {
 			duration = 1;
 		} else {
-			duration = keyFramesSize * animationResource->duration / animationResource->keyFrames.size();
+			duration = keyFramesSize * durationByKeyframesSize;
 		}
 	}
 }
 
 void ResourceClip::SetEndIndex(unsigned int index) {
-	ResourceAnimation* animationResource = GetResourceAnimation();
-	if (!animationResource) {
-		return;
-	}
-
 	if (index >= beginIndex) {
 		endIndex = index;
 		keyFramesSize = endIndex - beginIndex;
 		if (keyFramesSize == 0) {
 			duration = 1;
 		} else {
-			duration = keyFramesSize * animationResource->duration / animationResource->keyFrames.size();
+			duration = keyFramesSize * durationByKeyframesSize;
 		}
 	}
 }

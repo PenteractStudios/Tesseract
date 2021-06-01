@@ -404,7 +404,7 @@ static std::pair<UID, UID> ImportAnimation(const char* modelFilePath, JsonValue 
 	// Create clip
 	std::unique_ptr<ResourceClip> clip = ImporterCommon::CreateResource<ResourceClip>(aiAnim->mName.C_Str(), modelFilePath, jMeta, resourceIndex);
 	clip->Init("clip" + std::to_string(animationIndex), animation->GetId(), 0, animation->keyFrames.size() - 1, true);
-
+	clip->durationByKeyframesSize = animation->duration / animation->keyFrames.size();
 	// Save resource meta file
 	bool clipSaved = ImporterCommon::SaveResourceMetaFile(clip.get());
 	if (!clipSaved) {
