@@ -63,17 +63,25 @@ void ComponentBoundingBox2D::CalculateWorldBoundingBox(bool force) {
 		float2 screenSize(0, 0);
 		float3 position(0, 0, 0);
 		float2 pivotPosition(0, 0);
+		float2 size(0, 0);
+		float3 scale(0, 0, 0);
 		if (canvasRenderer != nullptr) {
 			screenFactor = canvasRenderer->GetCanvasScreenFactor();
 			screenSize = canvasRenderer->GetCanvasSize();
 			position = transform2d->GetScreenPosition();
 			pivotPosition = transform2d->GetPivot();
+			size = transform2d->GetSize();
+			scale = transform2d->GetScale();
 		}
 
+		float2 pivotDifference = float2::zero;
+		pivotDifference.x = -pivotPosition.x + 0.5f;
+		pivotDifference.y = pivotPosition.y - 0.5f;
+
 		worldAABB.minPoint = position.xy().Mul(float2(1.0f, -1.0f).Mul(screenFactor)) + screenSize / 2.0f
-							 + (localAABB.minPoint + (pivotPosition - float2(0.5, 0.5))).Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy()).Mul(screenFactor));
+							 + (localAABB.minPoint + pivotDifference).Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy()).Mul(screenFactor));
 		worldAABB.maxPoint = position.xy().Mul(float2(1.0f, -1.0f).Mul(screenFactor)) + screenSize / 2.0f
-							 + (localAABB.maxPoint + (pivotPosition - float2(0.5, 0.5))).Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy()).Mul(screenFactor));
+							 + (localAABB.maxPoint + pivotDifference).Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy()).Mul(screenFactor));
 #if GAME
 		float2 windowPos = float2(App->window->GetPositionX(), App->window->GetPositionY());
 		worldAABB.minPoint += windowPos;
