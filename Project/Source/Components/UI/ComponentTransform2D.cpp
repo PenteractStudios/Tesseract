@@ -16,7 +16,6 @@
 #include "Math/TransformOps.h"
 
 #include "Utils/Leaks.h"
-#include <Utils/Logging.h>
 
 #define JSON_TAG_POSITION "Position"
 #define JSON_TAG_ROTATION "Rotation"
