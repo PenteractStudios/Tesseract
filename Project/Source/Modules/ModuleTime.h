@@ -57,6 +57,8 @@ private:
 	unsigned int realTimeLastMs = 0;  // Registers the total time since the Application was started.
 	unsigned int frameCount = 0;	  // Total number of frames elapsed since the Application start.
 
+	unsigned int lastAutoSave = 0; // Last moment in time the scene was saved automatically.
+
 	// ------ Game Time Flags ------ //
 	bool gameStarted = false;
 	bool gameRunning = false;
