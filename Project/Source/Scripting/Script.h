@@ -43,6 +43,7 @@ public:
 	virtual void OnToggled(bool val) {}
 	virtual void OnValueChanged() {}
 	virtual void OnAnimationFinished() {}
+	virtual void OnAnimationSecondaryFinished() {}
 	virtual void OnCollision(const GameObject& collidedWith) {}
 
 private:

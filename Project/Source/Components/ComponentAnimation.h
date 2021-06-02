@@ -9,6 +9,8 @@
 #include "Resources/ResourceStateMachine.h"
 #include "Utils/UID.h"
 #include <string>
+#include "StateMachineEnum.h"
+
 #include <unordered_map>
 
 class GameObject;
@@ -26,26 +28,37 @@ public:
 
 	void OnUpdate();
 
-	TESSERACT_ENGINE_API void SendTrigger(const std::string& trigger); // Method to trigger the change of state
+	TESSERACT_ENGINE_API void SendTriggerPrincipal(const std::string& trigger); // Method to trigger the change of state
+	TESSERACT_ENGINE_API void SendTriggerSecondary(const std::string& trigger); // Method to trigger the change of state
 
-	TESSERACT_ENGINE_API State* GetCurrentState() {
-		return currentState;
+	TESSERACT_ENGINE_API State* GetCurrentStatePrincipal() {
+		return currentStatePrincipal;
 	}
-	TESSERACT_ENGINE_API void SetCurrentState(State* mCurrentState) {
-		currentState = mCurrentState;
+	TESSERACT_ENGINE_API void SetCurrentStatePrincipal(State* mCurrentState) {
+		currentStatePrincipal = mCurrentState;
 	}
 
+	TESSERACT_ENGINE_API State* GetCurrentStateSecondary() {
+		return currentStateSecondary;
+	}
+	TESSERACT_ENGINE_API void SetCurrentStateSecondary(State* mCurrentState) {
+		currentStateSecondary = mCurrentState;
+	}
 
 public:
-	UID stateMachineResourceUID = 0;
-	State* currentState = nullptr;
+	UID stateMachineResourceUIDPrincipal = 0;
+	UID stateMachineResourceUIDSecondary = 0;
+	State* currentStatePrincipal = nullptr;
+	State* currentStateSecondary = nullptr;
 
 private:
 	void UpdateAnimations(GameObject* gameObject);
-	void LoadResourceStateMachine();
-	void InitCurrentTimeStates();
+	void LoadResourceStateMachine(UID stateMachineResourceUid, StateMachineEnum stateMachineEnum);
+	void InitCurrentTimeStates(UID stateMachineResourceUid, StateMachineEnum stateMachineEnum);
 
 private:
-	std::list<AnimationInterpolation> animationInterpolations; //List of the current interpolations between states
-	std::unordered_map<UID, float> currentTimeStates;
+	std::list<AnimationInterpolation> animationInterpolationsPrincipal; //List of the current interpolations between states
+	std::list<AnimationInterpolation> animationInterpolationsSecondary; //List of the current interpolations between states
+	std::unordered_map<UID, float> currentTimeStatesPrincipal;
+	std::unordered_map<UID, float> currentTimeStatesSecondary;
 };

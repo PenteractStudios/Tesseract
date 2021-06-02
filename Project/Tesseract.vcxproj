@@ -15,6 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\FileSystem\StateMachinGenerator.h" />
     <ClInclude Include="Source\Components\ComponentBillboard.h" />
     <ClInclude Include="Source\LightFrustum.h" />
     <ClInclude Include="Source\Components\ComponentAgent.h" />
@@ -125,6 +126,7 @@
     <ClInclude Include="Source\Resources\ResourceFont.h" />
     <ClInclude Include="Source\Components\ComponentBoundingBox2D.h" />
     <ClInclude Include="Source\Scripting\Member.h" />
+    <ClInclude Include="Source\StateMachineEnum.h" />
     <ClInclude Include="Source\UI\Interfaces\IMouseClickHandler.h" />
     <ClInclude Include="Source\UI\Interfaces\IPointerEnterHandler.h" />
     <ClInclude Include="Source\UI\Interfaces\IPointerExitHandler.h" />
@@ -335,8 +337,10 @@
     <ClInclude Include="Source\Utils\VectorMap.h" />
     <ClInclude Include="Source\Utils\PoolMap.h" />
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
+    <ClInclude Include="Source\StateMachineManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\FileSystem\StateMachinGenerator.cpp" />
     <ClCompile Include="Source\Components\ComponentBillboard.cpp" />
     <ClCompile Include="Source\LightFrustum.cpp" />
     <ClCompile Include="Source\Components\ComponentAgent.cpp" />
@@ -563,6 +567,7 @@
     <ClCompile Include="Libs\MathGeoLib\Math\SSEMath.cpp" />
     <ClCompile Include="Libs\MathGeoLib\Math\TransformOps.cpp" />
     <ClCompile Include="Libs\MathGeoLib\Time\Clock.cpp" />
+    <ClCompile Include="Source\StateMachineManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />
