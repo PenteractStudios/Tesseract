@@ -7,12 +7,15 @@
 #include "Utils/Logging.h"
 #include "Panels/PanelScene.h"
 #include "Modules/ModuleWindow.h"
+#include "Modules/ModuleTime.h"
 #include "Modules/ModuleRender.h"
+#include "Modules/ModuleUserInterface.h"
 
 #include "debugdraw.h"
 #include "Geometry/AABB.h"
 #include "Geometry/OBB2D.h"
 #include "Geometry/Circle.h"
+#include "imgui.h"
 #include "Math/float3x3.h"
 
 #include "Utils/Leaks.h"
@@ -28,6 +31,10 @@ void ComponentBoundingBox2D::Init() {
 		SetLocalBoundingBox(AABB2D(minPoint, maxPoint));
 		CalculateWorldBoundingBox();
 	}
+}
+
+void ComponentBoundingBox2D::OnEditorUpdate() {
+	ImGui::Checkbox("Show Outline Object", &drawOutline);
 }
 
 void ComponentBoundingBox2D::Update() {
@@ -91,7 +98,9 @@ void ComponentBoundingBox2D::CalculateWorldBoundingBox(bool force) {
 }
 
 void ComponentBoundingBox2D::DrawGizmos() {
-	dd::aabb(float3(worldAABB.minPoint, 0.0f), float3(worldAABB.maxPoint, 0.0f), float3::one);
+	if (!App->time->IsGameRunning() && !App->userInterface->IsUsing2D() && drawOutline) {
+		dd::aabb(float3(worldAABB.minPoint, 0.0f), float3(worldAABB.maxPoint, 0.0f), float3::one);
+	}
 }
 
 void ComponentBoundingBox2D::Invalidate() {

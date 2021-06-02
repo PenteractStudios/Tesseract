@@ -22,7 +22,6 @@ private:
 	ImGuizmo::OPERATION currentGuizmoOperation = ImGuizmo::TRANSLATE;
 	ImGuizmo::MODE currentGuizmoMode = ImGuizmo::WORLD;
 
-	bool pivotMode = false;
 	bool useSnap = false;
 	float snap[3] = {1.f, 1.f, 1.f};
 };

@@ -58,7 +58,6 @@ UpdateStatus ModuleUserInterface::Update() {
 
 			if (bb) {
 				if (!selectable.IsHovered()) {
-					float2 auxMouse = mousePos;
 					if (bb->GetWorldAABB().Contains(mousePos)) {
 						selectable.OnPointerEnter();
 					}

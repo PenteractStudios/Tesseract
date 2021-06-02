@@ -2,6 +2,7 @@
 
 #include "Components/Component.h"
 #include "Math/float2.h"
+
 class ComponentCanvas : public Component {
 public:
 	REGISTER_COMPONENT(ComponentCanvas, ComponentType::CANVAS, false);
@@ -21,7 +22,7 @@ public:
 	float2 GetScreenReferenceSize() const;
 	float2 GetSize();
 	float GetScreenFactor(); //Returns the factor by which UI elements will be scaled (both x and y so it doesn't deform elements)
-	bool GetDraw2dObjects() const;
+	bool GetDrawCanvas() const;
 
 private:
 	void RecalculateSizeAndScreenFactor();
@@ -34,5 +35,5 @@ private:
 	float screenFactor = 0.0f;
 	bool dirty = true;
 
-	bool draw2dObjects = true;
+	bool drawCanvas = false;
 };

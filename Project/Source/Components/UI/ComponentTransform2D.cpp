@@ -225,9 +225,8 @@ void ComponentTransform2D::Load(JsonValue jComponent) {
 void ComponentTransform2D::DrawGizmos() {
 	ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
 	float factor = canvasRenderer ? canvasRenderer->GetCanvasScreenFactor() : 1.0f;
-	if (!App->time->IsGameRunning()) {
-		//dd::box(GetPosition(), dd::colors::Yellow, size.x * scale.x / 100, size.y * scale.y / 100, 0);
-		dd::box(GetScreenPosition() * factor, dd::colors::OrangeRed, 0.1f, 0.1f, 0.f); // Pivot Position
+	if (!App->time->IsGameRunning() && !App->userInterface->IsUsing2D()) {
+		dd::box(GetScreenPosition() * factor, dd::colors::DeepPink, 0.1f, 0.1f, 0.f); // Pivot Position
 	}
 }
 

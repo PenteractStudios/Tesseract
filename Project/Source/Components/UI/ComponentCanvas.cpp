@@ -32,11 +32,11 @@ void ComponentCanvas::OnEditorUpdate() {
 	if (ImGui::InputFloat2("Reference Screen Size", refSize.ptr(), "%.0f")) {
 		SetScreenReferenceSize(refSize);
 	}
-	ImGui::Checkbox("Show 2D Screen & Objects", &draw2dObjects);
+	ImGui::Checkbox("Show Canvas Outline", &drawCanvas);
 }
 
 void ComponentCanvas::DrawGizmos() {
-	if (!App->time->IsGameRunning() && !App->userInterface->IsUsing2D() && draw2dObjects) {
+	if (!App->time->IsGameRunning() && !App->userInterface->IsUsing2D() && drawCanvas) {
 		float2 canvasSize = GetSize();
 		dd::box(float3(canvasSize.x * 0.5f, canvasSize.y * 0.5, 0.0f), dd::colors::DimGray, canvasSize.x, canvasSize.y, 0);
 	}
@@ -65,8 +65,8 @@ float ComponentCanvas::GetScreenFactor() {
 	return screenFactor;
 }
 
-bool ComponentCanvas::GetDraw2dObjects() const {
-	return draw2dObjects;
+bool ComponentCanvas::GetDrawCanvas() const {
+	return drawCanvas;
 }
 
 void ComponentCanvas::RecalculateSizeAndScreenFactor() {

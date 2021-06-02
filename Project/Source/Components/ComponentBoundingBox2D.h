@@ -9,6 +9,7 @@ public:
 	REGISTER_COMPONENT(ComponentBoundingBox2D, ComponentType::BOUNDING_BOX_2D, false);
 
 	void Init() override;
+	void OnEditorUpdate() override;
 	void Update() override;
 
 	void Save(JsonValue jComponent) const override;
@@ -23,6 +24,8 @@ public:
 
 private:
 	bool dirty = true;
+	bool drawOutline = false;
+
 	AABB2D localAABB = {{0, 0}, {0, 0}};
 	AABB2D worldAABB = {{0, 0}, {0, 0}};
 };
