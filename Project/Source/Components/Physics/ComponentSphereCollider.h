@@ -19,7 +19,7 @@ public:
 	void Load(JsonValue jComponent) override;
 
 	// ----- Collider Functions ---- //
-	void OnCollision(); // Callback function for scripting
+	void OnCollision(const GameObject& collidedWith); // Callback function for scripting
 
 public:
 	btRigidBody* rigidBody = nullptr;										// Body that is represented in the physic world.
