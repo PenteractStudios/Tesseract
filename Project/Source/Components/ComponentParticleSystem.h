@@ -78,7 +78,6 @@ private:
 	bool alphaTransparency = false; // Enables Alpha Transparency of the image and the color
 	bool isRandomFrame = false;
 	bool randomDirection = false;
-	//TODO USE THIS FEATURE
 	bool sizeOverTime = false;
 
 	float4 initC = float4::one;
@@ -94,6 +93,7 @@ private:
 	float innerAngle = pi / 12;
 	float outerAngle = pi / 6;
 	float particleLife = 5;
+	float scaleFactor = 0;
 
 	unsigned particleSpawned = 0;
 	unsigned Xtiles = 1;

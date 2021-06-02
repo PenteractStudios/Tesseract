@@ -35,6 +35,8 @@
 
 #define JSON_TAG_ISPLAYING "IsPlaying"
 #define JSON_TAG_LOOPING "IsLooping"
+#define JSON_TAG_SIZEOVERTIME "IsSizeOverTime"
+#define JSON_TAG_SCALEFACTOR "ScaleFactor"
 #define JSON_TAG_ISRANDOMFRAME "IsRandomFrame"
 #define JSON_TAG_ISRANDOMDIRECTION "IsRandomDirection"
 #define JSON_TAG_SCALEPARTICLE "ParticleScale"
@@ -151,6 +153,10 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			}
 		}
 
+		ImGui::Checkbox("Size Over Time", &sizeOverTime);
+		if (sizeOverTime) {
+			ImGui::DragFloat("Scale Factor", &scaleFactor, App->editor->dragSpeed2f, 0, inf);
+		}
 		ImGui::ColorEdit4("InitColor##", initC.ptr());
 		ImGui::ColorEdit4("FinalColor##", finalC.ptr());
 
@@ -246,7 +252,8 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	particleLife = jComponent[JSON_TAG_LIFE];
 	Ytiles = jComponent[JSON_TAG_YTILES];
 	Xtiles = jComponent[JSON_TAG_XTILES];
-
+	sizeOverTime = jComponent[JSON_TAG_SIZEOVERTIME];
+	scaleFactor = jComponent[JSON_TAG_SCALEFACTOR];
 	emitterType = (EmitterType)(int) jComponent[JSON_TAG_EMITTERTYPE];
 	billboardType = (BillboardType)(int) jComponent[JSON_TAG_BILLBOARDTYPE];
 
@@ -267,7 +274,8 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_TEXTURE_SHADERID] = shaderID;
 	jComponent[JSON_TAG_TEXTURE_TEXTUREID] = textureID;
-
+	jComponent[JSON_TAG_SIZEOVERTIME] = sizeOverTime;
+	jComponent[JSON_TAG_SCALEFACTOR] = scaleFactor;
 	jComponent[JSON_TAG_ISPLAYING] = isPlaying;
 	jComponent[JSON_TAG_LOOPING] = looping;
 	jComponent[JSON_TAG_ISRANDOMFRAME] = isRandomFrame;
@@ -315,7 +323,17 @@ void ComponentParticleSystem::Update() {
 		} else {
 			currentParticle.life -= App->time->GetRealTimeDeltaTime();
 		}
-
+		if (sizeOverTime) {
+			if (App->time->IsGameRunning()) {
+				currentParticle.scale.x += scaleFactor * App->time->GetDeltaTime();
+				currentParticle.scale.y += scaleFactor * App->time->GetDeltaTime();
+				currentParticle.scale.z += scaleFactor * App->time->GetDeltaTime();
+			} else {
+				currentParticle.scale.x += scaleFactor * App->time->GetRealTimeDeltaTime();
+				currentParticle.scale.y += scaleFactor * App->time->GetRealTimeDeltaTime();
+				currentParticle.scale.z += scaleFactor * App->time->GetRealTimeDeltaTime();
+			}
+		}
 		if (currentParticle.life < 0) {
 			deadParticles.push_back(&currentParticle);
 		}
@@ -421,7 +439,6 @@ void ComponentParticleSystem::Draw() {
 			if (billboardType == BillboardType::LOOK_AT) {
 				float4x4 newModelMatrix = currentParticle.model.LookAt(rotatePart.Col(2), -frustum->Front(), rotatePart.Col(1), float3::unitY);
 				modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart(), currentParticle.scale);
-
 			} else if (billboardType == BillboardType::STRETCH) {
 				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
 				float3 cameraDir = (cameraPos - currentParticle.initialPosition).Normalized();
@@ -434,13 +451,11 @@ void ComponentParticleSystem::Draw() {
 				newRotation.SetCol(2, newCameraDir);
 
 				modelMatrix = float4x4::FromTRS(currentParticle.position, newRotation * currentParticle.modelStretch.RotatePart(), currentParticle.scale);
-
 			} else if (billboardType == BillboardType::HORIZONTAL) {
 				float4x4 newModelMatrix = currentParticle.model.LookAt(rotatePart.Col(2), float3::unitY, rotatePart.Col(1), float3::unitY);
 				modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart(), currentParticle.scale);
-
 			} else if (billboardType == BillboardType::VERTICAL) {
-				// TODO: Implement it 
+				// TODO: Implement it
 				modelMatrix = currentParticle.model;
 			}
 
