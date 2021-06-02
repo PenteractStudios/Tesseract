@@ -84,5 +84,6 @@ public:
 	float dragSpeed1f = 0.5f;
 	float dragSpeed2f = 0.05f;
 	float dragSpeed3f = 0.005f;
+	float dragSpeed4f = 0.0005f;
 	float dragSpeed5f = 0.00005f;
 };
