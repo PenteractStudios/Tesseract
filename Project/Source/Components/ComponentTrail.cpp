@@ -30,7 +30,8 @@
 #define JSON_TAG_TEXTURE_TEXTUREID "TextureId"
 #define JSON_TAG_TIMETOSTART "TimeToStart"
 #define JSON_TAG_COLOR "Color"
-
+#define JSON_TAG_MAXVERTICES "MaxVertices"
+#define JSON_TAG_TRAILQUADS "TrailQuads"
 #define JSON_TAG_ALPHATRANSPARENCY "AlphaTransparency"
 
 // clang-format off
@@ -92,6 +93,11 @@ void ComponentTrail::Update() {
 void ComponentTrail::OnEditorUpdate() {
 	ImGui::ResourceSlot<ResourceShader>("shader", &shaderID);
 	ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
+	if (ImGui::DragScalar("Trail Quads", ImGuiDataType_U32, &trailQuads)) {
+		if (trailQuads <= 0) trailQuads = 1;
+		if (trailQuads > 50) trailQuads = 50;
+		DeleteQuads();
+	}
 
 	UID oldID = textureID;
 	ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
@@ -131,11 +137,15 @@ void ComponentTrail::Load(JsonValue jComponent) {
 	if (textureID != 0) {
 		App->resources->IncreaseReferenceCount(textureID);
 	}
+	maxVertices = jComponent[JSON_TAG_MAXVERTICES];
+	trailQuads = jComponent[JSON_TAG_TRAILQUADS];
 }
 
 void ComponentTrail::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_TEXTURE_SHADERID] = shaderID;
 	jComponent[JSON_TAG_TEXTURE_TEXTUREID] = textureID;
+	jComponent[JSON_TAG_MAXVERTICES] = maxVertices;
+	jComponent[JSON_TAG_TRAILQUADS] = trailQuads;
 }
 
 void ComponentTrail::Draw() {
@@ -188,9 +198,6 @@ void ComponentTrail::Draw() {
 	glDepthMask(GL_TRUE);
 }
 
-void ComponentTrail::SpawnParticle() {
-}
-
 void ComponentTrail::UpdateVerticesPosition() {
 	for (int i = 0; i < (maxVertices - 30); i++) {
 		verticesPosition[i] = verticesPosition[i + 30];
@@ -207,4 +214,12 @@ void ComponentTrail::InsertTextureCoords() {
 
 	verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
 	verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
+}
+
+void ComponentTrail::DeleteQuads() {
+	isStarted = false;
+	quadsCreated = 0;
+	trianglesCreated = 0;
+	maxVertices = 30 * trailQuads;
+	verticesPosition[1500] = {0.0f};
 }

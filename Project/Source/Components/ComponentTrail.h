@@ -18,10 +18,10 @@ public:
 	void Save(JsonValue jComponent) const override;
 
 	void Draw();
-	void SpawnParticle();
 	void UpdateVerticesPosition();
 	void InsertVertex(float3 vertex);
 	void InsertTextureCoords();
+	void DeleteQuads();
 
 private:
 	UID textureID = 0; // ID of the image
@@ -29,6 +29,7 @@ private:
 
 	int nSegments = 1;
 	int quadsCreated = 0;
+	int trailQuads = 50;
 	int maxVertices = 1500;
 	int trianglesCreated = 0;
 	int textureCreated = 0;
