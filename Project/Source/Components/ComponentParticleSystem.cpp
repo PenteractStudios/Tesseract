@@ -139,7 +139,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::DragFloat("Life", &particleLife, App->editor->dragSpeed2f, 0, inf);
 		ImGui::DragFloat("Animation Speed", &animationSpeed, App->editor->dragSpeed2f, -inf, inf);
 
-		if (ImGui::DragFloat("Speed", &velocity, App->editor->dragSpeed3f, 0, inf)) {
+		if (ImGui::DragFloat("Speed", &velocity, App->editor->dragSpeed4f, 0, inf)) {
 			CreateParticles(maxParticles, velocity);
 		}
 
@@ -435,12 +435,13 @@ void ComponentParticleSystem::Draw() {
 
 				modelMatrix = float4x4::FromTRS(currentParticle.position, newRotation * currentParticle.modelStretch.RotatePart(), currentParticle.scale);
 
-			} else if (billboardType == BillboardType::HORITZONTAL) {
+			} else if (billboardType == BillboardType::HORIZONTAL) {
 				float4x4 newModelMatrix = currentParticle.model.LookAt(rotatePart.Col(2), float3::unitY, rotatePart.Col(1), float3::unitY);
 				modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart(), currentParticle.scale);
 
 			} else if (billboardType == BillboardType::VERTICAL) {
-				// TODO
+				// TODO: Implement it 
+				modelMatrix = currentParticle.model;
 			}
 
 			glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, modelMatrix.ptr());

@@ -25,7 +25,7 @@ enum class EmitterType {
 enum class BillboardType {
 	LOOK_AT,
 	STRETCH,
-	HORITZONTAL,
+	HORIZONTAL,
 	VERTICAL
 };
 
