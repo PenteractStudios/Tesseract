@@ -304,19 +304,19 @@ UpdateStatus ModuleEditor::Update() {
 	std::string selectedPath;
 
 	if (FileDialog::OpenDialog("Load scene", selectedPath)) {
-		std::string filePath = std::string(SCENES_PATH "/") + FileDialog::GetFileName(selectedPath.c_str()) + SCENE_EXTENSION;
+		std::string filePath = FileDialog::GetRelativePath(selectedPath.c_str());
 		SceneImporter::LoadScene(filePath.c_str());
 		ImGui::CloseCurrentPopup();
 	}
 
 	if (FileDialog::OpenDialog("Save scene", selectedPath)) {
-		std::string filePath = std::string(SCENES_PATH "/") + FileDialog::GetFileName(selectedPath.c_str()) + SCENE_EXTENSION;
+		std::string filePath = FileDialog::GetRelativePath(selectedPath.c_str());
 		SceneImporter::SaveScene(filePath.c_str());
 		ImGui::CloseCurrentPopup();
 	}
 
 	if (FileDialog::OpenDialog("Save prefab", selectedPath)) {
-		std::string filePath = std::string(PREFABS_PATH "/") + FileDialog::GetFileName(selectedPath.c_str()) + PREFAB_EXTENSION;
+		std::string filePath = FileDialog::GetRelativePath(selectedPath.c_str());
 		PrefabImporter::SavePrefab(filePath.c_str(), selectedGameObject);
 		ImGui::CloseCurrentPopup();
 	}
