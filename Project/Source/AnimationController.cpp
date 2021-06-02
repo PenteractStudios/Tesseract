@@ -20,7 +20,6 @@ int AnimationController::GetCurrentSample(const ResourceClip& clip, float& curre
 	return intPart;
 }
 
-
 bool AnimationController::GetTransform(const ResourceClip& clip, float& currentTime, const char* name, float3& pos, Quat& quat) {
 	assert(clip.animationUID != 0);
 
@@ -77,8 +76,7 @@ struct CheckFinishInterpolation {
 	}
 };
 
-State* AnimationController::UpdateTransitions(std::list<AnimationInterpolation>& animationInterpolations, std::unordered_map<UID, float>& currentTimeStates, const float time) {
-	State* state = nullptr;
+bool AnimationController::UpdateTransitions(std::list<AnimationInterpolation>& animationInterpolations, std::unordered_map<UID, float>& currentTimeStates, const float time) {
 	bool finished = false;
 	for (auto& interpolation = animationInterpolations.rbegin(); interpolation != animationInterpolations.rend(); ++interpolation) {
 		(*interpolation).currentTime += time;
@@ -90,8 +88,7 @@ State* AnimationController::UpdateTransitions(std::list<AnimationInterpolation>&
 
 		if ((*interpolation).fadeTime >= (*interpolation).transitionTime) {
 			finished = true;
-			state = (*interpolation).state;
-			currentTimeStates[state->id] = (*interpolation).currentTime;
+			currentTimeStates[(*interpolation).state->id] = (*interpolation).currentTime;
 		}
 	}
 
@@ -101,7 +98,7 @@ State* AnimationController::UpdateTransitions(std::list<AnimationInterpolation>&
 		animationInterpolations.clear();
 	}
 
-	return state;
+	return finished;
 }
 
 Quat AnimationController::Interpolate(const Quat& first, const Quat& second, float lambda) {
