@@ -70,15 +70,11 @@ void ComponentBoundingBox2D::CalculateWorldBoundingBox(bool force) {
 		float2 screenSize(0, 0);
 		float3 position(0, 0, 0);
 		float2 pivotPosition(0, 0);
-		float2 size(0, 0);
-		float3 scale(0, 0, 0);
 		if (canvasRenderer != nullptr) {
 			screenFactor = canvasRenderer->GetCanvasScreenFactor();
 			screenSize = canvasRenderer->GetCanvasSize();
 			position = transform2d->GetScreenPosition();
 			pivotPosition = transform2d->GetPivot();
-			size = transform2d->GetSize();
-			scale = transform2d->GetScale();
 		}
 
 		float2 pivotDifference = float2::zero;
