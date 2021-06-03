@@ -7,7 +7,7 @@
     ],
     "QuadtreeMaxDepth": 4,
     "QuadtreeElementsPerNode": 200,
-    "GameCamera": 4691575553702445318,
+    "GameCamera": 13064057151060888310,
     "AmbientLight": [
         0.25,
         0.25,
@@ -221,7 +221,8 @@
                         "Type": "Particle",
                         "Id": 8694248103497684133,
                         "Active": true,
-                        "ShaderId": 11379545950448947673,
+                        "EmitterType": 0,
+                        "BillboardType": 1,
                         "TextureId": 15293835488772209884,
                         "IsPlaying": true,
                         "IsLooping": true,
@@ -231,10 +232,10 @@
                         "MaxParticle": 4,
                         "Velocity": 0.03999999910593033,
                         "LifeParticle": 4.5,
+                        "IsSizeOverTime": false,
+                        "ScaleFactor": 0.0,
                         "Ytiles": 2,
                         "Xtiles": 5,
-                        "EmitterType": 0,
-                        "BillboardType": 1,
                         "AnimationSpeed": 12.449999809265137,
                         "InitColor": [
                             1.0,
@@ -248,6 +249,8 @@
                             0.0,
                             0.0
                         ],
+                        "StartTransition": 0.0,
+                        "EndTransition": 0.0,
                         "FlipTexture": [
                             true,
                             false
@@ -295,7 +298,7 @@
                         "Type": "Billboard",
                         "Id": 6701474013971452755,
                         "Active": true,
-                        "ShaderId": 11379545950448947673,
+                        "BillboardType": 0,
                         "TextureId": 17325449200839517079,
                         "Ytiles": 2,
                         "Xtiles": 2,
@@ -309,13 +312,19 @@
                             0.7892156839370728,
                             0.6963662505149841,
                             0.0
+                        ],
+                        "StartTransition": 5.0,
+                        "EndTransition": 10.0,
+                        "FlipTexture": [
+                            false,
+                            false
                         ]
                     }
                 ],
                 "Children": null
             },
             {
-                "Id": 12153701919687234833,
+                "Id": 5892479820138935,
                 "Name": "Trail",
                 "Active": true,
                 "Static": false,
@@ -325,12 +334,12 @@
                 "Components": [
                     {
                         "Type": "Transform",
-                        "Id": 10565745625098805559,
+                        "Id": 821853200183640833,
                         "Active": true,
                         "Position": [
-                            0.6477056741714478,
-                            0.2983391582965851,
-                            -4.792236804962158
+                            0.011597264558076859,
+                            0.10565079003572464,
+                            -4.926559925079346
                         ],
                         "Rotation": [
                             0.0,
@@ -351,10 +360,11 @@
                     },
                     {
                         "Type": "Trail",
-                        "Id": 4261371747088745540,
+                        "Id": 16214754980487093798,
                         "Active": true,
-                        "ShaderId": 16657161648281974966,
-                        "TextureId": 7462643113118668321
+                        "TextureId": 7462643113118668321,
+                        "MaxVertices": 1500,
+                        "TrailQuads": 50
                     }
                 ],
                 "Children": null
