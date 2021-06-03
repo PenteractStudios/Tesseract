@@ -33,6 +33,9 @@
 #define JSON_TAG_BILLBOARDTYPE "BillboardType"
 #define JSON_TAG_TEXTURE_TEXTUREID "TextureId"
 
+#define JSON_TAG_TEXTURE_DISTANCEREVERSE "distanceReverse"
+#define JSON_TAG_TEXTURE_REVERSEEFFECT "reverseEffect"
+
 #define JSON_TAG_ISPLAYING "IsPlaying"
 #define JSON_TAG_LOOPING "IsLooping"
 #define JSON_TAG_SIZEOVERTIME "IsSizeOverTime"
@@ -110,7 +113,10 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 	ImGui::Checkbox("Random Frame", &isRandomFrame);
 	ImGui::Checkbox("Random Direction", &randomDirection);
-
+	ImGui::Checkbox("Reverse Effect", &reverseEffect);
+	if (reverseEffect) {
+		ImGui::DragFloat("Distance", &distanceReverse, App->editor->dragSpeed2f, 0, inf);
+	}
 	UID oldID = textureID;
 	ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
 
@@ -193,6 +199,7 @@ float3 ComponentParticleSystem::CreateVelocity() {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 		float3 forward = transform->GetGlobalRotation() * float3::unitY;
 		if (!randomDirection) return forward.Normalized();
+		if (reverseEffect) return forward.Normalized();
 
 		x = (float(rand()) / float((RAND_MAX)) * 0.2f) - 0.2f;
 		y = (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.0f;
@@ -216,18 +223,33 @@ float3 ComponentParticleSystem::CreatePosition() {
 	float x, y, z;
 	if (emitterType == EmitterType::CONE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-		x = (transform->GetGlobalPosition().x);
-		z = (transform->GetGlobalPosition().z);
-		y = (transform->GetGlobalPosition().y);
+		if (reverseEffect) {
+			float3 forward = transform->GetGlobalRotation() * float3::unitY;
+			x = (float(rand()) / float((RAND_MAX)) * 0.2f) - 0.2f;
+			y = (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.0f;
+			z = (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.2f;
+
+			return float3(float3(forward.x + x, forward.y + y, forward.z + z).Normalized() * distanceReverse);
+		} else {
+			x = (transform->GetGlobalPosition().x);
+			z = (transform->GetGlobalPosition().z);
+			y = (transform->GetGlobalPosition().y);
+		}
 		return (float3(x, y, z));
 	}
 
 	if (emitterType == EmitterType::SPHERE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-		x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.5f;
-		z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.5f;
-		y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.5f;
-		return float3(transform->GetGlobalPosition());
+		if (reverseEffect) {
+			x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * distanceReverse) - (distanceReverse / 2);
+			z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * distanceReverse) - (distanceReverse / 2);
+			y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * distanceReverse) - (distanceReverse / 2);
+		} else {
+			x = (transform->GetGlobalPosition().x);
+			z = (transform->GetGlobalPosition().z);
+			y = (transform->GetGlobalPosition().y);
+		}
+		return (float3(x, y, z));
 	}
 
 	return float3(0, 0, 0);
@@ -263,6 +285,9 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	particleLife = jComponent[JSON_TAG_LIFE];
 	sizeOverTime = jComponent[JSON_TAG_SIZEOVERTIME];
 	scaleFactor = jComponent[JSON_TAG_SCALEFACTOR];
+
+	reverseEffect = jComponent[JSON_TAG_TEXTURE_DISTANCEREVERSE];
+	distanceReverse = jComponent[JSON_TAG_TEXTURE_REVERSEEFFECT];
 
 	Ytiles = jComponent[JSON_TAG_YTILES];
 	Xtiles = jComponent[JSON_TAG_XTILES];
@@ -300,6 +325,9 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_SIZEOVERTIME] = sizeOverTime;
 	jComponent[JSON_TAG_SCALEFACTOR] = scaleFactor;
 
+	jComponent[JSON_TAG_TEXTURE_DISTANCEREVERSE] = reverseEffect;
+	jComponent[JSON_TAG_TEXTURE_REVERSEEFFECT] = distanceReverse;
+
 	jComponent[JSON_TAG_YTILES] = Ytiles;
 	jComponent[JSON_TAG_XTILES] = Xtiles;
 	jComponent[JSON_TAG_ANIMATIONSPEED] = animationSpeed;
@@ -326,9 +354,21 @@ void ComponentParticleSystem::Update() {
 	deadParticles.clear();
 	for (Particle& currentParticle : particles) {
 		if (App->time->IsGameRunning()) {
-			currentParticle.position += currentParticle.direction * velocity * App->time->GetDeltaTime();
+			if (reverseEffect) {
+				ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
+				float3 direction = currentParticle.position - transform->GetGlobalPosition();
+				currentParticle.position -= direction * App->time->GetDeltaTime();
+			} else {
+				currentParticle.position += currentParticle.direction * velocity * App->time->GetDeltaTime();
+			}
 		} else {
-			currentParticle.position += currentParticle.direction * velocity * App->time->GetRealTimeDeltaTime();
+			if (reverseEffect) {
+				ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
+				float3 direction = currentParticle.position - transform->GetGlobalPosition();
+				currentParticle.position -= direction * App->time->GetRealTimeDeltaTime();
+			} else {
+				currentParticle.position += currentParticle.direction * velocity * App->time->GetRealTimeDeltaTime();
+			}
 		}
 
 		if (billboardType == BillboardType::LOOK_AT) {
