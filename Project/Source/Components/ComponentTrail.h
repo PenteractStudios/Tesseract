@@ -12,6 +12,7 @@ class ComponentTrail : public Component {
 public:
 	REGISTER_COMPONENT(ComponentTrail, ComponentType::TRAIL, false);
 
+	void Init() override;
 	void Update() override;
 	void OnEditorUpdate() override;
 	void Load(JsonValue jComponent) override;
@@ -24,6 +25,7 @@ public:
 	void DeleteQuads();
 
 private:
+	unsigned int quadVBO;
 	UID textureID = 0; // ID of the image
 
 	int nSegments = 1;

@@ -162,7 +162,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 		ImGui::Checkbox("Size Over Time", &sizeOverTime);
 		if (sizeOverTime) {
-			ImGui::DragFloat("Scale Factor", &scaleFactor, App->editor->dragSpeed2f, 0, inf);
+			ImGui::DragFloat("Scale Factor", &scaleFactor, App->editor->dragSpeed2f, -inf, inf);
 		}
 
 		ImGui::NewLine();
@@ -343,6 +343,7 @@ void ComponentParticleSystem::Update() {
 			currentParticle.life -= App->time->GetRealTimeDeltaTime();
 			currentParticle.colorFrame += App->time->GetRealTimeDeltaTime();
 		}
+
 		if (sizeOverTime) {
 			if (App->time->IsGameRunning()) {
 				currentParticle.scale.x += scaleFactor * App->time->GetDeltaTime();
@@ -352,6 +353,15 @@ void ComponentParticleSystem::Update() {
 				currentParticle.scale.x += scaleFactor * App->time->GetRealTimeDeltaTime();
 				currentParticle.scale.y += scaleFactor * App->time->GetRealTimeDeltaTime();
 				currentParticle.scale.z += scaleFactor * App->time->GetRealTimeDeltaTime();
+			}
+			if (currentParticle.scale.x < 0) {
+				currentParticle.scale.x = 0;
+			}
+			if (currentParticle.scale.y < 0) {
+				currentParticle.scale.y = 0;
+			}
+			if (currentParticle.scale.z < 0) {
+				currentParticle.scale.z = 0;
 			}
 		}
 		if (currentParticle.life < 0) {

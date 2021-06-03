@@ -29,7 +29,6 @@
 
 #define JSON_TAG_TEXTURE_TEXTUREID "TextureId"
 #define JSON_TAG_TIMETOSTART "TimeToStart"
-#define JSON_TAG_COLOR "Color"
 #define JSON_TAG_MAXVERTICES "MaxVertices"
 #define JSON_TAG_TRAILQUADS "TrailQuads"
 #define JSON_TAG_ALPHATRANSPARENCY "AlphaTransparency"
@@ -46,6 +45,10 @@ static const float textureCords[12] = {
 	0.0f, 1.0f,
 	};
 // clang-format on
+
+void ComponentTrail::Init() {
+	glGenBuffers(1, &quadVBO);
+}
 
 void ComponentTrail::Update() {
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
@@ -148,8 +151,6 @@ void ComponentTrail::Draw() {
 	glBlendFunc(GL_ONE, GL_ONE);
 	glDisable(GL_CULL_FACE);
 
-	unsigned int quadVBO;
-	glGenBuffers(1, &quadVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, quadVBO); // set vbo active
 	glBufferData(GL_ARRAY_BUFFER, sizeof(verticesPosition), verticesPosition, GL_STATIC_DRAW);
 
@@ -202,9 +203,12 @@ void ComponentTrail::InsertTextureCoords() {
 }
 
 void ComponentTrail::DeleteQuads() {
+	for (int i = 0; i < (maxVertices); i++) {
+		verticesPosition[i] = 0.0f;
+	}
 	isStarted = false;
 	quadsCreated = 0;
 	trianglesCreated = 0;
 	maxVertices = 30 * trailQuads;
-	verticesPosition[1500] = {0.0f};
+	textureCreated = 0;
 }
