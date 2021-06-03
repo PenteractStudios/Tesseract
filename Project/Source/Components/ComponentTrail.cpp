@@ -26,7 +26,7 @@
 #include <Utils/Logging.h>
 
 #include "Utils/Leaks.h"
-#define JSON_TAG_TEXTURE_SHADERID "ShaderId"
+
 #define JSON_TAG_TEXTURE_TEXTUREID "TextureId"
 #define JSON_TAG_TIMETOSTART "TimeToStart"
 #define JSON_TAG_COLOR "Color"
@@ -90,7 +90,6 @@ void ComponentTrail::Update() {
 }
 
 void ComponentTrail::OnEditorUpdate() {
-	ImGui::ResourceSlot<ResourceShader>("shader", &shaderID);
 	ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
 
 	UID oldID = textureID;
@@ -120,32 +119,18 @@ void ComponentTrail::OnEditorUpdate() {
 }
 
 void ComponentTrail::Load(JsonValue jComponent) {
-	shaderID = jComponent[JSON_TAG_TEXTURE_SHADERID];
-
-	if (shaderID != 0) {
-		App->resources->IncreaseReferenceCount(shaderID);
-	}
-
 	textureID = jComponent[JSON_TAG_TEXTURE_TEXTUREID];
-
 	if (textureID != 0) {
 		App->resources->IncreaseReferenceCount(textureID);
 	}
 }
 
 void ComponentTrail::Save(JsonValue jComponent) const {
-	jComponent[JSON_TAG_TEXTURE_SHADERID] = shaderID;
 	jComponent[JSON_TAG_TEXTURE_TEXTUREID] = textureID;
 }
 
 void ComponentTrail::Draw() {
-	unsigned int program = 0;
-	ResourceShader* shaderResouce = App->resources->GetResource<ResourceShader>(shaderID);
-	if (shaderResouce) {
-		program = shaderResouce->GetShaderProgram();
-	} else {
-		return;
-	}
+	unsigned int program = App->programs->trail;
 
 	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);

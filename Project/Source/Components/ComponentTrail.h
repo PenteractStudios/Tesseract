@@ -25,7 +25,6 @@ public:
 
 private:
 	UID textureID = 0; // ID of the image
-	UID shaderID = 0;  // ID of the shader
 
 	int nSegments = 1;
 	int quadsCreated = 0;
