@@ -22,8 +22,11 @@
 #define JSON_TAG_CLICKED_COLOR "ClickedColor"
 
 void ComponentToggle::OnClicked() {
+	ComponentEventSystem* currEvSys = App->userInterface->GetCurrentEventSystem();
+	if (!currEvSys) return;
+
 	SetChecked(!IsChecked());
-	App->userInterface->GetCurrentEventSystem()->SetSelected(GetOwner().GetComponent<ComponentSelectable>()->GetID());
+	currEvSys->SetSelected(GetOwner().GetComponent<ComponentSelectable>()->GetID());
 }
 
 void ComponentToggle::OnClickedInternal() {
@@ -146,7 +149,6 @@ void ComponentToggle::OnEditorUpdate() {
 }
 
 void ComponentToggle::Update() {
-
 	bool gameControllerConnected = App->input->GetPlayerController(0);
 
 	if (clicked) {
