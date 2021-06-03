@@ -11,7 +11,9 @@
 
 void StateMachineManager::SendTrigger(const std::string& trigger, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State& currentState, std::unordered_map<UID, float>& currentTimeStatesPrincipal) {
 	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
-
+	if (!resourceStateMachine) {
+		return;
+	}
 	Transition* transition = resourceStateMachine->FindTransitionGivenName(trigger);
 	if (transition != nullptr) {
 		if (transition->source.id == currentState.id) {

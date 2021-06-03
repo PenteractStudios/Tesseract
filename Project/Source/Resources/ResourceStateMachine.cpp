@@ -83,7 +83,7 @@ void ResourceStateMachine::Load() {
 
 		//Setting initial state
 		if (initialStateId != 0 && initialStateId == id) {
-			SetInitialState(state);
+			initialState = state;
 		}
 	}
 	states.insert(std::make_pair(0, State())); // create state "empty" for clean secondary State Machin

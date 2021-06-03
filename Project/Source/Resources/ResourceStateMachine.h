@@ -24,14 +24,6 @@ public:
 	void AddTransition(const State& from, const State& to, const float interpolation, const std::string& name);
 	Transition* FindTransitionGivenName(const std::string& name);
 
-	void SetInitialState(const State& newState) {
-		initialState = newState;
-	}
-
-	State GetInitialState() const{
-		return initialState;
-	}
-
 public:
 	std::unordered_map<UID, State> states;
 	State initialState;

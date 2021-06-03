@@ -125,10 +125,16 @@ void ComponentAnimation::OnUpdate() {
 
 	if (currentStatePrincipal) {
 		ResourceClip* currentClip = App->resources->GetResource<ResourceClip>(currentStatePrincipal->clipUid);
+		if (!currentClip) {
+			return;
+		}
 		currentTimeStatesPrincipal[currentStatePrincipal->id] += App->time->GetDeltaTime() * currentClip->speed;
 	}
 	if (currentStateSecondary && currentStateSecondary->id != 0) {
 		ResourceClip* currentClip = App->resources->GetResource<ResourceClip>(currentStateSecondary->clipUid);
+		if (!currentClip) {
+			return;
+		}
 		currentTimeStatesSecondary[currentStateSecondary->id] += App->time->GetDeltaTime() * currentClip->speed;
 	}
 }
@@ -140,6 +146,9 @@ void ComponentAnimation::SendTriggerSecondary(const std::string& trigger) {
 	if (currentStateSecondary && currentStateSecondary->id == 0) {
 		//For doing the interpolation between states correctly it is necessary to set the current state of the principal state machine to be the same as the second state machine current state
 		ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUIDSecondary);
+		if (!resourceStateMachine) {
+			return;
+		}
 		std::unordered_map<UID, State>::iterator it = resourceStateMachine->states.find(currentStatePrincipal->id);
 		assert(it != resourceStateMachine->states.end());
 		currentStateSecondary = &(*it).second;
@@ -179,6 +188,9 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 	//See line 84 of StateMachineManager.cpp
 	if (resetSecondaryStatemachine) {
 		ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUIDSecondary);
+		if (!resourceStateMachine) {
+			return;
+		}
 		std::unordered_map<UID, State>::iterator it = resourceStateMachine->states.find(0); // Get "empty" state
 		assert(it != resourceStateMachine->states.end());
 		currentStateSecondary = &(*it).second;
