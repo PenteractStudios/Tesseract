@@ -187,7 +187,6 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	}
 }
 
-//TODO: DINAMIC PARTICLE NOT HARCODED
 float3 ComponentParticleSystem::CreateVelocity() {
 	float x, y, z;
 	if (emitterType == EmitterType::CONE) {
@@ -201,12 +200,12 @@ float3 ComponentParticleSystem::CreateVelocity() {
 
 		return float3(forward.x + x, forward.y + y, forward.z + z).Normalized();
 	}
-	//TODO: DINAMIC PARTICLE NOT HARCODED
+
 	if (emitterType == EmitterType::SPHERE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-		x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
-		y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
-		z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
+		x = (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
+		y = (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
+		z = (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
 		return float3(x, y, z);
 	}
 
@@ -214,9 +213,7 @@ float3 ComponentParticleSystem::CreateVelocity() {
 };
 
 float3 ComponentParticleSystem::CreatePosition() {
-	//TODO: DINAMIC PARTICLE NOT HARCODED
 	float x, y, z;
-
 	if (emitterType == EmitterType::CONE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 		x = (transform->GetGlobalPosition().x);
@@ -224,7 +221,7 @@ float3 ComponentParticleSystem::CreatePosition() {
 		y = (transform->GetGlobalPosition().y);
 		return (float3(x, y, z));
 	}
-	//TODO: DINAMIC PARTICLE NOT HARCODED
+
 	if (emitterType == EmitterType::SPHERE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 		x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.5f;
@@ -468,7 +465,6 @@ void ComponentParticleSystem::Draw() {
 			if (billboardType == BillboardType::LOOK_AT) {
 				float4x4 newModelMatrix = currentParticle.model.LookAt(rotatePart.Col(2), -frustum->Front(), rotatePart.Col(1), float3::unitY);
 				modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart(), currentParticle.scale);
-
 			} else if (billboardType == BillboardType::STRETCH) {
 				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
 				float3 cameraDir = (cameraPos - currentParticle.initialPosition).Normalized();
@@ -481,11 +477,9 @@ void ComponentParticleSystem::Draw() {
 				newRotation.SetCol(2, newCameraDir);
 
 				modelMatrix = float4x4::FromTRS(currentParticle.position, newRotation * currentParticle.modelStretch.RotatePart(), currentParticle.scale);
-
 			} else if (billboardType == BillboardType::HORIZONTAL) {
 				float4x4 newModelMatrix = currentParticle.model.LookAt(rotatePart.Col(2), float3::unitY, rotatePart.Col(1), float3::unitY);
 				modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart(), currentParticle.scale);
-
 			} else if (billboardType == BillboardType::VERTICAL) {
 				// TODO: Implement it
 				modelMatrix = currentParticle.model;
