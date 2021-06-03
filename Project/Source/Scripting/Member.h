@@ -5,7 +5,7 @@
 #include <vector>
 #include "Math/float3.h"
 
-#define MEMBER_VARIANT std::variant<bool, char, unsigned char, short, unsigned short, int, unsigned int, long long, unsigned long long, float, double, std::string, float3>
+#define MEMBER_VARIANT std::variant<bool, char, unsigned char, short, unsigned short, int, unsigned int, long long, unsigned long long, float, double, std::string, float2, float3>
 
 #define EXPOSE_MEMBERS(classname) \
 	using ClassType = classname;  \
@@ -33,6 +33,7 @@ enum class MemberType {
 	LONGLONG,
 	ULONGLONG,
 	FLOAT,
+	FLOAT2,
 	FLOAT3,
 	DOUBLE,
 

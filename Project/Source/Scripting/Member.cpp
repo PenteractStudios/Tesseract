@@ -20,6 +20,8 @@ const char* GetMemberTypeName(MemberType type) {
 		return "ULongLong";
 	case MemberType::FLOAT:
 		return "Float";
+	case MemberType::FLOAT2:
+		return "Float2";
 	case MemberType::FLOAT3:
 		return "Float3";
 	case MemberType::DOUBLE:
@@ -58,6 +60,8 @@ MemberType GetMemberTypeFromName(const char* name) {
 		return MemberType::GAME_OBJECT_UID;
 	} else if (strcmp(name, "PrefabResourceUID") == 0) {
 		return MemberType::PREFAB_RESOURCE_UID;
+	} else if (strcmp(name, "Float2") == 0) {
+		return MemberType::FLOAT2;
 	} else if (strcmp(name, "Float3") == 0) {
 		return MemberType::FLOAT3;
 	} else {
