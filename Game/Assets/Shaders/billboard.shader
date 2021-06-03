@@ -68,7 +68,7 @@ void main()
 	} 
 	else if (colorFrame <= endTransition)
 	{
-		float a = colorFrame / (endTransition - startTransition);
+		float a = (colorFrame - startTransition) / (endTransition - startTransition);
 		outColor = mix(initColor, finalColor, a) * texture2D(diffuse, vec2(u, v));
 	}else
 	{
