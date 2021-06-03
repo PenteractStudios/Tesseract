@@ -33,7 +33,11 @@ public:
 	// Engine Shaders
 	unsigned drawDepthMapTexture = 0;
 
-	//UI Shaders
+	// UI Shaders
 	unsigned textUI = 0;
 	unsigned imageUI = 0;
+
+	// Particle Shaders
+	unsigned billboard = 0;
+	unsigned trail = 0;
 };

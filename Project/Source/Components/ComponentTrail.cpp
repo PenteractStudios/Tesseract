@@ -26,11 +26,11 @@
 #include <Utils/Logging.h>
 
 #include "Utils/Leaks.h"
-#define JSON_TAG_TEXTURE_SHADERID "ShaderId"
+
 #define JSON_TAG_TEXTURE_TEXTUREID "TextureId"
 #define JSON_TAG_TIMETOSTART "TimeToStart"
-#define JSON_TAG_COLOR "Color"
-
+#define JSON_TAG_MAXVERTICES "MaxVertices"
+#define JSON_TAG_TRAILQUADS "TrailQuads"
 #define JSON_TAG_ALPHATRANSPARENCY "AlphaTransparency"
 
 // clang-format off
@@ -45,6 +45,10 @@ static const float textureCords[12] = {
 	0.0f, 1.0f,
 	};
 // clang-format on
+
+void ComponentTrail::Init() {
+	glGenBuffers(1, &quadVBO);
+}
 
 void ComponentTrail::Update() {
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
@@ -90,8 +94,12 @@ void ComponentTrail::Update() {
 }
 
 void ComponentTrail::OnEditorUpdate() {
-	ImGui::ResourceSlot<ResourceShader>("shader", &shaderID);
 	ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
+	if (ImGui::DragScalar("Trail Quads", ImGuiDataType_U32, &trailQuads)) {
+		if (trailQuads <= 0) trailQuads = 1;
+		if (trailQuads > 50) trailQuads = 50;
+		DeleteQuads();
+	}
 
 	UID oldID = textureID;
 	ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
@@ -120,32 +128,22 @@ void ComponentTrail::OnEditorUpdate() {
 }
 
 void ComponentTrail::Load(JsonValue jComponent) {
-	shaderID = jComponent[JSON_TAG_TEXTURE_SHADERID];
-
-	if (shaderID != 0) {
-		App->resources->IncreaseReferenceCount(shaderID);
-	}
-
 	textureID = jComponent[JSON_TAG_TEXTURE_TEXTUREID];
-
 	if (textureID != 0) {
 		App->resources->IncreaseReferenceCount(textureID);
 	}
+	maxVertices = jComponent[JSON_TAG_MAXVERTICES];
+	trailQuads = jComponent[JSON_TAG_TRAILQUADS];
 }
 
 void ComponentTrail::Save(JsonValue jComponent) const {
-	jComponent[JSON_TAG_TEXTURE_SHADERID] = shaderID;
 	jComponent[JSON_TAG_TEXTURE_TEXTUREID] = textureID;
+	jComponent[JSON_TAG_MAXVERTICES] = maxVertices;
+	jComponent[JSON_TAG_TRAILQUADS] = trailQuads;
 }
 
 void ComponentTrail::Draw() {
-	unsigned int program = 0;
-	ResourceShader* shaderResouce = App->resources->GetResource<ResourceShader>(shaderID);
-	if (shaderResouce) {
-		program = shaderResouce->GetShaderProgram();
-	} else {
-		return;
-	}
+	unsigned int program = App->programs->trail;
 
 	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
@@ -153,8 +151,6 @@ void ComponentTrail::Draw() {
 	glBlendFunc(GL_ONE, GL_ONE);
 	glDisable(GL_CULL_FACE);
 
-	unsigned int quadVBO;
-	glGenBuffers(1, &quadVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, quadVBO); // set vbo active
 	glBufferData(GL_ARRAY_BUFFER, sizeof(verticesPosition), verticesPosition, GL_STATIC_DRAW);
 
@@ -188,9 +184,6 @@ void ComponentTrail::Draw() {
 	glDepthMask(GL_TRUE);
 }
 
-void ComponentTrail::SpawnParticle() {
-}
-
 void ComponentTrail::UpdateVerticesPosition() {
 	for (int i = 0; i < (maxVertices - 30); i++) {
 		verticesPosition[i] = verticesPosition[i + 30];
@@ -207,4 +200,15 @@ void ComponentTrail::InsertTextureCoords() {
 
 	verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
 	verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
+}
+
+void ComponentTrail::DeleteQuads() {
+	for (int i = 0; i < (maxVertices); i++) {
+		verticesPosition[i] = 0.0f;
+	}
+	isStarted = false;
+	quadsCreated = 0;
+	trianglesCreated = 0;
+	maxVertices = 30 * trailQuads;
+	textureCreated = 0;
 }

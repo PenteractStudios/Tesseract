@@ -6,14 +6,17 @@
 #include "Resources/ResourceClip.h"
 #include "Modules/ModuleFiles.h"
 #include "FileSystem/JsonValue.h"
+#include "FileSystem/StateMachinGenerator.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleResources.h"
+#include "Modules/ModuleEditor.h"
 
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/document.h"
 
+#include "imgui.h"
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
 #include "Utils/Leaks.h"
@@ -27,6 +30,7 @@
 
 #define JSON_TAG_NAME "Name"
 #define JSON_TAG_ID "Id"
+#define JSON_TAG_BONES "Bones"
 
 #define JSON_TAG_SOURCE "Source"
 #define JSON_TAG_TARGET "Target"
@@ -51,7 +55,7 @@ void ResourceStateMachine::Load() {
 	}
 	JsonValue jStateMachine(document, document);
 	assert(document.IsObject());
-	assert(document.HasMember(JSON_TAG_INITIAL_STATE)); 
+	assert(document.HasMember(JSON_TAG_INITIAL_STATE));
 
 	JsonValue clipArray = jStateMachine[JSON_TAG_CLIPS];
 	for (unsigned int i = 0; i < clipArray.Size(); ++i) {
@@ -61,7 +65,12 @@ void ResourceStateMachine::Load() {
 		clipsUids.push_back(clipUID);
 	}
 
-	std::unordered_map<UID, State> stateMap;
+	JsonValue bonesArray = jStateMachine[JSON_TAG_BONES];
+	for (unsigned int i = 0; i < bonesArray.Size(); ++i) {
+		std::string name = bonesArray[i];
+		bones.insert(name);
+	}
+
 	UID initialStateId = jStateMachine[JSON_TAG_INITIAL_STATE];
 	JsonValue stateArray = jStateMachine[JSON_TAG_STATES];
 	for (unsigned int i = 0; i < stateArray.Size(); ++i) {
@@ -69,16 +78,14 @@ void ResourceStateMachine::Load() {
 		std::string name = stateArray[i][JSON_TAG_NAME];
 		UID clipId = stateArray[i][JSON_TAG_CLIP_ID];
 		State state(name, clipId, id);
-		states.push_back(state);
-		stateMap.insert(std::make_pair(id, state));
+		states.insert(std::make_pair(id, state));
 
 		//Setting initial state
-		if (initialStateId == id) {
+		if (initialStateId != 0 && initialStateId == id) {
 			SetInitialState(state);
 		}
 	}
-
-	
+	states.insert(std::make_pair(0, State())); // create state "empty" for clean secondary State Machin
 
 	JsonValue transitionArray = jStateMachine[JSON_TAG_TRANSITIONS];
 	for (unsigned int i = 0; i < transitionArray.Size(); ++i) {
@@ -87,7 +94,7 @@ void ResourceStateMachine::Load() {
 		UID source = transitionArray[i][JSON_TAG_SOURCE];
 		UID target = transitionArray[i][JSON_TAG_TARGET];
 		float interpolationDuration = transitionArray[i][JSON_TAG_INTERPOLATION_DURATION];
-		Transition transition(stateMap.find(source)->second, stateMap.find(target)->second, interpolationDuration, id);
+		Transition transition(states.find(source)->second, states.find(target)->second, interpolationDuration, id);
 		transitions.insert(std::make_pair(triggerName, transition));
 	}
 
@@ -127,14 +134,22 @@ void ResourceStateMachine::SaveToFile(const char* filePath) {
 		++i;
 	}
 
+	// Saving Bones Strings
+	JsonValue bonesArray = jStateMachine[JSON_TAG_BONES];
+	i = 0;
+	std::set<std::string>::iterator bone;
+	for (bone = bones.begin(); bone != bones.end(); ++bone) {
+		bonesArray[i] = (*bone->c_str());
+		++i;
+	}
+
 	// Saving States
 	JsonValue stateArray = jStateMachine[JSON_TAG_STATES];
 	i = 0;
-	std::list<State>::iterator itState;
-	for (itState = states.begin(); itState != states.end(); ++itState) {
-		stateArray[i][JSON_TAG_ID] = (*itState).id;
-		stateArray[i][JSON_TAG_NAME] = (*itState).name.c_str();
-		stateArray[i][JSON_TAG_CLIP_ID] = (*itState).clipUid;
+	for (const auto& element : states) {
+		stateArray[i][JSON_TAG_ID] = element.second.id;
+		stateArray[i][JSON_TAG_NAME] = element.second.name.c_str();
+		stateArray[i][JSON_TAG_CLIP_ID] = element.second.clipUid;
 		++i;
 	}
 
@@ -166,9 +181,26 @@ void ResourceStateMachine::SaveToFile(const char* filePath) {
 	LOG("Material saved in %ums", timeMs);
 }
 
+void ResourceStateMachine::OnEditorUpdate() {
+	ImGui::TextColored(App->editor->titleColor, "Resource State Machine");
+
+	if (ImGui::Button("Generate JSON State Machin##StateMacghin")) {
+		LOG("Generate JSON State Machin");
+		std::string filePath = GetAssetFilePath();
+		StateMachineGenerator::GenerateStateMachine(filePath.c_str());
+	}
+	/*
+	char nameStateMachine[100];
+	sprintf_s(nameClip, 100, "%s", name.c_str());
+	if (ImGui::InputText("##clip_name", nameClip, 100)) {
+		name = nameClip;
+	}*/
+}
+
 State ResourceStateMachine::AddState(const std::string& name, UID clipUID) {
 	State state(name, clipUID);
-	states.push_back(state);
+	states.insert(std::make_pair(state.id, state));
+
 	AddClip(clipUID);
 
 	return state;
