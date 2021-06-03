@@ -148,7 +148,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::DragFloat("Scale", &scale, App->editor->dragSpeed2f, 0, inf);
 		ImGui::DragFloat("Life", &particleLife, App->editor->dragSpeed2f, 0, inf);
 
-		if (ImGui::DragFloat("Speed", &velocity, App->editor->dragSpeed4f, 0, inf)) {
+		if (ImGui::DragFloat("Speed", &velocity, App->editor->dragSpeed2f, 0, inf)) {
 			CreateParticles(maxParticles, velocity);
 		}
 
@@ -328,7 +328,12 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 void ComponentParticleSystem::Update() {
 	deadParticles.clear();
 	for (Particle& currentParticle : particles) {
-		currentParticle.position += currentParticle.direction * velocity;
+		if (App->time->IsGameRunning()) {
+			currentParticle.position += currentParticle.direction * velocity * App->time->GetDeltaTime();
+		} else {
+			currentParticle.position += currentParticle.direction * velocity * App->time->GetRealTimeDeltaTime();
+		}
+
 		if (billboardType == BillboardType::LOOK_AT) {
 			currentParticle.model = float4x4::FromTRS(currentParticle.position, currentParticle.rotation, currentParticle.scale);
 		} else {
