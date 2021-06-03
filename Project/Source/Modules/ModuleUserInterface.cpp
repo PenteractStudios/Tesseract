@@ -66,9 +66,12 @@ UpdateStatus ModuleUserInterface::Update() {
 				}
 			}
 		}
-		ComponentSelectable* currentlySelected = GetCurrentEventSystem()->GetCurrentSelected();
-		if (currentlySelected) {
-			ManageInputsOnSelected(currentlySelected);
+		ComponentEventSystem* currEvSys = App->userInterface->GetCurrentEventSystem();
+		if (currEvSys) {
+			ComponentSelectable* currentlySelected = GetCurrentEventSystem()->GetCurrentSelected();
+			if (currentlySelected) {
+				ManageInputsOnSelected(currentlySelected);
+			}
 		}
 	}
 
