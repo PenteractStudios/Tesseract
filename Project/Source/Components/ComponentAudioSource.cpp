@@ -191,7 +191,6 @@ void ComponentAudioSource::UpdateSourceParameters() {
 			alSourcef(sourceId, AL_CONE_INNER_ANGLE, innerAngle);
 			alSourcef(sourceId, AL_CONE_OUTER_ANGLE, outerAngle);
 			alSourcef(sourceId, AL_CONE_OUTER_GAIN, outerGain);
-
 		} else {
 			alSourcef(sourceId, AL_CONE_INNER_ANGLE, 360);
 			alSource3f(sourceId, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
