@@ -17,15 +17,10 @@ public:
 	bool GetImGuizmoUseSnap() const;
 	void GetImguizmoSnap(float* snap) const;
 
-	bool GetRectTool() const;
-
 private:
 	//ImGuizmo
 	ImGuizmo::OPERATION currentGuizmoOperation = ImGuizmo::TRANSLATE;
 	ImGuizmo::MODE currentGuizmoMode = ImGuizmo::WORLD;
-
-	// Rect Tool Options
-	bool pivotMode = false; // If is true -> Pivot mode, if is not -> Center mode
 
 	bool useSnap = false;
 	float snap[3] = {1.f, 1.f, 1.f};

@@ -43,8 +43,6 @@ void PanelControlEditor::Update() {
 		std::string scale = std::string(ICON_FA_EXTERNAL_LINK_ALT);
 		std::string local = std::string(ICON_FA_BOX);
 		std::string global = std::string(ICON_FA_GLOBE);
-		std::string pivot = std::string(ICON_FA_SIGN);
-		std::string center = std::string(ICON_FA_PLUS_SQUARE);
 		if (ImGui::BeginMenuBar()) {
 			if (ImGui::RadioButton(translate.c_str(), currentGuizmoOperation == ImGuizmo::TRANSLATE)) currentGuizmoOperation = ImGuizmo::TRANSLATE;
 			ImGui::SameLine();
@@ -86,14 +84,6 @@ void PanelControlEditor::Update() {
 				ImGui::InputFloat("##Snap Scale", &snap[0]);
 				break;
 			}
-			ImGui::SameLine();
-			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-			ImGui::SameLine();
-			ImGui::TextColored(App->editor->titleColor, "UI Anchor");
-			ImGui::SameLine();
-			if (ImGui::RadioButton(pivot.c_str(), pivotMode)) pivotMode = true;
-			ImGui::SameLine();
-			if (ImGui::RadioButton(center.c_str(), !pivotMode)) pivotMode = false;
 
 			ImGui::SameLine();
 			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
@@ -186,8 +176,4 @@ void PanelControlEditor::GetImguizmoSnap(float* newSnap) const {
 	newSnap[0] = snap[0];
 	newSnap[1] = snap[1];
 	newSnap[2] = snap[2];
-}
-
-bool PanelControlEditor::GetRectTool() const {
-	return pivotMode;
 }
