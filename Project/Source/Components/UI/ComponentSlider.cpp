@@ -158,8 +158,12 @@ void ComponentSlider::OnClicked() {
 }
 
 void ComponentSlider::OnClickedInternal() {
+	ComponentEventSystem* currEvSys = App->userInterface->GetCurrentEventSystem();
+	if (!currEvSys) return;
+
 	SetClicked(true);
 	ComponentCanvas* canvas = GetOwner().GetComponent<ComponentCanvasRenderer>()->AnyParentHasCanvas(&GetOwner());
+
 	App->userInterface->GetCurrentEventSystem()->SetSelected(GetOwner().GetComponent<ComponentSelectable>()->GetID());
 	float2 mousePos = App->input->GetMousePosition(true);
 	newPosition.x = ((mousePos.x - (App->renderer->GetViewportSize().x / 2.0f)) / canvas->GetScreenFactor()) - GetOwner().GetComponent<ComponentTransform2D>()->GetScreenPosition().x;

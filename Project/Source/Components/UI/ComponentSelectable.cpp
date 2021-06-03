@@ -34,7 +34,7 @@ ComponentSelectable::~ComponentSelectable() {
 	ComponentEventSystem* eventSystem = App->userInterface->GetCurrentEventSystem();
 	if (eventSystem) {
 		if (eventSystem->GetCurrentSelected() == this) {
-			App->userInterface->GetCurrentEventSystem()->SetSelected(nullptr);
+			eventSystem->SetSelected(nullptr);
 		}
 	}
 }

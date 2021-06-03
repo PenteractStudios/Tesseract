@@ -59,14 +59,19 @@ void ComponentButton::OnClicked() {
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
 		if (script != nullptr) {
+			LOG("ClickHappens");
 			script->OnButtonClick();
 		}
 	}
 }
 
 void ComponentButton::OnClickedInternal() {
+	ComponentEventSystem* currEvSys = App->userInterface->GetCurrentEventSystem();
+	if (!currEvSys) return;
+	LOG("VisualClickHappens");
 	clicked = true;
-	App->userInterface->GetCurrentEventSystem()->SetSelected(GetOwner().GetComponent<ComponentSelectable>()->GetID());
+
+	currEvSys->SetSelected(GetOwner().GetComponent<ComponentSelectable>()->GetID());
 }
 
 bool ComponentButton::IsClicked() const {
