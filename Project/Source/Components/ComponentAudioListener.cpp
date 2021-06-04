@@ -74,6 +74,10 @@ void ComponentAudioListener::UpdateAudioListener() {
 	alListenerfv(AL_ORIENTATION, orientation);
 }
 
+float ComponentAudioListener::GetAudioVolume() const {
+	return gain;
+}
+
 void ComponentAudioListener::SetAudioVolume(float volume) {
 	gain = volume;
 	alListenerf(AL_GAIN, (ALfloat) volume);

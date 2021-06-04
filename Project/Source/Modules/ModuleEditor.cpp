@@ -156,6 +156,7 @@ bool ModuleEditor::Start() {
 	panels.push_back(&panelResource);
 	panels.push_back(&panelGameControllerDebug);
 	panels.push_back(&panelImportOptions);
+	panels.push_back(&panelAudioMixer);
 
 	return true;
 }
@@ -228,6 +229,7 @@ UpdateStatus ModuleEditor::Update() {
 		ImGui::MenuItem(panelResource.name, "", &panelResource.enabled);
 		ImGui::MenuItem(panelGameControllerDebug.name, "", &panelGameControllerDebug.enabled);
 		ImGui::MenuItem(panelImportOptions.name, "", &panelImportOptions.enabled);
+		ImGui::MenuItem(panelAudioMixer.name, "", &panelAudioMixer.enabled);
 		ImGui::EndMenu();
 	}
 	if (ImGui::BeginMenu("Help")) {
@@ -364,7 +366,7 @@ UpdateStatus ModuleEditor::Update() {
 		ImGui::SameLine(ImGui::GetWindowWidth() - 120);
 		if (ImGui::Button("Save", ImVec2(50, 20))) {
 			NavMesh& navMesh = App->navigation->GetNavMesh();
-			std::string path = std::string(NAVMESH_PATH) +  "/" + name + NAVMESH_EXTENSION;
+			std::string path = std::string(NAVMESH_PATH) + "/" + name + NAVMESH_EXTENSION;
 			NavMeshImporter::ExportNavMesh(navMesh, path.c_str());
 			ImGui::CloseCurrentPopup();
 		}
