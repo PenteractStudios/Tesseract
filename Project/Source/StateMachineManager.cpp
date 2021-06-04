@@ -11,7 +11,9 @@
 
 void StateMachineManager::SendTrigger(const std::string& trigger, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State& currentState, std::unordered_map<UID, float>& currentTimeStatesPrincipal) {
 	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
-
+	if (!resourceStateMachine) {
+		return;
+	}
 	Transition* transition = resourceStateMachine->FindTransitionGivenName(trigger);
 	if (transition != nullptr) {
 		if (transition->source.id == currentState.id) {
@@ -80,6 +82,9 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 	} else {
 		if (currentState->id != 0) {
 			ResourceClip* clip = App->resources->GetResource<ResourceClip>(currentState->clipUid);
+			if (!clip) {
+				return result;
+			}
 			result = AnimationController::GetTransform(*clip, currentTimeStates[currentState->id], gameObject->name.c_str(), position, rotation);
 
 			if (gameObject->name == (*resourceStateMachine->bones.begin())) { //Only call this once
