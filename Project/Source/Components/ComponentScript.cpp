@@ -135,6 +135,15 @@ void ComponentScript::OnEditorUpdate() {
 				}
 				break;
 			}
+			case MemberType::FLOAT2: {
+				float2* memberPtr = (float2*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
+				float2 old = *memberPtr;
+				ImGui::InputFloat2(member.name.c_str(), &memberPtr->x, "%.1f");
+				if (!old.Equals(*memberPtr)) {
+					changedValues[member.name] = std::pair<MemberType, MEMBER_VARIANT>(member.type, *memberPtr);
+				}
+				break;
+			}
 			case MemberType::FLOAT3: {
 				float3* memberPtr = (float3*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				float3 old = *memberPtr;
@@ -179,23 +188,6 @@ void ComponentScript::OnEditorUpdate() {
 					changedValues[member.name] = std::pair<MemberType, MEMBER_VARIANT>(member.type, *memberPtr);
 				}
 				break;
-			}
-			case MemberType::FLOAT2: {
-				float2* memberPtr = (float2*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
-				float2 old = *memberPtr;
-				ImGui::InputFloat2(member.name.c_str(), &memberPtr->x, "%.1f");
-				if (!old.Equals(*memberPtr)) {
-					changedValues[member.name] = std::pair<MemberType, MEMBER_VARIANT>(member.type, *memberPtr);
-				}
-				break;
-			}
-			case MemberType::FLOAT3: {
-				float3* memberPtr = (float3*)GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
-				float3 old = *memberPtr;
-				ImGui::InputFloat3(member.name.c_str(), &memberPtr->x, "%.1f");
-				if (!old.Equals(*memberPtr)) {
-					changedValues[member.name] = std::pair<MemberType, MEMBER_VARIANT>(member.type, *memberPtr);
-				}
 			}
 			case MemberType::SCENE_RESOURCE_UID: {
 				UID* memberPtr = (UID*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
@@ -242,6 +234,13 @@ void ComponentScript::Save(JsonValue jComponent) const {
 		case MemberType::FLOAT:
 			jValue[JSON_TAG_VALUE] = std::get<float>(entry.second.second);
 			break;
+		case MemberType::FLOAT2: {
+			float2 aFloat2 = std::get<float2>(entry.second.second);
+			JsonValue float2JsonVal = jValue[JSON_TAG_VALUE];
+			float2JsonVal[0] = aFloat2.x;
+			float2JsonVal[1] = aFloat2.y;
+			break;
+		}
 		case MemberType::FLOAT3: {
 			float3 aFloat3 = std::get<float3>(entry.second.second);
 			JsonValue float3JsonVal = jValue[JSON_TAG_VALUE];
@@ -262,21 +261,6 @@ void ComponentScript::Save(JsonValue jComponent) const {
 		case MemberType::PREFAB_RESOURCE_UID:
 			jValue[JSON_TAG_VALUE] = std::get<UID>(entry.second.second);
 			break;
-		case MemberType::FLOAT2: {
-			float2 aFloat2 = std::get<float2>(entry.second.second);
-			JsonValue float2JsonVal = jValue[JSON_TAG_VALUE];
-			float2JsonVal[0] = aFloat2.x;
-			float2JsonVal[1] = aFloat2.y;
-			break;
-		}
-		case MemberType::FLOAT3: {
-			float3 aFloat3 = std::get<float3>(entry.second.second);
-			JsonValue float3JsonVal = jValue[JSON_TAG_VALUE];
-			float3JsonVal[0] = aFloat3.x;
-			float3JsonVal[1] = aFloat3.y;
-			float3JsonVal[2] = aFloat3.z;
-			break;
-		}
 		case MemberType::SCENE_RESOURCE_UID:
 			jValue[JSON_TAG_VALUE] = std::get<UID>(entry.second.second);
 			break;
@@ -317,6 +301,11 @@ void ComponentScript::Load(JsonValue jComponent) {
 		case MemberType::FLOAT:
 			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, static_cast<float>(jValue[JSON_TAG_VALUE]));
 			break;
+		case MemberType::FLOAT2: {
+			JsonValue jsonVal = jValue[JSON_TAG_VALUE];
+			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, float2(jsonVal[0], jsonVal[1]));
+			break;
+		}
 		case MemberType::FLOAT3: {
 			JsonValue jsonVal = jValue[JSON_TAG_VALUE];
 			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, float3(jsonVal[0], jsonVal[1], jsonVal[2]));
@@ -334,16 +323,6 @@ void ComponentScript::Load(JsonValue jComponent) {
 		case MemberType::PREFAB_RESOURCE_UID:
 			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, static_cast<UID>(jValue[JSON_TAG_VALUE]));
 			break;
-		case MemberType::FLOAT2: {
-			JsonValue jsonVal = jValue[JSON_TAG_VALUE];
-			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, float2(jsonVal[0], jsonVal[1]));
-			break;
-		}
-		case MemberType::FLOAT3: {
-			JsonValue jsonVal = jValue[JSON_TAG_VALUE];
-			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, float3(jsonVal[0], jsonVal[1], jsonVal[2]));
-			break;
-		}
 		case MemberType::SCENE_RESOURCE_UID:
 			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, static_cast<UID>(jValue[JSON_TAG_VALUE]));
 			break;
@@ -402,6 +381,11 @@ void ComponentScript::CreateScriptInstance() {
 				*memberPtr = std::get<float>(it->second.second);
 				break;
 			}
+			case MemberType::FLOAT2: {
+				float2* memberPtr = (float2*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
+				*memberPtr = std::get<float2>(it->second.second);
+				break;
+			}
 			case MemberType::FLOAT3: {
 				float3* memberPtr = (float3*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				*memberPtr = std::get<float3>(it->second.second);
@@ -425,16 +409,6 @@ void ComponentScript::CreateScriptInstance() {
 			case MemberType::PREFAB_RESOURCE_UID: {
 				UID* memberPtr = (UID*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
 				*memberPtr = std::get<UID>(it->second.second);
-				break;
-			}
-			case MemberType::FLOAT2: {
-				float2* memberPtr = (float2*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
-				*memberPtr = std::get<float2>(it->second.second);
-				break;
-			}
-			case MemberType::FLOAT3: {
-				float3* memberPtr = (float3*) GET_OFFSET_MEMBER(scriptInstance.get(), member.offset);
-				*memberPtr = std::get<float3>(it->second.second);
 				break;
 			}
 			case MemberType::SCENE_RESOURCE_UID: {
