@@ -29,37 +29,37 @@
 
 #include "Utils/Leaks.h"
 
-#define JSON_TAG_EMITTERTYPE "EmitterType"
-#define JSON_TAG_BILLBOARDTYPE "BillboardType"
-#define JSON_TAG_TEXTURE_TEXTUREID "TextureId"
+#define JSON_TAG_EMITTER_TYPE "EmitterType"
+#define JSON_TAG_BILLBOARD_TYPE "BillboardType"
+#define JSON_TAG_TEXTURE_TEXTURE_ID "TextureId"
 
-#define JSON_TAG_TEXTURE_DISTANCEREVERSE "distanceReverse"
-#define JSON_TAG_TEXTURE_REVERSEEFFECT "reverseEffect"
+#define JSON_TAG_TEXTURE_DISTANCE_REVERSE "DistanceReverse"
+#define JSON_TAG_TEXTURE_REVERSE_EFFECT "ReverseEffect"
 
-#define JSON_TAG_ISPLAYING "IsPlaying"
+#define JSON_TAG_IS_PLAYING "IsPlaying"
 #define JSON_TAG_LOOPING "IsLooping"
-#define JSON_TAG_SIZEOVERTIME "IsSizeOverTime"
-#define JSON_TAG_SCALEFACTOR "ScaleFactor"
-#define JSON_TAG_ISRANDOMFRAME "IsRandomFrame"
-#define JSON_TAG_ISRANDOMDIRECTION "IsRandomDirection"
-#define JSON_TAG_SCALEPARTICLE "ParticleScale"
-#define JSON_TAG_MAXPARTICLE "MaxParticle"
+#define JSON_TAG_SIZE_OVER_TIME "IsSizeOverTime"
+#define JSON_TAG_SCALE_FACTOR "ScaleFactor"
+#define JSON_TAG_IS_RANDOM_FRAME "IsRandomFrame"
+#define JSON_TAG_IS_RANDOM_DIRECTION "IsRandomDirection"
+#define JSON_TAG_SCALE_PARTICLE "ParticleScale"
+#define JSON_TAG_MAX_PARTICLE "MaxParticle"
 #define JSON_TAG_VELOCITY "Velocity"
 #define JSON_TAG_LIFE "LifeParticle"
 
 #define JSON_TAG_YTILES "Ytiles"
 #define JSON_TAG_XTILES "Xtiles"
-#define JSON_TAG_ANIMATIONSPEED "AnimationSpeed"
-#define JSON_TAG_STARTDELAYTIME "StartDelay"
-#define JSON_TAG_INITCOLOR "InitColor"
-#define JSON_TAG_FINALCOLOR "FinalColor"
+#define JSON_TAG_ANIMATION_SPEED "AnimationSpeed"
+#define JSON_TAG_START_DELAY_TIME "StartDelay"
+#define JSON_TAG_INIT_COLOR "InitColor"
+#define JSON_TAG_FINAL_COLOR "FinalColor"
 #define JSON_TAG_START_TRANSITION "StartTransition"
 #define JSON_TAG_END_TRANSITION "EndTransition"
 
-#define JSON_TAG_FLIPTEXTURE "FlipTexture"
+#define JSON_TAG_FLIP_TEXTURE "FlipTexture"
 
-#define JSON_TAG_CONERADIUSUP "ConeRUP"
-#define JSON_TAG_CONERADIUSDOWN "ConeRDown"
+#define JSON_TAG_CONE_RADIUS_UP "ConeRadiusUp"
+#define JSON_TAG_CONE_RADIUS_DOWN "ConeRadiusDown"
 
 void ComponentParticleSystem::OnEditorUpdate() {
 	if (ImGui::Checkbox("Active", &active)) {
@@ -77,15 +77,17 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 	ImGui::Checkbox("Loop", &looping);
 	if (ImGui::Button("Play")) Play();
-	ImGui::SameLine();
-	if (isPlaying) ImGui::TextColored(App->editor->textColor, "Is Playing");
+	if (isPlaying) {
+		ImGui::SameLine();
+		ImGui::TextColored(App->editor->textColor, "Is Playing");
+	}
 	if (ImGui::Button("Stop")) Stop();
 
 	ImGui::Separator();
-	if (ImGui::DragFloat("start Delay", &startDelay, App->editor->dragSpeed2f, 0, inf)) {
+	if (ImGui::DragFloat("Start Delay", &startDelay, App->editor->dragSpeed2f, 0, inf)) {
 		restDelayTime = startDelay;
 	}
-	if (startDelay > 0) ImGui::DragFloat("Rest Time", &restDelayTime, App->editor->dragSpeed2f, 0, inf);
+	if (startDelay > 0) ImGui::DragFloat("Rest Time", &restDelayTime, App->editor->dragSpeed2f, 0, inf, "%.3f", ImGuiSliderFlags_NoInput);
 	ImGui::Separator();
 	const char* billboardTypeCombo[] = {"LookAt", "Stretch", "Horitzontal"};
 	const char* billboardTypeComboCurrent = billboardTypeCombo[(int) billboardType];
@@ -124,8 +126,6 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::DragFloat("Radius Up", &coneRadiusUp, App->editor->dragSpeed2f, 0, inf);
 		ImGui::DragFloat("Radius Down", &coneRadiusDown, App->editor->dragSpeed2f, 0, inf);
 	}
-
-	ImGui::Checkbox("Random Frame", &isRandomFrame);
 	ImGui::Checkbox("Reverse Effect", &reverseEffect);
 	if (reverseEffect) {
 		ImGui::DragFloat("Distance", &distanceReverse, App->editor->dragSpeed2f, 0, inf);
@@ -162,6 +162,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::DragScalar("Xtiles", ImGuiDataType_U32, &Xtiles);
 		ImGui::DragScalar("Ytiles", ImGuiDataType_U32, &Ytiles);
 		ImGui::DragFloat("Animation Speed", &animationSpeed, App->editor->dragSpeed2f, -inf, inf);
+		ImGui::Checkbox("Random Frame", &isRandomFrame);
 
 		ImGui::NewLine();
 		ImGui::DragFloat("Scale", &scale, App->editor->dragSpeed2f, 0, inf);
@@ -241,7 +242,6 @@ float3 ComponentParticleSystem::CreatePosition() {
 			y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * coneRadiusUp) - 0.0f;
 			z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * coneRadiusUp * 2) - coneRadiusUp;
 			return (forward.Normalized() * distanceReverse) + (float3(x, y, z));
-			//return float3(float3(forward.x + x, forward.y + y, forward.z + z).Normalized() * distanceReverse);
 		} else {
 			x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * coneRadiusDown * 2) - coneRadiusDown;
 			y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * coneRadiusDown) - 0.0f;
@@ -279,42 +279,42 @@ void ComponentParticleSystem::CreateParticles(unsigned nParticles, float vel) {
 }
 
 void ComponentParticleSystem::Load(JsonValue jComponent) {
-	emitterType = (EmitterType)(int) jComponent[JSON_TAG_EMITTERTYPE];
-	billboardType = (BillboardType)(int) jComponent[JSON_TAG_BILLBOARDTYPE];
+	emitterType = (EmitterType)(int) jComponent[JSON_TAG_EMITTER_TYPE];
+	billboardType = (BillboardType)(int) jComponent[JSON_TAG_BILLBOARD_TYPE];
 
-	textureID = jComponent[JSON_TAG_TEXTURE_TEXTUREID];
+	textureID = jComponent[JSON_TAG_TEXTURE_TEXTURE_ID];
 	if (textureID != 0) {
 		App->resources->IncreaseReferenceCount(textureID);
 	}
 
-	coneRadiusUp = jComponent[JSON_TAG_CONERADIUSUP];
-	coneRadiusDown = jComponent[JSON_TAG_CONERADIUSDOWN];
+	coneRadiusUp = jComponent[JSON_TAG_CONE_RADIUS_UP];
+	coneRadiusDown = jComponent[JSON_TAG_CONE_RADIUS_DOWN];
 
-	isPlaying = jComponent[JSON_TAG_ISPLAYING];
+	isPlaying = jComponent[JSON_TAG_IS_PLAYING];
 	looping = jComponent[JSON_TAG_LOOPING];
-	isRandomFrame = jComponent[JSON_TAG_ISRANDOMFRAME];
-	scale = jComponent[JSON_TAG_SCALEPARTICLE];
-	maxParticles = jComponent[JSON_TAG_MAXPARTICLE];
+	isRandomFrame = jComponent[JSON_TAG_IS_RANDOM_FRAME];
+	scale = jComponent[JSON_TAG_SCALE_PARTICLE];
+	maxParticles = jComponent[JSON_TAG_MAX_PARTICLE];
 	velocity = jComponent[JSON_TAG_VELOCITY];
 	particleLife = jComponent[JSON_TAG_LIFE];
-	sizeOverTime = jComponent[JSON_TAG_SIZEOVERTIME];
-	scaleFactor = jComponent[JSON_TAG_SCALEFACTOR];
-	startDelay = jComponent[JSON_TAG_STARTDELAYTIME];
-	reverseEffect = jComponent[JSON_TAG_TEXTURE_DISTANCEREVERSE];
-	distanceReverse = jComponent[JSON_TAG_TEXTURE_REVERSEEFFECT];
+	sizeOverTime = jComponent[JSON_TAG_SIZE_OVER_TIME];
+	scaleFactor = jComponent[JSON_TAG_SCALE_FACTOR];
+	startDelay = jComponent[JSON_TAG_START_DELAY_TIME];
+	distanceReverse = jComponent[JSON_TAG_TEXTURE_DISTANCE_REVERSE];
+	reverseEffect = jComponent[JSON_TAG_TEXTURE_REVERSE_EFFECT];
 
 	Ytiles = jComponent[JSON_TAG_YTILES];
 	Xtiles = jComponent[JSON_TAG_XTILES];
-	animationSpeed = jComponent[JSON_TAG_ANIMATIONSPEED];
+	animationSpeed = jComponent[JSON_TAG_ANIMATION_SPEED];
 
-	JsonValue jColor = jComponent[JSON_TAG_INITCOLOR];
+	JsonValue jColor = jComponent[JSON_TAG_INIT_COLOR];
 	initC.Set(jColor[0], jColor[1], jColor[2], jColor[3]);
-	JsonValue jColor2 = jComponent[JSON_TAG_FINALCOLOR];
+	JsonValue jColor2 = jComponent[JSON_TAG_FINAL_COLOR];
 	finalC.Set(jColor2[0], jColor2[1], jColor2[2], jColor[3]);
 	startTransition = jComponent[JSON_TAG_START_TRANSITION];
 	endTransition = jComponent[JSON_TAG_END_TRANSITION];
 
-	JsonValue jFlip = jComponent[JSON_TAG_FLIPTEXTURE];
+	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
 	flipTexture[0] = jFlip[0];
 	flipTexture[1] = jFlip[1];
 
@@ -323,37 +323,37 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 }
 
 void ComponentParticleSystem::Save(JsonValue jComponent) const {
-	jComponent[JSON_TAG_EMITTERTYPE] = (int) emitterType;
-	jComponent[JSON_TAG_BILLBOARDTYPE] = (int) billboardType;
+	jComponent[JSON_TAG_EMITTER_TYPE] = (int) emitterType;
+	jComponent[JSON_TAG_BILLBOARD_TYPE] = (int) billboardType;
 
-	jComponent[JSON_TAG_TEXTURE_TEXTUREID] = textureID;
+	jComponent[JSON_TAG_TEXTURE_TEXTURE_ID] = textureID;
 
-	jComponent[JSON_TAG_CONERADIUSUP] = coneRadiusUp;
-	jComponent[JSON_TAG_CONERADIUSDOWN] = coneRadiusDown;
-	jComponent[JSON_TAG_STARTDELAYTIME] = startDelay;
-	jComponent[JSON_TAG_ISPLAYING] = isPlaying;
+	jComponent[JSON_TAG_CONE_RADIUS_UP] = coneRadiusUp;
+	jComponent[JSON_TAG_CONE_RADIUS_DOWN] = coneRadiusDown;
+	jComponent[JSON_TAG_START_DELAY_TIME] = startDelay;
+	jComponent[JSON_TAG_IS_PLAYING] = isPlaying;
 	jComponent[JSON_TAG_LOOPING] = looping;
-	jComponent[JSON_TAG_ISRANDOMFRAME] = isRandomFrame;
-	jComponent[JSON_TAG_SCALEPARTICLE] = scale;
-	jComponent[JSON_TAG_MAXPARTICLE] = maxParticles;
+	jComponent[JSON_TAG_IS_RANDOM_FRAME] = isRandomFrame;
+	jComponent[JSON_TAG_SCALE_PARTICLE] = scale;
+	jComponent[JSON_TAG_MAX_PARTICLE] = maxParticles;
 	jComponent[JSON_TAG_VELOCITY] = velocity;
 	jComponent[JSON_TAG_LIFE] = particleLife;
-	jComponent[JSON_TAG_SIZEOVERTIME] = sizeOverTime;
-	jComponent[JSON_TAG_SCALEFACTOR] = scaleFactor;
+	jComponent[JSON_TAG_SIZE_OVER_TIME] = sizeOverTime;
+	jComponent[JSON_TAG_SCALE_FACTOR] = scaleFactor;
 
-	jComponent[JSON_TAG_TEXTURE_DISTANCEREVERSE] = reverseEffect;
-	jComponent[JSON_TAG_TEXTURE_REVERSEEFFECT] = distanceReverse;
+	jComponent[JSON_TAG_TEXTURE_DISTANCE_REVERSE] = distanceReverse;
+	jComponent[JSON_TAG_TEXTURE_REVERSE_EFFECT] = reverseEffect;
 
 	jComponent[JSON_TAG_YTILES] = Ytiles;
 	jComponent[JSON_TAG_XTILES] = Xtiles;
-	jComponent[JSON_TAG_ANIMATIONSPEED] = animationSpeed;
+	jComponent[JSON_TAG_ANIMATION_SPEED] = animationSpeed;
 
-	JsonValue jColor = jComponent[JSON_TAG_INITCOLOR];
+	JsonValue jColor = jComponent[JSON_TAG_INIT_COLOR];
 	jColor[0] = initC.x;
 	jColor[1] = initC.y;
 	jColor[2] = initC.z;
 	jColor[3] = initC.w;
-	JsonValue jColor2 = jComponent[JSON_TAG_FINALCOLOR];
+	JsonValue jColor2 = jComponent[JSON_TAG_FINAL_COLOR];
 	jColor2[0] = finalC.x;
 	jColor2[1] = finalC.y;
 	jColor2[2] = finalC.z;
@@ -361,19 +361,17 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_START_TRANSITION] = startTransition;
 	jComponent[JSON_TAG_END_TRANSITION] = endTransition;
 
-	JsonValue jFlip = jComponent[JSON_TAG_FLIPTEXTURE];
+	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
 	jFlip[0] = flipTexture[0];
 	jFlip[1] = flipTexture[1];
 }
 
 void ComponentParticleSystem::Update() {
-	if (!isPlaying) return;
-
 	deadParticles.clear();
 	if (restDelayTime <= 0) {
 		for (Particle& currentParticle : particles) {
 			if (executer) {
-				currentParticle.life = 0;
+				currentParticle.life = -1;
 			} else {
 				UpdateVelocity(&currentParticle);
 				if (billboardType == BillboardType::LOOK_AT) {
@@ -394,6 +392,7 @@ void ComponentParticleSystem::Update() {
 		if (executer) executer = false;
 		UndertakerParticle();
 	} else {
+		if (!isPlaying) return;
 		if (App->time->IsGameRunning()) {
 			restDelayTime -= App->time->GetDeltaTime();
 		} else {
@@ -407,7 +406,7 @@ void ComponentParticleSystem::UndertakerParticle() {
 		particles.Release(currentParticle);
 	}
 
-	if (looping || (particleSpawned <= maxParticles)) {
+	if (looping || (particleSpawned < maxParticles)) {
 		SpawnParticle();
 	} else {
 		if (particles.Count() == 0) {
@@ -624,11 +623,11 @@ void ComponentParticleSystem::Play() {
 	if (!isPlaying) {
 		isPlaying = true;
 		particleSpawned = 0;
+		restDelayTime = startDelay;
 	}
 }
 
 void ComponentParticleSystem::Stop() {
 	particleSpawned = maxParticles;
 	executer = true;
-	isPlaying = false;
 }

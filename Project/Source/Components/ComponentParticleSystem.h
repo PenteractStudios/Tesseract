@@ -43,7 +43,7 @@ public:
 		Quat rotation = Quat(0.0f, 0.0f, 0.0f, 0.0f);
 
 		float velocity = 0.0f;
-		float life = 0.0F;
+		float life = 0.0f;
 		float currentFrame = 0.0f;
 		float colorFrame = 0.0f;
 	};
@@ -94,18 +94,19 @@ private:
 	bool sizeOverTime = false;
 	bool reverseEffect = false;
 	bool executer = false;
-	float scale = 5;
-	float distanceReverse = 0;
-	float startDelay = 0;
-	float restDelayTime = 0;
+	float scale = 5.f;
+	float distanceReverse = 0.f;
+	float startDelay = 0.f;
+	float restDelayTime = 0.f;
 
 	unsigned maxParticles = 100;
 	unsigned particleSpawned = 0;
 	float velocity = 0.1f;
-	float particleLife = 5;
-	float scaleFactor = 0;
-	float coneRadiusUp = 1;
+	float particleLife = 5.f;
+	float scaleFactor = 0.f;
+	float coneRadiusUp = 1.f;
 	float coneRadiusDown = 0.5f;
+
 	// Texture Sheet Animation
 	unsigned Xtiles = 1;
 	unsigned Ytiles = 1;
