@@ -75,7 +75,6 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 	ImGui::TextColored(App->editor->textColor, "Texture Settings");
 
-	ImGui::Checkbox("isPlaying", &isPlaying);
 	ImGui::Checkbox("Loop", &looping);
 	if (ImGui::Button("Play")) Play();
 	ImGui::SameLine();
