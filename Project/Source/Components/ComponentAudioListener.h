@@ -18,6 +18,7 @@ public:
 
 	void UpdateAudioListener();
 
+	TESSERACT_ENGINE_API float GetAudioVolume() const;
 	TESSERACT_ENGINE_API void SetAudioVolume(float volume);
 
 private:

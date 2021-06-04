@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Source\Components\ComponentBilboardRender.cpp" />
     <ClCompile Include="Source\LightFrustum.cpp" />
     <ClCompile Include="Source\Components\ComponentAgent.cpp" />
     <ClCompile Include="Source\FileSystem\NavMeshImporter.cpp" />
@@ -368,9 +367,9 @@
     <ClCompile Include="Source\Components\Physics\ComponentCapsuleCollider.cpp" />
     <ClCompile Include="Source\FileSystem\NavMeshImporter.cpp" />
     <ClCompile Include="Source\Components\ComponentAgent.cpp" />
+    <ClCompile Include="Source\Panels\PanelAudioMixer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Components\ComponentBilboardRender.h" />
     <ClInclude Include="Source\LightFrustum.h" />
     <ClInclude Include="Source\Components\ComponentAgent.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\DebugUtils\DebugDraw.h" />
@@ -713,6 +712,7 @@
     <ClInclude Include="Source\Components\Physics\ComponentCapsuleCollider.h" />
     <ClInclude Include="Source\FileSystem\NavMeshImporter.h" />
     <ClInclude Include="Source\Components\ComponentAgent.h" />
+    <ClInclude Include="Source\Panels\PanelAudioMixer.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />

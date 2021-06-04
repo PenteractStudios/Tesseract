@@ -15,6 +15,7 @@
 #include "Panels/PanelResource.h"
 #include "Panels/PanelDebug.h"
 #include "Panels/PanelImportOptions.h"
+#include "Panels/PanelAudioMixer.h"
 #include "Utils/UID.h"
 
 #include "imgui.h"
@@ -71,6 +72,7 @@ public:
 	PanelResource panelResource;
 	PanelDebug panelGameControllerDebug;
 	PanelImportOptions panelImportOptions;
+	PanelAudioMixer panelAudioMixer;
 
 	GameObject* selectedGameObject = nullptr;			   // Pointer to the GameObject that will be shown in the inspector.
 	std::string selectedFolder = "";					   // Currently selected folder in the PanelProject.
