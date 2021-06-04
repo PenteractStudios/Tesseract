@@ -33,24 +33,23 @@
 #define JSON_TAG_BILLBOARD_TYPE "BillboardType"
 #define JSON_TAG_TEXTURE_TEXTURE_ID "TextureId"
 
-#define JSON_TAG_TEXTURE_DISTANCE_REVERSE "DistanceReverse"
-#define JSON_TAG_TEXTURE_REVERSE_EFFECT "ReverseEffect"
-
 #define JSON_TAG_IS_PLAYING "IsPlaying"
 #define JSON_TAG_LOOPING "IsLooping"
 #define JSON_TAG_SIZE_OVER_TIME "IsSizeOverTime"
 #define JSON_TAG_SCALE_FACTOR "ScaleFactor"
-#define JSON_TAG_IS_RANDOM_FRAME "IsRandomFrame"
-#define JSON_TAG_IS_RANDOM_DIRECTION "IsRandomDirection"
 #define JSON_TAG_SCALE_PARTICLE "ParticleScale"
 #define JSON_TAG_MAX_PARTICLE "MaxParticle"
 #define JSON_TAG_VELOCITY "Velocity"
 #define JSON_TAG_LIFE "LifeParticle"
+#define JSON_TAG_TEXTURE_DISTANCE_REVERSE "DistanceReverse"
+#define JSON_TAG_TEXTURE_REVERSE_EFFECT "ReverseEffect"
+#define JSON_TAG_START_DELAY_TIME "StartDelay"
 
 #define JSON_TAG_YTILES "Ytiles"
 #define JSON_TAG_XTILES "Xtiles"
 #define JSON_TAG_ANIMATION_SPEED "AnimationSpeed"
-#define JSON_TAG_START_DELAY_TIME "StartDelay"
+#define JSON_TAG_IS_RANDOM_FRAME "IsRandomFrame"
+
 #define JSON_TAG_INIT_COLOR "InitColor"
 #define JSON_TAG_FINAL_COLOR "FinalColor"
 #define JSON_TAG_START_TRANSITION "StartTransition"
@@ -287,25 +286,23 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 		App->resources->IncreaseReferenceCount(textureID);
 	}
 
-	coneRadiusUp = jComponent[JSON_TAG_CONE_RADIUS_UP];
-	coneRadiusDown = jComponent[JSON_TAG_CONE_RADIUS_DOWN];
-
 	isPlaying = jComponent[JSON_TAG_IS_PLAYING];
 	looping = jComponent[JSON_TAG_LOOPING];
-	isRandomFrame = jComponent[JSON_TAG_IS_RANDOM_FRAME];
+	sizeOverTime = jComponent[JSON_TAG_SIZE_OVER_TIME];
+	scaleFactor = jComponent[JSON_TAG_SCALE_FACTOR];
 	scale = jComponent[JSON_TAG_SCALE_PARTICLE];
 	maxParticles = jComponent[JSON_TAG_MAX_PARTICLE];
 	velocity = jComponent[JSON_TAG_VELOCITY];
 	particleLife = jComponent[JSON_TAG_LIFE];
-	sizeOverTime = jComponent[JSON_TAG_SIZE_OVER_TIME];
-	scaleFactor = jComponent[JSON_TAG_SCALE_FACTOR];
-	startDelay = jComponent[JSON_TAG_START_DELAY_TIME];
+
 	distanceReverse = jComponent[JSON_TAG_TEXTURE_DISTANCE_REVERSE];
 	reverseEffect = jComponent[JSON_TAG_TEXTURE_REVERSE_EFFECT];
+	startDelay = jComponent[JSON_TAG_START_DELAY_TIME];
 
 	Ytiles = jComponent[JSON_TAG_YTILES];
 	Xtiles = jComponent[JSON_TAG_XTILES];
 	animationSpeed = jComponent[JSON_TAG_ANIMATION_SPEED];
+	isRandomFrame = jComponent[JSON_TAG_IS_RANDOM_FRAME];
 
 	JsonValue jColor = jComponent[JSON_TAG_INIT_COLOR];
 	initC.Set(jColor[0], jColor[1], jColor[2], jColor[3]);
@@ -318,6 +315,9 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	flipTexture[0] = jFlip[0];
 	flipTexture[1] = jFlip[1];
 
+	coneRadiusUp = jComponent[JSON_TAG_CONE_RADIUS_UP];
+	coneRadiusDown = jComponent[JSON_TAG_CONE_RADIUS_DOWN];
+
 	particleSpawned = 0;
 	CreateParticles(maxParticles, velocity);
 }
@@ -328,25 +328,22 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 
 	jComponent[JSON_TAG_TEXTURE_TEXTURE_ID] = textureID;
 
-	jComponent[JSON_TAG_CONE_RADIUS_UP] = coneRadiusUp;
-	jComponent[JSON_TAG_CONE_RADIUS_DOWN] = coneRadiusDown;
-	jComponent[JSON_TAG_START_DELAY_TIME] = startDelay;
 	jComponent[JSON_TAG_IS_PLAYING] = isPlaying;
 	jComponent[JSON_TAG_LOOPING] = looping;
-	jComponent[JSON_TAG_IS_RANDOM_FRAME] = isRandomFrame;
+	jComponent[JSON_TAG_SIZE_OVER_TIME] = sizeOverTime;
+	jComponent[JSON_TAG_SCALE_FACTOR] = scaleFactor;
 	jComponent[JSON_TAG_SCALE_PARTICLE] = scale;
 	jComponent[JSON_TAG_MAX_PARTICLE] = maxParticles;
 	jComponent[JSON_TAG_VELOCITY] = velocity;
 	jComponent[JSON_TAG_LIFE] = particleLife;
-	jComponent[JSON_TAG_SIZE_OVER_TIME] = sizeOverTime;
-	jComponent[JSON_TAG_SCALE_FACTOR] = scaleFactor;
-
 	jComponent[JSON_TAG_TEXTURE_DISTANCE_REVERSE] = distanceReverse;
 	jComponent[JSON_TAG_TEXTURE_REVERSE_EFFECT] = reverseEffect;
+	jComponent[JSON_TAG_START_DELAY_TIME] = startDelay;
 
 	jComponent[JSON_TAG_YTILES] = Ytiles;
 	jComponent[JSON_TAG_XTILES] = Xtiles;
 	jComponent[JSON_TAG_ANIMATION_SPEED] = animationSpeed;
+	jComponent[JSON_TAG_IS_RANDOM_FRAME] = isRandomFrame;
 
 	JsonValue jColor = jComponent[JSON_TAG_INIT_COLOR];
 	jColor[0] = initC.x;
@@ -364,6 +361,9 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
 	jFlip[0] = flipTexture[0];
 	jFlip[1] = flipTexture[1];
+
+	jComponent[JSON_TAG_CONE_RADIUS_UP] = coneRadiusUp;
+	jComponent[JSON_TAG_CONE_RADIUS_DOWN] = coneRadiusDown;
 }
 
 void ComponentParticleSystem::Update() {
