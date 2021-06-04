@@ -43,7 +43,7 @@ public:
 		Quat rotation = Quat(0.0f, 0.0f, 0.0f, 0.0f);
 
 		float velocity = 0.0f;
-		float life = 0.0F;
+		float life = 0.0f;
 		float currentFrame = 0.0f;
 		float colorFrame = 0.0f;
 	};
@@ -62,8 +62,14 @@ public:
 	TESSERACT_ENGINE_API void Stop();
 	void SpawnParticle();
 	void killParticles();
+
 	float3 CreatePosition();
-	float3 CreateVelocity();
+	float3 CreateDirection();
+
+	void UpdateVelocity(Particle* currentParticle);
+	void UpdateScale(Particle* currentParticle);
+	void UpdateLife(Particle* currentParticle);
+	void UndertakerParticle();
 
 private:
 	float4 GetTintColor() const; // Gets an additional color that needs to be applied to the image. Currently gets the color of the Button
@@ -81,19 +87,25 @@ private:
 	float3 cameraDir = {0.f, 0.f, 0.f};
 
 	// General Options
+
 	bool looping = false;
 	bool isPlaying = true;
 	bool isRandomFrame = false;
-	bool randomDirection = false;
 	bool sizeOverTime = false;
+	bool reverseEffect = false;
+	bool executer = false;
+	float scale = 5.f;
+	float distanceReverse = 0.f;
+	float startDelay = 0.f;
+	float restDelayTime = 0.f;
 
-	float scale = 5;
 	unsigned maxParticles = 100;
 	unsigned particleSpawned = 0;
 	float velocity = 0.1f;
-	float particleLife = 5;
-	float scaleFactor = 0;
-
+	float particleLife = 5.f;
+	float scaleFactor = 0.f;
+	float coneRadiusUp = 1.f;
+	float coneRadiusDown = 0.5f;
 
 	// Texture Sheet Animation
 	unsigned Xtiles = 1;
@@ -108,7 +120,6 @@ private:
 
 	// Texture Options
 	bool flipTexture[2] = {false, false};
-
 
 	// Guizmos Options
 	float kc = 1.0f; //Keep in one to avoid having denominator less than 1
