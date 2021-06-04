@@ -50,7 +50,7 @@
 #define JSON_TAG_YTILES "Ytiles"
 #define JSON_TAG_XTILES "Xtiles"
 #define JSON_TAG_ANIMATIONSPEED "AnimationSpeed"
-
+#define JSON_TAG_STARTDELAYTIME "StartDelay"
 #define JSON_TAG_INITCOLOR "InitColor"
 #define JSON_TAG_FINALCOLOR "FinalColor"
 #define JSON_TAG_START_TRANSITION "StartTransition"
@@ -299,7 +299,7 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	particleLife = jComponent[JSON_TAG_LIFE];
 	sizeOverTime = jComponent[JSON_TAG_SIZEOVERTIME];
 	scaleFactor = jComponent[JSON_TAG_SCALEFACTOR];
-
+	startDelay = jComponent[JSON_TAG_STARTDELAYTIME];
 	reverseEffect = jComponent[JSON_TAG_TEXTURE_DISTANCEREVERSE];
 	distanceReverse = jComponent[JSON_TAG_TEXTURE_REVERSEEFFECT];
 
@@ -330,7 +330,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 
 	jComponent[JSON_TAG_CONERADIUSUP] = coneRadiusUp;
 	jComponent[JSON_TAG_CONERADIUSDOWN] = coneRadiusDown;
-
+	jComponent[JSON_TAG_STARTDELAYTIME] = startDelay;
 	jComponent[JSON_TAG_ISPLAYING] = isPlaying;
 	jComponent[JSON_TAG_LOOPING] = looping;
 	jComponent[JSON_TAG_ISRANDOMFRAME] = isRandomFrame;
@@ -413,7 +413,7 @@ void ComponentParticleSystem::UndertakerParticle() {
 		if (particles.Count() == 0) {
 			restDelayTime = startDelay;
 			isPlaying = false;
-		}	
+		}
 	}
 }
 
