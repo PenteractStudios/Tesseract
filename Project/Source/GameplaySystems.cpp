@@ -18,7 +18,6 @@
 #include "Modules/ModuleAudio.h"
 #include "Resources/ResourcePrefab.h"
 #include "Resources/ResourceMaterial.h"
-#include "Resources/ResourceStateMachine.h"
 #include "FileSystem/SceneImporter.h"
 #include "Utils/Logging.h"
 #include "TesseractEvent.h"
@@ -57,7 +56,6 @@ T* GameplaySystems::GetResource(UID id) {
 
 template TESSERACT_ENGINE_API ResourcePrefab* GameplaySystems::GetResource<ResourcePrefab>(UID id);
 template TESSERACT_ENGINE_API ResourceMaterial* GameplaySystems::GetResource<ResourceMaterial>(UID id);
-template TESSERACT_ENGINE_API ResourceStateMachine* GameplaySystems::GetResource<ResourceStateMachine>(UID id);
 
 void GameplaySystems::SetRenderCamera(ComponentCamera* camera) {
 	App->camera->ChangeActiveCamera(camera, true);
