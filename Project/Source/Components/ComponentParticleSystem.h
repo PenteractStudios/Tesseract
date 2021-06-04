@@ -62,6 +62,7 @@ public:
 	TESSERACT_ENGINE_API void Stop();
 	void SpawnParticle();
 	void killParticles();
+
 	float3 CreatePosition();
 	float3 CreateVelocity();
 
@@ -84,10 +85,9 @@ private:
 	bool looping = false;
 	bool isPlaying = true;
 	bool isRandomFrame = false;
-	bool randomDirection = false;
 	bool sizeOverTime = false;
 	bool reverseEffect = false;
-
+	bool executer = false;
 	float scale = 5;
 	float distanceReverse = 0;
 
@@ -96,7 +96,8 @@ private:
 	float velocity = 0.1f;
 	float particleLife = 5;
 	float scaleFactor = 0;
-
+	float coneRadiusUp = 1;
+	float coneRadiusDown = 0.5f;
 	// Texture Sheet Animation
 	unsigned Xtiles = 1;
 	unsigned Ytiles = 1;
