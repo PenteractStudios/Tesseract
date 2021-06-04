@@ -15,6 +15,7 @@
 #include "Panels/PanelResource.h"
 #include "Panels/PanelDebug.h"
 #include "Panels/PanelImportOptions.h"
+#include "Panels/PanelAudioMixer.h"
 #include "Utils/UID.h"
 
 #include "imgui.h"
@@ -25,10 +26,9 @@ enum class Modal {
 	NONE,
 	NEW_PROJECT,
 	NEW_SCENE,
-	LOAD_PROJECT,
 	LOAD_SCENE,
-	SAVE_PROJECT,
 	SAVE_SCENE,
+	SAVE_PREFAB,
 	COMPONENT_EXISTS,
 	CREATE_MATERIAL,
 	CREATE_SCRIPT,
@@ -72,6 +72,7 @@ public:
 	PanelResource panelResource;
 	PanelDebug panelGameControllerDebug;
 	PanelImportOptions panelImportOptions;
+	PanelAudioMixer panelAudioMixer;
 
 	GameObject* selectedGameObject = nullptr;			   // Pointer to the GameObject that will be shown in the inspector.
 	std::string selectedFolder = "";					   // Currently selected folder in the PanelProject.

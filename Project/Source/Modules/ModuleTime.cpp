@@ -40,6 +40,12 @@ UpdateStatus ModuleTime::PreUpdate() {
 	realTimeDeltaMs = realTime - realTimeLastMs;
 	realTimeLastMs = realTime;
 
+	unsigned int autoSaveDeltaMs = realTime - lastAutoSave;
+	if (!HasGameStarted() && autoSaveDeltaMs >= TIME_BETWEEN_AUTOSAVES_MS) {
+		SceneImporter::SaveScene(TEMP_SCENE_FILE_NAME);
+		lastAutoSave = realTime;
+	}
+
 	if (gameRunning) {
 		timeDeltaMs = lroundf(realTimeDeltaMs * timeScale);
 		timeLastMs += timeDeltaMs;
@@ -170,7 +176,6 @@ void ModuleTime::StopGame() {
 
 #if !GAME
 	SceneImporter::LoadScene(TEMP_SCENE_FILE_NAME);
-	App->files->Erase(TEMP_SCENE_FILE_NAME);
 #endif
 	App->camera->ChangeActiveCamera(nullptr, false);
 	App->camera->ChangeCullingCamera(nullptr, false);

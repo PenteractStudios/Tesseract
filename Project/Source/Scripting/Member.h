@@ -5,7 +5,7 @@
 #include <vector>
 #include "Math/float3.h"
 
-#define MEMBER_VARIANT std::variant<bool, char, unsigned char, short, unsigned short, int, unsigned int, long long, unsigned long long, float, double, std::string, float3>
+#define MEMBER_VARIANT std::variant<bool, char, unsigned char, short, unsigned short, int, unsigned int, long long, unsigned long long, float, double, std::string, float2, float3>
 
 #define EXPOSE_MEMBERS(classname) \
 	using ClassType = classname;  \
@@ -20,7 +20,7 @@
 /* Creating a new member type:
 *    1. Add a new MemberType for the new member
 *    2. Add the new member to the GetMemberTypeName and GetMemberTypeFromName functions in Member.cpp
-*    3. Add the member editor functionality in ComponentScript.cpp
+*    3. Add the member editor functionality and serialization in ComponentScript.cpp
 */
 
 enum class MemberType {
@@ -33,6 +33,7 @@ enum class MemberType {
 	LONGLONG,
 	ULONGLONG,
 	FLOAT,
+	FLOAT2,
 	FLOAT3,
 	DOUBLE,
 
@@ -43,7 +44,8 @@ enum class MemberType {
 	GAME_OBJECT_UID,
 
 	// Resources
-	PREFAB_RESOURCE_UID
+	PREFAB_RESOURCE_UID,
+	SCENE_RESOURCE_UID
 };
 
 struct Member {

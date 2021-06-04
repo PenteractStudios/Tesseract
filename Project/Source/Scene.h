@@ -68,7 +68,7 @@ public:
 
 	PoolMap<UID, GameObject> gameObjects; // Pool of GameObjects. Stores all the memory of all existing GameObject in a contiguous memory space.
 
-	bool sceneLoaded = false; // This is set to true when all scene resources have been loaded
+	bool sceneLoaded = true; // This is set to true when all scene resources have been loaded
 
 	// ---- Components ---- //
 	PoolMap<UID, ComponentTransform> transformComponents;

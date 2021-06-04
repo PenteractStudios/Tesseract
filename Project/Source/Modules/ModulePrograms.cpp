@@ -84,7 +84,9 @@ void ModulePrograms::LoadShaders() {
 	MSTimer timer;
 	timer.Start();
 
+#if !GAME
 	LoadShaderBinFile();
+#endif
 
 	//SkyBox shader
 	skybox = CreateProgram(filePath, "vertSkybox", "fragSkybox");

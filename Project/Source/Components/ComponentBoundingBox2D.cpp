@@ -7,12 +7,15 @@
 #include "Utils/Logging.h"
 #include "Panels/PanelScene.h"
 #include "Modules/ModuleWindow.h"
+#include "Modules/ModuleTime.h"
 #include "Modules/ModuleRender.h"
+#include "Modules/ModuleUserInterface.h"
 
 #include "debugdraw.h"
 #include "Geometry/AABB.h"
 #include "Geometry/OBB2D.h"
 #include "Geometry/Circle.h"
+#include "imgui.h"
 #include "Math/float3x3.h"
 
 #include "Utils/Leaks.h"
@@ -28,6 +31,10 @@ void ComponentBoundingBox2D::Init() {
 		SetLocalBoundingBox(AABB2D(minPoint, maxPoint));
 		CalculateWorldBoundingBox();
 	}
+}
+
+void ComponentBoundingBox2D::OnEditorUpdate() {
+	ImGui::Checkbox("Show Outline Object", &drawOutline);
 }
 
 void ComponentBoundingBox2D::Update() {
@@ -62,17 +69,22 @@ void ComponentBoundingBox2D::CalculateWorldBoundingBox(bool force) {
 		float screenFactor = 1.0f;
 		float2 screenSize(0, 0);
 		float3 position(0, 0, 0);
+		float2 pivotPosition(0, 0);
 		if (canvasRenderer != nullptr) {
 			screenFactor = canvasRenderer->GetCanvasScreenFactor();
 			screenSize = canvasRenderer->GetCanvasSize();
 			position = transform2d->GetScreenPosition();
+			pivotPosition = transform2d->GetPivot();
 		}
 
+		float2 pivotDifference = float2::zero;
+		pivotDifference.x = -pivotPosition.x + 0.5f;
+		pivotDifference.y = pivotPosition.y - 0.5f;
 
 		worldAABB.minPoint = position.xy().Mul(float2(1.0f, -1.0f).Mul(screenFactor)) + screenSize / 2.0f
-							 + localAABB.minPoint.Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy()).Mul(screenFactor));
+							 + (localAABB.minPoint + pivotDifference).Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy()).Mul(screenFactor));
 		worldAABB.maxPoint = position.xy().Mul(float2(1.0f, -1.0f).Mul(screenFactor)) + screenSize / 2.0f
-							 + localAABB.maxPoint.Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy()).Mul(screenFactor));
+							 + (localAABB.maxPoint + pivotDifference).Mul(transform2d->GetSize().Mul(transform2d->GetScale().xy()).Mul(screenFactor));
 #if GAME
 		float2 windowPos = float2(App->window->GetPositionX(), App->window->GetPositionY());
 		worldAABB.minPoint += windowPos;
@@ -81,8 +93,10 @@ void ComponentBoundingBox2D::CalculateWorldBoundingBox(bool force) {
 	}
 }
 
-void ComponentBoundingBox2D::DrawBoundingBox() {
-	dd::aabb(float3(worldAABB.minPoint, 0.0f), float3(worldAABB.maxPoint, 0.0f), float3::one);
+void ComponentBoundingBox2D::DrawGizmos() {
+	if (!App->time->IsGameRunning() && !App->userInterface->IsUsing2D() && drawOutline) {
+		dd::aabb(float3(worldAABB.minPoint, 0.0f), float3(worldAABB.maxPoint, 0.0f), float3::one);
+	}
 }
 
 void ComponentBoundingBox2D::Invalidate() {

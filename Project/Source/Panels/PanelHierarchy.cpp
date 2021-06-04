@@ -71,11 +71,7 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 		Scene* scene = App->scene->scene;
 		if (gameObject != scene->root) {
 			if (ImGui::Selectable("Create Prefab")) {
-				std::string path = std::string(PREFABS_PATH) + "/" + gameObject->name + PREFAB_EXTENSION;
-				for (unsigned copyIndex = 0; App->files->Exists(path.c_str()); ++copyIndex) {
-					path = std::string(PREFABS_PATH) + "/" + gameObject->name + " (" + std::to_string(copyIndex) + ")" + PREFAB_EXTENSION;
-				}
-				PrefabImporter::SavePrefab(path.c_str(), gameObject);
+				App->editor->modalToOpen = Modal::SAVE_PREFAB;
 			}
 
 			if (ImGui::Selectable("Delete")) {

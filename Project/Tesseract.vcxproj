@@ -15,6 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Panels\PanelAudioMixer.h" />
     <ClInclude Include="Source\FileSystem\StateMachinGenerator.h" />
     <ClInclude Include="Source\Components\ComponentBillboard.h" />
     <ClInclude Include="Source\LightFrustum.h" />
@@ -340,6 +341,7 @@
     <ClInclude Include="Source\StateMachineManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Panels\PanelAudioMixer.cpp" />
     <ClCompile Include="Source\FileSystem\StateMachinGenerator.cpp" />
     <ClCompile Include="Source\Components\ComponentBillboard.cpp" />
     <ClCompile Include="Source\LightFrustum.cpp" />

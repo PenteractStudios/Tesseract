@@ -10,7 +10,4 @@ public:
 
 	void Load() override;
 	void Unload() override;
-
-public:
-	std::string name = "";
 };
