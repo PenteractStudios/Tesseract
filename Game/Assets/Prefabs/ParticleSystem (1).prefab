@@ -1,0 +1,77 @@
+{
+    "Root": {
+        "Name": "ParticleSystem",
+        "Active": true,
+        "RootBoneName": "",
+        "Mask": 0,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    0.0,
+                    -0.08709913492202759,
+                    0.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "LocalEulerAngles": [
+                    -0.0,
+                    0.0,
+                    -0.0
+                ]
+            },
+            {
+                "Type": "Particle",
+                "Active": true,
+                "EmitterType": 0,
+                "BillboardType": 0,
+                "TextureId": 8544467787590281640,
+                "ConeRUP": 2.4000000953674318,
+                "ConeRDown": 0.550000011920929,
+                "IsPlaying": true,
+                "IsLooping": true,
+                "IsRandomFrame": true,
+                "ParticleScale": 5.650000095367432,
+                "MaxParticle": 43,
+                "Velocity": 0.8999999761581421,
+                "LifeParticle": 1.0,
+                "IsSizeOverTime": false,
+                "ScaleFactor": 0.0,
+                "distanceReverse": false,
+                "reverseEffect": 0.0,
+                "Ytiles": 2,
+                "Xtiles": 2,
+                "AnimationSpeed": 0.0,
+                "InitColor": [
+                    1.0,
+                    0.3529411554336548,
+                    0.0,
+                    1.0
+                ],
+                "FinalColor": [
+                    9.999999974752428e-7,
+                    9.999899930335233e-7,
+                    9.999899930335233e-7,
+                    1.0
+                ],
+                "StartTransition": 0.009999999776482582,
+                "EndTransition": 0.6000000238418579,
+                "FlipTexture": [
+                    false,
+                    false
+                ]
+            }
+        ],
+        "Children": null
+    }
+}

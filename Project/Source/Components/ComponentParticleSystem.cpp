@@ -82,6 +82,11 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	if (ImGui::Button("Stop")) Stop();
 
 	ImGui::Separator();
+	if (ImGui::DragFloat("start Delay", &startDelay, App->editor->dragSpeed2f, 0, inf)) {
+		restDelayTime = startDelay;
+	}
+	if (startDelay > 0) ImGui::DragFloat("Rest Time", &restDelayTime, App->editor->dragSpeed2f, 0, inf);
+	ImGui::Separator();
 	const char* billboardTypeCombo[] = {"LookAt", "Stretch", "Horitzontal"};
 	const char* billboardTypeComboCurrent = billboardTypeCombo[(int) billboardType];
 	ImGui::TextColored(App->editor->textColor, "Type:");
@@ -201,7 +206,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	}
 }
 
-float3 ComponentParticleSystem::CreateVelocity() {
+float3 ComponentParticleSystem::CreateDirection() {
 	float x, y, z;
 	if (emitterType == EmitterType::CONE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
@@ -268,7 +273,7 @@ void ComponentParticleSystem::CreateParticles(unsigned nParticles, float vel) {
 		currentParticle.scale = float3(0.1f, 0.1f, 0.1f) * scale;
 		currentParticle.initialPosition = CreatePosition();
 		currentParticle.position = currentParticle.initialPosition;
-		currentParticle.direction = CreateVelocity();
+		currentParticle.direction = CreateDirection();
 		currentParticle.velocity = vel;
 	}
 }
@@ -362,70 +367,42 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 }
 
 void ComponentParticleSystem::Update() {
+	if (!isPlaying) return;
+
 	deadParticles.clear();
-	for (Particle& currentParticle : particles) {
-		if (executer) {
-			currentParticle.life = 0;
-		} else {
-			if (App->time->IsGameRunning()) {
-				if (reverseEffect) {
-					ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-					float3 direction = currentParticle.position - transform->GetGlobalPosition();
-					currentParticle.position -= direction * App->time->GetDeltaTime();
-				} else {
-					currentParticle.position += currentParticle.direction * velocity * App->time->GetDeltaTime();
-				}
+	if (restDelayTime <= 0) {
+		for (Particle& currentParticle : particles) {
+			if (executer) {
+				currentParticle.life = 0;
 			} else {
-				if (reverseEffect) {
-					ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-					float3 direction = currentParticle.position - transform->GetGlobalPosition();
-					currentParticle.position -= direction * App->time->GetRealTimeDeltaTime();
+				UpdateVelocity(&currentParticle);
+				if (billboardType == BillboardType::LOOK_AT) {
+					currentParticle.model = float4x4::FromTRS(currentParticle.position, currentParticle.rotation, currentParticle.scale);
 				} else {
-					currentParticle.position += currentParticle.direction * velocity * App->time->GetRealTimeDeltaTime();
+					currentParticle.modelStretch.SetTranslatePart(currentParticle.position);
+				}
+
+				UpdateLife(&currentParticle);
+				if (sizeOverTime) {
+					UpdateScale(&currentParticle);
 				}
 			}
-
-			if (billboardType == BillboardType::LOOK_AT) {
-				currentParticle.model = float4x4::FromTRS(currentParticle.position, currentParticle.rotation, currentParticle.scale);
-			} else {
-				currentParticle.modelStretch.SetTranslatePart(currentParticle.position);
-			}
-
-			// Life time
-			if (App->time->IsGameRunning()) {
-				currentParticle.life -= App->time->GetDeltaTime();
-				currentParticle.colorFrame += App->time->GetDeltaTime();
-			} else {
-				currentParticle.life -= App->time->GetRealTimeDeltaTime();
-				currentParticle.colorFrame += App->time->GetRealTimeDeltaTime();
-			}
-
-			if (sizeOverTime) {
-				if (App->time->IsGameRunning()) {
-					currentParticle.scale.x += scaleFactor * App->time->GetDeltaTime();
-					currentParticle.scale.y += scaleFactor * App->time->GetDeltaTime();
-					currentParticle.scale.z += scaleFactor * App->time->GetDeltaTime();
-				} else {
-					currentParticle.scale.x += scaleFactor * App->time->GetRealTimeDeltaTime();
-					currentParticle.scale.y += scaleFactor * App->time->GetRealTimeDeltaTime();
-					currentParticle.scale.z += scaleFactor * App->time->GetRealTimeDeltaTime();
-				}
-				if (currentParticle.scale.x < 0) {
-					currentParticle.scale.x = 0;
-				}
-				if (currentParticle.scale.y < 0) {
-					currentParticle.scale.y = 0;
-				}
-				if (currentParticle.scale.z < 0) {
-					currentParticle.scale.z = 0;
-				}
+			if (currentParticle.life < 0) {
+				deadParticles.push_back(&currentParticle);
 			}
 		}
-		if (currentParticle.life < 0) {
-			deadParticles.push_back(&currentParticle);
+		if (executer) executer = false;
+		UndertakerParticle();
+	} else {
+		if (App->time->IsGameRunning()) {
+			restDelayTime -= App->time->GetDeltaTime();
+		} else {
+			restDelayTime -= App->time->GetRealTimeDeltaTime();
 		}
 	}
-	if (executer) executer = false;
+}
+
+void ComponentParticleSystem::UndertakerParticle() {
 	for (Particle* currentParticle : deadParticles) {
 		particles.Release(currentParticle);
 	}
@@ -434,8 +411,58 @@ void ComponentParticleSystem::Update() {
 		SpawnParticle();
 	} else {
 		if (particles.Count() == 0) {
+			restDelayTime = startDelay;
 			isPlaying = false;
+		}	
+	}
+}
+
+void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
+	if (App->time->IsGameRunning()) {
+		if (reverseEffect) {
+			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
+			float3 direction = currentParticle->position - transform->GetGlobalPosition();
+			currentParticle->position -= direction * App->time->GetDeltaTime();
+		} else {
+			currentParticle->position += currentParticle->direction * velocity * App->time->GetDeltaTime();
 		}
+	} else {
+		if (reverseEffect) {
+			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
+			float3 direction = currentParticle->position - transform->GetGlobalPosition();
+			currentParticle->position -= direction * App->time->GetRealTimeDeltaTime();
+		} else {
+			currentParticle->position += currentParticle->direction * velocity * App->time->GetRealTimeDeltaTime();
+		}
+	}
+}
+void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
+	if (App->time->IsGameRunning()) {
+		currentParticle->scale.x += scaleFactor * App->time->GetDeltaTime();
+		currentParticle->scale.y += scaleFactor * App->time->GetDeltaTime();
+		currentParticle->scale.z += scaleFactor * App->time->GetDeltaTime();
+	} else {
+		currentParticle->scale.x += scaleFactor * App->time->GetRealTimeDeltaTime();
+		currentParticle->scale.y += scaleFactor * App->time->GetRealTimeDeltaTime();
+		currentParticle->scale.z += scaleFactor * App->time->GetRealTimeDeltaTime();
+	}
+	if (currentParticle->scale.x < 0) {
+		currentParticle->scale.x = 0;
+	}
+	if (currentParticle->scale.y < 0) {
+		currentParticle->scale.y = 0;
+	}
+	if (currentParticle->scale.z < 0) {
+		currentParticle->scale.z = 0;
+	}
+}
+void ComponentParticleSystem::UpdateLife(Particle* currentParticle) {
+	if (App->time->IsGameRunning()) {
+		currentParticle->life -= App->time->GetDeltaTime();
+		currentParticle->colorFrame += App->time->GetDeltaTime();
+	} else {
+		currentParticle->life -= App->time->GetRealTimeDeltaTime();
+		currentParticle->colorFrame += App->time->GetRealTimeDeltaTime();
 	}
 }
 
@@ -448,6 +475,7 @@ void ComponentParticleSystem::SpawnParticle() {
 	if (!looping) {
 		particleSpawned++;
 	}
+	particleSpawned++;
 	if (currentParticle) {
 		currentParticle->position = currentParticle->initialPosition;
 		currentParticle->life = particleLife;
@@ -457,7 +485,7 @@ void ComponentParticleSystem::SpawnParticle() {
 			currentParticle->currentFrame = 0;
 		}
 		currentParticle->colorFrame = 0;
-		currentParticle->direction = CreateVelocity();
+		currentParticle->direction = CreateDirection();
 		currentParticle->initialPosition = CreatePosition();
 		currentParticle->position = currentParticle->initialPosition;
 		//TODO: not hardcoded

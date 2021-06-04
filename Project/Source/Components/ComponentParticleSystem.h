@@ -64,7 +64,12 @@ public:
 	void killParticles();
 
 	float3 CreatePosition();
-	float3 CreateVelocity();
+	float3 CreateDirection();
+
+	void UpdateVelocity(Particle* currentParticle);
+	void UpdateScale(Particle* currentParticle);
+	void UpdateLife(Particle* currentParticle);
+	void UndertakerParticle();
 
 private:
 	float4 GetTintColor() const; // Gets an additional color that needs to be applied to the image. Currently gets the color of the Button
@@ -82,6 +87,7 @@ private:
 	float3 cameraDir = {0.f, 0.f, 0.f};
 
 	// General Options
+
 	bool looping = false;
 	bool isPlaying = true;
 	bool isRandomFrame = false;
@@ -90,6 +96,8 @@ private:
 	bool executer = false;
 	float scale = 5;
 	float distanceReverse = 0;
+	float startDelay = 0;
+	float restDelayTime = 0;
 
 	unsigned maxParticles = 100;
 	unsigned particleSpawned = 0;
