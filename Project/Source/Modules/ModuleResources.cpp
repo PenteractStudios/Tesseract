@@ -57,7 +57,7 @@
 #define JSON_TAG_ID "Id"
 #define JSON_TAG_NAME "Name"
 
-static bool ReadMetaFile(const char* filePath, rapidjson::Document& document) {
+static bool ReadJSON(const char* filePath, rapidjson::Document& document) {
 	// Read from file
 	Buffer<char> buffer = App->files->Load(filePath);
 	if (buffer.Size() == 0) {
@@ -75,7 +75,7 @@ static bool ReadMetaFile(const char* filePath, rapidjson::Document& document) {
 	return true;
 }
 
-static void SaveMetaFile(const char* filePath, rapidjson::Document& document) {
+static void SaveJSON(const char* filePath, rapidjson::Document& document) {
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
 	rapidjson::PrettyWriter<rapidjson::StringBuffer, rapidjson::UTF8<>, rapidjson::UTF8<>, rapidjson::CrtAllocator, rapidjson::kWriteNanAndInfFlag> writer(stringBuffer);
@@ -91,6 +91,11 @@ bool ModuleResources::Init() {
 	App->events->AddObserverToEvent(TesseractEventType::CREATE_RESOURCE, this);
 	App->events->AddObserverToEvent(TesseractEventType::DESTROY_RESOURCE, this);
 	App->events->AddObserverToEvent(TesseractEventType::UPDATE_ASSET_CACHE, this);
+
+#if GAME
+	ImportLibrary();
+#endif
+
 	return true;
 }
 
@@ -240,7 +245,7 @@ std::list<UID> ModuleResources::ImportAssetResources(const char* filePath, bool 
 
 	// Check meta file resources
 	if (validMetaFile) {
-		validMetaFile = ReadMetaFile(metaFilePath.c_str(), document);
+		validMetaFile = ReadJSON(metaFilePath.c_str(), document);
 		if (validMetaFile) {
 			ValidateAssetResources(jMeta, validResourceFiles);
 		}
@@ -252,7 +257,7 @@ std::list<UID> ModuleResources::ImportAssetResources(const char* filePath, bool 
 	} else {
 		if (ImportAssetByExtension(jMeta, filePath)) {
 			if (!validMetaFile) {
-				SaveMetaFile(metaFilePath.c_str(), document);
+				SaveJSON(metaFilePath.c_str(), document);
 			}
 		}
 	}
@@ -317,6 +322,7 @@ std::string ModuleResources::GenerateResourcePath(UID id) const {
 
 void ModuleResources::UpdateAsync() {
 	while (!stopImportThread) {
+#if !GAME
 		// Check if any asset file has been modified / deleted
 		std::vector<UID> resourcesToRemove;
 		std::vector<std::string> assetsToImport;
@@ -339,11 +345,10 @@ void ModuleResources::UpdateAsync() {
 				continue;
 			} else {
 				rapidjson::Document document;
-				bool success = ReadMetaFile(metaFilePath.c_str(), document);
+				bool success = ReadJSON(metaFilePath.c_str(), document);
 				JsonValue jMeta(document, document);
 
 				if (success) {
-#if !GAME
 					long long metaTimestamp = App->files->GetLocalFileModificationTime(metaFilePath.c_str());
 					long long assetTimestamp = App->files->GetLocalFileModificationTime(assetFilePath.c_str());
 					if (assetTimestamp > metaTimestamp) {
@@ -353,12 +358,11 @@ void ModuleResources::UpdateAsync() {
 							resourcesToRemove.push_back(resourceId);
 							if (std::find(assetsToImport.begin(), assetsToImport.end(), assetFilePath) == assetsToImport.end()) {
 								assetsToImport.push_back(assetFilePath);
-								SaveMetaFile(metaFilePath.c_str(), document);
+								SaveJSON(metaFilePath.c_str(), document);
 							}
 						}
 						continue;
 					}
-#endif
 				} else {
 					resourcesToRemove.push_back(resourceId);
 					continue;
@@ -400,6 +404,7 @@ void ModuleResources::UpdateAsync() {
 		TesseractEvent updateAssetCacheEv(TesseractEventType::UPDATE_ASSET_CACHE);
 		updateAssetCacheEv.Set<UpdateAssetCacheStruct>(newAssetCache);
 		App->events->AddEvent(updateAssetCacheEv);
+#endif
 
 		App->events->AddEvent(TesseractEventType::RESOURCES_LOADED);
 
@@ -424,6 +429,46 @@ void ModuleResources::CheckForNewAssetsRecursive(const char* path, AssetCache& a
 				assetCache.filesMap[filePath] = &parentFolder.files.back();
 			}
 		}
+	}
+}
+
+void ModuleResources::ImportLibrary() {
+	for (std::string& libraryFile : App->files->GetFilesInFolder(LIBRARY_PATH)) {
+		std::string libraryFilePath = std::string(LIBRARY_PATH "/") + libraryFile;
+		if (App->files->IsDirectory(libraryFilePath.c_str())) {
+			for (std::string file : App->files->GetFilesInFolder(libraryFilePath.c_str())) {
+				std::string filePath = libraryFilePath + "/" + file;
+				std::string extension = FileDialog::GetFileExtension(file.c_str());
+				if (extension != META_EXTENSION) {
+					ImportLibraryResource(filePath.c_str());
+				}
+			}
+		}
+	}
+}
+
+void ModuleResources::ImportLibraryResource(const char* filePath) {
+	std::string resourceMetaFilePath = std::string(filePath) + META_EXTENSION;
+	rapidjson::Document document;
+	bool validResourceMeta = ReadJSON(resourceMetaFilePath.c_str(), document);
+	if (!validResourceMeta) {
+		LOG("Invalid resource meta for resource '%s'", filePath);
+		return;
+	}
+
+	JsonValue jResourceMeta(document, document);
+	std::string resourceTypeName = jResourceMeta[JSON_TAG_TYPE];
+	std::string resourceName = jResourceMeta[JSON_TAG_NAME];
+
+	ResourceType type = GetResourceTypeFromName(resourceTypeName.c_str());
+	std::string fileName = FileDialog::GetFileName(filePath);
+	UID id = SDL_strtoull(fileName.c_str(), nullptr, 10);
+
+	Resource* resource = CreateResourceByType(type, resourceName.c_str(), "", id);
+	resources[id].reset(resource);
+
+	if (GetReferenceCount(id) > 0) {
+		LoadResource(resource);
 	}
 }
 

@@ -74,9 +74,9 @@ struct UpdateAssetCacheStruct {
 };
 
 struct ChangeSceneStruct {
-	const char* scenePath = nullptr;
-	ChangeSceneStruct(const char* scenePath_)
-		: scenePath(scenePath_) {}
+	UID sceneId = 0;
+	ChangeSceneStruct(UID sceneId_)
+		: sceneId(sceneId_) {}
 };
 
 struct ViewportResizedStruct {

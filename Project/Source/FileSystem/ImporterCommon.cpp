@@ -10,6 +10,7 @@
 
 #include "Utils/Leaks.h"
 
+#define JSON_TAG_TYPE "Type"
 #define JSON_TAG_NAME "Name"
 
 bool ImporterCommon::SaveResourceMetaFile(Resource* resource) {
@@ -18,6 +19,7 @@ bool ImporterCommon::SaveResourceMetaFile(Resource* resource) {
 	JsonValue jResourceMeta(resourceMetaDocument, resourceMetaDocument);
 
 	// Save meta information
+	jResourceMeta[JSON_TAG_TYPE] = GetResourceTypeName(resource->GetType());
 	jResourceMeta[JSON_TAG_NAME] = resource->GetName().c_str();
 	resource->SaveResourceMeta(jResourceMeta);
 

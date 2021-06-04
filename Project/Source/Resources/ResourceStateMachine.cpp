@@ -71,6 +71,7 @@ void ResourceStateMachine::Load() {
 		bones.insert(name);
 	}
 
+	initialState = State();
 	UID initialStateId = jStateMachine[JSON_TAG_INITIAL_STATE];
 	JsonValue stateArray = jStateMachine[JSON_TAG_STATES];
 	for (unsigned int i = 0; i < stateArray.Size(); ++i) {
@@ -82,7 +83,7 @@ void ResourceStateMachine::Load() {
 
 		//Setting initial state
 		if (initialStateId != 0 && initialStateId == id) {
-			SetInitialState(state);
+			initialState = state;
 		}
 	}
 	states.insert(std::make_pair(0, State())); // create state "empty" for clean secondary State Machin

@@ -130,6 +130,7 @@ void SceneImporter::LoadScene(const char* filePath) {
 
 	ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(jScene[JSON_TAG_GAME_CAMERA]);
 	App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
+	if(App->time->HasGameStarted()) App->camera->ChangeActiveCamera(gameCamera, gameCamera != nullptr);
 
 	JsonValue ambientLight = jScene[JSON_TAG_AMBIENTLIGHT];
 	App->renderer->ambientColor = {ambientLight[0], ambientLight[1], ambientLight[2]};
