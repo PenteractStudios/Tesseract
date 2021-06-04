@@ -4,6 +4,7 @@
 #include "Application.h"
 #include "GameObject.h"
 #include "FileSystem/SceneImporter.h"
+#include "FileSystem/PrefabImporter.h"
 #include "Utils/FileDialog.h"
 #include "Modules/ModuleWindow.h"
 #include "Modules/ModuleRender.h"
@@ -253,17 +254,14 @@ UpdateStatus ModuleEditor::Update() {
 	case Modal::NEW_SCENE:
 		ImGui::OpenPopup("New scene");
 		break;
-	case Modal::LOAD_PROJECT:
-		FileDialog::Init("Load project", false, (AllowedExtensionsFlag::PROJECT));
-		break;
 	case Modal::LOAD_SCENE:
 		FileDialog::Init("Load scene", false, (AllowedExtensionsFlag::SCENE), SCENES_PATH);
 		break;
-	case Modal::SAVE_PROJECT:
-		FileDialog::Init("Save project", true, (AllowedExtensionsFlag::PROJECT));
-		break;
 	case Modal::SAVE_SCENE:
 		FileDialog::Init("Save scene", true, (AllowedExtensionsFlag::SCENE), SCENES_PATH);
+		break;
+	case Modal::SAVE_PREFAB:
+		FileDialog::Init("Save prefab", true, (AllowedExtensionsFlag::PREFAB), PREFABS_PATH);
 		break;
 	case Modal::QUIT:
 		ImGui::OpenPopup("Quit");
@@ -303,17 +301,23 @@ UpdateStatus ModuleEditor::Update() {
 		ImGui::EndPopup();
 	}
 
-	std::string selectedFile;
+	std::string selectedPath;
 
-	if (FileDialog::OpenDialog("Load scene", selectedFile)) {
-		std::string filePath = std::string(SCENES_PATH "/") + FileDialog::GetFileName(selectedFile.c_str()) + SCENE_EXTENSION;
+	if (FileDialog::OpenDialog("Load scene", selectedPath)) {
+		std::string filePath = FileDialog::GetRelativePath(selectedPath.c_str());
 		SceneImporter::LoadScene(filePath.c_str());
 		ImGui::CloseCurrentPopup();
 	}
 
-	if (FileDialog::OpenDialog("Save scene", selectedFile)) {
-		std::string filePath = std::string(SCENES_PATH "/") + FileDialog::GetFileName(selectedFile.c_str()) + SCENE_EXTENSION;
+	if (FileDialog::OpenDialog("Save scene", selectedPath)) {
+		std::string filePath = FileDialog::GetRelativePath(selectedPath.c_str());
 		SceneImporter::SaveScene(filePath.c_str());
+		ImGui::CloseCurrentPopup();
+	}
+
+	if (FileDialog::OpenDialog("Save prefab", selectedPath)) {
+		std::string filePath = FileDialog::GetRelativePath(selectedPath.c_str());
+		PrefabImporter::SavePrefab(filePath.c_str(), selectedGameObject);
 		ImGui::CloseCurrentPopup();
 	}
 
