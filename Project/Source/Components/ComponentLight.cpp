@@ -22,10 +22,6 @@
 #define JSON_TAG_INNER_ANGLE "InnerAngle"
 #define JSON_TAG_OUTER_ANGLE "OuterAngle"
 
-void ComponentLight::Init() {
-	UpdateLight();
-}
-
 void ComponentLight::Update() {
 	UpdateLight();
 }
