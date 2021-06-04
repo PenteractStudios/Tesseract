@@ -48,17 +48,17 @@ UpdateStatus ModulePhysics::PreUpdate() {
 					switch (pbodyA->GetType()) {
 					case ComponentType::SPHERE_COLLIDER: {
 						ComponentSphereCollider* sphereCol = (ComponentSphereCollider*) pbodyA;
-						sphereCol->OnCollision();
+						sphereCol->OnCollision(pbodyB->GetOwner());
 						break;
 					}
 					case ComponentType::BOX_COLLIDER: {
 						ComponentBoxCollider* boxCol = (ComponentBoxCollider*) pbodyA;
-						boxCol->OnCollision();
+						boxCol->OnCollision(pbodyB->GetOwner());
 						break;
 					}
 					case ComponentType::CAPSULE_COLLIDER: {
 						ComponentCapsuleCollider* capsuleCol = (ComponentCapsuleCollider*) pbodyA;
-						capsuleCol->OnCollision();
+						capsuleCol->OnCollision(pbodyB->GetOwner());
 						break;
 					}
 					default:
@@ -68,17 +68,17 @@ UpdateStatus ModulePhysics::PreUpdate() {
 					switch (pbodyB->GetType()) {
 					case ComponentType::SPHERE_COLLIDER: {
 						ComponentSphereCollider* sphereCol = (ComponentSphereCollider*) pbodyB;
-						sphereCol->OnCollision();
+						sphereCol->OnCollision(pbodyA->GetOwner());
 						break;
 					}
 					case ComponentType::BOX_COLLIDER: {
 						ComponentBoxCollider* boxCol = (ComponentBoxCollider*) pbodyB;
-						boxCol->OnCollision();
+						boxCol->OnCollision(pbodyA->GetOwner());
 						break;
 					}
 					case ComponentType::CAPSULE_COLLIDER: {
 						ComponentCapsuleCollider* capsuleCol = (ComponentCapsuleCollider*) pbodyB;
-						capsuleCol->OnCollision();
+						capsuleCol->OnCollision(pbodyA->GetOwner());
 						break;
 					}
 					default:

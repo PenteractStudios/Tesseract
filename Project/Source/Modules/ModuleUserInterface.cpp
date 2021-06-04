@@ -10,6 +10,7 @@
 #include "Application.h"
 #include "ModuleFiles.h"
 #include "ModuleEvents.h"
+#include "Modules/ModuleCamera.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleInput.h"
@@ -26,6 +27,7 @@
 #include "FileSystem/TextureImporter.h"
 #include "Utils/Logging.h"
 
+#include "Geometry/LineSegment.h"
 #include "GL/glew.h"
 
 #include "Utils/Leaks.h"
@@ -66,9 +68,12 @@ UpdateStatus ModuleUserInterface::Update() {
 				}
 			}
 		}
-		ComponentSelectable* currentlySelected = GetCurrentEventSystem()->GetCurrentSelected();
-		if (currentlySelected) {
-			ManageInputsOnSelected(currentlySelected);
+		ComponentEventSystem* currEvSys = App->userInterface->GetCurrentEventSystem();
+		if (currEvSys) {
+			ComponentSelectable* currentlySelected = GetCurrentEventSystem()->GetCurrentSelected();
+			if (currentlySelected) {
+				ManageInputsOnSelected(currentlySelected);
+			}
 		}
 	}
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Globals.h"
 #include "Module.h"
 #include "Utils/Buffer.h"
 #include "Utils/UID.h"
@@ -7,7 +8,7 @@
 #include <string>
 #include <vector>
 
-constexpr char* extensions[] = {".jpg", ".png", ".dds", ".scene", ".sln"};
+constexpr char* extensions[] = {JPG_TEXTURE_EXTENSION, PNG_TEXTURE_EXTENSION, DDS_TEXTURE_EXTENSION, SCENE_EXTENSION, PREFAB_EXTENSION};
 
 enum class AllowedExtensionsFlag {
 	ALL = 0,
@@ -15,7 +16,7 @@ enum class AllowedExtensionsFlag {
 	PNG = 1 << 1,
 	DDS = 1 << 2,
 	SCENE = 1 << 3,
-	PROJECT = 1 << 4
+	PREFAB = 1 << 4
 };
 
 inline AllowedExtensionsFlag operator|(AllowedExtensionsFlag l, AllowedExtensionsFlag r) {

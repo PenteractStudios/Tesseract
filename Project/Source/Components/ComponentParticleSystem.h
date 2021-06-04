@@ -22,10 +22,18 @@ enum class EmitterType {
 	RECTANGLE
 };
 
+enum class BillboardType {
+	LOOK_AT,
+	STRETCH,
+	HORIZONTAL,
+	VERTICAL
+};
+
 class ComponentParticleSystem : public Component {
 public:
 	struct Particle {
 		float4x4 model = float4x4::identity;
+		float4x4 modelStretch = float4x4::identity;
 
 		float3 initialPosition = float3(0.0f, 0.0f, 0.0f);
 		float3 position = float3(0.0f, 0.0f, 0.0f);
@@ -63,39 +71,49 @@ private:
 
 private:
 	UID textureID = 0; // ID of the image
-	UID shaderID = 0;  // ID of the shader
 
+	EmitterType emitterType = EmitterType::CONE;
+	BillboardType billboardType = BillboardType::LOOK_AT;
+
+	Pool<Particle> particles;
+	std::vector<Particle*> deadParticles;
+
+	float3 cameraDir = {0.f, 0.f, 0.f};
+
+	// General Options
 	bool looping = false;
 	bool isPlaying = true;
-	bool alphaTransparency = false; // Enables Alpha Transparency of the image and the color
 	bool isRandomFrame = false;
 	bool randomDirection = false;
-	//TODO USE THIS FETURE
 	bool sizeOverTime = false;
 
-	float3 initC = float3::one;
-	float3 finalC = float3::one;
-	float4 color = float4::one; // Color used as default tainter
-	float animationSpeed = 0.0f;
 	float scale = 5;
 	unsigned maxParticles = 100;
+	unsigned particleSpawned = 0;
 	float velocity = 0.1f;
+	float particleLife = 5;
+	float scaleFactor = 0;
+
+
+	// Texture Sheet Animation
+	unsigned Xtiles = 1;
+	unsigned Ytiles = 1;
+	float animationSpeed = 0.0f;
+
+	// Color Options
+	float4 initC = float4::one;
+	float4 finalC = float4::one;
+	float startTransition = 0.0f;
+	float endTransition = 0.0f;
+
+	// Texture Options
+	bool flipTexture[2] = {false, false};
+
+
+	// Guizmos Options
 	float kc = 1.0f; //Keep in one to avoid having denominator less than 1
 	float kl = 0.045f;
 	float kq = 0.0075f;
 	float innerAngle = pi / 12;
 	float outerAngle = pi / 6;
-	float particleLife = 5;
-
-	unsigned particleSpawned = 0;
-	unsigned Xtiles = 1;
-	unsigned Ytiles = 1;
-
-private:
-	EmitterType emitterType = EmitterType::CONE;
-
-	Pool<Particle> particles;
-	std::vector<Particle*> deadParticles;
-	//TODO IMPLEMENT DRAWINSTANCE
-	/*float3 particlesPosition[100];*/
 };

@@ -4,9 +4,12 @@
 #include "Components/UI/ComponentText.h"
 #include "Components/UI/ComponentCanvas.h"
 #include "Components/UI/ComponentTransform2D.h"
-#include "Components/UI/ComponentCanvas.h"
+#include "Modules/ModuleTime.h"
+#include "Modules/ModuleRender.h"
+#include "Modules/ModuleUserInterface.h"
 #include "GameObject.h"
 
+#include "debugdraw.h"
 #include "Utils/Leaks.h"
 
 void ComponentCanvasRenderer::Save(JsonValue jComponent) const {

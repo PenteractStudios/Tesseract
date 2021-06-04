@@ -21,7 +21,7 @@ public:
 	void Load(JsonValue jComponent) override;
 
 	// ----- Collider Functions ---- //
-	void OnCollision();				  // Callback function for scripting
+	void OnCollision(const GameObject& collidedWith);  // Callback function for scripting
 	void CalculateWorldBoundingBox(); // Set the worldOBB from the localAABB and the GameObject transform
 
 public:

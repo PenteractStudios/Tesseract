@@ -60,13 +60,14 @@ enum class UpdateStatus {
 #define STATE_MACHINE_EXTENSION ".stma"
 #define ANIMATION_CLIP_EXTENSION ".clip"
 
-#define TEMP_SCENE_FILE_NAME "_scene_snapshot.temp"
+#define TEMP_SCENE_FILE_NAME "_scene_autosave.temp"
 
 // Configuration -----------
 #define GLSL_VERSION "#version 460"
 
 // Threads
 #define TIME_BETWEEN_RESOURCE_UPDATES_MS 300
+#define TIME_BETWEEN_AUTOSAVES_MS 300000 // 5 minutes
 
 // Delete helpers -----------
 #define RELEASE(x)          \

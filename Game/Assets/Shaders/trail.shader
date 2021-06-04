@@ -1,4 +1,5 @@
---- vertex
+--- trailVertex
+
 layout(location = 0) in vec3 vertexPosition;
 layout(location = 1) in vec2 vertexUV0;
 
@@ -14,8 +15,7 @@ void main()
 
 }
 
-
---- fragment
+--- trailFragment
 
 in vec2 uv0;
 

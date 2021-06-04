@@ -10,6 +10,7 @@
 #include <vector>
 #include <string.h>
 #include <fstream>
+#include <filesystem>
 
 #include "Utils/Leaks.h"
 
@@ -294,6 +295,14 @@ std::string FileDialog::GetAbsolutePath(const char* filePath) {
 	char buff[FILENAME_MAX];
 	GetModuleFileName(NULL, buff, FILENAME_MAX);
 	return std::string(buff) + filePath;
+}
+
+std::string FileDialog::GetRelativePath(const char* filePath) {
+	std::filesystem::path absolutePath(filePath);
+	std::filesystem::path basePath(fileDialogContext->workingDirectory_.c_str());
+	std::string relativePath = std::filesystem::relative(absolutePath, basePath).string();
+	std::replace(relativePath.begin(), relativePath.end(), '\\', '/');
+	return relativePath;
 }
 
 inline bool FileDialog::Exists(const char* filePath) {

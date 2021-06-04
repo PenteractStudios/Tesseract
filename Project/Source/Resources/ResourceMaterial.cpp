@@ -33,6 +33,7 @@
 #define JSON_TAG_METALLIC_MAP "MetallicMap"
 #define JSON_TAG_METALLIC "Metalness"
 #define JSON_TAG_NORMAL_MAP "NormalMap"
+#define JSON_TAG_NORMAL_STRENGTH "NormalStrength"
 #define JSON_TAG_EMISSIVE_MAP "EmissiveMap"
 #define JSON_TAG_AMBIENT_OCCLUSION_MAP "AmbientOcclusionMap"
 #define JSON_TAG_SMOOTHNESS "Smoothness"
@@ -76,6 +77,7 @@ void ResourceMaterial::Load() {
 
 	normalMapId = jMaterial[JSON_TAG_NORMAL_MAP];
 	App->resources->IncreaseReferenceCount(normalMapId);
+	normalStrength = jMaterial[JSON_TAG_NORMAL_STRENGTH];
 
 	emissiveMapId = jMaterial[JSON_TAG_EMISSIVE_MAP];
 	App->resources->IncreaseReferenceCount(emissiveMapId);
@@ -134,6 +136,7 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	jMaterial[JSON_TAG_METALLIC] = metallic;
 	jMaterial[JSON_TAG_METALLIC_MAP] = metallicMapId;
 	jMaterial[JSON_TAG_NORMAL_MAP] = normalMapId;
+	jMaterial[JSON_TAG_NORMAL_STRENGTH] = normalStrength;
 	jMaterial[JSON_TAG_EMISSIVE_MAP] = emissiveMapId;
 	jMaterial[JSON_TAG_AMBIENT_OCCLUSION_MAP] = ambientOcclusionMapId;
 

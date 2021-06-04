@@ -109,6 +109,10 @@ void ModulePrograms::LoadShaders() {
 	// Engine Shaders
 	drawDepthMapTexture = CreateProgram(filePath, "vertDrawDepthMapTexture", "fragDrawDepthMapTexture");
 
+	// Particle Shaders
+	billboard = CreateProgram(filePath, "billboardVertex", "billboardFragment");
+	trail = CreateProgram(filePath, "trailVertex", "trailFragment");
+
 	unsigned timeMs = timer.Stop();
 	LOG("Shaders loaded in %ums", timeMs);
 }
@@ -125,6 +129,8 @@ void ModulePrograms::UnloadShaders() {
 	glDeleteProgram(drawDepthMapTexture);
 	glDeleteProgram(textUI);
 	glDeleteProgram(imageUI);
+	glDeleteProgram(billboard);
+	glDeleteProgram(trail);
 }
 
 unsigned ModulePrograms::CreateProgram(const char* shaderFile, const char* vertexSnippets, const char* fragmentSnippets) {
