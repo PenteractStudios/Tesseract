@@ -173,11 +173,11 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 		currentTimeStatesPrincipal,
 		animationInterpolationsPrincipal,
 		stateMachineResourceUIDPrincipal,
-		&currentStatePrincipal,
+		GetCurrentState(),
 		currentTimeStatesSecondary,
 		animationInterpolationsSecondary,
 		stateMachineResourceUIDSecondary,
-		&currentStateSecondary,
+		GetCurrentStateSecondary(),
 		position,
 		rotation,
 		resetSecondaryStatemachine);
