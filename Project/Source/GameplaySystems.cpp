@@ -262,9 +262,9 @@ bool Input::IsGamepadConnected(int index) {
 
 // --------- SCENE MANAGER --------- //
 
-void SceneManager::ChangeScene(const char* scenePath) {
+void SceneManager::ChangeScene(UID sceneId) {
 	TesseractEvent e(TesseractEventType::CHANGE_SCENE);
-	e.Set<ChangeSceneStruct>(scenePath);
+	e.Set<ChangeSceneStruct>(sceneId);
 	App->events->AddEvent(e);
 }
 
