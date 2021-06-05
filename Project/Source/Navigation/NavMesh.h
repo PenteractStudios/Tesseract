@@ -74,7 +74,9 @@ public:
 	bool keepInterResults = false;
 
 	// TILING
-	int tileSize = 56;
+	int tileSize = 48;
+	int maxTiles = 0;
+	int maxPolysPerTile = 0;
 
 	// DRAW MODE
 	DrawMode drawMode = DRAWMODE_NAVMESH;
@@ -93,6 +95,12 @@ private:
 	class dtNavMeshQuery* navQuery = nullptr;
 	class dtCrowd* crowd = nullptr;
 
+	class dtTileCache* tileCache = nullptr;
+
+	struct LinearAllocator* talloc = nullptr;
+	struct FastLZCompressor* tcomp = nullptr;
+	struct MeshProcess* tmproc = nullptr;
+
 	rcHeightfield* solid = nullptr;
 	unsigned char* triareas = nullptr;
 
@@ -102,4 +110,8 @@ private:
 	rcPolyMeshDetail* dmesh = nullptr;
 
 	unsigned char navMeshDrawFlags = 0;
+
+	int cacheLayerCount = 0;
+	int cacheCompressedSize = 0;
+	int cacheRawSize = 0;
 };
