@@ -600,6 +600,35 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glBindVertexArray(0);
 }
 
+void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const {
+	if (!IsActive()) return;
+
+	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
+	if (mesh == nullptr) return;
+
+	unsigned program = App->programs->depthPrepass;
+	float4x4 viewMatrix = App->camera->GetViewMatrix();
+	float4x4 projMatrix = App->camera->GetProjectionMatrix();
+
+	glUseProgram(program);
+
+	// Common uniform settings
+	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, modelMatrix.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, viewMatrix.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, projMatrix.ptr());
+
+	// Skinning
+	if (palette.size() > 0) {
+		glUniformMatrix4fv(glGetUniformLocation(program, "palette"), palette.size(), GL_TRUE, palette[0].ptr());
+	}
+
+	glUniform1i(glGetUniformLocation(program, "hasBones"), goBones.size());
+
+	glBindVertexArray(mesh->vao);
+	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
+	glBindVertexArray(0);
+}
+
 void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix) const {
 	if (!IsActive()) return;
 

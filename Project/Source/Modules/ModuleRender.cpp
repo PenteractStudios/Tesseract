@@ -134,41 +134,18 @@ bool ModuleRender::Init() {
 	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 #endif
 
-	glGenFramebuffers(1, &framebuffer);
 	glGenRenderbuffers(1, &renderBuffer);
-	glGenTextures(1, &renderTexture);
-
-	// Shadow Mapping buffer / texture configuration
-
+	glGenFramebuffers(1, &framebuffer);
 	glGenFramebuffers(1, &depthMapTextureBuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
-
+	glGenTextures(1, &renderTexture);
+	glGenTextures(1, &positionsTexture);
+	glGenTextures(1, &normalsTexture);
 	glGenTextures(1, &depthMapTexture);
-	glBindTexture(GL_TEXTURE_2D, depthMapTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	ViewportResized(App->window->GetWidth(), App->window->GetHeight());
 	UpdateFramebuffer();
 
 	return true;
-}
-
-void ModuleRender::ShadowMapPass() {
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	for (GameObject* gameObject : shadowGameObjects) {
-		DrawGameObjectShadowPass(gameObject);
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void ModuleRender::ClassifyGameObjects() {
@@ -201,7 +178,7 @@ void ModuleRender::ClassifyGameObjects() {
 		}
 	}
 	if (scene->quadtree.IsOperative()) {
-		ClassifyGameObjectsFromQuadrtee(scene->quadtree.root, scene->quadtree.bounds);
+		ClassifyGameObjectsFromQuadtree(scene->quadtree.root, scene->quadtree.bounds);
 	}
 }
 
@@ -251,9 +228,17 @@ UpdateStatus ModuleRender::Update() {
 
 	ClassifyGameObjects();
 
-	// Pass 1. Build the depth map
-	ShadowMapPass();
+	// Depth Prepass
+	for (GameObject* gameObject : opaqueGameObjects) {
+		DrawGameObjectDepthPrepass(gameObject);
+	}
 
+	// Shadow Pass
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	for (GameObject* gameObject : shadowGameObjects) {
+		DrawGameObjectShadowPass(gameObject);
+	}
 #if GAME
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #else
@@ -265,8 +250,6 @@ UpdateStatus ModuleRender::Update() {
 		DrawDepthMapTexture();
 		return UpdateStatus::CONTINUE;
 	}
-
-	// Pass 2. Draw the scene with the depth map
 
 	// Draw SkyBox (Always first element)
 	for (ComponentSkyBox& skybox : scene->skyboxComponents) {
@@ -378,8 +361,12 @@ UpdateStatus ModuleRender::PostUpdate() {
 
 bool ModuleRender::CleanUp() {
 	glDeleteTextures(1, &renderTexture);
+	glDeleteTextures(1, &positionsTexture);
+	glDeleteTextures(1, &normalsTexture);
+	glDeleteTextures(1, &depthMapTexture);
 	glDeleteRenderbuffers(1, &renderBuffer);
 	glDeleteFramebuffers(1, &framebuffer);
+	glDeleteFramebuffers(1, &depthMapTextureBuffer);
 
 	return true;
 }
@@ -402,6 +389,19 @@ void ModuleRender::ReceiveEvent(TesseractEvent& ev) {
 }
 
 void ModuleRender::UpdateFramebuffer() {
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
+
+	glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
+
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+
 #if GAME
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #else
@@ -414,22 +414,24 @@ void ModuleRender::UpdateFramebuffer() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTexture, 0);
 
+	glBindTexture(GL_TEXTURE_2D, positionsTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, positionsTexture, 0);
+
+	glBindTexture(GL_TEXTURE_2D, normalsTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, normalsTexture, 0);
+
 	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
-	glBindTexture(GL_TEXTURE_2D, depthMapTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLuint drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+	glDrawBuffers(2, drawBuffers);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		LOG("ERROR: Framebuffer is not complete!");
@@ -538,7 +540,7 @@ void ModuleRender::DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node,
 	}
 }
 
-void ModuleRender::ClassifyGameObjectsFromQuadrtee(const Quadtree<GameObject>::Node& node, const AABB2D& aabb) {
+void ModuleRender::ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::Node& node, const AABB2D& aabb) {
 	AABB aabb3d = AABB({aabb.minPoint.x, -1000000.0f, aabb.minPoint.y}, {aabb.maxPoint.x, 1000000.0f, aabb.maxPoint.y});
 	if (CheckIfInsideFrustum(aabb3d, OBB(aabb3d))) {
 		if (node.IsBranch()) {
@@ -546,19 +548,19 @@ void ModuleRender::ClassifyGameObjectsFromQuadrtee(const Quadtree<GameObject>::N
 
 			const Quadtree<GameObject>::Node& topLeft = node.childNodes->nodes[0];
 			AABB2D topLeftAABB = {{aabb.minPoint.x, center.y}, {center.x, aabb.maxPoint.y}};
-			ClassifyGameObjectsFromQuadrtee(topLeft, topLeftAABB);
+			ClassifyGameObjectsFromQuadtree(topLeft, topLeftAABB);
 
 			const Quadtree<GameObject>::Node& topRight = node.childNodes->nodes[1];
 			AABB2D topRightAABB = {{center.x, center.y}, {aabb.maxPoint.x, aabb.maxPoint.y}};
-			ClassifyGameObjectsFromQuadrtee(topRight, topRightAABB);
+			ClassifyGameObjectsFromQuadtree(topRight, topRightAABB);
 
 			const Quadtree<GameObject>::Node& bottomLeft = node.childNodes->nodes[2];
 			AABB2D bottomLeftAABB = {{aabb.minPoint.x, aabb.minPoint.y}, {center.x, center.y}};
-			ClassifyGameObjectsFromQuadrtee(bottomLeft, bottomLeftAABB);
+			ClassifyGameObjectsFromQuadtree(bottomLeft, bottomLeftAABB);
 
 			const Quadtree<GameObject>::Node& bottomRight = node.childNodes->nodes[3];
 			AABB2D bottomRightAABB = {{center.x, aabb.minPoint.y}, {aabb.maxPoint.x, center.y}};
-			ClassifyGameObjectsFromQuadrtee(bottomRight, bottomRightAABB);
+			ClassifyGameObjectsFromQuadtree(bottomRight, bottomRightAABB);
 		} else {
 			float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
 
@@ -653,6 +655,16 @@ void ModuleRender::DrawGameObject(GameObject* gameObject) {
 		if (resourceMesh != nullptr) {
 			culledTriangles += resourceMesh->numIndices / 3;
 		}
+	}
+}
+
+void ModuleRender::DrawGameObjectDepthPrepass(GameObject* gameObject) {
+	ComponentView<ComponentMeshRenderer> meshes = gameObject->GetComponents<ComponentMeshRenderer>();
+	ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
+	assert(transform);
+
+	for (ComponentMeshRenderer& mesh : meshes) {
+		mesh.DrawDepthPrepass(transform->GetGlobalMatrix());
 	}
 }
 

@@ -27,6 +27,9 @@ public:
 	unsigned specularNormal = 0;
 	unsigned specularNotNormal = 0;
 
+	// Depth prepass Shaders
+	unsigned depthPrepass = 0;
+
 	// Shadow Shaders
 	unsigned shadowMap = 0;
 

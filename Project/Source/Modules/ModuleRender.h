@@ -55,9 +55,12 @@ public:
 
 	// - Render Buffer GL pointers - //
 	unsigned renderTexture = 0;
+	unsigned positionsTexture = 0;
+	unsigned normalsTexture = 0;
+	unsigned depthMapTexture = 0;
+
 	unsigned renderBuffer = 0;
 	unsigned framebuffer = 0;
-	unsigned depthMapTexture = 0;
 	unsigned depthMapTextureBuffer = 0;
 
 	// ------- Viewport Updated ------- //
@@ -86,16 +89,16 @@ public:
 private:
 	void DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb);			  // Draws the quadrtee nodes if 'drawQuadtree' is set to true.
 	void ClassifyGameObjects();																		  // Classify Game Objects from Scene taking into account Frustum Culling, Shadows and Rendering Mode
-	void ClassifyGameObjectsFromQuadrtee(const Quadtree<GameObject>::Node& node, const AABB2D& aabb); // Classify Game Objects from Scene taking into account Frustum Culling, Quadtree, Shadows and Rendering Mode
+	void ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::Node& node, const AABB2D& aabb); // Classify Game Objects from Scene taking into account Frustum Culling, Quadtree, Shadows and Rendering Mode
 	bool CheckIfInsideFrustum(const AABB& aabb, const OBB& obb);									  // ??
 	void DrawGameObject(GameObject* gameObject);													  // ??
+	void DrawGameObjectDepthPrepass(GameObject* gameObject);
 	void DrawGameObjectShadowPass(GameObject* gameObject);
 	void DrawAnimation(const GameObject* gameObject, bool hasAnimation = false);
 	void RenderUI();
 	void SetOrtographicRender();
 	void SetPerspectiveRender();
 
-	void ShadowMapPass();
 	void DrawDepthMapTexture();
 
 private:
