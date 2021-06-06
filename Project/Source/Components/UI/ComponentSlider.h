@@ -26,7 +26,7 @@ public:
 	void OnClicked() override;
 	void OnClickedInternal() override;
 
-	void OnValueChanged(bool innerCall = false);
+	TESSERACT_ENGINE_API void OnValueChanged(bool innerCall = false);
 	void OnSliderDragged();
 
 	void Save(JsonValue jComponent) const override; // Serializes the component
@@ -47,7 +47,7 @@ public:
 	TESSERACT_ENGINE_API float GetNormalizedValue() const;
 	void ModifyValue(float multiplier);
 
-	TESSERACT_ENGINE_API void ChangeNormalizedValue(float normalizedValue); // IMPORTANT!!! Right now this method its used in Gameplay
+	TESSERACT_ENGINE_API void ChangeNormalizedValue(float normalizedValue); // IMPORTANT!!! Right now this method its only used in Gameplay
 
 public:
 	bool handleStopsOnEdge = false;
