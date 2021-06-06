@@ -139,19 +139,17 @@ void ComponentAnimation::OnUpdate() {
 
 void ComponentAnimation::SendTrigger(const std::string& trigger) {
 	StateMachineManager::SendTrigger(trigger, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal, currentStatePrincipal, currentTimeStatesPrincipal);
+	//LOG("Principal, %s", currentStatePrincipal.name.c_str());
 }
 void ComponentAnimation::SendTriggerSecondary(const std::string& trigger) {
 	if (loadedResourceStateMachine && currentStateSecondary.id == 0) {
 		//For doing the interpolation between states correctly it is necessary to set the current state of the principal state machine to be the same as the second state machine current state
-		ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUIDSecondary);
-		if (!resourceStateMachine) {
-			return;
-		}
-		std::unordered_map<UID, State>::iterator it = resourceStateMachine->states.find(currentStatePrincipal.id);
-		assert(it != resourceStateMachine->states.end());
-		currentStateSecondary = (*it).second;
+		currentStateSecondary = currentStatePrincipal;
+		//LOG("Principal == Secondary, %s == %s", currentStatePrincipal.name.c_str(), currentStateSecondary.name.c_str());
 		//Updating current time to the currentTimeStatesSecondary to sync the times between the current state machine of the first one and the second one
 		currentTimeStatesSecondary[currentStateSecondary.id] = currentTimeStatesPrincipal[currentStatePrincipal.id];
+	} else {
+		//LOG("Secondary, %s", currentStateSecondary.name.c_str());
 	}
 
 	StateMachineManager::SendTrigger(trigger, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary, currentStateSecondary, currentTimeStatesPrincipal);

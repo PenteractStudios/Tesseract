@@ -51,11 +51,24 @@ bool StateMachineManager::UpdateAnimations(GameObject* gameObject, const GameObj
 		result = StateMachineManager::CalculateAnimation(gameObject, owner, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal, currentStatePrincipal, position, rotation, resetSecondaryStatemachine, StateMachineEnum::PRINCIPAL);
 		break;
 	case StateMachineEnum::SECONDARY:
-		result = StateMachineManager::CalculateAnimation(gameObject, owner, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary, currentStateSecondary, position, rotation, resetSecondaryStatemachine, StateMachineEnum::SECONDARY, currentStatePrincipal->id == currentStateSecondary->id);
+		ResourceStateMachine* resourceStateMachinePrincipal = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUIDPrincipal);
+		bool secondaryToAnyPrincipal = false; 
+		if (resourceStateMachinePrincipal){
+			secondaryToAnyPrincipal = StateMachineManager::SecondaryEqualsToAnyPrincipal(*currentStateSecondary,resourceStateMachinePrincipal->states);
+		}
+		result = StateMachineManager::CalculateAnimation(gameObject, owner, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary, currentStateSecondary, position, rotation, resetSecondaryStatemachine, StateMachineEnum::SECONDARY, secondaryToAnyPrincipal );
 		break;
 	}
 
 	return result;
+}
+
+bool StateMachineManager::SecondaryEqualsToAnyPrincipal(const State& currentStateSecondary, const std::unordered_map<UID, State> &states) {
+	for (const auto& element : states) {
+		if (currentStateSecondary.id == element.second.id)
+			return true;
+	}
+	return false;
 }
 
 bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameObject& owner, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State* currentState, float3& position, Quat& rotation, bool& resetSecondaryStatemachine, StateMachineEnum stateMachineEnum, bool principalEqualSecondary) {
@@ -81,6 +94,10 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 
 	} else {
 		if (currentState->id != 0) {
+			if (principalEqualSecondary) {
+				resetSecondaryStatemachine = true;
+			}
+
 			ResourceClip* clip = App->resources->GetResource<ResourceClip>(currentState->clipUid);
 			if (!clip) {
 				return result;
