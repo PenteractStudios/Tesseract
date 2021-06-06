@@ -285,6 +285,12 @@ void ComponentSlider::ModifyValue(float mulitplier) {
 	}
 }
 
+void ComponentSlider::ChangeNormalizedValue(float normalizedValue) {
+	normalizedValue = normalizedValue;
+	currentValue = (maxValue - minValue) * normalizedValue;
+}
+
+
 float4 ComponentSlider::GetTintColor() const {
 	if (!IsActive()) return App->userInterface->GetErrorColor();
 
