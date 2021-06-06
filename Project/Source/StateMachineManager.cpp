@@ -65,8 +65,7 @@ bool StateMachineManager::UpdateAnimations(GameObject* gameObject, const GameObj
 
 bool StateMachineManager::SecondaryEqualsToAnyPrincipal(const State& currentStateSecondary, const std::unordered_map<UID, State> &states) {
 	for (const auto& element : states) {
-		if (currentStateSecondary.id == element.second.id)
-			return true;
+		if (currentStateSecondary.id == element.second.id) return true;
 	}
 	return false;
 }
