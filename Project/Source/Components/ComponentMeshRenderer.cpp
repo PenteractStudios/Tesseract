@@ -302,7 +302,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	unsigned glTextureAmbientOcclusion = 0;
 	ResourceTexture* ambientOcclusion = App->resources->GetResource<ResourceTexture>(material->ambientOcclusionMapId);
 	glTextureAmbientOcclusion = ambientOcclusion ? ambientOcclusion->glTexture : 0;
-	int hasAmbientOcclusionMap = ambientOcclusion ? 1 : 0;
+	int hasAmbientOcclusionMap = glTextureAmbientOcclusion ? 1 : 0;
 
 	if (material->shaderType == MaterialShader::PHONG) {
 		// Phong-specific settings

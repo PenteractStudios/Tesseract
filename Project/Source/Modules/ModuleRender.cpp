@@ -241,8 +241,8 @@ void ModuleRender::ComputeSSAOTexture() {
 	glUniform3fv(glGetUniformLocation(program, "kernelSamples"), SSAO_KERNEL_SIZE, ssaoKernel[0].ptr());
 	glUniform3fv(glGetUniformLocation(program, "randomTangents"), RANDOM_TANGENTS_ROWS * RANDOM_TANGENTS_COLS, randomTangents[0].ptr());
 	glUniform2f(glGetUniformLocation(program, "screenSize"), viewportSize.x, viewportSize.y);
-	glUniform1f(glGetUniformLocation(program, "bias"), 0.0f);
-	glUniform1f(glGetUniformLocation(program, "range"), 1.0f);
+	glUniform1f(glGetUniformLocation(program, "bias"), ssaoBias);
+	glUniform1f(glGetUniformLocation(program, "range"), ssaoRange);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
@@ -289,9 +289,6 @@ UpdateStatus ModuleRender::PreUpdate() {
 	glViewport(0, 0, App->window->GetWidth(), App->window->GetHeight());
 #endif
 
-	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	return UpdateStatus::CONTINUE;
 }
 
@@ -305,6 +302,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// Depth Prepass
 	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureBuffer);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	for (GameObject* gameObject : opaqueGameObjects) {
@@ -313,6 +311,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// Shadow Pass
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	for (GameObject* gameObject : shadowGameObjects) {
@@ -321,12 +320,16 @@ UpdateStatus ModuleRender::Update() {
 
 	// SSAO pass
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoTextureBuffer);
-	glClear(GL_DEPTH_BUFFER_BIT);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 
-	ComputeSSAOTexture();
+	if (ssaoActive) {
+		ComputeSSAOTexture();
+	}
 
 	// Render pass
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	if (drawSSAOTexture) {

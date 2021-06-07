@@ -221,6 +221,13 @@ void PanelConfiguration::Update() {
 			ImGui::TextColored(App->editor->titleColor, "Background Settings");
 			ImGui::ColorEdit3("Background", App->renderer->clearColor.ptr());
 			ImGui::ColorEdit3("Ambient Color", App->renderer->ambientColor.ptr());
+			ImGui::Separator();
+			ImGui::TextColored(App->editor->titleColor, "SSAO Settings");
+			ImGui::Checkbox("Activate SSAO", &App->renderer->ssaoActive);
+			if (App->renderer->ssaoActive) {
+				ImGui::DragFloat("Range", &App->renderer->ssaoRange, 0.01f, 0.01f, 100.0f);
+				ImGui::DragFloat("Bias", &App->renderer->ssaoBias, 0.001f, 0.0f, 10.0f);
+			}
 
 			ImGui::ResourceSlot<ResourceNavMesh>("Nav Mesh", &scene->navMeshId);
 		}

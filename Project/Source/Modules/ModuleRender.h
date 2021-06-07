@@ -91,6 +91,10 @@ public:
 	float3 ambientColor = {0.25f, 0.25f, 0.25f}; // Color of ambient Light
 	float3 clearColor = {0.1f, 0.1f, 0.1f};		 // Color of the viewport between frames
 
+	bool ssaoActive = true;
+	float ssaoRange = 1.0f;
+	float ssaoBias = 0.0f;
+
 	LightFrustum lightFrustum;
 
 private:
