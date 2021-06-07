@@ -13,6 +13,12 @@ out vec4 outColor;
 // Depth Map
 uniform sampler2D depthMapTexture;
 
+// SSAO texture
+uniform sampler2D ssaoTexture;
+
+uniform mat4 proj;
+uniform mat4 view;
+
 uniform vec3 viewPos;
 
 // Material
@@ -101,7 +107,11 @@ vec4 GetEmissive(vec2 tiledUV)
 
 vec3 GetAmbientOcclusion(vec2 tiledUV)
 {
-    return hasAmbientOcclusionMap * light.ambient.color * texture(ambientOcclusionMap, tiledUV).rgb + (1 - hasAmbientOcclusionMap) * light.ambient.color;
+	vec4 projectedPos = proj * view * vec4(fragPos, 1.0);
+	vec2 occlusionUV = (projectedPos.xy / projectedPos.w) * 0.5 + 0.5;
+	vec3 occlusionFactor = vec3(texture(ssaoTexture, occlusionUV).r);
+	vec3 ambient = light.ambient.color * occlusionFactor;
+    return hasAmbientOcclusionMap * ambient * texture(ambientOcclusionMap, tiledUV).rgb + (1 - hasAmbientOcclusionMap) * ambient;
 }
 
 vec3 GetNormal(vec2 tiledUV)

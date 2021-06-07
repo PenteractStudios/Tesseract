@@ -292,6 +292,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 	unsigned gldepthMapTexture = App->renderer->depthMapTexture;
 
+	unsigned glSSAOTexture = App->renderer->ssaoTexture;
+
 	unsigned glTextureEmissive = 0;
 	ResourceTexture* emissive = App->resources->GetResource<ResourceTexture>(material->emissiveMapId);
 	glTextureEmissive = emissive ? emissive->glTexture : 0;
@@ -425,6 +427,11 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform1i(glGetUniformLocation(program, "depthMapTexture"), 5);
 	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_2D, gldepthMapTexture);
+
+	// SSAO texture
+	glUniform1i(glGetUniformLocation(program, "ssaoTexture"), 6);
+	glActiveTexture(GL_TEXTURE6);
+	glBindTexture(GL_TEXTURE_2D, glSSAOTexture);
 
 	// Tilling settings
 	glUniform2fv(glGetUniformLocation(program, "tiling"), 1, material->tiling.ptr());

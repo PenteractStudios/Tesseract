@@ -4,6 +4,7 @@
 #include "Application.h"
 #include "GameObject.h"
 #include "Utils/Logging.h"
+#include "Utils/Random.h"
 #include "Components/ComponentMeshRenderer.h"
 #include "Components/ComponentBoundingBox.h"
 #include "Components/ComponentTransform.h"
@@ -135,15 +136,53 @@ bool ModuleRender::Init() {
 #endif
 
 	glGenRenderbuffers(1, &renderBuffer);
+#if !GAME
 	glGenFramebuffers(1, &framebuffer);
+#else
+	framebuffer = 0;
+#endif
+	glGenFramebuffers(1, &depthPrepassTextureBuffer);
 	glGenFramebuffers(1, &depthMapTextureBuffer);
+	glGenFramebuffers(1, &ssaoTextureBuffer);
 	glGenTextures(1, &renderTexture);
 	glGenTextures(1, &positionsTexture);
 	glGenTextures(1, &normalsTexture);
 	glGenTextures(1, &depthMapTexture);
+	glGenTextures(1, &ssaoTexture);
 
 	ViewportResized(App->window->GetWidth(), App->window->GetHeight());
-	UpdateFramebuffer();
+	UpdateFramebuffers();
+
+	// Calculate SSAO kernel
+	for (unsigned i = 0; i < SSAO_KERNEL_SIZE; ++i) {
+		float3 position;
+
+		// Random direction
+		position.x = Random() * 2.0f - 1.0f;
+		position.y = Random() * 2.0f - 1.0f;
+		position.z = Random();
+		position.Normalize();
+
+		// Random distance
+		position *= Random();
+
+		// Distribute according to (y = 0.1f + 0.9x^2)
+		float scale = float(i) / float(SSAO_KERNEL_SIZE);
+		scale = 0.1f + (scale * scale) * (1.0f - 0.1f);
+		position *= scale;
+
+		ssaoKernel[i] = position;
+	}
+
+	// Calculate random tangents
+	for (unsigned i = 0; i < RANDOM_TANGENTS_ROWS * RANDOM_TANGENTS_COLS; ++i) {
+		float3 tangent;
+		tangent.x = Random() * 2.0f - 1.0f;
+		tangent.y = Random() * 2.0f - 1.0f;
+		tangent.z = 0.0f;
+		tangent.Normalize();
+		randomTangents[i] = tangent;
+	}
 
 	return true;
 }
@@ -182,18 +221,54 @@ void ModuleRender::ClassifyGameObjects() {
 	}
 }
 
+void ModuleRender::ComputeSSAOTexture() {
+	unsigned program = App->programs->ssao;
+	float4x4 viewMatrix = App->camera->GetViewMatrix();
+	float4x4 projMatrix = App->camera->GetProjectionMatrix();
+
+	glUseProgram(program);
+
+	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, projMatrix.ptr());
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, positionsTexture);
+	glUniform1i(glGetUniformLocation(program, "positions"), 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, normalsTexture);
+	glUniform1i(glGetUniformLocation(program, "normals"), 1);
+
+	glUniform3fv(glGetUniformLocation(program, "kernelSamples"), SSAO_KERNEL_SIZE, ssaoKernel[0].ptr());
+	glUniform3fv(glGetUniformLocation(program, "randomTangents"), RANDOM_TANGENTS_ROWS * RANDOM_TANGENTS_COLS, randomTangents[0].ptr());
+	glUniform2f(glGetUniformLocation(program, "screenSize"), viewportSize.x, viewportSize.y);
+	glUniform1f(glGetUniformLocation(program, "bias"), 0.0f);
+	glUniform1f(glGetUniformLocation(program, "range"), 1.0f);
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
+void ModuleRender::DrawSSAOTexture() {
+	unsigned program = App->programs->drawSSAOTexture;
+
+	glUseProgram(program);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, ssaoTexture);
+	glUniform1i(glGetUniformLocation(program, "ssaoTexture"), 0);
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
 void ModuleRender::DrawDepthMapTexture() {
 	unsigned program = App->programs->drawDepthMapTexture;
 
 	glUseProgram(program);
 
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, depthMapTexture);
 	glUniform1i(glGetUniformLocation(program, "depthMapTexture"), 0);
-	glActiveTexture(GL_TEXTURE0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 bool ModuleRender::Start() {
@@ -206,8 +281,8 @@ UpdateStatus ModuleRender::PreUpdate() {
 
 	lightFrustum.ReconstructFrustum();
 
-#if !GAME
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+#if !GAME
 	glViewport(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
 #else
 	App->camera->ViewportResized(App->window->GetWidth(), App->window->GetHeight());
@@ -229,6 +304,9 @@ UpdateStatus ModuleRender::Update() {
 	ClassifyGameObjects();
 
 	// Depth Prepass
+	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureBuffer);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	for (GameObject* gameObject : opaqueGameObjects) {
 		DrawGameObjectDepthPrepass(gameObject);
 	}
@@ -236,15 +314,25 @@ UpdateStatus ModuleRender::Update() {
 	// Shadow Pass
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
 	glClear(GL_DEPTH_BUFFER_BIT);
+
 	for (GameObject* gameObject : shadowGameObjects) {
 		DrawGameObjectShadowPass(gameObject);
 	}
-#if GAME
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#else
+
+	// SSAO pass
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoTextureBuffer);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	ComputeSSAOTexture();
+
+	// Render pass
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-#endif
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	if (drawSSAOTexture) {
+		DrawSSAOTexture();
+		return UpdateStatus::CONTINUE;
+	}
 
 	if (drawDepthMapTexture) {
 		DrawDepthMapTexture();
@@ -349,7 +437,7 @@ UpdateStatus ModuleRender::PostUpdate() {
 
 #if !GAME
 	if (viewportUpdated) {
-		UpdateFramebuffer();
+		UpdateFramebuffers();
 		viewportUpdated = false;
 	}
 #endif
@@ -364,9 +452,12 @@ bool ModuleRender::CleanUp() {
 	glDeleteTextures(1, &positionsTexture);
 	glDeleteTextures(1, &normalsTexture);
 	glDeleteTextures(1, &depthMapTexture);
+	glDeleteTextures(1, &ssaoTexture);
 	glDeleteRenderbuffers(1, &renderBuffer);
 	glDeleteFramebuffers(1, &framebuffer);
+	glDeleteFramebuffers(1, &depthPrepassTextureBuffer);
 	glDeleteFramebuffers(1, &depthMapTextureBuffer);
+	glDeleteFramebuffers(1, &ssaoTextureBuffer);
 
 	return true;
 }
@@ -388,7 +479,35 @@ void ModuleRender::ReceiveEvent(TesseractEvent& ev) {
 	}
 }
 
-void ModuleRender::UpdateFramebuffer() {
+void ModuleRender::UpdateFramebuffers() {
+	// Render buffer
+	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
+
+	// Depth prepass buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
+
+	glBindTexture(GL_TEXTURE_2D, positionsTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, positionsTexture, 0);
+
+	glBindTexture(GL_TEXTURE_2D, normalsTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalsTexture, 0);
+
+	GLuint drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+	glDrawBuffers(2, drawBuffers);
+
+	// Shadow buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
 
 	glBindTexture(GL_TEXTURE_2D, depthMapTexture);
@@ -400,38 +519,33 @@ void ModuleRender::UpdateFramebuffer() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
 
 	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
 
-#if GAME
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#else
+	// SSAO buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoTextureBuffer);
+
+	glBindTexture(GL_TEXTURE_2D, ssaoTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RED, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoTexture, 0);
+
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+	// Render buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-#endif
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
 
 	glBindTexture(GL_TEXTURE_2D, renderTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTexture, 0);
 
-	glBindTexture(GL_TEXTURE_2D, positionsTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, positionsTexture, 0);
-
-	glBindTexture(GL_TEXTURE_2D, normalsTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, normalsTexture, 0);
-
-	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
-
-	GLuint drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-	glDrawBuffers(2, drawBuffers);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		LOG("ERROR: Framebuffer is not complete!");
@@ -483,14 +597,17 @@ void ModuleRender::ToggleDrawLightFrustumGizmo() {
 }
 
 void ModuleRender::UpdateShadingMode(const char* shadingMode) {
+	drawDepthMapTexture = false;
+	drawSSAOTexture = false;
+
 	if (strcmp(shadingMode, "Shaded") == 0) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		drawDepthMapTexture = false;
 	} else if (strcmp(shadingMode, "Wireframe") == 0) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		drawDepthMapTexture = false;
 	} else if (strcmp(shadingMode, "Depth") == 0) {
 		drawDepthMapTexture = true;
+	} else if (strcmp(shadingMode, "Ambient Occlusion") == 0) {
+		drawSSAOTexture = true;
 	}
 }
 

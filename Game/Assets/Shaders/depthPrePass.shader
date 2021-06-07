@@ -1,8 +1,9 @@
---- fragDepthPrePass
+--- fragDepthPrepass
 
 layout(location = 0) out vec4 position;
 layout(location = 1) out vec4 normal;
 
+uniform mat4 proj;
 uniform mat4 view;
 
 in vec3 fragPos;
