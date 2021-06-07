@@ -421,7 +421,7 @@ void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
 		if (reverseEffect) {
 			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 			float3 direction = currentParticle->position - transform->GetGlobalPosition();
-			currentParticle->position -= direction * App->time->GetDeltaTime();
+			currentParticle->position -= direction * velocity * App->time->GetDeltaTime();
 		} else {
 			currentParticle->position += currentParticle->direction * velocity * App->time->GetDeltaTime();
 		}
@@ -429,7 +429,7 @@ void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
 		if (reverseEffect) {
 			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 			float3 direction = currentParticle->position - transform->GetGlobalPosition();
-			currentParticle->position -= direction * App->time->GetRealTimeDeltaTime();
+			currentParticle->position -= direction * velocity * App->time->GetRealTimeDeltaTime();
 		} else {
 			currentParticle->position += currentParticle->direction * velocity * App->time->GetRealTimeDeltaTime();
 		}
