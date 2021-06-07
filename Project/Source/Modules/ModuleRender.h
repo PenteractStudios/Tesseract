@@ -94,6 +94,7 @@ public:
 	bool ssaoActive = true;
 	float ssaoRange = 1.0f;
 	float ssaoBias = 0.0f;
+	float ssaoPower = 1.0f;
 
 	LightFrustum lightFrustum;
 

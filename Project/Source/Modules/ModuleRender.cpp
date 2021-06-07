@@ -243,6 +243,7 @@ void ModuleRender::ComputeSSAOTexture() {
 	glUniform2f(glGetUniformLocation(program, "screenSize"), viewportSize.x, viewportSize.y);
 	glUniform1f(glGetUniformLocation(program, "bias"), ssaoBias);
 	glUniform1f(glGetUniformLocation(program, "range"), ssaoRange);
+	glUniform1f(glGetUniformLocation(program, "power"), ssaoPower);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
