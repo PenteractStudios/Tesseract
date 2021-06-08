@@ -270,15 +270,15 @@ void ModulePhysics::AddBodyToWorld(btRigidBody* rigidbody, ColliderType collider
 
 void ModulePhysics::InitializeRigidBodies() {
 	for (ComponentSphereCollider& sphereCollider : App->scene->scene->sphereColliderComponents) {
-		if (!sphereCollider.rigidBody) CreateSphereRigidbody(&sphereCollider);
+		if (!sphereCollider.rigidBody && sphereCollider.GetOwner().IsActive()) CreateSphereRigidbody(&sphereCollider);
 	}
 
 	for (ComponentBoxCollider& boxCollider : App->scene->scene->boxColliderComponents) {
-		if (!boxCollider.rigidBody) CreateBoxRigidbody(&boxCollider);
+		if (!boxCollider.rigidBody && boxCollider.GetOwner().IsActive()) CreateBoxRigidbody(&boxCollider);
 	}
 
 	for (ComponentCapsuleCollider& capsuleCollider : App->scene->scene->capsuleColliderComponents) {
-		if (!capsuleCollider.rigidBody) CreateCapsuleRigidbody(&capsuleCollider);
+		if (!capsuleCollider.rigidBody && capsuleCollider.GetOwner().IsActive()) CreateCapsuleRigidbody(&capsuleCollider);
 	}
 }
 

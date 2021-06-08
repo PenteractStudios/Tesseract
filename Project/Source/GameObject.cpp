@@ -417,6 +417,10 @@ void GameObject::EnableInHierarchy() {
 	for (Component* component : components) {
 		if (component->IsActive()) {
 			component->OnEnable();
+		} else if (component->GetType() == ComponentType::BOX_COLLIDER ||
+			       component->GetType() == ComponentType::SPHERE_COLLIDER ||
+			       component->GetType() == ComponentType::CAPSULE_COLLIDER) {
+			component->Enable();
 		}
 	}
 }
@@ -429,6 +433,10 @@ void GameObject::DisableInHierarchy() {
 	for (Component* component : components) {
 		if (component->IsActive()) {
 			component->OnDisable();
+		} else if (component->GetType() == ComponentType::BOX_COLLIDER ||
+			       component->GetType() == ComponentType::SPHERE_COLLIDER ||
+			       component->GetType() == ComponentType::CAPSULE_COLLIDER) {
+			component->Disable();
 		}
 	}
 	for (GameObject* child : children) {

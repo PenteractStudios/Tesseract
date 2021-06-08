@@ -167,6 +167,14 @@ void ComponentBoxCollider::Load(JsonValue jComponent) {
 	freezeRotation = jFreeze;
 }
 
+void ComponentBoxCollider::OnEnable() {
+	if(!rigidBody && App->time->IsGameRunning()) App->physics->CreateBoxRigidbody(this);
+}
+
+void ComponentBoxCollider::OnDisable() {
+	if(rigidBody && App->time->IsGameRunning()) App->physics->RemoveBoxRigidbody(this);
+}
+
 void ComponentBoxCollider::OnCollision(GameObject& collidedWith) {
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
