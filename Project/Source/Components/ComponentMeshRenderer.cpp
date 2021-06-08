@@ -530,7 +530,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform1f(glGetUniformLocation(program, spotLightStrings[i][7]), spotLightsArray[i]->innerAngle);
 		glUniform1f(glGetUniformLocation(program, spotLightStrings[i][8]), spotLightsArray[i]->outerAngle);
 	}
-	glUniform1i(glGetUniformLocation(program, "light.numSpots"), pointLightsArraySize);
+	glUniform1i(glGetUniformLocation(program, "light.numSpots"), spotLightsArraySize);
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
