@@ -232,7 +232,7 @@ void ComponentBillboard::Draw() {
 
 	if (billboardType == BillboardType::LOOK_AT) {
 		newModelMatrix = modelMatrix.LookAt(rotatePart.Col(2), -frustum->Front(), rotatePart.Col(1), float3::unitY);
-		newModelMatrix = float4x4::FromTRS(position, newModelMatrix.RotatePart(), scale);
+		newModelMatrix = float4x4::FromTRS(position, newModelMatrix.RotatePart() * modelMatrix.RotatePart(), scale);
 
 	} else if (billboardType == BillboardType::STRETCH) {
 		float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
@@ -249,7 +249,7 @@ void ComponentBillboard::Draw() {
 
 	} else if (billboardType == BillboardType::HORIZONTAL) {
 		newModelMatrix = modelMatrix.LookAt(rotatePart.Col(2), float3::unitY, rotatePart.Col(1), float3::unitY);
-		newModelMatrix = float4x4::FromTRS(position, newModelMatrix.RotatePart(), scale);
+		newModelMatrix = float4x4::FromTRS(position, newModelMatrix.RotatePart() * modelMatrix.RotatePart(), scale);
 
 	} else if (billboardType == BillboardType::VERTICAL) {
 		// TODO: Implement it
