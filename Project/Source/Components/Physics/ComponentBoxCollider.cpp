@@ -168,11 +168,11 @@ void ComponentBoxCollider::Load(JsonValue jComponent) {
 }
 
 void ComponentBoxCollider::OnEnable() {
-	if(!rigidBody && App->time->IsGameRunning()) App->physics->CreateBoxRigidbody(this);
+	if(!rigidBody && App->time->HasGameStarted()) App->physics->CreateBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::OnDisable() {
-	if(rigidBody && App->time->IsGameRunning()) App->physics->RemoveBoxRigidbody(this);
+	if(rigidBody && App->time->HasGameStarted()) App->physics->RemoveBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::OnCollision(GameObject& collidedWith) {

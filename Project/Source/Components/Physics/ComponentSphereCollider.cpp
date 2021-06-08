@@ -140,11 +140,11 @@ void ComponentSphereCollider::Load(JsonValue jComponent) {
 }
 
 void ComponentSphereCollider::OnEnable() {
-	if (!rigidBody && App->time->IsGameRunning()) App->physics->CreateSphereRigidbody(this);
+	if (!rigidBody && App->time->HasGameStarted()) App->physics->CreateSphereRigidbody(this);
 }
 
 void ComponentSphereCollider::OnDisable() {
-	if (rigidBody && App->time->IsGameRunning()) App->physics->RemoveSphereRigidbody(this);
+	if (rigidBody && App->time->HasGameStarted()) App->physics->RemoveSphereRigidbody(this);
 }
 
 void ComponentSphereCollider::OnCollision(GameObject& collidedWith) {

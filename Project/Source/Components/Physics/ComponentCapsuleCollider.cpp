@@ -215,11 +215,11 @@ void ComponentCapsuleCollider::Load(JsonValue jComponent) {
 }
 
 void ComponentCapsuleCollider::OnEnable() {
-	if (!rigidBody && App->time->IsGameRunning()) App->physics->CreateCapsuleRigidbody(this);
+	if (!rigidBody && App->time->HasGameStarted()) App->physics->CreateCapsuleRigidbody(this);
 }
 
 void ComponentCapsuleCollider::OnDisable() {
-	if (rigidBody && App->time->IsGameRunning()) App->physics->RemoveCapsuleRigidbody(this);
+	if (rigidBody && App->time->HasGameStarted()) App->physics->RemoveCapsuleRigidbody(this);
 }
 
 void ComponentCapsuleCollider::OnCollision(GameObject& collidedWith) {
