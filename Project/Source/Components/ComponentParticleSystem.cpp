@@ -213,9 +213,9 @@ float3 ComponentParticleSystem::CreateDirection() {
 		float3 forward = transform->GetGlobalRotation() * float3::unitY;
 		if (reverseEffect) return forward.Normalized();
 
-		x = (float(rand()) / float((RAND_MAX)) * 0.2f) - 0.2f;
-		y = (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.0f;
-		z = (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.2f;
+		x = (float(rand()) / float((RAND_MAX)) * coneRadiusUp * 2) - coneRadiusUp;
+		y = (float(rand()) / float((RAND_MAX)) * coneRadiusUp * 2);
+		z = (float(rand()) / float((RAND_MAX)) * coneRadiusUp * 2) - coneRadiusUp;
 
 		return float3(forward.x + x, forward.y + y, forward.z + z).Normalized();
 	}
@@ -238,12 +238,12 @@ float3 ComponentParticleSystem::CreatePosition() {
 		if (reverseEffect) {
 			float3 forward = transform->GetGlobalRotation() * float3::unitY;
 			x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * coneRadiusUp * 2) - coneRadiusUp;
-			y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * coneRadiusUp) - 0.0f;
+			y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * coneRadiusUp);
 			z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * coneRadiusUp * 2) - coneRadiusUp;
 			return (forward.Normalized() * distanceReverse) + (float3(x, y, z));
 		} else {
 			x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * coneRadiusDown * 2) - coneRadiusDown;
-			y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * coneRadiusDown) - 0.0f;
+			y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * coneRadiusDown);
 			z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * coneRadiusDown * 2) - coneRadiusDown;
 		}
 		return (float3(x, y, z));
@@ -435,6 +435,7 @@ void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
 		}
 	}
 }
+
 void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
 	if (App->time->IsGameRunning()) {
 		currentParticle->scale.x += scaleFactor * App->time->GetDeltaTime();
@@ -455,6 +456,7 @@ void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
 		currentParticle->scale.z = 0;
 	}
 }
+
 void ComponentParticleSystem::UpdateLife(Particle* currentParticle) {
 	if (App->time->IsGameRunning()) {
 		currentParticle->life -= App->time->GetDeltaTime();
@@ -558,7 +560,7 @@ void ComponentParticleSystem::Draw() {
 				modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart(), currentParticle.scale);
 			} else if (billboardType == BillboardType::STRETCH) {
 				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
-				float3 cameraDir = (cameraPos - currentParticle.initialPosition).Normalized();
+				float3 cameraDir = (cameraPos - currentParticle.position).Normalized();
 				float3 upDir = Cross(currentParticle.direction, cameraDir);
 				float3 newCameraDir = Cross(currentParticle.direction, upDir);
 
