@@ -32,12 +32,12 @@ public:
 	void Save(JsonValue jComponent) const override; // Serializes the component
 	void Load(JsonValue jComponent) override;		// Deserializes the component
 
-	bool IsClicked() const;			// Returns true if the button is clicked
-	void SetClicked(bool clicked_); // Sets clicked to the value
+	TESSERACT_ENGINE_API bool IsClicked() const; // Returns true if the button is clicked
+	TESSERACT_ENGINE_API void SetClicked(bool clicked_); // Sets clicked to the value
 
-	float4 GetTintColor() const;	   // Returns the correspondant color of the current state
-	float4 GetClickColor() const;	   // Returns colorClicked
-	float2 GetClickedPosition() const; // Returns mouse click position inside the slider
+	TESSERACT_ENGINE_API float4 GetTintColor() const; // Returns the correspondant color of the current state
+	TESSERACT_ENGINE_API float4 GetClickColor() const; // Returns colorClicked
+	TESSERACT_ENGINE_API float2 GetClickedPosition() const; // Returns mouse click position inside the slider
 
 	UID GetHandleID() const;
 
@@ -45,7 +45,7 @@ public:
 	TESSERACT_ENGINE_API float GetMaxValue() const;
 	TESSERACT_ENGINE_API float GetMinValue() const;
 	TESSERACT_ENGINE_API float GetNormalizedValue() const;
-	void ModifyValue(float multiplier);
+	TESSERACT_ENGINE_API void ModifyValue(float multiplier);
 
 public:
 	bool handleStopsOnEdge = false;
