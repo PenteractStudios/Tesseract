@@ -236,7 +236,7 @@ void ComponentBillboard::Draw() {
 
 	} else if (billboardType == BillboardType::STRETCH) {
 		float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
-		float3 cameraDir = (cameraPos - initPos).Normalized();
+		float3 cameraDir = (cameraPos -  position).Normalized();
 		float3 upDir = Cross(direction, cameraDir);
 		float3 newCameraDir = Cross(direction, upDir);
 
