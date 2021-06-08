@@ -301,27 +301,33 @@ UpdateStatus ModuleRender::Update() {
 
 	ClassifyGameObjects();
 
-	// Depth Prepass
-	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureBuffer);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	for (GameObject* gameObject : opaqueGameObjects) {
-		DrawGameObjectDepthPrepass(gameObject);
-	}
-
 	// Shadow Pass
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glDepthMask(GL_TRUE);
+	glDepthFunc(GL_LESS);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	for (GameObject* gameObject : shadowGameObjects) {
 		DrawGameObjectShadowPass(gameObject);
 	}
 
+	// Depth Prepass
+	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureBuffer);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glDepthMask(GL_TRUE);
+	glDepthFunc(GL_LESS);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	for (GameObject* gameObject : opaqueGameObjects) {
+		DrawGameObjectDepthPrepass(gameObject);
+	}
+
 	// SSAO pass
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoTextureBuffer);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glDepthMask(GL_FALSE);
+	glDepthFunc(GL_LESS);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	if (ssaoActive) {
@@ -331,13 +337,15 @@ UpdateStatus ModuleRender::Update() {
 	// Render pass
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDepthMask(GL_FALSE);
+	glDepthFunc(GL_LEQUAL);
+	glClear(GL_COLOR_BUFFER_BIT);
 
+	// Debug textures
 	if (drawSSAOTexture) {
 		DrawSSAOTexture();
 		return UpdateStatus::CONTINUE;
 	}
-
 	if (drawDepthMapTexture) {
 		DrawDepthMapTexture();
 		return UpdateStatus::CONTINUE;
@@ -424,10 +432,11 @@ UpdateStatus ModuleRender::Update() {
 		if (drawLightFrustumGizmo) {
 			lightFrustum.DrawGizmos();
 		}
-	}
 
-	if (drawNavMesh) {
-		App->navigation->DrawGizmos();
+		// Draw NavMesh
+		if (drawNavMesh) {
+			App->navigation->DrawGizmos();
+		}
 	}
 
 	//Render UI
