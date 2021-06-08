@@ -43,6 +43,7 @@
 #define JSON_TAG_LIFE "LifeParticle"
 #define JSON_TAG_TEXTURE_DISTANCE_REVERSE "DistanceReverse"
 #define JSON_TAG_TEXTURE_REVERSE_EFFECT "ReverseEffect"
+#define JSON_TAG_ATTACH_EMITTER "AttachEmitter"
 #define JSON_TAG_START_DELAY_TIME "StartDelay"
 
 #define JSON_TAG_YTILES "Ytiles"
@@ -83,7 +84,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	if (ImGui::Button("Stop")) Stop();
 
 	ImGui::Separator();
-	ImGui::Checkbox("Attack to Emitter", &attachEmitter);
+	ImGui::Checkbox("Attach to Emitter", &attachEmitter);
 	if (ImGui::DragFloat("Start Delay", &startDelay, App->editor->dragSpeed2f, 0, inf)) {
 		restDelayTime = startDelay;
 	}
@@ -298,6 +299,7 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 
 	distanceReverse = jComponent[JSON_TAG_TEXTURE_DISTANCE_REVERSE];
 	reverseEffect = jComponent[JSON_TAG_TEXTURE_REVERSE_EFFECT];
+	attachEmitter = jComponent[JSON_TAG_ATTACH_EMITTER];
 	startDelay = jComponent[JSON_TAG_START_DELAY_TIME];
 
 	Ytiles = jComponent[JSON_TAG_YTILES];
@@ -339,6 +341,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_LIFE] = particleLife;
 	jComponent[JSON_TAG_TEXTURE_DISTANCE_REVERSE] = distanceReverse;
 	jComponent[JSON_TAG_TEXTURE_REVERSE_EFFECT] = reverseEffect;
+	jComponent[JSON_TAG_ATTACH_EMITTER] = attachEmitter;
 	jComponent[JSON_TAG_START_DELAY_TIME] = startDelay;
 
 	jComponent[JSON_TAG_YTILES] = Ytiles;
