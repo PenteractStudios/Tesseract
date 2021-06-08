@@ -242,14 +242,23 @@ void ModulePhysics::AddBodyToWorld(btRigidBody* rigidbody, ColliderType collider
 	case EVENT_TRIGGERS:
 		collisionMask = WorldLayers::PLAYER | WorldLayers::EVERYTHING;
 		break;
-	case WORLD_ELEMENTS:
+	case ENEMY:
+		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::BULLET | WorldLayers::EVERYTHING;
+		break;
+	case BULLET:
+		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::ENEMY | WorldLayers::EVERYTHING;
+		break;
+	case BULLET_ENEMY:
 		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::EVERYTHING;
 		break;
+	case WORLD_ELEMENTS:
+		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::ENEMY | WorldLayers::BULLET | WorldLayers::BULLET_ENEMY | WorldLayers::EVERYTHING;
+		break;
 	case PLAYER:
-		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::EVERYTHING;
+		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::BULLET_ENEMY | WorldLayers::EVERYTHING;
 		break;
 	case EVERYTHING:
-		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::EVERYTHING;
+		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::ENEMY | WorldLayers::BULLET | WorldLayers::BULLET_ENEMY | WorldLayers::EVERYTHING;
 		break;
 	default: //NO_COLLISION
 		collisionMask = 0;
