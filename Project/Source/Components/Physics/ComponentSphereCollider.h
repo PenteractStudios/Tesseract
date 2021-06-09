@@ -17,6 +17,8 @@ public:
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
+	void OnEnable() override;
+	void OnDisable() override;
 
 	// ----- Collider Functions ---- //
 	void OnCollision(GameObject& collidedWith); // Callback function for scripting
