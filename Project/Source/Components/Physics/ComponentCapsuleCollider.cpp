@@ -63,13 +63,13 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 	ImGui::Checkbox("Draw Shape", &drawGizmo);
 
 	// World Layers combo box
-	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Everything"};
+	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Enemy", "Bullet", "Bullet Enemy", "Everything"};
 	const char* layerCurrent = layerTypeItems[layerIndex];
 	if (ImGui::BeginCombo("Layer", layerCurrent)) {
 		for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {
 			if (ImGui::Selectable(layerTypeItems[n])) {
 				layerIndex = n;
-				if (n == 4) {
+				if (n == 7) {
 					layer = WorldLayers::EVERYTHING;
 				} else {
 					layer = WorldLayers(1 << layerIndex);
@@ -214,7 +214,15 @@ void ComponentCapsuleCollider::Load(JsonValue jComponent) {
 	freezeRotation = jFreeze;
 }
 
-void ComponentCapsuleCollider::OnCollision(const GameObject& collidedWith) {
+void ComponentCapsuleCollider::OnEnable() {
+	if (!rigidBody && App->time->HasGameStarted()) App->physics->CreateCapsuleRigidbody(this);
+}
+
+void ComponentCapsuleCollider::OnDisable() {
+	if (rigidBody && App->time->HasGameStarted()) App->physics->RemoveCapsuleRigidbody(this);
+}
+
+void ComponentCapsuleCollider::OnCollision(GameObject& collidedWith) {
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
 		if (script != nullptr) {

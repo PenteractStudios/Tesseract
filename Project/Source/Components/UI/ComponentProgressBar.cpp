@@ -174,3 +174,19 @@ void ComponentProgressBar::SetMin(float m) {
 void ComponentProgressBar::SetMax(float n) {
 	max = n;
 }
+
+float ComponentProgressBar::GetValue() {
+	return value;
+}
+
+float ComponentProgressBar::GetFillPos() {
+	return fillXPos;
+}
+
+float ComponentProgressBar::GetMin() {
+	return min;
+}
+
+float ComponentProgressBar::GetMax() {
+	return max;
+}

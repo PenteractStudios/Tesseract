@@ -30,6 +30,75 @@
 #define JSON_TAG_MESH_ID "MeshID"
 #define JSON_TAG_MATERIAL_ID "MaterialID"
 
+#define POINT_LIGHT_MEMBERS 6
+#define POINT_LIGHT_STRING(number)                 \
+	{                                              \
+		"light.points["##number "].pos",           \
+			"light.points["##number "].color",     \
+			"light.points["##number "].intensity", \
+			"light.points["##number "].kc",        \
+			"light.points["##number "].kl",        \
+			"light.points["##number "].kq"         \
+	}
+
+#define SPOT_LIGHT_MEMBERS 9
+#define SPOT_LIGHT_STRING(number)                  \
+	{                                              \
+		"light.spots["##number "].pos",            \
+			"light.spots["##number "].direction",  \
+			"light.spots["##number "].color",      \
+			"light.spots["##number "].intensity",  \
+			"light.spots["##number "].kc",         \
+			"light.spots["##number "].kl",         \
+			"light.spots["##number "].kq",         \
+			"light.spots["##number "].innerAngle", \
+			"light.spots["##number "].outerAngle"  \
+	}
+
+static const char* pointLightStrings[POINT_LIGHTS][POINT_LIGHT_MEMBERS] = {
+	POINT_LIGHT_STRING("0"),
+	POINT_LIGHT_STRING("1"),
+	POINT_LIGHT_STRING("2"),
+	POINT_LIGHT_STRING("3"),
+	POINT_LIGHT_STRING("4"),
+	POINT_LIGHT_STRING("5"),
+	POINT_LIGHT_STRING("6"),
+	POINT_LIGHT_STRING("7"),
+	POINT_LIGHT_STRING("8"),
+	POINT_LIGHT_STRING("9"),
+	POINT_LIGHT_STRING("10"),
+	POINT_LIGHT_STRING("11"),
+	POINT_LIGHT_STRING("12"),
+	POINT_LIGHT_STRING("13"),
+	POINT_LIGHT_STRING("14"),
+	POINT_LIGHT_STRING("15"),
+	POINT_LIGHT_STRING("16"),
+	POINT_LIGHT_STRING("17"),
+	POINT_LIGHT_STRING("18"),
+	POINT_LIGHT_STRING("19"),
+	POINT_LIGHT_STRING("20"),
+	POINT_LIGHT_STRING("21"),
+	POINT_LIGHT_STRING("22"),
+	POINT_LIGHT_STRING("23"),
+	POINT_LIGHT_STRING("24"),
+	POINT_LIGHT_STRING("25"),
+	POINT_LIGHT_STRING("26"),
+	POINT_LIGHT_STRING("27"),
+	POINT_LIGHT_STRING("28"),
+	POINT_LIGHT_STRING("29"),
+	POINT_LIGHT_STRING("30"),
+	POINT_LIGHT_STRING("31")};
+
+static const char* spotLightStrings[SPOT_LIGHTS][SPOT_LIGHT_MEMBERS] = {
+	SPOT_LIGHT_STRING("0"),
+	SPOT_LIGHT_STRING("1"),
+	SPOT_LIGHT_STRING("2"),
+	SPOT_LIGHT_STRING("3"),
+	SPOT_LIGHT_STRING("4"),
+	SPOT_LIGHT_STRING("5"),
+	SPOT_LIGHT_STRING("6"),
+	SPOT_LIGHT_STRING("7")};
+
 void ComponentMeshRenderer::OnEditorUpdate() {
 	if (ImGui::Checkbox("Active", &active)) {
 		if (GetOwner().IsActive()) {
@@ -164,11 +233,11 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 	// Light settings
 	ComponentLight* directionalLight = nullptr;
-	ComponentLight* pointLightsArray[8];
-	float pointDistancesArray[8];
+	ComponentLight* pointLightsArray[POINT_LIGHTS];
+	float pointDistancesArray[POINT_LIGHTS];
 	unsigned pointLightsArraySize = 0;
-	ComponentLight* spotLightsArray[8];
-	float spotDistancesArray[8];
+	ComponentLight* spotLightsArray[SPOT_LIGHTS];
+	float spotDistancesArray[SPOT_LIGHTS];
 	unsigned spotLightsArraySize = 0;
 
 	float farPointDistance = 0;
@@ -188,7 +257,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 				float3 meshPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 				float3 lightPosition = light.GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 				float distance = Distance(meshPosition, lightPosition);
-				if (pointLightsArraySize < 8) {
+				if (pointLightsArraySize < POINT_LIGHTS) {
 					pointDistancesArray[pointLightsArraySize] = distance;
 					pointLightsArray[pointLightsArraySize] = &light;
 					pointLightsArraySize += 1;
@@ -230,7 +299,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 				float3 meshPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 				float3 lightPosition = light.GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 				float distance = Distance(meshPosition, lightPosition);
-				if (spotLightsArraySize < 8) {
+				if (spotLightsArraySize < SPOT_LIGHTS) {
 					spotDistancesArray[spotLightsArraySize] = distance;
 					spotLightsArray[spotLightsArraySize] = &light;
 					spotLightsArraySize += 1;
@@ -447,160 +516,28 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	}
 	glUniform1i(glGetUniformLocation(program, "light.directional.isActive"), directionalLight ? 1 : 0);
 
-	if (pointLightsArraySize > 0) {
-		glUniform3fv(glGetUniformLocation(program, "light.points[0].pos"), 1, pointLightsArray[0]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.points[0].color"), 1, pointLightsArray[0]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.points[0].intensity"), pointLightsArray[0]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.points[0].kc"), pointLightsArray[0]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.points[0].kl"), pointLightsArray[0]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.points[0].kq"), pointLightsArray[0]->kq);
-	}
-	if (pointLightsArraySize > 1) {
-		glUniform3fv(glGetUniformLocation(program, "light.points[1].pos"), 1, pointLightsArray[1]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.points[1].color"), 1, pointLightsArray[1]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.points[1].intensity"), pointLightsArray[1]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.points[1].kc"), pointLightsArray[1]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.points[1].kl"), pointLightsArray[1]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.points[1].kq"), pointLightsArray[1]->kq);
-	}
-	if (pointLightsArraySize > 2) {
-		glUniform3fv(glGetUniformLocation(program, "light.points[2].pos"), 1, pointLightsArray[2]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.points[2].color"), 1, pointLightsArray[2]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.points[2].intensity"), pointLightsArray[2]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.points[2].kc"), pointLightsArray[2]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.points[2].kl"), pointLightsArray[2]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.points[2].kq"), pointLightsArray[2]->kq);
-	}
-	if (pointLightsArraySize > 3) {
-		glUniform3fv(glGetUniformLocation(program, "light.points[3].pos"), 1, pointLightsArray[3]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.points[3].color"), 1, pointLightsArray[3]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.points[3].intensity"), pointLightsArray[3]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.points[3].kc"), pointLightsArray[3]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.points[3].kl"), pointLightsArray[3]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.points[3].kq"), pointLightsArray[3]->kq);
-	}
-	if (pointLightsArraySize > 4) {
-		glUniform3fv(glGetUniformLocation(program, "light.points[4].pos"), 1, pointLightsArray[4]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.points[4].color"), 1, pointLightsArray[4]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.points[4].intensity"), pointLightsArray[4]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.points[4].kc"), pointLightsArray[4]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.points[4].kl"), pointLightsArray[4]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.points[4].kq"), pointLightsArray[4]->kq);
-	}
-	if (pointLightsArraySize > 5) {
-		glUniform3fv(glGetUniformLocation(program, "light.points[5].pos"), 1, pointLightsArray[5]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.points[5].color"), 1, pointLightsArray[5]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.points[5].intensity"), pointLightsArray[5]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.points[5].kc"), pointLightsArray[5]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.points[5].kl"), pointLightsArray[5]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.points[5].kq"), pointLightsArray[5]->kq);
-	}
-	if (pointLightsArraySize > 6) {
-		glUniform3fv(glGetUniformLocation(program, "light.points[6].pos"), 1, pointLightsArray[6]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.points[6].color"), 1, pointLightsArray[6]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.points[6].intensity"), pointLightsArray[6]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.points[6].kc"), pointLightsArray[6]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.points[6].kl"), pointLightsArray[6]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.points[6].kq"), pointLightsArray[6]->kq);
-	}
-	if (pointLightsArraySize > 7) {
-		glUniform3fv(glGetUniformLocation(program, "light.points[7].pos"), 1, pointLightsArray[7]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.points[7].color"), 1, pointLightsArray[7]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.points[7].intensity"), pointLightsArray[7]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.points[7].kc"), pointLightsArray[7]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.points[7].kl"), pointLightsArray[7]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.points[7].kq"), pointLightsArray[7]->kq);
+	for (unsigned i = 0; i < pointLightsArraySize; ++i) {
+		glUniform3fv(glGetUniformLocation(program, pointLightStrings[i][0]), 1, pointLightsArray[i]->pos.ptr());
+		glUniform3fv(glGetUniformLocation(program, pointLightStrings[i][1]), 1, pointLightsArray[i]->color.ptr());
+		glUniform1f(glGetUniformLocation(program, pointLightStrings[i][2]), pointLightsArray[i]->intensity);
+		glUniform1f(glGetUniformLocation(program, pointLightStrings[i][3]), pointLightsArray[i]->kc);
+		glUniform1f(glGetUniformLocation(program, pointLightStrings[i][4]), pointLightsArray[i]->kl);
+		glUniform1f(glGetUniformLocation(program, pointLightStrings[i][5]), pointLightsArray[i]->kq);
 	}
 	glUniform1i(glGetUniformLocation(program, "light.numPoints"), pointLightsArraySize);
 
-	if (spotLightsArraySize > 0) {
-		glUniform3fv(glGetUniformLocation(program, "light.spots[0].pos"), 1, spotLightsArray[0]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[0].direction"), 1, spotLightsArray[0]->direction.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[0].color"), 1, spotLightsArray[0]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.spots[0].intensity"), spotLightsArray[0]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.spots[0].kc"), spotLightsArray[0]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.spots[0].kl"), spotLightsArray[0]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.spots[0].kq"), spotLightsArray[0]->kq);
-		glUniform1f(glGetUniformLocation(program, "light.spots[0].innerAngle"), spotLightsArray[0]->innerAngle);
-		glUniform1f(glGetUniformLocation(program, "light.spots[0].outerAngle"), spotLightsArray[0]->outerAngle);
+	for (unsigned i = 0; i < spotLightsArraySize; ++i) {
+		glUniform3fv(glGetUniformLocation(program, spotLightStrings[i][0]), 1, spotLightsArray[i]->pos.ptr());
+		glUniform3fv(glGetUniformLocation(program, spotLightStrings[i][1]), 1, spotLightsArray[i]->direction.ptr());
+		glUniform3fv(glGetUniformLocation(program, spotLightStrings[i][2]), 1, spotLightsArray[i]->color.ptr());
+		glUniform1f(glGetUniformLocation(program, spotLightStrings[i][3]), spotLightsArray[i]->intensity);
+		glUniform1f(glGetUniformLocation(program, spotLightStrings[i][4]), spotLightsArray[i]->kc);
+		glUniform1f(glGetUniformLocation(program, spotLightStrings[i][5]), spotLightsArray[i]->kl);
+		glUniform1f(glGetUniformLocation(program, spotLightStrings[i][6]), spotLightsArray[i]->kq);
+		glUniform1f(glGetUniformLocation(program, spotLightStrings[i][7]), spotLightsArray[i]->innerAngle);
+		glUniform1f(glGetUniformLocation(program, spotLightStrings[i][8]), spotLightsArray[i]->outerAngle);
 	}
-	if (spotLightsArraySize > 1) {
-		glUniform3fv(glGetUniformLocation(program, "light.spots[1].pos"), 1, spotLightsArray[1]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[1].direction"), 1, spotLightsArray[1]->direction.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[1].color"), 1, spotLightsArray[1]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.spots[1].intensity"), spotLightsArray[1]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.spots[1].kc"), spotLightsArray[1]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.spots[1].kl"), spotLightsArray[1]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.spots[1].kq"), spotLightsArray[1]->kq);
-		glUniform1f(glGetUniformLocation(program, "light.spots[1].innerAngle"), spotLightsArray[1]->innerAngle);
-		glUniform1f(glGetUniformLocation(program, "light.spots[1].outerAngle"), spotLightsArray[1]->outerAngle);
-	}
-	if (spotLightsArraySize > 2) {
-		glUniform3fv(glGetUniformLocation(program, "light.spots[2].pos"), 1, spotLightsArray[2]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[2].direction"), 1, spotLightsArray[2]->direction.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[2].color"), 1, spotLightsArray[2]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.spots[2].intensity"), spotLightsArray[2]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.spots[2].kc"), spotLightsArray[2]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.spots[2].kl"), spotLightsArray[2]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.spots[2].kq"), spotLightsArray[2]->kq);
-		glUniform1f(glGetUniformLocation(program, "light.spots[2].innerAngle"), spotLightsArray[2]->innerAngle);
-		glUniform1f(glGetUniformLocation(program, "light.spots[2].outerAngle"), spotLightsArray[2]->outerAngle);
-	}
-	if (spotLightsArraySize > 3) {
-		glUniform3fv(glGetUniformLocation(program, "light.spots[3].pos"), 1, spotLightsArray[3]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[3].direction"), 1, spotLightsArray[3]->direction.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[3].color"), 1, spotLightsArray[3]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.spots[3].intensity"), spotLightsArray[3]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.spots[3].kc"), spotLightsArray[3]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.spots[3].kl"), spotLightsArray[3]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.spots[3].kq"), spotLightsArray[3]->kq);
-		glUniform1f(glGetUniformLocation(program, "light.spots[3].innerAngle"), spotLightsArray[3]->innerAngle);
-		glUniform1f(glGetUniformLocation(program, "light.spots[3].outerAngle"), spotLightsArray[3]->outerAngle);
-	}
-	if (spotLightsArraySize > 4) {
-		glUniform3fv(glGetUniformLocation(program, "light.spots[4].pos"), 1, spotLightsArray[4]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[4].direction"), 1, spotLightsArray[4]->direction.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[4].color"), 1, spotLightsArray[4]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.spots[4].intensity"), spotLightsArray[4]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.spots[4].kc"), spotLightsArray[4]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.spots[4].kl"), spotLightsArray[4]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.spots[4].kq"), spotLightsArray[4]->kq);
-		glUniform1f(glGetUniformLocation(program, "light.spots[4].innerAngle"), spotLightsArray[4]->innerAngle);
-		glUniform1f(glGetUniformLocation(program, "light.spots[4].outerAngle"), spotLightsArray[4]->outerAngle);
-	}
-	if (spotLightsArraySize > 5) {
-		glUniform3fv(glGetUniformLocation(program, "light.spots[5].pos"), 1, spotLightsArray[5]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[5].direction"), 1, spotLightsArray[5]->direction.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[5].color"), 1, spotLightsArray[5]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.spots[5].intensity"), spotLightsArray[5]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.spots[5].kc"), spotLightsArray[5]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.spots[5].kl"), spotLightsArray[5]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.spots[5].kq"), spotLightsArray[5]->kq);
-		glUniform1f(glGetUniformLocation(program, "light.spots[5].innerAngle"), spotLightsArray[5]->innerAngle);
-		glUniform1f(glGetUniformLocation(program, "light.spots[5].outerAngle"), spotLightsArray[5]->outerAngle);
-	}
-	if (spotLightsArraySize > 6) {
-		glUniform3fv(glGetUniformLocation(program, "light.spots[6].pos"), 1, spotLightsArray[6]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[6].direction"), 1, spotLightsArray[6]->direction.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[6].color"), 1, spotLightsArray[6]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.spots[6].intensity"), spotLightsArray[6]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.spots[6].kc"), spotLightsArray[6]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.spots[6].kl"), spotLightsArray[6]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.spots[6].kq"), spotLightsArray[6]->kq);
-		glUniform1f(glGetUniformLocation(program, "light.spots[6].innerAngle"), spotLightsArray[6]->innerAngle);
-		glUniform1f(glGetUniformLocation(program, "light.spots[6].outerAngle"), spotLightsArray[6]->outerAngle);
-	}
-	if (spotLightsArraySize > 7) {
-		glUniform3fv(glGetUniformLocation(program, "light.spots[7].pos"), 1, spotLightsArray[7]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[7].direction"), 1, spotLightsArray[7]->direction.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.spots[7].color"), 1, spotLightsArray[7]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.spots[7].intensity"), spotLightsArray[7]->intensity);
-		glUniform1f(glGetUniformLocation(program, "light.spots[7].kc"), spotLightsArray[7]->kc);
-		glUniform1f(glGetUniformLocation(program, "light.spots[7].kl"), spotLightsArray[7]->kl);
-		glUniform1f(glGetUniformLocation(program, "light.spots[7].kq"), spotLightsArray[7]->kq);
-		glUniform1f(glGetUniformLocation(program, "light.spots[7].innerAngle"), spotLightsArray[7]->innerAngle);
-		glUniform1f(glGetUniformLocation(program, "light.spots[7].outerAngle"), spotLightsArray[7]->outerAngle);
-	}
+	glUniform1i(glGetUniformLocation(program, "light.numSpots"), spotLightsArraySize);
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);

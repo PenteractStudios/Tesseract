@@ -64,6 +64,8 @@ enum class UpdateStatus {
 
 // Configuration -----------
 #define GLSL_VERSION "#version 460"
+#define POINT_LIGHTS 32
+#define SPOT_LIGHTS 8
 
 // Threads
 #define TIME_BETWEEN_RESOURCE_UPDATES_MS 300
