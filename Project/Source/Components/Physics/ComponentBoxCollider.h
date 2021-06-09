@@ -19,9 +19,11 @@ public:
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
+	void OnEnable() override;
+	void OnDisable() override;
 
 	// ----- Collider Functions ---- //
-	void OnCollision(const GameObject& collidedWith);  // Callback function for scripting
+	void OnCollision(GameObject& collidedWith);  // Callback function for scripting
 	void CalculateWorldBoundingBox(); // Set the worldOBB from the localAABB and the GameObject transform
 
 public:

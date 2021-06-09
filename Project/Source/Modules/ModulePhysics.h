@@ -41,6 +41,9 @@ enum WorldLayers {
 	EVENT_TRIGGERS = 1 << 2,
 	WORLD_ELEMENTS = 1 << 3,
 	PLAYER = 1 << 4,
+	ENEMY = 1 << 5,
+	BULLET = 1 << 6,
+	BULLET_ENEMY = 1 << 7,
 	EVERYTHING = -1
 };
 
