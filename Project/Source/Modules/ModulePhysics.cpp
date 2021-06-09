@@ -138,8 +138,10 @@ btRigidBody* ModulePhysics::AddSphereBody(MotionState* myMotionState, float radi
 }
 
 void ModulePhysics::RemoveSphereRigidbody(ComponentSphereCollider* sphereCollider) {
-	world->removeCollisionObject(sphereCollider->rigidBody);
-	RELEASE(sphereCollider->rigidBody);
+	if (sphereCollider->rigidBody) {
+		world->removeCollisionObject(sphereCollider->rigidBody);
+		RELEASE(sphereCollider->rigidBody);
+	}
 }
 
 void ModulePhysics::UpdateSphereRigidbody(ComponentSphereCollider* sphereCollider) {
@@ -169,8 +171,10 @@ btRigidBody* ModulePhysics::AddBoxBody(MotionState* myMotionState, float3 size, 
 }
 
 void ModulePhysics::RemoveBoxRigidbody(ComponentBoxCollider* boxCollider) {
-	world->removeCollisionObject(boxCollider->rigidBody);
-	RELEASE(boxCollider->rigidBody);
+	if (boxCollider->rigidBody) {
+		world->removeCollisionObject(boxCollider->rigidBody);
+		RELEASE(boxCollider->rigidBody);
+	}
 }
 
 void ModulePhysics::UpdateBoxRigidbody(ComponentBoxCollider* boxCollider) {
@@ -212,8 +216,10 @@ btRigidBody* ModulePhysics::AddCapsuleBody(MotionState* myMotionState, float rad
 }
 
 void ModulePhysics::RemoveCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider) {
-	world->removeCollisionObject(capsuleCollider->rigidBody);
-	RELEASE(capsuleCollider->rigidBody);
+	if (capsuleCollider->rigidBody) {
+		world->removeCollisionObject(capsuleCollider->rigidBody);
+		RELEASE(capsuleCollider->rigidBody);
+	}
 }
 
 void ModulePhysics::UpdateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider) {
