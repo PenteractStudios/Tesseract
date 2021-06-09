@@ -92,7 +92,7 @@ void ComponentAudioSource::OnEditorUpdate() {
 		if (mute) {
 			alSourcef(sourceId, AL_GAIN, 0.0f);
 		} else {
-			alSourcef(sourceId, AL_GAIN, gain);
+			//alSourcef(sourceId, AL_GAIN, gain);
 		}
 	}
 
@@ -100,7 +100,7 @@ void ComponentAudioSource::OnEditorUpdate() {
 		alSourcef(sourceId, AL_LOOPING, loopSound);
 	}
 	if (ImGui::DragFloat("Gain", &gain, App->editor->dragSpeed3f, 0, 1)) {
-		alSourcef(sourceId, AL_GAIN, gain);
+		//alSourcef(sourceId, AL_GAIN, gain);
 	}
 	if (ImGui::DragFloat("Pitch", &pitch, App->editor->dragSpeed3f, 0.5, 2)) {
 		alSourcef(sourceId, AL_PITCH, pitch);
@@ -156,6 +156,12 @@ void ComponentAudioSource::OnEditorUpdate() {
 
 	ImGui::Separator();
 
+	ImGui::DragFloat("Roll Off Factor", &rollOffFact, 1.f, 0.0f, inf);
+	ImGui::DragFloat("Reference Distance", &referenceDistance, 1.f, 0.0f, inf);
+	ImGui::DragFloat("Max Distance", &maxDistance, 1.f, 0.0f, inf);
+
+	ImGui::Separator();
+
 	if (ImGui::Button("Play")) {
 		Play();
 	}
@@ -199,8 +205,11 @@ void ComponentAudioSource::UpdateSourceParameters() {
 	if (mute) {
 		alSourcef(sourceId, AL_GAIN, 0.0f);
 	} else {
-		alSourcef(sourceId, AL_GAIN, gain);
+		//alSourcef(sourceId, AL_GAIN, gain);
 	}
+	alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFact);
+	alSourcef(sourceId, AL_REFERENCE_DISTANCE, rollOffFact);
+	alSourcef(sourceId, AL_MAX_DISTANCE, rollOffFact);
 }
 
 void ComponentAudioSource::Play() {

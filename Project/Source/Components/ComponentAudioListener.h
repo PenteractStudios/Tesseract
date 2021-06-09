@@ -2,6 +2,12 @@
 
 #include "Component.h"
 
+enum class DistanceModel {
+	EXPONENT,
+	INVERSE,
+	LINEAR
+};
+
 class ComponentAudioListener : public Component {
 public:
 	REGISTER_COMPONENT(ComponentAudioListener, ComponentType::AUDIO_LISTENER, false); // Refer to ComponentType for the Constructor
@@ -23,4 +29,10 @@ public:
 
 private:
 	float gain = 1.0f;
+	DistanceModel distanceModel = DistanceModel::EXPONENT;
+
+	bool clamped = false;
+	int model = 0;
+
+	inline static const char* distanceModels[] {"Exponent", "Inverse", "Linear"};
 };

@@ -30,6 +30,13 @@ void ComponentAudioListener::OnEditorUpdate() {
 		}
 	}
 	ImGui::Separator();
+
+	ImGui::Combo("Distance Model", &model, distanceModels, IM_ARRAYSIZE(distanceModels));
+	distanceModel = static_cast<DistanceModel>(model);
+
+	ImGui::Checkbox("Clamped", &clamped);
+
+	ImGui::Separator();
 }
 
 void ComponentAudioListener::Save(JsonValue jComponent) const {
@@ -45,7 +52,7 @@ void ComponentAudioListener::OnEnable() {
 }
 
 void ComponentAudioListener::OnDisable() {
-	alListenerf(AL_GAIN, 0.f);
+	//alListenerf(AL_GAIN, 0.f);
 }
 
 void ComponentAudioListener::UpdateAudioListener() {
@@ -72,6 +79,26 @@ void ComponentAudioListener::UpdateAudioListener() {
 	};
 	alListenerfv(AL_POSITION, position.ptr());
 	alListenerfv(AL_ORIENTATION, orientation);
+	switch (distanceModel) {
+	case DistanceModel::EXPONENT:
+		if (clamped)
+			alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
+		else
+			alDistanceModel(AL_EXPONENT_DISTANCE);
+		break;
+	case DistanceModel::INVERSE:
+		if (clamped)
+			alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
+		else
+			alDistanceModel(AL_INVERSE_DISTANCE);
+		break;
+	case DistanceModel::LINEAR:
+		if (clamped)
+			alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
+		else
+			alDistanceModel(AL_EXPONENT_DISTANCE);
+		break;
+	}
 }
 
 float ComponentAudioListener::GetAudioVolume() const {
@@ -80,6 +107,6 @@ float ComponentAudioListener::GetAudioVolume() const {
 
 void ComponentAudioListener::SetAudioVolume(float volume) {
 	gain = volume;
-	alListenerf(AL_GAIN, (ALfloat) volume);
+	//alListenerf(AL_GAIN, (ALfloat) volume);
 	UpdateAudioListener();
 }
