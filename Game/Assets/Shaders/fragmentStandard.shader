@@ -2,6 +2,8 @@
 
 #define PI 3.1415926538
 #define EPSILON 1e-5
+#define POINT_LIGHTS 32
+#define SPOT_LIGHTS 8
 
 in vec3 fragNormal;
 in mat3 TBN;
@@ -71,9 +73,9 @@ struct Light
 {
 	AmbientLight ambient;
 	DirLight directional;
-	PointLight points[8];
+	PointLight points[POINT_LIGHTS];
 	int numPoints;
-	SpotLight spots[8];
+	SpotLight spots[SPOT_LIGHTS];
 	int numSpots;
 };
 
