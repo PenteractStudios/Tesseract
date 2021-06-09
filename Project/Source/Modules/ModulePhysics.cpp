@@ -138,7 +138,7 @@ btRigidBody* ModulePhysics::AddSphereBody(MotionState* myMotionState, float radi
 }
 
 void ModulePhysics::RemoveSphereRigidbody(ComponentSphereCollider* sphereCollider) {
-	if (sphereCollider) {
+	if (sphereCollider->rigidBody) {
 		world->removeCollisionObject(sphereCollider->rigidBody);
 		RELEASE(sphereCollider->rigidBody);
 	}
@@ -171,8 +171,10 @@ btRigidBody* ModulePhysics::AddBoxBody(MotionState* myMotionState, float3 size, 
 }
 
 void ModulePhysics::RemoveBoxRigidbody(ComponentBoxCollider* boxCollider) {
-	world->removeCollisionObject(boxCollider->rigidBody);
-	RELEASE(boxCollider->rigidBody);
+	if (boxCollider->rigidBody) {
+		world->removeCollisionObject(boxCollider->rigidBody);
+		RELEASE(boxCollider->rigidBody);
+	}
 }
 
 void ModulePhysics::UpdateBoxRigidbody(ComponentBoxCollider* boxCollider) {
