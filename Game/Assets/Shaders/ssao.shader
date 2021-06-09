@@ -13,6 +13,7 @@ uniform vec3 randomTangents[RANDOM_TANGENTS_ROWS * RANDOM_TANGENTS_COLS];
 uniform vec2 screenSize;
 uniform float bias;
 uniform float range;
+uniform float power;
 
 in vec2 uv;
 
@@ -40,13 +41,15 @@ void main() {
     vec3 position = texture(positions, uv).xyz;
     vec3 normal = normalize(texture(normals, uv).xyz);
     mat3 tangentSpace = CreateTangentSpace(normal, GetRandomTangent());
-    int occlusion = 0;
+    float occlusion = 0;
     for (int i = 0; i < KERNEL_SIZE; ++i) {
         vec3 samplePos = position + tangentSpace * kernelSamples[i];
         float sampleDepth = GetSceneDepthAtSamplePos(samplePos);
-        if (sampleDepth + bias > samplePos.z && abs(sampleDepth - position.z) < range) {
-            ++occlusion;
+        if (sampleDepth + bias > samplePos.z) {
+            occlusion += smoothstep(0.0, 1.0, range / abs(position.z - sampleDepth));
         }
     }
-    result = vec4(vec3(1.0 - float(occlusion) / float(KERNEL_SIZE)), 1.0f);
+    occlusion = 1.0 - (occlusion / KERNEL_SIZE);       
+    occlusion = pow(occlusion, power);
+    result = vec4(vec3(occlusion), 1.0f);
 }
