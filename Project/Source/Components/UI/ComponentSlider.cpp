@@ -285,8 +285,8 @@ void ComponentSlider::ModifyValue(float mulitplier) {
 	}
 }
 
-void ComponentSlider::ChangeNormalizedValue(float normalizedValue) {
-	normalizedValue = normalizedValue;
+void ComponentSlider::ChangeNormalizedValue(float normalizedValue_) {
+	normalizedValue = normalizedValue_;
 	currentValue = (maxValue - minValue) * normalizedValue;
 }
 
