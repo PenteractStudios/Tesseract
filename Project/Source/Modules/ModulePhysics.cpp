@@ -30,7 +30,7 @@ bool ModulePhysics::Init() {
 }
 
 UpdateStatus ModulePhysics::PreUpdate() {
-	if (App->time->IsGameRunning()) {
+	if (App->time->HasGameStarted()) {
 		world->stepSimulation(App->time->GetDeltaTime(), 15);
 
 		int numManifolds = world->getDispatcher()->getNumManifolds();
