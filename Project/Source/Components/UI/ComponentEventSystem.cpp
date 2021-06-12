@@ -32,7 +32,7 @@ void ComponentEventSystem::Init() {
 }
 
 void ComponentEventSystem::Update() {
-	if (App->time->IsGameRunning()) {
+	if (App->time->HasGameStarted()) {
 		if (!started) {
 			started = true;
 			GameObject* objectToSelect = App->scene->scene->GetGameObject(firstSelectedId);

@@ -394,7 +394,7 @@ void ComponentParticleSystem::Update() {
 		UndertakerParticle();
 	} else {
 		if (!isPlaying) return;
-		if (App->time->IsGameRunning()) {
+		if (App->time->HasGameStarted()) {
 			restDelayTime -= App->time->GetDeltaTime();
 		} else {
 			restDelayTime -= App->time->GetRealTimeDeltaTime();
@@ -435,7 +435,7 @@ void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
-	if (App->time->IsGameRunning()) {
+	if (App->time->HasGameStarted()) {
 		if (reverseEffect) {
 			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 			float3 direction = currentParticle->position - transform->GetGlobalPosition();
@@ -455,7 +455,7 @@ void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
-	if (App->time->IsGameRunning()) {
+	if (App->time->HasGameStarted()) {
 		currentParticle->scale.x += scaleFactor * App->time->GetDeltaTime();
 		currentParticle->scale.y += scaleFactor * App->time->GetDeltaTime();
 		currentParticle->scale.z += scaleFactor * App->time->GetDeltaTime();
@@ -476,7 +476,7 @@ void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::UpdateLife(Particle* currentParticle) {
-	if (App->time->IsGameRunning()) {
+	if (App->time->HasGameStarted()) {
 		currentParticle->life -= App->time->GetDeltaTime();
 		currentParticle->colorFrame += App->time->GetDeltaTime();
 	} else {
@@ -602,7 +602,7 @@ void ComponentParticleSystem::Draw() {
 			glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
 
 			if (!isRandomFrame) {
-				if (App->time->IsGameRunning()) {
+				if (App->time->HasGameStarted()) {
 					currentParticle.currentFrame += animationSpeed * App->time->GetDeltaTime();
 				} else {
 					currentParticle.currentFrame += animationSpeed * App->time->GetRealTimeDeltaTime();
