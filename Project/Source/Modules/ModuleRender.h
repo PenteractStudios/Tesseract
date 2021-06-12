@@ -63,12 +63,15 @@ public:
 	unsigned normalsTexture = 0;
 	unsigned depthMapTexture = 0;
 	unsigned ssaoTexture = 0;
+	unsigned auxBlurTexture = 0;
 
 	unsigned renderBuffer = 0;
 	unsigned framebuffer = 0;
 	unsigned depthPrepassTextureBuffer = 0;
 	unsigned depthMapTextureBuffer = 0;
 	unsigned ssaoTextureBuffer = 0;
+	unsigned ssaoBlurTextureBufferH = 0;
+	unsigned ssaoBlurTextureBufferV = 0;
 
 	// ------- Viewport Updated ------- //
 	bool viewportUpdated = true;
@@ -112,6 +115,7 @@ private:
 	void SetPerspectiveRender();
 
 	void ComputeSSAOTexture();
+	void BlurSSAOTexture(bool horizontal);
 
 	void DrawSSAOTexture();
 	void DrawDepthMapTexture();

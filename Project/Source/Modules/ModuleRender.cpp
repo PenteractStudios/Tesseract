@@ -41,6 +41,10 @@
 #include "Utils/Leaks.h"
 #include <string>
 
+#define GAUSS_KERNEL_SIZE 3
+
+static float gaussKernel[GAUSS_KERNEL_SIZE] = {0.38774, 0.24477, 0.06136};
+
 #if _DEBUG
 static void __stdcall OurOpenGLErrorFunction(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
 	const char *tmpSource = "", *tmpType = "", *tmpSeverity = "";
@@ -144,11 +148,14 @@ bool ModuleRender::Init() {
 	glGenFramebuffers(1, &depthPrepassTextureBuffer);
 	glGenFramebuffers(1, &depthMapTextureBuffer);
 	glGenFramebuffers(1, &ssaoTextureBuffer);
+	glGenFramebuffers(1, &ssaoBlurTextureBufferH);
+	glGenFramebuffers(1, &ssaoBlurTextureBufferV);
 	glGenTextures(1, &renderTexture);
 	glGenTextures(1, &positionsTexture);
 	glGenTextures(1, &normalsTexture);
 	glGenTextures(1, &depthMapTexture);
 	glGenTextures(1, &ssaoTexture);
+	glGenTextures(1, &auxBlurTexture);
 
 	ViewportResized(App->window->GetWidth(), App->window->GetHeight());
 	UpdateFramebuffers();
@@ -248,6 +255,21 @@ void ModuleRender::ComputeSSAOTexture() {
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
+void ModuleRender::BlurSSAOTexture(bool horizontal) {
+	unsigned program = App->programs->ssaoBlur;
+
+	glUseProgram(program);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, horizontal ? ssaoTexture : auxBlurTexture);
+	glUniform1i(glGetUniformLocation(program, "inputTexture"), 0);
+
+	glUniform1fv(glGetUniformLocation(program, "kernel"), GAUSS_KERNEL_SIZE, gaussKernel);
+	glUniform1i(glGetUniformLocation(program, "horizontal"), horizontal ? 1 : 0);
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
 void ModuleRender::DrawSSAOTexture() {
 	unsigned program = App->programs->drawSSAOTexture;
 
@@ -304,6 +326,7 @@ UpdateStatus ModuleRender::Update() {
 	// Shadow Pass
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -315,6 +338,7 @@ UpdateStatus ModuleRender::Update() {
 	// Depth Prepass
 	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureBuffer);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -326,6 +350,7 @@ UpdateStatus ModuleRender::Update() {
 	// SSAO pass
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoTextureBuffer);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LESS);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -334,9 +359,30 @@ UpdateStatus ModuleRender::Update() {
 		ComputeSSAOTexture();
 	}
 
+	// SSAO horitontal blur
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurTextureBufferH);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glDisable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	if (ssaoActive) {
+		BlurSSAOTexture(true);
+	}
+
+	// SSAO vertical blur
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurTextureBufferV);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glDisable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	if (ssaoActive) {
+		BlurSSAOTexture(false);
+	}
+
 	// Render pass
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
+	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -466,11 +512,14 @@ bool ModuleRender::CleanUp() {
 	glDeleteTextures(1, &normalsTexture);
 	glDeleteTextures(1, &depthMapTexture);
 	glDeleteTextures(1, &ssaoTexture);
+	glDeleteTextures(1, &auxBlurTexture);
 	glDeleteRenderbuffers(1, &renderBuffer);
 	glDeleteFramebuffers(1, &framebuffer);
 	glDeleteFramebuffers(1, &depthPrepassTextureBuffer);
 	glDeleteFramebuffers(1, &depthMapTextureBuffer);
 	glDeleteFramebuffers(1, &ssaoTextureBuffer);
+	glDeleteFramebuffers(1, &ssaoBlurTextureBufferH);
+	glDeleteFramebuffers(1, &ssaoBlurTextureBufferV);
 
 	return true;
 }
@@ -546,12 +595,33 @@ void ModuleRender::UpdateFramebuffers() {
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
+	// SSAO horizontal blur buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurTextureBufferH);
+
+	glBindTexture(GL_TEXTURE_2D, auxBlurTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RED, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, auxBlurTexture, 0);
+
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+	// SSAO vertical blur buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurTextureBufferV);
+
+	glBindTexture(GL_TEXTURE_2D, ssaoTexture);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoTexture, 0);
+
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
 	// Render buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
 
 	glBindTexture(GL_TEXTURE_2D, renderTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

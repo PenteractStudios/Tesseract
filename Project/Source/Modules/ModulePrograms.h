@@ -32,6 +32,7 @@ public:
 
 	// SSAO Shaders
 	unsigned ssao = 0;
+	unsigned ssaoBlur = 0;
 
 	// Shadow Shaders
 	unsigned shadowMap = 0;
