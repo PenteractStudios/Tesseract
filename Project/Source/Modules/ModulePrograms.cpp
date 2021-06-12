@@ -135,6 +135,7 @@ void ModulePrograms::UnloadShaders() {
 	glDeleteProgram(specularNotNormal);
 	glDeleteProgram(depthPrepass);
 	glDeleteProgram(ssao);
+	glDeleteProgram(ssaoBlur);
 	glDeleteProgram(shadowMap);
 	glDeleteProgram(drawSSAOTexture);
 	glDeleteProgram(drawDepthMapTexture);

@@ -586,7 +586,7 @@ void ModuleRender::UpdateFramebuffers() {
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoTextureBuffer);
 
 	glBindTexture(GL_TEXTURE_2D, ssaoTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RED, GL_FLOAT, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -599,7 +599,7 @@ void ModuleRender::UpdateFramebuffers() {
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurTextureBufferH);
 
 	glBindTexture(GL_TEXTURE_2D, auxBlurTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RED, GL_FLOAT, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
