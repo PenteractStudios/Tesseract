@@ -1,0 +1,312 @@
+{
+    "QuadtreeBounds": [
+        -1000.0,
+        -1000.0,
+        1000.0,
+        1000.0
+    ],
+    "QuadtreeMaxDepth": 4,
+    "QuadtreeElementsPerNode": 200,
+    "GameCamera": 7801545402784662198,
+    "AmbientLight": [
+        0.25,
+        0.25,
+        0.25
+    ],
+    "NavMesh": 0,
+    "Root": {
+        "Id": 17443842887481842270,
+        "Name": "Scene",
+        "Active": true,
+        "Static": false,
+        "ActiveHierarchy": true,
+        "RootBoneId": 0,
+        "Mask": 0,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Id": 2191663775616784014,
+                "Active": true,
+                "Position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "LocalEulerAngles": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        ],
+        "Children": [
+            {
+                "Id": 11489866974344338935,
+                "Name": "Directional Light",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 16838420204135952294,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            300.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.7071068286895752,
+                            0.0,
+                            0.0,
+                            0.7071068286895752
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            90.00000762939453,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "Light",
+                        "Id": 1675665904294426112,
+                        "Active": true,
+                        "LightType": 0,
+                        "Color": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Intensity": 1.0,
+                        "Kl": 0.04500000178813934,
+                        "Kq": 0.007499999832361937,
+                        "InnerAngle": 0.2617993950843811,
+                        "OuterAngle": 0.5235987901687622
+                    }
+                ],
+                "Children": null
+            },
+            {
+                "Id": 11560230047452137828,
+                "Name": "Game Camera",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 2428679128635702335,
+                        "Active": true,
+                        "Position": [
+                            2.0,
+                            3.0,
+                            -5.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "Camera",
+                        "Id": 659244126480617222,
+                        "Active": true,
+                        "Frustum": {
+                            "Pos": [
+                                2.0,
+                                3.0,
+                                -5.0
+                            ],
+                            "Up": [
+                                0.0,
+                                1.0,
+                                0.0
+                            ],
+                            "Front": [
+                                0.0,
+                                0.0,
+                                1.0
+                            ],
+                            "NearPlaneDistance": 0.10000000149011612,
+                            "FarPlaneDistance": 2000.0,
+                            "HorizontalFov": 1.931610107421875,
+                            "VerticalFov": 1.3113912343978882
+                        }
+                    },
+                    {
+                        "Type": "Skybox",
+                        "Id": 616923255399481398,
+                        "Active": true,
+                        "Shader": 0,
+                        "Skybox": 0
+                    },
+                    {
+                        "Type": "AudioListener",
+                        "Id": 15734122553918184872,
+                        "Active": true,
+                        "Gain": 1.0
+                    }
+                ],
+                "Children": null
+            },
+            {
+                "Id": 1563274106628093317,
+                "Name": "floor",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 12541297423611577769,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "Script",
+                        "Id": 16019838984891658002,
+                        "Active": true,
+                        "Script": 4714421427743793091,
+                        "Values": [
+                            {
+                                "Name": "scene",
+                                "Type": "SceneResourceUID",
+                                "Value": 7342966132230182321
+                            }
+                        ]
+                    },
+                    {
+                        "Type": "BoxCollider",
+                        "Id": 7594265360971704629,
+                        "Active": true,
+                        "colliderType": 3,
+                        "layerType": 1,
+                        "mass": 1.0,
+                        "size": [
+                            50.0,
+                            1.0,
+                            50.0
+                        ],
+                        "centerOffset": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "freezeRotation": false
+                    }
+                ],
+                "Children": null
+            },
+            {
+                "Id": 276310182329351658,
+                "Name": "pam",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 6700179018372079900,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            4.5359320640563969,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "CapsuleCollider",
+                        "Id": 14792888587656893631,
+                        "Active": true,
+                        "colliderType": 2,
+                        "layerType": 3,
+                        "mass": 1.0,
+                        "radius": 1.0,
+                        "height": 1.0,
+                        "capsuleType": 1,
+                        "centerOffset": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "freezeRotation": false
+                    }
+                ],
+                "Children": null
+            }
+        ]
+    }
+}
