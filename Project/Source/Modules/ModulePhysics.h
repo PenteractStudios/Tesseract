@@ -4,9 +4,8 @@
 #include "Math/float4x4.h"
 #include "btBulletDynamicsCommon.h"
 
-/* BULLET DEBUG: Uncomment to activate it
+// BULLET DEBUG: Uncomment to activate it
 class DebugDrawer;
-*/
 class MotionState;
 class btBroadphaseInterface;
 class ComponentSphereCollider;
@@ -90,13 +89,13 @@ private:
 	btSequentialImpulseConstraintSolver* constraintSolver = nullptr;
 	btDiscreteDynamicsWorld* world = nullptr;
 
-	/* BULLET DEBUG: Uncomment to activate it
+	//BULLET DEBUG: Uncomment to activate it
 	DebugDrawer* debugDrawer;
-	*/
+
 	bool debug = true;
 };
 
-/* BULLET DEBUG: Uncomment to activate it
+// BULLET DEBUG: Uncomment to activate it
 class DebugDrawer : public btIDebugDraw {
 public:
 	DebugDrawer() {}
@@ -109,4 +108,3 @@ public:
 
 	DebugDrawModes mode; // How to initialise this enum?
 };
-*/

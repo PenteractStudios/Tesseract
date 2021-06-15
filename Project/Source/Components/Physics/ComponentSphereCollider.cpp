@@ -84,7 +84,7 @@ void ComponentSphereCollider::OnEditorUpdate() {
 		}
 	}
 	if (ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed3f, 0.0f, inf) && App->time->HasGameStarted()) {
-		((btSphereShape*) rigidBody->getCollisionShape())->setUnscaledRadius(radius);
+		App->physics->UpdateSphereRigidbody(this);
 	}
 	if (ImGui::DragFloat3("Center Offset", centerOffset.ptr(), App->editor->dragSpeed2f, -inf, inf) && App->time->HasGameStarted()) {
 		float3 position = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
