@@ -403,9 +403,11 @@ UpdateStatus ModuleRender::Update() {
 	}
 
 	// Draw Opaque
+	glDepthFunc(GL_EQUAL);
 	for (GameObject* gameObject : opaqueGameObjects) {
 		DrawGameObject(gameObject);
 	}
+	glDepthFunc(GL_LEQUAL);
 
 	// Draw Transparent
 	glEnable(GL_BLEND);

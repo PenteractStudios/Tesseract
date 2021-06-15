@@ -550,11 +550,15 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
 	if (mesh == nullptr) return;
 
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+	if (material == nullptr) return;
+
 	unsigned program = App->programs->depthPrepass;
 	float4x4 viewMatrix = App->camera->GetViewMatrix();
 	float4x4 projMatrix = App->camera->GetProjectionMatrix();
 
 	glUseProgram(program);
+
 
 	// Common uniform settings
 	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, modelMatrix.ptr());
@@ -567,6 +571,23 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	}
 
 	glUniform1i(glGetUniformLocation(program, "hasBones"), goBones.size());
+
+	// Diffuse
+	unsigned glTextureDiffuse = 0;
+	ResourceTexture* diffuse = App->resources->GetResource<ResourceTexture>(material->diffuseMapId);
+	glTextureDiffuse = diffuse ? diffuse->glTexture : 0;
+	int hasDiffuseMap = diffuse ? 1 : 0;
+
+	glUniform1i(glGetUniformLocation(program, "diffuseMap"), 0);
+	glUniform4fv(glGetUniformLocation(program, "diffuseColor"), 1, material->diffuseColor.ptr());
+	glUniform1i(glGetUniformLocation(program, "hasDiffuseMap"), hasDiffuseMap);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, glTextureDiffuse);
+
+	// Tiling settings
+	glUniform2fv(glGetUniformLocation(program, "tiling"), 1, material->tiling.ptr());
+	glUniform2fv(glGetUniformLocation(program, "offset"), 1, material->offset.ptr());
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
