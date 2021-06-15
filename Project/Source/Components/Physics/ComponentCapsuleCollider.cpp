@@ -31,7 +31,7 @@ void ComponentCapsuleCollider::Init() {
 			centerOffset = float3::zero;
 		}
 	}
-	if (App->time->IsGameRunning() && !rigidBody) App->physics->CreateCapsuleRigidbody(this);
+	if (App->time->HasGameStarted() && !rigidBody) App->physics->CreateCapsuleRigidbody(this);
 }
 
 void ComponentCapsuleCollider::DrawGizmos() {
@@ -74,7 +74,7 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 				} else {
 					layer = WorldLayers(1 << layerIndex);
 				}
-				if (App->time->IsGameRunning()) {
+				if (App->time->HasGameStarted()) {
 					App->physics->UpdateCapsuleRigidbody(this);
 				}
 			}
@@ -89,7 +89,7 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 		for (int n = 0; n < IM_ARRAYSIZE(colliderTypeItems); ++n) {
 			if (ImGui::Selectable(colliderTypeItems[n])) {
 				colliderType = ColliderType(n);
-				if (App->time->IsGameRunning()) {
+				if (App->time->HasGameStarted()) {
 					App->physics->UpdateCapsuleRigidbody(this);
 				}
 			}
@@ -98,16 +98,16 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 	}
 
 	if (colliderType == ColliderType::DYNAMIC) {
-		if (ImGui::DragFloat("Mass", &mass, App->editor->dragSpeed3f, 0.0f, 100.f) && App->time->IsGameRunning()) {
+		if (ImGui::DragFloat("Mass", &mass, App->editor->dragSpeed3f, 0.0f, 100.f) && App->time->HasGameStarted()) {
 			rigidBody->setMassProps(mass, btVector3(0, 0, 0));
 		}
 	}
 
-	if (ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed3f, 0.0f, inf) && App->time->IsGameRunning()) {
+	if (ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed3f, 0.0f, inf) && App->time->HasGameStarted()) {
 		App->physics->UpdateCapsuleRigidbody(this);
 	}
 
-	if (ImGui::DragFloat("Height", &height, App->editor->dragSpeed3f, 0.0f, inf) && App->time->IsGameRunning()) {
+	if (ImGui::DragFloat("Height", &height, App->editor->dragSpeed3f, 0.0f, inf) && App->time->HasGameStarted()) {
 		App->physics->UpdateCapsuleRigidbody(this);
 	}
 
@@ -140,7 +140,7 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 					break;
 				}
 
-				if (App->time->IsGameRunning()) {
+				if (App->time->HasGameStarted()) {
 					App->physics->UpdateCapsuleRigidbody(this);
 				}
 			}
@@ -148,13 +148,13 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 		ImGui::EndCombo();
 	}
 
-	if (ImGui::DragFloat3("Center Offset", centerOffset.ptr(), App->editor->dragSpeed2f, -inf, inf) && App->time->IsGameRunning()) {
+	if (ImGui::DragFloat3("Center Offset", centerOffset.ptr(), App->editor->dragSpeed2f, -inf, inf) && App->time->HasGameStarted()) {
 		float3 position = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		Quat rotation = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation();
 		rigidBody->setCenterOfMassTransform(btTransform(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w), btVector3(position.x, position.y, position.z)) * btTransform(btQuaternion::getIdentity(), btVector3(centerOffset.x, centerOffset.y, centerOffset.z)));
 	}
 
-	if (ImGui::Checkbox("Freeze rotation", &freezeRotation) && App->time->IsGameRunning()) {
+	if (ImGui::Checkbox("Freeze rotation", &freezeRotation) && App->time->HasGameStarted()) {
 		motionState.freezeRotation = freezeRotation;
 	}
 }

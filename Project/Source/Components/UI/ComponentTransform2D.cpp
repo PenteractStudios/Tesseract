@@ -224,7 +224,7 @@ void ComponentTransform2D::Load(JsonValue jComponent) {
 void ComponentTransform2D::DrawGizmos() {
 	ComponentCanvasRenderer* canvasRenderer = GetOwner().GetComponent<ComponentCanvasRenderer>();
 	float factor = canvasRenderer ? canvasRenderer->GetCanvasScreenFactor() : 1.0f;
-	if (!App->time->IsGameRunning() && !App->userInterface->IsUsing2D()) {
+	if (!App->time->HasGameStarted() && !App->userInterface->IsUsing2D()) {
 		dd::box(GetScreenPosition() * factor, dd::colors::DeepPink, 0.1f, 0.1f, 0.f); // Pivot Position
 	}
 }
