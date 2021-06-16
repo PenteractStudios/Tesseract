@@ -9,7 +9,7 @@
 #include <Utils/Logging.h>
 #include "GameObject.h"
 
-void StateMachineManager::SendTrigger(const std::string& trigger, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State& currentState, std::unordered_map<UID, float>& currentTimeStatesPrincipal) {
+void StateMachineManager::SendTrigger(const std::string& trigger, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State& currentState, State& currentStateSecondary, std::unordered_map<UID, float>& currentTimeStatesPrincipal, StateMachineEnum stateMachineEnum, std::list<AnimationInterpolation>& animationInterpolationsSecondary) {
 	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
 	if (!resourceStateMachine) {
 		return;
@@ -23,6 +23,18 @@ void StateMachineManager::SendTrigger(const std::string& trigger, std::unordered
 			//Set the currentTime of AnimationInterpolation equals to currentTimeStatesPrincipal (instead of 0) to avoid the gap between the times between the interpolation of state secondary to state principal.
 			// given to this : we are not allowed to have the states in the principal same as the secondary state machine
 			animationInterpolations.push_front(AnimationInterpolation(&transition->target, currentTimeStatesPrincipal[transition->target.id], 0, transition->interpolationDuration));
+			
+
+
+			//if principalstatemachine  y el estado de la secondary ==  estado de la principal && animation_InterpolationSecondary > 0
+			// cambiar de estado de la segunda = transition target
+			// animation interpolation limpiar y agregar la nueva que vaya hacia la nueva
+			if (stateMachineEnum == StateMachineEnum::PRINCIPAL && currentStateSecondary.id == currentState.id && animationInterpolationsSecondary.size() > 0) {
+				currentStateSecondary = transition->target;
+				animationInterpolationsSecondary.pop_front();
+				animationInterpolationsSecondary.push_front(AnimationInterpolation(&transition->target, currentTimeStatesPrincipal[transition->target.id], 0, transition->interpolationDuration));
+			}
+			
 			currentState = transition->target;
 		} else {
 			LOG("Warning: transition target from %s to %s, and current state is %s ", transition->source.name.c_str(), transition->target.name.c_str(), currentState.name.c_str());

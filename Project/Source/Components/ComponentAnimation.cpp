@@ -138,7 +138,7 @@ void ComponentAnimation::OnUpdate() {
 }
 
 void ComponentAnimation::SendTrigger(const std::string& trigger) {
-	StateMachineManager::SendTrigger(trigger, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal, currentStatePrincipal, currentTimeStatesPrincipal);
+	StateMachineManager::SendTrigger(trigger, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal, currentStatePrincipal, currentStateSecondary, currentTimeStatesPrincipal,StateMachineEnum::PRINCIPAL,animationInterpolationsSecondary);
 }
 void ComponentAnimation::SendTriggerSecondary(const std::string& trigger) {
 	if (loadedResourceStateMachine && currentStateSecondary.id == 0) {
@@ -147,7 +147,8 @@ void ComponentAnimation::SendTriggerSecondary(const std::string& trigger) {
 		//Updating current time to the currentTimeStatesSecondary to sync the times between the current state machine of the first one and the second one
 		currentTimeStatesSecondary[currentStateSecondary.id] = currentTimeStatesPrincipal[currentStatePrincipal.id];
 	}
-	StateMachineManager::SendTrigger(trigger, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary, currentStateSecondary, currentTimeStatesPrincipal);
+
+	StateMachineManager::SendTrigger(trigger, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary, currentStateSecondary,currentStateSecondary, currentTimeStatesPrincipal,StateMachineEnum::SECONDARY,animationInterpolationsSecondary);
 }
 
 void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
