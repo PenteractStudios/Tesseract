@@ -92,7 +92,7 @@ private:
 	//BULLET DEBUG: Uncomment to activate it
 	//DebugDrawer* debugDrawer;
 
-	bool debug = true;
+	//bool debug = true;
 };
 
 /* BULLET DEBUG: Uncomment to activate it
