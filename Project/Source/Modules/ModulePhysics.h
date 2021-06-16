@@ -5,7 +5,7 @@
 #include "btBulletDynamicsCommon.h"
 
 // BULLET DEBUG: Uncomment to activate it
-class DebugDrawer;
+//class DebugDrawer;
 class MotionState;
 class btBroadphaseInterface;
 class ComponentSphereCollider;
@@ -90,12 +90,12 @@ private:
 	btDiscreteDynamicsWorld* world = nullptr;
 
 	//BULLET DEBUG: Uncomment to activate it
-	DebugDrawer* debugDrawer;
+	//DebugDrawer* debugDrawer;
 
 	bool debug = true;
 };
 
-// BULLET DEBUG: Uncomment to activate it
+/* BULLET DEBUG: Uncomment to activate it
 class DebugDrawer : public btIDebugDraw {
 public:
 	DebugDrawer() {}
@@ -107,4 +107,4 @@ public:
 	int getDebugMode() const;
 
 	DebugDrawModes mode; // How to initialise this enum?
-};
+};*/

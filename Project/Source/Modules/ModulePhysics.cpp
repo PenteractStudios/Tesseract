@@ -25,8 +25,8 @@ bool ModulePhysics::Init() {
 	world->setGravity(btVector3(0.f, gravity, 0.f));
 
 	// BULLET DEBUG: Uncomment to activate it
-	debugDrawer = new DebugDrawer();
-	world->setDebugDrawer(debugDrawer);
+	/*debugDrawer = new DebugDrawer();
+	world->setDebugDrawer(debugDrawer);*/
 
 	return true;
 }
@@ -95,9 +95,9 @@ UpdateStatus ModulePhysics::PreUpdate() {
 
 UpdateStatus ModulePhysics::Update() {
     // BULLET DEBUG: Uncomment to activate it
-	if (debug == true) {
+	/*if (debug == true) {
 		world->debugDrawWorld();
-	}
+	}*/
 
 	return UpdateStatus::CONTINUE;
 }
@@ -302,7 +302,7 @@ void ModulePhysics::SetGravity(float newGravity) {
 	world->setGravity(btVector3(0.f, newGravity, 0.f));
 }
 
-//BULLET DEBUG: Uncomment to activate it. #include "debugdraw.h" in this file if using it.
+/*BULLET DEBUG: Uncomment to activate it. #include "debugdraw.h" in this file if using it.
 // =================== BULLET DEBUG CALLBACKS ==========================
 void DebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color) {
 	dd::line((ddVec3) from, (ddVec3) to, (ddVec3) color); // TODO: Test if this actually works
@@ -326,4 +326,4 @@ void DebugDrawer::setDebugMode(int debugMode) {
 
 int DebugDrawer::getDebugMode() const {
 	return mode;
-}
+}*/
