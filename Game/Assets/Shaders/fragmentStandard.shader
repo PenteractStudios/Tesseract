@@ -111,9 +111,9 @@ vec3 GetAmbientOcclusion(vec2 tiledUV)
 {
 	vec4 projectedPos = proj * view * vec4(fragPos, 1.0);
 	vec2 occlusionUV = (projectedPos.xy / projectedPos.w) * 0.5 + 0.5;
-	vec3 occlusionFactor = vec3(texture(ssaoTexture, occlusionUV).r);
-	vec3 ambient = light.ambient.color * occlusionFactor;
-    return hasAmbientOcclusionMap * ambient * texture(ambientOcclusionMap, tiledUV).rgb + (1 - hasAmbientOcclusionMap) * ambient;
+	float occlusionFactor = texture(ssaoTexture, occlusionUV).r;
+	vec3 ambient = light.ambient.color.rgb * occlusionFactor;
+    return hasAmbientOcclusionMap * ambient.rgb * texture(ambientOcclusionMap, tiledUV).rgb + (1 - hasAmbientOcclusionMap) * ambient.rgb;
 }
 
 vec3 GetNormal(vec2 tiledUV)

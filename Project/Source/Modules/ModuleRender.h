@@ -65,7 +65,7 @@ public:
 	unsigned ssaoTexture = 0;
 	unsigned auxBlurTexture = 0;
 
-	unsigned renderBuffer = 0;
+	unsigned depthBuffer = 0;
 	unsigned framebuffer = 0;
 	unsigned depthPrepassTextureBuffer = 0;
 	unsigned depthMapTextureBuffer = 0;
