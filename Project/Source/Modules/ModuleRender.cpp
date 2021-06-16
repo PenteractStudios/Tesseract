@@ -139,12 +139,8 @@ bool ModuleRender::Init() {
 	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 #endif
 
-	glGenRenderbuffers(1, &renderBuffer);
-#if !GAME
+	glGenRenderbuffers(1, &depthBuffer);
 	glGenFramebuffers(1, &framebuffer);
-#else
-	framebuffer = 0;
-#endif
 	glGenFramebuffers(1, &depthPrepassTextureBuffer);
 	glGenFramebuffers(1, &depthMapTextureBuffer);
 	glGenFramebuffers(1, &ssaoTextureBuffer);
@@ -490,6 +486,13 @@ UpdateStatus ModuleRender::Update() {
 	//Render UI
 	RenderUI();
 
+#if GAME
+	// Render to screen
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+#endif
+
 	return UpdateStatus::CONTINUE;
 }
 
@@ -515,7 +518,7 @@ bool ModuleRender::CleanUp() {
 	glDeleteTextures(1, &depthMapTexture);
 	glDeleteTextures(1, &ssaoTexture);
 	glDeleteTextures(1, &auxBlurTexture);
-	glDeleteRenderbuffers(1, &renderBuffer);
+	glDeleteRenderbuffers(1, &depthBuffer);
 	glDeleteFramebuffers(1, &framebuffer);
 	glDeleteFramebuffers(1, &depthPrepassTextureBuffer);
 	glDeleteFramebuffers(1, &depthMapTextureBuffer);
@@ -544,13 +547,14 @@ void ModuleRender::ReceiveEvent(TesseractEvent& ev) {
 }
 
 void ModuleRender::UpdateFramebuffers() {
-	// Render buffer
-	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
+	// Depth buffer
+	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// Depth prepass buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureBuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
 	glBindTexture(GL_TEXTURE_2D, positionsTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
@@ -620,7 +624,7 @@ void ModuleRender::UpdateFramebuffers() {
 
 	// Render buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
 	glBindTexture(GL_TEXTURE_2D, renderTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
