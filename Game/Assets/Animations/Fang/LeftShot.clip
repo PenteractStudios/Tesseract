@@ -1,0 +1,9 @@
+{
+  "Name": "LeftShot",
+  "AnimationUID": 1406535842475188602,
+  "BeginIndex": 150,
+  "EndIndex": 165,
+  "Loop": false,
+  "Speed": 1.0,
+  "FrameRate": 0.0332796536386013
+}

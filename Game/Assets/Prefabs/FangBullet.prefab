@@ -1,0 +1,92 @@
+{
+    "Root": {
+        "Name": "FangBullet",
+        "Active": true,
+        "RootBoneName": "",
+        "Mask": 0,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    -1.905583381652832,
+                    5.563652992248535,
+                    -1.5418626070022584
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    2.0,
+                    2.0,
+                    2.0
+                ],
+                "LocalEulerAngles": [
+                    -0.0,
+                    0.0,
+                    -0.0
+                ]
+            },
+            {
+                "Type": "Billboard",
+                "Active": true,
+                "BillboardType": 1,
+                "TextureId": 465905571273810051,
+                "Ytiles": 1,
+                "Xtiles": 1,
+                "AnimationSpeed": 0.0,
+                "InitColor": [
+                    9.999999974752428e-7,
+                    9.999899930335233e-7,
+                    9.999899930335233e-7
+                ],
+                "FinalColor": [
+                    0.9607843160629273,
+                    0.7457988262176514,
+                    0.04709729552268982
+                ],
+                "StartTransition": 0.07999999821186066,
+                "EndTransition": 0.07999999821186066,
+                "FlipTexture": [
+                    true,
+                    false
+                ]
+            },
+            {
+                "Type": "Script",
+                "Active": true,
+                "Script": 709869534139279052,
+                "Values": [
+                    {
+                        "Name": "life",
+                        "Type": "Float",
+                        "Value": 5.0
+                    },
+                    {
+                        "Name": "speed",
+                        "Type": "Int",
+                        "Value": 100
+                    }
+                ]
+            },
+            {
+                "Type": "SphereCollider",
+                "Active": true,
+                "colliderType": 2,
+                "layerType": 5,
+                "mass": 1.0,
+                "radius": 0.25,
+                "centerOffset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "freezeRotation": false
+            }
+        ],
+        "Children": null
+    }
+}
