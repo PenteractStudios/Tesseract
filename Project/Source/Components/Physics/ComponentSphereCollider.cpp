@@ -41,6 +41,18 @@ void ComponentSphereCollider::DrawGizmos() {
 }
 
 void ComponentSphereCollider::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			}
+			else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	ImGui::Checkbox("Draw Shape", &drawGizmo);
 
 	// World Layers combo box
@@ -84,7 +96,7 @@ void ComponentSphereCollider::OnEditorUpdate() {
 		}
 	}
 	if (ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed3f, 0.0f, inf) && App->time->HasGameStarted()) {
-		((btSphereShape*) rigidBody->getCollisionShape())->setUnscaledRadius(radius);
+		App->physics->UpdateSphereRigidbody(this);
 	}
 	if (ImGui::DragFloat3("Center Offset", centerOffset.ptr(), App->editor->dragSpeed2f, -inf, inf) && App->time->HasGameStarted()) {
 		float3 position = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
@@ -137,6 +149,9 @@ void ComponentSphereCollider::Load(JsonValue jComponent) {
 
 	JsonValue jFreeze = jComponent[JSON_TAG_FREEZE_ROTATION];
 	freezeRotation = jFreeze;
+
+	if (rigidBody) App->physics->RemoveSphereRigidbody(this);
+	rigidBody = nullptr;
 }
 
 void ComponentSphereCollider::OnEnable() {

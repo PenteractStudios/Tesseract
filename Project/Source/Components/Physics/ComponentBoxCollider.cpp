@@ -57,6 +57,18 @@ void ComponentBoxCollider::DrawGizmos() {
 }
 
 void ComponentBoxCollider::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			}
+			else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	ImGui::Checkbox("Draw Shape", &drawGizmo);
 
 	// World Layers combo box
@@ -165,6 +177,9 @@ void ComponentBoxCollider::Load(JsonValue jComponent) {
 
 	JsonValue jFreeze = jComponent[JSON_TAG_FREEZE_ROTATION];
 	freezeRotation = jFreeze;
+
+	if (rigidBody) App->physics->RemoveBoxRigidbody(this);
+	rigidBody = nullptr;
 }
 
 void ComponentBoxCollider::OnEnable() {
