@@ -57,6 +57,18 @@ void ComponentBoxCollider::DrawGizmos() {
 }
 
 void ComponentBoxCollider::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			}
+			else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	ImGui::Checkbox("Draw Shape", &drawGizmo);
 
 	// World Layers combo box
