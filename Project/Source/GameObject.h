@@ -100,6 +100,7 @@ public:
 	void AddChild(GameObject* gameObject);
 	void RemoveChild(GameObject* gameObject);
 	const std::vector<GameObject*>& GetChildren() const;
+	GameObject* GetChild(int index) const;
 	bool IsDescendantOf(GameObject* gameObject);
 	GameObject* FindDescendant(const std::string& name) const;
 	bool HasChildren() const;
@@ -134,7 +135,6 @@ private:
 	GameObject* parent = nullptr;
 	GameObject* rootBoneHierarchy = nullptr;
 	std::vector<GameObject*> children;
-
 };
 
 template<class T>

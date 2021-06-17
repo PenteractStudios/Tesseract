@@ -10,6 +10,7 @@
 #include "Components/UI/ComponentEventSystem.h"
 #include "Components/UI/ComponentSelectable.h"
 #include "FileSystem/ModelImporter.h"
+#include "Modules/ModuleInput.h"
 #include "Utils/Logging.h"
 
 #include "Math/myassert.h"
@@ -209,6 +210,10 @@ void GameObject::RemoveChild(GameObject* gameObject) {
 
 const std::vector<GameObject*>& GameObject::GetChildren() const {
 	return children;
+}
+
+GameObject* GameObject::GetChild(int index) const {
+	return index < children.size() ? children[index] : nullptr;
 }
 
 bool GameObject::IsDescendantOf(GameObject* gameObject) {
