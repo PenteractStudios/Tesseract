@@ -18,6 +18,7 @@ public:
 
 	// Skybox shaders
 	unsigned hdrToCubemap = 0;
+	unsigned irradiance = 0;
 	unsigned skybox = 0;
 
 	// Ilumination Shaders

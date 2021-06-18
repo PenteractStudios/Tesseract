@@ -17,8 +17,9 @@
 #include "GL/glew.h"
 
 #define CUBEMAP_RESOLUTION 512
+#define IRRADIANCE_RESOLUTION 128
 
-static void RenderToCubemap(unsigned outputTexture, unsigned program) {
+static void RenderToCubemap(unsigned cubemap, int resolution, unsigned program) {
 	// Frustum setup
 	const float3 front[6] = {float3::unitX, -float3::unitX, float3::unitY, -float3::unitY, float3::unitZ, -float3::unitZ};
 	const float3 up[6] = {-float3::unitY, -float3::unitY, float3::unitZ, -float3::unitZ, -float3::unitY, -float3::unitY};
@@ -27,7 +28,7 @@ static void RenderToCubemap(unsigned outputTexture, unsigned program) {
 
 	// Render setup
 	glDisable(GL_DEPTH_TEST);
-	glViewport(0, 0, CUBEMAP_RESOLUTION, CUBEMAP_RESOLUTION);
+	glViewport(0, 0, resolution, resolution);
 	glUseProgram(program);
 
 	// Create framebuffer
@@ -54,7 +55,7 @@ static void RenderToCubemap(unsigned outputTexture, unsigned program) {
 	// Render cube 6 times (once looking at each face)
 	for (unsigned i = 0; i < 6; ++i) {
 		// Bind face
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, outputTexture, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap, 0);
 
 		// Set view matrix
 		frustum.SetFrame(float3::zero, front[i], up[i]);
@@ -139,7 +140,31 @@ void ResourceSkybox::Load() {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, hdrTexture);
 
-	RenderToCubemap(glCubeMap, program);
+	RenderToCubemap(glCubeMap, CUBEMAP_RESOLUTION, program);
+
+	// Create irradiance texture
+	glGenTextures(1, &glIrradianceMap);
+
+	// Set texture parameters
+	glBindTexture(GL_TEXTURE_CUBE_MAP, glIrradianceMap);
+	for (unsigned int i = 0; i < 6; ++i) {
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, IRRADIANCE_RESOLUTION, IRRADIANCE_RESOLUTION, 0, GL_RGB, GL_FLOAT, nullptr);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	// Render Irradiance cubemap
+	program = App->programs->irradiance;
+	glUseProgram(program);
+
+	glUniform1i(glGetUniformLocation(program, "environment"), 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, glCubeMap);
+
+	RenderToCubemap(glIrradianceMap, IRRADIANCE_RESOLUTION, program);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Skybox loaded in %ums.", timeMs);
@@ -147,4 +172,5 @@ void ResourceSkybox::Load() {
 
 void ResourceSkybox::Unload() {
 	if (glCubeMap) glDeleteTextures(1, &glCubeMap);
+	if (glIrradianceMap) glDeleteTextures(1, &glIrradianceMap);
 }

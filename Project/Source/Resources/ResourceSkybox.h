@@ -14,6 +14,11 @@ public:
 		return glCubeMap;
 	}
 
+	unsigned GetGlIrradianceMap() {
+		return glIrradianceMap;
+	}
+
 private:
 	unsigned glCubeMap = 0;
+	unsigned glIrradianceMap = 0;
 };

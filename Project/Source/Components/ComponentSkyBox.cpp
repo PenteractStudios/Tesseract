@@ -65,3 +65,7 @@ void ComponentSkyBox::Draw() {
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
 }
+
+UID ComponentSkyBox::GetSkyboxResourceID() {
+	return skyboxId;
+}

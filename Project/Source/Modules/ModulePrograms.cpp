@@ -90,6 +90,7 @@ void ModulePrograms::LoadShaders() {
 
 	// SkyBox shaders
 	hdrToCubemap = CreateProgram(filePath, "vertCube", "fragHDRToCubemap");
+	irradiance = CreateProgram(filePath, "vertCube", "fragIrradiance");
 	skybox = CreateProgram(filePath, "vertCube", "fragSkybox");
 
 	// General shaders

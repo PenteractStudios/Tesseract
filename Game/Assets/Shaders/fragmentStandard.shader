@@ -39,6 +39,9 @@ uniform int hasSmoothnessAlpha; // Generic used for Specular and Metallic
 uniform vec2 tiling;
 uniform vec2 offset;
 
+// IBL
+uniform samplerCube diffuseIBL;
+
 struct AmbientLight
 {
 	vec3 color;
@@ -107,13 +110,20 @@ vec4 GetEmissive(vec2 tiledUV)
     return hasEmissiveMap * pow(texture(emissiveMap, tiledUV), vec4(2.2));
 }
 
-vec3 GetAmbientOcclusion(vec2 tiledUV)
+vec3 GetAmbientLight(in vec3 normal, in vec3 Cd, in vec3 F0)
+{
+	vec3 irradiance = texture(diffuseIBL, normal).rgb;
+	vec3 diffuse = (Cd * (1 - F0));
+	return diffuse * irradiance;
+}
+
+vec3 GetOccludedAmbientLight(in vec3 normal, in vec3 Cd, in vec3 F0, vec2 tiledUV)
 {
 	vec4 projectedPos = proj * view * vec4(fragPos, 1.0);
 	vec2 occlusionUV = (projectedPos.xy / projectedPos.w) * 0.5 + 0.5;
 	float occlusionFactor = texture(ssaoTexture, occlusionUV).r;
-	vec3 ambient = light.ambient.color.rgb * occlusionFactor;
-    return hasAmbientOcclusionMap * ambient.rgb * texture(ambientOcclusionMap, tiledUV).rgb + (1 - hasAmbientOcclusionMap) * ambient.rgb;
+	vec3 ambientLight = GetAmbientLight(normal, Cd, F0) * occlusionFactor;
+    return hasAmbientOcclusionMap * ambientLight.rgb * texture(ambientOcclusionMap, tiledUV).rgb + (1 - hasAmbientOcclusionMap) * ambientLight.rgb;
 }
 
 vec3 GetNormal(vec2 tiledUV)
@@ -283,14 +293,12 @@ void main()
 
 	float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorMetallic.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
 
-    // Ambient Occlusion
-    vec3 colorAmbient = GetAmbientOcclusion(tiledUV);
-
-    vec3 colorAccumulative = colorDiffuse.rgb * colorAmbient;
-
 	// Schlick Fresnel
 	vec3 Cd = colorDiffuse.rgb * (1 - metalnessMask);
 	vec3 F0 = mix(vec3(0.04), colorDiffuse.rgb, metalnessMask);
+
+    // Ambient Light
+    vec3 colorAccumulative = GetOccludedAmbientLight(normal, Cd, F0, tiledUV);
 
 	float shadow = Shadow(fragPosLight, normal,  normalize(light.directional.direction), depthMapTexture);
 
@@ -338,10 +346,8 @@ void main()
 
     float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorSpecular.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
     
-    // Ambient Occlusion
-    vec3 colorAmbient = GetAmbientOcclusion(tiledUV);
-
-    vec3 colorAccumulative = colorDiffuse.rgb * colorAmbient;
+    // Ambient Light
+    vec3 colorAccumulative = GetOccludedAmbientLight(normal, colorDiffuse.rgb, colorSpecular.rgb, tiledUV);
 
 	float shadow = Shadow(fragPosLight, normal, normalize(light.directional.direction), depthMapTexture);
 
