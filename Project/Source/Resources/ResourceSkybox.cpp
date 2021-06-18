@@ -14,12 +14,8 @@
 #include "IL/il.h"
 #include "IL/ilu.h"
 #include "GL/glew.h"
-#include "rapidjson/error/en.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/prettywriter.h"
-#include "rapidjson/document.h"
 
-#define JSON_TAG_SKYBOX "Skybox"
+#define CUBEMAP_RESOLUTION 512
 
 // clang-format off
 static const float skyboxVertices[108] = {
@@ -73,25 +69,12 @@ static const float skyboxVertices[108] = {
 }; // clang-format on
 
 void ResourceSkybox::Load() {
+	std::string filePath = GetResourceFilePath();
+	LOG("Loading skybox from path: \"%s\".", filePath.c_str());
+
 	// Timer to measure loading a skybox
 	MSTimer timer;
 	timer.Start();
-	std::string filePath = GetResourceFilePath();
-	LOG("Loading skybox from path: \"%s\".", filePath);
-
-	Buffer<char> buffer = App->files->Load(filePath.c_str());
-	if (buffer.Size() == 0) return;
-
-	rapidjson::Document document;
-	document.ParseInsitu<rapidjson::kParseNanAndInfFlag>(buffer.Data());
-	if (document.HasParseError()) {
-		LOG("Error parsing JSON: %s (offset: %u)", rapidjson::GetParseError_En(document.GetParseError()), document.GetErrorOffset());
-		return;
-	}
-
-	// Load cubemap
-	JsonValue jFile(document, document);
-	JsonValue jSkybox = jFile[JSON_TAG_SKYBOX];
 
 	// Generate image handler
 	unsigned image;
@@ -100,32 +83,43 @@ void ResourceSkybox::Load() {
 		ilDeleteImages(1, &image);
 	};
 
-	// Set image properties
+	// Load image
 	ilBindImage(image);
-	ilEnable(IL_ORIGIN_SET);
-	ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-
-	// Generate texture handle
-	glGenTextures(1, &glCubeMap);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, glCubeMap);
-	DEFER {
-		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-	};
-
-	// Generate cubemap from images
-	for (unsigned i = 0; i < 6; ++i) {
-		std::string file = jSkybox[i];
-		bool success = ilLoad(IL_TYPE_UNKNOWN, file.c_str());
-		if (success) {
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, ilGetInteger(IL_IMAGE_BPP), ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT), 0, ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE, ilGetData());
-		} else {
-			LOG("Failed to load cubemap texture from path: %s", file.c_str());
-			return;
-		}
+	bool imageLoaded = ilLoad(IL_HDR, filePath.c_str());
+	if (!imageLoaded) {
+		LOG("Failed to load image.");
+		return;
 	}
 
+	bool imageConverted = ilConvertImage(IL_RGB, IL_FLOAT);
+	if (!imageConverted) {
+		LOG("Failed to convert image.");
+		return;
+	}
+
+	// Create HDR texture
+	unsigned hdrTexture = 0;
+	glGenTextures(1, &hdrTexture);
+	DEFER {
+		glDeleteTextures(1, &hdrTexture);
+	};
+
+	// Load HDR texture from image
+	glBindTexture(GL_TEXTURE_2D, hdrTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGB, GL_FLOAT, ilGetData());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// Create cubemap texture
+	glGenTextures(1, &glCubeMap);
+
 	// Set texture parameters
-	glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, glCubeMap);
+	for (unsigned int i = 0; i < 6; ++i) {
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, CUBEMAP_RESOLUTION, CUBEMAP_RESOLUTION, 0, GL_RGB, GL_FLOAT, nullptr);
+	}
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -138,9 +132,6 @@ void ResourceSkybox::Load() {
 
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	DEFER {
-		glBindVertexArray(0);
-	};
 
 	// Load VBO
 	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
@@ -148,6 +139,40 @@ void ResourceSkybox::Load() {
 	// Load vertex attributes
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
+
+	glBindVertexArray(0);
+
+	// Render cubemap from HDR image
+	unsigned program = App->programs->hdrToCubemap;
+	glUseProgram(program);
+
+	unsigned captureFBO = 0;
+	glCreateFramebuffers(1, &captureFBO);
+	DEFER {
+		glDeleteFramebuffers(1, &captureFBO);
+	};
+
+	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+	glDisable(GL_DEPTH_TEST);
+
+	glUniform1i(glGetUniformLocation(program, "hdri"), 0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, hdrTexture);
+
+	glViewport(0, 0, CUBEMAP_RESOLUTION, CUBEMAP_RESOLUTION);
+	for (unsigned i = 0; i < 6; ++i) {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, glCubeMap, 0);
+
+		glUniform1i(glGetUniformLocation(program, "face"), i);
+
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
 
 	unsigned timeMs = timer.Stop();
 	LOG("Skybox loaded in %ums.", timeMs);

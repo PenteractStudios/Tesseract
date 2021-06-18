@@ -88,10 +88,11 @@ void ModulePrograms::LoadShaders() {
 	LoadShaderBinFile();
 #endif
 
-	//SkyBox shader
+	// SkyBox shaders
+	hdrToCubemap = CreateProgram(filePath, "vertScreen", "fragHDRToCubemap");
 	skybox = CreateProgram(filePath, "vertSkybox", "fragSkybox");
 
-	//General shaders
+	// General shaders
 	phongNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragMainPhong");
 	phongNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragMainPhong");
 	standardNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic");
