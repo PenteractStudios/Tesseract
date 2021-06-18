@@ -10,16 +10,10 @@ public:
 	void Load() override;
 	void Unload() override;
 
-	unsigned GetVAO() {
-		return vao;
-	};
-
 	unsigned GetGlCubeMap() {
 		return glCubeMap;
 	}
 
 private:
-	unsigned vao = 0;
-	unsigned vbo = 0;
 	unsigned glCubeMap = 0;
 };

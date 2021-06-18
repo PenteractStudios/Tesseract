@@ -89,8 +89,8 @@ void ModulePrograms::LoadShaders() {
 #endif
 
 	// SkyBox shaders
-	hdrToCubemap = CreateProgram(filePath, "vertScreen", "fragHDRToCubemap");
-	skybox = CreateProgram(filePath, "vertSkybox", "fragSkybox");
+	hdrToCubemap = CreateProgram(filePath, "vertCube", "fragHDRToCubemap");
+	skybox = CreateProgram(filePath, "vertCube", "fragSkybox");
 
 	// General shaders
 	phongNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragMainPhong");
