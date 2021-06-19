@@ -225,6 +225,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 					}
 				}
 				ImGui::EndCombo();
+			}
 		}
 	}
 }
