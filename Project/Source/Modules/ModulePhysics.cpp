@@ -10,6 +10,7 @@
 #include "Components/ComponentTransform.h"
 #include "Scene.h"
 #include "Utils/MotionState.h"
+#include "Utils/ParticleMotionState.h"
 #include "Utils/Logging.h"
 
 #include "debugdraw.h"
@@ -274,6 +275,28 @@ void ModulePhysics::AddBodyToWorld(btRigidBody* rigidbody, ColliderType collider
 	}
 
 	world->addRigidBody(rigidbody, layer, collisionMask);
+}
+
+void ModulePhysics::CreateParticleRigidbody(ComponentParticleSystem::Particle* currentParticle)
+{
+	currentParticle->motionState = ParticleMotionState(currentParticle);
+	// Compute radius
+	float radius = currentParticle->scale.MaxElement() / 2;
+	// Create rigidbody
+	btCollisionShape* colShape = new btSphereShape(radius);
+	btVector3 localInertia(0, 0, 0);
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f, currentParticle->motionState, colShape, localInertia);
+	currentParticle->rigidBody = new btRigidBody(rbInfo);
+	currentParticle->rigidBody->setUserPointer(currentParticle);
+	AddBodyToWorld(currentParticle->rigidBody, ColliderType::KINEMATIC, currentParticle->layer);
+}
+
+void ModulePhysics::RemoveParticleRigidbody(ComponentParticleSystem::Particle* particle)
+{
+	if (particle->rigidBody) {
+		world->removeCollisionObject(particle->rigidBody);
+		RELEASE(particle->rigidBody);
+	}
 }
 
 void ModulePhysics::InitializeRigidBodies() {

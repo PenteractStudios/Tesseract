@@ -11,6 +11,7 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleUserInterface.h"
+#include "Modules/ModulePhysics.h"
 #include "Panels/PanelScene.h"
 #include "Resources/ResourceTexture.h"
 #include "Resources/ResourceShader.h"
@@ -205,6 +206,26 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::Checkbox("X", &flipTexture[0]);
 		ImGui::SameLine();
 		ImGui::Checkbox("Y", &flipTexture[1]);
+
+		ImGui::Checkbox("Collisions", &collisions);
+		if (collisions) {
+			// World Layers combo box
+			const char* layerTypeItems[] = { "No Collision", "Event Triggers", "World Elements", "Player", "Enemy", "Bullet", "Bullet Enemy", "Everything" };
+			const char* layerCurrent = layerTypeItems[layerIndex];
+			if (ImGui::BeginCombo("Layer", layerCurrent)) {
+				for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {
+					if (ImGui::Selectable(layerTypeItems[n])) {
+						layerIndex = n;
+						if (n == 7) {
+							layer = WorldLayers::EVERYTHING;
+						}
+						else {
+							layer = WorldLayers(1 << layerIndex);
+						}
+					}
+				}
+				ImGui::EndCombo();
+		}
 	}
 }
 
@@ -485,6 +506,12 @@ void ComponentParticleSystem::UpdateLife(Particle* currentParticle) {
 	}
 }
 
+void ComponentParticleSystem::KillParticle(Particle* currentParticle)
+{
+	currentParticle->life = 0;
+	App->physics->RemoveParticleRigidbody(currentParticle);
+}
+
 void ComponentParticleSystem::Init() {
 	CreateParticles(maxParticles, velocity);
 }
@@ -514,6 +541,10 @@ void ComponentParticleSystem::SpawnParticle() {
 		if (billboardType == BillboardType::STRETCH) {
 			float3x3 newRotation = float3x3::FromEulerXYZ(0.f, 0.f, pi / 2);
 			currentParticle->modelStretch = currentParticle->model * newRotation;
+		}
+
+		if (collisions) {
+			App->physics->CreateParticleRigidbody(currentParticle);
 		}
 	}
 }
