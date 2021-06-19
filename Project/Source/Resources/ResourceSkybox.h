@@ -18,7 +18,23 @@ public:
 		return glIrradianceMap;
 	}
 
+	unsigned GetGlPreFilteredMap() {
+		return glPreFilteredMap;
+	}
+
+	unsigned GetGlEnvironmentBRDF() {
+		return glEnvironmentBRDF;
+	}
+
+	int GetPreFilteredMapNumLevels() {
+		return preFilteredMapNumLevels;
+	}
+
 private:
 	unsigned glCubeMap = 0;
 	unsigned glIrradianceMap = 0;
+	unsigned glPreFilteredMap = 0;
+	unsigned glEnvironmentBRDF = 0;
+
+	int preFilteredMapNumLevels = 0;
 };

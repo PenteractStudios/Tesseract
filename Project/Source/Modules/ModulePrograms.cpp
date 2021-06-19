@@ -89,8 +89,10 @@ void ModulePrograms::LoadShaders() {
 #endif
 
 	// SkyBox shaders
-	hdrToCubemap = CreateProgram(filePath, "vertCube", "fragHDRToCubemap");
-	irradiance = CreateProgram(filePath, "vertCube", "fragIrradiance");
+	hdrToCubemap = CreateProgram(filePath, "vertCube", "fragFunctionIBL fragHDRToCubemap");
+	irradiance = CreateProgram(filePath, "vertCube", "fragFunctionIBL fragIrradianceMap");
+	preFilteredMap = CreateProgram(filePath, "vertCube", "fragFunctionIBL fragPreFilteredMap");
+	environmentBRDF = CreateProgram(filePath, "vertScreen", "fragFunctionIBL fragEnvironmentBRDF");
 	skybox = CreateProgram(filePath, "vertCube", "fragSkybox");
 
 	// General shaders
@@ -128,21 +130,32 @@ void ModulePrograms::LoadShaders() {
 }
 
 void ModulePrograms::UnloadShaders() {
+	glDeleteProgram(hdrToCubemap);
+	glDeleteProgram(irradiance);
+	glDeleteProgram(preFilteredMap);
+	glDeleteProgram(environmentBRDF);
 	glDeleteProgram(skybox);
+
 	glDeleteProgram(phongNormal);
 	glDeleteProgram(phongNotNormal);
 	glDeleteProgram(standardNormal);
 	glDeleteProgram(standardNotNormal);
 	glDeleteProgram(specularNormal);
 	glDeleteProgram(specularNotNormal);
+
 	glDeleteProgram(depthPrepass);
+
 	glDeleteProgram(ssao);
 	glDeleteProgram(ssaoBlur);
+
 	glDeleteProgram(shadowMap);
-	glDeleteProgram(drawSSAOTexture);
-	glDeleteProgram(drawDepthMapTexture);
+
 	glDeleteProgram(textUI);
 	glDeleteProgram(imageUI);
+
+	glDeleteProgram(drawSSAOTexture);
+	glDeleteProgram(drawDepthMapTexture);
+
 	glDeleteProgram(billboard);
 	glDeleteProgram(trail);
 }

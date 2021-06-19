@@ -519,6 +519,16 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 			glUniform1i(glGetUniformLocation(program, "diffuseIBL"), 7);
 			glActiveTexture(GL_TEXTURE7);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxResource->GetGlIrradianceMap());
+
+			glUniform1i(glGetUniformLocation(program, "prefilteredIBL"), 8);
+			glActiveTexture(GL_TEXTURE8);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxResource->GetGlPreFilteredMap());
+
+			glUniform1i(glGetUniformLocation(program, "environmentBRDF"), 9);
+			glActiveTexture(GL_TEXTURE9);
+			glBindTexture(GL_TEXTURE_2D, skyboxResource->GetGlEnvironmentBRDF());
+
+			glUniform1i(glGetUniformLocation(program, "prefilteredIBLNumLevels"), skyboxResource->GetPreFilteredMapNumLevels());
 		}
 	}
 
