@@ -57,7 +57,7 @@ void PanelConfiguration::Update() {
 
 		// Physics
 		if (ImGui::CollapsingHeader("Physics")) {
-			if (ImGui::DragFloat("Radius", &App->physics->gravity, App->editor->dragSpeed3f, -100.f, 100.f)) {
+			if (ImGui::DragFloat("Gravity", &App->physics->gravity, App->editor->dragSpeed3f, -100.f, 100.f)) {
 				App->physics->SetGravity(App->physics->gravity);
 			}
 		}
