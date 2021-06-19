@@ -121,14 +121,15 @@ void ComponentAnimation::OnUpdate() {
 
 	UpdateAnimations(rootBone);
 
-	if (loadedResourceStateMachine) {
+	
+	if (loadedResourceStateMachine && animationInterpolationsPrincipal.empty()) {
 		ResourceClip* currentClip = App->resources->GetResource<ResourceClip>(currentStatePrincipal.clipUid);
 		if (!currentClip) {
 			return;
 		}
 		currentTimeStatesPrincipal[currentStatePrincipal.id] += App->time->GetDeltaTime() * currentClip->speed;
 	}
-	if (loadedResourceStateMachineSecondary && currentStateSecondary.id != 0) {
+	if (loadedResourceStateMachineSecondary && currentStateSecondary.id != 0 && animationInterpolationsSecondary.empty()) {
 		ResourceClip* currentClip = App->resources->GetResource<ResourceClip>(currentStateSecondary.clipUid);
 		if (!currentClip) {
 			return;

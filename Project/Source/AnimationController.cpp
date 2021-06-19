@@ -31,9 +31,6 @@ bool AnimationController::GetTransform(const ResourceClip& clip, float& currentT
 			currentTime -= clip.duration;
 		}
 	} else {
-		if (currentTime >= clip.duration){
-			int i = 0;
-		}
 		currentTime = currentTime >= clip.duration ? clip.duration : currentTime;
 	}
 
@@ -85,7 +82,11 @@ struct CheckFinishInterpolation {
 bool AnimationController::UpdateTransitions(std::list<AnimationInterpolation>& animationInterpolations, std::unordered_map<UID, float>& currentTimeStates, const float time) {
 	bool finished = false;
 	for (auto& interpolation = animationInterpolations.rbegin(); interpolation != animationInterpolations.rend(); ++interpolation) {
-		(*interpolation).currentTime += time;
+		ResourceClip* clip = App->resources->GetResource<ResourceClip>((*interpolation).state->clipUid);
+		if (!clip) {
+			return false;
+		}
+		(*interpolation).currentTime += time * clip->speed;
 		(*interpolation).fadeTime += time;
 
 		if (finished) {
