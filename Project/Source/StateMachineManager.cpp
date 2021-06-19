@@ -17,6 +17,8 @@ void StateMachineManager::SendTrigger(const std::string& trigger, std::unordered
 	Transition* transition = resourceStateMachine->FindTransitionGivenName(trigger);
 	if (transition != nullptr) {
 		if (transition->source.id == currentState.id) {
+			currentTimeStates[transition->target.id] = 0;
+
 			if (animationInterpolations.size() == 0) {
 				animationInterpolations.push_front(AnimationInterpolation(&transition->source, currentTimeStates[currentState.id], 0, transition->interpolationDuration));
 			}
@@ -37,7 +39,8 @@ void StateMachineManager::SendTrigger(const std::string& trigger, std::unordered
 			
 			currentState = transition->target;
 		} else {
-			LOG("Warning: transition target from %s to %s, and current state is %s ", transition->source.name.c_str(), transition->target.name.c_str(), currentState.name.c_str());
+			std::string name = StateMachineEnum::PRINCIPAL ? "principal" : "secondary";
+			LOG("Warning:%s transition target from %s to %s, and current state is %s ", name.c_str(), transition->source.name.c_str(), transition->target.name.c_str(), currentState.name.c_str());
 		}
 	}
 }
@@ -119,7 +122,8 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 				if (!clip->loop) {
 					int currentSample = AnimationController::GetCurrentSample(*clip, currentTimeStates[currentState->id]);
 					// Checking if the current sample is the last keyframe in order to send the event
-					if (currentSample == clip->endIndex) {
+					if (currentTimeStates[currentState->id] >= clip->duration) {
+					//if (currentSample == clip->endIndex) {
 						for (ComponentScript& script : owner.GetComponents<ComponentScript>()) {
 							if (script.IsActive()) {
 								Script* scriptInstance = script.GetScriptInstance();

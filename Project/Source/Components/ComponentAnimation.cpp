@@ -133,7 +133,8 @@ void ComponentAnimation::OnUpdate() {
 		if (!currentClip) {
 			return;
 		}
-		currentTimeStatesSecondary[currentStateSecondary.id] += App->time->GetDeltaTime() * currentClip->speed;
+		LOG("Name: %s GetDeltaTime = %f, currentClip->speed = %f total = %f, duration= %f", currentClip->name.c_str(), App->time->GetDeltaTime(), currentClip->speed, currentTimeStatesSecondary[currentStateSecondary.id] + (App->time->GetDeltaTime() * currentClip->speed), currentClip->duration);
+		currentTimeStatesSecondary[currentStateSecondary.id] += (App->time->GetDeltaTime() * currentClip->speed);
 	}
 }
 
@@ -145,7 +146,7 @@ void ComponentAnimation::SendTriggerSecondary(const std::string& trigger) {
 		//For doing the interpolation between states correctly it is necessary to set the current state of the principal state machine to be the same as the second state machine current state
 		currentStateSecondary = currentStatePrincipal;
 		//Updating current time to the currentTimeStatesSecondary to sync the times between the current state machine of the first one and the second one
-		currentTimeStatesSecondary[currentStateSecondary.id] = currentTimeStatesPrincipal[currentStatePrincipal.id];
+		currentTimeStatesSecondary[currentStateSecondary.id] = currentTimeStatesPrincipal[currentStatePrincipal.id];		
 	}
 
 	StateMachineManager::SendTrigger(trigger, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary, currentStateSecondary,currentStateSecondary, currentTimeStatesPrincipal,StateMachineEnum::SECONDARY,animationInterpolationsSecondary);

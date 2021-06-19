@@ -304,11 +304,25 @@ void PlayerController::Shoot() {
 			fangAttackCooldownRemaining = 1.f / fangCharacter.attackSpeed;
 			ComponentTransform* shootingGunTransform = nullptr;
 			if (rightShot) {
-				fangAnimation->SendTriggerSecondary(fangAnimation->GetCurrentState()->name + PlayerController::states[12]);
+				if (fangAnimation->GetCurrentStateSecondary() != nullptr) {
+					fangAnimation->SendTriggerSecondary(fangAnimation->GetCurrentStateSecondary()->name + PlayerController::states[12]);
+					Debug::Log("CurrentStateSecondary != nullptr");
+				}
+				else {
+					fangAnimation->SendTriggerSecondary(fangAnimation->GetCurrentState()->name + PlayerController::states[12]);
+					Debug::Log("CurrentStateSecondary nullptr");
+				}
 				shootingGunTransform = fangRightGunTransform;
 			}
 			else {
-				fangAnimation->SendTriggerSecondary(fangAnimation->GetCurrentState()->name + PlayerController::states[11]);
+				if (fangAnimation->GetCurrentStateSecondary() != nullptr) {
+					fangAnimation->SendTriggerSecondary(fangAnimation->GetCurrentStateSecondary()->name + PlayerController::states[11]);
+					Debug::Log("CurrentStateSecondary != nullptr");
+				}
+				else {
+					fangAnimation->SendTriggerSecondary(fangAnimation->GetCurrentState()->name + PlayerController::states[11]);
+					Debug::Log("CurrentStateSecondary nullptr");
+				}
 				shootingGunTransform = fangLeftGunTransform;
 			}
 			if (fangTrail && fangBullet && shootingGunTransform) {

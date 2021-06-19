@@ -25,9 +25,6 @@ public:
 	void SetBeginIndex(unsigned int index);
 	void SetEndIndex(unsigned int index);
 
-	void SetSpeed(float mSpeed) {
-		speed = mSpeed;
-	}
 	ResourceAnimation* GetResourceAnimation() const;
 
 public:

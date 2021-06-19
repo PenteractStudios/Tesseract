@@ -31,6 +31,9 @@ bool AnimationController::GetTransform(const ResourceClip& clip, float& currentT
 			currentTime -= clip.duration;
 		}
 	} else {
+		if (currentTime >= clip.duration){
+			int i = 0;
+		}
 		currentTime = currentTime >= clip.duration ? clip.duration : currentTime;
 	}
 
