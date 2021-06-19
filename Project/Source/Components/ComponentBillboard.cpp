@@ -195,7 +195,7 @@ void ComponentBillboard::Update() {
 	}
 	previousPos = position;
 
-	if (App->time->IsGameRunning()) {
+	if (App->time->HasGameStarted()) {
 		colorFrame += App->time->GetDeltaTime();
 	} else {
 		colorFrame += App->time->GetRealTimeDeltaTime();
@@ -261,7 +261,7 @@ void ComponentBillboard::Draw() {
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
 
 	if (!isRandomFrame) {
-		if (App->time->IsGameRunning()) {
+		if (App->time->HasGameStarted()) {
 			currentFrame += animationSpeed * App->time->GetDeltaTime();
 		} else {
 			currentFrame += animationSpeed * App->time->GetRealTimeDeltaTime();

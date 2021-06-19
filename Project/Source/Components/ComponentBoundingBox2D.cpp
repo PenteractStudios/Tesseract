@@ -94,7 +94,7 @@ void ComponentBoundingBox2D::CalculateWorldBoundingBox(bool force) {
 }
 
 void ComponentBoundingBox2D::DrawGizmos() {
-	if (!App->time->IsGameRunning() && !App->userInterface->IsUsing2D() && drawOutline) {
+	if (!App->time->HasGameStarted() && !App->userInterface->IsUsing2D() && drawOutline) {
 		dd::aabb(float3(worldAABB.minPoint, 0.0f), float3(worldAABB.maxPoint, 0.0f), float3::one);
 	}
 }
