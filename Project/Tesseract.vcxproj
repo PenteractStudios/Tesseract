@@ -202,6 +202,7 @@
     <ClInclude Include="Source\Utils\Leaks.h" />
     <ClInclude Include="Source\Utils\Logging.h" />
     <ClInclude Include="Source\Utils\Buffer.h" />
+    <ClInclude Include="Source\Utils\Random.h" />
     <ClInclude Include="Source\Utils\UID.h" />
     <ClInclude Include="Source\Utils\MSTimer.h" />
     <ClInclude Include="Source\Utils\PerformanceTimer.h" />
@@ -485,6 +486,7 @@
     <ClCompile Include="Source\Utils\Logging.cpp" />
     <ClCompile Include="Source\Utils\MSTimer.cpp" />
     <ClCompile Include="Source\Utils\PerformanceTimer.cpp" />
+    <ClCompile Include="Source\Utils\Random.cpp" />
     <ClCompile Include="Source\Utils\UID.cpp" />
     <ClCompile Include="Source\FileSystem\JsonValue.cpp" />
     <ClCompile Include="Source\FileSystem\SceneImporter.cpp" />
