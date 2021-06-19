@@ -195,7 +195,7 @@ void ComponentBillboard::Update() {
 	}
 	previousPos = position;
 
-	if (App->time->IsGameRunning()) {
+	if (App->time->HasGameStarted()) {
 		colorFrame += App->time->GetDeltaTime();
 	} else {
 		colorFrame += App->time->GetRealTimeDeltaTime();
@@ -232,11 +232,11 @@ void ComponentBillboard::Draw() {
 
 	if (billboardType == BillboardType::LOOK_AT) {
 		newModelMatrix = modelMatrix.LookAt(rotatePart.Col(2), -frustum->Front(), rotatePart.Col(1), float3::unitY);
-		newModelMatrix = float4x4::FromTRS(position, newModelMatrix.RotatePart(), scale);
+		newModelMatrix = float4x4::FromTRS(position, newModelMatrix.RotatePart() * modelMatrix.RotatePart(), scale);
 
 	} else if (billboardType == BillboardType::STRETCH) {
 		float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
-		float3 cameraDir = (cameraPos - initPos).Normalized();
+		float3 cameraDir = (cameraPos -  position).Normalized();
 		float3 upDir = Cross(direction, cameraDir);
 		float3 newCameraDir = Cross(direction, upDir);
 
@@ -249,7 +249,7 @@ void ComponentBillboard::Draw() {
 
 	} else if (billboardType == BillboardType::HORIZONTAL) {
 		newModelMatrix = modelMatrix.LookAt(rotatePart.Col(2), float3::unitY, rotatePart.Col(1), float3::unitY);
-		newModelMatrix = float4x4::FromTRS(position, newModelMatrix.RotatePart(), scale);
+		newModelMatrix = float4x4::FromTRS(position, newModelMatrix.RotatePart() * modelMatrix.RotatePart(), scale);
 
 	} else if (billboardType == BillboardType::VERTICAL) {
 		// TODO: Implement it
@@ -261,7 +261,7 @@ void ComponentBillboard::Draw() {
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
 
 	if (!isRandomFrame) {
-		if (App->time->IsGameRunning()) {
+		if (App->time->HasGameStarted()) {
 			currentFrame += animationSpeed * App->time->GetDeltaTime();
 		} else {
 			currentFrame += animationSpeed * App->time->GetRealTimeDeltaTime();

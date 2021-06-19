@@ -27,10 +27,14 @@ public:
 	void Save(JsonValue jComponent) const override; // Serializes object
 	void Load(JsonValue jComponent) override;		// Deserializes object
 
-	void SetValue(float v);
-	void SetFillPos(float fillPos);
-	void SetMin(float m);
-	void SetMax(float n);
+	TESSERACT_ENGINE_API void SetValue(float v);
+	TESSERACT_ENGINE_API void SetFillPos(float fillPos);
+	TESSERACT_ENGINE_API void SetMin(float m);
+	TESSERACT_ENGINE_API void SetMax(float n);
+	TESSERACT_ENGINE_API float GetValue();
+	TESSERACT_ENGINE_API float GetFillPos();
+	TESSERACT_ENGINE_API float GetMin();
+	TESSERACT_ENGINE_API float GetMax();
 
 public:
 	float value = .5f;

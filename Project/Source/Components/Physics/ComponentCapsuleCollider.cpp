@@ -31,7 +31,7 @@ void ComponentCapsuleCollider::Init() {
 			centerOffset = float3::zero;
 		}
 	}
-	if (App->time->IsGameRunning() && !rigidBody) App->physics->CreateCapsuleRigidbody(this);
+	if (App->time->HasGameStarted() && !rigidBody) App->physics->CreateCapsuleRigidbody(this);
 }
 
 void ComponentCapsuleCollider::DrawGizmos() {
@@ -41,18 +41,18 @@ void ComponentCapsuleCollider::DrawGizmos() {
 			switch (capsuleType) {
 			case CapsuleType::X:
 				dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), float3(height, 0, 0), dd::colors::LawnGreen, radius, radius);
-				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(height / 2, 0, 0), dd::colors::LawnGreen, radius, 3);
-				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), dd::colors::LawnGreen, radius, 4);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(height / 2, 0, 0), dd::colors::LawnGreen, radius);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), dd::colors::LawnGreen, radius);
 				break;
 			case CapsuleType::Y:
 				dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), float3(0, height, 0), dd::colors::LawnGreen, radius, radius);
-				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, height / 2, 0), dd::colors::LawnGreen, radius, 1);
-				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), dd::colors::LawnGreen, radius, 2);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, height / 2, 0), dd::colors::LawnGreen, radius);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), dd::colors::LawnGreen, radius);
 				break;
 			case CapsuleType::Z:
 				dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), float3(0, 0, height), dd::colors::LawnGreen, radius, radius);
-				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, 0, height / 2), dd::colors::LawnGreen, radius, 5);
-				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), dd::colors::LawnGreen, radius, 6);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, 0, height / 2), dd::colors::LawnGreen, radius);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), dd::colors::LawnGreen, radius);
 				break;
 			}
 		}
@@ -60,21 +60,33 @@ void ComponentCapsuleCollider::DrawGizmos() {
 }
 
 void ComponentCapsuleCollider::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			}
+			else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	ImGui::Checkbox("Draw Shape", &drawGizmo);
 
 	// World Layers combo box
-	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Everything"};
+	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Enemy", "Bullet", "Bullet Enemy", "Everything"};
 	const char* layerCurrent = layerTypeItems[layerIndex];
 	if (ImGui::BeginCombo("Layer", layerCurrent)) {
 		for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {
 			if (ImGui::Selectable(layerTypeItems[n])) {
 				layerIndex = n;
-				if (n == 4) {
+				if (n == 7) {
 					layer = WorldLayers::EVERYTHING;
 				} else {
 					layer = WorldLayers(1 << layerIndex);
 				}
-				if (App->time->IsGameRunning()) {
+				if (App->time->HasGameStarted()) {
 					App->physics->UpdateCapsuleRigidbody(this);
 				}
 			}
@@ -89,7 +101,7 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 		for (int n = 0; n < IM_ARRAYSIZE(colliderTypeItems); ++n) {
 			if (ImGui::Selectable(colliderTypeItems[n])) {
 				colliderType = ColliderType(n);
-				if (App->time->IsGameRunning()) {
+				if (App->time->HasGameStarted()) {
 					App->physics->UpdateCapsuleRigidbody(this);
 				}
 			}
@@ -98,16 +110,16 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 	}
 
 	if (colliderType == ColliderType::DYNAMIC) {
-		if (ImGui::DragFloat("Mass", &mass, App->editor->dragSpeed3f, 0.0f, 100.f) && App->time->IsGameRunning()) {
+		if (ImGui::DragFloat("Mass", &mass, App->editor->dragSpeed3f, 0.0f, 100.f) && App->time->HasGameStarted()) {
 			rigidBody->setMassProps(mass, btVector3(0, 0, 0));
 		}
 	}
 
-	if (ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed3f, 0.0f, inf) && App->time->IsGameRunning()) {
+	if (ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed3f, 0.0f, inf) && App->time->HasGameStarted()) {
 		App->physics->UpdateCapsuleRigidbody(this);
 	}
 
-	if (ImGui::DragFloat("Height", &height, App->editor->dragSpeed3f, 0.0f, inf) && App->time->IsGameRunning()) {
+	if (ImGui::DragFloat("Height", &height, App->editor->dragSpeed3f, 0.0f, inf) && App->time->HasGameStarted()) {
 		App->physics->UpdateCapsuleRigidbody(this);
 	}
 
@@ -140,7 +152,7 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 					break;
 				}
 
-				if (App->time->IsGameRunning()) {
+				if (App->time->HasGameStarted()) {
 					App->physics->UpdateCapsuleRigidbody(this);
 				}
 			}
@@ -148,13 +160,13 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 		ImGui::EndCombo();
 	}
 
-	if (ImGui::DragFloat3("Center Offset", centerOffset.ptr(), App->editor->dragSpeed2f, -inf, inf) && App->time->IsGameRunning()) {
+	if (ImGui::DragFloat3("Center Offset", centerOffset.ptr(), App->editor->dragSpeed2f, -inf, inf) && App->time->HasGameStarted()) {
 		float3 position = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		Quat rotation = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation();
 		rigidBody->setCenterOfMassTransform(btTransform(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w), btVector3(position.x, position.y, position.z)) * btTransform(btQuaternion::getIdentity(), btVector3(centerOffset.x, centerOffset.y, centerOffset.z)));
 	}
 
-	if (ImGui::Checkbox("Freeze rotation", &freezeRotation) && App->time->IsGameRunning()) {
+	if (ImGui::Checkbox("Freeze rotation", &freezeRotation) && App->time->HasGameStarted()) {
 		motionState.freezeRotation = freezeRotation;
 	}
 }
@@ -212,9 +224,20 @@ void ComponentCapsuleCollider::Load(JsonValue jComponent) {
 
 	JsonValue jFreeze = jComponent[JSON_TAG_FREEZE_ROTATION];
 	freezeRotation = jFreeze;
+
+	if (rigidBody) App->physics->RemoveCapsuleRigidbody(this);
+	rigidBody = nullptr;
 }
 
-void ComponentCapsuleCollider::OnCollision(const GameObject& collidedWith) {
+void ComponentCapsuleCollider::OnEnable() {
+	if (!rigidBody && App->time->HasGameStarted()) App->physics->CreateCapsuleRigidbody(this);
+}
+
+void ComponentCapsuleCollider::OnDisable() {
+	if (rigidBody && App->time->HasGameStarted()) App->physics->RemoveCapsuleRigidbody(this);
+}
+
+void ComponentCapsuleCollider::OnCollision(GameObject& collidedWith) {
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
 		if (script != nullptr) {
