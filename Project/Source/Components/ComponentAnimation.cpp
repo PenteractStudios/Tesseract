@@ -32,7 +32,7 @@
 
 
 void ComponentAnimation::Update() {
-	if(!App->time->IsGameRunning()) {
+	if (!App->time->IsGameRunning() || !IsActive()) {
 		return;
 	}
 	if (!loadedResourceStateMachine) { //Checking if there is no state machine
