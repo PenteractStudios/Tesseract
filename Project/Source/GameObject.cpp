@@ -216,6 +216,16 @@ GameObject* GameObject::GetChild(int index) const {
 	return index < children.size() ? children[index] : nullptr;
 }
 
+GameObject* GameObject::GetChild(const char* name) const {
+	GameObject* ret = nullptr;
+	for (std::vector<GameObject*>::const_iterator it = children.begin(); it != children.end() && ret == nullptr; ++it) {
+		if ((*it)->name == name) {
+			ret = *it;
+		}
+	}
+	return ret;
+}
+
 bool GameObject::IsDescendantOf(GameObject* gameObject) {
 	if (GetParent() == nullptr) return false;
 	if (GetParent() == gameObject) return true;
