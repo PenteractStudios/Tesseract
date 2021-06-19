@@ -186,8 +186,9 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 			return;
 		}
 		std::unordered_map<UID, State>::iterator it = resourceStateMachine->states.find(0); // Get "empty" state
-		assert(it != resourceStateMachine->states.end());
-		currentStateSecondary = (*it).second;
+		if (it != resourceStateMachine->states.end()) {
+			currentStateSecondary = (*it).second;
+		}
 	}
 
 	ComponentTransform* componentTransform = gameObject->GetComponent<ComponentTransform>();

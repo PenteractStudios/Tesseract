@@ -21,10 +21,12 @@ int AnimationController::GetCurrentSample(const ResourceClip& clip, float& curre
 }
 
 bool AnimationController::GetTransform(const ResourceClip& clip, float& currentTime, const char* name, float3& pos, Quat& quat) {
-	assert(clip.animationUID != 0);
+	if (clip.animationUID == 0) {
+		return false;
+	}
 
 	ResourceAnimation* resourceAnimation = clip.GetResourceAnimation();
-	if (resourceAnimation == nullptr) return false;
+	if (resourceAnimation == nullptr && resourceAnimation->keyFrames.size() != 0) return false;
 
 	if (clip.loop) {
 		while (currentTime >= clip.duration) {
