@@ -422,10 +422,11 @@ NavMesh::~NavMesh() {
 bool NavMesh::Build() {
 	CleanUp();
 
-	std::vector<float> verts = App->scene->scene->GetVertices();
-	const int nverts = verts.size();
-	std::vector<int> tris = App->scene->scene->GetTriangles();
-	const int ntris = tris.size() / 3;
+	verts = App->scene->scene->GetVertices();
+	nverts = verts.size();
+	tris = App->scene->scene->GetTriangles();
+	ntris = tris.size() / 3;
+	normals = App->scene->scene->GetNormals();
 
 	if (nverts == 0) {
 		LOG("Building navigation:");
@@ -1015,20 +1016,7 @@ bool NavMesh::Build() {
 
 void NavMesh::DrawGizmos() {
 
-	std::vector<float> verts = App->scene->scene->GetVertices();
-	const int nverts = verts.size();
-
 	if (nverts == 0) {
-		return;
-	}
-	std::vector<int> tris = App->scene->scene->GetTriangles();
-	const int ntris = tris.size() / 3;
-	std::vector<float> normals = App->scene->scene->GetNormals();
-
-
-	if (nverts == 0) {
-		LOG("Building navigation:");
-		LOG("There's no mesh to build");
 		return;
 	}
 
@@ -1108,10 +1096,7 @@ void NavMesh::DrawGizmos() {
 		duDebugDrawNavMeshPolysWithFlags(&dd, *navMesh, SAMPLE_POLYFLAGS_DISABLED, duRGBA(0, 0, 0, 128));
 	}
 
-	//glDepthMask(GL_TRUE);
-
 	//geom->drawConvexVolumes(&dd);
-
 
 	glDepthMask(GL_TRUE);
 
@@ -1177,11 +1162,21 @@ dtCrowd* NavMesh::GetCrowd() {
 }
 
 bool NavMesh::IsGenerated() {
-	return navData != nullptr;
+	//return navData != nullptr;
+	//return true;
+	return tileCache != nullptr;
 }
 
 dtNavMeshQuery* NavMesh::GetNavMeshQuery() {
 	return navQuery;
+}
+
+dtNavMesh* NavMesh::GetNavMesh() {
+	return navMesh;
+}
+
+dtTileCache* NavMesh::GetTileCache() {
+	return tileCache;
 }
 
 void NavMesh::InitCrowd() {

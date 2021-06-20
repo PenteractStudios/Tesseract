@@ -368,6 +368,7 @@
     <ClCompile Include="Source\FileSystem\NavMeshImporter.cpp" />
     <ClCompile Include="Source\Components\ComponentAgent.cpp" />
     <ClCompile Include="Source\Panels\PanelAudioMixer.cpp" />
+    <ClCompile Include="Source\Components\ComponentObstacle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\LightFrustum.h" />
@@ -713,6 +714,7 @@
     <ClInclude Include="Source\FileSystem\NavMeshImporter.h" />
     <ClInclude Include="Source\Components\ComponentAgent.h" />
     <ClInclude Include="Source\Panels\PanelAudioMixer.h" />
+    <ClInclude Include="Source\Components\ComponentObstacle.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />

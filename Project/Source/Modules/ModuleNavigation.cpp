@@ -23,7 +23,9 @@ UpdateStatus ModuleNavigation::Update() {
 	if (!navMesh.IsGenerated()) {
 		return UpdateStatus::CONTINUE;
 	}
-	navMesh.GetCrowd()->update(App->time->GetDeltaTime(), nullptr);
+
+	navMesh.GetCrowd()->update(App->time->GetDeltaTime(), nullptr);						// Update agents
+	navMesh.GetTileCache()->update(App->time->GetDeltaTime(), navMesh.GetNavMesh());	// Update obstacles
 
 	return UpdateStatus::CONTINUE;
 }

@@ -2,9 +2,12 @@
 
 #include "Recast/SampleInterfaces.h"
 #include "Utils/Buffer.h"
+#include <vector>
 
 class dtCrowd;
 class dtNavMeshQuery;
+class dtNavMesh;
+class dtTileCache;
 
 class NavMesh {
 public:
@@ -19,6 +22,8 @@ public:
 	bool IsGenerated();					// Returns true if navMesh is valid
 	dtCrowd* GetCrowd();				// Returns crowd
 	dtNavMeshQuery* GetNavMeshQuery();	// Returns navQuery
+	dtNavMesh* GetNavMesh();			// Returns navMesh
+	dtTileCache* GetTileCache();		// Returns tileCache
 
 public:
 
@@ -94,7 +99,7 @@ public:
 	DrawMode drawMode = DRAWMODE_NAVMESH;
 
 	// NAV DATA TO SAVE
-	unsigned char* navData =  nullptr;
+	unsigned char* navData = nullptr;
 	int navDataSize = 0;
 
 private:
@@ -126,4 +131,12 @@ private:
 	int cacheLayerCount = 0;
 	int cacheCompressedSize = 0;
 	int cacheRawSize = 0;
+
+	// SCENE DATA
+	std::vector<float> verts;
+	std::vector<int> tris;
+	std::vector<float> normals;
+
+	int nverts = 0;
+	int ntris = 0;
 };
