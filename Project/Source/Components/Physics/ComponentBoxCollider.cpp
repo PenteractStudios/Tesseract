@@ -190,11 +190,11 @@ void ComponentBoxCollider::OnDisable() {
 	if(rigidBody && App->time->HasGameStarted()) App->physics->RemoveBoxRigidbody(this);
 }
 
-void ComponentBoxCollider::OnCollision(GameObject& collidedWith) {
+void ComponentBoxCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance) {
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
 		if (script != nullptr) {
-			script->OnCollision(collidedWith);
+			script->OnCollision(collidedWith, collisionNormal, penetrationDistance);
 		}
 	}
 }
