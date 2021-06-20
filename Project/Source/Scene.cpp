@@ -406,6 +406,25 @@ std::vector<int> Scene::GetTriangles() {
 	return result;
 }
 
+std::vector<float> Scene::GetNormals() {
+	std::vector<float> result;
+
+	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
+		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
+		ComponentTransform* transform = meshRenderer.GetOwner().GetComponent<ComponentTransform>();
+		if (mesh != nullptr && transform->GetOwner().IsStatic()) {
+			for (size_t i = 0; i < mesh->meshNormals.size(); i += 3) {
+				float4 transformedVertex = transform->GetGlobalMatrix() * float4(mesh->meshNormals[i], mesh->meshNormals[i + 1], mesh->meshNormals[i + 2], 1);
+				result.push_back(transformedVertex.x);
+				result.push_back(transformedVertex.y);
+				result.push_back(transformedVertex.z);
+			}
+		}
+	}
+
+	return result;
+}
+
 void Scene::SetNavMesh(UID navMesh) {
 	if (navMeshId != 0) {
 		App->resources->DecreaseReferenceCount(navMeshId);

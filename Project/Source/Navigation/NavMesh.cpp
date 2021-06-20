@@ -348,6 +348,54 @@ static int rasterizeTileLayers(float* verts, int nVerts, int nTris, BuildContext
 	return n;
 }
 
+void drawTiles(duDebugDraw* dd, dtTileCache* tc) {
+	unsigned int fcol[6];
+	float bmin[3], bmax[3];
+
+	for (int i = 0; i < tc->getTileCount(); ++i) {
+		const dtCompressedTile* tile = tc->getTile(i);
+		if (!tile->header) continue;
+
+		tc->calcTightTileBounds(tile->header, bmin, bmax);
+
+		const unsigned int col = duIntToCol(i, 64);
+		duCalcBoxColors(fcol, col, col);
+		duDebugDrawBox(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], fcol);
+	}
+
+	for (int i = 0; i < tc->getTileCount(); ++i) {
+		const dtCompressedTile* tile = tc->getTile(i);
+		if (!tile->header) continue;
+
+		tc->calcTightTileBounds(tile->header, bmin, bmax);
+
+		const unsigned int col = duIntToCol(i, 255);
+		const float pad = tc->getParams()->cs * 0.1f;
+		duDebugDrawBoxWire(dd, bmin[0] - pad, bmin[1] - pad, bmin[2] - pad, bmax[0] + pad, bmax[1] + pad, bmax[2] + pad, col, 2.0f);
+	}
+}
+
+void drawObstacles(duDebugDraw* dd, const dtTileCache* tc) {
+	// Draw obstacles
+	for (int i = 0; i < tc->getObstacleCount(); ++i) {
+		const dtTileCacheObstacle* ob = tc->getObstacle(i);
+		if (ob->state == DT_OBSTACLE_EMPTY) continue;
+		float bmin[3], bmax[3];
+		tc->getObstacleBounds(ob, bmin, bmax);
+
+		unsigned int col = 0;
+		if (ob->state == DT_OBSTACLE_PROCESSING)
+			col = duRGBA(255, 255, 0, 128);
+		else if (ob->state == DT_OBSTACLE_PROCESSED)
+			col = duRGBA(255, 192, 0, 192);
+		else if (ob->state == DT_OBSTACLE_REMOVING)
+			col = duRGBA(220, 0, 0, 128);
+
+		duDebugDrawCylinder(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], col);
+		duDebugDrawCylinderWire(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duDarkenCol(col), 2);
+	}
+}
+
 NavMesh::NavMesh()
 {
 	navMeshDrawFlags = DU_DRAWNAVMESH_OFFMESHCONS | DU_DRAWNAVMESH_CLOSEDLIST;
@@ -558,6 +606,7 @@ bool NavMesh::Build() {
 	//	tool->init(this);
 	//initToolStates(this);
 
+	InitCrowd();
 
 	return true;
 	// !!!!TODO: code below needs to be refactored and most likely deleted.
@@ -844,8 +893,142 @@ bool NavMesh::Build() {
 	return true;
 }
 
+// OLD
+//void NavMesh::DrawGizmos() {
+//	if (navData == nullptr) {
+//		return;
+//	}
+//
+//	DebugDrawGL dds;
+//
+//	glClearColor(.1f, .1f, .1f, 1.0f);
+//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//
+//	glMatrixMode(GL_PROJECTION);
+//	glLoadIdentity();
+//	glLoadMatrixf(App->camera->GetProjectionMatrix().Transposed().ptr());
+//
+//	glMatrixMode(GL_MODELVIEW);
+//	glLoadIdentity();
+//	glLoadMatrixf(App->camera->GetViewMatrix().Transposed().ptr());
+//
+//	glEnable(GL_FOG);
+//	glDepthMask(GL_TRUE);
+//
+//	const float texScale = 1.0f / (cellSize * 10.0f);
+//
+//	glDisable(GL_FOG);
+//	glDepthMask(GL_FALSE);
+//
+//	// Draw bounds
+//	float bmin[3] = {FLT_MAX, FLT_MAX, FLT_MAX};
+//	float bmax[3] = {FLT_MIN, FLT_MIN, FLT_MIN};
+//	for (ComponentBoundingBox boundingBox : App->scene->scene->boundingBoxComponents) {
+//		AABB currentBB = boundingBox.GetWorldAABB();
+//		float3 currentBBMin = currentBB.minPoint;
+//		float3 currentBBMax = currentBB.maxPoint;
+//		bmin[0] = currentBBMin.x < bmin[0] ? currentBBMin.x : bmin[0];
+//		bmin[1] = currentBBMin.y < bmin[1] ? currentBBMin.y : bmin[1];
+//		bmin[2] = currentBBMin.z < bmin[2] ? currentBBMin.z : bmin[2];
+//		bmax[0] = currentBBMax.x > bmax[0] ? currentBBMax.x : bmax[0];
+//		bmax[1] = currentBBMax.y > bmax[1] ? currentBBMax.y : bmax[1];
+//		bmax[2] = currentBBMax.z > bmax[2] ? currentBBMax.z : bmax[2];
+//	}
+//
+//	duDebugDrawBoxWire(&dds, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duRGBA(255, 255, 255, 128), 1.0f);
+//
+//	dds.begin(DU_DRAW_POINTS, 5.0f);
+//	dds.vertex(bmin[0], bmin[1], bmin[2], duRGBA(255, 255, 255, 128));
+//	dds.end();
+//
+//	if (navMesh && navQuery && (drawMode == DRAWMODE_NAVMESH || drawMode == DRAWMODE_NAVMESH_TRANS || drawMode == DRAWMODE_NAVMESH_BVTREE || drawMode == DRAWMODE_NAVMESH_NODES || drawMode == DRAWMODE_NAVMESH_INVIS)) {
+//		if (drawMode != DRAWMODE_NAVMESH_INVIS)
+//			duDebugDrawNavMeshWithClosedList(&dds, *navMesh, *navQuery, navMeshDrawFlags);
+//		if (drawMode == DRAWMODE_NAVMESH_BVTREE)
+//			duDebugDrawNavMeshBVTree(&dds, *navMesh);
+//		if (drawMode == DRAWMODE_NAVMESH_NODES)
+//			duDebugDrawNavMeshNodes(&dds, *navQuery);
+//		duDebugDrawNavMeshPolysWithFlags(&dds, *navMesh, SAMPLE_POLYFLAGS_DISABLED, duRGBA(0, 0, 0, 128));
+//	}
+//
+//	glDepthMask(GL_TRUE);
+//
+//	if (chf && drawMode == DRAWMODE_COMPACT)
+//		duDebugDrawCompactHeightfieldSolid(&dds, *chf);
+//
+//	if (chf && drawMode == DRAWMODE_COMPACT_DISTANCE)
+//		duDebugDrawCompactHeightfieldDistance(&dds, *chf);
+//	if (chf && drawMode == DRAWMODE_COMPACT_REGIONS)
+//		duDebugDrawCompactHeightfieldRegions(&dds, *chf);
+//	if (solid && drawMode == DRAWMODE_VOXELS) {
+//		glEnable(GL_FOG);
+//		duDebugDrawHeightfieldSolid(&dds, *solid);
+//		glDisable(GL_FOG);
+//	}
+//	if (solid && drawMode == DRAWMODE_VOXELS_WALKABLE) {
+//		glEnable(GL_FOG);
+//		duDebugDrawHeightfieldWalkable(&dds, *solid);
+//		glDisable(GL_FOG);
+//	}
+//	if (cset && drawMode == DRAWMODE_RAW_CONTOURS) {
+//		glDepthMask(GL_FALSE);
+//		duDebugDrawRawContours(&dds, *cset);
+//		glDepthMask(GL_TRUE);
+//	}
+//	if (cset && drawMode == DRAWMODE_BOTH_CONTOURS) {
+//		glDepthMask(GL_FALSE);
+//		duDebugDrawRawContours(&dds, *cset, 0.5f);
+//		duDebugDrawContours(&dds, *cset);
+//		glDepthMask(GL_TRUE);
+//	}
+//	if (cset && drawMode == DRAWMODE_CONTOURS) {
+//		glDepthMask(GL_FALSE);
+//		duDebugDrawContours(&dds, *cset);
+//		glDepthMask(GL_TRUE);
+//	}
+//	if (chf && cset && drawMode == DRAWMODE_REGION_CONNECTIONS) {
+//		duDebugDrawCompactHeightfieldRegions(&dds, *chf);
+//
+//		glDepthMask(GL_FALSE);
+//		duDebugDrawRegionConnections(&dds, *cset);
+//		glDepthMask(GL_TRUE);
+//	}
+//	if (pmesh && drawMode == DRAWMODE_POLYMESH) {
+//		glDepthMask(GL_FALSE);
+//		duDebugDrawPolyMesh(&dds, *pmesh);
+//		glDepthMask(GL_TRUE);
+//	}
+//	if (dmesh && drawMode == DRAWMODE_POLYMESH_DETAIL) {
+//		glDepthMask(GL_FALSE);
+//		duDebugDrawPolyMeshDetail(&dds, *dmesh);
+//		glDepthMask(GL_TRUE);
+//	}
+//
+//	glDepthMask(GL_TRUE);
+//
+//	glMatrixMode(GL_PROJECTION);
+//	glLoadIdentity();
+//
+//	glMatrixMode(GL_MODELVIEW);
+//	glLoadIdentity();
+//}
+
 void NavMesh::DrawGizmos() {
-	if (navData == nullptr) {
+
+	std::vector<float> verts = App->scene->scene->GetVertices();
+	const int nverts = verts.size();
+
+	if (nverts == 0) {
+		return;
+	}
+	std::vector<int> tris = App->scene->scene->GetTriangles();
+	const int ntris = tris.size() / 3;
+	std::vector<float> normals = App->scene->scene->GetNormals();
+
+
+	if (nverts == 0) {
+		LOG("Building navigation:");
+		LOG("There's no mesh to build");
 		return;
 	}
 
@@ -885,74 +1068,50 @@ void NavMesh::DrawGizmos() {
 		bmax[2] = currentBBMax.z > bmax[2] ? currentBBMax.z : bmax[2];
 	}
 
-	duDebugDrawBoxWire(&dds, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duRGBA(255, 255, 255, 128), 1.0f);
+	DebugDrawGL dd;
 
-	dds.begin(DU_DRAW_POINTS, 5.0f);
-	dds.vertex(bmin[0], bmin[1], bmin[2], duRGBA(255, 255, 255, 128));
-	dds.end();
+	// Draw mesh
+	if (drawMode != DRAWMODE_NAVMESH_TRANS) {
+		// Draw mesh
+		duDebugDrawTriMeshSlope(&dd, &verts[0], nverts, &tris[0], &normals[0], ntris, agentMaxSlope, texScale);
+		//m_geom->drawOffMeshConnections(&dd);
+	}
 
-	if (navMesh && navQuery && (drawMode == DRAWMODE_NAVMESH || drawMode == DRAWMODE_NAVMESH_TRANS || drawMode == DRAWMODE_NAVMESH_BVTREE || drawMode == DRAWMODE_NAVMESH_NODES || drawMode == DRAWMODE_NAVMESH_INVIS)) {
+	if (tileCache && drawMode == DRAWMODE_CACHE_BOUNDS)
+		drawTiles(&dd, tileCache);
+
+	if (tileCache)
+		drawObstacles(&dd, tileCache);
+
+	glDepthMask(GL_FALSE);
+
+	// Draw bounds
+	duDebugDrawBoxWire(&dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duRGBA(255, 255, 255, 128), 1.0f);
+
+	// Tiling grid.
+	int gw = 0, gh = 0;
+	rcCalcGridSize(bmin, bmax, cellSize, &gw, &gh);
+	const int tw = (gw + (int) tileSize - 1) / (int) tileSize;
+	const int th = (gh + (int) tileSize - 1) / (int) tileSize;
+	const float s = tileSize * cellSize;
+	duDebugDrawGridXZ(&dd, bmin[0], bmin[1], bmin[2], tw, th, s, duRGBA(0, 0, 0, 64), 1.0f);
+
+	if (navMesh && navQuery && (drawMode == DRAWMODE_NAVMESH || drawMode == DRAWMODE_NAVMESH_TRANS || drawMode == DRAWMODE_NAVMESH_BVTREE || drawMode == DRAWMODE_NAVMESH_NODES || drawMode == DRAWMODE_NAVMESH_PORTALS || drawMode == DRAWMODE_NAVMESH_INVIS)) {
 		if (drawMode != DRAWMODE_NAVMESH_INVIS)
-			duDebugDrawNavMeshWithClosedList(&dds, *navMesh, *navQuery, navMeshDrawFlags);
+			duDebugDrawNavMeshWithClosedList(&dd, *navMesh, *navQuery, navMeshDrawFlags /*|DU_DRAWNAVMESH_COLOR_TILES*/);
 		if (drawMode == DRAWMODE_NAVMESH_BVTREE)
-			duDebugDrawNavMeshBVTree(&dds, *navMesh);
+			duDebugDrawNavMeshBVTree(&dd, *navMesh);
+		if (drawMode == DRAWMODE_NAVMESH_PORTALS)
+			duDebugDrawNavMeshPortals(&dd, *navMesh);
 		if (drawMode == DRAWMODE_NAVMESH_NODES)
-			duDebugDrawNavMeshNodes(&dds, *navQuery);
-		duDebugDrawNavMeshPolysWithFlags(&dds, *navMesh, SAMPLE_POLYFLAGS_DISABLED, duRGBA(0, 0, 0, 128));
+			duDebugDrawNavMeshNodes(&dd, *navQuery);
+		duDebugDrawNavMeshPolysWithFlags(&dd, *navMesh, SAMPLE_POLYFLAGS_DISABLED, duRGBA(0, 0, 0, 128));
 	}
 
-	glDepthMask(GL_TRUE);
+	//glDepthMask(GL_TRUE);
 
-	if (chf && drawMode == DRAWMODE_COMPACT)
-		duDebugDrawCompactHeightfieldSolid(&dds, *chf);
+	//geom->drawConvexVolumes(&dd);
 
-	if (chf && drawMode == DRAWMODE_COMPACT_DISTANCE)
-		duDebugDrawCompactHeightfieldDistance(&dds, *chf);
-	if (chf && drawMode == DRAWMODE_COMPACT_REGIONS)
-		duDebugDrawCompactHeightfieldRegions(&dds, *chf);
-	if (solid && drawMode == DRAWMODE_VOXELS) {
-		glEnable(GL_FOG);
-		duDebugDrawHeightfieldSolid(&dds, *solid);
-		glDisable(GL_FOG);
-	}
-	if (solid && drawMode == DRAWMODE_VOXELS_WALKABLE) {
-		glEnable(GL_FOG);
-		duDebugDrawHeightfieldWalkable(&dds, *solid);
-		glDisable(GL_FOG);
-	}
-	if (cset && drawMode == DRAWMODE_RAW_CONTOURS) {
-		glDepthMask(GL_FALSE);
-		duDebugDrawRawContours(&dds, *cset);
-		glDepthMask(GL_TRUE);
-	}
-	if (cset && drawMode == DRAWMODE_BOTH_CONTOURS) {
-		glDepthMask(GL_FALSE);
-		duDebugDrawRawContours(&dds, *cset, 0.5f);
-		duDebugDrawContours(&dds, *cset);
-		glDepthMask(GL_TRUE);
-	}
-	if (cset && drawMode == DRAWMODE_CONTOURS) {
-		glDepthMask(GL_FALSE);
-		duDebugDrawContours(&dds, *cset);
-		glDepthMask(GL_TRUE);
-	}
-	if (chf && cset && drawMode == DRAWMODE_REGION_CONNECTIONS) {
-		duDebugDrawCompactHeightfieldRegions(&dds, *chf);
-
-		glDepthMask(GL_FALSE);
-		duDebugDrawRegionConnections(&dds, *cset);
-		glDepthMask(GL_TRUE);
-	}
-	if (pmesh && drawMode == DRAWMODE_POLYMESH) {
-		glDepthMask(GL_FALSE);
-		duDebugDrawPolyMesh(&dds, *pmesh);
-		glDepthMask(GL_TRUE);
-	}
-	if (dmesh && drawMode == DRAWMODE_POLYMESH_DETAIL) {
-		glDepthMask(GL_FALSE);
-		duDebugDrawPolyMeshDetail(&dds, *dmesh);
-		glDepthMask(GL_TRUE);
-	}
 
 	glDepthMask(GL_TRUE);
 
