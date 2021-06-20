@@ -146,6 +146,25 @@ ProgramSSAOBlur::ProgramSSAOBlur(unsigned program_)
 
 ProgramDrawTexture::ProgramDrawTexture(unsigned program_)
 	: Program(program_) {
-
 	textureToDrawLocation = glGetUniformLocation(program, "textureToDraw");
+}
+
+ProgramImageUI::ProgramImageUI(unsigned program_)
+	: Program(program_) {
+	modelLocation = glGetUniformLocation(program, "model");
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
+	inputColorLocation = glGetUniformLocation(program, "inputColor");
+	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
+	diffuseLocation = glGetUniformLocation(program, "diffuse");
+}
+
+ProgramTextUI::ProgramTextUI(unsigned program_)
+	: Program(program_) {
+	modelLocation = glGetUniformLocation(program, "model");
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
+	textColorLocation = glGetUniformLocation(program, "textColor");
 }

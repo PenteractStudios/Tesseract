@@ -42,8 +42,8 @@ public:
 	ProgramDrawTexture* drawTexture = 0;
 
 	// UI Shaders
-	unsigned textUI = 0;
-	unsigned imageUI = 0;
+	ProgramTextUI* textUI = 0;
+	ProgramImageUI* imageUI = 0;
 
 	// Particle Shaders
 	unsigned billboard = 0;

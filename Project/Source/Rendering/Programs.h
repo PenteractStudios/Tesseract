@@ -153,3 +153,25 @@ struct ProgramDrawTexture : Program {
 
 	int textureToDrawLocation = -1;
 };
+
+struct ProgramImageUI : Program {
+	ProgramImageUI(unsigned program);
+
+	int modelLocation = -1;
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int inputColorLocation = -1;
+	int hasDiffuseLocation = -1;
+	int diffuseLocation = -1;
+};
+
+struct ProgramTextUI : Program {
+	ProgramTextUI(unsigned program);
+
+	int modelLocation = -1;
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int textColorLocation = -1;
+};

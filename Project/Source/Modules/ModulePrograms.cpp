@@ -110,8 +110,8 @@ void ModulePrograms::LoadShaders() {
 	shadowMap = CreateProgram(filePath, "vertDepthMap", "fragDepthMap");
 
 	//UI shaders
-	textUI = CreateProgram(filePath, "vertTextUI", "fragTextUI");
-	imageUI = CreateProgram(filePath, "vertImageUI", "fragImageUI");
+	textUI = new ProgramTextUI(CreateProgram(filePath, "vertTextUI", "fragTextUI"));
+	imageUI = new ProgramImageUI(CreateProgram(filePath, "vertImageUI", "fragImageUI"));
 
 	// Engine Shaders
 	drawTexture = new ProgramDrawTexture(CreateProgram(filePath, "vertScreen", "fragDrawTexture"));
@@ -143,8 +143,8 @@ void ModulePrograms::UnloadShaders() {
 
 	RELEASE(drawTexture);
 
-	glDeleteProgram(textUI);
-	glDeleteProgram(imageUI);
+	RELEASE(textUI);
+	RELEASE(imageUI);
 
 	glDeleteProgram(billboard);
 	glDeleteProgram(trail);
