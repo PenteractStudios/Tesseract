@@ -1,0 +1,43 @@
+{
+    "Root": {
+        "Name": "Game Object",
+        "Active": true,
+        "RootBoneName": "",
+        "Mask": 0,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    -4.576967239379883,
+                    0.8739324808120728,
+                    -3.2114574909210207
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "LocalEulerAngles": [
+                    -0.0,
+                    0.0,
+                    -0.0
+                ]
+            },
+            {
+                "Type": "Trail",
+                "Active": true,
+                "TextureId": 3704426711226414823,
+                "MaxVertices": 1500,
+                "TrailQuads": 50
+            }
+        ],
+        "Children": null
+    }
+}

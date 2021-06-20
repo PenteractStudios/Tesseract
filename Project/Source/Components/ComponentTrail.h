@@ -23,21 +23,29 @@ public:
 	void InsertVertex(float3 vertex);
 	void InsertTextureCoords();
 	void DeleteQuads();
+	void editTextureCoords();
+	void resetColor();
 
 private:
 	unsigned int quadVBO;
 	UID textureID = 0; // ID of the image
 
-	int nSegments = 1;
+	int nTextures = 1;
 	int quadsCreated = 0;
 	int trailQuads = 50;
 	int maxVertices = 1500;
 	int trianglesCreated = 0;
 	int textureCreated = 0;
+
+	float nRepeats = 1;
 	float width = 0.1f;
 	float timePoint = 1.0f;
 	float minDistance = 2.0f;
 	float verticesPosition[1500] = {0.0f};
+	float textureCords[600] = {0.0f};
+	float scaleFactor = 1.0f;
+	float colorFrame = 0.0f;
+	float colorSpeed = 0.0f;
 
 	float3 currentPosition = float3(0, 0, 0);
 	float3 previousPosition = float3(0, 0, 0);
@@ -47,5 +55,10 @@ private:
 	float3 previousPositionUp = float3(0, 0, 0);
 	float3 previousPositionDown = float3(0, 0, 0);
 
+	float4 initC = float4::one;
+	float4 mediumC = float4::one;
+	float4 finalC = float4::one;
+
 	bool isStarted = false;
+	bool colorOverTrail = false;
 };

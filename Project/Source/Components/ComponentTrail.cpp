@@ -33,21 +33,17 @@
 #define JSON_TAG_TRAILQUADS "TrailQuads"
 #define JSON_TAG_ALPHATRANSPARENCY "AlphaTransparency"
 
-// clang-format off
-static const float textureCords[12] = {
-	// Front (x, y, z)
-	0.0f,0.0f,
-	1.0f,0.0f,
-	0.0f,1.0f,
-	//////////
-	1.0f,0.0f,
-	1.0f,1.0f,
-	0.0f, 1.0f,
-	};
-// clang-format on
+#define JSON_TAG_WIDTH "Width"
+#define JSON_TAG_NREPEATS "NRepeats"
+#define JSON_TAG_COLOR_OVER_TRAIL "ColorOverTrail"
+#define JSON_TAG_INIT_COLOR "InitColor"
+#define JSON_TAG_MEDIUM_COLOR "	MediumColor"
+#define JSON_TAG_FINAL_COLOR "FinalColor"
+#define JSON_TAG_COLOR_SPEED "ColorSpeed"
 
 void ComponentTrail::Init() {
 	glGenBuffers(1, &quadVBO);
+	editTextureCoords();
 }
 
 void ComponentTrail::Update() {
@@ -101,6 +97,21 @@ void ComponentTrail::OnEditorUpdate() {
 		DeleteQuads();
 	}
 
+	if (ImGui::DragScalar("Texture Repeats", ImGuiDataType_U32, &nTextures)) {
+		if (nTextures <= 1) nTextures = 1;
+		if (nTextures > 50) nTextures = 50;
+		DeleteQuads();
+		editTextureCoords();
+	}
+	ImGui::Checkbox("Color Over Trail", &colorOverTrail);
+	if (colorOverTrail) {
+		ImGui::DragFloat("Color Speed ", &colorSpeed, App->editor->dragSpeed2f, 0, 1);
+		ImGui::ColorEdit4("Init Color", initC.ptr(), ImGuiColorEditFlags_NoInputs);
+		ImGui::ColorEdit4("Medium Color", mediumC.ptr(), ImGuiColorEditFlags_NoInputs);
+		ImGui::ColorEdit4("Final Color", finalC.ptr(), ImGuiColorEditFlags_NoInputs);
+		if (ImGui::Button("Reset Color")) resetColor();
+	}
+
 	UID oldID = textureID;
 	ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
 	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
@@ -134,12 +145,47 @@ void ComponentTrail::Load(JsonValue jComponent) {
 	}
 	maxVertices = jComponent[JSON_TAG_MAXVERTICES];
 	trailQuads = jComponent[JSON_TAG_TRAILQUADS];
+
+	width = jComponent[JSON_TAG_WIDTH];
+	nRepeats = jComponent[JSON_TAG_NREPEATS];
+	colorOverTrail = jComponent[JSON_TAG_COLOR_OVER_TRAIL];
+
+	JsonValue jColor = jComponent[JSON_TAG_INIT_COLOR];
+	initC.Set(jColor[0], jColor[1], jColor[2], jColor[3]);
+
+	JsonValue jColor = jComponent[JSON_TAG_MEDIUM_COLOR];
+	mediumC.Set(jColor[0], jColor[1], jColor[2], jColor[3]);
+
+	JsonValue jColor = jComponent[JSON_TAG_FINAL_COLOR];
+	finalC.Set(jColor[0], jColor[1], jColor[2], jColor[3]);
+	colorSpeed = jComponent[JSON_TAG_COLOR_SPEED];
 }
 
 void ComponentTrail::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_TEXTURE_TEXTUREID] = textureID;
 	jComponent[JSON_TAG_MAXVERTICES] = maxVertices;
 	jComponent[JSON_TAG_TRAILQUADS] = trailQuads;
+
+	jComponent[JSON_TAG_WIDTH];
+	jComponent[JSON_TAG_NREPEATS];
+	jComponent[JSON_TAG_COLOR_OVER_TRAIL];
+	JsonValue jColor = jComponent[JSON_TAG_INIT_COLOR];
+	jColor[0] = initC.x;
+	jColor[1] = initC.y;
+	jColor[2] = initC.z;
+	jColor[3] = initC.w;
+	JsonValue jColor = jComponent[JSON_TAG_MEDIUM_COLOR];
+	jColor[0] = mediumC.x;
+	jColor[1] = mediumC.y;
+	jColor[2] = mediumC.z;
+	jColor[3] = mediumC.w;
+	JsonValue jColor = jComponent[JSON_TAG_FINAL_COLOR];
+	jColor[0] = finalC.x;
+	jColor[1] = finalC.y;
+	jColor[2] = finalC.z;
+	jColor[3] = finalC.w;
+
+	jComponent[JSON_TAG_COLOR_SPEED] = colorSpeed;
 }
 
 void ComponentTrail::Draw() {
@@ -171,6 +217,19 @@ void ComponentTrail::Draw() {
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view->ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
 
+	if (colorOverTrail) {
+		if (App->time->IsGameRunning()) {
+			colorFrame += colorSpeed * App->time->GetDeltaTime();
+		} else {
+			colorFrame += colorSpeed * App->time->GetRealTimeDeltaTime();
+		}
+	}
+
+	glUniform1f(glGetUniformLocation(program, "colorFrame"), colorFrame);
+	glUniform4fv(glGetUniformLocation(program, "initColor"), 1, initC.ptr());
+	glUniform4fv(glGetUniformLocation(program, "mediumColor"), 1, mediumC.ptr());
+	glUniform4fv(glGetUniformLocation(program, "finalColor"), 1, finalC.ptr());
+
 	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
 	if (textureResource != nullptr) {
 		glBindTexture(GL_TEXTURE_2D, textureResource->glTexture);
@@ -196,10 +255,20 @@ void ComponentTrail::InsertVertex(float3 vertex) {
 }
 
 void ComponentTrail::InsertTextureCoords() {
-	if (textureCreated == 12) textureCreated = 0;
+	if (nTextures == 1) {
+		textureCreated = 0;
+		for (int i = 0; i < trianglesCreated + 2;) {
+			verticesPosition[(i + 3)] = textureCords[textureCreated++];
+			verticesPosition[(i + 4)] = textureCords[textureCreated++];
+			i += 5;
+		}
+		trianglesCreated += 2;
+	} else {
+		if (textureCreated == nRepeats) textureCreated = 0;
 
-	verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
-	verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
+		verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
+		verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
+	}
 }
 
 void ComponentTrail::DeleteQuads() {
@@ -211,4 +280,37 @@ void ComponentTrail::DeleteQuads() {
 	trianglesCreated = 0;
 	maxVertices = 30 * trailQuads;
 	textureCreated = 0;
+}
+
+void ComponentTrail::editTextureCoords() {
+	int nLine = 0;
+	float factor = (1.0f / (trailQuads / nTextures));
+	nRepeats = (trailQuads / nTextures) * 12;
+	for (int textureEdited = 0; textureEdited < nRepeats;) {
+		///vertice1
+		textureCords[textureEdited++] = (nLine) *factor;
+		textureCords[textureEdited++] = 0.0f;
+
+		textureCords[textureEdited++] = (nLine + 1) * factor;
+		textureCords[textureEdited++] = 0.0f;
+
+		textureCords[textureEdited++] = (nLine) *factor;
+		textureCords[textureEdited++] = 1.0f;
+
+		///vertice2
+		textureCords[textureEdited++] = (nLine + 1) * factor;
+		textureCords[textureEdited++] = 0.0f;
+
+		textureCords[textureEdited++] = (nLine + 1) * factor;
+		textureCords[textureEdited++] = 1.0f;
+
+		textureCords[textureEdited++] = (nLine) *factor;
+		textureCords[textureEdited++] = 1.0f;
+
+		nLine++;
+	}
+}
+
+void ComponentTrail::resetColor() {
+	colorFrame = 0.0f;
 }
