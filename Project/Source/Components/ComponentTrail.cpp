@@ -153,11 +153,11 @@ void ComponentTrail::Load(JsonValue jComponent) {
 	JsonValue jColor = jComponent[JSON_TAG_INIT_COLOR];
 	initC.Set(jColor[0], jColor[1], jColor[2], jColor[3]);
 
-	JsonValue jColor = jComponent[JSON_TAG_MEDIUM_COLOR];
-	mediumC.Set(jColor[0], jColor[1], jColor[2], jColor[3]);
+	JsonValue jColor2 = jComponent[JSON_TAG_MEDIUM_COLOR];
+	mediumC.Set(jColor2[0], jColor2[1], jColor[2], jColor2[3]);
 
-	JsonValue jColor = jComponent[JSON_TAG_FINAL_COLOR];
-	finalC.Set(jColor[0], jColor[1], jColor[2], jColor[3]);
+	JsonValue jColor3 = jComponent[JSON_TAG_FINAL_COLOR];
+	finalC.Set(jColor3[0], jColor3[1], jColor3[2], jColor3[3]);
 	colorSpeed = jComponent[JSON_TAG_COLOR_SPEED];
 }
 
@@ -166,24 +166,24 @@ void ComponentTrail::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_MAXVERTICES] = maxVertices;
 	jComponent[JSON_TAG_TRAILQUADS] = trailQuads;
 
-	jComponent[JSON_TAG_WIDTH];
-	jComponent[JSON_TAG_NREPEATS];
-	jComponent[JSON_TAG_COLOR_OVER_TRAIL];
+	jComponent[JSON_TAG_WIDTH] = width;
+	jComponent[JSON_TAG_NREPEATS] = nRepeats;
+	jComponent[JSON_TAG_COLOR_OVER_TRAIL] = colorOverTrail;
 	JsonValue jColor = jComponent[JSON_TAG_INIT_COLOR];
 	jColor[0] = initC.x;
 	jColor[1] = initC.y;
 	jColor[2] = initC.z;
 	jColor[3] = initC.w;
-	JsonValue jColor = jComponent[JSON_TAG_MEDIUM_COLOR];
-	jColor[0] = mediumC.x;
-	jColor[1] = mediumC.y;
-	jColor[2] = mediumC.z;
-	jColor[3] = mediumC.w;
-	JsonValue jColor = jComponent[JSON_TAG_FINAL_COLOR];
-	jColor[0] = finalC.x;
-	jColor[1] = finalC.y;
-	jColor[2] = finalC.z;
-	jColor[3] = finalC.w;
+	JsonValue jColor2 = jComponent[JSON_TAG_MEDIUM_COLOR];
+	jColor2[0] = mediumC.x;
+	jColor2[1] = mediumC.y;
+	jColor2[2] = mediumC.z;
+	jColor2[3] = mediumC.w;
+	JsonValue jColor3 = jComponent[JSON_TAG_FINAL_COLOR];
+	jColor3[0] = finalC.x;
+	jColor3[1] = finalC.y;
+	jColor3[2] = finalC.z;
+	jColor3[3] = finalC.w;
 
 	jComponent[JSON_TAG_COLOR_SPEED] = colorSpeed;
 }
