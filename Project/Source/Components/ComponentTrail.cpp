@@ -37,13 +37,13 @@
 #define JSON_TAG_NREPEATS "NRepeats"
 #define JSON_TAG_COLOR_OVER_TRAIL "ColorOverTrail"
 #define JSON_TAG_INIT_COLOR "InitColor"
-#define JSON_TAG_MEDIUM_COLOR "	MediumColor"
+#define JSON_TAG_MEDIUM_COLOR "MediumColor"
 #define JSON_TAG_FINAL_COLOR "FinalColor"
 #define JSON_TAG_COLOR_SPEED "ColorSpeed"
 
 void ComponentTrail::Init() {
 	glGenBuffers(1, &quadVBO);
-	editTextureCoords();
+	EditTextureCoords();
 }
 
 void ComponentTrail::Update() {
@@ -101,7 +101,7 @@ void ComponentTrail::OnEditorUpdate() {
 		if (nTextures <= 1) nTextures = 1;
 		if (nTextures > 50) nTextures = 50;
 		DeleteQuads();
-		editTextureCoords();
+		EditTextureCoords();
 	}
 	ImGui::Checkbox("Color Over Trail", &colorOverTrail);
 	if (colorOverTrail) {
@@ -109,7 +109,7 @@ void ComponentTrail::OnEditorUpdate() {
 		ImGui::ColorEdit4("Init Color", initC.ptr(), ImGuiColorEditFlags_NoInputs);
 		ImGui::ColorEdit4("Medium Color", mediumC.ptr(), ImGuiColorEditFlags_NoInputs);
 		ImGui::ColorEdit4("Final Color", finalC.ptr(), ImGuiColorEditFlags_NoInputs);
-		if (ImGui::Button("Reset Color")) resetColor();
+		if (ImGui::Button("Reset Color")) ResetColor();
 	}
 
 	UID oldID = textureID;
@@ -282,7 +282,7 @@ void ComponentTrail::DeleteQuads() {
 	textureCreated = 0;
 }
 
-void ComponentTrail::editTextureCoords() {
+void ComponentTrail::EditTextureCoords() {
 	int nLine = 0;
 	float factor = (1.0f / (trailQuads / nTextures));
 	nRepeats = (trailQuads / nTextures) * 12;
@@ -311,6 +311,6 @@ void ComponentTrail::editTextureCoords() {
 	}
 }
 
-void ComponentTrail::resetColor() {
+void ComponentTrail::ResetColor() {
 	colorFrame = 0.0f;
 }

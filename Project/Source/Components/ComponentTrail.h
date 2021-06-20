@@ -23,8 +23,8 @@ public:
 	void InsertVertex(float3 vertex);
 	void InsertTextureCoords();
 	void DeleteQuads();
-	void editTextureCoords();
-	void resetColor();
+	void EditTextureCoords();
+	void ResetColor();
 
 private:
 	unsigned int quadVBO;
