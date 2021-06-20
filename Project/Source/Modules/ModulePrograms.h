@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Module.h"
+#include "Rendering/Programs.h"
 
 class ModulePrograms : public Module {
 public:
@@ -20,12 +21,12 @@ public:
 	unsigned skybox = 0;
 
 	// Ilumination Shaders
-	unsigned phongNormal = 0;
-	unsigned phongNotNormal = 0;
-	unsigned standardNormal = 0;
-	unsigned standardNotNormal = 0;
-	unsigned specularNormal = 0;
-	unsigned specularNotNormal = 0;
+	ProgramStandardPhong* phongNormal = nullptr;
+	ProgramStandardPhong* phongNotNormal = nullptr;
+	ProgramStandardMetallic* standardNormal = nullptr;
+	ProgramStandardMetallic* standardNotNormal = nullptr;
+	ProgramStandardSpecular* specularNormal = nullptr;
+	ProgramStandardSpecular* specularNotNormal = nullptr;
 
 	// Depth prepass Shaders
 	unsigned depthPrepass = 0;
