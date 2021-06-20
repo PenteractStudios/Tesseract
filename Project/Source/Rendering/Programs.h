@@ -111,3 +111,45 @@ struct ProgramStandardMetallic : ProgramStandard {
 	int hasMetallicMapLocation = -1;
 	int metallicMapLocation = -1;
 };
+
+struct ProgramDepthPrepass : Program {
+	ProgramDepthPrepass(unsigned program);
+
+	int modelLocation = -1;
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int paletteLocation = -1;
+	int hasBonesLocation = -1;
+};
+
+struct ProgramSSAO : Program {
+	ProgramSSAO(unsigned program);
+
+	int projLocation = -1;
+	
+	int positionsLocation = -1;
+	int normalsLocation = -1;
+
+	int kernelSamplesLocation = -1;
+	int randomTangentsLocation = -1;
+	int screenSizeLocation = -1;
+	int biasLocation = -1;
+	int rangeLocation = -1;
+	int powerLocation = -1;
+};
+
+struct ProgramSSAOBlur : Program {
+	ProgramSSAOBlur(unsigned program);
+
+	int inputTextureLocation = -1;
+
+	int kernelLocation = -1;
+	int horizontalLocation = -1;
+};
+
+struct ProgramDrawTexture : Program {
+	ProgramDrawTexture(unsigned program);
+
+	int textureToDrawLocation = -1;
+};

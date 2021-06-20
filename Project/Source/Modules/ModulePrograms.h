@@ -29,18 +29,17 @@ public:
 	ProgramStandardSpecular* specularNotNormal = nullptr;
 
 	// Depth prepass Shaders
-	unsigned depthPrepass = 0;
+	ProgramDepthPrepass* depthPrepass = nullptr;
 
 	// SSAO Shaders
-	unsigned ssao = 0;
-	unsigned ssaoBlur = 0;
+	ProgramSSAO* ssao = nullptr;
+	ProgramSSAOBlur* ssaoBlur = 0;
 
 	// Shadow Shaders
 	unsigned shadowMap = 0;
 
 	// Engine Shaders
-	unsigned drawSSAOTexture = 0;
-	unsigned drawDepthMapTexture = 0;
+	ProgramDrawTexture* drawTexture = 0;
 
 	// UI Shaders
 	unsigned textUI = 0;

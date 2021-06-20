@@ -110,3 +110,42 @@ ProgramStandardMetallic::ProgramStandardMetallic(unsigned program_)
 	hasMetallicMapLocation = glGetUniformLocation(program, "hasMetallicMap");
 	metallicMapLocation = glGetUniformLocation(program, "metallicMap");
 }
+
+ProgramDepthPrepass::ProgramDepthPrepass(unsigned program_)
+	: Program(program_) {
+	modelLocation = glGetUniformLocation(program, "model");
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
+	paletteLocation = glGetUniformLocation(program, "palette");
+	hasBonesLocation = glGetUniformLocation(program, "hasBones");
+}
+
+ProgramSSAO::ProgramSSAO(unsigned program_)
+	: Program(program_) {
+	projLocation = glGetUniformLocation(program, "proj");
+
+	positionsLocation = glGetUniformLocation(program, "positions");
+	normalsLocation = glGetUniformLocation(program, "normals");
+
+	kernelSamplesLocation = glGetUniformLocation(program, "kernelSamples");
+	randomTangentsLocation = glGetUniformLocation(program, "randomTangents");
+	screenSizeLocation = glGetUniformLocation(program, "screenSize");
+	biasLocation = glGetUniformLocation(program, "bias");
+	rangeLocation = glGetUniformLocation(program, "range");
+	powerLocation = glGetUniformLocation(program, "power");
+}
+
+ProgramSSAOBlur::ProgramSSAOBlur(unsigned program_)
+	: Program(program_) {
+	inputTextureLocation = glGetUniformLocation(program, "inputTexture");
+
+	kernelLocation = glGetUniformLocation(program, "kernel");
+	horizontalLocation = glGetUniformLocation(program, "horizontal");
+}
+
+ProgramDrawTexture::ProgramDrawTexture(unsigned program_)
+	: Program(program_) {
+
+	textureToDrawLocation = glGetUniformLocation(program, "textureToDraw");
+}

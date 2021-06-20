@@ -100,11 +100,11 @@ void ModulePrograms::LoadShaders() {
 	specularNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
 
 	// Depth Prepass Shaders
-	depthPrepass = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragDepthPrepass");
+	depthPrepass = new ProgramDepthPrepass(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragDepthPrepass"));
 
 	// SSAO Shaders
-	ssao = CreateProgram(filePath, "vertScreen", "fragSSAO");
-	ssaoBlur = CreateProgram(filePath, "vertScreen", "fragGaussianBlur");
+	ssao = new ProgramSSAO(CreateProgram(filePath, "vertScreen", "fragSSAO"));
+	ssaoBlur = new ProgramSSAOBlur(CreateProgram(filePath, "vertScreen", "fragGaussianBlur"));
 
 	// Shadow Shaders
 	shadowMap = CreateProgram(filePath, "vertDepthMap", "fragDepthMap");
@@ -114,8 +114,7 @@ void ModulePrograms::LoadShaders() {
 	imageUI = CreateProgram(filePath, "vertImageUI", "fragImageUI");
 
 	// Engine Shaders
-	drawSSAOTexture = CreateProgram(filePath, "vertScreen", "fragDrawSSAOTexture");
-	drawDepthMapTexture = CreateProgram(filePath, "vertScreen", "fragDrawDepthMapTexture");
+	drawTexture = new ProgramDrawTexture(CreateProgram(filePath, "vertScreen", "fragDrawTexture"));
 
 	// Particle Shaders
 	billboard = CreateProgram(filePath, "billboardVertex", "billboardFragment");
@@ -135,15 +134,14 @@ void ModulePrograms::UnloadShaders() {
 	RELEASE(specularNormal);
 	RELEASE(specularNotNormal);
 
-	glDeleteProgram(depthPrepass);
+	RELEASE(depthPrepass);
 
-	glDeleteProgram(ssao);
-	glDeleteProgram(ssaoBlur);
+	RELEASE(ssao);
+	RELEASE(ssaoBlur);
 
 	glDeleteProgram(shadowMap);
 
-	glDeleteProgram(drawSSAOTexture);
-	glDeleteProgram(drawDepthMapTexture);
+	RELEASE(drawTexture);
 
 	glDeleteProgram(textUI);
 	glDeleteProgram(imageUI);
