@@ -50,15 +50,22 @@ void ComponentSkyBox::Draw() {
 
 	unsigned program = App->programs->skybox;
 	glUseProgram(program);
+
 	float4x4 proj = App->camera->GetProjectionMatrix();
 	float4x4 view = App->camera->GetViewMatrix();
-
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, &proj[0][0]);
 
-	glBindVertexArray(skybox->GetVAO());
+	glUniform1i(glGetUniformLocation(program, "cubemap"), 0);
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetGlCubeMap());
+
+	glBindVertexArray(App->renderer->cubeVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
+}
+
+UID ComponentSkyBox::GetSkyboxResourceID() {
+	return skyboxId;
 }

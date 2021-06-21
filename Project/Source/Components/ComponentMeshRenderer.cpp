@@ -10,8 +10,10 @@
 #include "Resources/ResourceMaterial.h"
 #include "Resources/ResourceMesh.h"
 #include "Resources/ResourceTexture.h"
+#include "Resources/ResourceSkybox.h"
 #include "Components/ComponentTransform.h"
 #include "Components/ComponentLight.h"
+#include "Components/ComponentSkyBox.h"
 #include "Components/ComponentBoundingBox.h"
 #include "Components/ComponentAnimation.h"
 #include "Modules/ModulePrograms.h"
@@ -245,7 +247,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	float farSpotDistance = 0;
 	ComponentLight* farSpotLight = nullptr;
 
-	for (ComponentLight& light : GetOwner().scene->lightComponents) {
+	Scene* scene = GetOwner().scene;
+	for (ComponentLight& light : scene->lightComponents) {
 		if (light.lightType == LightType::DIRECTIONAL) {
 			// It takes the first actived Directional Light inside the Pool
 			if (light.IsActive() && directionalLight == nullptr) {
@@ -506,9 +509,30 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform2fv(glGetUniformLocation(program, "tiling"), 1, material->tiling.ptr());
 	glUniform2fv(glGetUniformLocation(program, "offset"), 1, material->offset.ptr());
 
-	// Lights uniforms settings
-	glUniform3fv(glGetUniformLocation(program, "light.ambient.color"), 1, App->renderer->ambientColor.ptr());
+	// IBL textures
+	auto it = scene->skyboxComponents.begin();
+	if (it != scene->skyboxComponents.end()) {
+		ComponentSkyBox& skyboxComponent = *it;
+		ResourceSkybox* skyboxResource = App->resources->GetResource<ResourceSkybox>(skyboxComponent.GetSkyboxResourceID());
 
+		if (skyboxResource != nullptr) {
+			glUniform1i(glGetUniformLocation(program, "diffuseIBL"), 7);
+			glActiveTexture(GL_TEXTURE7);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxResource->GetGlIrradianceMap());
+
+			glUniform1i(glGetUniformLocation(program, "prefilteredIBL"), 8);
+			glActiveTexture(GL_TEXTURE8);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxResource->GetGlPreFilteredMap());
+
+			glUniform1i(glGetUniformLocation(program, "environmentBRDF"), 9);
+			glActiveTexture(GL_TEXTURE9);
+			glBindTexture(GL_TEXTURE_2D, skyboxResource->GetGlEnvironmentBRDF());
+
+			glUniform1i(glGetUniformLocation(program, "prefilteredIBLNumLevels"), skyboxResource->GetPreFilteredMapNumLevels());
+		}
+	}
+
+	// Lights uniforms settings
 	if (directionalLight != nullptr) {
 		glUniform3fv(glGetUniformLocation(program, "light.directional.direction"), 1, directionalLight->direction.ptr());
 		glUniform3fv(glGetUniformLocation(program, "light.directional.color"), 1, directionalLight->color.ptr());

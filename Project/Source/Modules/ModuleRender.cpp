@@ -45,6 +45,57 @@
 
 static float gaussKernel[GAUSS_KERNEL_SIZE] = {0.38774, 0.24477, 0.06136};
 
+// clang-format off
+static const float cubeVertices[108] = {
+	// Front (x, y, z)
+	-1.0f,  1.0f, -1.0f,
+	-1.0f, -1.0f, -1.0f,
+	1.0f, -1.0f, -1.0f,
+	1.0f, -1.0f, -1.0f,
+	1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
+
+	// Left (x, y, z)
+	-1.0f, -1.0f,  1.0f,
+	-1.0f, -1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f,  1.0f,
+	-1.0f, -1.0f,  1.0f,
+	
+	// Right (x, y, z)
+	1.0f, -1.0f, -1.0f,
+	1.0f, -1.0f,  1.0f,
+	1.0f,  1.0f,  1.0f,
+	1.0f,  1.0f,  1.0f,
+	1.0f,  1.0f, -1.0f,
+	1.0f, -1.0f, -1.0f,
+	
+	// Back (x, y, z)
+	-1.0f, -1.0f,  1.0f,
+	-1.0f,  1.0f,  1.0f,
+	1.0f,  1.0f,  1.0f,
+	1.0f,  1.0f,  1.0f,
+	1.0f, -1.0f,  1.0f,
+	-1.0f, -1.0f,  1.0f,
+	
+	// Top (x, y, z)
+	-1.0f,  1.0f, -1.0f,
+	1.0f,  1.0f, -1.0f,
+	1.0f,  1.0f,  1.0f,
+	1.0f,  1.0f,  1.0f,
+	-1.0f,  1.0f,  1.0f,
+	-1.0f,  1.0f, -1.0f,
+	
+	// Bottom (x, y, z)
+	-1.0f, -1.0f, -1.0f,
+	-1.0f, -1.0f,  1.0f,
+	1.0f, -1.0f, -1.0f,
+	1.0f, -1.0f, -1.0f,
+	-1.0f, -1.0f,  1.0f,
+	1.0f, -1.0f,  1.0f
+}; // clang-format on
+
 #if _DEBUG
 static void __stdcall OurOpenGLErrorFunction(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
 	const char *tmpSource = "", *tmpType = "", *tmpSeverity = "";
@@ -130,6 +181,7 @@ bool ModuleRender::Init() {
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glFrontFace(GL_CCW);
 
 #if _DEBUG
@@ -139,13 +191,6 @@ bool ModuleRender::Init() {
 	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 #endif
 
-	glGenRenderbuffers(1, &depthBuffer);
-	glGenFramebuffers(1, &framebuffer);
-	glGenFramebuffers(1, &depthPrepassTextureBuffer);
-	glGenFramebuffers(1, &depthMapTextureBuffer);
-	glGenFramebuffers(1, &ssaoTextureBuffer);
-	glGenFramebuffers(1, &ssaoBlurTextureBufferH);
-	glGenFramebuffers(1, &ssaoBlurTextureBufferV);
 	glGenTextures(1, &renderTexture);
 	glGenTextures(1, &positionsTexture);
 	glGenTextures(1, &normalsTexture);
@@ -153,8 +198,28 @@ bool ModuleRender::Init() {
 	glGenTextures(1, &ssaoTexture);
 	glGenTextures(1, &auxBlurTexture);
 
+	glGenRenderbuffers(1, &depthBuffer);
+
+	glGenFramebuffers(1, &framebuffer);
+	glGenFramebuffers(1, &depthPrepassTextureBuffer);
+	glGenFramebuffers(1, &depthMapTextureBuffer);
+	glGenFramebuffers(1, &ssaoTextureBuffer);
+	glGenFramebuffers(1, &ssaoBlurTextureBufferH);
+	glGenFramebuffers(1, &ssaoBlurTextureBufferV);
+
 	ViewportResized(App->window->GetWidth(), App->window->GetHeight());
 	UpdateFramebuffers();
+	
+	// Create Unit Cube VAO
+	glGenVertexArrays(1, &cubeVAO);
+	glGenBuffers(1, &cubeVBO);
+
+	glBindVertexArray(cubeVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
+	glBindVertexArray(0);
 
 	// Calculate SSAO kernel
 	for (unsigned i = 0; i < SSAO_KERNEL_SIZE; ++i) {
@@ -512,13 +577,18 @@ UpdateStatus ModuleRender::PostUpdate() {
 }
 
 bool ModuleRender::CleanUp() {
+	glDeleteVertexArrays(1, &cubeVAO);
+	glDeleteBuffers(1, &cubeVBO);
+
 	glDeleteTextures(1, &renderTexture);
 	glDeleteTextures(1, &positionsTexture);
 	glDeleteTextures(1, &normalsTexture);
 	glDeleteTextures(1, &depthMapTexture);
 	glDeleteTextures(1, &ssaoTexture);
 	glDeleteTextures(1, &auxBlurTexture);
+
 	glDeleteRenderbuffers(1, &depthBuffer);
+
 	glDeleteFramebuffers(1, &framebuffer);
 	glDeleteFramebuffers(1, &depthPrepassTextureBuffer);
 	glDeleteFramebuffers(1, &depthMapTextureBuffer);
