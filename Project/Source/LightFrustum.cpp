@@ -12,7 +12,10 @@
 #include "Utils/Leaks.h"
 
 LightFrustum::LightFrustum() {
-	frustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
+	frustum[0].SetKind(FrustumSpaceGL, FrustumRightHanded);
+	frustum[1].SetKind(FrustumSpaceGL, FrustumRightHanded);
+	frustum[2].SetKind(FrustumSpaceGL, FrustumRightHanded);
+	frustum[3].SetKind(FrustumSpaceGL, FrustumRightHanded);
 }
 
 void LightFrustum::ReconstructFrustum() {
@@ -46,21 +49,21 @@ void LightFrustum::ReconstructFrustum() {
 	float3 maxPoint = lightAABB.maxPoint;
 	float3 position = lightOrientation.RotatePart() * float3((maxPoint.x + minPoint.x) * 0.5f, ((maxPoint.y + minPoint.y) * 0.5f), minPoint.z);
 
-	frustum.SetOrthographic((maxPoint.x - minPoint.x), (maxPoint.y - minPoint.y));
-	frustum.SetUp(transform->GetUp());
-	frustum.SetFront(transform->GetFront());
-	frustum.SetPos(position);
-	frustum.SetViewPlaneDistances(0.0f, (maxPoint.z - minPoint.z));
+	frustum[0].SetOrthographic((maxPoint.x - minPoint.x), (maxPoint.y - minPoint.y));
+	frustum[0].SetUp(transform->GetUp());
+	frustum[0].SetFront(transform->GetFront());
+	frustum[0].SetPos(position);
+	frustum[0].SetViewPlaneDistances(0.0f, (maxPoint.z - minPoint.z));
 
 	dirty = true;
 }
 
 void LightFrustum::DrawGizmos() {
-	dd::frustum(frustum.ViewProjMatrix().Inverted(), dd::colors::Green);
+	dd::frustum(frustum[0].ViewProjMatrix().Inverted(), dd::colors::Green);
 }
 
 Frustum LightFrustum::GetFrustum() const {
-	return frustum;
+	return frustum[0];
 }
 
 void LightFrustum::Invalidate() {

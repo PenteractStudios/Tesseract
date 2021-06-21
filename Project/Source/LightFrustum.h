@@ -2,6 +2,8 @@
 
 #include "Geometry/Frustum.h"
 
+#define CASCADE_FRUSTUM 4
+
 class LightFrustum {
 public:
 	LightFrustum();
@@ -16,5 +18,5 @@ public:
 
 private:
 	bool dirty = true;
-	Frustum frustum;
+	Frustum frustum[4];
 };

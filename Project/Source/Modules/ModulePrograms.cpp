@@ -88,18 +88,6 @@ void ModulePrograms::LoadShaders() {
 	LoadShaderBinFile();
 #endif
 
-<<<<<<< HEAD
-	//SkyBox shader
-	skybox = CreateProgram(filePath, "vertSkybox", "fragSkybox");
-
-	//General shaders
-	phongNotNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragMainPhong"));
-	phongNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragMainPhong"));
-	standardNotNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic"));
-	standardNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic"));
-	specularNotNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
-	specularNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
-=======
 	// SkyBox shaders
 	hdrToCubemap = CreateProgram(filePath, "vertCube", "fragFunctionIBL fragHDRToCubemap");
 	irradiance = CreateProgram(filePath, "vertCube", "fragFunctionIBL fragIrradianceMap");
@@ -114,7 +102,6 @@ void ModulePrograms::LoadShaders() {
 	standardNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic");
 	specularNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
 	specularNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
->>>>>>> develop
 
 	// Depth Prepass Shaders
 	depthPrepass = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragDepthPrepass");
@@ -149,21 +136,12 @@ void ModulePrograms::UnloadShaders() {
 	glDeleteProgram(environmentBRDF);
 	glDeleteProgram(skybox);
 
-<<<<<<< HEAD
-	RELEASE(phongNormal);
-	RELEASE(phongNotNormal);
-	RELEASE(standardNormal);
-	RELEASE(standardNotNormal);
-	RELEASE(specularNormal);
-	RELEASE(specularNotNormal);
-=======
 	glDeleteProgram(phongNormal);
 	glDeleteProgram(phongNotNormal);
 	glDeleteProgram(standardNormal);
 	glDeleteProgram(standardNotNormal);
 	glDeleteProgram(specularNormal);
 	glDeleteProgram(specularNotNormal);
->>>>>>> develop
 
 	glDeleteProgram(depthPrepass);
 
