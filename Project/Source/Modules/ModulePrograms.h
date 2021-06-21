@@ -18,11 +18,11 @@ public:
 	const char* filePath = "Library/shadersBin";
 
 	// Skybox shaders
-	unsigned hdrToCubemap = 0;
-	unsigned irradiance = 0;
-	unsigned preFilteredMap = 0;
-	unsigned environmentBRDF = 0;
-	unsigned skybox = 0;
+	ProgramHDRToCubemap* hdrToCubemap = nullptr;
+	ProgramIrradiance* irradiance = nullptr;
+	ProgramPreFilteredMap* preFilteredMap = nullptr;
+	ProgramEnvironmentBRDF* environmentBRDF = nullptr;
+	ProgramSkybox* skybox = nullptr;
 
 	// Ilumination Shaders
 	ProgramStandardPhong* phongNormal = nullptr;
@@ -33,22 +33,21 @@ public:
 	ProgramStandardSpecular* specularNotNormal = nullptr;
 
 	// Depth prepass Shaders
-	unsigned depthPrepass = 0;
+	ProgramDepthPrepass* depthPrepass = nullptr;
 
 	// SSAO Shaders
-	unsigned ssao = 0;
-	unsigned ssaoBlur = 0;
+	ProgramSSAO* ssao = nullptr;
+	ProgramSSAOBlur* ssaoBlur = 0;
 
 	// Shadow Shaders
 	unsigned shadowMap = 0;
 
 	// Engine Shaders
-	unsigned drawSSAOTexture = 0;
-	unsigned drawDepthMapTexture = 0;
+	ProgramDrawTexture* drawTexture = 0;
 
 	// UI Shaders
-	unsigned textUI = 0;
-	unsigned imageUI = 0;
+	ProgramTextUI* textUI = 0;
+	ProgramImageUI* imageUI = 0;
 
 	// Particle Shaders
 	unsigned billboard = 0;
