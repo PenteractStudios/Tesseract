@@ -100,6 +100,7 @@ void ComponentTrail::OnEditorUpdate() {
 	if (ImGui::DragScalar("Texture Repeats", ImGuiDataType_U32, &nTextures)) {
 		if (nTextures <= 1) nTextures = 1;
 		if (nTextures > 50) nTextures = 50;
+		if (nTextures > trailQuads) nTextures = trailQuads;
 		DeleteQuads();
 		EditTextureCoords();
 	}
