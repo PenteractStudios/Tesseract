@@ -179,7 +179,8 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 			UID prefabId = *(UID*) payload->Data;
 			ResourcePrefab* prefab = App->resources->GetResource<ResourcePrefab>(prefabId);
 			if (prefab != nullptr) {
-				prefab->BuildPrefab(gameObject);
+				UID newGameObjectId = prefab->BuildPrefab(gameObject);
+				App->editor->selectedGameObject = App->scene->scene->GetGameObject(newGameObjectId);
 			}
 		}
 		ImGui::EndDragDropTarget();
