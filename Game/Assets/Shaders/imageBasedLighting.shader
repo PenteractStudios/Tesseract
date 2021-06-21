@@ -139,7 +139,7 @@ void main() {
 			float saTexel  = 4.0 * PI / (6.0 * environmentResolution * environmentResolution);
 			float saSample = 1.0 / (float(NUM_SAMPLES) * pdf + 0.0001);
 			float mipLevel = roughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTexel);
-			color += textureLod(environment, L, 0).rgb * NL;
+			color += textureLod(environment, L, mipLevel).rgb * NL;
 			weight += NL;
 		}
 	}

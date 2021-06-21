@@ -10,23 +10,23 @@ public:
 	void Load() override;
 	void Unload() override;
 
-	unsigned GetGlCubeMap() {
+	unsigned GetGlCubeMap() const {
 		return glCubeMap;
 	}
 
-	unsigned GetGlIrradianceMap() {
+	unsigned GetGlIrradianceMap() const {
 		return glIrradianceMap;
 	}
 
-	unsigned GetGlPreFilteredMap() {
+	unsigned GetGlPreFilteredMap() const {
 		return glPreFilteredMap;
 	}
 
-	unsigned GetGlEnvironmentBRDF() {
+	unsigned GetGlEnvironmentBRDF() const {
 		return glEnvironmentBRDF;
 	}
 
-	int GetPreFilteredMapNumLevels() {
+	int GetPreFilteredMapNumLevels() const {
 		return preFilteredMapNumLevels;
 	}
 
