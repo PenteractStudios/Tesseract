@@ -28,7 +28,7 @@ public:
 	void OnDisable() override;
 
 	// ----- Collider Functions ---- //
-	void OnCollision(GameObject& collidedWith); // Callback function for scripting
+	void OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance); // Callback function for scripting
 
 public:
 	btRigidBody* rigidBody = nullptr;										// Body that is represented in the physic world.

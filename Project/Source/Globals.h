@@ -47,7 +47,7 @@ enum class UpdateStatus {
 
 #define MODEL_EXTENSION ".fbx"
 
-#define SKYBOX_EXTENSION ".sky"
+#define SKYBOX_EXTENSION ".hdr"
 
 #define NAVMESH_EXTENSION ".navmesh"
 

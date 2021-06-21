@@ -22,6 +22,7 @@ private:
 	GameObject* CreateUIToggle(GameObject* gameObject);
 	GameObject* CreateUIProgressBar(GameObject* gameObject);
 	GameObject* CreatePartycleSystemObject(GameObject* gameObject);
+	GameObject* DuplicateGameObject(GameObject* gameObject);
 
 private:
 	int windowWidth = 0;
