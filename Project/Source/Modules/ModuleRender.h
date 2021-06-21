@@ -9,6 +9,10 @@
 
 #include <map>
 
+#define SSAO_KERNEL_SIZE 64
+#define RANDOM_TANGENTS_ROWS 4
+#define RANDOM_TANGENTS_COLS 4
+
 class GameObject;
 
 class ModuleRender : public Module {
@@ -23,8 +27,8 @@ public:
 	bool CleanUp() override;
 	void ReceiveEvent(TesseractEvent& ev) override;
 
-	void ViewportResized(int width, int height); // Updates the viewport aspect ratio with the new one given by parameters. It will set 'viewportUpdated' to true, to regenerate the framebuffer to its new size using UpdateFramebuffer().
-	void UpdateFramebuffer();					 // Generates the rendering framebuffer on Init(). If 'viewportUpdated' was set to true, it will be also called at PostUpdate().
+	void ViewportResized(int width, int height); // Updates the viewport aspect ratio with the new one given by parameters. It will set 'viewportUpdated' to true, to regenerate the framebuffer to its new size using UpdateFramebuffers().
+	void UpdateFramebuffers();					 // Generates the rendering framebuffer on Init(). If 'viewportUpdated' was set to true, it will be also called at PostUpdate().
 
 	void SetVSync(bool vsync);
 
@@ -55,10 +59,19 @@ public:
 
 	// - Render Buffer GL pointers - //
 	unsigned renderTexture = 0;
-	unsigned renderBuffer = 0;
-	unsigned framebuffer = 0;
+	unsigned positionsTexture = 0;
+	unsigned normalsTexture = 0;
 	unsigned depthMapTexture = 0;
+	unsigned ssaoTexture = 0;
+	unsigned auxBlurTexture = 0;
+
+	unsigned depthBuffer = 0;
+	unsigned framebuffer = 0;
+	unsigned depthPrepassTextureBuffer = 0;
 	unsigned depthMapTextureBuffer = 0;
+	unsigned ssaoTextureBuffer = 0;
+	unsigned ssaoBlurTextureBufferH = 0;
+	unsigned ssaoBlurTextureBufferV = 0;
 
 	// ------- Viewport Updated ------- //
 	bool viewportUpdated = true;
@@ -81,29 +94,42 @@ public:
 	float3 ambientColor = {0.25f, 0.25f, 0.25f}; // Color of ambient Light
 	float3 clearColor = {0.1f, 0.1f, 0.1f};		 // Color of the viewport between frames
 
+	bool ssaoActive = true;
+	float ssaoRange = 1.0f;
+	float ssaoBias = 0.0f;
+	float ssaoPower = 1.0f;
+
 	LightFrustum lightFrustum;
 
 private:
 	void DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb);			  // Draws the quadrtee nodes if 'drawQuadtree' is set to true.
 	void ClassifyGameObjects();																		  // Classify Game Objects from Scene taking into account Frustum Culling, Shadows and Rendering Mode
-	void ClassifyGameObjectsFromQuadrtee(const Quadtree<GameObject>::Node& node, const AABB2D& aabb); // Classify Game Objects from Scene taking into account Frustum Culling, Quadtree, Shadows and Rendering Mode
+	void ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::Node& node, const AABB2D& aabb); // Classify Game Objects from Scene taking into account Frustum Culling, Quadtree, Shadows and Rendering Mode
 	bool CheckIfInsideFrustum(const AABB& aabb, const OBB& obb);									  // ??
 	void DrawGameObject(GameObject* gameObject);													  // ??
+	void DrawGameObjectDepthPrepass(GameObject* gameObject);
 	void DrawGameObjectShadowPass(GameObject* gameObject);
 	void DrawAnimation(const GameObject* gameObject, bool hasAnimation = false);
 	void RenderUI();
 	void SetOrtographicRender();
 	void SetPerspectiveRender();
 
-	void ShadowMapPass();
+	void ComputeSSAOTexture();
+	void BlurSSAOTexture(bool horizontal);
+
+	void DrawSSAOTexture();
 	void DrawDepthMapTexture();
 
 private:
 	// ------- Viewport Size ------- //
 	float2 viewportSize = float2::zero;
 	bool drawDepthMapTexture = false;
+	bool drawSSAOTexture = false;
 
 	std::vector<GameObject*> shadowGameObjects;			 // Vector of Shadow Casted GameObjects
 	std::vector<GameObject*> opaqueGameObjects;			 // Vector of Opaque GameObjects
 	std::map<float, GameObject*> transparentGameObjects; // Map with Transparent GameObjects
+
+	float3 ssaoKernel[SSAO_KERNEL_SIZE];
+	float3 randomTangents[RANDOM_TANGENTS_ROWS * RANDOM_TANGENTS_COLS];
 };

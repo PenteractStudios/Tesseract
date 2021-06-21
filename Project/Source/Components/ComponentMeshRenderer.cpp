@@ -361,6 +361,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 	unsigned gldepthMapTexture = App->renderer->depthMapTexture;
 
+	unsigned glSSAOTexture = App->renderer->ssaoTexture;
+
 	unsigned glTextureEmissive = 0;
 	ResourceTexture* emissive = App->resources->GetResource<ResourceTexture>(material->emissiveMapId);
 	glTextureEmissive = emissive ? emissive->glTexture : 0;
@@ -369,7 +371,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	unsigned glTextureAmbientOcclusion = 0;
 	ResourceTexture* ambientOcclusion = App->resources->GetResource<ResourceTexture>(material->ambientOcclusionMapId);
 	glTextureAmbientOcclusion = ambientOcclusion ? ambientOcclusion->glTexture : 0;
-	int hasAmbientOcclusionMap = ambientOcclusion ? 1 : 0;
+	int hasAmbientOcclusionMap = glTextureAmbientOcclusion ? 1 : 0;
 
 	if (material->shaderType == MaterialShader::PHONG) {
 		// Phong-specific settings
@@ -495,6 +497,11 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_2D, gldepthMapTexture);
 
+	// SSAO texture
+	glUniform1i(glGetUniformLocation(program, "ssaoTexture"), 6);
+	glActiveTexture(GL_TEXTURE6);
+	glBindTexture(GL_TEXTURE_2D, glSSAOTexture);
+
 	// Tilling settings
 	glUniform2fv(glGetUniformLocation(program, "tiling"), 1, material->tiling.ptr());
 	glUniform2fv(glGetUniformLocation(program, "offset"), 1, material->offset.ptr());
@@ -531,6 +538,56 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform1f(glGetUniformLocation(program, spotLightStrings[i][8]), spotLightsArray[i]->outerAngle);
 	}
 	glUniform1i(glGetUniformLocation(program, "light.numSpots"), spotLightsArraySize);
+
+	glBindVertexArray(mesh->vao);
+	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
+	glBindVertexArray(0);
+}
+
+void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const {
+	if (!IsActive()) return;
+
+	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
+	if (mesh == nullptr) return;
+
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+	if (material == nullptr) return;
+
+	unsigned program = App->programs->depthPrepass;
+	float4x4 viewMatrix = App->camera->GetViewMatrix();
+	float4x4 projMatrix = App->camera->GetProjectionMatrix();
+
+	glUseProgram(program);
+
+
+	// Common uniform settings
+	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, modelMatrix.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, viewMatrix.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, projMatrix.ptr());
+
+	// Skinning
+	if (palette.size() > 0) {
+		glUniformMatrix4fv(glGetUniformLocation(program, "palette"), palette.size(), GL_TRUE, palette[0].ptr());
+	}
+
+	glUniform1i(glGetUniformLocation(program, "hasBones"), goBones.size());
+
+	// Diffuse
+	unsigned glTextureDiffuse = 0;
+	ResourceTexture* diffuse = App->resources->GetResource<ResourceTexture>(material->diffuseMapId);
+	glTextureDiffuse = diffuse ? diffuse->glTexture : 0;
+	int hasDiffuseMap = diffuse ? 1 : 0;
+
+	glUniform1i(glGetUniformLocation(program, "diffuseMap"), 0);
+	glUniform4fv(glGetUniformLocation(program, "diffuseColor"), 1, material->diffuseColor.ptr());
+	glUniform1i(glGetUniformLocation(program, "hasDiffuseMap"), hasDiffuseMap);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, glTextureDiffuse);
+
+	// Tiling settings
+	glUniform2fv(glGetUniformLocation(program, "tiling"), 1, material->tiling.ptr());
+	glUniform2fv(glGetUniformLocation(program, "offset"), 1, material->offset.ptr());
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);

@@ -48,9 +48,6 @@ void ComponentSkyBox::Draw() {
 	ResourceSkybox* skybox = App->resources->GetResource<ResourceSkybox>(skyboxId);
 	if (skybox == nullptr) return;
 
-	glDepthMask(GL_FALSE);
-	glDepthFunc(GL_LEQUAL);
-
 	unsigned program = App->programs->skybox;
 	glUseProgram(program);
 	float4x4 proj = App->camera->GetProjectionMatrix();
@@ -63,8 +60,5 @@ void ComponentSkyBox::Draw() {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetGlCubeMap());
 	glDrawArrays(GL_TRIANGLES, 0, 36);
-
 	glBindVertexArray(0);
-	glDepthFunc(GL_LESS);
-	glDepthMask(GL_TRUE);
 }
