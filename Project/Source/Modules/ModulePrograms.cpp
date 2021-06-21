@@ -88,10 +88,14 @@ void ModulePrograms::LoadShaders() {
 	LoadShaderBinFile();
 #endif
 
-	//SkyBox shader
-	skybox = CreateProgram(filePath, "vertSkybox", "fragSkybox");
+	// SkyBox shaders
+	hdrToCubemap = CreateProgram(filePath, "vertCube", "fragFunctionIBL fragHDRToCubemap");
+	irradiance = CreateProgram(filePath, "vertCube", "fragFunctionIBL fragIrradianceMap");
+	preFilteredMap = CreateProgram(filePath, "vertCube", "fragFunctionIBL fragPreFilteredMap");
+	environmentBRDF = CreateProgram(filePath, "vertScreen", "fragFunctionIBL fragEnvironmentBRDF");
+	skybox = CreateProgram(filePath, "vertCube", "fragSkybox");
 
-	//General shaders
+	// General shaders
 	phongNotNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragMainPhong"));
 	phongNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragMainPhong"));
 	standardNotNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic"));
@@ -125,6 +129,10 @@ void ModulePrograms::LoadShaders() {
 }
 
 void ModulePrograms::UnloadShaders() {
+	glDeleteProgram(hdrToCubemap);
+	glDeleteProgram(irradiance);
+	glDeleteProgram(preFilteredMap);
+	glDeleteProgram(environmentBRDF);
 	glDeleteProgram(skybox);
 
 	RELEASE(phongNormal);
@@ -141,10 +149,10 @@ void ModulePrograms::UnloadShaders() {
 
 	glDeleteProgram(shadowMap);
 
-	RELEASE(drawTexture);
-
 	RELEASE(textUI);
 	RELEASE(imageUI);
+
+	RELEASE(drawTexture);
 
 	glDeleteProgram(billboard);
 	glDeleteProgram(trail);
