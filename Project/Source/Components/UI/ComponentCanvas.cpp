@@ -23,7 +23,7 @@ void ComponentCanvas::Load(JsonValue jComponent) {
 }
 
 bool ComponentCanvas::CanBeRemoved() const {
-	return !AnyChildHasCanvasRenderer(&GetOwner());
+	return !AnyChildHasCanvasRenderer(&GetOwner()) || AnyParentHasCanvas();
 }
 
 void ComponentCanvas::OnEditorUpdate() {
@@ -89,4 +89,17 @@ bool ComponentCanvas::AnyChildHasCanvasRenderer(const GameObject* obj) const {
 		found = AnyChildHasCanvasRenderer(*it);
 	}
 	return found;
+}
+
+bool ComponentCanvas::AnyParentHasCanvas() const {
+	GameObject* parent = GetOwner().GetParent();
+
+	while (parent != nullptr) {
+		if (parent->GetComponent<ComponentCanvas>()) {
+			return true;
+		}
+		parent = parent->GetParent();
+	}
+
+	return false;
 }
