@@ -43,7 +43,7 @@
 
 #define GAUSS_KERNEL_SIZE 3
 
-static float gaussKernel[GAUSS_KERNEL_SIZE] = {0.38774, 0.24477, 0.06136};
+static float gaussKernel[GAUSS_KERNEL_SIZE] = {0.38774f, 0.24477f, 0.06136f};
 
 // clang-format off
 static const float cubeVertices[108] = {

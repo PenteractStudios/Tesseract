@@ -89,11 +89,11 @@ void ModulePrograms::LoadShaders() {
 #endif
 
 	// SkyBox shaders
-	hdrToCubemap = CreateProgram(filePath, "vertCube", "fragFunctionIBL fragHDRToCubemap");
-	irradiance = CreateProgram(filePath, "vertCube", "fragFunctionIBL fragIrradianceMap");
-	preFilteredMap = CreateProgram(filePath, "vertCube", "fragFunctionIBL fragPreFilteredMap");
-	environmentBRDF = CreateProgram(filePath, "vertScreen", "fragFunctionIBL fragEnvironmentBRDF");
-	skybox = CreateProgram(filePath, "vertCube", "fragSkybox");
+	hdrToCubemap = new ProgramHDRToCubemap(CreateProgram(filePath, "vertCube", "fragFunctionIBL fragHDRToCubemap"));
+	irradiance = new ProgramIrradiance(CreateProgram(filePath, "vertCube", "fragFunctionIBL fragIrradianceMap"));
+	preFilteredMap = new ProgramPreFilteredMap(CreateProgram(filePath, "vertCube", "fragFunctionIBL fragPreFilteredMap"));
+	environmentBRDF = new ProgramEnvironmentBRDF(CreateProgram(filePath, "vertScreen", "fragFunctionIBL fragEnvironmentBRDF"));
+	skybox = new ProgramSkybox(CreateProgram(filePath, "vertCube", "fragSkybox"));
 
 	// General shaders
 	phongNotNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragMainPhong"));
@@ -129,11 +129,11 @@ void ModulePrograms::LoadShaders() {
 }
 
 void ModulePrograms::UnloadShaders() {
-	glDeleteProgram(hdrToCubemap);
-	glDeleteProgram(irradiance);
-	glDeleteProgram(preFilteredMap);
-	glDeleteProgram(environmentBRDF);
-	glDeleteProgram(skybox);
+	RELEASE(hdrToCubemap);
+	RELEASE(irradiance);
+	RELEASE(preFilteredMap);
+	RELEASE(environmentBRDF);
+	RELEASE(skybox);
 
 	RELEASE(phongNormal);
 	RELEASE(phongNotNormal);

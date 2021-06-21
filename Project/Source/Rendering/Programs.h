@@ -36,6 +36,46 @@ struct Program {
 	unsigned program = 0;
 };
 
+struct ProgramCubemapRender : Program {
+	ProgramCubemapRender(unsigned program);
+
+	int viewLocation = -1;
+	int projLocation = -1;
+};
+
+struct ProgramHDRToCubemap : ProgramCubemapRender {
+	ProgramHDRToCubemap(unsigned program);
+
+	int hdrLocation = -1;
+};
+
+struct ProgramIrradiance : ProgramCubemapRender {
+	ProgramIrradiance(unsigned program);
+
+	int environmentLocation = -1;
+};
+
+struct ProgramPreFilteredMap : ProgramCubemapRender {
+	ProgramPreFilteredMap(unsigned program);
+
+	int environmentLocation = -1;
+	int environmentResolutionLocation = -1;
+	int roughnessLocation = -1;
+};
+
+struct ProgramEnvironmentBRDF : Program {
+	ProgramEnvironmentBRDF(unsigned program);
+};
+
+struct ProgramSkybox : Program {
+	ProgramSkybox(unsigned program);
+
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int cubemapLocation = -1;
+};
+
 struct ProgramStandard : public Program {
 	ProgramStandard(unsigned program);
 
@@ -73,6 +113,11 @@ struct ProgramStandard : public Program {
 
 	int tilingLocation = -1;
 	int offsetLocation = -1;
+
+	int diffuseIBLLocation = -1;
+	int prefilteredIBLLocation = -1;
+	int environmentBRDFLocation = -1;
+	int prefilteredIBLNumLevelsLocation = -1;
 
 	int lightAmbientColorLocation = -1;
 
@@ -119,8 +164,15 @@ struct ProgramDepthPrepass : Program {
 	int viewLocation = -1;
 	int projLocation = -1;
 
+	int diffuseMapLocation = -1;
+	int diffuseColorLocation = -1;
+	int hasDiffuseMapLocation = -1;
+
 	int paletteLocation = -1;
 	int hasBonesLocation = -1;
+
+	int tilingLocation = -1;
+	int offsetLocation = -1;
 };
 
 struct ProgramSSAO : Program {

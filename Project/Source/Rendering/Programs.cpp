@@ -35,6 +35,41 @@ Program::~Program() {
 	glDeleteProgram(program);
 }
 
+ProgramCubemapRender::ProgramCubemapRender(unsigned program_)
+	: Program(program_) {
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+}
+
+ProgramHDRToCubemap::ProgramHDRToCubemap(unsigned program_)
+	: ProgramCubemapRender(program_) {
+	hdrLocation = glGetUniformLocation(program, "hdr");
+}
+
+ProgramIrradiance::ProgramIrradiance(unsigned program_)
+	: ProgramCubemapRender(program_) {
+	environmentLocation = glGetUniformLocation(program, "environment");
+}
+
+ProgramPreFilteredMap::ProgramPreFilteredMap(unsigned program_)
+	: ProgramCubemapRender(program_) {
+	environmentLocation = glGetUniformLocation(program, "environment");
+	environmentResolutionLocation = glGetUniformLocation(program, "environmentResolution");
+	roughnessLocation = glGetUniformLocation(program, "roughness");
+}
+
+ProgramEnvironmentBRDF::ProgramEnvironmentBRDF(unsigned program_)
+	: Program(program_) {
+}
+
+ProgramSkybox::ProgramSkybox(unsigned program_)
+	: Program(program_) {
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
+	cubemapLocation = glGetUniformLocation(program, "cubemap");
+}
+
 ProgramStandard::ProgramStandard(unsigned program_)
 	: Program(program_) {
 	modelLocation = glGetUniformLocation(program, "model");
@@ -71,6 +106,11 @@ ProgramStandard::ProgramStandard(unsigned program_)
 
 	tilingLocation = glGetUniformLocation(program, "tiling");
 	offsetLocation = glGetUniformLocation(program, "offset");
+
+	diffuseIBLLocation = glGetUniformLocation(program, "diffuseIBL");
+	prefilteredIBLLocation = glGetUniformLocation(program, "prefilteredIBL");
+	environmentBRDFLocation = glGetUniformLocation(program, "environmentBRDF");
+	prefilteredIBLNumLevelsLocation = glGetUniformLocation(program, "prefilteredIBLNumLevels");
 
 	lightAmbientColorLocation = glGetUniformLocation(program, "light.ambient.color");
 
@@ -117,8 +157,15 @@ ProgramDepthPrepass::ProgramDepthPrepass(unsigned program_)
 	viewLocation = glGetUniformLocation(program, "view");
 	projLocation = glGetUniformLocation(program, "proj");
 
+	diffuseMapLocation = glGetUniformLocation(program, "diffuseMap");
+	diffuseColorLocation = glGetUniformLocation(program, "diffuseColor");
+	hasDiffuseMapLocation = glGetUniformLocation(program, "hasDiffuseMap");
+
 	paletteLocation = glGetUniformLocation(program, "palette");
 	hasBonesLocation = glGetUniformLocation(program, "hasBones");
+
+	tilingLocation = glGetUniformLocation(program, "tiling");
+	offsetLocation = glGetUniformLocation(program, "offset");
 }
 
 ProgramSSAO::ProgramSSAO(unsigned program_)

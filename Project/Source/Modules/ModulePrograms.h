@@ -18,11 +18,11 @@ public:
 	const char* filePath = "Library/shadersBin";
 
 	// Skybox shaders
-	unsigned hdrToCubemap = 0;
-	unsigned irradiance = 0;
-	unsigned preFilteredMap = 0;
-	unsigned environmentBRDF = 0;
-	unsigned skybox = 0;
+	ProgramHDRToCubemap* hdrToCubemap = nullptr;
+	ProgramIrradiance* irradiance = nullptr;
+	ProgramPreFilteredMap* preFilteredMap = nullptr;
+	ProgramEnvironmentBRDF* environmentBRDF = nullptr;
+	ProgramSkybox* skybox = nullptr;
 
 	// Ilumination Shaders
 	ProgramStandardPhong* phongNormal = nullptr;

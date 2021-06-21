@@ -515,19 +515,19 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		ResourceSkybox* skyboxResource = App->resources->GetResource<ResourceSkybox>(skyboxComponent.GetSkyboxResourceID());
 
 		if (skyboxResource != nullptr) {
-			glUniform1i(glGetUniformLocation(program, "diffuseIBL"), 7);
+			glUniform1i(standardProgram->diffuseIBLLocation, 7);
 			glActiveTexture(GL_TEXTURE7);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxResource->GetGlIrradianceMap());
 
-			glUniform1i(glGetUniformLocation(program, "prefilteredIBL"), 8);
+			glUniform1i(standardProgram->prefilteredIBLLocation, 8);
 			glActiveTexture(GL_TEXTURE8);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxResource->GetGlPreFilteredMap());
 
-			glUniform1i(glGetUniformLocation(program, "environmentBRDF"), 9);
+			glUniform1i(standardProgram->environmentBRDFLocation, 9);
 			glActiveTexture(GL_TEXTURE9);
 			glBindTexture(GL_TEXTURE_2D, skyboxResource->GetGlEnvironmentBRDF());
 
-			glUniform1i(glGetUniformLocation(program, "prefilteredIBLNumLevels"), skyboxResource->GetPreFilteredMapNumLevels());
+			glUniform1i(standardProgram->prefilteredIBLNumLevelsLocation, skyboxResource->GetPreFilteredMapNumLevels());
 		}
 	}
 	// Lights uniforms settings
@@ -575,6 +575,9 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
 	if (mesh == nullptr) return;
 
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+	if (material == nullptr) return;
+
 	ProgramDepthPrepass* depthPrepassProgram = App->programs->depthPrepass;
 	if (depthPrepassProgram == nullptr) return;
 
@@ -582,7 +585,6 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	float4x4 projMatrix = App->camera->GetProjectionMatrix();
 
 	glUseProgram(depthPrepassProgram->program);
-
 
 	// Common uniform settings
 	glUniformMatrix4fv(depthPrepassProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
@@ -602,16 +604,16 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	glTextureDiffuse = diffuse ? diffuse->glTexture : 0;
 	int hasDiffuseMap = diffuse ? 1 : 0;
 
-	glUniform1i(glGetUniformLocation(program, "diffuseMap"), 0);
-	glUniform4fv(glGetUniformLocation(program, "diffuseColor"), 1, material->diffuseColor.ptr());
-	glUniform1i(glGetUniformLocation(program, "hasDiffuseMap"), hasDiffuseMap);
+	glUniform1i(depthPrepassProgram->diffuseMapLocation, 0);
+	glUniform4fv(depthPrepassProgram->diffuseColorLocation, 1, material->diffuseColor.ptr());
+	glUniform1i(depthPrepassProgram->hasDiffuseMapLocation, hasDiffuseMap);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, glTextureDiffuse);
 
 	// Tiling settings
-	glUniform2fv(glGetUniformLocation(program, "tiling"), 1, material->tiling.ptr());
-	glUniform2fv(glGetUniformLocation(program, "offset"), 1, material->offset.ptr());
+	glUniform2fv(depthPrepassProgram->tilingLocation, 1, material->tiling.ptr());
+	glUniform2fv(depthPrepassProgram->offsetLocation, 1, material->offset.ptr());
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
