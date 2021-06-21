@@ -38,7 +38,7 @@ void ComponentCanvas::OnEditorUpdate() {
 void ComponentCanvas::DrawGizmos() {
 	if (!App->time->HasGameStarted() && !App->userInterface->IsUsing2D() && drawCanvas) {
 		float2 canvasSize = GetSize();
-		dd::box(float3(canvasSize.x * 0.5f, canvasSize.y * 0.5, 0.0f), dd::colors::DimGray, canvasSize.x, canvasSize.y, 0);
+		dd::box(float3(canvasSize.x * 0.5f, canvasSize.y * 0.5f, 0.0f), dd::colors::DimGray, canvasSize.x, canvasSize.y, 0);
 	}
 }
 

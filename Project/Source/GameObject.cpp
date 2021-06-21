@@ -212,7 +212,7 @@ const std::vector<GameObject*>& GameObject::GetChildren() const {
 	return children;
 }
 
-GameObject* GameObject::GetChild(int index) const {
+GameObject* GameObject::GetChild(unsigned index) const {
 	return index < children.size() ? children[index] : nullptr;
 }
 

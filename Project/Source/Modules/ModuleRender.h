@@ -121,8 +121,7 @@ private:
 	void ComputeSSAOTexture();
 	void BlurSSAOTexture(bool horizontal);
 
-	void DrawSSAOTexture();
-	void DrawDepthMapTexture();
+	void DrawTexture(unsigned texture);
 
 private:
 	// ------- Viewport Size ------- //

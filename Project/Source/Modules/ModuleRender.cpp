@@ -43,7 +43,7 @@
 
 #define GAUSS_KERNEL_SIZE 3
 
-static float gaussKernel[GAUSS_KERNEL_SIZE] = {0.38774, 0.24477, 0.06136};
+static float gaussKernel[GAUSS_KERNEL_SIZE] = {0.38774f, 0.24477f, 0.06136f};
 
 // clang-format off
 static const float cubeVertices[108] = {
@@ -290,67 +290,59 @@ void ModuleRender::ClassifyGameObjects() {
 }
 
 void ModuleRender::ComputeSSAOTexture() {
-	unsigned program = App->programs->ssao;
+	ProgramSSAO* ssaoProgram = App->programs->ssao;
+	if (ssaoProgram == nullptr) return;
+
 	float4x4 viewMatrix = App->camera->GetViewMatrix();
 	float4x4 projMatrix = App->camera->GetProjectionMatrix();
 
-	glUseProgram(program);
+	glUseProgram(ssaoProgram->program);
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, projMatrix.ptr());
+	glUniformMatrix4fv(ssaoProgram->projLocation, 1, GL_TRUE, projMatrix.ptr());
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, positionsTexture);
-	glUniform1i(glGetUniformLocation(program, "positions"), 0);
+	glUniform1i(ssaoProgram->positionsLocation, 0);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, normalsTexture);
-	glUniform1i(glGetUniformLocation(program, "normals"), 1);
+	glUniform1i(ssaoProgram->normalsLocation, 1);
 
-	glUniform3fv(glGetUniformLocation(program, "kernelSamples"), SSAO_KERNEL_SIZE, ssaoKernel[0].ptr());
-	glUniform3fv(glGetUniformLocation(program, "randomTangents"), RANDOM_TANGENTS_ROWS * RANDOM_TANGENTS_COLS, randomTangents[0].ptr());
-	glUniform2f(glGetUniformLocation(program, "screenSize"), viewportSize.x, viewportSize.y);
-	glUniform1f(glGetUniformLocation(program, "bias"), ssaoBias);
-	glUniform1f(glGetUniformLocation(program, "range"), ssaoRange);
-	glUniform1f(glGetUniformLocation(program, "power"), ssaoPower);
+	glUniform3fv(ssaoProgram->kernelSamplesLocation, SSAO_KERNEL_SIZE, ssaoKernel[0].ptr());
+	glUniform3fv(ssaoProgram->randomTangentsLocation, RANDOM_TANGENTS_ROWS * RANDOM_TANGENTS_COLS, randomTangents[0].ptr());
+	glUniform2f(ssaoProgram->screenSizeLocation, viewportSize.x, viewportSize.y);
+	glUniform1f(ssaoProgram->biasLocation, ssaoBias);
+	glUniform1f(ssaoProgram->rangeLocation, ssaoRange);
+	glUniform1f(ssaoProgram->powerLocation, ssaoPower);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 void ModuleRender::BlurSSAOTexture(bool horizontal) {
-	unsigned program = App->programs->ssaoBlur;
+	ProgramSSAOBlur* ssaoBlurProgram = App->programs->ssaoBlur;
+	if (ssaoBlurProgram == nullptr) return;
 
-	glUseProgram(program);
+	glUseProgram(ssaoBlurProgram->program);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, horizontal ? ssaoTexture : auxBlurTexture);
-	glUniform1i(glGetUniformLocation(program, "inputTexture"), 0);
+	glUniform1i(ssaoBlurProgram->inputTextureLocation, 0);
 
-	glUniform1fv(glGetUniformLocation(program, "kernel"), GAUSS_KERNEL_SIZE, gaussKernel);
-	glUniform1i(glGetUniformLocation(program, "horizontal"), horizontal ? 1 : 0);
-
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-}
-
-void ModuleRender::DrawSSAOTexture() {
-	unsigned program = App->programs->drawSSAOTexture;
-
-	glUseProgram(program);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, ssaoTexture);
-	glUniform1i(glGetUniformLocation(program, "ssaoTexture"), 0);
+	glUniform1fv(ssaoBlurProgram->kernelLocation, GAUSS_KERNEL_SIZE, gaussKernel);
+	glUniform1i(ssaoBlurProgram->horizontalLocation, horizontal ? 1 : 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
-void ModuleRender::DrawDepthMapTexture() {
-	unsigned program = App->programs->drawDepthMapTexture;
+void ModuleRender::DrawTexture(unsigned texture) {
+	ProgramDrawTexture* drawTextureProgram = App->programs->drawTexture;
+	if (drawTextureProgram == nullptr) return;
 
-	glUseProgram(program);
+	glUseProgram(drawTextureProgram->program);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, depthMapTexture);
-	glUniform1i(glGetUniformLocation(program, "depthMapTexture"), 0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glUniform1i(drawTextureProgram->textureToDrawLocation, 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
@@ -450,11 +442,11 @@ UpdateStatus ModuleRender::Update() {
 
 	// Debug textures
 	if (drawSSAOTexture) {
-		DrawSSAOTexture();
+		DrawTexture(ssaoTexture);
 		return UpdateStatus::CONTINUE;
 	}
 	if (drawDepthMapTexture) {
-		DrawDepthMapTexture();
+		DrawTexture(depthMapTexture);
 		return UpdateStatus::CONTINUE;
 	}
 
