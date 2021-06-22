@@ -22,7 +22,7 @@
 
 class GameObject;
 class ResourcePrefab;
-class ComponentEventsystem;
+class ComponentEventSystem;
 
 namespace GameplaySystems {
 	TESSERACT_ENGINE_API GameObject* Instantiate(ResourcePrefab* prefab, float3 position, Quat rotation);
