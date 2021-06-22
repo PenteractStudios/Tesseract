@@ -21,7 +21,7 @@ public:
 private:
 	UID textureID = 0; // ID of the image
 
-	BillboardType billboardType = BillboardType::LOOK_AT;
+	BillboardType billboardType = BillboardType::NORMAL;
 
 	float4x4 modelStretch = float4x4::identity;
 	float3 initPos = float3::zero;

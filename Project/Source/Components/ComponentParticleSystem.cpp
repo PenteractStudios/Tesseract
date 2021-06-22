@@ -183,7 +183,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 	// Render
 	if (ImGui::CollapsingHeader("Render")) {
-		const char* billboardTypeCombo[] = {"LookAt", "Stretch", "Horitzontal", "Vertical"};
+		const char* billboardTypeCombo[] = {"Billboard", "Stretched Billboard", "Horitzontal Billboard ", "Vertical Billboard"};
 		const char* billboardTypeComboCurrent = billboardTypeCombo[(int) billboardType];
 		if (ImGui::BeginCombo("Bilboard Mode##", billboardTypeComboCurrent)) {
 			for (int n = 0; n < IM_ARRAYSIZE(billboardTypeCombo); ++n) {
@@ -496,7 +496,7 @@ void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
 		}
 	}
 
-	if (billboardType == BillboardType::LOOK_AT) {
+	if (billboardType == BillboardType::NORMAL) {
 		currentParticle->model = float4x4::FromTRS(currentParticle->position, currentParticle->rotation, currentParticle->scale);
 	} else {
 		currentParticle->modelStretch.SetTranslatePart(currentParticle->position);
@@ -619,7 +619,7 @@ void ComponentParticleSystem::Draw() {
 			Frustum* frustum = App->camera->GetActiveCamera()->GetFrustum();
 
 			float4x4 modelMatrix;
-			if (billboardType == BillboardType::LOOK_AT) {
+			if (billboardType == BillboardType::NORMAL) {
 				float4x4 newModelMatrix = currentParticle.model.LookAt(rotatePart.Col(2), -frustum->Front(), rotatePart.Col(1), float3::unitY);
 				modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart(), currentParticle.scale);
 			} else if (billboardType == BillboardType::STRETCH) {

@@ -26,7 +26,7 @@ enum class ParticleRenderMode {
 };
 
 enum class BillboardType {
-	LOOK_AT,
+	NORMAL,
 	STRETCH,
 	HORIZONTAL,
 	VERTICAL
@@ -128,8 +128,8 @@ private:
 	bool isRandomFrame = false;
 
 	// Render
-	UID textureID = 0;									  // ID of the image
-	BillboardType billboardType = BillboardType::LOOK_AT; // Render Mode
+	UID textureID = 0;
+	BillboardType billboardType = BillboardType::NORMAL;
 	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
 	bool flipTexture[2] = {false, false};
 

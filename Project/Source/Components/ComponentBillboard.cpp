@@ -230,13 +230,13 @@ void ComponentBillboard::Draw() {
 
 	float4x4 newModelMatrix;
 
-	if (billboardType == BillboardType::LOOK_AT) {
+	if (billboardType == BillboardType::NORMAL) {
 		newModelMatrix = modelMatrix.LookAt(rotatePart.Col(2), -frustum->Front(), rotatePart.Col(1), float3::unitY);
 		newModelMatrix = float4x4::FromTRS(position, newModelMatrix.RotatePart() * modelMatrix.RotatePart(), scale);
 
 	} else if (billboardType == BillboardType::STRETCH) {
 		float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
-		float3 cameraDir = (cameraPos -  position).Normalized();
+		float3 cameraDir = (cameraPos - position).Normalized();
 		float3 upDir = Cross(direction, cameraDir);
 		float3 newCameraDir = Cross(direction, upDir);
 
