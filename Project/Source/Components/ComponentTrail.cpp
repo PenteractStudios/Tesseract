@@ -44,41 +44,57 @@
 void ComponentTrail::Init() {
 	glGenBuffers(1, &quadVBO);
 	EditTextureCoords();
+	CreateQuads(maxQuads);
 }
 
 void ComponentTrail::Update() {
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
+
 	if (isStarted) {
-		previousPositionUp = currentPositionUp;
-		previousPositionDown = currentPositionDown;
-		previousPosition = currentPosition;
+		if (!previousPosition.Equals(transform->GetGlobalPosition())) {
+			previousPositionUp = currentPositionUp;
+			previousPositionDown = currentPositionDown;
+			previousPosition = currentPosition;
 
-		currentPosition = transform->GetGlobalPosition();
-		previousVectorUp = transform->GetGlobalRotation() * float3::unitY;
-		previousVectorUp.Normalize();
+			currentPosition = transform->GetGlobalPosition();
+			previousVectorUp = transform->GetGlobalRotation() * float3::unitY;
+			previousVectorUp.Normalize();
 
-		currentPositionUp = (previousVectorUp * width) + currentPosition;
-		currentPositionDown = (-previousVectorUp * width) + currentPosition;
-		if (trianglesCreated >= (maxVertices)) {
-			UpdateVerticesPosition();
-			trianglesCreated -= 30;
+			currentPositionUp = (previousVectorUp * width) + currentPosition;
+			currentPositionDown = (-previousVectorUp * width) + currentPosition;
+
+			if (quadsCreated >= trailQuads) {
+				//UpdateVerticesPosition();
+				for (int j = 0; j < trailQuads - 1; j++) {
+					quads[j] = quads[j + 1];
+				}
+				quadsCreated--;
+				trianglesCreated -= 30;
+			}
+
+			Quad* currentQuad = &quads[quadsCreated];
+			SpawnQuad(currentQuad);
+			//if (trianglesCreated >= (maxVertices)) {
+			//	UpdateVerticesPosition();
+			//	trianglesCreated -= 30;
+			//}
+
+			InsertVertex(currentQuad, previousPositionDown);
+			InsertTextureCoords(currentQuad);
+			InsertVertex(currentQuad, currentPositionDown);
+			InsertTextureCoords(currentQuad);
+			InsertVertex(currentQuad, previousPositionUp);
+			InsertTextureCoords(currentQuad);
+
+			InsertVertex(currentQuad, currentPositionDown);
+			InsertTextureCoords(currentQuad);
+			InsertVertex(currentQuad, currentPositionUp);
+			InsertTextureCoords(currentQuad);
+			InsertVertex(currentQuad, previousPositionUp);
+			InsertTextureCoords(currentQuad);
+
+			quadsCreated++;
 		}
-
-		InsertVertex(previousPositionDown);
-		InsertTextureCoords();
-		InsertVertex(currentPositionDown);
-		InsertTextureCoords();
-		InsertVertex(previousPositionUp);
-		InsertTextureCoords();
-
-		InsertVertex(currentPositionDown);
-		InsertTextureCoords();
-		InsertVertex(currentPositionUp);
-		InsertTextureCoords();
-		InsertVertex(previousPositionUp);
-		InsertTextureCoords();
-
-		quadsCreated++;
 	} else {
 		isStarted = true;
 		currentPosition = transform->GetGlobalPosition();
@@ -86,6 +102,32 @@ void ComponentTrail::Update() {
 		previousVectorUp.Normalize();
 		currentPositionUp = previousVectorUp * width + currentPosition;
 		currentPositionDown = -previousVectorUp * width + currentPosition;
+		return;
+	}
+	UpdateQuads();
+}
+void ComponentTrail::UpdateQuads() {
+	deadQuads.clear();
+	for (int i = 0; i < quadsCreated; i++) {
+		UpdateLife(&quads[i]);
+
+		if (quads[i].life < 0) {
+			quadsCreated--;
+
+			for (int j = 0; j < trailQuads - 1; j++) {
+				quads[j] = quads[j + 1];
+			}
+		}
+	}
+}
+
+void ComponentTrail::UpdateLife(Quad* currentQuad) {
+	if (App->time->IsGameRunning()) {
+		currentQuad->life -= App->time->GetDeltaTime();
+		currentQuad->colorFrame += App->time->GetDeltaTime();
+	} else {
+		currentQuad->life -= App->time->GetRealTimeDeltaTime();
+		currentQuad->colorFrame += App->time->GetRealTimeDeltaTime();
 	}
 }
 
@@ -191,57 +233,58 @@ void ComponentTrail::Save(JsonValue jComponent) const {
 
 void ComponentTrail::Draw() {
 	unsigned int program = App->programs->trail;
+	for (Quad& currentQuad : quads) {
+		glDepthMask(GL_FALSE);
+		glEnable(GL_BLEND);
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendFunc(GL_ONE, GL_ONE);
+		glDisable(GL_CULL_FACE);
 
-	glDepthMask(GL_FALSE);
-	glEnable(GL_BLEND);
-	glBlendEquation(GL_FUNC_ADD);
-	glBlendFunc(GL_ONE, GL_ONE);
-	glDisable(GL_CULL_FACE);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO); // set vbo active
+		glBufferData(GL_ARRAY_BUFFER, sizeof(currentQuad.quadInfo), currentQuad.quadInfo, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ARRAY_BUFFER, quadVBO); // set vbo active
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticesPosition), verticesPosition, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) 0);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) (sizeof(float) * 3));
+		glUseProgram(program);
 
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) 0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) (sizeof(float) * 3));
-	glUseProgram(program);
+		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 
-	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
+		Frustum* frustum = App->camera->GetActiveCamera()->GetFrustum();
+		float4x4* proj = &App->camera->GetProjectionMatrix();
+		float4x4* view = &App->camera->GetViewMatrix();
 
-	Frustum* frustum = App->camera->GetActiveCamera()->GetFrustum();
-	float4x4* proj = &App->camera->GetProjectionMatrix();
-	float4x4* view = &App->camera->GetViewMatrix();
+		glActiveTexture(GL_TEXTURE0);
 
-	glActiveTexture(GL_TEXTURE0);
+		glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view->ptr());
+		glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view->ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
-
-	if (colorOverTrail) {
-		if (App->time->IsGameRunning()) {
-			colorFrame += colorSpeed * App->time->GetDeltaTime();
-		} else {
-			colorFrame += colorSpeed * App->time->GetRealTimeDeltaTime();
+		if (colorOverTrail) {
+			if (App->time->IsGameRunning()) {
+				colorFrame += colorSpeed * App->time->GetDeltaTime();
+			} else {
+				colorFrame += colorSpeed * App->time->GetRealTimeDeltaTime();
+			}
 		}
+
+		glUniform1f(glGetUniformLocation(program, "colorFrame"), colorFrame);
+		glUniform4fv(glGetUniformLocation(program, "initColor"), 1, initC.ptr());
+		glUniform4fv(glGetUniformLocation(program, "mediumColor"), 1, mediumC.ptr());
+		glUniform4fv(glGetUniformLocation(program, "finalColor"), 1, finalC.ptr());
+
+		ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
+		if (textureResource != nullptr) {
+			glBindTexture(GL_TEXTURE_2D, textureResource->glTexture);
+		}
+
+		glDrawArrays(GL_TRIANGLES, 0, currentQuad.index);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glEnable(GL_CULL_FACE);
+		glDisable(GL_BLEND);
+		glDepthMask(GL_TRUE);
 	}
-
-	glUniform1f(glGetUniformLocation(program, "colorFrame"), colorFrame);
-	glUniform4fv(glGetUniformLocation(program, "initColor"), 1, initC.ptr());
-	glUniform4fv(glGetUniformLocation(program, "mediumColor"), 1, mediumC.ptr());
-	glUniform4fv(glGetUniformLocation(program, "finalColor"), 1, finalC.ptr());
-
-	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
-	if (textureResource != nullptr) {
-		glBindTexture(GL_TEXTURE_2D, textureResource->glTexture);
-	}
-
-	glDrawArrays(GL_TRIANGLES, 0, trianglesCreated);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glEnable(GL_CULL_FACE);
-	glDisable(GL_BLEND);
-	glDepthMask(GL_TRUE);
 }
 
 void ComponentTrail::UpdateVerticesPosition() {
@@ -249,27 +292,54 @@ void ComponentTrail::UpdateVerticesPosition() {
 		verticesPosition[i] = verticesPosition[i + 30];
 	}
 }
-void ComponentTrail::InsertVertex(float3 vertex) {
-	verticesPosition[trianglesCreated++] = vertex.x;
-	verticesPosition[trianglesCreated++] = vertex.y;
-	verticesPosition[trianglesCreated++] = vertex.z;
+void ComponentTrail::InsertVertex(Quad* currentQuad, float3 vertex) {
+	currentQuad->quadInfo[currentQuad->index++] = vertex.x;
+	currentQuad->quadInfo[currentQuad->index++] = vertex.y;
+	currentQuad->quadInfo[currentQuad->index++] = vertex.z;
+	trianglesCreated += 3;
+	//verticesPosition[trianglesCreated++] = vertex.x;
+	//verticesPosition[trianglesCreated++] = vertex.y;
+	//verticesPosition[trianglesCreated++] = vertex.z;
 }
 
-void ComponentTrail::InsertTextureCoords() {
+void ComponentTrail::InsertTextureCoords(Quad* currentQuad) {
 	if (nTextures == 1) {
 		textureCreated = 0;
-		for (int i = 0; i < trianglesCreated + 2;) {
-			verticesPosition[(i + 3)] = textureCords[textureCreated++];
-			verticesPosition[(i + 4)] = textureCords[textureCreated++];
-			i += 5;
+		for (int i = 0; i < quadsCreated; i++) {
+			for (int j = 0; j < 6; j++) {
+				quads[i].quadInfo[(j * 5) + 3] = textureCords[textureCreated++];
+				quads[i].quadInfo[(j * 5) + 4] = textureCords[textureCreated++];
+			}
 		}
+		currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
+		currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
 		trianglesCreated += 2;
+		//for (int i = 0; i < trianglesCreated + 2;) {
+		//	quads[quadsCreated].quadInfo[3] = textureCords[textureCreated++];
+		//	quads[quadsCreated].quadInfo[4] = textureCords[textureCreated++];
+		//	//verticesPosition[(i + 3)] = textureCords[textureCreated++];
+		//	//verticesPosition[(i + 4)] = textureCords[textureCreated++];
+		//	i += 5;
+		//}
+		/*trianglesCreated += 2;*/
 	} else {
 		if (textureCreated == nRepeats) textureCreated = 0;
-
-		verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
-		verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
+		currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
+		currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
+		trianglesCreated += 2;
+		//verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
+		//verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
 	}
+}
+void ComponentTrail::CreateQuads(unsigned nQuads) {
+	//for (Quad& currentQuad : quads) {
+	//
+	//}
+}
+
+void ComponentTrail::SpawnQuad(Quad* currentQuad) {
+	currentQuad->index = 0;
+	currentQuad->life = quadLife;
 }
 
 void ComponentTrail::DeleteQuads() {

@@ -7,7 +7,7 @@
     ],
     "QuadtreeMaxDepth": 4,
     "QuadtreeElementsPerNode": 200,
-    "GameCamera": 14098243567088493674,
+    "GameCamera": 14177650483820568080,
     "AmbientLight": [
         0.25,
         0.25,
@@ -15,7 +15,7 @@
     ],
     "NavMesh": 0,
     "Root": {
-        "Id": 1668348049469335941,
+        "Id": 18100445764927191868,
         "Name": "Scene",
         "Active": true,
         "Static": false,
@@ -25,7 +25,7 @@
         "Components": [
             {
                 "Type": "Transform",
-                "Id": 7904194518609958458,
+                "Id": 18410214243040302523,
                 "Active": true,
                 "Position": [
                     0.0,
@@ -52,7 +52,7 @@
         ],
         "Children": [
             {
-                "Id": 11007776684176631423,
+                "Id": 4748347330863166705,
                 "Name": "Directional Light",
                 "Active": true,
                 "Static": false,
@@ -62,7 +62,7 @@
                 "Components": [
                     {
                         "Type": "Transform",
-                        "Id": 16299368395068880390,
+                        "Id": 6543329694798818252,
                         "Active": true,
                         "Position": [
                             0.0,
@@ -88,7 +88,7 @@
                     },
                     {
                         "Type": "Light",
-                        "Id": 10265533979505678201,
+                        "Id": 15331700770338779735,
                         "Active": true,
                         "LightType": 0,
                         "Color": [
@@ -106,7 +106,7 @@
                 "Children": null
             },
             {
-                "Id": 10514215178967917318,
+                "Id": 1701602996864909697,
                 "Name": "Game Camera",
                 "Active": true,
                 "Static": false,
@@ -116,7 +116,7 @@
                 "Components": [
                     {
                         "Type": "Transform",
-                        "Id": 6797461860742163603,
+                        "Id": 3171890268624715405,
                         "Active": true,
                         "Position": [
                             2.0,
@@ -142,7 +142,7 @@
                     },
                     {
                         "Type": "Camera",
-                        "Id": 10621539458626114255,
+                        "Id": 13633242906147441389,
                         "Active": true,
                         "Frustum": {
                             "Pos": [
@@ -162,20 +162,20 @@
                             ],
                             "NearPlaneDistance": 0.10000000149011612,
                             "FarPlaneDistance": 2000.0,
-                            "HorizontalFov": 2.1349008083343508,
+                            "HorizontalFov": 2.1344871520996095,
                             "VerticalFov": 1.3113912343978882
                         }
                     },
                     {
                         "Type": "Skybox",
-                        "Id": 258154218997724126,
+                        "Id": 2733403764308680431,
                         "Active": true,
                         "Shader": 0,
                         "Skybox": 0
                     },
                     {
                         "Type": "AudioListener",
-                        "Id": 13097058218534529736,
+                        "Id": 1989486634667440568,
                         "Active": true,
                         "Gain": 1.0
                     }
@@ -183,7 +183,7 @@
                 "Children": null
             },
             {
-                "Id": 14557491081475390181,
+                "Id": 924957065874692420,
                 "Name": "Game Object",
                 "Active": true,
                 "Static": false,
@@ -193,12 +193,12 @@
                 "Components": [
                     {
                         "Type": "Transform",
-                        "Id": 8134812951135376918,
+                        "Id": 2489141203074614439,
                         "Active": true,
                         "Position": [
-                            -2.0495126247406008,
-                            1.8207417726516724,
-                            -3.751098394393921
+                            -2.411376714706421,
+                            0.615509569644928,
+                            -0.5955808162689209
                         ],
                         "Rotation": [
                             0.0,
@@ -219,14 +219,480 @@
                     },
                     {
                         "Type": "Trail",
-                        "Id": 2641825565764382837,
+                        "Id": 228869586479515245,
                         "Active": true,
-                        "TextureId": 12655596251973795251,
+                        "TextureId": 3674665637007698327,
                         "MaxVertices": 1500,
-                        "TrailQuads": 50
+                        "TrailQuads": 50,
+                        "Width": 1.0,
+                        "NRepeats": 600.0,
+                        "ColorOverTrail": false,
+                        "InitColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "MediumColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "FinalColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "ColorSpeed": 0.0
                     }
                 ],
                 "Children": null
+            },
+            {
+                "Id": 18057829764148746069,
+                "Name": "Fire",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 9021661512378786493,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Id": 1086074147354608313,
+                        "Name": "Llamas",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 4314729749226087037,
+                                "Active": true,
+                                "Position": [
+                                    0.0,
+                                    -0.08709913492202759,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Particle",
+                                "Id": 11884424264774711096,
+                                "Active": true,
+                                "EmitterType": 0,
+                                "BillboardType": 0,
+                                "TextureId": 8544467787590281640,
+                                "IsPlaying": true,
+                                "IsLooping": true,
+                                "IsSizeOverTime": false,
+                                "ScaleFactor": 0.0,
+                                "ParticleScale": 5.650000095367432,
+                                "MaxParticle": 46,
+                                "Velocity": 0.8999999761581421,
+                                "LifeParticle": 1.899999976158142,
+                                "DistanceReverse": 0.0,
+                                "ReverseEffect": false,
+                                "StartDelay": 0.0,
+                                "Ytiles": 2,
+                                "Xtiles": 2,
+                                "AnimationSpeed": 2.299999952316284,
+                                "IsRandomFrame": true,
+                                "InitColor": [
+                                    1.0,
+                                    0.3529411554336548,
+                                    0.0,
+                                    1.0
+                                ],
+                                "FinalColor": [
+                                    9.999999974752428e-7,
+                                    9.999899930335233e-7,
+                                    9.999899930335233e-7,
+                                    1.0
+                                ],
+                                "StartTransition": 0.009999999776482582,
+                                "EndTransition": 0.6000000238418579,
+                                "FlipTexture": [
+                                    false,
+                                    false
+                                ],
+                                "ConeRadiusUp": 0.0,
+                                "ConeRadiusDown": 0.0
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 9741287407044841681,
+                        "Name": "Llamas",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 3656648894063248844,
+                                "Active": true,
+                                "Position": [
+                                    0.0,
+                                    -0.08709913492202759,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Particle",
+                                "Id": 14524814517995160235,
+                                "Active": true,
+                                "EmitterType": 0,
+                                "BillboardType": 0,
+                                "TextureId": 6629389531070812323,
+                                "IsPlaying": true,
+                                "IsLooping": true,
+                                "IsSizeOverTime": false,
+                                "ScaleFactor": 0.0,
+                                "ParticleScale": 0.699999988079071,
+                                "MaxParticle": 20,
+                                "Velocity": 0.699999988079071,
+                                "LifeParticle": 0.949999988079071,
+                                "DistanceReverse": 0.0,
+                                "ReverseEffect": false,
+                                "StartDelay": 0.0,
+                                "Ytiles": 1,
+                                "Xtiles": 1,
+                                "AnimationSpeed": 0.0,
+                                "IsRandomFrame": true,
+                                "InitColor": [
+                                    1.0,
+                                    0.32352936267852785,
+                                    0.0,
+                                    1.0
+                                ],
+                                "FinalColor": [
+                                    9.999999974752428e-7,
+                                    9.999899930335233e-7,
+                                    9.999899930335233e-7,
+                                    1.0
+                                ],
+                                "StartTransition": 1.659999966621399,
+                                "EndTransition": 3.380000114440918,
+                                "FlipTexture": [
+                                    false,
+                                    false
+                                ],
+                                "ConeRadiusUp": 0.0,
+                                "ConeRadiusDown": 0.0
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 890750413158241972,
+                        "Name": "Llamas",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 14196128439304526844,
+                                "Active": true,
+                                "Position": [
+                                    0.0,
+                                    0.35502445697784426,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Particle",
+                                "Id": 9565196148818082184,
+                                "Active": true,
+                                "EmitterType": 0,
+                                "BillboardType": 0,
+                                "TextureId": 8544467787590281640,
+                                "IsPlaying": true,
+                                "IsLooping": true,
+                                "IsSizeOverTime": false,
+                                "ScaleFactor": 0.0,
+                                "ParticleScale": 2.700000047683716,
+                                "MaxParticle": 20,
+                                "Velocity": 0.5,
+                                "LifeParticle": 0.6000000238418579,
+                                "DistanceReverse": 0.0,
+                                "ReverseEffect": false,
+                                "StartDelay": 0.0,
+                                "Ytiles": 2,
+                                "Xtiles": 2,
+                                "AnimationSpeed": 1.25,
+                                "IsRandomFrame": true,
+                                "InitColor": [
+                                    0.07434641569852829,
+                                    0.1290726661682129,
+                                    0.44607841968536379,
+                                    1.0
+                                ],
+                                "FinalColor": [
+                                    9.999999974752428e-7,
+                                    9.999899930335233e-7,
+                                    9.999899930335233e-7,
+                                    1.0
+                                ],
+                                "StartTransition": 0.30000001192092898,
+                                "EndTransition": 0.30000001192092898,
+                                "FlipTexture": [
+                                    false,
+                                    false
+                                ],
+                                "ConeRadiusUp": 0.0,
+                                "ConeRadiusDown": 0.0
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 2380869239519890383,
+                        "Name": "Llamas",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 15680771087151970340,
+                                "Active": true,
+                                "Position": [
+                                    0.0,
+                                    -0.08709913492202759,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Particle",
+                                "Id": 13313620747351478694,
+                                "Active": true,
+                                "EmitterType": 0,
+                                "BillboardType": 0,
+                                "TextureId": 8544467787590281640,
+                                "IsPlaying": true,
+                                "IsLooping": true,
+                                "IsSizeOverTime": false,
+                                "ScaleFactor": 0.0,
+                                "ParticleScale": 5.650000095367432,
+                                "MaxParticle": 20,
+                                "Velocity": 0.5,
+                                "LifeParticle": 0.30000001192092898,
+                                "DistanceReverse": 0.0,
+                                "ReverseEffect": false,
+                                "StartDelay": 0.0,
+                                "Ytiles": 2,
+                                "Xtiles": 2,
+                                "AnimationSpeed": 1.649999976158142,
+                                "IsRandomFrame": true,
+                                "InitColor": [
+                                    1.0,
+                                    0.38235294818878176,
+                                    0.0,
+                                    1.0
+                                ],
+                                "FinalColor": [
+                                    9.999999974752428e-7,
+                                    9.999899930335233e-7,
+                                    9.999899930335233e-7,
+                                    1.0
+                                ],
+                                "StartTransition": 0.05999999865889549,
+                                "EndTransition": 0.30000001192092898,
+                                "FlipTexture": [
+                                    false,
+                                    false
+                                ],
+                                "ConeRadiusUp": 0.0,
+                                "ConeRadiusDown": 0.0
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 9833239522280843508,
+                        "Name": "ParticleSystem",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 2460727858405320912,
+                                "Active": true,
+                                "Position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Particle",
+                                "Id": 15365334873430592773,
+                                "Active": true,
+                                "EmitterType": 0,
+                                "BillboardType": 2,
+                                "TextureId": 12029793656589748666,
+                                "IsPlaying": true,
+                                "IsLooping": true,
+                                "IsSizeOverTime": true,
+                                "ScaleFactor": 0.15000000596046449,
+                                "ParticleScale": 11.949999809265137,
+                                "MaxParticle": 1,
+                                "Velocity": 0.0,
+                                "LifeParticle": 2.0999999046325685,
+                                "DistanceReverse": 0.0,
+                                "ReverseEffect": false,
+                                "StartDelay": 0.0,
+                                "Ytiles": 1,
+                                "Xtiles": 1,
+                                "AnimationSpeed": 0.0,
+                                "IsRandomFrame": true,
+                                "InitColor": [
+                                    1.0,
+                                    0.5294117331504822,
+                                    0.0,
+                                    1.0
+                                ],
+                                "FinalColor": [
+                                    1.0,
+                                    0.3529411554336548,
+                                    0.0,
+                                    1.0
+                                ],
+                                "StartTransition": 0.14000000059604646,
+                                "EndTransition": 1.0800000429153443,
+                                "FlipTexture": [
+                                    false,
+                                    false
+                                ],
+                                "ConeRadiusUp": 0.0,
+                                "ConeRadiusDown": 0.0
+                            }
+                        ],
+                        "Children": null
+                    }
+                ]
             }
         ]
     }
