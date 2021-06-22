@@ -70,6 +70,7 @@
     <ClInclude Include="Source\Panels\PanelImportOptions.h" />
     <ClInclude Include="Source\Components\Physics\ComponentBoxCollider.h" />
     <ClInclude Include="Source\Components\Physics\ComponentCapsuleCollider.h" />
+    <ClInclude Include="Source\Utils\Collider.h" />
     <ClInclude Include="Source\Utils\MotionState.h" />
     <ClInclude Include="Source\Components\Physics\ComponentSphereCollider.h" />
     <ClInclude Include="Source\Modules\ModulePhysics.h" />

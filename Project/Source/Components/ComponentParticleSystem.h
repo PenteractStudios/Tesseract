@@ -3,6 +3,7 @@
 
 #include "Utils/Pool.h"
 #include "Utils/UID.h"
+#include "Utils/Collider.h"
 #include "Math/float4.h"
 #include "Math/float2.h"
 #include "Math/float4x4.h"
@@ -56,6 +57,9 @@ public:
 		// Collider
 		ParticleMotionState* motionState = nullptr;
 		btRigidBody* rigidBody = nullptr;
+		ComponentParticleSystem* emitter = nullptr;
+		Collider col{ this, typeid(Particle) };
+		float radius = 0;
 	};
 
 	REGISTER_COMPONENT(ComponentParticleSystem, ComponentType::PARTICLE, false);
@@ -71,7 +75,7 @@ public:
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Stop();
 	void SpawnParticle();
-	void killParticles();
+	void destroyParticlesColliders();
 
 	float3 CreatePosition();
 	float3 CreateDirection();
@@ -89,7 +93,8 @@ private:
 
 public:
 	WorldLayers layer;
-	int layerIndex = 0;
+	int layerIndex = 5;
+	float radius = .25f;
 
 private:
 	UID textureID = 0; // ID of the image
@@ -105,7 +110,7 @@ private:
 	// General Options
 
 	bool looping = false;
-	bool isPlaying = true;
+	bool isPlaying = false;
 	bool isRandomFrame = false;
 	bool sizeOverTime = false;
 	bool reverseEffect = false;

@@ -76,6 +76,7 @@ public:
 	// -- Add/Remove Particle Body -- //
 	void CreateParticleRigidbody(ComponentParticleSystem::Particle* particle);
 	void RemoveParticleRigidbody(ComponentParticleSystem::Particle* particle);
+	void UpdateParticleRigidbody(ComponentParticleSystem::Particle* particle);
 
 	void InitializeRigidBodies(); // Called on Play(), this function adds all the collision objects to the physics world.
 	void ClearPhysicBodies();	  // Called on Stop(), this function removes all the collision objects from the physics world.

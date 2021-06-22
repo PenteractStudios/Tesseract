@@ -717,6 +717,7 @@
     <ClInclude Include="Source\Panels\PanelAudioMixer.h" />
     <ClInclude Include="Source\Utils\Random.h" />
     <ClInclude Include="Source\Utils\ParticleMotionState.h" />
+    <ClInclude Include="Source\Utils\Collider.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />
