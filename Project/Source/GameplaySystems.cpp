@@ -16,6 +16,7 @@
 #include "Modules/ModuleRender.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleAudio.h"
+#include "Modules/ModuleUserInterface.h"
 #include "Resources/ResourcePrefab.h"
 #include "Resources/ResourceMaterial.h"
 #include "FileSystem/SceneImporter.h"
@@ -389,4 +390,8 @@ bool Camera::CheckObjectInsideFrustum(GameObject* gameObject) {
 
 void Audio::StopAllSources() {
 	App->audio->StopAllSources();
+}
+
+ComponentEventSystem* UserInterface::GetCurrentEventSystem() {
+	return App->userInterface->GetCurrentEventSystem();
 }
