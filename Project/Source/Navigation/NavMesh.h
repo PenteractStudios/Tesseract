@@ -18,6 +18,7 @@ public:
 	void DrawGizmos();		// Drawas the Bounding Box and the NavMesh
 	void Load(Buffer<char>& buffer);	// Loads NavMesh from buffer and Inits data
 	void CleanUp();						// Releases memory
+	Buffer<char> Save();
 
 	bool IsGenerated();					// Returns true if navMesh is valid
 	dtCrowd* GetCrowd();				// Returns crowd

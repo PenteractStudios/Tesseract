@@ -201,7 +201,6 @@ static int calcLayerBufferSize(const int gridWidth, const int gridHeight) {
 }
 
 static int rasterizeTileLayers(float* verts, int nVerts, int nTris, BuildContext* ctx, rcChunkyTriMesh* chunkyMesh, const int tx, const int ty, const rcConfig& cfg, TileCacheData* tiles, const int maxTiles) {
-	
 	FastLZCompressor comp;
 	RasterizationContext rc;
 
@@ -396,8 +395,7 @@ void drawObstacles(duDebugDraw* dd, const dtTileCache* tc) {
 	}
 }
 
-NavMesh::NavMesh()
-{
+NavMesh::NavMesh() {
 	navMeshDrawFlags = DU_DRAWNAVMESH_OFFMESHCONS | DU_DRAWNAVMESH_CLOSEDLIST;
 	navQuery = dtAllocNavMeshQuery();
 	crowd = dtAllocCrowd();
@@ -564,7 +562,7 @@ bool NavMesh::Build() {
 	if (!rcCreateChunkyTriMesh(&verts[0], &tris[0], ntris, 256, chunkyMesh)) {
 		ctx->log(RC_LOG_ERROR, "buildTiledNavigation: Failed to build chunky mesh.");
 		return false;
-	}	
+	}
 
 	for (int y = 0; y < th; ++y) {
 		for (int x = 0; x < tw; ++x) {
@@ -611,8 +609,6 @@ bool NavMesh::Build() {
 
 	return true;
 	// !!!!TODO: code below needs to be refactored and most likely deleted.
-
-
 
 	//
 	// Step 2. Rasterize input polygon soup.
@@ -885,7 +881,6 @@ bool NavMesh::Build() {
 		}
 	}
 
-
 	// Show performance stats.
 	LOG(">> Polymesh: %d vertices  %d polygons", pmesh->nverts, pmesh->npolys);
 
@@ -894,131 +889,16 @@ bool NavMesh::Build() {
 	return true;
 }
 
-// OLD
-//void NavMesh::DrawGizmos() {
-//	if (navData == nullptr) {
-//		return;
-//	}
-//
-//	DebugDrawGL dds;
-//
-//	glClearColor(.1f, .1f, .1f, 1.0f);
-//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//
-//	glMatrixMode(GL_PROJECTION);
-//	glLoadIdentity();
-//	glLoadMatrixf(App->camera->GetProjectionMatrix().Transposed().ptr());
-//
-//	glMatrixMode(GL_MODELVIEW);
-//	glLoadIdentity();
-//	glLoadMatrixf(App->camera->GetViewMatrix().Transposed().ptr());
-//
-//	glEnable(GL_FOG);
-//	glDepthMask(GL_TRUE);
-//
-//	const float texScale = 1.0f / (cellSize * 10.0f);
-//
-//	glDisable(GL_FOG);
-//	glDepthMask(GL_FALSE);
-//
-//	// Draw bounds
-//	float bmin[3] = {FLT_MAX, FLT_MAX, FLT_MAX};
-//	float bmax[3] = {FLT_MIN, FLT_MIN, FLT_MIN};
-//	for (ComponentBoundingBox boundingBox : App->scene->scene->boundingBoxComponents) {
-//		AABB currentBB = boundingBox.GetWorldAABB();
-//		float3 currentBBMin = currentBB.minPoint;
-//		float3 currentBBMax = currentBB.maxPoint;
-//		bmin[0] = currentBBMin.x < bmin[0] ? currentBBMin.x : bmin[0];
-//		bmin[1] = currentBBMin.y < bmin[1] ? currentBBMin.y : bmin[1];
-//		bmin[2] = currentBBMin.z < bmin[2] ? currentBBMin.z : bmin[2];
-//		bmax[0] = currentBBMax.x > bmax[0] ? currentBBMax.x : bmax[0];
-//		bmax[1] = currentBBMax.y > bmax[1] ? currentBBMax.y : bmax[1];
-//		bmax[2] = currentBBMax.z > bmax[2] ? currentBBMax.z : bmax[2];
-//	}
-//
-//	duDebugDrawBoxWire(&dds, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duRGBA(255, 255, 255, 128), 1.0f);
-//
-//	dds.begin(DU_DRAW_POINTS, 5.0f);
-//	dds.vertex(bmin[0], bmin[1], bmin[2], duRGBA(255, 255, 255, 128));
-//	dds.end();
-//
-//	if (navMesh && navQuery && (drawMode == DRAWMODE_NAVMESH || drawMode == DRAWMODE_NAVMESH_TRANS || drawMode == DRAWMODE_NAVMESH_BVTREE || drawMode == DRAWMODE_NAVMESH_NODES || drawMode == DRAWMODE_NAVMESH_INVIS)) {
-//		if (drawMode != DRAWMODE_NAVMESH_INVIS)
-//			duDebugDrawNavMeshWithClosedList(&dds, *navMesh, *navQuery, navMeshDrawFlags);
-//		if (drawMode == DRAWMODE_NAVMESH_BVTREE)
-//			duDebugDrawNavMeshBVTree(&dds, *navMesh);
-//		if (drawMode == DRAWMODE_NAVMESH_NODES)
-//			duDebugDrawNavMeshNodes(&dds, *navQuery);
-//		duDebugDrawNavMeshPolysWithFlags(&dds, *navMesh, SAMPLE_POLYFLAGS_DISABLED, duRGBA(0, 0, 0, 128));
-//	}
-//
-//	glDepthMask(GL_TRUE);
-//
-//	if (chf && drawMode == DRAWMODE_COMPACT)
-//		duDebugDrawCompactHeightfieldSolid(&dds, *chf);
-//
-//	if (chf && drawMode == DRAWMODE_COMPACT_DISTANCE)
-//		duDebugDrawCompactHeightfieldDistance(&dds, *chf);
-//	if (chf && drawMode == DRAWMODE_COMPACT_REGIONS)
-//		duDebugDrawCompactHeightfieldRegions(&dds, *chf);
-//	if (solid && drawMode == DRAWMODE_VOXELS) {
-//		glEnable(GL_FOG);
-//		duDebugDrawHeightfieldSolid(&dds, *solid);
-//		glDisable(GL_FOG);
-//	}
-//	if (solid && drawMode == DRAWMODE_VOXELS_WALKABLE) {
-//		glEnable(GL_FOG);
-//		duDebugDrawHeightfieldWalkable(&dds, *solid);
-//		glDisable(GL_FOG);
-//	}
-//	if (cset && drawMode == DRAWMODE_RAW_CONTOURS) {
-//		glDepthMask(GL_FALSE);
-//		duDebugDrawRawContours(&dds, *cset);
-//		glDepthMask(GL_TRUE);
-//	}
-//	if (cset && drawMode == DRAWMODE_BOTH_CONTOURS) {
-//		glDepthMask(GL_FALSE);
-//		duDebugDrawRawContours(&dds, *cset, 0.5f);
-//		duDebugDrawContours(&dds, *cset);
-//		glDepthMask(GL_TRUE);
-//	}
-//	if (cset && drawMode == DRAWMODE_CONTOURS) {
-//		glDepthMask(GL_FALSE);
-//		duDebugDrawContours(&dds, *cset);
-//		glDepthMask(GL_TRUE);
-//	}
-//	if (chf && cset && drawMode == DRAWMODE_REGION_CONNECTIONS) {
-//		duDebugDrawCompactHeightfieldRegions(&dds, *chf);
-//
-//		glDepthMask(GL_FALSE);
-//		duDebugDrawRegionConnections(&dds, *cset);
-//		glDepthMask(GL_TRUE);
-//	}
-//	if (pmesh && drawMode == DRAWMODE_POLYMESH) {
-//		glDepthMask(GL_FALSE);
-//		duDebugDrawPolyMesh(&dds, *pmesh);
-//		glDepthMask(GL_TRUE);
-//	}
-//	if (dmesh && drawMode == DRAWMODE_POLYMESH_DETAIL) {
-//		glDepthMask(GL_FALSE);
-//		duDebugDrawPolyMeshDetail(&dds, *dmesh);
-//		glDepthMask(GL_TRUE);
-//	}
-//
-//	glDepthMask(GL_TRUE);
-//
-//	glMatrixMode(GL_PROJECTION);
-//	glLoadIdentity();
-//
-//	glMatrixMode(GL_MODELVIEW);
-//	glLoadIdentity();
-//}
-
 void NavMesh::DrawGizmos() {
-
-	if (nverts == 0) {
+	/*if (nverts == 0) {
 		return;
-	}
+	}*/
+
+		verts = App->scene->scene->GetVertices();
+	nverts = verts.size();
+	tris = App->scene->scene->GetTriangles();
+	ntris = tris.size() / 3;
+	normals = App->scene->scene->GetNormals();
 
 	DebugDrawGL dds;
 
@@ -1107,10 +987,26 @@ void NavMesh::DrawGizmos() {
 	glLoadIdentity();
 }
 
+static const int TILECACHESET_MAGIC = 'T' << 24 | 'S' << 16 | 'E' << 8 | 'T'; //'TSET';
+static const int TILECACHESET_VERSION = 1;
+
+struct TileCacheSetHeader {
+	int magic;
+	int version;
+	int numTiles;
+	dtNavMeshParams meshParams;
+	dtTileCacheParams cacheParams;
+};
+
+struct TileCacheTileHeader {
+	dtCompressedTileRef tileRef;
+	int dataSize;
+};
+
 void NavMesh::Load(Buffer<char>& buffer) {
 	CleanUp();
 
-	navMesh = dtAllocNavMesh();
+	/*navMesh = dtAllocNavMesh();
 	if (!navMesh) {
 		LOG("Could not create Detour navmesh");
 		return;
@@ -1133,7 +1029,63 @@ void NavMesh::Load(Buffer<char>& buffer) {
 	if (dtStatusFailed(status)) {
 		LOG("Could not init Detour navmesh query");
 		return;
+	}*/
+
+	char* cursor = buffer.Data();
+
+	// Read header.
+	TileCacheSetHeader header;
+	header = *((TileCacheSetHeader*) cursor);
+	cursor += sizeof(TileCacheSetHeader);
+
+	navMesh = dtAllocNavMesh();
+	if (!navMesh) {
+		LOG("Could not create Detour navmesh");
+		return;
 	}
+	dtStatus status = navMesh->init(&header.meshParams);
+	if (dtStatusFailed(status)) {
+		LOG("Could not init Detour navmesh");
+		return;
+	}
+
+	tileCache = dtAllocTileCache();
+	if (!tileCache) {
+		LOG("Could not allocate tileCache");
+		return;
+	}
+	status = tileCache->init(&header.cacheParams, talloc, tcomp, tmproc);
+	if (dtStatusFailed(status)) {
+		LOG("Could not init tileCache");
+		return;
+	}
+
+	// Read tiles.
+	for (int i = 0; i < header.numTiles; ++i) {
+		//fread(&tileHeader, sizeof(tileHeader), 1, fp);
+
+		TileCacheTileHeader tileHeader = *((TileCacheTileHeader*) cursor);
+		cursor += sizeof(TileCacheTileHeader);
+
+		if (!tileHeader.tileRef || !tileHeader.dataSize)
+			break;
+
+		unsigned char* data = (unsigned char*) dtAlloc(tileHeader.dataSize, DT_ALLOC_PERM);
+		if (!data) break;
+		memset(data, 0, tileHeader.dataSize);
+		//fread(data, tileHeader.dataSize, 1, fp);
+		memcpy(data, cursor, tileHeader.dataSize);
+
+		//unsigned char* data = *((unsigned char**) cursor);
+		cursor += tileHeader.dataSize;
+
+		dtCompressedTileRef tile = 0;
+		tileCache->addTile(data, tileHeader.dataSize, DT_COMPRESSEDTILE_FREE_DATA, &tile);
+
+		if (tile)
+			tileCache->buildNavMeshTile(tile, navMesh);
+	}
+
 
 	InitCrowd();
 }
@@ -1157,13 +1109,62 @@ void NavMesh::CleanUp() {
 	dmesh = nullptr;
 }
 
+Buffer<char> NavMesh::Save() {
+	if (!tileCache || !navMesh) return Buffer<char>();
+
+	int sizeData = 0;
+	for (int i = 0; i < tileCache->getTileCount(); ++i) {
+		const dtCompressedTile* tile = tileCache->getTile(i);
+		if (!tile || !tile->header || !tile->dataSize) continue;
+
+		sizeData += tile->dataSize;
+	}
+
+	int size = sizeof(TileCacheSetHeader) + sizeof(TileCacheTileHeader) * tileCache->getTileCount() + sizeData;
+	Buffer<char> buffer = Buffer<char>(size);
+	char* cursor = buffer.Data();
+
+	// Store header.
+	TileCacheSetHeader header;
+	header.magic = TILECACHESET_MAGIC;
+	header.version = TILECACHESET_VERSION;
+	header.numTiles = 0;
+	for (int i = 0; i < tileCache->getTileCount(); ++i) {
+		const dtCompressedTile* tile = tileCache->getTile(i);
+		if (!tile || !tile->header || !tile->dataSize) continue;
+		header.numTiles++;
+	}
+	memcpy(&header.cacheParams, tileCache->getParams(), sizeof(dtTileCacheParams));
+	memcpy(&header.meshParams, navMesh->getParams(), sizeof(dtNavMeshParams));
+	//memcpy(cursor, &header, sizeof(TileCacheSetHeader));
+
+	*((TileCacheSetHeader*) cursor) = header;
+	cursor += sizeof(TileCacheSetHeader);
+
+	// Store tiles.
+	for (int i = 0; i < tileCache->getTileCount(); ++i) {
+		const dtCompressedTile* tile = tileCache->getTile(i);
+		if (!tile || !tile->header || !tile->dataSize) continue;
+
+		TileCacheTileHeader tileHeader;
+		tileHeader.tileRef = tileCache->getTileRef(tile);
+		tileHeader.dataSize = tile->dataSize;
+
+		*((TileCacheTileHeader*) cursor) = tileHeader;
+		cursor += sizeof(TileCacheTileHeader);
+
+		*((unsigned char**) cursor) = tile->data;
+		cursor += tile->dataSize;
+	}
+
+	return buffer;
+}
+
 dtCrowd* NavMesh::GetCrowd() {
 	return crowd;
 }
 
 bool NavMesh::IsGenerated() {
-	//return navData != nullptr;
-	//return true;
 	return tileCache != nullptr;
 }
 
