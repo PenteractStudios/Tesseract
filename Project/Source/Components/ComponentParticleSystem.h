@@ -46,6 +46,7 @@ public:
 		float life = 0.0f;
 		float currentFrame = 0.0f;
 		float colorFrame = 0.0f;
+		float gravityTime = 0.0f;
 
 		float3 emitterPosition = float3(0.0f, 0.0f, 0.0f);
 	};
@@ -67,6 +68,7 @@ public:
 
 	float3 CreatePosition();
 	float3 CreateDirection();
+	float3 UpdateGravityDirection(Particle* currentParticle);
 
 	void UpdatePosition(Particle* currentParticle);
 	void UpdateVelocity(Particle* currentParticle);
@@ -97,11 +99,14 @@ private:
 	bool sizeOverTime = false;
 	bool reverseEffect = false;
 	bool attachEmitter = false;
+	bool gravityEffect = false;
 	bool executer = false;
 	float scale = 5.f;
 	float distanceReverse = 0.f;
 	float startDelay = 0.f;
 	float restDelayTime = 0.f;
+	float gravityFactor = 0.0f;
+
 	unsigned maxParticles = 100;
 	unsigned particleSpawned = 0;
 	float velocity = 0.1f;

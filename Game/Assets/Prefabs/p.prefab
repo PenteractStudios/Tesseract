@@ -1,0 +1,79 @@
+{
+    "Root": {
+        "Name": "ParticleSystem",
+        "Active": true,
+        "RootBoneName": "",
+        "Mask": 0,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "LocalEulerAngles": [
+                    -0.0,
+                    0.0,
+                    -0.0
+                ]
+            },
+            {
+                "Type": "Particle",
+                "Active": true,
+                "EmitterType": 0,
+                "BillboardType": 0,
+                "TextureId": 5862507731794970432,
+                "IsPlaying": true,
+                "IsLooping": true,
+                "IsSizeOverTime": false,
+                "ScaleFactor": 0.0,
+                "ParticleScale": 5.0,
+                "MaxParticle": 100,
+                "Velocity": 1.899999976158142,
+                "LifeParticle": 3.25,
+                "DistanceReverse": 0.0,
+                "ReverseEffect": false,
+                "AttachEmitter": false,
+                "StartDelay": 0.0,
+                "Ytiles": 1,
+                "Xtiles": 1,
+                "AnimationSpeed": 0.0,
+                "IsRandomFrame": false,
+                "InitColor": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "FinalColor": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "StartTransition": 0.0,
+                "EndTransition": 0.0,
+                "FlipTexture": [
+                    false,
+                    false
+                ],
+                "ConeRadiusUp": 1.0,
+                "ConeRadiusDown": 0.5
+            }
+        ],
+        "Children": null
+    }
+}

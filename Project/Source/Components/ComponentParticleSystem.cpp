@@ -131,6 +131,11 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	if (reverseEffect) {
 		ImGui::DragFloat("Distance", &distanceReverse, App->editor->dragSpeed2f, 0, inf);
 	}
+
+	ImGui::Checkbox("Gravity Effect", &gravityEffect);
+	if (gravityEffect) {
+		ImGui::DragFloat("Gravity", &gravityFactor, App->editor->dragSpeed2f, 0, inf);
+	}
 	UID oldID = textureID;
 	ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
 
@@ -243,7 +248,6 @@ float3 ComponentParticleSystem::CreatePosition() {
 			z = float(rand()) / float(RAND_MAX) * coneRadiusUp * 2 - coneRadiusUp;
 
 			return transform->GetGlobalPosition() + (transform->GetGlobalRotation() * float3(x, 0.0f, z) + forward * distanceReverse);
-
 		} else {
 			x = float(rand()) / float(RAND_MAX) * coneRadiusDown * 2 - coneRadiusDown;
 			z = float(rand()) / float(RAND_MAX) * coneRadiusDown * 2 - coneRadiusDown;
@@ -433,6 +437,17 @@ void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
 		currentParticle->modelStretch.SetTranslatePart(currentParticle->position);
 	}
 }
+float3 ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) {
+	float x = currentParticle->direction.x;
+	float y = -(1 / gravityFactor) * Pow(currentParticle->gravityTime, 2) + currentParticle->gravityTime;
+	float z = currentParticle->direction.z;
+	if (App->time->HasGameStarted()) {
+		currentParticle->gravityTime += 10 * App->time->GetDeltaTime();
+	} else {
+		currentParticle->gravityTime += 10 * App->time->GetRealTimeDeltaTime();
+	}
+	return float3(x, y, z);
+}
 
 void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
 	if (App->time->HasGameStarted()) {
@@ -441,7 +456,11 @@ void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
 			float3 direction = currentParticle->position - transform->GetGlobalPosition();
 			currentParticle->position -= direction * velocity * App->time->GetDeltaTime();
 		} else {
-			currentParticle->position += currentParticle->direction * velocity * App->time->GetDeltaTime();
+			if (gravityEffect) {
+				currentParticle->position += UpdateGravityDirection(currentParticle) * velocity * App->time->GetDeltaTime();
+			} else {
+				currentParticle->position += currentParticle->direction * velocity * App->time->GetDeltaTime();
+			}
 		}
 	} else {
 		if (reverseEffect) {
@@ -449,7 +468,11 @@ void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
 			float3 direction = currentParticle->position - transform->GetGlobalPosition();
 			currentParticle->position -= direction * velocity * App->time->GetRealTimeDeltaTime();
 		} else {
-			currentParticle->position += currentParticle->direction * velocity * App->time->GetRealTimeDeltaTime();
+			if (gravityEffect) {
+				currentParticle->position += UpdateGravityDirection(currentParticle) * velocity * App->time->GetRealTimeDeltaTime();
+			} else {
+				currentParticle->position += currentParticle->direction * velocity * App->time->GetRealTimeDeltaTime();
+			}
 		}
 	}
 }
@@ -506,6 +529,7 @@ void ComponentParticleSystem::SpawnParticle() {
 		currentParticle->direction = CreateDirection();
 		currentParticle->initialPosition = CreatePosition();
 		currentParticle->position = currentParticle->initialPosition;
+		currentParticle->gravityTime = 0.0f;
 		currentParticle->emitterPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 
 		//TODO: not hardcoded
