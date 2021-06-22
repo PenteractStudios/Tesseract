@@ -16,30 +16,30 @@
 #include "Resources/ResourceShader.h"
 #include "FileSystem/TextureImporter.h"
 #include "FileSystem/JsonValue.h"
-#include "Math/float3x3.h"
 #include "Utils/ImGuiUtils.h"
+#include "Utils/Logging.h"
+
+#include "Math/float3x3.h"
 #include "Math/TransformOps.h"
 #include "imgui.h"
 #include "GL/glew.h"
 #include "debugdraw.h"
-
-#include <Utils/Logging.h>
+#include "rapidjson/rapidjson.h"
 
 #include "Utils/Leaks.h"
+#include <string>
 
 #define JSON_TAG_TEXTURE_TEXTUREID "TextureId"
-#define JSON_TAG_TIMETOSTART "TimeToStart"
 #define JSON_TAG_MAXVERTICES "MaxVertices"
-#define JSON_TAG_TRAILQUADS "TrailQuads"
-#define JSON_TAG_ALPHATRANSPARENCY "AlphaTransparency"
 
 #define JSON_TAG_WIDTH "Width"
-#define JSON_TAG_NREPEATS "NRepeats"
+#define JSON_TAG_TRAILQUADS "TrailQuads"
+#define JSON_TAG_NREPEATS "TextureRepeats"
+
 #define JSON_TAG_COLOR_OVER_TRAIL "ColorOverTrail"
-#define JSON_TAG_INIT_COLOR "InitColor"
-#define JSON_TAG_MEDIUM_COLOR "MediumColor"
-#define JSON_TAG_FINAL_COLOR "FinalColor"
-#define JSON_TAG_COLOR_SPEED "ColorSpeed"
+#define JSON_TAG_GRADIENT_COLOR "GradientColor"
+#define JSON_TAG_NUMBER_COLORS "NumColors"
+#define JSON_TAG_COLOR_LIFE "ColorLife"
 
 void ComponentTrail::Init() {
 	glGenBuffers(1, &quadVBO);
@@ -48,69 +48,71 @@ void ComponentTrail::Init() {
 
 void ComponentTrail::Update() {
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
+	float3 vectorUp = (transform->GetGlobalRotation() * float3::unitY).Normalized();
+
 	if (isStarted) {
 		previousPositionUp = currentPositionUp;
 		previousPositionDown = currentPositionDown;
 		previousPosition = currentPosition;
 
 		currentPosition = transform->GetGlobalPosition();
-		previousVectorUp = transform->GetGlobalRotation() * float3::unitY;
-		previousVectorUp.Normalize();
+		currentPositionUp = (vectorUp * width) + currentPosition;
+		currentPositionDown = (-vectorUp * width) + currentPosition;
 
-		currentPositionUp = (previousVectorUp * width) + currentPosition;
-		currentPositionDown = (-previousVectorUp * width) + currentPosition;
-		if (trianglesCreated >= (maxVertices)) {
+		float3x3 modelMatrix = float3x3::identity;
+
+		if (trianglesCreated >= maxVertices) {
 			UpdateVerticesPosition();
-			trianglesCreated -= 30;
 		}
 
-		InsertVertex(previousPositionDown);
+		InsertVertex(modelMatrix * previousPositionDown);
 		InsertTextureCoords();
-		InsertVertex(currentPositionDown);
+		InsertVertex(modelMatrix * currentPositionDown);
 		InsertTextureCoords();
-		InsertVertex(previousPositionUp);
+		InsertVertex(modelMatrix * previousPositionUp);
 		InsertTextureCoords();
 
-		InsertVertex(currentPositionDown);
+		InsertVertex(modelMatrix * currentPositionDown);
 		InsertTextureCoords();
-		InsertVertex(currentPositionUp);
+		InsertVertex(modelMatrix * currentPositionUp);
 		InsertTextureCoords();
-		InsertVertex(previousPositionUp);
+		InsertVertex(modelMatrix * previousPositionUp);
 		InsertTextureCoords();
 
 		quadsCreated++;
+
+		// Upate Trail Time
+		if (App->time->IsGameRunning()) {
+			trailTime += App->time->GetDeltaTime();
+		} else {
+			trailTime += App->time->GetRealTimeDeltaTime();
+		}
+
 	} else {
 		isStarted = true;
 		currentPosition = transform->GetGlobalPosition();
-		previousVectorUp = transform->GetGlobalRotation() * float3::unitY;
-		previousVectorUp.Normalize();
-		currentPositionUp = previousVectorUp * width + currentPosition;
-		currentPositionDown = -previousVectorUp * width + currentPosition;
+		currentPositionUp = vectorUp * width + currentPosition;
+		currentPositionDown = -vectorUp * width + currentPosition;
 	}
 }
 
 void ComponentTrail::OnEditorUpdate() {
 	ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
-	if (ImGui::DragScalar("Trail Quads", ImGuiDataType_U32, &trailQuads)) {
-		if (trailQuads <= 0) trailQuads = 1;
-		if (trailQuads > 50) trailQuads = 50;
+	if (ImGui::DragInt("Trail Quads", &trailQuads, 1.0f, 1, 50, "%d", ImGuiSliderFlags_AlwaysClamp)) {
+		if (nTextures > trailQuads) nTextures = trailQuads;
 		DeleteQuads();
 	}
-
-	if (ImGui::DragScalar("Texture Repeats", ImGuiDataType_U32, &nTextures)) {
-		if (nTextures <= 1) nTextures = 1;
-		if (nTextures > 50) nTextures = 50;
-		if (nTextures > trailQuads) nTextures = trailQuads;
+	if (ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, trailQuads, "%d", ImGuiSliderFlags_AlwaysClamp)) {
 		DeleteQuads();
 		EditTextureCoords();
 	}
 	ImGui::Checkbox("Color Over Trail", &colorOverTrail);
 	if (colorOverTrail) {
-		ImGui::DragFloat("Color Speed ", &colorSpeed, App->editor->dragSpeed2f, 0, 1);
-		ImGui::ColorEdit4("Init Color", initC.ptr(), ImGuiColorEditFlags_NoInputs);
-		ImGui::ColorEdit4("Medium Color", mediumC.ptr(), ImGuiColorEditFlags_NoInputs);
-		ImGui::ColorEdit4("Final Color", finalC.ptr(), ImGuiColorEditFlags_NoInputs);
-		if (ImGui::Button("Reset Color")) ResetColor();
+		ImGui::DragFloat("Color Life", &colorLife, App->editor->dragSpeed2f, 0, inf);
+		ImGui::GradientEditor(&gradient, draggingGradient, selectedGradient);
+		if (ImGui::Button("Reset Color")) {
+			ResetColor();
+		}
 	}
 
 	UID oldID = textureID;
@@ -149,17 +151,16 @@ void ComponentTrail::Load(JsonValue jComponent) {
 
 	width = jComponent[JSON_TAG_WIDTH];
 	nRepeats = jComponent[JSON_TAG_NREPEATS];
+
 	colorOverTrail = jComponent[JSON_TAG_COLOR_OVER_TRAIL];
-
-	JsonValue jColor = jComponent[JSON_TAG_INIT_COLOR];
-	initC.Set(jColor[0], jColor[1], jColor[2], jColor[3]);
-
-	JsonValue jColor2 = jComponent[JSON_TAG_MEDIUM_COLOR];
-	mediumC.Set(jColor2[0], jColor2[1], jColor[2], jColor2[3]);
-
-	JsonValue jColor3 = jComponent[JSON_TAG_FINAL_COLOR];
-	finalC.Set(jColor3[0], jColor3[1], jColor3[2], jColor3[3]);
-	colorSpeed = jComponent[JSON_TAG_COLOR_SPEED];
+	int numberColors = jComponent[JSON_TAG_NUMBER_COLORS];
+	gradient.clearList();
+	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLOR];
+	for (int i = 0; i < numberColors; ++i) {
+		JsonValue jMark = jColor[i];
+		gradient.addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
+	}
+	colorLife = jComponent[JSON_TAG_COLOR_LIFE];
 }
 
 void ComponentTrail::Save(JsonValue jComponent) const {
@@ -169,28 +170,33 @@ void ComponentTrail::Save(JsonValue jComponent) const {
 
 	jComponent[JSON_TAG_WIDTH] = width;
 	jComponent[JSON_TAG_NREPEATS] = nRepeats;
-	jComponent[JSON_TAG_COLOR_OVER_TRAIL] = colorOverTrail;
-	JsonValue jColor = jComponent[JSON_TAG_INIT_COLOR];
-	jColor[0] = initC.x;
-	jColor[1] = initC.y;
-	jColor[2] = initC.z;
-	jColor[3] = initC.w;
-	JsonValue jColor2 = jComponent[JSON_TAG_MEDIUM_COLOR];
-	jColor2[0] = mediumC.x;
-	jColor2[1] = mediumC.y;
-	jColor2[2] = mediumC.z;
-	jColor2[3] = mediumC.w;
-	JsonValue jColor3 = jComponent[JSON_TAG_FINAL_COLOR];
-	jColor3[0] = finalC.x;
-	jColor3[1] = finalC.y;
-	jColor3[2] = finalC.z;
-	jColor3[3] = finalC.w;
 
-	jComponent[JSON_TAG_COLOR_SPEED] = colorSpeed;
+	// Color
+	jComponent[JSON_TAG_COLOR_OVER_TRAIL] = colorOverTrail;
+	int color = 0;
+	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLOR];
+	for (ImGradientMark* mark : gradient.getMarks()) {
+		JsonValue jMask = jColor[color];
+		jMask[0] = mark->color[0];
+		jMask[1] = mark->color[1];
+		jMask[2] = mark->color[2];
+		jMask[3] = mark->color[3];
+		jMask[4] = mark->position;
+
+		color++;
+	}
+	jComponent[JSON_TAG_NUMBER_COLORS] = gradient.getMarks().size();
+	jComponent[JSON_TAG_COLOR_LIFE] = colorLife;
 }
 
 void ComponentTrail::Draw() {
 	unsigned int program = App->programs->trail;
+	glUseProgram(program);
+
+	unsigned glTexture = 0;
+	ResourceTexture* texture = App->resources->GetResource<ResourceTexture>(textureID);
+	glTexture = texture ? texture->glTexture : 0;
+	int hasDiffuseMap = texture ? 1 : 0;
 
 	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
@@ -205,50 +211,42 @@ void ComponentTrail::Draw() {
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) 0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) (sizeof(float) * 3));
-	glUseProgram(program);
 
-	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-
-	Frustum* frustum = App->camera->GetActiveCamera()->GetFrustum();
 	float4x4* proj = &App->camera->GetProjectionMatrix();
 	float4x4* view = &App->camera->GetViewMatrix();
-
-	glActiveTexture(GL_TEXTURE0);
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view->ptr());
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
 
+	float4 color = float4::one;
 	if (colorOverTrail) {
-		if (App->time->IsGameRunning()) {
-			colorFrame += colorSpeed * App->time->GetDeltaTime();
-		} else {
-			colorFrame += colorSpeed * App->time->GetRealTimeDeltaTime();
-		}
+		float factor = trailTime / colorLife;
+		gradient.getColorAt(factor, color.ptr());
 	}
 
-	glUniform1f(glGetUniformLocation(program, "colorFrame"), colorFrame);
-	glUniform4fv(glGetUniformLocation(program, "initColor"), 1, initC.ptr());
-	glUniform4fv(glGetUniformLocation(program, "mediumColor"), 1, mediumC.ptr());
-	glUniform4fv(glGetUniformLocation(program, "finalColor"), 1, finalC.ptr());
+	glUniform1i(glGetUniformLocation(program, "diffuseMap"), 0);
+	glUniform1i(glGetUniformLocation(program, "hasDiffuse"), hasDiffuseMap);
+	glUniform4fv(glGetUniformLocation(program, "inputColor"), 1, color.ptr());
 
-	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
-	if (textureResource != nullptr) {
-		glBindTexture(GL_TEXTURE_2D, textureResource->glTexture);
-	}
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, glTexture);
 
 	glDrawArrays(GL_TRIANGLES, 0, trianglesCreated);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
 }
 
 void ComponentTrail::UpdateVerticesPosition() {
-	for (int i = 0; i < (maxVertices - 30); i++) {
+	for (int i = 0; i < maxVertices - 30; i++) {
 		verticesPosition[i] = verticesPosition[i + 30];
 	}
+	trianglesCreated -= 30;
 }
+
 void ComponentTrail::InsertVertex(float3 vertex) {
 	verticesPosition[trianglesCreated++] = vertex.x;
 	verticesPosition[trianglesCreated++] = vertex.y;
@@ -273,7 +271,7 @@ void ComponentTrail::InsertTextureCoords() {
 }
 
 void ComponentTrail::DeleteQuads() {
-	for (int i = 0; i < (maxVertices); i++) {
+	for (int i = 0; i < maxVertices; i++) {
 		verticesPosition[i] = 0.0f;
 	}
 	isStarted = false;
@@ -285,7 +283,7 @@ void ComponentTrail::DeleteQuads() {
 
 void ComponentTrail::EditTextureCoords() {
 	int nLine = 0;
-	float factor = (1.0f / (trailQuads / nTextures));
+	float factor = nTextures / trailQuads;
 	nRepeats = (trailQuads / nTextures) * 12;
 	for (int textureEdited = 0; textureEdited < nRepeats;) {
 		///vertice1
@@ -313,5 +311,5 @@ void ComponentTrail::EditTextureCoords() {
 }
 
 void ComponentTrail::ResetColor() {
-	colorFrame = 0.0f;
+	trailTime = 0.0f;
 }
