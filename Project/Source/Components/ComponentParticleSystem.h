@@ -7,19 +7,22 @@
 #include "Math/float2.h"
 #include "Math/float4x4.h"
 #include "Math/Quat.h"
+#include "imgui_color_gradient.h"
 
 #include <vector>
 
-class ComponentTransform;
-class ParticleModule;
-
-enum class EmitterType {
+enum class ParticleEmitterType {
 	CONE,
 	SPHERE,
 	HEMISPHERE,
 	DONUT,
 	CIRCLE,
 	RECTANGLE
+};
+
+enum class ParticleRenderMode {
+	ADDITIVE,
+	TRANSPARENT
 };
 
 enum class BillboardType {
@@ -29,27 +32,26 @@ enum class BillboardType {
 	VERTICAL
 };
 
+struct Particle {
+	float4x4 model = float4x4::identity;
+	float4x4 modelStretch = float4x4::identity;
+
+	float3 initialPosition = float3(0.0f, 0.0f, 0.0f);
+	float3 position = float3(0.0f, 0.0f, 0.0f);
+	float3 direction = float3(0.0f, 0.0f, 0.0f);
+	float3 scale = float3(0.1f, 0.1f, 0.1f);
+
+	Quat rotation = Quat(0.0f, 0.0f, 0.0f, 0.0f);
+
+	float velocity = 0.0f;
+	float life = 0.0f;
+	float currentFrame = 0.0f;
+
+	float3 emitterPosition = float3(0.0f, 0.0f, 0.0f);
+};
+
 class ComponentParticleSystem : public Component {
 public:
-	struct Particle {
-		float4x4 model = float4x4::identity;
-		float4x4 modelStretch = float4x4::identity;
-
-		float3 initialPosition = float3(0.0f, 0.0f, 0.0f);
-		float3 position = float3(0.0f, 0.0f, 0.0f);
-		float3 direction = float3(0.0f, 0.0f, 0.0f);
-		float3 scale = float3(0.1f, 0.1f, 0.1f);
-
-		Quat rotation = Quat(0.0f, 0.0f, 0.0f, 0.0f);
-
-		float velocity = 0.0f;
-		float life = 0.0f;
-		float currentFrame = 0.0f;
-		float colorFrame = 0.0f;
-
-		float3 emitterPosition = float3(0.0f, 0.0f, 0.0f);
-	};
-
 	REGISTER_COMPONENT(ComponentParticleSystem, ComponentType::PARTICLE, false);
 
 	void Update() override;
@@ -75,53 +77,60 @@ public:
 	void UndertakerParticle();
 
 private:
-	float4 GetTintColor() const; // Gets an additional color that needs to be applied to the image. Currently gets the color of the Button
 	void CreateParticles(unsigned nParticles, float vel);
 
 private:
-	UID textureID = 0; // ID of the image
-
-	EmitterType emitterType = EmitterType::CONE;
-	BillboardType billboardType = BillboardType::LOOK_AT;
-
 	Pool<Particle> particles;
 	std::vector<Particle*> deadParticles;
+	bool executer = false;
+	unsigned particleSpawned = 0;
 
 	float3 cameraDir = {0.f, 0.f, 0.f};
+	float emitterTime = 0.0f;
 
-	// General Options
-
-	bool looping = false;
+	// Control
 	bool isPlaying = true;
-	bool isRandomFrame = false;
-	bool sizeOverTime = false;
-	bool reverseEffect = false;
-	bool attachEmitter = false;
-	bool executer = false;
-	float scale = 5.f;
-	float distanceReverse = 0.f;
 	float startDelay = 0.f;
 	float restDelayTime = 0.f;
+
+	// Particle System
+	float duration = 5.0f; // Emitter duration
+	bool looping = false;
+	float life = 5.f;	   // Start life
+	float velocity = 1.3f; // Start speed
+	float scale = 3.f;	   // Start size
+	bool reverseEffect = false;
+	float reverseDistance = 0.f;
 	unsigned maxParticles = 100;
-	unsigned particleSpawned = 0;
-	float velocity = 0.1f;
-	float particleLife = 5.f;
-	float scaleFactor = 0.f;
+
+	// Emision
+	bool attachEmitter = false;
+
+	// Shape
+	ParticleEmitterType emitterType = ParticleEmitterType::CONE;
 	float coneRadiusUp = 1.f;
 	float coneRadiusDown = 0.5f;
+
+	// Size over Lifetime
+	bool sizeOverLifetime = false;
+	float scaleFactor = 0.f;
+
+	// Color over Lifetime
+	bool colorOverLifetime = false;
+	ImGradient gradient;
+	ImGradientMark* draggingGradient = nullptr;
+	ImGradientMark* selectedGradient = nullptr;
 
 	// Texture Sheet Animation
 	unsigned Xtiles = 1;
 	unsigned Ytiles = 1;
 	float animationSpeed = 0.0f;
+	bool isRandomFrame = false;
 
-	// Color Options
-	float4 initC = float4::one;
-	float4 finalC = float4::one;
-	float startTransition = 0.0f;
-	float endTransition = 0.0f;
-
-	// Texture Options
+	// Render
+	UID textureID = 0;									  // ID of the image
+	BillboardType billboardType = BillboardType::LOOK_AT; // Render Mode
+	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
 	bool flipTexture[2] = {false, false};
 
 	// Guizmos Options
