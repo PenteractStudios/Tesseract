@@ -183,7 +183,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 	// Render
 	if (ImGui::CollapsingHeader("Render")) {
-		const char* billboardTypeCombo[] = {"LookAt", "Stretch", "Horitzontal"};
+		const char* billboardTypeCombo[] = {"LookAt", "Stretch", "Horitzontal", "Vertical"};
 		const char* billboardTypeComboCurrent = billboardTypeCombo[(int) billboardType];
 		if (ImGui::BeginCombo("Bilboard Mode##", billboardTypeComboCurrent)) {
 			for (int n = 0; n < IM_ARRAYSIZE(billboardTypeCombo); ++n) {
@@ -638,8 +638,10 @@ void ComponentParticleSystem::Draw() {
 				float4x4 newModelMatrix = currentParticle.model.LookAt(rotatePart.Col(2), float3::unitY, rotatePart.Col(1), float3::unitY);
 				modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart(), currentParticle.scale);
 			} else if (billboardType == BillboardType::VERTICAL) {
-				// TODO: Implement it
-				modelMatrix = currentParticle.model;
+				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
+				float3 cameraDir = (float3(cameraPos.x, currentParticle.position.y, cameraPos.z) - currentParticle.position).Normalized();
+				float4x4 newModelMatrix = currentParticle.model.LookAt(rotatePart.Col(2), cameraDir, rotatePart.Col(1), float3::unitY);
+				modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart(), currentParticle.scale);
 			}
 
 			float4x4* proj = &App->camera->GetProjectionMatrix();
