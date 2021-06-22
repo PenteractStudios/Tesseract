@@ -19,28 +19,15 @@ void main()
 
 in vec2 uv0;
 
-uniform sampler2D diffuse;
+uniform sampler2D diffuseMap;
 uniform vec4 inputColor;
+uniform int hasDiffuse;
 
-uniform float colorFrame;
-uniform vec4 initColor;
-uniform vec4 mediumColor;
-uniform vec4 finalColor;
 
 out vec4 outColor;
 
 void main()
 {	
-	if(colorFrame<1){
-		float a = colorFrame - int(colorFrame);
-		outColor = mix(initColor, mediumColor, a) * texture2D(diffuse,  uv0 ) ;
-	}
-	else if(colorFrame >= 1  && colorFrame<2 ){
-		float a = colorFrame - int(colorFrame);
-		outColor = mix(mediumColor, finalColor, a) * texture2D(diffuse,  uv0 ) ;
-	}
-	else{
-		outColor = finalColor * texture2D(diffuse,  uv0 ) ;
-	}
+	outColor = inputColor * (hasDiffuse * texture2D(diffuseMap,  uv0 ) + (1 - hasDiffuse));
 }
 
