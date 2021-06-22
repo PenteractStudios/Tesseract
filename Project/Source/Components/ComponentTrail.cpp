@@ -49,6 +49,7 @@ void ComponentTrail::Init() {
 
 void ComponentTrail::Update() {
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
+	float3 vectorUp = (transform->GetGlobalRotation() * float3::unitY).Normalized();
 
 	if (isStarted) {
 		if (!previousPosition.Equals(transform->GetGlobalPosition())) {
@@ -57,11 +58,11 @@ void ComponentTrail::Update() {
 			previousPosition = currentPosition;
 
 			currentPosition = transform->GetGlobalPosition();
-			previousVectorUp = transform->GetGlobalRotation() * float3::unitY;
-			previousVectorUp.Normalize();
+			currentPositionUp = transform->GetGlobalRotation() * float3::unitY;
+			currentPositionDown.Normalize();
 
-			currentPositionUp = (previousVectorUp * width) + currentPosition;
-			currentPositionDown = (-previousVectorUp * width) + currentPosition;
+			currentPositionUp = (vectorUp * width) + currentPosition;
+			currentPositionDown = (-vectorUp * width) + currentPosition;
 
 			if (quadsCreated >= trailQuads) {
 				//UpdateVerticesPosition();
@@ -98,10 +99,8 @@ void ComponentTrail::Update() {
 	} else {
 		isStarted = true;
 		currentPosition = transform->GetGlobalPosition();
-		previousVectorUp = transform->GetGlobalRotation() * float3::unitY;
-		previousVectorUp.Normalize();
-		currentPositionUp = previousVectorUp * width + currentPosition;
-		currentPositionDown = -previousVectorUp * width + currentPosition;
+		currentPositionUp = vectorUp * width + currentPosition;
+		currentPositionDown = -vectorUp * width + currentPosition;
 		return;
 	}
 	UpdateQuads();
@@ -145,9 +144,6 @@ void ComponentTrail::OnEditorUpdate() {
 	if (colorOverTrail) {
 		ImGui::DragFloat("Color Life", &colorLife, App->editor->dragSpeed2f, 0, inf);
 		ImGui::GradientEditor(&gradient, draggingGradient, selectedGradient);
-		if (ImGui::Button("Reset Color")) {
-			ResetColor();
-		}
 	}
 
 	UID oldID = textureID;
@@ -226,7 +222,7 @@ void ComponentTrail::Save(JsonValue jComponent) const {
 
 void ComponentTrail::Draw() {
 	unsigned int program = App->programs->trail;
-		unsigned glTexture = 0;
+	unsigned glTexture = 0;
 	ResourceTexture* texture = App->resources->GetResource<ResourceTexture>(textureID);
 	glTexture = texture ? texture->glTexture : 0;
 	int hasDiffuseMap = texture ? 1 : 0;
@@ -258,26 +254,25 @@ void ComponentTrail::Draw() {
 		glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
 
 		float4 color = float4::one;
-	if (colorOverTrail) {
-		float factor = trailTime / colorLife;
-		gradient.getColorAt(factor, color.ptr());
-	}
+		if (colorOverTrail) {
+			float factor = currentQuad.life / colorLife;
+			gradient.getColorAt(factor, color.ptr());
+		}
 
-	glUniform1i(glGetUniformLocation(program, "diffuseMap"), 0);
-	glUniform1i(glGetUniformLocation(program, "hasDiffuse"), hasDiffuseMap);
-	glUniform4fv(glGetUniformLocation(program, "inputColor"), 1, color.ptr());
+		glUniform1i(glGetUniformLocation(program, "diffuseMap"), 0);
+		glUniform1i(glGetUniformLocation(program, "hasDiffuse"), hasDiffuseMap);
+		glUniform4fv(glGetUniformLocation(program, "inputColor"), 1, color.ptr());
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, glTexture);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, glTexture);
 
-	glDrawArrays(GL_TRIANGLES, 0, currentQuad.index);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glDrawArrays(GL_TRIANGLES, 0, currentQuad.index);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	glEnable(GL_CULL_FACE);
-	glDisable(GL_BLEND);
-	glDepthMask(GL_TRUE);
-
+		glEnable(GL_CULL_FACE);
+		glDisable(GL_BLEND);
+		glDepthMask(GL_TRUE);
 	}
 }
 
@@ -287,7 +282,7 @@ void ComponentTrail::UpdateVerticesPosition() {
 	}
 	trianglesCreated -= 30;
 }
-<<<<<<< HEAD
+
 void ComponentTrail::InsertVertex(Quad* currentQuad, float3 vertex) {
 	currentQuad->quadInfo[currentQuad->index++] = vertex.x;
 	currentQuad->quadInfo[currentQuad->index++] = vertex.y;
@@ -296,13 +291,6 @@ void ComponentTrail::InsertVertex(Quad* currentQuad, float3 vertex) {
 	//verticesPosition[trianglesCreated++] = vertex.x;
 	//verticesPosition[trianglesCreated++] = vertex.y;
 	//verticesPosition[trianglesCreated++] = vertex.z;
-=======
-
-void ComponentTrail::InsertVertex(float3 vertex) {
-	verticesPosition[trianglesCreated++] = vertex.x;
-	verticesPosition[trianglesCreated++] = vertex.y;
-	verticesPosition[trianglesCreated++] = vertex.z;
->>>>>>> 1970a94848928080d7205150f9cf37604e678c85
 }
 
 void ComponentTrail::InsertTextureCoords(Quad* currentQuad) {
@@ -383,8 +371,4 @@ void ComponentTrail::EditTextureCoords() {
 
 		nLine++;
 	}
-}
-
-void ComponentTrail::ResetColor() {
-	trailTime = 0.0f;
 }
