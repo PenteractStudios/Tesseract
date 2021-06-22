@@ -369,6 +369,7 @@
     <ClCompile Include="Source\Components\ComponentAgent.cpp" />
     <ClCompile Include="Source\Panels\PanelAudioMixer.cpp" />
     <ClCompile Include="Source\Utils\Random.cpp" />
+    <ClCompile Include="Source\Rendering\Programs.cpp" />
     <ClCompile Include="Source\Utils\ParticleMotionState.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -716,6 +717,7 @@
     <ClInclude Include="Source\Components\ComponentAgent.h" />
     <ClInclude Include="Source\Panels\PanelAudioMixer.h" />
     <ClInclude Include="Source\Utils\Random.h" />
+    <ClInclude Include="Source\Rendering\Programs.h" />
     <ClInclude Include="Source\Utils\ParticleMotionState.h" />
     <ClInclude Include="Source\Utils\Collider.h" />
   </ItemGroup>

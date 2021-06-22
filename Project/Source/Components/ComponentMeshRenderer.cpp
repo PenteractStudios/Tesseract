@@ -10,8 +10,10 @@
 #include "Resources/ResourceMaterial.h"
 #include "Resources/ResourceMesh.h"
 #include "Resources/ResourceTexture.h"
+#include "Resources/ResourceSkybox.h"
 #include "Components/ComponentTransform.h"
 #include "Components/ComponentLight.h"
+#include "Components/ComponentSkyBox.h"
 #include "Components/ComponentBoundingBox.h"
 #include "Components/ComponentAnimation.h"
 #include "Modules/ModulePrograms.h"
@@ -231,6 +233,86 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
 	if (material == nullptr) return;
 
+	// Specific shader settings
+	unsigned glTextureNormal = 0;
+	ResourceTexture* normal = App->resources->GetResource<ResourceTexture>(material->normalMapId);
+	glTextureNormal = normal ? normal->glTexture : 0;
+	int hasNormalMap = normal ? 1 : 0;
+
+	ProgramStandard* standardProgram = nullptr;
+	switch (material->shaderType) {
+	case MaterialShader::PHONG: {
+		// Phong-specific uniform settings
+		ProgramStandardPhong* phongProgram = hasNormalMap ? App->programs->phongNormal : App->programs->phongNotNormal;
+		if (phongProgram == nullptr) return;
+
+		glUseProgram(phongProgram->program);
+
+		unsigned glTextureSpecular = 0;
+		ResourceTexture* specular = App->resources->GetResource<ResourceTexture>(material->specularMapId);
+		glTextureSpecular = specular ? specular->glTexture : 0;
+		int hasSpecularMap = specular ? 1 : 0;
+
+		glUniform3fv(phongProgram->specularColorLocation, 1, material->specularColor.ptr());
+		glUniform1i(phongProgram->hasSpecularMapLocation, hasSpecularMap);
+
+		glUniform1i(phongProgram->specularMapLocation, 1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, glTextureSpecular);
+
+		standardProgram = phongProgram;
+		break;
+	}
+	case MaterialShader::STANDARD_SPECULAR: {
+		// Specular-specific uniform settings
+		ProgramStandardSpecular* specularProgram = hasNormalMap ? App->programs->specularNormal : App->programs->specularNotNormal;
+		if (specularProgram == nullptr) return;
+
+		glUseProgram(specularProgram->program);
+
+		unsigned glTextureSpecular = 0;
+		ResourceTexture* specular = App->resources->GetResource<ResourceTexture>(material->specularMapId);
+		glTextureSpecular = specular ? specular->glTexture : 0;
+		int hasSpecularMap = specular ? 1 : 0;
+
+		glUniform3fv(specularProgram->specularColorLocation, 1, material->specularColor.ptr());
+		glUniform1i(specularProgram->hasSpecularMapLocation, hasSpecularMap);
+
+		glUniform1i(specularProgram->specularMapLocation, 1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, glTextureSpecular);
+
+		standardProgram = specularProgram;
+		break;
+	}
+	case MaterialShader::STANDARD: {
+		// Standard-specific uniform settings
+		ProgramStandardMetallic* metallicProgram = hasNormalMap ? App->programs->standardNormal : App->programs->standardNotNormal;
+		if (metallicProgram == nullptr) return;
+
+		glUseProgram(metallicProgram->program);
+
+		// Standard-specific settings
+		unsigned glTextureMetallic = 0;
+		ResourceTexture* metallic = App->resources->GetResource<ResourceTexture>(material->metallicMapId);
+		glTextureMetallic = metallic ? metallic->glTexture : 0;
+		int hasMetallicMap = metallic ? 1 : 0;
+
+		glUniform1f(metallicProgram->metalnessLocation, material->metallic);
+		glUniform1i(metallicProgram->hasMetallicMapLocation, hasMetallicMap);
+
+		glUniform1i(metallicProgram->metallicMapLocation, 1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, glTextureMetallic);
+
+		standardProgram = metallicProgram;
+		break;
+	}
+	}
+
+	// Common shader settings
+	if (standardProgram == nullptr) return;
+
 	// Light settings
 	ComponentLight* directionalLight = nullptr;
 	ComponentLight* pointLightsArray[POINT_LIGHTS];
@@ -245,7 +327,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	float farSpotDistance = 0;
 	ComponentLight* farSpotLight = nullptr;
 
-	for (ComponentLight& light : GetOwner().scene->lightComponents) {
+	Scene* scene = GetOwner().scene;
+	for (ComponentLight& light : scene->lightComponents) {
 		if (light.lightType == LightType::DIRECTIONAL) {
 			// It takes the first actived Directional Light inside the Pool
 			if (light.IsActive() && directionalLight == nullptr) {
@@ -339,9 +422,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		}
 	}
 
-	// Common shader settings
-
-	unsigned program = 0;
+	// Matrices
 	float4x4 viewMatrix = App->camera->GetViewMatrix();
 	float4x4 projMatrix = App->camera->GetProjectionMatrix();
 
@@ -353,11 +434,6 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	ResourceTexture* diffuse = App->resources->GetResource<ResourceTexture>(material->diffuseMapId);
 	glTextureDiffuse = diffuse ? diffuse->glTexture : 0;
 	int hasDiffuseMap = diffuse ? 1 : 0;
-
-	unsigned glTextureNormal = 0;
-	ResourceTexture* normal = App->resources->GetResource<ResourceTexture>(material->normalMapId);
-	glTextureNormal = normal ? normal->glTexture : 0;
-	int hasNormalMap = normal ? 1 : 0;
 
 	unsigned gldepthMapTexture = App->renderer->depthMapTexture;
 
@@ -373,171 +449,120 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glTextureAmbientOcclusion = ambientOcclusion ? ambientOcclusion->glTexture : 0;
 	int hasAmbientOcclusionMap = glTextureAmbientOcclusion ? 1 : 0;
 
-	if (material->shaderType == MaterialShader::PHONG) {
-		// Phong-specific settings
-		unsigned glTextureSpecular = 0;
-		ResourceTexture* specular = App->resources->GetResource<ResourceTexture>(material->specularMapId);
-		glTextureSpecular = specular ? specular->glTexture : 0;
-		int hasSpecularMap = specular ? 1 : 0;
-
-		// Phong-specific uniform settings
-		if (hasNormalMap) {
-			program = App->programs->phongNormal;
-		} else {
-			program = App->programs->phongNotNormal;
-		}
-
-		glUseProgram(program);
-
-		glUniform3fv(glGetUniformLocation(program, "specularColor"), 1, material->specularColor.ptr());
-		glUniform1i(glGetUniformLocation(program, "hasSpecularMap"), hasSpecularMap);
-
-		glUniform1i(glGetUniformLocation(program, "specularMap"), 1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, glTextureSpecular);
-
-	} else if (material->shaderType == MaterialShader::STANDARD_SPECULAR) {
-		// Specular-specific settings
-		unsigned glTextureSpecular = 0;
-		ResourceTexture* specular = App->resources->GetResource<ResourceTexture>(material->specularMapId);
-		glTextureSpecular = specular ? specular->glTexture : 0;
-		int hasSpecularMap = specular ? 1 : 0;
-
-		// Specular-specific uniform settings
-		if (hasNormalMap) {
-			program = App->programs->specularNormal;
-		} else {
-			program = App->programs->specularNotNormal;
-		}
-
-		glUseProgram(program);
-
-		glUniform3fv(glGetUniformLocation(program, "specularColor"), 1, material->specularColor.ptr());
-		glUniform1i(glGetUniformLocation(program, "hasSpecularMap"), hasSpecularMap);
-
-		glUniform1i(glGetUniformLocation(program, "specularMap"), 1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, glTextureSpecular);
-
-	} else if (material->shaderType == MaterialShader::STANDARD) {
-		// Standard-specific settings
-		unsigned glTextureMetallic = 0;
-		ResourceTexture* metallic = App->resources->GetResource<ResourceTexture>(material->metallicMapId);
-		glTextureMetallic = metallic ? metallic->glTexture : 0;
-		int hasMetallicMap = metallic ? 1 : 0;
-
-		// Standard-specific uniform settings
-		if (hasNormalMap) {
-			program = App->programs->standardNormal;
-		} else {
-			program = App->programs->standardNotNormal;
-		}
-
-		glUseProgram(program);
-
-		glUniform1f(glGetUniformLocation(program, "metalness"), material->metallic);
-		glUniform1i(glGetUniformLocation(program, "hasMetallicMap"), hasMetallicMap);
-
-		glUniform1i(glGetUniformLocation(program, "metallicMap"), 1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, glTextureMetallic);
-
-	} else {
-		glUseProgram(program);
-	}
-
 	// Common uniform settings
-	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, modelMatrix.ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, viewMatrix.ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, projMatrix.ptr());
+	glUniformMatrix4fv(standardProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
+	glUniformMatrix4fv(standardProgram->viewLocation, 1, GL_TRUE, viewMatrix.ptr());
+	glUniformMatrix4fv(standardProgram->projLocation, 1, GL_TRUE, projMatrix.ptr());
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "viewLight"), 1, GL_TRUE, viewLight.ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "projLight"), 1, GL_TRUE, projLight.ptr());
+	glUniformMatrix4fv(standardProgram->viewLightLocation, 1, GL_TRUE, viewLight.ptr());
+	glUniformMatrix4fv(standardProgram->projLightLocation, 1, GL_TRUE, projLight.ptr());
 
 	if (palette.size() > 0) {
-		glUniformMatrix4fv(glGetUniformLocation(program, "palette"), palette.size(), GL_TRUE, palette[0].ptr());
+		glUniformMatrix4fv(standardProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 	}
 
-	glUniform1i(glGetUniformLocation(program, "hasBones"), goBones.size());
+	glUniform1i(standardProgram->hasBonesLocation, goBones.size());
 
-	glUniform1i(glGetUniformLocation(program, "light.numSpots"), spotLightsArraySize);
-	glUniform3fv(glGetUniformLocation(program, "viewPos"), 1, App->camera->GetPosition().ptr());
+	glUniform3fv(standardProgram->viewPosLocation, 1, App->camera->GetPosition().ptr());
 
 	// Diffuse
-	glUniform1i(glGetUniformLocation(program, "diffuseMap"), 0);
-	glUniform4fv(glGetUniformLocation(program, "diffuseColor"), 1, material->diffuseColor.ptr());
-	glUniform1i(glGetUniformLocation(program, "hasDiffuseMap"), hasDiffuseMap);
-	glUniform1f(glGetUniformLocation(program, "smoothness"), material->smoothness);
-	glUniform1i(glGetUniformLocation(program, "hasSmoothnessAlpha"), material->hasSmoothnessInAlphaChannel);
+	glUniform1i(standardProgram->diffuseMapLocation, 0);
+	glUniform4fv(standardProgram->diffuseColorLocation, 1, material->diffuseColor.ptr());
+	glUniform1i(standardProgram->hasDiffuseMapLocation, hasDiffuseMap);
+	glUniform1f(standardProgram->smoothnessLocation, material->smoothness);
+	glUniform1i(standardProgram->hasSmoothnessAlphaLocation, material->hasSmoothnessInAlphaChannel);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, glTextureDiffuse);
 
 	// Normal Map
-	glUniform1i(glGetUniformLocation(program, "normalMap"), 2);
-	glUniform1i(glGetUniformLocation(program, "hasNormalMap"), hasNormalMap);
-	glUniform1f(glGetUniformLocation(program, "normalStrength"), material->normalStrength);
+	glUniform1i(standardProgram->normalMapLocation, 2);
+	glUniform1i(standardProgram->hasNormalMapLocation, hasNormalMap);
+	glUniform1f(standardProgram->normalStrengthLocation, material->normalStrength);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, glTextureNormal);
 
 	// Emissive Map
-	glUniform1i(glGetUniformLocation(program, "emissiveMap"), 3);
-	glUniform1i(glGetUniformLocation(program, "hasEmissiveMap"), hasEmissiveMap);
+	glUniform1i(standardProgram->emissiveMapLocation, 3);
+	glUniform1i(standardProgram->hasEmissiveMapLocation, hasEmissiveMap);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, glTextureEmissive);
 
 	// Ambient Occlusion Map
-	glUniform1i(glGetUniformLocation(program, "ambientOcclusionMap"), 4);
-	glUniform1i(glGetUniformLocation(program, "hasAmbientOcclusionMap"), hasAmbientOcclusionMap);
+	glUniform1i(standardProgram->ambientOcclusionMapLocation, 4);
+	glUniform1i(standardProgram->hasAmbientOcclusionMapLocation, hasAmbientOcclusionMap);
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, glTextureAmbientOcclusion);
 
 	// Depth Map
-	glUniform1i(glGetUniformLocation(program, "depthMapTexture"), 5);
+	glUniform1i(standardProgram->depthMapTextureLocation, 5);
 	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_2D, gldepthMapTexture);
 
 	// SSAO texture
-	glUniform1i(glGetUniformLocation(program, "ssaoTexture"), 6);
+	glUniform1i(standardProgram->ssaoTextureLocation, 6);
 	glActiveTexture(GL_TEXTURE6);
 	glBindTexture(GL_TEXTURE_2D, glSSAOTexture);
 
 	// Tilling settings
-	glUniform2fv(glGetUniformLocation(program, "tiling"), 1, material->tiling.ptr());
-	glUniform2fv(glGetUniformLocation(program, "offset"), 1, material->offset.ptr());
+	glUniform2fv(standardProgram->tilingLocation, 1, material->tiling.ptr());
+	glUniform2fv(standardProgram->offsetLocation, 1, material->offset.ptr());
+
+	// IBL textures
+	auto it = scene->skyboxComponents.begin();
+	if (it != scene->skyboxComponents.end()) {
+		ComponentSkyBox& skyboxComponent = *it;
+		ResourceSkybox* skyboxResource = App->resources->GetResource<ResourceSkybox>(skyboxComponent.GetSkyboxResourceID());
+
+		if (skyboxResource != nullptr) {
+			glUniform1i(standardProgram->diffuseIBLLocation, 7);
+			glActiveTexture(GL_TEXTURE7);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxResource->GetGlIrradianceMap());
+
+			glUniform1i(standardProgram->prefilteredIBLLocation, 8);
+			glActiveTexture(GL_TEXTURE8);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxResource->GetGlPreFilteredMap());
+
+			glUniform1i(standardProgram->environmentBRDFLocation, 9);
+			glActiveTexture(GL_TEXTURE9);
+			glBindTexture(GL_TEXTURE_2D, skyboxResource->GetGlEnvironmentBRDF());
+
+			glUniform1i(standardProgram->prefilteredIBLNumLevelsLocation, skyboxResource->GetPreFilteredMapNumLevels());
+		}
+	}
+	// Lights uniforms settings
+	glUniform3fv(standardProgram->lightAmbientColorLocation, 1, App->renderer->ambientColor.ptr());
 
 	// Lights uniforms settings
-	glUniform3fv(glGetUniformLocation(program, "light.ambient.color"), 1, App->renderer->ambientColor.ptr());
-
 	if (directionalLight != nullptr) {
-		glUniform3fv(glGetUniformLocation(program, "light.directional.direction"), 1, directionalLight->direction.ptr());
-		glUniform3fv(glGetUniformLocation(program, "light.directional.color"), 1, directionalLight->color.ptr());
-		glUniform1f(glGetUniformLocation(program, "light.directional.intensity"), directionalLight->intensity);
+		glUniform3fv(standardProgram->lightDirectionalDirectionLocation, 1, directionalLight->direction.ptr());
+		glUniform3fv(standardProgram->lightDirectionalColorLocation, 1, directionalLight->color.ptr());
+		glUniform1f(standardProgram->lightDirectionalIntensityLocation, directionalLight->intensity);
 	}
-	glUniform1i(glGetUniformLocation(program, "light.directional.isActive"), directionalLight ? 1 : 0);
+	glUniform1i(standardProgram->lightDirectionalIsActiveLocation, directionalLight ? 1 : 0);
 
 	for (unsigned i = 0; i < pointLightsArraySize; ++i) {
-		glUniform3fv(glGetUniformLocation(program, pointLightStrings[i][0]), 1, pointLightsArray[i]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, pointLightStrings[i][1]), 1, pointLightsArray[i]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, pointLightStrings[i][2]), pointLightsArray[i]->intensity);
-		glUniform1f(glGetUniformLocation(program, pointLightStrings[i][3]), pointLightsArray[i]->kc);
-		glUniform1f(glGetUniformLocation(program, pointLightStrings[i][4]), pointLightsArray[i]->kl);
-		glUniform1f(glGetUniformLocation(program, pointLightStrings[i][5]), pointLightsArray[i]->kq);
+		glUniform3fv(standardProgram->lightPoints[i].posLocation, 1, pointLightsArray[i]->pos.ptr());
+		glUniform3fv(standardProgram->lightPoints[i].colorLocation, 1, pointLightsArray[i]->color.ptr());
+		glUniform1f(standardProgram->lightPoints[i].intensityLocation, pointLightsArray[i]->intensity);
+		glUniform1f(standardProgram->lightPoints[i].kcLocation, pointLightsArray[i]->kc);
+		glUniform1f(standardProgram->lightPoints[i].klLocation, pointLightsArray[i]->kl);
+		glUniform1f(standardProgram->lightPoints[i].kqLocation, pointLightsArray[i]->kq);
 	}
-	glUniform1i(glGetUniformLocation(program, "light.numPoints"), pointLightsArraySize);
+	glUniform1i(standardProgram->lightNumPointsLocation, pointLightsArraySize);
 
 	for (unsigned i = 0; i < spotLightsArraySize; ++i) {
-		glUniform3fv(glGetUniformLocation(program, spotLightStrings[i][0]), 1, spotLightsArray[i]->pos.ptr());
-		glUniform3fv(glGetUniformLocation(program, spotLightStrings[i][1]), 1, spotLightsArray[i]->direction.ptr());
-		glUniform3fv(glGetUniformLocation(program, spotLightStrings[i][2]), 1, spotLightsArray[i]->color.ptr());
-		glUniform1f(glGetUniformLocation(program, spotLightStrings[i][3]), spotLightsArray[i]->intensity);
-		glUniform1f(glGetUniformLocation(program, spotLightStrings[i][4]), spotLightsArray[i]->kc);
-		glUniform1f(glGetUniformLocation(program, spotLightStrings[i][5]), spotLightsArray[i]->kl);
-		glUniform1f(glGetUniformLocation(program, spotLightStrings[i][6]), spotLightsArray[i]->kq);
-		glUniform1f(glGetUniformLocation(program, spotLightStrings[i][7]), spotLightsArray[i]->innerAngle);
-		glUniform1f(glGetUniformLocation(program, spotLightStrings[i][8]), spotLightsArray[i]->outerAngle);
+		glUniform3fv(standardProgram->lightSpots[i].posLocation, 1, spotLightsArray[i]->pos.ptr());
+		glUniform3fv(standardProgram->lightSpots[i].directionLocation, 1, spotLightsArray[i]->direction.ptr());
+		glUniform3fv(standardProgram->lightSpots[i].colorLocation, 1, spotLightsArray[i]->color.ptr());
+		glUniform1f(standardProgram->lightSpots[i].intensityLocation, spotLightsArray[i]->intensity);
+		glUniform1f(standardProgram->lightSpots[i].kcLocation, spotLightsArray[i]->kc);
+		glUniform1f(standardProgram->lightSpots[i].klLocation, spotLightsArray[i]->kl);
+		glUniform1f(standardProgram->lightSpots[i].kqLocation, spotLightsArray[i]->kq);
+		glUniform1f(standardProgram->lightSpots[i].innerAngleLocation, spotLightsArray[i]->innerAngle);
+		glUniform1f(standardProgram->lightSpots[i].outerAngleLocation, spotLightsArray[i]->outerAngle);
 	}
-	glUniform1i(glGetUniformLocation(program, "light.numSpots"), spotLightsArraySize);
+	glUniform1i(standardProgram->lightNumSpotsLocation, spotLightsArraySize);
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
@@ -553,24 +578,25 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
 	if (material == nullptr) return;
 
-	unsigned program = App->programs->depthPrepass;
+	ProgramDepthPrepass* depthPrepassProgram = App->programs->depthPrepass;
+	if (depthPrepassProgram == nullptr) return;
+
 	float4x4 viewMatrix = App->camera->GetViewMatrix();
 	float4x4 projMatrix = App->camera->GetProjectionMatrix();
 
-	glUseProgram(program);
-
+	glUseProgram(depthPrepassProgram->program);
 
 	// Common uniform settings
-	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, modelMatrix.ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, viewMatrix.ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, projMatrix.ptr());
+	glUniformMatrix4fv(depthPrepassProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
+	glUniformMatrix4fv(depthPrepassProgram->viewLocation, 1, GL_TRUE, viewMatrix.ptr());
+	glUniformMatrix4fv(depthPrepassProgram->projLocation, 1, GL_TRUE, projMatrix.ptr());
 
 	// Skinning
 	if (palette.size() > 0) {
-		glUniformMatrix4fv(glGetUniformLocation(program, "palette"), palette.size(), GL_TRUE, palette[0].ptr());
+		glUniformMatrix4fv(depthPrepassProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 	}
 
-	glUniform1i(glGetUniformLocation(program, "hasBones"), goBones.size());
+	glUniform1i(depthPrepassProgram->hasBonesLocation, goBones.size());
 
 	// Diffuse
 	unsigned glTextureDiffuse = 0;
@@ -578,16 +604,16 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	glTextureDiffuse = diffuse ? diffuse->glTexture : 0;
 	int hasDiffuseMap = diffuse ? 1 : 0;
 
-	glUniform1i(glGetUniformLocation(program, "diffuseMap"), 0);
-	glUniform4fv(glGetUniformLocation(program, "diffuseColor"), 1, material->diffuseColor.ptr());
-	glUniform1i(glGetUniformLocation(program, "hasDiffuseMap"), hasDiffuseMap);
+	glUniform1i(depthPrepassProgram->diffuseMapLocation, 0);
+	glUniform4fv(depthPrepassProgram->diffuseColorLocation, 1, material->diffuseColor.ptr());
+	glUniform1i(depthPrepassProgram->hasDiffuseMapLocation, hasDiffuseMap);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, glTextureDiffuse);
 
 	// Tiling settings
-	glUniform2fv(glGetUniformLocation(program, "tiling"), 1, material->tiling.ptr());
-	glUniform2fv(glGetUniformLocation(program, "offset"), 1, material->offset.ptr());
+	glUniform2fv(depthPrepassProgram->tilingLocation, 1, material->tiling.ptr());
+	glUniform2fv(depthPrepassProgram->offsetLocation, 1, material->offset.ptr());
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
