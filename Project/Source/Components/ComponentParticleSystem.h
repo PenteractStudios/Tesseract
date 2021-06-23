@@ -71,9 +71,9 @@ public:
 	void InitParticlePosAndDir(Particle* currentParticle);
 	void InitParticleScale(Particle* currentParticle);
 	void InitParticleVelocity(Particle* currentParticle);
+	void InitParticleLifetime(Particle* currentParticle);
 
 	void UpdatePosition(Particle* currentParticle);
-	void UpdateVelocity(Particle* currentParticle);
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
 	void UndertakerParticle();
@@ -102,7 +102,7 @@ private:
 	float velocity = 1.3f; // Start speed
 	float scale = 1.0f;	   // Start size
 	bool reverseEffect = false;
-	float reverseDistance = 0.f;
+	float reverseDistance = 5.0f;
 	unsigned maxParticles = 100;
 
 	// Emision

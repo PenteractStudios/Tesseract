@@ -284,35 +284,31 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 
 		float3 localPos0 = float3(x0, 0.0f, z0) * coneRadiusDown;
 		float3 localPos1 = float3(x1, 0.0f, z1) * coneRadiusUp + float3::unitY;
-		localDir = transform->GetGlobalRotation() * (localPos1 - localPos0).Normalized();
+		localDir = (localPos1 - localPos0).Normalized();
 
 		if (reverseEffect) {
-			localPos = localDir * reverseDistance;
+			localPos = localPos0 + localDir * reverseDistance;
 		} else {
 			localPos = localPos0;
 		}
 
 	} else if (emitterType == ParticleEmitterType::SPHERE) {
-		if (reverseEffect) { // TODO: improve me
-			x0 = float(rand()) / float(RAND_MAX) * reverseDistance - reverseDistance / 2;
-			z0 = float(rand()) / float(RAND_MAX) * reverseDistance - reverseDistance / 2;
-			y0 = float(rand()) / float(RAND_MAX) * reverseDistance - reverseDistance / 2;
-
-			localPos = (float3(x0, y0, z0));
-		} else {
-			localPos = float3::zero;
-		}
-
 		x1 = float(rand()) / float(RAND_MAX) * 2.0f - 1.0f;
 		y1 = float(rand()) / float(RAND_MAX) * 2.0f - 1.0f;
 		z1 = float(rand()) / float(RAND_MAX) * 2.0f - 1.0f;
 
 		localDir = float3(x1, y1, z1);
+
+		if (reverseEffect) {
+			localPos = localDir * reverseDistance;
+		} else {
+			localPos = float3::zero;
+		}
 	}
 
 	currentParticle->initialPosition = transform->GetGlobalPosition() + transform->GetGlobalRotation() * localPos;
 	currentParticle->position = currentParticle->initialPosition;
-	currentParticle->direction = localDir;
+	currentParticle->direction = transform->GetGlobalRotation() * localDir;
 }
 
 void ComponentParticleSystem::InitParticleScale(Particle* currentParticle) {
@@ -321,6 +317,10 @@ void ComponentParticleSystem::InitParticleScale(Particle* currentParticle) {
 
 void ComponentParticleSystem::InitParticleVelocity(Particle* currentParticle) {
 	currentParticle->velocity = velocity;
+}
+
+void ComponentParticleSystem::InitParticleLifetime(Particle* currentParticle) {
+	currentParticle->life = life;
 }
 
 void ComponentParticleSystem::CreateParticles() {
@@ -465,8 +465,6 @@ void ComponentParticleSystem::Update() {
 			} else {
 				UpdatePosition(&currentParticle);
 
-				UpdateVelocity(&currentParticle);
-
 				UpdateLife(&currentParticle);
 				if (sizeOverLifetime) {
 					UpdateScale(&currentParticle);
@@ -506,7 +504,7 @@ void ComponentParticleSystem::UndertakerParticle() {
 
 void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
 	if (reverseEffect) {
-		currentParticle->position -= currentParticle->direction * velocity * App->time->GetDeltaTime();
+		currentParticle->position -= currentParticle->direction * velocity * App->time->GetDeltaTimeOrRealDeltaTime();
 	} else {
 		currentParticle->position += currentParticle->direction * velocity * App->time->GetDeltaTimeOrRealDeltaTime();
 	}
@@ -525,9 +523,6 @@ void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
 	} else {
 		currentParticle->modelStretch.SetTranslatePart(currentParticle->position);
 	}
-}
-
-void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
@@ -561,7 +556,6 @@ void ComponentParticleSystem::SpawnParticle() {
 	}
 	particleSpawned++;
 	if (currentParticle) {
-		currentParticle->life = life;
 		if (isRandomFrame) {
 			currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
 		} else {
@@ -570,6 +564,7 @@ void ComponentParticleSystem::SpawnParticle() {
 		InitParticleScale(currentParticle);
 		InitParticlePosAndDir(currentParticle);
 		InitParticleVelocity(currentParticle);
+		InitParticleLifetime(currentParticle);
 		currentParticle->emitterPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 
 		if (billboardType == BillboardType::STRETCH) {
