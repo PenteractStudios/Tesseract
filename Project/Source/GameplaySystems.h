@@ -22,6 +22,7 @@
 
 class GameObject;
 class ResourcePrefab;
+class ComponentEventSystem;
 
 namespace GameplaySystems {
 	TESSERACT_ENGINE_API GameObject* Instantiate(ResourcePrefab* prefab, float3 position, Quat rotation);
@@ -503,3 +504,7 @@ namespace Camera {
 namespace Audio {
 	TESSERACT_ENGINE_API void StopAllSources();
 }; // namespace Audio
+
+namespace UserInterface {
+	TESSERACT_ENGINE_API ComponentEventSystem* GetCurrentEventSystem();
+}; // namespace UserInterface
