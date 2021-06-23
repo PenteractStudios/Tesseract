@@ -3,8 +3,9 @@
 
 #include "Utils/Pool.h"
 #include "Utils/UID.h"
+
+#include "Math/float3.h"
 #include "Math/float4.h"
-#include "Math/float2.h"
 #include "Math/float4x4.h"
 #include "Math/Quat.h"
 #include "imgui_color_gradient.h"
@@ -67,8 +68,9 @@ public:
 	void SpawnParticle();
 	void killParticles();
 
-	float3 CreatePosition();
-	float3 CreateDirection();
+	void InitParticlePosAndDir(Particle* currentParticle);
+	void InitParticleScale(Particle* currentParticle);
+	void InitParticleVelocity(Particle* currentParticle);
 
 	void UpdatePosition(Particle* currentParticle);
 	void UpdateVelocity(Particle* currentParticle);
@@ -77,7 +79,7 @@ public:
 	void UndertakerParticle();
 
 private:
-	void CreateParticles(unsigned nParticles, float vel);
+	void CreateParticles();
 
 private:
 	Pool<Particle> particles;
@@ -96,9 +98,9 @@ private:
 	// Particle System
 	float duration = 5.0f; // Emitter duration
 	bool looping = false;
-	float life = 5.f;	   // Start life
+	float life = 5.0f;	   // Start life
 	float velocity = 1.3f; // Start speed
-	float scale = 3.f;	   // Start size
+	float scale = 1.0f;	   // Start size
 	bool reverseEffect = false;
 	float reverseDistance = 0.f;
 	unsigned maxParticles = 100;
@@ -108,8 +110,11 @@ private:
 
 	// Shape
 	ParticleEmitterType emitterType = ParticleEmitterType::CONE;
+	// -- Cone
 	float coneRadiusUp = 1.f;
 	float coneRadiusDown = 0.5f;
+	bool randomConeRadiusDown = false;
+	bool randomConeRadiusUp = false;
 
 	// Size over Lifetime
 	bool sizeOverLifetime = false;
