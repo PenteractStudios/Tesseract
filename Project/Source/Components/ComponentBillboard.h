@@ -2,10 +2,12 @@
 #include "Component.h"
 
 #include "ComponentParticleSystem.h"
+
 #include "Math/float4.h"
 #include "Math/float2.h"
 #include "Math/float4x4.h"
 #include "Math/Quat.h"
+#include "imgui_color_gradient.h"
 
 class ComponentBillboard : public Component {
 public:
@@ -17,6 +19,8 @@ public:
 	void Init() override;
 	void Update() override;
 	void Draw();
+
+	void ResetColor();
 
 private:
 	UID textureID = 0; // ID of the image
@@ -39,11 +43,12 @@ private:
 	unsigned Ytiles = 1;
 	float animationSpeed = 0.0f;
 
-	// Color
-	float3 initC = float3::one;
-	float3 finalC = float3::one;
-	float startTransition = 0.0f;
-	float endTransition = 0.0f;
+	// Color over Lifetime
+	bool colorOverLifetime = false;
+	float colorLifetime = 10.0f;
+	ImGradient gradient;
+	ImGradientMark* draggingGradient = nullptr;
+	ImGradientMark* selectedGradient = nullptr;
 
 	// Texture Options
 	bool flipTexture[2] = {false, false};

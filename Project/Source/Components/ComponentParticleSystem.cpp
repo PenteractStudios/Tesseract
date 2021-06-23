@@ -362,6 +362,7 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	scaleFactor = jComponent[JSON_TAG_SCALE_FACTOR];
 
 	// Color over Lifetime
+	colorOverLifetime = jComponent[JSON_TAG_COLOR_OVER_LIFETIME];
 	int numberColors = jComponent[JSON_TAG_NUMBER_COLORS];
 	gradient.clearList();
 	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLORS];
