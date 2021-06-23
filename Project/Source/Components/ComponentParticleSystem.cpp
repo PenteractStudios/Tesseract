@@ -568,7 +568,7 @@ void ComponentParticleSystem::SpawnParticle() {
 	}
 }
 
-void ComponentParticleSystem::destroyParticlesColliders() {
+void ComponentParticleSystem::DestroyParticlesColliders() {
 	for (Particle& currentParticle : particles) {
 		App->physics->RemoveParticleRigidbody(&currentParticle);
 		RELEASE(currentParticle.motionState);

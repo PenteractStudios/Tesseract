@@ -75,7 +75,7 @@ public:
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Stop();
 	void SpawnParticle();
-	void destroyParticlesColliders();
+	void DestroyParticlesColliders();
 
 	float3 CreatePosition();
 	float3 CreateDirection();

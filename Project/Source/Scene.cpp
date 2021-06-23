@@ -306,7 +306,7 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		break;
 	case ComponentType::PARTICLE:
 		for (ComponentParticleSystem& ps : particleComponents) {
-			ps.destroyParticlesColliders();
+			ps.DestroyParticlesColliders();
 		}
 		particleComponents.Release(componentId);
 		break;

@@ -12,8 +12,8 @@ public:
 	ParticleMotionState(ComponentParticleSystem::Particle* p);
 	~ParticleMotionState();
 
-	void getWorldTransform(btTransform& centerOfMassWorldTrans) const;
-	void setWorldTransform(const btTransform& centerOfMassWorldTrans);
+	void getWorldTransform(btTransform& centerOfMassWorldTrans) const override;
+	void setWorldTransform(const btTransform& centerOfMassWorldTrans) override;
 
 private:
 	ComponentParticleSystem::Particle* particle = nullptr;
