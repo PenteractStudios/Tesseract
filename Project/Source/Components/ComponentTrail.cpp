@@ -218,7 +218,7 @@ void ComponentTrail::Save(JsonValue jComponent) const {
 
 void ComponentTrail::Draw() {
 	ProgramTrail* trailProgram = App->programs->trail;
-	//unsigned int program = App->programs->trail;
+	if (!trailProgram) return;
 	unsigned glTexture = 0;
 	ResourceTexture* texture = App->resources->GetResource<ResourceTexture>(textureID);
 	glTexture = texture ? texture->glTexture : 0;
