@@ -400,6 +400,7 @@ NavMesh::NavMesh() {
 	navQuery = dtAllocNavMeshQuery();
 	crowd = dtAllocCrowd();
 
+	//TODO: memory leaks
 	ctx = new BuildContext();
 	talloc = new LinearAllocator(32000);
 	tcomp = new FastLZCompressor;
@@ -554,6 +555,7 @@ bool NavMesh::Build() {
 	cacheCompressedSize = 0;
 	cacheRawSize = 0;
 
+	//TODO: memory leak
 	rcChunkyTriMesh* chunkyMesh = new rcChunkyTriMesh;
 	if (!chunkyMesh) {
 		ctx->log(RC_LOG_ERROR, "buildTiledNavigation: Out of memory 'm_chunkyMesh'.");
@@ -1077,20 +1079,21 @@ void NavMesh::Load(Buffer<char>& buffer) {
 		if (!tileHeader.tileRef || !tileHeader.dataSize)
 			break;
 
-		unsigned char* data = (unsigned char*) dtAlloc(tileHeader.dataSize, DT_ALLOC_PERM);
+		//unsigned char* data = (unsigned char*) dtAlloc(tileHeader.dataSize, DT_ALLOC_PERM);
+		unsigned char* data = (unsigned char*) malloc(tileHeader.dataSize);
 		if (!data) break;
 		memset(data, 0, tileHeader.dataSize);
-		//fread(data, tileHeader.dataSize, 1, fp);
-		memcpy(data, cursor, tileHeader.dataSize);
 
-		//unsigned char* data = *((unsigned char**) cursor);
-		cursor += tileHeader.dataSize;
+		unsigned int _dataSize = sizeof(unsigned char) * tileHeader.dataSize;
+		memcpy_s(data, _dataSize, cursor, _dataSize);
+		cursor += _dataSize;
 
 		dtCompressedTileRef tile = 0;
 		tileCache->addTile(data, tileHeader.dataSize, DT_COMPRESSEDTILE_FREE_DATA, &tile);
 
-		if (tile)
-			tileCache->buildNavMeshTile(tile, navMesh);
+		if (tile) tileCache->buildNavMeshTile(tile, navMesh);
+
+		free(data);
 	}
 
 	status = navQuery->init(navMesh, 2048);
@@ -1132,28 +1135,25 @@ Buffer<char> NavMesh::Save() {
 	if (!tileCache || !navMesh) return Buffer<char>();
 
 	int sizeData = 0;
+	int numTiles = 0;
 	for (int i = 0; i < tileCache->getTileCount(); ++i) {
 		const dtCompressedTile* tile = tileCache->getTile(i);
 		if (!tile || !tile->header || !tile->dataSize) continue;
 
-		sizeData += sizeof(TileCacheTileHeader);
 		sizeData += tile->dataSize;
-		LOG("%d", sizeData);
+		sizeData += sizeof(TileCacheTileHeader);
+		numTiles++;
+		LOG("%d", tile->dataSize);
 	}
 
 	// Store header.
 	TileCacheSetHeader header;
 	header.magic = TILECACHESET_MAGIC;
 	header.version = TILECACHESET_VERSION;
-	header.numTiles = 0;
-	for (int i = 0; i < tileCache->getTileCount(); ++i) {
-		const dtCompressedTile* tile = tileCache->getTile(i);
-		if (!tile || !tile->header || !tile->dataSize) continue;
-		header.numTiles++;
-	}
+	header.numTiles = numTiles;
+
 	memcpy(&header.cacheParams, tileCache->getParams(), sizeof(dtTileCacheParams));
 	memcpy(&header.meshParams, navMesh->getParams(), sizeof(dtNavMeshParams));
-	//memcpy(cursor, &header, sizeof(TileCacheSetHeader));
 
 	int size = sizeof(TileCacheSetHeader) + sizeData;
 	Buffer<char> buffer = Buffer<char>(size);
@@ -1174,8 +1174,10 @@ Buffer<char> NavMesh::Save() {
 		*((TileCacheTileHeader*) cursor) = tileHeader;
 		cursor += sizeof(TileCacheTileHeader);
 
-		*((unsigned char**) cursor) = tile->data;
-		cursor += tile->dataSize;
+		unsigned int _dataSize = sizeof(unsigned char) * tile->dataSize;
+		memcpy_s(cursor, _dataSize, tile->data, _dataSize);
+		cursor += _dataSize;
+
 	}
 
 	return buffer;

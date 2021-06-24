@@ -334,6 +334,7 @@ bool ComponentSelectable::IsClicked() const {
 			return false;
 		}
 	}
+	return false;
 }
 
 void ComponentSelectable::TryToClickOn(bool internalClick) const {
