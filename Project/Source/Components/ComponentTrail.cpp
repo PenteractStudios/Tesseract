@@ -26,8 +26,8 @@
 #include "debugdraw.h"
 #include "rapidjson/rapidjson.h"
 
-#include "Utils/Leaks.h"
 #include <string>
+#include "Utils/Leaks.h"
 
 #define JSON_TAG_TEXTURE_TEXTUREID "TextureId"
 #define JSON_TAG_MAXVERTICES "MaxVertices"
