@@ -179,7 +179,7 @@ struct ProgramSSAO : Program {
 	ProgramSSAO(unsigned program);
 
 	int projLocation = -1;
-	
+
 	int positionsLocation = -1;
 	int normalsLocation = -1;
 
@@ -226,4 +226,16 @@ struct ProgramTextUI : Program {
 	int projLocation = -1;
 
 	int textColorLocation = -1;
+};
+
+struct ProgramTrail : Program {
+	ProgramTrail(unsigned program);
+	//TODO LOWY MAY USE THE MODEL
+	//int modelLocation = -1;
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int inputColorLocation = -1;
+	int hasDiffuseLocation = -1;
+	int diffuseMap = -1;
 };

@@ -215,3 +215,14 @@ ProgramTextUI::ProgramTextUI(unsigned program_)
 
 	textColorLocation = glGetUniformLocation(program, "textColor");
 }
+
+ProgramTrail::ProgramTrail(unsigned program_)
+	: Program(program_) {
+	//modelLocation = glGetUniformLocation(program, "model");
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
+	inputColorLocation = glGetUniformLocation(program, "inputColor");
+	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
+	diffuseMap = glGetUniformLocation(program, "diffuseMap");
+}

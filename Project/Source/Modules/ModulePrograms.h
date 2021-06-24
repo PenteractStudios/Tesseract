@@ -51,5 +51,5 @@ public:
 
 	// Particle Shaders
 	unsigned billboard = 0;
-	unsigned trail = 0;
+	ProgramTrail* trail = 0;
 };

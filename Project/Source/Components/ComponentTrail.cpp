@@ -217,7 +217,8 @@ void ComponentTrail::Save(JsonValue jComponent) const {
 }
 
 void ComponentTrail::Draw() {
-	unsigned int program = App->programs->trail;
+	ProgramTrail* trailProgram = App->programs->trail;
+	//unsigned int program = App->programs->trail;
 	unsigned glTexture = 0;
 	ResourceTexture* texture = App->resources->GetResource<ResourceTexture>(textureID);
 	glTexture = texture ? texture->glTexture : 0;
@@ -237,7 +238,7 @@ void ComponentTrail::Draw() {
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) 0);
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) (sizeof(float) * 3));
-		glUseProgram(program);
+		glUseProgram(trailProgram->program);
 
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 
@@ -247,8 +248,8 @@ void ComponentTrail::Draw() {
 
 		glActiveTexture(GL_TEXTURE0);
 
-		glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view->ptr());
-		glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
+		glUniformMatrix4fv(trailProgram->viewLocation, 1, GL_TRUE, view->ptr());
+		glUniformMatrix4fv(trailProgram->projLocation, 1, GL_TRUE, proj->ptr());
 
 		float4 color = float4::one;
 		if (colorOverTrail) {
@@ -256,9 +257,9 @@ void ComponentTrail::Draw() {
 			gradient.getColorAt(factor, color.ptr());
 		}
 
-		glUniform1i(glGetUniformLocation(program, "diffuseMap"), 0);
-		glUniform1i(glGetUniformLocation(program, "hasDiffuse"), hasDiffuseMap);
-		glUniform4fv(glGetUniformLocation(program, "inputColor"), 1, color.ptr());
+		glUniform1i(trailProgram->diffuseMap, 0);
+		glUniform1i(trailProgram->hasDiffuseLocation, hasDiffuseMap);
+		glUniform4fv(trailProgram->inputColorLocation, 1, color.ptr());
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, glTexture);
