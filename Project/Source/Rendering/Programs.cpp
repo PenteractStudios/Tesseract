@@ -191,6 +191,11 @@ ProgramSSAOBlur::ProgramSSAOBlur(unsigned program_)
 	horizontalLocation = glGetUniformLocation(program, "horizontal");
 }
 
+ProgramColorCorrection::ProgramColorCorrection(unsigned program_)
+	: Program(program_) {
+	inputTextureLocation = glGetUniformLocation(program, "inputTexture");
+}
+
 ProgramDrawTexture::ProgramDrawTexture(unsigned program_)
 	: Program(program_) {
 	textureToDrawLocation = glGetUniformLocation(program, "textureToDraw");

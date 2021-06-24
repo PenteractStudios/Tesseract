@@ -330,9 +330,7 @@ void main()
     // Emission
     colorAccumulative += GetEmissive(tiledUV).rgb;
 
-    vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
-    ldr = pow(ldr, vec3(1/2.2)); // gamma correction
-    outColor = vec4(ldr, colorDiffuse.a);
+    outColor = vec4(colorAccumulative, colorDiffuse.a);
 }
 
 --- fragMainSpecular
@@ -380,7 +378,5 @@ void main()
     // Emission
     colorAccumulative += GetEmissive(tiledUV).rgb;
 
-    vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
-    ldr = pow(ldr, vec3(1/2.2)); // gamma correction
-    outColor = vec4(ldr, colorDiffuse.a);
+    outColor = vec4(colorAccumulative, colorDiffuse.a);
 }

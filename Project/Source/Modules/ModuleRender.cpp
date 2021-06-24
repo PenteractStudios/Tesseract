@@ -192,6 +192,7 @@ bool ModuleRender::Init() {
 #endif
 
 	glGenTextures(1, &renderTexture);
+	glGenTextures(1, &outputTexture);
 	glGenTextures(1, &positionsTexture);
 	glGenTextures(1, &normalsTexture);
 	glGenTextures(1, &depthMapTexture);
@@ -200,12 +201,13 @@ bool ModuleRender::Init() {
 
 	glGenRenderbuffers(1, &depthBuffer);
 
-	glGenFramebuffers(1, &framebuffer);
+	glGenFramebuffers(1, &renderPassBuffer);
 	glGenFramebuffers(1, &depthPrepassTextureBuffer);
 	glGenFramebuffers(1, &depthMapTextureBuffer);
 	glGenFramebuffers(1, &ssaoTextureBuffer);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferH);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferV);
+	glGenFramebuffers(1, &colorCorrectionBuffer);
 
 	ViewportResized(App->window->GetWidth(), App->window->GetHeight());
 	UpdateFramebuffers();
@@ -334,6 +336,19 @@ void ModuleRender::BlurSSAOTexture(bool horizontal) {
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
+void ModuleRender::ExecuteColorCorrection() {
+	ProgramColorCorrection* colorCorrectionProgram = App->programs->colorCorrection;
+	if (colorCorrectionProgram == nullptr) return;
+
+	glUseProgram(colorCorrectionProgram->program);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, renderTexture);
+	glUniform1i(colorCorrectionProgram->inputTextureLocation, 0);
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
 void ModuleRender::DrawTexture(unsigned texture) {
 	ProgramDrawTexture* drawTextureProgram = App->programs->drawTexture;
 	if (drawTextureProgram == nullptr) return;
@@ -357,7 +372,7 @@ UpdateStatus ModuleRender::PreUpdate() {
 
 	lightFrustum.ReconstructFrustum();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
 #if !GAME
 	glViewport(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
 #else
@@ -373,6 +388,7 @@ UpdateStatus ModuleRender::Update() {
 
 	culledTriangles = 0;
 	Scene* scene = App->scene->scene;
+	float3 gammaClearColor = float3(pow(clearColor.x, 2.2f), pow(clearColor.y, 2.2f), pow(clearColor.y, 2.2f));
 
 	ClassifyGameObjects();
 
@@ -433,8 +449,8 @@ UpdateStatus ModuleRender::Update() {
 	}
 
 	// Render pass
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
+	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
+	glClearColor(gammaClearColor.x, gammaClearColor.y, gammaClearColor.z, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL);
@@ -543,10 +559,22 @@ UpdateStatus ModuleRender::Update() {
 	//Render UI
 	RenderUI();
 
-#if GAME
+	// Color correction
+	glBindFramebuffer(GL_FRAMEBUFFER, colorCorrectionBuffer);
+	glClearColor(gammaClearColor.x, gammaClearColor.y, gammaClearColor.z, 1.0f);
+	glDisable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	ExecuteColorCorrection();
+
 	// Render to screen
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+#if GAME
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, colorCorrectionBuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+#else
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, colorCorrectionBuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderPassBuffer);
 	glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 #endif
 
@@ -573,6 +601,7 @@ bool ModuleRender::CleanUp() {
 	glDeleteBuffers(1, &cubeVBO);
 
 	glDeleteTextures(1, &renderTexture);
+	glDeleteTextures(1, &outputTexture);
 	glDeleteTextures(1, &positionsTexture);
 	glDeleteTextures(1, &normalsTexture);
 	glDeleteTextures(1, &depthMapTexture);
@@ -581,12 +610,13 @@ bool ModuleRender::CleanUp() {
 
 	glDeleteRenderbuffers(1, &depthBuffer);
 
-	glDeleteFramebuffers(1, &framebuffer);
+	glDeleteFramebuffers(1, &renderPassBuffer);
 	glDeleteFramebuffers(1, &depthPrepassTextureBuffer);
 	glDeleteFramebuffers(1, &depthMapTextureBuffer);
 	glDeleteFramebuffers(1, &ssaoTextureBuffer);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferH);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferV);
+	glDeleteFramebuffers(1, &colorCorrectionBuffer);
 
 	return true;
 }
@@ -685,16 +715,29 @@ void ModuleRender::UpdateFramebuffers() {
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
 	// Render buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
 	glBindTexture(GL_TEXTURE_2D, renderTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTexture, 0);
+
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+	// Color correction buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, colorCorrectionBuffer);
+
+	glBindTexture(GL_TEXTURE_2D, outputTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outputTexture, 0);
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 

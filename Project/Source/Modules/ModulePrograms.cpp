@@ -110,6 +110,9 @@ void ModulePrograms::LoadShaders() {
 	ssao = new ProgramSSAO(CreateProgram(filePath, "vertScreen", "fragSSAO"));
 	ssaoBlur = new ProgramSSAOBlur(CreateProgram(filePath, "vertScreen", "fragGaussianBlur"));
 
+	// Post-processing Shaders
+	colorCorrection = new ProgramColorCorrection(CreateProgram(filePath, "vertScreen", "fragColorCorrection"));
+
 	// Shadow Shaders
 	shadowMap = CreateProgram(filePath, "vertDepthMap", "fragDepthMap");
 

@@ -7,5 +7,5 @@ uniform samplerCube cubemap;
 out vec4 outColor;
 
 void main() {
-	outColor = texture(cubemap, texcoords);
+	outColor = pow(texture(cubemap, texcoords), vec4(2.2));
 }
