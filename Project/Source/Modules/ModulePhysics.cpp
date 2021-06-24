@@ -12,6 +12,8 @@
 #include "Utils/MotionState.h"
 #include "Utils/Logging.h"
 
+#include "debugdraw.h"
+
 bool ModulePhysics::Init() {
 	LOG("Creating Physics environment using Bullet Physics.");
 
@@ -22,15 +24,15 @@ bool ModulePhysics::Init() {
 	world = new btDiscreteDynamicsWorld(dispatcher, broadPhase, constraintSolver, collisionConfiguration);
 	world->setGravity(btVector3(0.f, gravity, 0.f));
 
-	/* BULLET DEBUG: Uncomment to activate it
-	debugDrawer = new DebugDrawer();
-	world->setDebugDrawer(debugDrawer);
-	*/
+	// BULLET DEBUG: Uncomment to activate it
+	/*debugDrawer = new DebugDrawer();
+	world->setDebugDrawer(debugDrawer);*/
+
 	return true;
 }
 
 UpdateStatus ModulePhysics::PreUpdate() {
-	if (App->time->IsGameRunning()) {
+	if (App->time->HasGameStarted()) {
 		world->stepSimulation(App->time->GetDeltaTime(), 15);
 
 		int numManifolds = world->getDispatcher()->getNumManifolds();
@@ -45,20 +47,23 @@ UpdateStatus ModulePhysics::PreUpdate() {
 				Component* pbodyB = (Component*) obB->getUserPointer();
 
 				if (pbodyA && pbodyB) {
+					float3 contactOnA = float3(contactManifold->getContactPoint(0).getPositionWorldOnA());
+					float3 contactOnB = float3(contactManifold->getContactPoint(0).getPositionWorldOnB());
+					float3 diff = contactOnB - contactOnA;
 					switch (pbodyA->GetType()) {
 					case ComponentType::SPHERE_COLLIDER: {
 						ComponentSphereCollider* sphereCol = (ComponentSphereCollider*) pbodyA;
-						sphereCol->OnCollision(pbodyB->GetOwner());
+						sphereCol->OnCollision(pbodyB->GetOwner(), float3(contactManifold->getContactPoint(0).m_normalWorldOnB), diff);
 						break;
 					}
 					case ComponentType::BOX_COLLIDER: {
 						ComponentBoxCollider* boxCol = (ComponentBoxCollider*) pbodyA;
-						boxCol->OnCollision(pbodyB->GetOwner());
+						boxCol->OnCollision(pbodyB->GetOwner(), float3(contactManifold->getContactPoint(0).m_normalWorldOnB), diff);
 						break;
 					}
 					case ComponentType::CAPSULE_COLLIDER: {
 						ComponentCapsuleCollider* capsuleCol = (ComponentCapsuleCollider*) pbodyA;
-						capsuleCol->OnCollision(pbodyB->GetOwner());
+						capsuleCol->OnCollision(pbodyB->GetOwner(), float3(contactManifold->getContactPoint(0).m_normalWorldOnB), diff);
 						break;
 					}
 					default:
@@ -68,17 +73,17 @@ UpdateStatus ModulePhysics::PreUpdate() {
 					switch (pbodyB->GetType()) {
 					case ComponentType::SPHERE_COLLIDER: {
 						ComponentSphereCollider* sphereCol = (ComponentSphereCollider*) pbodyB;
-						sphereCol->OnCollision(pbodyA->GetOwner());
+						sphereCol->OnCollision(pbodyA->GetOwner(), -float3(contactManifold->getContactPoint(0).m_normalWorldOnB), -diff);
 						break;
 					}
 					case ComponentType::BOX_COLLIDER: {
 						ComponentBoxCollider* boxCol = (ComponentBoxCollider*) pbodyB;
-						boxCol->OnCollision(pbodyA->GetOwner());
+						boxCol->OnCollision(pbodyA->GetOwner(), -float3(contactManifold->getContactPoint(0).m_normalWorldOnB), -diff);
 						break;
 					}
 					case ComponentType::CAPSULE_COLLIDER: {
 						ComponentCapsuleCollider* capsuleCol = (ComponentCapsuleCollider*) pbodyB;
-						capsuleCol->OnCollision(pbodyA->GetOwner());
+						capsuleCol->OnCollision(pbodyA->GetOwner(), -float3(contactManifold->getContactPoint(0).m_normalWorldOnB), -diff);
 						break;
 					}
 					default:
@@ -92,11 +97,11 @@ UpdateStatus ModulePhysics::PreUpdate() {
 }
 
 UpdateStatus ModulePhysics::Update() {
-	/* BULLET DEBUG: Uncomment to activate it
-	if (debug == true) {
+    // BULLET DEBUG: Uncomment to activate it
+	/*if (debug == true) {
 		world->debugDrawWorld();
-	}
-	*/
+	}*/
+
 	return UpdateStatus::CONTINUE;
 }
 
@@ -138,8 +143,10 @@ btRigidBody* ModulePhysics::AddSphereBody(MotionState* myMotionState, float radi
 }
 
 void ModulePhysics::RemoveSphereRigidbody(ComponentSphereCollider* sphereCollider) {
-	world->removeCollisionObject(sphereCollider->rigidBody);
-	RELEASE(sphereCollider->rigidBody);
+	if (sphereCollider->rigidBody) {
+		world->removeCollisionObject(sphereCollider->rigidBody);
+		RELEASE(sphereCollider->rigidBody);
+	}
 }
 
 void ModulePhysics::UpdateSphereRigidbody(ComponentSphereCollider* sphereCollider) {
@@ -169,8 +176,10 @@ btRigidBody* ModulePhysics::AddBoxBody(MotionState* myMotionState, float3 size, 
 }
 
 void ModulePhysics::RemoveBoxRigidbody(ComponentBoxCollider* boxCollider) {
-	world->removeCollisionObject(boxCollider->rigidBody);
-	RELEASE(boxCollider->rigidBody);
+	if (boxCollider->rigidBody) {
+		world->removeCollisionObject(boxCollider->rigidBody);
+		RELEASE(boxCollider->rigidBody);
+	}
 }
 
 void ModulePhysics::UpdateBoxRigidbody(ComponentBoxCollider* boxCollider) {
@@ -212,8 +221,10 @@ btRigidBody* ModulePhysics::AddCapsuleBody(MotionState* myMotionState, float rad
 }
 
 void ModulePhysics::RemoveCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider) {
-	world->removeCollisionObject(capsuleCollider->rigidBody);
-	RELEASE(capsuleCollider->rigidBody);
+	if (capsuleCollider->rigidBody) {
+		world->removeCollisionObject(capsuleCollider->rigidBody);
+		RELEASE(capsuleCollider->rigidBody);
+	}
 }
 
 void ModulePhysics::UpdateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider) {
@@ -242,14 +253,23 @@ void ModulePhysics::AddBodyToWorld(btRigidBody* rigidbody, ColliderType collider
 	case EVENT_TRIGGERS:
 		collisionMask = WorldLayers::PLAYER | WorldLayers::EVERYTHING;
 		break;
-	case WORLD_ELEMENTS:
+	case ENEMY:
+		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::BULLET | WorldLayers::EVERYTHING;
+		break;
+	case BULLET:
+		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::ENEMY | WorldLayers::EVERYTHING;
+		break;
+	case BULLET_ENEMY:
 		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::EVERYTHING;
 		break;
+	case WORLD_ELEMENTS:
+		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::ENEMY | WorldLayers::BULLET | WorldLayers::BULLET_ENEMY | WorldLayers::EVERYTHING;
+		break;
 	case PLAYER:
-		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::EVERYTHING;
+		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::BULLET_ENEMY | WorldLayers::EVERYTHING;
 		break;
 	case EVERYTHING:
-		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::EVERYTHING;
+		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::ENEMY | WorldLayers::BULLET | WorldLayers::BULLET_ENEMY | WorldLayers::EVERYTHING;
 		break;
 	default: //NO_COLLISION
 		collisionMask = 0;
@@ -261,15 +281,15 @@ void ModulePhysics::AddBodyToWorld(btRigidBody* rigidbody, ColliderType collider
 
 void ModulePhysics::InitializeRigidBodies() {
 	for (ComponentSphereCollider& sphereCollider : App->scene->scene->sphereColliderComponents) {
-		if (!sphereCollider.rigidBody) CreateSphereRigidbody(&sphereCollider);
+		if (!sphereCollider.rigidBody && sphereCollider.IsActive()) CreateSphereRigidbody(&sphereCollider);
 	}
 
 	for (ComponentBoxCollider& boxCollider : App->scene->scene->boxColliderComponents) {
-		if (!boxCollider.rigidBody) CreateBoxRigidbody(&boxCollider);
+		if (!boxCollider.rigidBody && boxCollider.IsActive()) CreateBoxRigidbody(&boxCollider);
 	}
 
 	for (ComponentCapsuleCollider& capsuleCollider : App->scene->scene->capsuleColliderComponents) {
-		if (!capsuleCollider.rigidBody) CreateCapsuleRigidbody(&capsuleCollider);
+		if (!capsuleCollider.rigidBody && capsuleCollider.IsActive()) CreateCapsuleRigidbody(&capsuleCollider);
 	}
 }
 
@@ -285,7 +305,7 @@ void ModulePhysics::SetGravity(float newGravity) {
 	world->setGravity(btVector3(0.f, newGravity, 0.f));
 }
 
-/* BULLET DEBUG: Uncomment to activate it. #include "debugdraw.h" in this file if using it.
+/*BULLET DEBUG: Uncomment to activate it. #include "debugdraw.h" in this file if using it.
 // =================== BULLET DEBUG CALLBACKS ==========================
 void DebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color) {
 	dd::line((ddVec3) from, (ddVec3) to, (ddVec3) color); // TODO: Test if this actually works
@@ -309,5 +329,4 @@ void DebugDrawer::setDebugMode(int debugMode) {
 
 int DebugDrawer::getDebugMode() const {
 	return mode;
-}
-*/
+}*/

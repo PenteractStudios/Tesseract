@@ -4,9 +4,8 @@
 #include "Math/float4x4.h"
 #include "btBulletDynamicsCommon.h"
 
-/* BULLET DEBUG: Uncomment to activate it
-class DebugDrawer;
-*/
+// BULLET DEBUG: Uncomment to activate it
+//class DebugDrawer;
 class MotionState;
 class btBroadphaseInterface;
 class ComponentSphereCollider;
@@ -37,10 +36,13 @@ enum class ColliderType {
 *	EVERYTHING = The default setting. Interaction with all other types except NO_COLLISION.
 */
 enum WorldLayers {
-	NO_COLLISION = 1 << 1,
-	EVENT_TRIGGERS = 1 << 2,
-	WORLD_ELEMENTS = 1 << 3,
-	PLAYER = 1 << 4,
+	NO_COLLISION = 1,
+	EVENT_TRIGGERS = 1 << 1,
+	WORLD_ELEMENTS = 1 << 2,
+	PLAYER = 1 << 3,
+	ENEMY = 1 << 4,
+	BULLET = 1 << 5,
+	BULLET_ENEMY = 1 << 6,
 	EVERYTHING = -1
 };
 
@@ -87,10 +89,10 @@ private:
 	btSequentialImpulseConstraintSolver* constraintSolver = nullptr;
 	btDiscreteDynamicsWorld* world = nullptr;
 
-	/* BULLET DEBUG: Uncomment to activate it
-	DebugDrawer* debugDrawer;
-	*/
-	bool debug = true;
+	//BULLET DEBUG: Uncomment to activate it
+	//DebugDrawer* debugDrawer;
+
+	//bool debug = true;
 };
 
 /* BULLET DEBUG: Uncomment to activate it
@@ -105,5 +107,4 @@ public:
 	int getDebugMode() const;
 
 	DebugDrawModes mode; // How to initialise this enum?
-};
-*/
+};*/

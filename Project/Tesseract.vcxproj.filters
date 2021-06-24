@@ -369,6 +369,8 @@
     <ClCompile Include="Source\Components\ComponentAgent.cpp" />
     <ClCompile Include="Source\Panels\PanelAudioMixer.cpp" />
     <ClCompile Include="Libs\imgui\imgui_color_gradient.cpp" />
+    <ClCompile Include="Source\Utils\Random.cpp" />
+    <ClCompile Include="Source\Rendering\Programs.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\LightFrustum.h" />
@@ -715,6 +717,8 @@
     <ClInclude Include="Source\Components\ComponentAgent.h" />
     <ClInclude Include="Source\Panels\PanelAudioMixer.h" />
     <ClInclude Include="Libs\imgui\imgui_color_gradient.h" />
+    <ClInclude Include="Source\Utils\Random.h" />
+    <ClInclude Include="Source\Rendering\Programs.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />

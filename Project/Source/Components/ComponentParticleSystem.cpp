@@ -43,6 +43,7 @@
 #define JSON_TAG_LIFE "LifeParticle"
 #define JSON_TAG_TEXTURE_DISTANCE_REVERSE "DistanceReverse"
 #define JSON_TAG_TEXTURE_REVERSE_EFFECT "ReverseEffect"
+#define JSON_TAG_ATTACH_EMITTER "AttachEmitter"
 #define JSON_TAG_START_DELAY_TIME "StartDelay"
 
 #define JSON_TAG_YTILES "Ytiles"
@@ -83,6 +84,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	if (ImGui::Button("Stop")) Stop();
 
 	ImGui::Separator();
+	ImGui::Checkbox("Attach to Emitter", &attachEmitter);
 	if (ImGui::DragFloat("Start Delay", &startDelay, App->editor->dragSpeed2f, 0, inf)) {
 		restDelayTime = startDelay;
 	}
@@ -211,20 +213,20 @@ float3 ComponentParticleSystem::CreateDirection() {
 	if (emitterType == EmitterType::CONE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 		float3 forward = transform->GetGlobalRotation() * float3::unitY;
-		if (reverseEffect) return forward.Normalized();
-
-		x = (float(rand()) / float((RAND_MAX)) * 0.2f) - 0.2f;
-		y = (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.0f;
-		z = (float(rand()) / float((RAND_MAX)) * 0.5f) - 0.2f;
-
-		return float3(forward.x + x, forward.y + y, forward.z + z).Normalized();
+		if (reverseEffect) { // TODO: improve me
+			return forward.Normalized();
+		} else {
+			x = float(rand()) / float(RAND_MAX) * coneRadiusUp * 2 - coneRadiusUp;
+			z = float(rand()) / float(RAND_MAX) * coneRadiusUp * 2 - coneRadiusUp;
+		}
+		return (transform->GetGlobalRotation() * float3(x, 0.0f, z) + forward).Normalized();
 	}
 
 	if (emitterType == EmitterType::SPHERE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-		x = (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
-		y = (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
-		z = (float(rand()) / float((RAND_MAX)) * 2.0f) - 1.0f;
+		x = float(rand()) / float(RAND_MAX) * 2.0f - 1.0f;
+		y = float(rand()) / float(RAND_MAX) * 2.0f - 1.0f;
+		z = float(rand()) / float(RAND_MAX) * 2.0f - 1.0f;
 		return float3(x, y, z);
 	}
 
@@ -235,32 +237,32 @@ float3 ComponentParticleSystem::CreatePosition() {
 	float x, y, z;
 	if (emitterType == EmitterType::CONE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-		if (reverseEffect) {
-			float3 forward = transform->GetGlobalRotation() * float3::unitY;
-			x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * coneRadiusUp * 2) - coneRadiusUp;
-			y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * coneRadiusUp) - 0.0f;
-			z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * coneRadiusUp * 2) - coneRadiusUp;
-			return (forward.Normalized() * distanceReverse) + (float3(x, y, z));
+		float3 forward = transform->GetGlobalRotation() * float3::unitY;
+		if (reverseEffect) { // TODO: improve me
+			x = float(rand()) / float(RAND_MAX) * coneRadiusUp * 2 - coneRadiusUp;
+			z = float(rand()) / float(RAND_MAX) * coneRadiusUp * 2 - coneRadiusUp;
+
+			return transform->GetGlobalPosition() + (transform->GetGlobalRotation() * float3(x, 0.0f, z) + forward * distanceReverse);
+
 		} else {
-			x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * coneRadiusDown * 2) - coneRadiusDown;
-			y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * coneRadiusDown) - 0.0f;
-			z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * coneRadiusDown * 2) - coneRadiusDown;
+			x = float(rand()) / float(RAND_MAX) * coneRadiusDown * 2 - coneRadiusDown;
+			z = float(rand()) / float(RAND_MAX) * coneRadiusDown * 2 - coneRadiusDown;
+
+			return transform->GetGlobalPosition() + transform->GetGlobalRotation() * float3(x, 0.0f, z);
 		}
-		return (float3(x, y, z));
 	}
 
 	if (emitterType == EmitterType::SPHERE) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-		if (reverseEffect) {
-			x = (transform->GetGlobalPosition().x) + (float(rand()) / float((RAND_MAX)) * distanceReverse) - (distanceReverse / 2);
-			z = (transform->GetGlobalPosition().z) + (float(rand()) / float((RAND_MAX)) * distanceReverse) - (distanceReverse / 2);
-			y = (transform->GetGlobalPosition().y) + (float(rand()) / float((RAND_MAX)) * distanceReverse) - (distanceReverse / 2);
+		if (reverseEffect) { // TODO: improve me
+			x = float(rand()) / float(RAND_MAX) * distanceReverse - distanceReverse / 2;
+			z = float(rand()) / float(RAND_MAX) * distanceReverse - distanceReverse / 2;
+			y = float(rand()) / float(RAND_MAX) * distanceReverse - distanceReverse / 2;
+
+			return transform->GetGlobalPosition() + transform->GetGlobalRotation() * (float3(x, y, z));
 		} else {
-			x = (transform->GetGlobalPosition().x);
-			z = (transform->GetGlobalPosition().z);
-			y = (transform->GetGlobalPosition().y);
+			return transform->GetGlobalPosition();
 		}
-		return (float3(x, y, z));
 	}
 
 	return float3(0, 0, 0);
@@ -297,6 +299,7 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 
 	distanceReverse = jComponent[JSON_TAG_TEXTURE_DISTANCE_REVERSE];
 	reverseEffect = jComponent[JSON_TAG_TEXTURE_REVERSE_EFFECT];
+	attachEmitter = jComponent[JSON_TAG_ATTACH_EMITTER];
 	startDelay = jComponent[JSON_TAG_START_DELAY_TIME];
 
 	Ytiles = jComponent[JSON_TAG_YTILES];
@@ -338,6 +341,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_LIFE] = particleLife;
 	jComponent[JSON_TAG_TEXTURE_DISTANCE_REVERSE] = distanceReverse;
 	jComponent[JSON_TAG_TEXTURE_REVERSE_EFFECT] = reverseEffect;
+	jComponent[JSON_TAG_ATTACH_EMITTER] = attachEmitter;
 	jComponent[JSON_TAG_START_DELAY_TIME] = startDelay;
 
 	jComponent[JSON_TAG_YTILES] = Ytiles;
@@ -373,12 +377,9 @@ void ComponentParticleSystem::Update() {
 			if (executer) {
 				currentParticle.life = -1;
 			} else {
+				UpdatePosition(&currentParticle);
+
 				UpdateVelocity(&currentParticle);
-				if (billboardType == BillboardType::LOOK_AT) {
-					currentParticle.model = float4x4::FromTRS(currentParticle.position, currentParticle.rotation, currentParticle.scale);
-				} else {
-					currentParticle.modelStretch.SetTranslatePart(currentParticle.position);
-				}
 
 				UpdateLife(&currentParticle);
 				if (sizeOverTime) {
@@ -393,7 +394,7 @@ void ComponentParticleSystem::Update() {
 		UndertakerParticle();
 	} else {
 		if (!isPlaying) return;
-		if (App->time->IsGameRunning()) {
+		if (App->time->HasGameStarted()) {
 			restDelayTime -= App->time->GetDeltaTime();
 		} else {
 			restDelayTime -= App->time->GetRealTimeDeltaTime();
@@ -416,12 +417,29 @@ void ComponentParticleSystem::UndertakerParticle() {
 	}
 }
 
+void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
+	// TODO: Implement attachEmmiter properly
+	if (attachEmitter) {
+		float3 position = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+		if (!currentParticle->emitterPosition.Equals(position)) {
+			currentParticle->position = (position - currentParticle->emitterPosition).Normalized() * Length(position - currentParticle->emitterPosition) + currentParticle->position;
+			currentParticle->emitterPosition = position;
+		}
+	}
+
+	if (billboardType == BillboardType::LOOK_AT) {
+		currentParticle->model = float4x4::FromTRS(currentParticle->position, currentParticle->rotation, currentParticle->scale);
+	} else {
+		currentParticle->modelStretch.SetTranslatePart(currentParticle->position);
+	}
+}
+
 void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
-	if (App->time->IsGameRunning()) {
+	if (App->time->HasGameStarted()) {
 		if (reverseEffect) {
 			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 			float3 direction = currentParticle->position - transform->GetGlobalPosition();
-			currentParticle->position -= direction * App->time->GetDeltaTime();
+			currentParticle->position -= direction * velocity * App->time->GetDeltaTime();
 		} else {
 			currentParticle->position += currentParticle->direction * velocity * App->time->GetDeltaTime();
 		}
@@ -429,14 +447,15 @@ void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
 		if (reverseEffect) {
 			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 			float3 direction = currentParticle->position - transform->GetGlobalPosition();
-			currentParticle->position -= direction * App->time->GetRealTimeDeltaTime();
+			currentParticle->position -= direction * velocity * App->time->GetRealTimeDeltaTime();
 		} else {
 			currentParticle->position += currentParticle->direction * velocity * App->time->GetRealTimeDeltaTime();
 		}
 	}
 }
+
 void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
-	if (App->time->IsGameRunning()) {
+	if (App->time->HasGameStarted()) {
 		currentParticle->scale.x += scaleFactor * App->time->GetDeltaTime();
 		currentParticle->scale.y += scaleFactor * App->time->GetDeltaTime();
 		currentParticle->scale.z += scaleFactor * App->time->GetDeltaTime();
@@ -455,8 +474,9 @@ void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
 		currentParticle->scale.z = 0;
 	}
 }
+
 void ComponentParticleSystem::UpdateLife(Particle* currentParticle) {
-	if (App->time->IsGameRunning()) {
+	if (App->time->HasGameStarted()) {
 		currentParticle->life -= App->time->GetDeltaTime();
 		currentParticle->colorFrame += App->time->GetDeltaTime();
 	} else {
@@ -476,7 +496,6 @@ void ComponentParticleSystem::SpawnParticle() {
 	}
 	particleSpawned++;
 	if (currentParticle) {
-		currentParticle->position = currentParticle->initialPosition;
 		currentParticle->life = particleLife;
 		if (isRandomFrame) {
 			currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
@@ -487,6 +506,8 @@ void ComponentParticleSystem::SpawnParticle() {
 		currentParticle->direction = CreateDirection();
 		currentParticle->initialPosition = CreatePosition();
 		currentParticle->position = currentParticle->initialPosition;
+		currentParticle->emitterPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+
 		//TODO: not hardcoded
 		currentParticle->scale = float3(0.1f, 0.1f, 0.1f) * scale;
 
@@ -558,7 +579,7 @@ void ComponentParticleSystem::Draw() {
 				modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart(), currentParticle.scale);
 			} else if (billboardType == BillboardType::STRETCH) {
 				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
-				float3 cameraDir = (cameraPos - currentParticle.initialPosition).Normalized();
+				float3 cameraDir = (cameraPos - currentParticle.position).Normalized();
 				float3 upDir = Cross(currentParticle.direction, cameraDir);
 				float3 newCameraDir = Cross(currentParticle.direction, upDir);
 
@@ -581,7 +602,7 @@ void ComponentParticleSystem::Draw() {
 			glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
 
 			if (!isRandomFrame) {
-				if (App->time->IsGameRunning()) {
+				if (App->time->HasGameStarted()) {
 					currentParticle.currentFrame += animationSpeed * App->time->GetDeltaTime();
 				} else {
 					currentParticle.currentFrame += animationSpeed * App->time->GetRealTimeDeltaTime();

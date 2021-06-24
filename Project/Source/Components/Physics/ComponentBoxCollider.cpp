@@ -31,7 +31,7 @@ void ComponentBoxCollider::Init() {
 
 	localAABB.SetFromCenterAndSize(centerOffset, size);
 
-	if (App->time->IsGameRunning() && !rigidBody) App->physics->CreateBoxRigidbody(this);
+	if (App->time->HasGameStarted() && !rigidBody) App->physics->CreateBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::DrawGizmos() {
@@ -57,21 +57,33 @@ void ComponentBoxCollider::DrawGizmos() {
 }
 
 void ComponentBoxCollider::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			}
+			else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	ImGui::Checkbox("Draw Shape", &drawGizmo);
 
 	// World Layers combo box
-	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Everything"};
+	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Enemy", "Bullet", "Bullet Enemy", "Everything"};
 	const char* layerCurrent = layerTypeItems[layerIndex];
 	if (ImGui::BeginCombo("Layer", layerCurrent)) {
 		for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {
 			if (ImGui::Selectable(layerTypeItems[n])) {
 				layerIndex = n;
-				if (n == 4) {
+				if (n == 7) {
 					layer = WorldLayers::EVERYTHING;
 				} else {
 					layer = WorldLayers(1 << layerIndex);
 				}
-				if (App->time->IsGameRunning()) {
+				if (App->time->HasGameStarted()) {
 					App->physics->UpdateBoxRigidbody(this);
 				}
 			}
@@ -86,7 +98,7 @@ void ComponentBoxCollider::OnEditorUpdate() {
 		for (int n = 0; n < IM_ARRAYSIZE(colliderTypeItems); ++n) {
 			if (ImGui::Selectable(colliderTypeItems[n])) {
 				colliderType = ColliderType(n);
-				if (App->time->IsGameRunning()) {
+				if (App->time->HasGameStarted()) {
 					App->physics->UpdateBoxRigidbody(this);
 				}
 			}
@@ -95,20 +107,20 @@ void ComponentBoxCollider::OnEditorUpdate() {
 	}
 
 	if (colliderType == ColliderType::DYNAMIC) { // Mass is only available when the collider is dynamic
-		if (ImGui::DragFloat("Mass", &mass, App->editor->dragSpeed3f, 0.0f, 100.f) && App->time->IsGameRunning()) {
+		if (ImGui::DragFloat("Mass", &mass, App->editor->dragSpeed3f, 0.0f, 100.f) && App->time->HasGameStarted()) {
 			rigidBody->setMassProps(mass, btVector3(0, 0, 0));
 		}
 	}
 
 	if (ImGui::DragFloat3("Size", size.ptr(), App->editor->dragSpeed3f, 0.0f, inf)) {
-		if (App->time->IsGameRunning()) {
+		if (App->time->HasGameStarted()) {
 			((btBoxShape*) rigidBody->getCollisionShape())->setLocalScaling(btVector3(size.x, size.y, size.z));
 		}
 		localAABB.SetFromCenterAndSize(centerOffset, size);
 	}
 
 	if (ImGui::DragFloat3("Center Offset", centerOffset.ptr(), App->editor->dragSpeed2f, -inf, inf)) {
-		if (App->time->IsGameRunning()) {
+		if (App->time->HasGameStarted()) {
 			float3 position = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 			Quat rotation = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation();
 			rigidBody->setCenterOfMassTransform(btTransform(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w), btVector3(position.x, position.y, position.z)) * btTransform(btQuaternion::getIdentity(), btVector3(centerOffset.x, centerOffset.y, centerOffset.z)));
@@ -116,7 +128,7 @@ void ComponentBoxCollider::OnEditorUpdate() {
 		localAABB.SetFromCenterAndSize(centerOffset, size);
 	}
 
-	if (ImGui::Checkbox("Freeze rotation", &freezeRotation) && App->time->IsGameRunning()) {
+	if (ImGui::Checkbox("Freeze rotation", &freezeRotation) && App->time->HasGameStarted()) {
 		motionState.freezeRotation = freezeRotation;
 	}
 }
@@ -165,13 +177,24 @@ void ComponentBoxCollider::Load(JsonValue jComponent) {
 
 	JsonValue jFreeze = jComponent[JSON_TAG_FREEZE_ROTATION];
 	freezeRotation = jFreeze;
+
+	if (rigidBody) App->physics->RemoveBoxRigidbody(this);
+	rigidBody = nullptr;
 }
 
-void ComponentBoxCollider::OnCollision(const GameObject& collidedWith) {
+void ComponentBoxCollider::OnEnable() {
+	if(!rigidBody && App->time->HasGameStarted()) App->physics->CreateBoxRigidbody(this);
+}
+
+void ComponentBoxCollider::OnDisable() {
+	if(rigidBody && App->time->HasGameStarted()) App->physics->RemoveBoxRigidbody(this);
+}
+
+void ComponentBoxCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance) {
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
 		if (script != nullptr) {
-			script->OnCollision(collidedWith);
+			script->OnCollision(collidedWith, collisionNormal, penetrationDistance);
 		}
 	}
 }

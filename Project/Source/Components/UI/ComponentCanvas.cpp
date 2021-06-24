@@ -23,7 +23,7 @@ void ComponentCanvas::Load(JsonValue jComponent) {
 }
 
 bool ComponentCanvas::CanBeRemoved() const {
-	return !AnyChildHasCanvasRenderer(&GetOwner());
+	return !AnyChildHasCanvasRenderer(&GetOwner()) || AnyParentHasCanvas();
 }
 
 void ComponentCanvas::OnEditorUpdate() {
@@ -36,9 +36,9 @@ void ComponentCanvas::OnEditorUpdate() {
 }
 
 void ComponentCanvas::DrawGizmos() {
-	if (!App->time->IsGameRunning() && !App->userInterface->IsUsing2D() && drawCanvas) {
+	if (!App->time->HasGameStarted() && !App->userInterface->IsUsing2D() && drawCanvas) {
 		float2 canvasSize = GetSize();
-		dd::box(float3(canvasSize.x * 0.5f, canvasSize.y * 0.5, 0.0f), dd::colors::DimGray, canvasSize.x, canvasSize.y, 0);
+		dd::box(float3(canvasSize.x * 0.5f, canvasSize.y * 0.5f, 0.0f), dd::colors::DimGray, canvasSize.x, canvasSize.y, 0);
 	}
 }
 
@@ -89,4 +89,17 @@ bool ComponentCanvas::AnyChildHasCanvasRenderer(const GameObject* obj) const {
 		found = AnyChildHasCanvasRenderer(*it);
 	}
 	return found;
+}
+
+bool ComponentCanvas::AnyParentHasCanvas() const {
+	GameObject* parent = GetOwner().GetParent();
+
+	while (parent != nullptr) {
+		if (parent->GetComponent<ComponentCanvas>()) {
+			return true;
+		}
+		parent = parent->GetParent();
+	}
+
+	return false;
 }

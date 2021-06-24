@@ -1,0 +1,1832 @@
+{
+    "QuadtreeBounds": [
+        -1000.0,
+        -1000.0,
+        1000.0,
+        1000.0
+    ],
+    "QuadtreeMaxDepth": 4,
+    "QuadtreeElementsPerNode": 200,
+    "GameCamera": 18291458259393081356,
+    "AmbientLight": [
+        0.25,
+        0.25,
+        0.25
+    ],
+    "NavMesh": 0,
+    "Root": {
+        "Id": 18026097624128484445,
+        "Name": "Scene",
+        "Active": true,
+        "Static": false,
+        "ActiveHierarchy": true,
+        "RootBoneId": 0,
+        "Mask": 0,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Id": 15999717681119456020,
+                "Active": true,
+                "Position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "LocalEulerAngles": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        ],
+        "Children": [
+            {
+                "Id": 15095395026515981255,
+                "Name": "Directional Light",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 10055527040337957553,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            300.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.7071068286895752,
+                            0.0,
+                            0.0,
+                            0.7071068286895752
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            90.00000762939453,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "Light",
+                        "Id": 17018856661809508531,
+                        "Active": true,
+                        "LightType": 0,
+                        "Color": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Intensity": 1.0,
+                        "Kl": 0.04500000178813934,
+                        "Kq": 0.007499999832361937,
+                        "InnerAngle": 0.2617993950843811,
+                        "OuterAngle": 0.5235987901687622
+                    }
+                ],
+                "Children": null
+            },
+            {
+                "Id": 8085706854252073913,
+                "Name": "Game Camera",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 7304078272145529671,
+                        "Active": true,
+                        "Position": [
+                            2.0,
+                            3.0,
+                            -5.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "Camera",
+                        "Id": 71277050702357301,
+                        "Active": true,
+                        "Frustum": {
+                            "Pos": [
+                                2.0,
+                                3.0,
+                                -5.0
+                            ],
+                            "Up": [
+                                0.0,
+                                1.0,
+                                0.0
+                            ],
+                            "Front": [
+                                0.0,
+                                0.0,
+                                1.0
+                            ],
+                            "NearPlaneDistance": 0.10000000149011612,
+                            "FarPlaneDistance": 2000.0,
+                            "HorizontalFov": 1.988842248916626,
+                            "VerticalFov": 1.3113912343978882
+                        }
+                    },
+                    {
+                        "Type": "Skybox",
+                        "Id": 11840596377370928096,
+                        "Active": true,
+                        "Shader": 0,
+                        "Skybox": 17754930081670969392
+                    },
+                    {
+                        "Type": "AudioListener",
+                        "Id": 8215766938036622007,
+                        "Active": true,
+                        "Gain": 1.0
+                    }
+                ],
+                "Children": null
+            },
+            {
+                "Id": 4502524471587858075,
+                "Name": "SphereRow",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 9864032079673051575,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            30.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Id": 16878593765601149074,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 5769330410058885153,
+                                "Active": true,
+                                "Position": [
+                                    -12.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 7988688435042166318,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 12305831811899159632
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 1496835607934444037,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 9554265414837604806,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 11794471328490415060,
+                                "Active": true,
+                                "Position": [
+                                    -6.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 12862956925540053802,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 4182327432733961891
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 6533192143192253063,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 16021129209626837547,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 1981908010994054215,
+                                "Active": true,
+                                "Position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 7322420850732201056,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 13965456159298857172
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 1810276397560743545,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 5295671790973650952,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 7413415380620310347,
+                                "Active": true,
+                                "Position": [
+                                    6.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 8791339656663303471,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 17889100018822515466
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 6736164191902328739,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 18379372912388425859,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 12018211060722265542,
+                                "Active": true,
+                                "Position": [
+                                    12.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 4276747343415602090,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 9120686276370696782
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 12446073819153274385,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    }
+                ]
+            },
+            {
+                "Id": 12661514241956564856,
+                "Name": "SphereRow",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 6716718742697484937,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            24.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Id": 9055183920439044433,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 14149649232633712925,
+                                "Active": true,
+                                "Position": [
+                                    -12.0,
+                                    0.0,
+                                    7.450580596923828e-9
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 13644766860564804588,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 9722711735375022225
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 11422194559006801957,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 10627354411290379850,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 2018295888842484488,
+                                "Active": true,
+                                "Position": [
+                                    -6.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 9310578073191740323,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 3111145870200434892
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 15709409695313511190,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 12898298540057690283,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 13519194364624752190,
+                                "Active": true,
+                                "Position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 4623183149862210693,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 9809742748138392672
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 8654614375629225935,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 11109909886663333015,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 7609524605347365454,
+                                "Active": true,
+                                "Position": [
+                                    6.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 18054355045048504548,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 16266379066022170911
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 12551313481457841668,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 1128276896803812857,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 13541819377627645788,
+                                "Active": true,
+                                "Position": [
+                                    12.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 14803848187622083423,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 13717765431869800322
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 10560164669878621189,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    }
+                ]
+            },
+            {
+                "Id": 15514050793419693104,
+                "Name": "SphereRow",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 11285170447879175359,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            18.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Id": 10504209968237728088,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 17804575857874659556,
+                                "Active": true,
+                                "Position": [
+                                    -12.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 17200371138479006161,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 10256889330483281226
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 8334876326580674849,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 6140832447163951007,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 7852184178337461701,
+                                "Active": true,
+                                "Position": [
+                                    -6.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 11531319044744379356,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 14693654227874468353
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 1646503310577526578,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 4037735928295211768,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 6660138815943873028,
+                                "Active": true,
+                                "Position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 1121158977624126083,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 14480532814928948621
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 5949507572805262654,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 10974447245328634177,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 7535580019150938908,
+                                "Active": true,
+                                "Position": [
+                                    6.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 11850859953167350391,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 6676690388520112326
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 5213975546185421361,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 15480005278179433338,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 10810217396601651563,
+                                "Active": true,
+                                "Position": [
+                                    12.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 7470675956913496811,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 10825832863827309684
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 14955644223983355185,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    }
+                ]
+            },
+            {
+                "Id": 3849901852659429194,
+                "Name": "SphereRow",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 16395158316253644421,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            12.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Id": 15336148626159131284,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 1205635818181200108,
+                                "Active": true,
+                                "Position": [
+                                    -12.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 7191772501324162157,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 14798161825639384062
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 10629884068415833092,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 5034660592385965870,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 5997509559551415949,
+                                "Active": true,
+                                "Position": [
+                                    -6.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 17717880256483250375,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 6496246140492354071
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 1660891045556566808,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 7800764742487430647,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 7946999473216732627,
+                                "Active": true,
+                                "Position": [
+                                    0.0,
+                                    -0.000001430511474609375,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 11460189119077335655,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 15469309073936806072
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 5719559872020333492,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 5782282115705135956,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 3034228581816391408,
+                                "Active": true,
+                                "Position": [
+                                    5.999947547912598,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 14790552557027658918,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 15909703416314604785
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 7614034596207198222,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 6992742619318228690,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 14962226953796439221,
+                                "Active": true,
+                                "Position": [
+                                    12.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 9569341888268185327,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 10925155982537333995
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 17659224498194739255,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    }
+                ]
+            },
+            {
+                "Id": 3612020018416863125,
+                "Name": "SphereRow",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 1971829726137032304,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            6.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Id": 9001946785826719733,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 16157563800401406190,
+                                "Active": true,
+                                "Position": [
+                                    -12.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 14318233487967445614,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 11578809918999508457
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 4625722349337068576,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 4713597620672127167,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 8914822511781051578,
+                                "Active": true,
+                                "Position": [
+                                    -6.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 5447058026219433824,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 6949062643276485141
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 7632260280436399117,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 11714371990813846002,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 584436825686678821,
+                                "Active": true,
+                                "Position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 6479455026258494538,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 7432637736325608298
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 17525288022045972562,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 11614611668344104507,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 10104513191649138266,
+                                "Active": true,
+                                "Position": [
+                                    6.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 15456617868578054718,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 4917725259664911434
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 1099186618975475970,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Id": 10993283653149324526,
+                        "Name": "sphere",
+                        "Active": true,
+                        "Static": false,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 2706277908525365077,
+                                "Active": true,
+                                "Position": [
+                                    12.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 16370713292955507667,
+                                "Active": true,
+                                "MeshID": 9281473287798518596,
+                                "MaterialID": 8444152771317344971
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 10352823747017484162,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -2.6257340908050539,
+                                    -2.6209895610809328,
+                                    -2.6419196128845217,
+                                    2.641207456588745,
+                                    2.645951986312866,
+                                    2.6250219345092775
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    }
+                ]
+            }
+        ]
+    }
+}

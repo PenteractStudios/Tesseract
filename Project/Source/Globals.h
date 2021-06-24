@@ -47,7 +47,7 @@ enum class UpdateStatus {
 
 #define MODEL_EXTENSION ".fbx"
 
-#define SKYBOX_EXTENSION ".sky"
+#define SKYBOX_EXTENSION ".hdr"
 
 #define NAVMESH_EXTENSION ".navmesh"
 
@@ -64,6 +64,8 @@ enum class UpdateStatus {
 
 // Configuration -----------
 #define GLSL_VERSION "#version 460"
+#define POINT_LIGHTS 32
+#define SPOT_LIGHTS 8
 
 // Threads
 #define TIME_BETWEEN_RESOURCE_UPDATES_MS 300

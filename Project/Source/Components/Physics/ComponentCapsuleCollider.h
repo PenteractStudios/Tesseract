@@ -24,9 +24,11 @@ public:
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
+	void OnEnable() override;
+	void OnDisable() override;
 
 	// ----- Collider Functions ---- //
-	void OnCollision(const GameObject& collidedWith); // Callback function for scripting
+	void OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance); // Callback function for scripting
 
 public:
 	btRigidBody* rigidBody = nullptr;										// Body that is represented in the physic world.

@@ -21,7 +21,10 @@ void PanelAudioMixer::Update() {
 	std::string windowName = std::string(ICON_FK_MUSIC " ") + name;
 	if (ImGui::Begin(windowName.c_str(), &enabled, ImGuiWindowFlags_AlwaysAutoResize)) {
 		ComponentAudioListener* listener = nullptr;
-		if (App->scene->scene->audioListenerComponents.Count() == 0) return;
+		if (App->scene->scene->audioListenerComponents.Count() == 0) {
+			ImGui::End();
+			return;
+		}
 		Pool<ComponentAudioListener>::Iterator audioListener = App->scene->scene->audioListenerComponents.begin();
 		float gain = (*audioListener).GetAudioVolume();
 

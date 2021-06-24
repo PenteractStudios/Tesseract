@@ -150,7 +150,8 @@ float4 ComponentImage::GetMainColor() const {
 }
 
 void ComponentImage::Draw(ComponentTransform2D* transform) const {
-	unsigned int program = App->programs->imageUI;
+	ProgramImageUI* imageUIProgram = App->programs->imageUI;
+	if (imageUIProgram == nullptr) return;
 
 	if (alphaTransparency) {
 		glEnable(GL_BLEND);
@@ -165,7 +166,7 @@ void ComponentImage::Draw(ComponentTransform2D* transform) const {
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*) ((sizeof(float) * 6 * 3)));
-	glUseProgram(program);
+	glUseProgram(imageUIProgram->program);
 
 	float4x4 modelMatrix = transform->GetGlobalScaledMatrix();
 	float4x4& proj = App->camera->GetProjectionMatrix();
@@ -182,20 +183,20 @@ void ComponentImage::Draw(ComponentTransform2D* transform) const {
 		view = view * float4x4::Scale(factor, factor, factor);
 	}
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view.ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj.ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, modelMatrix.ptr());
+	glUniformMatrix4fv(imageUIProgram->viewLocation, 1, GL_TRUE, view.ptr());
+	glUniformMatrix4fv(imageUIProgram->projLocation, 1, GL_TRUE, proj.ptr());
+	glUniformMatrix4fv(imageUIProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
 
 	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(glGetUniformLocation(program, "diffuse"), 0);
-	glUniform4fv(glGetUniformLocation(program, "inputColor"), 1, GetMainColor().ptr());
+	glUniform1i(imageUIProgram->diffuseLocation, 0);
+	glUniform4fv(imageUIProgram->inputColorLocation, 1, GetMainColor().ptr());
 
 	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
 	if (textureResource != nullptr) {
 		glBindTexture(GL_TEXTURE_2D, textureResource->glTexture);
-		glUniform1i(glGetUniformLocation(program, "hasDiffuse"), 1);
+		glUniform1i(imageUIProgram->hasDiffuseLocation, 1);
 	} else {
-		glUniform1i(glGetUniformLocation(program, "hasDiffuse"), 0);
+		glUniform1i(imageUIProgram->hasDiffuseLocation, 0);
 	}
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
