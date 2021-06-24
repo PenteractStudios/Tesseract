@@ -286,7 +286,7 @@ void ComponentTrail::InsertVertex(Quad* currentQuad, float3 vertex) {
 }
 
 void ComponentTrail::InsertTextureCoords(Quad* currentQuad) {
-	/*if (nTextures == 1) {
+	if (nTextures == 1) {
 		textureCreated = 0;
 		for (int i = 0; i < quadsCreated; i++) {
 			for (int j = 0; j < 6; j++) {
@@ -296,11 +296,11 @@ void ComponentTrail::InsertTextureCoords(Quad* currentQuad) {
 		}
 		currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
 		currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
-	} else {*/
-	if (textureCreated == nRepeats) textureCreated = 0;
-	currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
-	currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
-	/*}*/
+	} else {
+		if (textureCreated == nRepeats) textureCreated = 0;
+		currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
+		currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
+	}
 }
 
 void ComponentTrail::SpawnQuad(Quad* currentQuad) {
@@ -323,7 +323,7 @@ void ComponentTrail::DeleteQuads() {
 
 void ComponentTrail::EditTextureCoords() {
 	int nLine = 0;
-	float factor = nTextures / trailQuads;
+	float factor = (1.0f / (trailQuads / nTextures));
 	nRepeats = (trailQuads / nTextures) * 12;
 	for (int textureEdited = 0; textureEdited < nRepeats;) {
 		///vertice1
