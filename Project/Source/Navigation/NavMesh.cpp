@@ -890,15 +890,15 @@ bool NavMesh::Build() {
 }
 
 void NavMesh::DrawGizmos() {
-	/*if (nverts == 0) {
+	if (nverts == 0) {
 		return;
-	}*/
+	}
 
-		verts = App->scene->scene->GetVertices();
+	/*verts = App->scene->scene->GetVertices();
 	nverts = verts.size();
 	tris = App->scene->scene->GetTriangles();
 	ntris = tris.size() / 3;
-	normals = App->scene->scene->GetNormals();
+	normals = App->scene->scene->GetNormals();*/
 
 	DebugDrawGL dds;
 
@@ -1006,6 +1006,12 @@ struct TileCacheTileHeader {
 void NavMesh::Load(Buffer<char>& buffer) {
 	CleanUp();
 
+	verts = App->scene->scene->GetVertices();
+	nverts = verts.size();
+	tris = App->scene->scene->GetTriangles();
+	ntris = tris.size() / 3;
+	normals = App->scene->scene->GetNormals();
+
 	/*navMesh = dtAllocNavMesh();
 	if (!navMesh) {
 		LOG("Could not create Detour navmesh");
@@ -1066,6 +1072,7 @@ void NavMesh::Load(Buffer<char>& buffer) {
 
 		TileCacheTileHeader tileHeader = *((TileCacheTileHeader*) cursor);
 		cursor += sizeof(TileCacheTileHeader);
+		LOG("%d", tileHeader.dataSize);
 
 		if (!tileHeader.tileRef || !tileHeader.dataSize)
 			break;
@@ -1084,6 +1091,12 @@ void NavMesh::Load(Buffer<char>& buffer) {
 
 		if (tile)
 			tileCache->buildNavMeshTile(tile, navMesh);
+	}
+
+	status = navQuery->init(navMesh, 2048);
+	if (dtStatusFailed(status)) {
+		LOG("Could not init Detour navmesh query");
+		return;
 	}
 
 
@@ -1107,6 +1120,12 @@ void NavMesh::CleanUp() {
 	pmesh = nullptr;
 	rcFreePolyMeshDetail(dmesh);
 	dmesh = nullptr;
+
+	nverts = 0;
+	ntris = 0;
+	verts.clear();
+	tris.clear();
+	normals.clear();
 }
 
 Buffer<char> NavMesh::Save() {
@@ -1117,12 +1136,10 @@ Buffer<char> NavMesh::Save() {
 		const dtCompressedTile* tile = tileCache->getTile(i);
 		if (!tile || !tile->header || !tile->dataSize) continue;
 
+		sizeData += sizeof(TileCacheTileHeader);
 		sizeData += tile->dataSize;
+		LOG("%d", sizeData);
 	}
-
-	int size = sizeof(TileCacheSetHeader) + sizeof(TileCacheTileHeader) * tileCache->getTileCount() + sizeData;
-	Buffer<char> buffer = Buffer<char>(size);
-	char* cursor = buffer.Data();
 
 	// Store header.
 	TileCacheSetHeader header;
@@ -1137,6 +1154,10 @@ Buffer<char> NavMesh::Save() {
 	memcpy(&header.cacheParams, tileCache->getParams(), sizeof(dtTileCacheParams));
 	memcpy(&header.meshParams, navMesh->getParams(), sizeof(dtNavMeshParams));
 	//memcpy(cursor, &header, sizeof(TileCacheSetHeader));
+
+	int size = sizeof(TileCacheSetHeader) + sizeData;
+	Buffer<char> buffer = Buffer<char>(size);
+	char* cursor = buffer.Data();
 
 	*((TileCacheSetHeader*) cursor) = header;
 	cursor += sizeof(TileCacheSetHeader);
