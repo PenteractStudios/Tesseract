@@ -31,7 +31,6 @@ public:
 	void Save(JsonValue jComponent) const override;
 
 	void Draw();
-	void UpdateVerticesPosition();
 	void InsertVertex(Quad* currentQuad, float3 vertex);
 	void InsertTextureCoords(Quad* currentQuad);
 	void SpawnQuad(Quad* currentQuad);

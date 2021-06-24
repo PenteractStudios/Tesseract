@@ -273,12 +273,6 @@ void ComponentTrail::Draw() {
 	}
 }
 
-void ComponentTrail::UpdateVerticesPosition() {
-	for (int i = 0; i < maxVertices - 30; i++) {
-		verticesPosition[i] = verticesPosition[i + 30];
-	}
-}
-
 void ComponentTrail::InsertVertex(Quad* currentQuad, float3 vertex) {
 	currentQuad->quadInfo[currentQuad->index++] = vertex.x;
 	currentQuad->quadInfo[currentQuad->index++] = vertex.y;
