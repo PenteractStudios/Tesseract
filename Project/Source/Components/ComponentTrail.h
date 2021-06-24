@@ -19,7 +19,6 @@ public:
 
 		float quadInfo[30] = {0.0f};
 		float life = 0.0f;
-		float currentFrame = 0.0f;
 		float colorFrame = 0.0f;
 	};
 
@@ -45,6 +44,16 @@ private:
 	unsigned int quadVBO;
 	UID textureID = 0; // ID of the image
 
+	float3 currentPosition = float3(0, 0, 0);
+	float3 previousPosition = float3(0, 0, 0);
+	float3 currentPositionUp = float3(0, 0, 0);
+	float3 currentPositionDown = float3(0, 0, 0);
+	float3 previousPositionUp = float3(0, 0, 0);
+	float3 previousPositionDown = float3(0, 0, 0);
+
+	bool isStarted = false;
+
+	// Trail Info
 	int nTextures = 1;
 	int quadsCreated = 0;
 	int trailQuads = 50;
@@ -55,21 +64,8 @@ private:
 	float nRepeats = 1;
 	float width = 0.1f;
 	float timePoint = 1.0f;
-	float minDistance = 2.0f;
-	float verticesPosition[1500] = {0.0f};
 	float textureCords[600] = {0.0f};
-	float colorFrame = 0.0f;
-	float colorSpeed = 0.0f;
 	float quadLife = 10.0f;
-
-	float3 currentPosition = float3(0, 0, 0);
-	float3 previousPosition = float3(0, 0, 0);
-	float3 currentPositionUp = float3(0, 0, 0);
-	float3 currentPositionDown = float3(0, 0, 0);
-	float3 previousPositionUp = float3(0, 0, 0);
-	float3 previousPositionDown = float3(0, 0, 0);
-
-	bool isStarted = false;
 
 	// Color Settings
 	ImGradient gradient;
