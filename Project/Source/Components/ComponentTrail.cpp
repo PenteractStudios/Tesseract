@@ -35,6 +35,7 @@
 #define JSON_TAG_WIDTH "Width"
 #define JSON_TAG_TRAILQUADS "TrailQuads"
 #define JSON_TAG_NREPEATS "TextureRepeats"
+#define JSON_TAG_QUAD_LIFE "QuadLife"
 
 #define JSON_TAG_COLOR_OVER_TRAIL "ColorOverTrail"
 #define JSON_TAG_GRADIENT_COLOR "GradientColor"
@@ -44,7 +45,6 @@
 void ComponentTrail::Init() {
 	glGenBuffers(1, &quadVBO);
 	EditTextureCoords();
-	CreateQuads(maxQuads);
 }
 
 void ComponentTrail::Update() {
@@ -65,20 +65,14 @@ void ComponentTrail::Update() {
 			currentPositionDown = (-vectorUp * width) + currentPosition;
 
 			if (quadsCreated >= trailQuads) {
-				//UpdateVerticesPosition();
 				for (int j = 0; j < trailQuads - 1; j++) {
 					quads[j] = quads[j + 1];
 				}
 				quadsCreated--;
-				trianglesCreated -= 30;
 			}
 
 			Quad* currentQuad = &quads[quadsCreated];
 			SpawnQuad(currentQuad);
-			//if (trianglesCreated >= (maxVertices)) {
-			//	UpdateVerticesPosition();
-			//	trianglesCreated -= 30;
-			//}
 
 			InsertVertex(currentQuad, previousPositionDown);
 			InsertTextureCoords(currentQuad);
@@ -93,8 +87,6 @@ void ComponentTrail::Update() {
 			InsertTextureCoords(currentQuad);
 			InsertVertex(currentQuad, previousPositionUp);
 			InsertTextureCoords(currentQuad);
-
-			quadsCreated++;
 		}
 	} else {
 		isStarted = true;
@@ -106,15 +98,16 @@ void ComponentTrail::Update() {
 	UpdateQuads();
 }
 void ComponentTrail::UpdateQuads() {
-	deadQuads.clear();
 	for (int i = 0; i < quadsCreated; i++) {
 		UpdateLife(&quads[i]);
 
-		if (quads[i].life < 0) {
+		if (quads[i].life <= 0) {
 			quadsCreated--;
 
 			for (int j = 0; j < trailQuads - 1; j++) {
-				quads[j] = quads[j + 1];
+				for (int x = 0; x < 30; x++) {
+					quads[j].quadInfo[x] = quads[j + 1].quadInfo[x];
+				}
 			}
 		}
 	}
@@ -140,6 +133,9 @@ void ComponentTrail::OnEditorUpdate() {
 		DeleteQuads();
 		EditTextureCoords();
 	}
+
+	ImGui::DragFloat("Quad Life", &quadLife, App->editor->dragSpeed2f, 1, inf);
+
 	ImGui::Checkbox("Color Over Trail", &colorOverTrail);
 	if (colorOverTrail) {
 		ImGui::DragFloat("Color Life", &colorLife, App->editor->dragSpeed2f, 0, inf);
@@ -179,7 +175,7 @@ void ComponentTrail::Load(JsonValue jComponent) {
 	}
 	maxVertices = jComponent[JSON_TAG_MAXVERTICES];
 	trailQuads = jComponent[JSON_TAG_TRAILQUADS];
-
+	quadLife = jComponent[JSON_TAG_QUAD_LIFE];
 	width = jComponent[JSON_TAG_WIDTH];
 	nRepeats = jComponent[JSON_TAG_NREPEATS];
 
@@ -201,7 +197,7 @@ void ComponentTrail::Save(JsonValue jComponent) const {
 
 	jComponent[JSON_TAG_WIDTH] = width;
 	jComponent[JSON_TAG_NREPEATS] = nRepeats;
-
+	jComponent[JSON_TAG_QUAD_LIFE] = quadLife;
 	// Color
 	jComponent[JSON_TAG_COLOR_OVER_TRAIL] = colorOverTrail;
 	int color = 0;
@@ -226,7 +222,8 @@ void ComponentTrail::Draw() {
 	ResourceTexture* texture = App->resources->GetResource<ResourceTexture>(textureID);
 	glTexture = texture ? texture->glTexture : 0;
 	int hasDiffuseMap = texture ? 1 : 0;
-	for (Quad& currentQuad : quads) {
+	for (int i = 0; i < quadsCreated; i++) {
+		Quad* currentQuad = &quads[i];
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
 		glBlendEquation(GL_FUNC_ADD);
@@ -234,7 +231,7 @@ void ComponentTrail::Draw() {
 		glDisable(GL_CULL_FACE);
 
 		glBindBuffer(GL_ARRAY_BUFFER, quadVBO); // set vbo active
-		glBufferData(GL_ARRAY_BUFFER, sizeof(currentQuad.quadInfo), currentQuad.quadInfo, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(currentQuad->quadInfo), currentQuad->quadInfo, GL_STATIC_DRAW);
 
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
@@ -255,7 +252,7 @@ void ComponentTrail::Draw() {
 
 		float4 color = float4::one;
 		if (colorOverTrail) {
-			float factor = currentQuad.life / colorLife;
+			float factor = currentQuad->life / colorLife;
 			gradient.getColorAt(factor, color.ptr());
 		}
 
@@ -266,7 +263,7 @@ void ComponentTrail::Draw() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, glTexture);
 
-		glDrawArrays(GL_TRIANGLES, 0, currentQuad.index);
+		glDrawArrays(GL_TRIANGLES, 0, currentQuad->index);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -280,21 +277,16 @@ void ComponentTrail::UpdateVerticesPosition() {
 	for (int i = 0; i < maxVertices - 30; i++) {
 		verticesPosition[i] = verticesPosition[i + 30];
 	}
-	trianglesCreated -= 30;
 }
 
 void ComponentTrail::InsertVertex(Quad* currentQuad, float3 vertex) {
 	currentQuad->quadInfo[currentQuad->index++] = vertex.x;
 	currentQuad->quadInfo[currentQuad->index++] = vertex.y;
 	currentQuad->quadInfo[currentQuad->index++] = vertex.z;
-	trianglesCreated += 3;
-	//verticesPosition[trianglesCreated++] = vertex.x;
-	//verticesPosition[trianglesCreated++] = vertex.y;
-	//verticesPosition[trianglesCreated++] = vertex.z;
 }
 
 void ComponentTrail::InsertTextureCoords(Quad* currentQuad) {
-	if (nTextures == 1) {
+	/*if (nTextures == 1) {
 		textureCreated = 0;
 		for (int i = 0; i < quadsCreated; i++) {
 			for (int j = 0; j < 6; j++) {
@@ -304,43 +296,28 @@ void ComponentTrail::InsertTextureCoords(Quad* currentQuad) {
 		}
 		currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
 		currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
-		trianglesCreated += 2;
-		//for (int i = 0; i < trianglesCreated + 2;) {
-		//	quads[quadsCreated].quadInfo[3] = textureCords[textureCreated++];
-		//	quads[quadsCreated].quadInfo[4] = textureCords[textureCreated++];
-		//	//verticesPosition[(i + 3)] = textureCords[textureCreated++];
-		//	//verticesPosition[(i + 4)] = textureCords[textureCreated++];
-		//	i += 5;
-		//}
-		/*trianglesCreated += 2;*/
-	} else {
-		if (textureCreated == nRepeats) textureCreated = 0;
-		currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
-		currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
-		trianglesCreated += 2;
-		//verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
-		//verticesPosition[trianglesCreated++] = textureCords[textureCreated++];
-	}
-}
-void ComponentTrail::CreateQuads(unsigned nQuads) {
-	//for (Quad& currentQuad : quads) {
-	//
-	//}
+	} else {*/
+	if (textureCreated == nRepeats) textureCreated = 0;
+	currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
+	currentQuad->quadInfo[currentQuad->index++] = textureCords[textureCreated++];
+	/*}*/
 }
 
 void ComponentTrail::SpawnQuad(Quad* currentQuad) {
 	currentQuad->index = 0;
 	currentQuad->life = quadLife;
+	quadsCreated++;
 }
 
 void ComponentTrail::DeleteQuads() {
-	for (int i = 0; i < maxVertices; i++) {
-		verticesPosition[i] = 0.0f;
+	for (int i = 0; i < maxQuads; i++) {
+		quads[i].life = 0;
+		quadsCreated--;
 	}
-	isStarted = false;
+
 	quadsCreated = 0;
-	trianglesCreated = 0;
 	maxVertices = 30 * trailQuads;
+	isStarted = false;
 	textureCreated = 0;
 }
 
