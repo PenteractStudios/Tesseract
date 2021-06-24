@@ -68,7 +68,7 @@ public:
 
 	float3 CreatePosition();
 	float3 CreateDirection();
-	float3 UpdateGravityDirection(Particle* currentParticle);
+	void UpdateGravityDirection(Particle* currentParticle);
 
 	void UpdatePosition(Particle* currentParticle);
 	void UpdateVelocity(Particle* currentParticle);

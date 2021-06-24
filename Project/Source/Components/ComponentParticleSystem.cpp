@@ -437,7 +437,7 @@ void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
 		currentParticle->modelStretch.SetTranslatePart(currentParticle->position);
 	}
 }
-float3 ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) {
+void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) {
 	float x = currentParticle->direction.x;
 	float y = -(1 / gravityFactor) * Pow(currentParticle->gravityTime, 2) + currentParticle->gravityTime;
 	float z = currentParticle->direction.z;
@@ -446,7 +446,7 @@ float3 ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle
 	} else {
 		currentParticle->gravityTime += 10 * App->time->GetRealTimeDeltaTime();
 	}
-	return float3(x, y, z);
+	currentParticle->direction = float3(x, y, z);
 }
 
 void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
@@ -457,10 +457,9 @@ void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
 			currentParticle->position -= direction * velocity * App->time->GetDeltaTime();
 		} else {
 			if (gravityEffect) {
-				currentParticle->position += UpdateGravityDirection(currentParticle) * velocity * App->time->GetDeltaTime();
-			} else {
-				currentParticle->position += currentParticle->direction * velocity * App->time->GetDeltaTime();
+				UpdateGravityDirection(currentParticle);
 			}
+			currentParticle->position += currentParticle->direction * velocity * App->time->GetDeltaTime();
 		}
 	} else {
 		if (reverseEffect) {
@@ -469,10 +468,9 @@ void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
 			currentParticle->position -= direction * velocity * App->time->GetRealTimeDeltaTime();
 		} else {
 			if (gravityEffect) {
-				currentParticle->position += UpdateGravityDirection(currentParticle) * velocity * App->time->GetRealTimeDeltaTime();
-			} else {
-				currentParticle->position += currentParticle->direction * velocity * App->time->GetRealTimeDeltaTime();
+				UpdateGravityDirection(currentParticle);
 			}
+			currentParticle->position += currentParticle->direction * velocity * App->time->GetRealTimeDeltaTime();
 		}
 	}
 }
