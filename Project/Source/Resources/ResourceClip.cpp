@@ -65,7 +65,6 @@ void ResourceClip::Load() {
 	for (unsigned int i = 0; i < keyEventClipsJson.Size(); ++i) {
 		unsigned int keyframe = keyEventClipsJson[i][JSON_TAG_KEY_FRAME];
 		std::string name = keyEventClipsJson[i][JSON_TAG_NAME];
-		//EventClip newEventClip = { false,name };
 		keyEventClips.insert(std::make_pair(keyframe, EventClip {false, name}));
 	}
 
@@ -105,7 +104,6 @@ void ResourceClip::GetInfoJson() {
 	for (unsigned int i = 0; i < keyEventClipsJson.Size(); ++i) {
 		unsigned int keyframe = keyEventClipsJson[i][JSON_TAG_KEY_FRAME];
 		std::string name = keyEventClipsJson[i][JSON_TAG_NAME];
-		//EventClip newEventClip = { false,name };
 		keyEventClips.insert(std::make_pair(keyframe, EventClip {false, name}));
 	}
 	
@@ -146,13 +144,13 @@ void ResourceClip::OnEditorUpdate() {
 
 	ImGui::TextColored(App->editor->textColor, "New key frame event");
 	ImGui::DragScalar("KeyFrame", ImGuiDataType_U32, &newKeyFrameEditor);
-	//ImGui::SameLine();
+
 	char newNameEvent[100];
 	sprintf_s(newNameEvent, 100, "%s", newNameEditor.c_str());
 	if (ImGui::InputText("##newEventClip_name", newNameEvent, 100)) {
 		newNameEditor = newNameEvent;
 	}
-	//ImGui::SameLine();
+
 	if (ImGui::Button("Add")) {
 		keyEventClips.insert(std::make_pair(newKeyFrameEditor, EventClip {false, newNameEditor}));
 		newKeyFrameEditor = 0;
