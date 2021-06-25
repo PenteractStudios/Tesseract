@@ -3,6 +3,7 @@
 
 #include "Utils/Pool.h"
 #include "Utils/UID.h"
+#include "Utils/Collider.h"
 #include "Math/float4.h"
 #include "Math/float2.h"
 #include "Math/float4x4.h"
@@ -12,6 +13,10 @@
 
 class ComponentTransform;
 class ParticleModule;
+class btRigidBody;
+class ParticleMotionState;
+
+enum WorldLayers;
 
 enum class EmitterType {
 	CONE,
@@ -48,6 +53,13 @@ public:
 		float colorFrame = 0.0f;
 
 		float3 emitterPosition = float3(0.0f, 0.0f, 0.0f);
+
+		// Collider
+		ParticleMotionState* motionState = nullptr;
+		btRigidBody* rigidBody = nullptr;
+		ComponentParticleSystem* emitter = nullptr;
+		Collider col{ this, typeid(Particle) };
+		float radius = 0;
 	};
 
 	REGISTER_COMPONENT(ComponentParticleSystem, ComponentType::PARTICLE, false);
@@ -63,20 +75,26 @@ public:
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Stop();
 	void SpawnParticle();
-	void killParticles();
+	void DestroyParticlesColliders();
 
 	float3 CreatePosition();
 	float3 CreateDirection();
 
-	void UpdatePosition(Particle* currentParticle);
-	void UpdateVelocity(Particle* currentParticle);
+	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
+	TESSERACT_ENGINE_API void UpdateVelocity(Particle* currentParticle);
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
+	TESSERACT_ENGINE_API void KillParticle(Particle* currentParticle);
 	void UndertakerParticle();
 
 private:
 	float4 GetTintColor() const; // Gets an additional color that needs to be applied to the image. Currently gets the color of the Button
 	void CreateParticles(unsigned nParticles, float vel);
+
+public:
+	WorldLayers layer;
+	int layerIndex = 5;
+	float radius = .25f;
 
 private:
 	UID textureID = 0; // ID of the image
@@ -92,7 +110,7 @@ private:
 	// General Options
 
 	bool looping = false;
-	bool isPlaying = true;
+	bool isPlaying = false;
 	bool isRandomFrame = false;
 	bool sizeOverTime = false;
 	bool reverseEffect = false;
@@ -109,6 +127,7 @@ private:
 	float scaleFactor = 0.f;
 	float coneRadiusUp = 1.f;
 	float coneRadiusDown = 0.5f;
+	bool collisions = false;
 
 	// Texture Sheet Animation
 	unsigned Xtiles = 1;

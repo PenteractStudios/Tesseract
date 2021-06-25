@@ -11,6 +11,7 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleUserInterface.h"
+#include "Modules/ModulePhysics.h"
 #include "Panels/PanelScene.h"
 #include "Resources/ResourceTexture.h"
 #include "Resources/ResourceShader.h"
@@ -60,6 +61,8 @@
 
 #define JSON_TAG_CONE_RADIUS_UP "ConeRadiusUp"
 #define JSON_TAG_CONE_RADIUS_DOWN "ConeRadiusDown"
+#define JSON_TAG_COLLISIONS "Collisions"
+#define JSON_TAG_LAYER_INDEX "LayerIndex"
 
 void ComponentParticleSystem::OnEditorUpdate() {
 	if (ImGui::Checkbox("Active", &active)) {
@@ -205,7 +208,30 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::Checkbox("X", &flipTexture[0]);
 		ImGui::SameLine();
 		ImGui::Checkbox("Y", &flipTexture[1]);
+
 	}
+	ImGui::Separator();
+	ImGui::Checkbox("Collisions", &collisions);
+	if (collisions) {
+		// World Layers combo box
+		const char* layerTypeItems[] = { "No Collision", "Event Triggers", "World Elements", "Player", "Enemy", "Bullet", "Bullet Enemy", "Everything" };
+		const char* layerCurrent = layerTypeItems[layerIndex];
+		if (ImGui::BeginCombo("Layer", layerCurrent)) {
+			for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {
+				if (ImGui::Selectable(layerTypeItems[n])) {
+					layerIndex = n;
+					if (n == 7) {
+						layer = WorldLayers::EVERYTHING;
+					}
+					else {
+						layer = WorldLayers(1 << layerIndex);
+					}
+				}
+			}
+			ImGui::EndCombo();
+		}
+	}
+	if (ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed2f, 0, inf));
 }
 
 float3 ComponentParticleSystem::CreateDirection() {
@@ -321,6 +347,10 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	coneRadiusUp = jComponent[JSON_TAG_CONE_RADIUS_UP];
 	coneRadiusDown = jComponent[JSON_TAG_CONE_RADIUS_DOWN];
 
+	collisions = jComponent[JSON_TAG_COLLISIONS];
+	layerIndex = jComponent[JSON_TAG_LAYER_INDEX];
+	layer = WorldLayers(1 << layerIndex);
+
 	particleSpawned = 0;
 	CreateParticles(maxParticles, velocity);
 }
@@ -368,6 +398,9 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 
 	jComponent[JSON_TAG_CONE_RADIUS_UP] = coneRadiusUp;
 	jComponent[JSON_TAG_CONE_RADIUS_DOWN] = coneRadiusDown;
+
+	jComponent[JSON_TAG_COLLISIONS] = collisions;
+	jComponent[JSON_TAG_LAYER_INDEX] = layerIndex;
 }
 
 void ComponentParticleSystem::Update() {
@@ -404,10 +437,12 @@ void ComponentParticleSystem::Update() {
 
 void ComponentParticleSystem::UndertakerParticle() {
 	for (Particle* currentParticle : deadParticles) {
+		App->physics->RemoveParticleRigidbody(currentParticle);
+		RELEASE(currentParticle->motionState);
 		particles.Release(currentParticle);
 	}
 
-	if (looping || (particleSpawned < maxParticles)) {
+	if ((looping || (particleSpawned < maxParticles)) && isPlaying) {
 		SpawnParticle();
 	} else {
 		if (particles.Count() == 0) {
@@ -456,14 +491,17 @@ void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
 
 void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
 	if (App->time->HasGameStarted()) {
+		currentParticle->radius *= 1 + scaleFactor * App->time->GetDeltaTime() / currentParticle->scale.x;
 		currentParticle->scale.x += scaleFactor * App->time->GetDeltaTime();
 		currentParticle->scale.y += scaleFactor * App->time->GetDeltaTime();
 		currentParticle->scale.z += scaleFactor * App->time->GetDeltaTime();
 	} else {
+		currentParticle->radius *= 1 + scaleFactor * App->time->GetRealTimeDeltaTime() / currentParticle->scale.x;
 		currentParticle->scale.x += scaleFactor * App->time->GetRealTimeDeltaTime();
 		currentParticle->scale.y += scaleFactor * App->time->GetRealTimeDeltaTime();
 		currentParticle->scale.z += scaleFactor * App->time->GetRealTimeDeltaTime();
 	}
+	if (collisions) App->physics->UpdateParticleRigidbody(currentParticle);
 	if (currentParticle->scale.x < 0) {
 		currentParticle->scale.x = 0;
 	}
@@ -485,6 +523,13 @@ void ComponentParticleSystem::UpdateLife(Particle* currentParticle) {
 	}
 }
 
+void ComponentParticleSystem::KillParticle(Particle* currentParticle)
+{
+	currentParticle->life = 0;
+	App->physics->RemoveParticleRigidbody(currentParticle);
+	RELEASE(currentParticle->motionState);
+}
+
 void ComponentParticleSystem::Init() {
 	CreateParticles(maxParticles, velocity);
 }
@@ -494,7 +539,6 @@ void ComponentParticleSystem::SpawnParticle() {
 	if (!looping) {
 		particleSpawned++;
 	}
-	particleSpawned++;
 	if (currentParticle) {
 		currentParticle->life = particleLife;
 		if (isRandomFrame) {
@@ -515,12 +559,19 @@ void ComponentParticleSystem::SpawnParticle() {
 			float3x3 newRotation = float3x3::FromEulerXYZ(0.f, 0.f, pi / 2);
 			currentParticle->modelStretch = currentParticle->model * newRotation;
 		}
+
+		if (collisions) {
+			currentParticle->emitter = this;
+			currentParticle->radius = radius;
+			App->physics->CreateParticleRigidbody(currentParticle);
+		}
 	}
 }
 
-void ComponentParticleSystem::killParticles() {
+void ComponentParticleSystem::DestroyParticlesColliders() {
 	for (Particle& currentParticle : particles) {
-		particles.Release(&currentParticle);
+		App->physics->RemoveParticleRigidbody(&currentParticle);
+		RELEASE(currentParticle.motionState);
 	}
 }
 
@@ -636,6 +687,10 @@ void ComponentParticleSystem::Draw() {
 
 			glDisable(GL_BLEND);
 			glDepthMask(GL_TRUE);
+
+			if (App->renderer->drawColliders) {
+				dd::sphere(currentParticle.position, dd::colors::LawnGreen, currentParticle.radius);
+			}
 		}
 	}
 }
