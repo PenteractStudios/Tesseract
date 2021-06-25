@@ -29,6 +29,9 @@
 
 #include "Utils/Leaks.h"
 
+// Gizmo
+#define JSON_TAG_DRAW_GIZMO "DrawGizmo"
+
 // Control
 #define JSON_TAG_IS_PLAYING "IsPlaying"
 #define JSON_TAG_START_DELAY "StartDelay"
@@ -84,6 +87,8 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			}
 		}
 	}
+	ImGui::Separator();
+	ImGui::Checkbox("Draw Gizmo", &drawGizmo);
 	ImGui::Separator();
 
 	// Control
@@ -325,14 +330,17 @@ void ComponentParticleSystem::InitParticleLifetime(Particle* currentParticle) {
 
 void ComponentParticleSystem::CreateParticles() {
 	particles.Allocate(maxParticles);
-	for (Particle& currentParticle : particles) {
-		InitParticleScale(&currentParticle);
-		InitParticlePosAndDir(&currentParticle);
-		InitParticleVelocity(&currentParticle);
-	}
+	//for (Particle& currentParticle : particles) {
+	//	InitParticleScale(&currentParticle);
+	//	InitParticlePosAndDir(&currentParticle);
+	//	InitParticleVelocity(&currentParticle);
+	//}
 }
 
 void ComponentParticleSystem::Load(JsonValue jComponent) {
+	// Gizmo
+	drawGizmo = jComponent[JSON_TAG_DRAW_GIZMO];
+
 	// Control
 	isPlaying = jComponent[JSON_TAG_IS_PLAYING];
 	startDelay = jComponent[JSON_TAG_START_DELAY];
@@ -394,6 +402,9 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 }
 
 void ComponentParticleSystem::Save(JsonValue jComponent) const {
+	// Gizmo
+	jComponent[JSON_TAG_DRAW_GIZMO] = drawGizmo;
+
 	// Control
 	jComponent[JSON_TAG_IS_PLAYING] = isPlaying;
 	jComponent[JSON_TAG_START_DELAY] = startDelay;
@@ -582,15 +593,12 @@ void ComponentParticleSystem::killParticles() {
 }
 
 void ComponentParticleSystem::DrawGizmos() {
-	//TODO: IMPROVE DRAWS
-	if (IsActive()) {
+	if (IsActive() && drawGizmo) {
 		if (emitterType == ParticleEmitterType::CONE) {
 			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 			dd::cone(transform->GetGlobalPosition(), transform->GetGlobalRotation() * float3::unitY * 1, dd::colors::White, coneRadiusUp, coneRadiusDown);
 		}
 		if (emitterType == ParticleEmitterType::SPHERE) {
-			float delta = kl * kl - 4 * (kc - 10) * kq;
-			float distance = Max(abs((-kl + sqrt(delta))) / (2 * kq), abs((-kl - sqrt(delta)) / (2 * kq)));
 			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 			dd::sphere(transform->GetGlobalPosition(), dd::colors::White, 1.0f);
 		}

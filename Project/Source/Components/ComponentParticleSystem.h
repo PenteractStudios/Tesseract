@@ -90,6 +90,9 @@ private:
 	float3 cameraDir = {0.f, 0.f, 0.f};
 	float emitterTime = 0.0f;
 
+	// Gizmo
+	bool drawGizmo = true;
+
 	// Control
 	bool isPlaying = true;
 	float startDelay = 0.f;
@@ -137,11 +140,4 @@ private:
 	BillboardType billboardType = BillboardType::NORMAL;
 	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
 	bool flipTexture[2] = {false, false};
-
-	// Guizmos Options
-	float kc = 1.0f; //Keep in one to avoid having denominator less than 1
-	float kl = 0.045f;
-	float kq = 0.0075f;
-	float innerAngle = pi / 12;
-	float outerAngle = pi / 6;
 };
