@@ -58,6 +58,9 @@ public:
 	void* context = nullptr; // SDL context.
 
 	// - Render Buffer GL pointers - //
+	unsigned cubeVAO = 0;
+	unsigned cubeVBO = 0;
+
 	unsigned renderTexture = 0;
 	unsigned positionsTexture = 0;
 	unsigned normalsTexture = 0;
@@ -66,6 +69,7 @@ public:
 	unsigned auxBlurTexture = 0;
 
 	unsigned depthBuffer = 0;
+
 	unsigned framebuffer = 0;
 	unsigned depthPrepassTextureBuffer = 0;
 	unsigned depthMapTextureBuffer = 0;
@@ -117,8 +121,7 @@ private:
 	void ComputeSSAOTexture();
 	void BlurSSAOTexture(bool horizontal);
 
-	void DrawSSAOTexture();
-	void DrawDepthMapTexture();
+	void DrawTexture(unsigned texture);
 
 private:
 	// ------- Viewport Size ------- //

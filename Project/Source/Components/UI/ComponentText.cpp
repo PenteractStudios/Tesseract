@@ -128,15 +128,16 @@ void ComponentText::Draw(ComponentTransform2D* transform) {
 		return;
 	}
 
+	ProgramTextUI* textUIProgram = App->programs->textUI;
+	if (textUIProgram == nullptr) return;
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	unsigned int program = App->programs->textUI;
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(vao);
 
-	glUseProgram(program);
+	glUseProgram(textUIProgram->program);
 
 	float4x4 model = transform->GetGlobalMatrix();
 	float4x4& proj = App->camera->GetProjectionMatrix();
@@ -153,10 +154,10 @@ void ComponentText::Draw(ComponentTransform2D* transform) {
 		view = view * float4x4::Scale(factor, factor, factor);
 	}
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view.ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_TRUE, proj.ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, model.ptr());
-	glUniform4fv(glGetUniformLocation(program, "textColor"), 1, color.ptr());
+	glUniformMatrix4fv(textUIProgram->viewLocation, 1, GL_TRUE, view.ptr());
+	glUniformMatrix4fv(textUIProgram->projLocation, 1, GL_TRUE, proj.ptr());
+	glUniformMatrix4fv(textUIProgram->modelLocation, 1, GL_TRUE, model.ptr());
+	glUniform4fv(textUIProgram->textColorLocation, 1, color.ptr());
 
 	RecalculateVertices();
 

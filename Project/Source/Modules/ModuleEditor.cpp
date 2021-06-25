@@ -14,6 +14,7 @@
 #include "Modules/ModuleProject.h"
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleNavigation.h"
+#include "Modules/ModuleTime.h"
 #include "TesseractEvent.h"
 #include "FileSystem/MaterialImporter.h"
 #include "FileSystem/NavMeshImporter.h"
@@ -196,7 +197,7 @@ UpdateStatus ModuleEditor::Update() {
 		if (ImGui::MenuItem("Load Scene")) {
 			modalToOpen = Modal::LOAD_SCENE;
 		}
-		if (ImGui::MenuItem("Save Scene")) {
+		if (ImGui::MenuItem("Save Scene", nullptr, false, !App->time->HasGameStarted())) {
 			modalToOpen = Modal::SAVE_SCENE;
 		}
 		if (ImGui::MenuItem("Quit")) {

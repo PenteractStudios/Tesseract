@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Module.h"
+#include "Rendering/Programs.h"
 
 class ModulePrograms : public Module {
 public:
@@ -16,34 +17,37 @@ public:
 public:
 	const char* filePath = "Library/shadersBin";
 
-	// Skybox shader
-	unsigned skybox = 0;
+	// Skybox shaders
+	ProgramHDRToCubemap* hdrToCubemap = nullptr;
+	ProgramIrradiance* irradiance = nullptr;
+	ProgramPreFilteredMap* preFilteredMap = nullptr;
+	ProgramEnvironmentBRDF* environmentBRDF = nullptr;
+	ProgramSkybox* skybox = nullptr;
 
 	// Ilumination Shaders
-	unsigned phongNormal = 0;
-	unsigned phongNotNormal = 0;
-	unsigned standardNormal = 0;
-	unsigned standardNotNormal = 0;
-	unsigned specularNormal = 0;
-	unsigned specularNotNormal = 0;
+	ProgramStandardPhong* phongNormal = nullptr;
+	ProgramStandardPhong* phongNotNormal = nullptr;
+	ProgramStandardMetallic* standardNormal = nullptr;
+	ProgramStandardMetallic* standardNotNormal = nullptr;
+	ProgramStandardSpecular* specularNormal = nullptr;
+	ProgramStandardSpecular* specularNotNormal = nullptr;
 
 	// Depth prepass Shaders
-	unsigned depthPrepass = 0;
+	ProgramDepthPrepass* depthPrepass = nullptr;
 
 	// SSAO Shaders
-	unsigned ssao = 0;
-	unsigned ssaoBlur = 0;
+	ProgramSSAO* ssao = nullptr;
+	ProgramSSAOBlur* ssaoBlur = 0;
 
 	// Shadow Shaders
 	unsigned shadowMap = 0;
 
 	// Engine Shaders
-	unsigned drawSSAOTexture = 0;
-	unsigned drawDepthMapTexture = 0;
+	ProgramDrawTexture* drawTexture = 0;
 
 	// UI Shaders
-	unsigned textUI = 0;
-	unsigned imageUI = 0;
+	ProgramTextUI* textUI = 0;
+	ProgramImageUI* imageUI = 0;
 
 	// Particle Shaders
 	unsigned billboard = 0;

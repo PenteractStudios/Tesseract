@@ -100,7 +100,7 @@ public:
 	void AddChild(GameObject* gameObject);
 	void RemoveChild(GameObject* gameObject);
 	const std::vector<GameObject*>& GetChildren() const;
-	GameObject* GetChild(int index) const;
+	GameObject* GetChild(unsigned index) const;
 	GameObject* GetChild(const char* name) const;
 	bool IsDescendantOf(GameObject* gameObject);
 	GameObject* FindDescendant(const std::string& name) const;
