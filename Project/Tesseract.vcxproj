@@ -72,6 +72,7 @@
     <ClInclude Include="Source\Panels\PanelImportOptions.h" />
     <ClInclude Include="Source\Components\Physics\ComponentBoxCollider.h" />
     <ClInclude Include="Source\Components\Physics\ComponentCapsuleCollider.h" />
+    <ClInclude Include="Source\Utils\Collider.h" />
     <ClInclude Include="Source\Utils\MotionState.h" />
     <ClInclude Include="Source\Components\Physics\ComponentSphereCollider.h" />
     <ClInclude Include="Source\Modules\ModulePhysics.h" />
@@ -205,6 +206,7 @@
     <ClInclude Include="Source\Utils\Logging.h" />
     <ClInclude Include="Source\Utils\Buffer.h" />
     <ClInclude Include="Source\Utils\Random.h" />
+    <ClInclude Include="Source\Utils\ParticleMotionState.h" />
     <ClInclude Include="Source\Utils\UID.h" />
     <ClInclude Include="Source\Utils\MSTimer.h" />
     <ClInclude Include="Source\Utils\PerformanceTimer.h" />
@@ -489,6 +491,7 @@
     <ClCompile Include="Source\Utils\ImGuiUtils.cpp" />
     <ClCompile Include="Source\Utils\Logging.cpp" />
     <ClCompile Include="Source\Utils\MSTimer.cpp" />
+    <ClCompile Include="Source\Utils\ParticleMotionState.cpp" />
     <ClCompile Include="Source\Utils\PerformanceTimer.cpp" />
     <ClCompile Include="Source\Utils\Random.cpp" />
     <ClCompile Include="Source\Utils\UID.cpp" />

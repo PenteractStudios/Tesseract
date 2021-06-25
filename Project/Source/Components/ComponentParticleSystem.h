@@ -3,7 +3,7 @@
 
 #include "Utils/Pool.h"
 #include "Utils/UID.h"
-
+#include "Utils/Collider.h"
 #include "Math/float3.h"
 #include "Math/float4.h"
 #include "Math/float4x4.h"
@@ -11,6 +11,13 @@
 #include "imgui_color_gradient.h"
 
 #include <vector>
+
+class ComponentTransform;
+class ParticleModule;
+class btRigidBody;
+class ParticleMotionState;
+
+enum WorldLayers;
 
 enum class ParticleEmitterType {
 	CONE,
@@ -71,15 +78,17 @@ private:
 	void SpawnParticles();
 	void SpawnParticleUnit();
 	void killParticles();
+	void DestroyParticlesColliders();
 
 	void InitParticlePosAndDir(Particle* currentParticle);
 	void InitParticleScale(Particle* currentParticle);
 	void InitParticleVelocity(Particle* currentParticle);
 	void InitParticleLifetime(Particle* currentParticle);
 
-	void UpdatePosition(Particle* currentParticle);
+	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
+	TESSERACT_ENGINE_API void KillParticle(Particle* currentParticle);
 	void UndertakerParticle();
 
 private:
@@ -141,4 +150,13 @@ private:
 	BillboardType billboardType = BillboardType::NORMAL;
 	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
 	bool flipTexture[2] = {false, false};
+
+	// Collider
+	ParticleMotionState* motionState = nullptr;
+	btRigidBody* rigidBody = nullptr;
+	ComponentParticleSystem* emitter = nullptr;
+	Collider col{ this, typeid(Particle) };
+	bool collision = false;
+	float radius = 0;
+
 };
