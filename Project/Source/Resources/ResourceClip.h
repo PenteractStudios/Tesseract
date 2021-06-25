@@ -9,6 +9,12 @@
 #include "Utils/UID.h"
 #include <string>
 
+
+struct EventClip  {
+	bool sent = false;
+	std::string name = "";	
+};
+
 class ResourceClip : public Resource {
 public:
 	REGISTER_RESOURCE(ResourceClip, ResourceType::CLIP);
@@ -40,4 +46,12 @@ public:
 	float duration = 1.0f;
 	float frameRate = 1.0f;
 	unsigned int keyFramesSize = 0;
+
+	unsigned int currentKeyFrame = 0;
+	std::unordered_map<unsigned int, EventClip> keyEventClips;
+
+private:
+	int keyToDelete = -1;
+	unsigned int newKeyFrameEditor = 0;
+	std::string newNameEditor = "NewName";
 };
