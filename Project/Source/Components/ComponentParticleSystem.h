@@ -65,7 +65,11 @@ public:
 	void Draw();
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Stop();
-	void SpawnParticle();
+
+private:
+	void CreateParticles();
+	void SpawnParticles();
+	void SpawnParticleUnit();
 	void killParticles();
 
 	void InitParticlePosAndDir(Particle* currentParticle);
@@ -77,9 +81,6 @@ public:
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
 	void UndertakerParticle();
-
-private:
-	void CreateParticles();
 
 private:
 	Pool<Particle> particles;

@@ -330,11 +330,6 @@ void ComponentParticleSystem::InitParticleLifetime(Particle* currentParticle) {
 
 void ComponentParticleSystem::CreateParticles() {
 	particles.Allocate(maxParticles);
-	//for (Particle& currentParticle : particles) {
-	//	InitParticleScale(&currentParticle);
-	//	InitParticlePosAndDir(&currentParticle);
-	//	InitParticleVelocity(&currentParticle);
-	//}
 }
 
 void ComponentParticleSystem::Load(JsonValue jComponent) {
@@ -465,7 +460,6 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 }
 
 void ComponentParticleSystem::Update() {
-	deadParticles.clear();
 	if (restDelayTime <= 0) {
 		if (isPlaying) {
 			emitterTime += App->time->GetDeltaTimeOrRealDeltaTime();
@@ -478,20 +472,22 @@ void ComponentParticleSystem::Update() {
 				UpdatePosition(&currentParticle);
 
 				UpdateLife(&currentParticle);
+
 				if (sizeOverLifetime) {
 					UpdateScale(&currentParticle);
+				}
+
+				if (!isRandomFrame) {
+					currentParticle.currentFrame += animationSpeed * App->time->GetDeltaTimeOrRealDeltaTime();
 				}
 			}
 			if (currentParticle.life < 0) {
 				deadParticles.push_back(&currentParticle);
 			}
-
-			if (!isRandomFrame) {
-				currentParticle.currentFrame += animationSpeed * App->time->GetDeltaTimeOrRealDeltaTime();
-			}
 		}
 		if (executer) executer = false;
 		UndertakerParticle();
+		SpawnParticles();
 
 	} else {
 		if (!isPlaying) return;
@@ -503,15 +499,7 @@ void ComponentParticleSystem::UndertakerParticle() {
 	for (Particle* currentParticle : deadParticles) {
 		particles.Release(currentParticle);
 	}
-
-	if (looping || (particleSpawned < maxParticles && emitterTime < duration)) {
-		SpawnParticle();
-	} else {
-		if (particles.Count() == 0) {
-			restDelayTime = startDelay;
-			isPlaying = false;
-		}
-	}
+	deadParticles.clear();
 }
 
 void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
@@ -561,7 +549,19 @@ void ComponentParticleSystem::Init() {
 	CreateParticles();
 }
 
-void ComponentParticleSystem::SpawnParticle() {
+void ComponentParticleSystem::SpawnParticles() {
+	if (looping || (particleSpawned < maxParticles && emitterTime < duration)) {
+		SpawnParticleUnit();
+
+	} else {
+		if (particles.Count() == 0) {
+			restDelayTime = startDelay;
+			isPlaying = false;
+		}
+	}
+}
+
+void ComponentParticleSystem::SpawnParticleUnit() {
 	Particle* currentParticle = particles.Obtain();
 	if (!looping) {
 		particleSpawned++;
