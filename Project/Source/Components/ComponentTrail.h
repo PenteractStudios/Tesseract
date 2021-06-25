@@ -19,7 +19,6 @@ public:
 
 		float quadInfo[30] = {0.0f};
 		float life = 0.0f;
-		float colorFrame = 0.0f;
 	};
 
 	REGISTER_COMPONENT(ComponentTrail, ComponentType::TRAIL, false);
@@ -75,6 +74,4 @@ private:
 	bool stop = false;
 
 	Quad quads[maxQuads];
-
-	float colorLife = 0.0f; // Life (in seconds) to complete the Gradient Bar
 };

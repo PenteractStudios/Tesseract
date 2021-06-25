@@ -33,14 +33,13 @@
 #define JSON_TAG_MAXVERTICES "MaxVertices"
 
 #define JSON_TAG_WIDTH "Width"
-#define JSON_TAG_TRAILQUADS "TrailQuads"
-#define JSON_TAG_NREPEATS "TextureRepeats"
+#define JSON_TAG_TRAIL_QUADS "TrailQuads"
+#define JSON_TAG_TEXTURE_REPEATS "TextureRepeats"
 #define JSON_TAG_QUAD_LIFE "QuadLife"
 
-#define JSON_TAG_COLOR_OVER_TRAIL "ColorOverTrail"
+#define JSON_TAG_HAS_COLOR_OVER_TRAIL "HasColorOverTrail"
 #define JSON_TAG_GRADIENT_COLOR "GradientColor"
 #define JSON_TAG_NUMBER_COLORS "NumColors"
-#define JSON_TAG_COLOR_LIFE "ColorLife"
 
 void ComponentTrail::Init() {
 	glGenBuffers(1, &quadVBO);
@@ -58,9 +57,6 @@ void ComponentTrail::Update() {
 			previousPosition = currentPosition;
 
 			currentPosition = transform->GetGlobalPosition();
-			currentPositionUp = transform->GetGlobalRotation() * float3::unitY;
-			currentPositionDown.Normalize();
-
 			currentPositionUp = (vectorUp * width) + currentPosition;
 			currentPositionDown = (-vectorUp * width) + currentPosition;
 
@@ -97,6 +93,7 @@ void ComponentTrail::Update() {
 	}
 	UpdateQuads();
 }
+
 void ComponentTrail::UpdateQuads() {
 	for (int i = 0; i < quadsCreated; i++) {
 		UpdateLife(&quads[i]);
@@ -116,10 +113,8 @@ void ComponentTrail::UpdateQuads() {
 void ComponentTrail::UpdateLife(Quad* currentQuad) {
 	if (App->time->IsGameRunning()) {
 		currentQuad->life -= App->time->GetDeltaTime();
-		currentQuad->colorFrame += App->time->GetDeltaTime();
 	} else {
 		currentQuad->life -= App->time->GetRealTimeDeltaTime();
-		currentQuad->colorFrame += App->time->GetRealTimeDeltaTime();
 	}
 }
 
@@ -138,7 +133,6 @@ void ComponentTrail::OnEditorUpdate() {
 
 	ImGui::Checkbox("Color Over Trail", &colorOverTrail);
 	if (colorOverTrail) {
-		ImGui::DragFloat("Color Life", &colorLife, App->editor->dragSpeed2f, 0, inf);
 		ImGui::GradientEditor(&gradient, draggingGradient, selectedGradient);
 	}
 
@@ -174,12 +168,12 @@ void ComponentTrail::Load(JsonValue jComponent) {
 		App->resources->IncreaseReferenceCount(textureID);
 	}
 	maxVertices = jComponent[JSON_TAG_MAXVERTICES];
-	trailQuads = jComponent[JSON_TAG_TRAILQUADS];
+	trailQuads = jComponent[JSON_TAG_TRAIL_QUADS];
 	quadLife = jComponent[JSON_TAG_QUAD_LIFE];
 	width = jComponent[JSON_TAG_WIDTH];
-	nRepeats = jComponent[JSON_TAG_NREPEATS];
+	nTextures = jComponent[JSON_TAG_TEXTURE_REPEATS];
 
-	colorOverTrail = jComponent[JSON_TAG_COLOR_OVER_TRAIL];
+	colorOverTrail = jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL];
 	int numberColors = jComponent[JSON_TAG_NUMBER_COLORS];
 	gradient.clearList();
 	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLOR];
@@ -187,19 +181,18 @@ void ComponentTrail::Load(JsonValue jComponent) {
 		JsonValue jMark = jColor[i];
 		gradient.addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
 	}
-	colorLife = jComponent[JSON_TAG_COLOR_LIFE];
 }
 
 void ComponentTrail::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_TEXTURE_TEXTUREID] = textureID;
 	jComponent[JSON_TAG_MAXVERTICES] = maxVertices;
-	jComponent[JSON_TAG_TRAILQUADS] = trailQuads;
+	jComponent[JSON_TAG_TRAIL_QUADS] = trailQuads;
 
 	jComponent[JSON_TAG_WIDTH] = width;
-	jComponent[JSON_TAG_NREPEATS] = nRepeats;
+	jComponent[JSON_TAG_TEXTURE_REPEATS] = nTextures;
 	jComponent[JSON_TAG_QUAD_LIFE] = quadLife;
 	// Color
-	jComponent[JSON_TAG_COLOR_OVER_TRAIL] = colorOverTrail;
+	jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL] = colorOverTrail;
 	int color = 0;
 	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLOR];
 	for (ImGradientMark* mark : gradient.getMarks()) {
@@ -213,23 +206,25 @@ void ComponentTrail::Save(JsonValue jComponent) const {
 		color++;
 	}
 	jComponent[JSON_TAG_NUMBER_COLORS] = gradient.getMarks().size();
-	jComponent[JSON_TAG_COLOR_LIFE] = colorLife;
 }
 
 void ComponentTrail::Draw() {
 	ProgramTrail* trailProgram = App->programs->trail;
 	if (!trailProgram) return;
 	unsigned glTexture = 0;
+
 	ResourceTexture* texture = App->resources->GetResource<ResourceTexture>(textureID);
 	glTexture = texture ? texture->glTexture : 0;
 	int hasDiffuseMap = texture ? 1 : 0;
+
+	glDepthMask(GL_FALSE);
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_ONE, GL_ONE);
+	glDisable(GL_CULL_FACE);
+
 	for (int i = 0; i < quadsCreated; i++) {
 		Quad* currentQuad = &quads[i];
-		glDepthMask(GL_FALSE);
-		glEnable(GL_BLEND);
-		glBlendEquation(GL_FUNC_ADD);
-		glBlendFunc(GL_ONE, GL_ONE);
-		glDisable(GL_CULL_FACE);
 
 		glBindBuffer(GL_ARRAY_BUFFER, quadVBO); // set vbo active
 		glBufferData(GL_ARRAY_BUFFER, sizeof(currentQuad->quadInfo), currentQuad->quadInfo, GL_STATIC_DRAW);
@@ -253,7 +248,7 @@ void ComponentTrail::Draw() {
 
 		float4 color = float4::one;
 		if (colorOverTrail) {
-			float factor = currentQuad->life / colorLife;
+			float factor = 1 - currentQuad->life / quadLife; // Life decreasing
 			gradient.getColorAt(factor, color.ptr());
 		}
 
@@ -265,13 +260,13 @@ void ComponentTrail::Draw() {
 		glBindTexture(GL_TEXTURE_2D, glTexture);
 
 		glDrawArrays(GL_TRIANGLES, 0, currentQuad->index);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		glEnable(GL_CULL_FACE);
-		glDisable(GL_BLEND);
-		glDepthMask(GL_TRUE);
 	}
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glEnable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
 }
 
 void ComponentTrail::InsertVertex(Quad* currentQuad, float3 vertex) {
@@ -322,13 +317,13 @@ void ComponentTrail::EditTextureCoords() {
 	nRepeats = (trailQuads / nTextures) * 12;
 	for (int textureEdited = 0; textureEdited < nRepeats;) {
 		///vertice1
-		textureCords[textureEdited++] = (nLine) *factor;
+		textureCords[textureEdited++] = nLine * factor;
 		textureCords[textureEdited++] = 0.0f;
 
 		textureCords[textureEdited++] = (nLine + 1) * factor;
 		textureCords[textureEdited++] = 0.0f;
 
-		textureCords[textureEdited++] = (nLine) *factor;
+		textureCords[textureEdited++] = nLine * factor;
 		textureCords[textureEdited++] = 1.0f;
 
 		///vertice2
@@ -338,7 +333,7 @@ void ComponentTrail::EditTextureCoords() {
 		textureCords[textureEdited++] = (nLine + 1) * factor;
 		textureCords[textureEdited++] = 1.0f;
 
-		textureCords[textureEdited++] = (nLine) *factor;
+		textureCords[textureEdited++] = nLine * factor;
 		textureCords[textureEdited++] = 1.0f;
 
 		nLine++;
