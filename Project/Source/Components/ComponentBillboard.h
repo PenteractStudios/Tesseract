@@ -7,11 +7,15 @@
 #include "Math/float2.h"
 #include "Math/float4x4.h"
 #include "Math/Quat.h"
-#include "imgui_color_gradient.h"
+
+class ImGradient;
+class ImGradientMark;
 
 class ComponentBillboard : public Component {
 public:
 	REGISTER_COMPONENT(ComponentBillboard, ComponentType::BILLBOARD, false);
+
+	~ComponentBillboard();
 
 	void OnEditorUpdate() override;
 	void Load(JsonValue jComponent) override;
@@ -46,7 +50,7 @@ private:
 	// Color over Lifetime
 	bool colorOverLifetime = false;
 	float colorLifetime = 10.0f;
-	ImGradient gradient;
+	ImGradient* gradient = nullptr;
 	ImGradientMark* draggingGradient = nullptr;
 	ImGradientMark* selectedGradient = nullptr;
 

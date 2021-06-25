@@ -8,7 +8,6 @@
 #include "Math/float4.h"
 #include "Math/float4x4.h"
 #include "Math/Quat.h"
-#include "imgui_color_gradient.h"
 
 #include <vector>
 
@@ -16,6 +15,8 @@ class ComponentTransform;
 class ParticleModule;
 class btRigidBody;
 class ParticleMotionState;
+class ImGradient;
+class ImGradientMark;
 
 enum WorldLayers;
 
@@ -40,27 +41,36 @@ enum class BillboardType {
 	VERTICAL
 };
 
-struct Particle {
-	float4x4 model = float4x4::identity;
-	float4x4 modelStretch = float4x4::identity;
-
-	float3 initialPosition = float3(0.0f, 0.0f, 0.0f);
-	float3 position = float3(0.0f, 0.0f, 0.0f);
-	float3 direction = float3(0.0f, 0.0f, 0.0f);
-	float3 scale = float3(0.1f, 0.1f, 0.1f);
-
-	Quat rotation = Quat(0.0f, 0.0f, 0.0f, 0.0f);
-
-	float velocity = 0.0f;
-	float life = 0.0f;
-	float currentFrame = 0.0f;
-
-	float3 emitterPosition = float3(0.0f, 0.0f, 0.0f);
-};
-
 class ComponentParticleSystem : public Component {
 public:
+	struct Particle {
+		float4x4 model = float4x4::identity;
+		float4x4 modelStretch = float4x4::identity;
+
+		float3 initialPosition = float3(0.0f, 0.0f, 0.0f);
+		float3 position = float3(0.0f, 0.0f, 0.0f);
+		float3 direction = float3(0.0f, 0.0f, 0.0f);
+		float3 scale = float3(0.1f, 0.1f, 0.1f);
+
+		Quat rotation = Quat(0.0f, 0.0f, 0.0f, 0.0f);
+
+		float velocity = 0.0f;
+		float life = 0.0f;
+		float currentFrame = 0.0f;
+
+		float3 emitterPosition = float3(0.0f, 0.0f, 0.0f);
+
+		// Collider
+		ParticleMotionState* motionState = nullptr;
+		btRigidBody* rigidBody = nullptr;
+		ComponentParticleSystem* emitter = nullptr;
+		Collider col {this, typeid(Particle)};
+		float radius = 0;
+	};
+
 	REGISTER_COMPONENT(ComponentParticleSystem, ComponentType::PARTICLE, false);
+
+	~ComponentParticleSystem();
 
 	void Update() override;
 	void Init() override;
@@ -70,15 +80,13 @@ public:
 	void Save(JsonValue jComponent) const override;
 
 	void Draw();
+
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Stop();
 
-private:
 	void CreateParticles();
 	void SpawnParticles();
 	void SpawnParticleUnit();
-	void killParticles();
-	void DestroyParticlesColliders();
 
 	void InitParticlePosAndDir(Particle* currentParticle);
 	void InitParticleScale(Particle* currentParticle);
@@ -88,8 +96,15 @@ private:
 	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
+
 	TESSERACT_ENGINE_API void KillParticle(Particle* currentParticle);
 	void UndertakerParticle();
+	void DestroyParticlesColliders();
+
+public:
+	WorldLayers layer;
+	int layerIndex = 5;
+	float radius = .25f;
 
 private:
 	Pool<Particle> particles;
@@ -104,7 +119,7 @@ private:
 	bool drawGizmo = true;
 
 	// Control
-	bool isPlaying = true;
+	bool isPlaying = false;
 	float startDelay = 0.f;
 	float restDelayTime = 0.f;
 
@@ -135,7 +150,7 @@ private:
 
 	// Color over Lifetime
 	bool colorOverLifetime = false;
-	ImGradient gradient;
+	ImGradient* gradient = nullptr;
 	ImGradientMark* draggingGradient = nullptr;
 	ImGradientMark* selectedGradient = nullptr;
 
@@ -151,12 +166,6 @@ private:
 	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
 	bool flipTexture[2] = {false, false};
 
-	// Collider
-	ParticleMotionState* motionState = nullptr;
-	btRigidBody* rigidBody = nullptr;
-	ComponentParticleSystem* emitter = nullptr;
-	Collider col{ this, typeid(Particle) };
+	// Collision
 	bool collision = false;
-	float radius = 0;
-
 };

@@ -22,6 +22,7 @@
 #include "Math/TransformOps.h"
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "imgui_color_gradient.h"
 #include "GL/glew.h"
 #include "debugdraw.h"
 
@@ -40,6 +41,11 @@
 #define JSON_TAG_GRADIENT_COLORS "GradientColors"
 
 #define JSON_TAG_FLIP_TEXTURE "FlipTexture"
+
+ComponentBillboard::~ComponentBillboard() {
+	gradient->clearList();
+	RELEASE(gradient);
+}
 
 void ComponentBillboard::OnEditorUpdate() {
 	if (ImGui::Checkbox("Active", &active)) {
@@ -112,7 +118,7 @@ void ComponentBillboard::OnEditorUpdate() {
 		ImGui::Checkbox("##color_over_lifetime", &colorOverLifetime);
 		if (colorOverLifetime) {
 			ImGui::SameLine();
-			ImGui::GradientEditor(&gradient, draggingGradient, selectedGradient);
+			ImGui::GradientEditor(gradient, draggingGradient, selectedGradient);
 			ImGui::DragFloat("Color Lifetime", &colorLifetime, App->editor->dragSpeed2f, 0, inf);
 			if (ImGui::Button("Reset Color")) {
 				ResetColor();
@@ -143,11 +149,12 @@ void ComponentBillboard::Load(JsonValue jComponent) {
 	colorOverLifetime = jComponent[JSON_TAG_COLOR_OVER_LIFETIME];
 	colorLifetime = jComponent[JSON_TAG_COLOR_LIFETIME];
 	int numberColors = jComponent[JSON_TAG_NUMBER_COLORS];
-	gradient.clearList();
+	if (!gradient) gradient = new ImGradient();
+	gradient->clearList();
 	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLORS];
 	for (int i = 0; i < numberColors; ++i) {
 		JsonValue jMark = jColor[i];
-		gradient.addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
+		gradient->addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
 	}
 
 	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
@@ -168,7 +175,7 @@ void ComponentBillboard::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_COLOR_LIFETIME] = colorLifetime;
 	int color = 0;
 	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLORS];
-	for (ImGradientMark* mark : gradient.getMarks()) {
+	for (ImGradientMark* mark : gradient->getMarks()) {
 		JsonValue jMask = jColor[color];
 		jMask[0] = mark->color[0];
 		jMask[1] = mark->color[1];
@@ -178,7 +185,7 @@ void ComponentBillboard::Save(JsonValue jComponent) const {
 
 		color++;
 	}
-	jComponent[JSON_TAG_NUMBER_COLORS] = gradient.getMarks().size();
+	jComponent[JSON_TAG_NUMBER_COLORS] = gradient->getMarks().size();
 
 	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
 	jFlip[0] = flipTexture[0];
@@ -186,6 +193,7 @@ void ComponentBillboard::Save(JsonValue jComponent) const {
 }
 
 void ComponentBillboard::Init() {
+	if (!gradient) gradient = new ImGradient();
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 	initPos = transform->GetGlobalPosition();
 	previousPos = transform->GetGlobalRotation() * float3::unitY;
@@ -272,7 +280,7 @@ void ComponentBillboard::Draw() {
 	float4 color = float4::one;
 	if (colorOverLifetime) {
 		float factor = colorFrame / colorLifetime;
-		gradient.getColorAt(factor, color.ptr());
+		gradient->getColorAt(factor, color.ptr());
 	}
 
 	glUniform1i(glGetUniformLocation(program, "diffuseMap"), 0);
