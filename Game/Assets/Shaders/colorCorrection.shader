@@ -1,3 +1,11 @@
+--- gammaCorrection
+
+#define GAMMA 2.2
+
+vec4 SRGB(in vec4 color) {
+	return vec4(pow(color.rgb, vec3(GAMMA)), color.a);
+}
+
 --- fragColorCorrection
 
 in vec2 uv;
@@ -20,7 +28,7 @@ void main() {
 	vec3 ldr = ACESFilm(texture(inputTexture, uv).rgb);
 	
 	// Gamma Correction
-    ldr = pow(ldr, vec3(1/2.2)); 
+    ldr = pow(ldr, vec3(1/GAMMA)); 
 
 	// Output
 	color = vec4(ldr, 1.0);

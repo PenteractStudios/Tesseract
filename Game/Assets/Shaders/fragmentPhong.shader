@@ -16,7 +16,7 @@ void main()
     vec4 colorDiffuse = GetDiffuse(tiledUV);
 
     // specular
-    vec4 colorSpecular = hasSpecularMap * pow(texture(specularMap, tiledUV), vec4(2.2)) + (1 - hasSpecularMap) * vec4(specularColor, 1.0);
+    vec4 colorSpecular = hasSpecularMap * SRGB(texture(specularMap, tiledUV)) + (1 - hasSpecularMap) * SRGB(vec4(specularColor, 1.0));
     vec3 Rf0 = colorSpecular.rgb;
 
     // shininess

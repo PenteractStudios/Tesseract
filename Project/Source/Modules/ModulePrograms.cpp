@@ -93,15 +93,15 @@ void ModulePrograms::LoadShaders() {
 	irradiance = new ProgramIrradiance(CreateProgram(filePath, "vertCube", "fragFunctionIBL fragIrradianceMap"));
 	preFilteredMap = new ProgramPreFilteredMap(CreateProgram(filePath, "vertCube", "fragFunctionIBL fragPreFilteredMap"));
 	environmentBRDF = new ProgramEnvironmentBRDF(CreateProgram(filePath, "vertScreen", "fragFunctionIBL fragEnvironmentBRDF"));
-	skybox = new ProgramSkybox(CreateProgram(filePath, "vertCube", "fragSkybox"));
+	skybox = new ProgramSkybox(CreateProgram(filePath, "vertCube", "gammaCorrection fragSkybox"));
 
 	// General shaders
-	phongNotNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragMainPhong"));
-	phongNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragMainPhong"));
-	standardNotNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic"));
-	standardNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic"));
-	specularNotNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
-	specularNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
+	phongNotNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarSpecular fragMainPhong"));
+	phongNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarSpecular fragMainPhong"));
+	standardNotNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic"));
+	standardNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic"));
+	specularNotNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
+	specularNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
 
 	// Depth Prepass Shaders
 	depthPrepass = new ProgramDepthPrepass(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragDepthPrepass"));
@@ -111,14 +111,14 @@ void ModulePrograms::LoadShaders() {
 	ssaoBlur = new ProgramSSAOBlur(CreateProgram(filePath, "vertScreen", "fragGaussianBlur"));
 
 	// Post-processing Shaders
-	colorCorrection = new ProgramColorCorrection(CreateProgram(filePath, "vertScreen", "fragColorCorrection"));
+	colorCorrection = new ProgramColorCorrection(CreateProgram(filePath, "vertScreen", "gammaCorrection fragColorCorrection"));
 
 	// Shadow Shaders
 	shadowMap = CreateProgram(filePath, "vertDepthMap", "fragDepthMap");
 
 	//UI shaders
-	textUI = new ProgramTextUI(CreateProgram(filePath, "vertTextUI", "fragTextUI"));
-	imageUI = new ProgramImageUI(CreateProgram(filePath, "vertImageUI", "fragImageUI"));
+	textUI = new ProgramTextUI(CreateProgram(filePath, "vertTextUI", "gammaCorrection fragTextUI"));
+	imageUI = new ProgramImageUI(CreateProgram(filePath, "vertImageUI", "gammaCorrection fragImageUI"));
 
 	// Engine Shaders
 	drawTexture = new ProgramDrawTexture(CreateProgram(filePath, "vertScreen", "fragDrawTexture"));
