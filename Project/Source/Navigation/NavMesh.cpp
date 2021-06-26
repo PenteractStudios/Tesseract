@@ -433,6 +433,10 @@ bool NavMesh::Build() {
 		return false;
 	}
 
+	talloc = new LinearAllocator(32000);
+	tcomp = new FastLZCompressor;
+	tmproc = new MeshProcess;
+
 	float bmin[3] = {FLT_MAX, FLT_MAX, FLT_MAX};
 	float bmax[3] = {FLT_MIN, FLT_MIN, FLT_MIN};
 	for (ComponentBoundingBox boundingBox : App->scene->scene->boundingBoxComponents) {
@@ -549,12 +553,7 @@ bool NavMesh::Build() {
 		return false;
 	}
 
-	// Preprocess tiles.
-
-	cacheLayerCount = 0;
-	cacheCompressedSize = 0;
-	cacheRawSize = 0;
-
+	
 	//TODO: memory leak
 	rcChunkyTriMesh* chunkyMesh = new rcChunkyTriMesh;
 	if (!chunkyMesh) {
@@ -580,10 +579,6 @@ bool NavMesh::Build() {
 					tile->data = 0;
 					continue;
 				}
-
-				cacheLayerCount++;
-				cacheCompressedSize += tile->dataSize;
-				cacheRawSize += calcLayerBufferSize(tcparams.width, tcparams.height);
 			}
 		}
 	}
@@ -601,290 +596,10 @@ bool NavMesh::Build() {
 		if (tile->header)
 			navmeshMemUsage += tile->dataSize;
 	}
+
+	RELEASE(chunkyMesh);
+
 	printf("navmeshMemUsage = %.1f kB", navmeshMemUsage / 1024.0f);
-
-	//if (tool)
-	//	tool->init(this);
-	//initToolStates(this);
-
-	InitCrowd();
-
-	return true;
-	// !!!!TODO: code below needs to be refactored and most likely deleted.
-
-	//
-	// Step 2. Rasterize input polygon soup.
-	//
-
-	// Allocate voxel heightfield where we rasterize our input data to.
-	solid = rcAllocHeightfield();
-	if (!solid) {
-		LOG("buildNavigation: Out of memory 'solid'.");
-		return false;
-	}
-	if (!rcCreateHeightfield(ctx, *solid, cfg.width, cfg.height, cfg.bmin, cfg.bmax, cfg.cs, cfg.ch)) {
-		LOG("buildNavigation: Could not create solid heightfield.");
-		return false;
-	}
-
-	// Allocate array that can hold triangle area types.
-	// If you have multiple meshes you need to process, allocate
-	// and array which can hold the max number of triangles you need to process.
-	triareas = new unsigned char[ntris];
-	if (!triareas) {
-		LOG("buildNavigation: Out of memory 'triareas' (%d).", ntris);
-		return false;
-	}
-
-	// Find triangles which are walkable based on their slope and rasterize them.
-	// If your input data is multiple meshes, you can transform them here, calculate
-	// the are type for each of the meshes and rasterize them.
-	memset(triareas, 0, ntris * sizeof(unsigned char));
-	rcMarkWalkableTriangles(ctx, cfg.walkableSlopeAngle, &verts[0], nverts, &tris[0], ntris, triareas);
-	if (!rcRasterizeTriangles(ctx, &verts[0], nverts, &tris[0], triareas, ntris, *solid, cfg.walkableClimb)) {
-		LOG("buildNavigation: Could not rasterize triangles.");
-		return false;
-	}
-
-	if (!keepInterResults) {
-		delete[] triareas;
-		triareas = 0;
-	}
-
-	//
-	// Step 3. Filter walkables surfaces.
-	//
-
-	// Once all geoemtry is rasterized, we do initial pass of filtering to
-	// remove unwanted overhangs caused by the conservative rasterization
-	// as well as filter spans where the character cannot possibly stand.
-	rcFilterLowHangingWalkableObstacles(ctx, cfg.walkableClimb, *solid);
-	rcFilterLedgeSpans(ctx, cfg.walkableHeight, cfg.walkableClimb, *solid);
-	rcFilterWalkableLowHeightSpans(ctx, cfg.walkableHeight, *solid);
-
-	//
-	// Step 4. Partition walkable surface to simple regions.
-	//
-
-	// Compact the heightfield so that it is faster to handle from now on.
-	// This will result more cache coherent data as well as the neighbours
-	// between walkable cells will be calculated.
-	chf = rcAllocCompactHeightfield();
-	if (!chf) {
-		LOG("buildNavigation: Out of memory 'chf'.");
-		return false;
-	}
-	if (!rcBuildCompactHeightfield(ctx, cfg.walkableHeight, cfg.walkableClimb, *solid, *chf)) {
-		LOG("buildNavigation: Could not build compact data.");
-		return false;
-	}
-
-	if (!keepInterResults) {
-		rcFreeHeightField(solid);
-		solid = nullptr;
-	}
-
-	// Erode the walkable area by agent radius.
-	if (!rcErodeWalkableArea(ctx, cfg.walkableRadius, *chf)) {
-		LOG("buildNavigation: Could not erode.");
-		return false;
-	}
-
-	// (Optional) Mark areas.
-	//const ConvexVolume* vols = geom->getConvexVolumes();
-	//for (int i = 0; i < geom->getConvexVolumeCount(); ++i)
-	//	rcMarkConvexPolyArea(ctx, vols[i].verts, vols[i].nverts, vols[i].hmin, vols[i].hmax, (unsigned char) vols[i].area, *chf);
-
-	// Partition the heightfield so that we can use simple algorithm later to triangulate the walkable areas.
-	// There are 3 martitioning methods, each with some pros and cons:
-	// 1) Watershed partitioning
-	//   - the classic Recast partitioning
-	//   - creates the nicest tessellation
-	//   - usually slowest
-	//   - partitions the heightfield into nice regions without holes or overlaps
-	//   - the are some corner cases where this method creates produces holes and overlaps
-	//      - holes may appear when a small obstacles is close to large open area (triangulation can handle this)
-	//      - overlaps may occur if you have narrow spiral corridors (i.e stairs), this make triangulation to fail
-	//   * generally the best choice if you precompute the nacmesh, use this if you have large open areas
-	// 2) Monotone partioning
-	//   - fastest
-	//   - partitions the heightfield into regions without holes and overlaps (guaranteed)
-	//   - creates long thin polygons, which sometimes causes paths with detours
-	//   * use this if you want fast navmesh generation
-	// 3) Layer partitoining
-	//   - quite fast
-	//   - partitions the heighfield into non-overlapping regions
-	//   - relies on the triangulation code to cope with holes (thus slower than monotone partitioning)
-	//   - produces better triangles than monotone partitioning
-	//   - does not have the corner cases of watershed partitioning
-	//   - can be slow and create a bit ugly tessellation (still better than monotone)
-	//     if you have large open areas with small obstacles (not a problem if you use tiles)
-	//   * good choice to use for tiled navmesh with medium and small sized tiles
-
-	if (partitionType == SAMPLE_PARTITION_WATERSHED) {
-		// Prepare for region partitioning, by calculating distance field along the walkable surface.
-		if (!rcBuildDistanceField(ctx, *chf)) {
-			LOG("buildNavigation: Could not build distance field.");
-			return false;
-		}
-
-		// Partition the walkable surface into simple regions without holes.
-		if (!rcBuildRegions(ctx, *chf, 0, cfg.minRegionArea, cfg.mergeRegionArea)) {
-			LOG("buildNavigation: Could not build watershed regions.");
-			return false;
-		}
-	} else if (partitionType == SAMPLE_PARTITION_MONOTONE) {
-		// Partition the walkable surface into simple regions without holes.
-		// Monotone partitioning does not need distancefield.
-		if (!rcBuildRegionsMonotone(ctx, *chf, 0, cfg.minRegionArea, cfg.mergeRegionArea)) {
-			LOG("buildNavigation: Could not build monotone regions.");
-			return false;
-		}
-	} else // SAMPLE_PARTITION_LAYERS
-	{
-		// Partition the walkable surface into simple regions without holes.
-		if (!rcBuildLayerRegions(ctx, *chf, 0, cfg.minRegionArea)) {
-			LOG("buildNavigation: Could not build layer regions.");
-			return false;
-		}
-	}
-
-	//
-	// Step 5. Trace and simplify region contours.
-	//
-
-	// Create contours.
-	cset = rcAllocContourSet();
-	if (!cset) {
-		LOG("buildNavigation: Out of memory 'cset'.");
-		return false;
-	}
-	if (!rcBuildContours(ctx, *chf, cfg.maxSimplificationError, cfg.maxEdgeLen, *cset)) {
-		LOG("buildNavigation: Could not create contours.");
-		return false;
-	}
-
-	//
-	// Step 6. Build polygons mesh from contours.
-	//
-
-	// Build polygon navmesh from the contours.
-	pmesh = rcAllocPolyMesh();
-	if (!pmesh) {
-		LOG("buildNavigation: Out of memory 'pmesh'.");
-		return false;
-	}
-	if (!rcBuildPolyMesh(ctx, *cset, cfg.maxVertsPerPoly, *pmesh)) {
-		LOG("buildNavigation: Could not triangulate contours.");
-		return false;
-	}
-
-	//
-	// Step 7. Create detail mesh which allows to access approximate height on each polygon.
-	//
-
-	dmesh = rcAllocPolyMeshDetail();
-	if (!dmesh) {
-		LOG("buildNavigation: Out of memory 'pmdtl'.");
-		return false;
-	}
-
-	if (!rcBuildPolyMeshDetail(ctx, *pmesh, *chf, cfg.detailSampleDist, cfg.detailSampleMaxError, *dmesh)) {
-		LOG("buildNavigation: Could not build detail mesh.");
-		return false;
-	}
-
-	if (!keepInterResults) {
-		rcFreeCompactHeightfield(chf);
-		chf = nullptr;
-		rcFreeContourSet(cset);
-		cset = nullptr;
-	}
-
-	// At this point the navigation mesh data is ready, you can access it from pmesh.
-	// See duDebugDrawPolyMesh or dtCreateNavMeshData as examples how to access the data.
-
-	//
-	// (Optional) Step 8. Create Detour data from Recast poly mesh.
-	//
-
-	// The GUI may allow more max points per polygon than Detour can handle.
-	// Only build the detour navmesh if we do not exceed the limit.
-	if (cfg.maxVertsPerPoly <= DT_VERTS_PER_POLYGON) {
-		navData = nullptr;
-		navDataSize = 0;
-
-		// Update poly flags from areas.
-		for (int i = 0; i < pmesh->npolys; ++i) {
-			if (pmesh->areas[i] == RC_WALKABLE_AREA)
-				pmesh->areas[i] = SAMPLE_POLYAREA_GROUND;
-
-			if (pmesh->areas[i] == SAMPLE_POLYAREA_GROUND || pmesh->areas[i] == SAMPLE_POLYAREA_GRASS || pmesh->areas[i] == SAMPLE_POLYAREA_ROAD) {
-				pmesh->flags[i] = SAMPLE_POLYFLAGS_WALK;
-			} else if (pmesh->areas[i] == SAMPLE_POLYAREA_WATER) {
-				pmesh->flags[i] = SAMPLE_POLYFLAGS_SWIM;
-			} else if (pmesh->areas[i] == SAMPLE_POLYAREA_DOOR) {
-				pmesh->flags[i] = SAMPLE_POLYFLAGS_WALK | SAMPLE_POLYFLAGS_DOOR;
-			}
-		}
-
-		dtNavMeshCreateParams params;
-		memset(&params, 0, sizeof(params));
-		params.verts = pmesh->verts;
-		params.vertCount = pmesh->nverts;
-		params.polys = pmesh->polys;
-		params.polyAreas = pmesh->areas;
-		params.polyFlags = pmesh->flags;
-		params.polyCount = pmesh->npolys;
-		params.nvp = pmesh->nvp;
-		params.detailMeshes = dmesh->meshes;
-		params.detailVerts = dmesh->verts;
-		params.detailVertsCount = dmesh->nverts;
-		params.detailTris = dmesh->tris;
-		params.detailTriCount = dmesh->ntris;
-		params.walkableHeight = agentHeight;
-		params.walkableRadius = agentRadius;
-		params.walkableClimb = agentMaxClimb;
-		rcVcopy(params.bmin, pmesh->bmin);
-		rcVcopy(params.bmax, pmesh->bmax);
-		params.cs = cfg.cs;
-		params.ch = cfg.ch;
-		params.buildBvTree = true;
-
-		if (!dtCreateNavMeshData(&params, &navData, &navDataSize)) {
-			LOG("Could not build Detour navmesh.");
-			return false;
-		}
-
-		navMesh = dtAllocNavMesh();
-		if (!navMesh) {
-			dtFree(navData);
-			navData = nullptr;
-			navDataSize = 0;
-			LOG("Could not create Detour navmesh");
-			return false;
-		}
-
-		dtStatus status;
-
-		status = navMesh->init(navData, navDataSize, DT_TILE_FREE_DATA);
-		if (dtStatusFailed(status)) {
-			dtFree(navData);
-			navData = nullptr;
-			navDataSize = 0;
-			LOG("Could not init Detour navmesh");
-			return false;
-		}
-
-		status = navQuery->init(navMesh, 2048);
-		if (dtStatusFailed(status)) {
-			LOG("Could not init Detour navmesh query");
-			return false;
-		}
-	}
-
-	// Show performance stats.
-	LOG(">> Polymesh: %d vertices  %d polygons", pmesh->nverts, pmesh->npolys);
 
 	InitCrowd();
 
@@ -892,15 +607,9 @@ bool NavMesh::Build() {
 }
 
 void NavMesh::DrawGizmos() {
-	if (nverts == 0) {
+	/*if (nverts == 0) {
 		return;
-	}
-
-	/*verts = App->scene->scene->GetVertices();
-	nverts = verts.size();
-	tris = App->scene->scene->GetTriangles();
-	ntris = tris.size() / 3;
-	normals = App->scene->scene->GetNormals();*/
+	}*/
 
 	DebugDrawGL dds;
 
@@ -941,7 +650,7 @@ void NavMesh::DrawGizmos() {
 	DebugDrawGL dd;
 
 	// Draw mesh
-	if (drawMode != DRAWMODE_NAVMESH_TRANS) {
+	if (drawMode != DRAWMODE_NAVMESH_TRANS && nverts > 0) {
 		// Draw mesh
 		duDebugDrawTriMeshSlope(&dd, &verts[0], nverts, &tris[0], &normals[0], ntris, agentMaxSlope, texScale);
 		//m_geom->drawOffMeshConnections(&dd);
@@ -978,8 +687,6 @@ void NavMesh::DrawGizmos() {
 		duDebugDrawNavMeshPolysWithFlags(&dd, *navMesh, SAMPLE_POLYFLAGS_DISABLED, duRGBA(0, 0, 0, 128));
 	}
 
-	//geom->drawConvexVolumes(&dd);
-
 	glDepthMask(GL_TRUE);
 
 	glMatrixMode(GL_PROJECTION);
@@ -1014,30 +721,9 @@ void NavMesh::Load(Buffer<char>& buffer) {
 	ntris = tris.size() / 3;
 	normals = App->scene->scene->GetNormals();
 
-	/*navMesh = dtAllocNavMesh();
-	if (!navMesh) {
-		LOG("Could not create Detour navmesh");
-		return;
-	}
-
-	dtStatus status;
-
-	unsigned int bufferSize = buffer.Size();
-	char* bufferData = buffer.ObtainData();
-
-	status = navMesh->init(reinterpret_cast<unsigned char*>(bufferData), bufferSize, DT_TILE_FREE_DATA);
-	if (dtStatusFailed(status)) {
-		LOG("Could not init Detour navmesh");
-		return;
-	}
-	navData = reinterpret_cast<unsigned char*>(bufferData);
-	navDataSize = bufferSize;
-
-	status = navQuery->init(navMesh, 2048);
-	if (dtStatusFailed(status)) {
-		LOG("Could not init Detour navmesh query");
-		return;
-	}*/
+	talloc = new LinearAllocator(32000);
+	tcomp = new FastLZCompressor;
+	tmproc = new MeshProcess;
 
 	char* cursor = buffer.Data();
 
@@ -1085,7 +771,7 @@ void NavMesh::Load(Buffer<char>& buffer) {
 		memset(data, 0, tileHeader.dataSize);
 
 		unsigned int _dataSize = sizeof(unsigned char) * tileHeader.dataSize;
-		memcpy_s(data, _dataSize, cursor, _dataSize);
+		memcpy_s(data, _dataSize, cursor, _dataSize);		// IMPORTANT! DO NOT FREE DATA NOW BECAUSE IT WILL BE RELEASED WHEN CLOSING THE APPLICATION.
 		cursor += _dataSize;
 
 		dtCompressedTileRef tile = 0;
@@ -1093,7 +779,7 @@ void NavMesh::Load(Buffer<char>& buffer) {
 
 		if (tile) tileCache->buildNavMeshTile(tile, navMesh);
 
-		free(data);
+		//free(data); 
 	}
 
 	status = navQuery->init(navMesh, 2048);
@@ -1109,21 +795,13 @@ void NavMesh::Load(Buffer<char>& buffer) {
 void NavMesh::CleanUp() {
 	dtFreeNavMesh(navMesh);
 	navMesh = nullptr;
-	navData = nullptr;
-	navDataSize = 0;
-	delete[] triareas;
-	triareas = nullptr;
-	rcFreeHeightField(solid);
-	solid = nullptr;
-	rcFreeCompactHeightfield(chf);
-	chf = nullptr;
-	rcFreeContourSet(cset);
-	cset = nullptr;
-	rcFreePolyMesh(pmesh);
-	pmesh = nullptr;
-	rcFreePolyMeshDetail(dmesh);
-	dmesh = nullptr;
+	
+	dtFreeTileCache(tileCache);
+	tileCache = nullptr;
 
+	RELEASE(tmproc);
+	RELEASE(tcomp);
+	RELEASE(talloc);
 	nverts = 0;
 	ntris = 0;
 	verts.clear();

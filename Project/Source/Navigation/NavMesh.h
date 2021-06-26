@@ -27,28 +27,6 @@ public:
 	dtTileCache* GetTileCache();		// Returns tileCache
 
 public:
-
-	//enum DrawMode {
-	//	DRAWMODE_NAVMESH,
-	//	DRAWMODE_NAVMESH_TRANS,
-	//	DRAWMODE_NAVMESH_BVTREE,
-	//	DRAWMODE_NAVMESH_NODES,
-	//	DRAWMODE_NAVMESH_INVIS,
-	//	DRAWMODE_MESH,
-	//	DRAWMODE_VOXELS,
-	//	DRAWMODE_VOXELS_WALKABLE,
-	//	DRAWMODE_COMPACT,
-	//	DRAWMODE_COMPACT_DISTANCE,
-	//	DRAWMODE_COMPACT_REGIONS,
-	//	DRAWMODE_REGION_CONNECTIONS,
-	//	DRAWMODE_RAW_CONTOURS,
-	//	DRAWMODE_BOTH_CONTOURS,
-	//	DRAWMODE_CONTOURS,
-	//	DRAWMODE_POLYMESH,
-	//	DRAWMODE_POLYMESH_DETAIL,
-	//	MAX_DRAWMODE
-	//};
-
 	enum DrawMode {
 		DRAWMODE_NAVMESH,
 		DRAWMODE_NAVMESH_TRANS,
@@ -99,10 +77,6 @@ public:
 	// DRAW MODE
 	DrawMode drawMode = DRAWMODE_NAVMESH;
 
-	// NAV DATA TO SAVE
-	unsigned char* navData = nullptr;
-	int navDataSize = 0;
-
 private:
 	void InitCrowd();			// Inits crowd with MAX_AGENTS
 
@@ -119,19 +93,7 @@ private:
 	struct FastLZCompressor* tcomp = nullptr;
 	struct MeshProcess* tmproc = nullptr;
 
-	rcHeightfield* solid = nullptr;
-	unsigned char* triareas = nullptr;
-
-	rcCompactHeightfield* chf = nullptr;
-	rcContourSet* cset = nullptr;
-	rcPolyMesh* pmesh = nullptr;
-	rcPolyMeshDetail* dmesh = nullptr;
-
 	unsigned char navMeshDrawFlags = 0;
-
-	int cacheLayerCount = 0;
-	int cacheCompressedSize = 0;
-	int cacheRawSize = 0;
 
 	// SCENE DATA
 	std::vector<float> verts;
