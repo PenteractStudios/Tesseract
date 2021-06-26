@@ -23,10 +23,13 @@ public:
 
 	TESSERACT_ENGINE_API void SetRadius(float newRadius);
 	TESSERACT_ENGINE_API void SetHeight(float newHeight);
+	TESSERACT_ENGINE_API void SetBoxSize(float3 size);
+	TESSERACT_ENGINE_API void SetObstacleType(ObstacleType newType);
+	TESSERACT_ENGINE_API void ResetSize();
 
 private:
 	dtObstacleRef* obstacleReference = nullptr;
-	float radius = 1.0f;
-	float height = 2.0f;
+	float3 boxSize = float3::one;
 	float3 currentPosition = float3::zero;
+	int obstacleType = ObstacleType::DT_OBSTACLE_CYLINDER;
 };

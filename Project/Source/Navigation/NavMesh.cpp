@@ -390,8 +390,14 @@ void drawObstacles(duDebugDraw* dd, const dtTileCache* tc) {
 		else if (ob->state == DT_OBSTACLE_REMOVING)
 			col = duRGBA(220, 0, 0, 128);
 
-		duDebugDrawCylinder(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], col);
-		duDebugDrawCylinderWire(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duDarkenCol(col), 2);
+		if (ob->type == ObstacleType::DT_OBSTACLE_CYLINDER) {
+			duDebugDrawCylinder(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], col);
+			duDebugDrawCylinderWire(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duDarkenCol(col), 2);
+		} else {
+			const unsigned int* colConst = &col;
+			duDebugDrawBox(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], colConst);
+			duDebugDrawBoxWire(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duDarkenCol(col), 2);
+		}
 	}
 }
 
@@ -625,12 +631,12 @@ void NavMesh::DrawGizmos() {
 	glLoadMatrixf(App->camera->GetViewMatrix().Transposed().ptr());
 
 	glEnable(GL_FOG);
-	glDepthMask(GL_TRUE);
+	//glDepthMask(GL_TRUE);
 
 	const float texScale = 1.0f / (cellSize * 10.0f);
 
 	glDisable(GL_FOG);
-	glDepthMask(GL_FALSE);
+	//glDepthMask(GL_FALSE);
 
 	// Draw bounds
 	float bmin[3] = {FLT_MAX, FLT_MAX, FLT_MAX};
@@ -662,7 +668,7 @@ void NavMesh::DrawGizmos() {
 	if (tileCache)
 		drawObstacles(&dd, tileCache);
 
-	glDepthMask(GL_FALSE);
+	//glDepthMask(GL_FALSE);
 
 	// Draw bounds
 	duDebugDrawBoxWire(&dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duRGBA(255, 255, 255, 128), 1.0f);
@@ -687,7 +693,7 @@ void NavMesh::DrawGizmos() {
 		duDebugDrawNavMeshPolysWithFlags(&dd, *navMesh, SAMPLE_POLYFLAGS_DISABLED, duRGBA(0, 0, 0, 128));
 	}
 
-	glDepthMask(GL_TRUE);
+	//glDepthMask(GL_TRUE);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();

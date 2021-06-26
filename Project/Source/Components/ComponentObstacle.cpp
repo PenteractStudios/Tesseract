@@ -10,16 +10,16 @@
 
 #include "Utils/Leaks.h"
 
-#define JSON_TAG_RADIUS "Radius"
-#define JSON_TAG_HEIGHT "Height"
+#define JSON_TAG_SIZE "Size"
+#define JSON_TAG_TYPE "Type"
 
 ComponentObstacle::~ComponentObstacle() {
 	RemoveObstacle();
 }
 
 void ComponentObstacle::Init() {
-	AddObstacle();
 	currentPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+	AddObstacle();
 }
 
 void ComponentObstacle::Update() {
@@ -41,12 +41,28 @@ void ComponentObstacle::OnEditorUpdate() {
 		}
 	}
 
-	if (ImGui::InputFloat("Obstacle radius", &radius, App->editor->dragSpeed2f, 0)) {
-		SetRadius(radius);
+	ImGui::Text("");
+	ImGui::Text("Obstacle type");
+	bool mustBeAdded = ImGui::RadioButton("Cylinder", &obstacleType, ObstacleType::DT_OBSTACLE_CYLINDER);
+	ImGui::SameLine();
+	mustBeAdded |= ImGui::RadioButton("Box", &obstacleType, ObstacleType::DT_OBSTACLE_BOX);
+	ImGui::Text("");
+	if (mustBeAdded) {
+		SetObstacleType(static_cast<ObstacleType>(obstacleType));
 	}
 
-	if (ImGui::InputFloat("Obstacle height", &height, App->editor->dragSpeed2f, 0)) {
-		SetHeight(height);
+	if (obstacleType == ObstacleType::DT_OBSTACLE_CYLINDER) {
+		if (ImGui::InputFloat("Cylinder radius", &boxSize.x, App->editor->dragSpeed2f, 0)) {
+			SetRadius(boxSize.x);
+		}
+
+		if (ImGui::InputFloat("Cylinder height", &boxSize.y, App->editor->dragSpeed2f, 0)) {
+			SetHeight(boxSize.y);
+		}
+	} else {
+		if (ImGui::DragFloat3("Box Size", boxSize.ptr(), App->editor->dragSpeed2f, -inf, inf)) {
+			SetBoxSize(boxSize);
+		}
 	}
 }
 
@@ -59,15 +75,20 @@ void ComponentObstacle::OnDisable() {
 }
 
 void ComponentObstacle::Save(JsonValue jComponent) const {
-	jComponent[JSON_TAG_RADIUS] = radius;
-	jComponent[JSON_TAG_HEIGHT] = height;
+	JsonValue jSize = jComponent[JSON_TAG_SIZE];
+	jSize[0] = boxSize.x;
+	jSize[1] = boxSize.y;
+	jSize[2] = boxSize.z;
+
+	jComponent[JSON_TAG_TYPE] = obstacleType;
 }
 
 void ComponentObstacle::Load(JsonValue jComponent) {
-	radius = jComponent[JSON_TAG_RADIUS];
-	height = jComponent[JSON_TAG_HEIGHT];
-}
+	obstacleType = jComponent[JSON_TAG_TYPE];
 
+	JsonValue jSize = jComponent[JSON_TAG_SIZE];
+	boxSize.Set(jSize[0], jSize[1], jSize[2]);
+}
 
 void ComponentObstacle::AddObstacle() {
 	NavMesh& navMesh = App->navigation->GetNavMesh();
@@ -82,7 +103,20 @@ void ComponentObstacle::AddObstacle() {
 	obstacleReference = new dtObstacleRef;
 
 	float3 position = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
-	tileCache->addObstacle(&position[0], radius, height, obstacleReference);
+
+	switch (obstacleType) {
+	case ObstacleType::DT_OBSTACLE_CYLINDER:
+		tileCache->addObstacle(&position[0], boxSize.x, boxSize.y, obstacleReference);
+		break;
+	case ObstacleType::DT_OBSTACLE_BOX: {
+		float3 bmin = position - (boxSize / 2);
+		float3 bmax = position + (boxSize / 2);
+		tileCache->addBoxObstacle(&bmin[0], &bmax[0], obstacleReference);
+	}
+		break;
+	default:
+		break;
+	}
 }
 
 void ComponentObstacle::RemoveObstacle() {
@@ -99,11 +133,38 @@ void ComponentObstacle::RemoveObstacle() {
 }
 
 void ComponentObstacle::SetRadius(float newRadius) {
-	radius = newRadius;
-	AddObstacle();
+	if (obstacleType == ObstacleType::DT_OBSTACLE_CYLINDER) {
+		boxSize.x = newRadius;
+		AddObstacle();
+	}
 }
 
 void ComponentObstacle::SetHeight(float newHeight) {
-	height = newHeight;
+	if (obstacleType == ObstacleType::DT_OBSTACLE_CYLINDER) {
+		boxSize.y = newHeight;
+		AddObstacle();
+	}
+}
+
+void ComponentObstacle::SetBoxSize(float3 size) {
+	if (obstacleType == ObstacleType::DT_OBSTACLE_BOX || obstacleType == ObstacleType::DT_OBSTACLE_ORIENTED_BOX) {
+		boxSize = size;
+		AddObstacle();
+	}
+}
+
+void ComponentObstacle::SetObstacleType(ObstacleType newType) {
+	obstacleType = newType;
+	ResetSize();
 	AddObstacle();
+}
+
+void ComponentObstacle::ResetSize() {
+	if (obstacleType == ObstacleType::DT_OBSTACLE_CYLINDER) {
+		boxSize.x = 1.0f;
+		boxSize.y = 2.0f;
+		boxSize.z = 0;
+	} else {
+		boxSize = float3::one;
+	}
 }
