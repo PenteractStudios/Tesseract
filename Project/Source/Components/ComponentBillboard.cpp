@@ -214,8 +214,8 @@ void ComponentBillboard::Update() {
 }
 
 void ComponentBillboard::Draw() {
-	unsigned int program = App->programs->billboard;
-	glUseProgram(program);
+	ProgramBillboard* program = App->programs->billboard;
+	glUseProgram(program->program);
 
 	unsigned glTexture = 0;
 	ResourceTexture* texture = App->resources->GetResource<ResourceTexture>(textureID);
@@ -272,9 +272,9 @@ void ComponentBillboard::Draw() {
 		modelMatrix = modelMatrix;
 	}
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, newModelMatrix.ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view->ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
+	glUniformMatrix4fv(program->modelLocation, 1, GL_TRUE, newModelMatrix.ptr());
+	glUniformMatrix4fv(program->viewLocation, 1, GL_TRUE, view->ptr());
+	glUniformMatrix4fv(program->projLocation, 1, GL_TRUE, proj->ptr());
 
 	float4 color = float4::one;
 	if (colorOverLifetime) {
@@ -282,17 +282,17 @@ void ComponentBillboard::Draw() {
 		gradient->getColorAt(factor, color.ptr());
 	}
 
-	glUniform1i(glGetUniformLocation(program, "diffuseMap"), 0);
-	glUniform1i(glGetUniformLocation(program, "hasDiffuseMap"), hasDiffuseMap);
-	glUniform4fv(glGetUniformLocation(program, "inputColor"), 1, color.ptr());
+	glUniform1i(program->diffuseMapLocation, 0);
+	glUniform1i(program->hasDiffuseLocation, hasDiffuseMap);
+	glUniform4fv(program->inputColorLocation, 1, color.ptr());
 
-	glUniform1f(glGetUniformLocation(program, "currentFrame"), currentFrame);
+	glUniform1f(program->currentFrameLocation, currentFrame);
 
-	glUniform1i(glGetUniformLocation(program, "Xtiles"), Xtiles);
-	glUniform1i(glGetUniformLocation(program, "Ytiles"), Ytiles);
+	glUniform1i(program->xTilesLocation, Xtiles);
+	glUniform1i(program->yTilesLocation, Ytiles);
 
-	glUniform1i(glGetUniformLocation(program, "flipX"), flipTexture[0]);
-	glUniform1i(glGetUniformLocation(program, "flipY"), flipTexture[1]);
+	glUniform1i(program->xFlipLocation, flipTexture[0]);
+	glUniform1i(program->yFlipLocation, flipTexture[1]);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, glTexture);
