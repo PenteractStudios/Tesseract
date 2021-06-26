@@ -7,6 +7,8 @@
 #include "imgui_color_gradient.h"
 #include "imgui_internal.h"
 
+#include "Utils/Leaks.h"
+
 static const float GRADIENT_BAR_WIDGET_HEIGHT = 25;
 static const float GRADIENT_BAR_EDITOR_HEIGHT = 40;
 static const float GRADIENT_MARK_DELETE_DIFFY = 40;
@@ -36,6 +38,7 @@ void ImGradient::addMark(float position, ImColor const color) {
 
 void ImGradient::removeMark(ImGradientMark* mark) {
 	m_marks.remove(mark);
+	delete mark;
 	refreshCache();
 }
 

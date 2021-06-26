@@ -43,7 +43,6 @@
 #define JSON_TAG_FLIP_TEXTURE "FlipTexture"
 
 ComponentBillboard::~ComponentBillboard() {
-	gradient->clearList();
 	RELEASE(gradient);
 }
 

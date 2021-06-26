@@ -84,7 +84,6 @@
 #define JSON_TAG_LAYER_INDEX "LayerIndex"
 
 ComponentParticleSystem::~ComponentParticleSystem() {
-	gradient->clearList();
 	RELEASE(gradient);
 }
 
