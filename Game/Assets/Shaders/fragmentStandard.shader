@@ -105,12 +105,12 @@ vec2 GetTiledUVs()
 
 vec4 GetDiffuse(vec2 tiledUV)
 {
-    return hasDiffuseMap * SRGB(texture(diffuseMap, tiledUV)) * diffuseColor + (1 - hasDiffuseMap) * SRGB(diffuseColor);
+    return hasDiffuseMap * SRGBA(texture(diffuseMap, tiledUV)) * diffuseColor + (1 - hasDiffuseMap) * SRGBA(diffuseColor);
 }
 
 vec4 GetEmissive(vec2 tiledUV)
 {
-    return hasEmissiveMap * SRGB(texture(emissiveMap, tiledUV));
+    return hasEmissiveMap * SRGBA(texture(emissiveMap, tiledUV));
 }
 
 vec3 GetAmbientLight(in vec3 R, in vec3 normal, in vec3 viewDir, in vec3 Cd, in vec3 F0, float roughness)
@@ -347,7 +347,7 @@ void main()
     }
 	
     vec4 colorDiffuse = GetDiffuse(tiledUV);
-    vec4 colorSpecular = hasSpecularMap * SRGB(texture(specularMap, tiledUV)) + (1 - hasSpecularMap) * SRGB(vec4(specularColor, 1.0));
+    vec4 colorSpecular = hasSpecularMap * SRGBA(texture(specularMap, tiledUV)) + (1 - hasSpecularMap) * vec4(SRGB(specularColor), 1.0);
 
     float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorSpecular.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
     

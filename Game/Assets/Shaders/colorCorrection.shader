@@ -2,8 +2,12 @@
 
 #define GAMMA 2.2
 
-vec4 SRGB(in vec4 color) {
+vec4 SRGBA(in vec4 color) {
 	return vec4(pow(color.rgb, vec3(GAMMA)), color.a);
+}
+
+vec3 SRGB(in vec3 color) {
+	return pow(color.rgb, vec3(GAMMA));
 }
 
 --- fragColorCorrection
