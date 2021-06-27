@@ -11,7 +11,8 @@
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_SIZE "Size"
-#define JSON_TAG_TYPE "Type"
+#define JSON_TAG_TYPE "ObstacleType"
+#define JSON_TAG_DRAWGIZMO "DrawGizmo"
 
 ComponentObstacle::~ComponentObstacle() {
 	RemoveObstacle();
@@ -65,6 +66,11 @@ void ComponentObstacle::OnEditorUpdate() {
 			SetBoxSize(boxSize);
 		}
 	}
+
+	ImGui::TextWrapped("For Debug purposes only");
+	if (ImGui::Checkbox("Draw Gizmos", &mustBeDrawnGizmo)) {
+		SetDrawGizmo(mustBeDrawnGizmo);
+	}
 }
 
 void ComponentObstacle::OnEnable() {
@@ -82,10 +88,12 @@ void ComponentObstacle::Save(JsonValue jComponent) const {
 	jSize[2] = boxSize.z;
 
 	jComponent[JSON_TAG_TYPE] = obstacleType;
+	jComponent[JSON_TAG_DRAWGIZMO] = mustBeDrawnGizmo;
 }
 
 void ComponentObstacle::Load(JsonValue jComponent) {
 	obstacleType = jComponent[JSON_TAG_TYPE];
+	mustBeDrawnGizmo = jComponent[JSON_TAG_DRAWGIZMO];
 
 	JsonValue jSize = jComponent[JSON_TAG_SIZE];
 	boxSize.Set(jSize[0], jSize[1], jSize[2]);
@@ -108,10 +116,10 @@ void ComponentObstacle::AddObstacle() {
 
 	switch (obstacleType) {
 	case ObstacleType::DT_OBSTACLE_CYLINDER:
-		tileCache->addObstacle(&position[0], boxSize.x, boxSize.y, obstacleReference);
+		tileCache->addObstacle(&position[0], boxSize.x, boxSize.y, obstacleReference, mustBeDrawnGizmo);
 		break;
 	default:	// DT_OBSTACLE_BOX ||  DT_OBSTACLE_ORIENTED_BOX
-		tileCache->addBoxObstacle(&position[0], &(boxSize / 2)[0], transform->GetGlobalRotation().ToEulerXYZ().y, obstacleReference);
+		tileCache->addBoxObstacle(&position[0], &(boxSize / 2)[0], transform->GetGlobalRotation().ToEulerXYZ().y, obstacleReference, mustBeDrawnGizmo);
 		break;
 	}
 }
@@ -152,7 +160,7 @@ void ComponentObstacle::SetBoxSize(float3 size) {
 
 void ComponentObstacle::SetObstacleType(ObstacleType newType) {
 	obstacleType = newType;
-	ResetSize();
+	//ResetSize();
 	AddObstacle();
 }
 
@@ -164,4 +172,9 @@ void ComponentObstacle::ResetSize() {
 	} else {
 		boxSize = float3::one;
 	}
+}
+
+void ComponentObstacle::SetDrawGizmo(bool value) {
+	mustBeDrawnGizmo = value;
+	AddObstacle();
 }

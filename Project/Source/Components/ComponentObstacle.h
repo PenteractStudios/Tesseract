@@ -33,4 +33,8 @@ private:
 	float3 currentPosition = float3::zero;
 	float3 currentRotation = float3::zero;
 	int obstacleType = ObstacleType::DT_OBSTACLE_CYLINDER;
+	bool mustBeDrawnGizmo = true;
+
+private:
+	void SetDrawGizmo(bool value);
 };

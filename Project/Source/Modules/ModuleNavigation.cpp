@@ -8,6 +8,7 @@
 #include "Components/ComponentAgent.h"
 #include "Scene.h"
 
+#include "Globals.h"
 #include "Utils/Buffer.h"
 #include "Utils/Logging.h"
 #include "Utils/Leaks.h"
@@ -46,11 +47,15 @@ void ModuleNavigation::ReceiveEvent(TesseractEvent& e) {
 }
 
 void ModuleNavigation::BakeNavMesh() {
+	MSTimer timer;
+	timer.Start();
+	LOG("Loading NavMesh");
 	bool generated = navMesh.Build();
+	unsigned timeMs = timer.Stop();
 	if (generated) {
-		LOG("NavMesh successfully baked");
+		LOG("NavMesh successfully baked in %ums", timeMs);
 	} else {
-		LOG("NavMesh ERROR. Could not be baked");
+		LOG("NavMesh ERROR. Could not be baked in %ums", timeMs);
 	}
 }
 

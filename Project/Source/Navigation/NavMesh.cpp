@@ -4,8 +4,12 @@
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleDebugDraw.h"
 #include "Modules/ModuleCamera.h"
-#include "Scene.h"
 #include "Components/ComponentMeshRenderer.h"
+#include "Components/ComponentAgent.h"
+#include "Components/ComponentObstacle.h"
+
+#include "Scene.h"
+
 #include "Utils/Logging.h"
 
 #include "Recast/Recast.h"
@@ -379,6 +383,7 @@ void drawObstacles(duDebugDraw* dd, const dtTileCache* tc) {
 	for (int i = 0; i < tc->getObstacleCount(); ++i) {
 		const dtTileCacheObstacle* ob = tc->getObstacle(i);
 		if (ob->state == DT_OBSTACLE_EMPTY) continue;
+		if (!ob->mustBeDrawnGizmo) continue;
 		float bmin[3], bmax[3];
 		tc->getObstacleBounds(ob, bmin, bmax);
 
@@ -440,6 +445,8 @@ NavMesh::~NavMesh() {
 
 bool NavMesh::Build() {
 	CleanUp();
+	CleanCrowd();
+	CleanObstacles();
 
 	verts = App->scene->scene->GetVertices();
 	nverts = verts.size();
@@ -620,6 +627,8 @@ bool NavMesh::Build() {
 	printf("navmeshMemUsage = %.1f kB", navmeshMemUsage / 1024.0f);
 
 	InitCrowd();
+	RescanCrowd();
+	RescanObstacles();
 
 	return true;
 }
@@ -728,6 +737,8 @@ struct TileCacheTileHeader {
 
 void NavMesh::Load(Buffer<char>& buffer) {
 	CleanUp();
+	CleanCrowd();
+	CleanObstacles();
 
 	verts = App->scene->scene->GetVertices();
 	nverts = verts.size();
@@ -800,6 +811,8 @@ void NavMesh::Load(Buffer<char>& buffer) {
 
 
 	InitCrowd();
+	RescanCrowd();
+	RescanObstacles();
 }
 
 void NavMesh::CleanUp() {
@@ -930,4 +943,28 @@ void NavMesh::InitCrowd() {
 	params.adaptiveDepth = 3;
 
 	crowd->setObstacleAvoidanceParams(3, &params);
+}
+
+void NavMesh::CleanCrowd() {
+	for (ComponentAgent& agent : App->scene->scene->agentComponents) {
+		agent.RemoveAgentFromCrowd();
+	}
+}
+
+void NavMesh::RescanCrowd() {
+	for (ComponentAgent& agent : App->scene->scene->agentComponents) {
+		agent.AddAgentToCrowd();
+	}
+}
+
+void NavMesh::CleanObstacles() {
+	for (ComponentObstacle& obstacle : App->scene->scene->obstacleComponents) {
+		obstacle.RemoveObstacle();
+	}
+}
+
+void NavMesh::RescanObstacles() {
+	for (ComponentObstacle& obstacle : App->scene->scene->obstacleComponents) {
+		obstacle.AddObstacle();
+	}
 }

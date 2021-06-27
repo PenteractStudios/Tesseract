@@ -75,6 +75,7 @@ struct dtTileCacheObstacle {
 	unsigned char ntouched;
 	unsigned char npending;
 	dtTileCacheObstacle* next;
+	bool mustBeDrawnGizmo = true;
 };
 
 struct dtTileCacheParams
@@ -135,13 +136,13 @@ public:
 	dtStatus removeTile(dtCompressedTileRef ref, unsigned char** data, int* dataSize);
 	
 	// Cylinder obstacle.
-	dtStatus addObstacle(const float* pos, const float radius, const float height, dtObstacleRef* result);
+	dtStatus addObstacle(const float* pos, const float radius, const float height, dtObstacleRef* result, bool mustBeDrawnGizmo);
 
 	// Aabb obstacle.
-	dtStatus addBoxObstacle(const float* bmin, const float* bmax, dtObstacleRef* result);
+	dtStatus addBoxObstacle(const float* bmin, const float* bmax, dtObstacleRef* result, bool mustBeDrawnGizmo);
 
 	// Box obstacle: can be rotated in Y.
-	dtStatus addBoxObstacle(const float* center, const float* halfExtents, const float yRadians, dtObstacleRef* result);
+	dtStatus addBoxObstacle(const float* center, const float* halfExtents, const float yRadians, dtObstacleRef* result, bool mustBeDrawnGizmo);
 	dtStatus removeObstacle(const dtObstacleRef ref);
 	
 	dtStatus queryTiles(const float* bmin, const float* bmax,

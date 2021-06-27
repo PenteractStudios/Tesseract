@@ -350,7 +350,7 @@ dtStatus dtTileCache::removeTile(dtCompressedTileRef ref, unsigned char** data, 
 }
 
 
-dtStatus dtTileCache::addObstacle(const float* pos, const float radius, const float height, dtObstacleRef* result) {
+dtStatus dtTileCache::addObstacle(const float* pos, const float radius, const float height, dtObstacleRef* result, bool mustBeDrawnGizmo) {
 	if (m_nreqs >= MAX_REQUESTS)
 		return DT_FAILURE | DT_BUFFER_TOO_SMALL;
 
@@ -371,6 +371,7 @@ dtStatus dtTileCache::addObstacle(const float* pos, const float radius, const fl
 	dtVcopy(ob->cylinder.pos, pos);
 	ob->cylinder.radius = radius;
 	ob->cylinder.height = height;
+	ob->mustBeDrawnGizmo = mustBeDrawnGizmo;
 
 	ObstacleRequest* req = &m_reqs[m_nreqs++];
 	memset(req, 0, sizeof(ObstacleRequest));
@@ -383,7 +384,7 @@ dtStatus dtTileCache::addObstacle(const float* pos, const float radius, const fl
 	return DT_SUCCESS;
 }
 
-dtStatus dtTileCache::addBoxObstacle(const float* bmin, const float* bmax, dtObstacleRef* result) {
+dtStatus dtTileCache::addBoxObstacle(const float* bmin, const float* bmax, dtObstacleRef* result, bool mustBeDrawnGizmo) {
 	if (m_nreqs >= MAX_REQUESTS)
 		return DT_FAILURE | DT_BUFFER_TOO_SMALL;
 
@@ -403,6 +404,7 @@ dtStatus dtTileCache::addBoxObstacle(const float* bmin, const float* bmax, dtObs
 	ob->type = DT_OBSTACLE_BOX;
 	dtVcopy(ob->box.bmin, bmin);
 	dtVcopy(ob->box.bmax, bmax);
+	ob->mustBeDrawnGizmo = mustBeDrawnGizmo;
 
 	ObstacleRequest* req = &m_reqs[m_nreqs++];
 	memset(req, 0, sizeof(ObstacleRequest));
@@ -415,7 +417,7 @@ dtStatus dtTileCache::addBoxObstacle(const float* bmin, const float* bmax, dtObs
 	return DT_SUCCESS;
 }
 
-dtStatus dtTileCache::addBoxObstacle(const float* center, const float* halfExtents, const float yRadians, dtObstacleRef* result) {
+dtStatus dtTileCache::addBoxObstacle(const float* center, const float* halfExtents, const float yRadians, dtObstacleRef* result, bool mustBeDrawnGizmo) {
 	if (m_nreqs >= MAX_REQUESTS)
 		return DT_FAILURE | DT_BUFFER_TOO_SMALL;
 
@@ -435,6 +437,7 @@ dtStatus dtTileCache::addBoxObstacle(const float* center, const float* halfExten
 	ob->type = DT_OBSTACLE_ORIENTED_BOX;
 	dtVcopy(ob->orientedBox.center, center);
 	dtVcopy(ob->orientedBox.halfExtents, halfExtents);
+	ob->mustBeDrawnGizmo = mustBeDrawnGizmo;
 
 	float coshalf = cosf(0.5f * yRadians);
 	float sinhalf = sinf(-0.5f * yRadians);
