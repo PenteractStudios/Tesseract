@@ -26,7 +26,7 @@ public:
 	void EnteredPointerOnSelectable(ComponentSelectable* newHoveredComponent);	//Interface implementation
 	void ExitedPointerOnSelectable(ComponentSelectable* newUnHoveredComponent); //Interface implementation
 	ComponentSelectable* GetCurrentSelected() const;							//Returns currently selected ComponentSelectable
-	ComponentSelectable* GetCurrentlyHovered() const;							//Returns last Selectable that was hovered over with mouse
+	TESSERACT_ENGINE_API ComponentSelectable* GetCurrentlyHovered() const;		//Returns last Selectable that was hovered over with mouse
 	void SetClickedGameObject(GameObject* clickedObj_);
 	GameObject* GetClickedGameObject();
 

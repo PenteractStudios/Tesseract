@@ -12,6 +12,8 @@ public:
 	void Save(JsonValue jComponent) const override;
 	void Draw();
 
+	UID GetSkyboxResourceID();
+
 private:
 	UID shaderId = 0;
 	UID skyboxId = 0;

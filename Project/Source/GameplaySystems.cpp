@@ -16,6 +16,7 @@
 #include "Modules/ModuleRender.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleAudio.h"
+#include "Modules/ModuleUserInterface.h"
 #include "Resources/ResourcePrefab.h"
 #include "Resources/ResourceMaterial.h"
 #include "FileSystem/SceneImporter.h"
@@ -232,22 +233,17 @@ bool Input::GetKeyCode(KEYCODE keycode) {
 
 bool Input::GetControllerButtonDown(SDL_GameControllerButton button, int playerID) {
 	PlayerController* player = App->input->GetPlayerController(playerID);
-	return player ? false : player->gameControllerButtons[button] == KS_DOWN;
+	return player ? player->gameControllerButtons[button] == KS_DOWN : false;
 }
 
 bool Input::GetControllerButtonUp(SDL_GameControllerButton button, int playerID) {
 	PlayerController* player = App->input->GetPlayerController(playerID);
-	return player ? false : player->gameControllerButtons[button] == KS_UP;
-}
-
-bool Input::GetControllerButtonRepeat(SDL_GameControllerButton button, int playerID) {
-	PlayerController* player = App->input->GetPlayerController(playerID);
-	return player ? false : player->gameControllerButtons[button] == KS_REPEAT;
+	return player ? player->gameControllerButtons[button] == KS_UP : false;
 }
 
 bool Input::GetControllerButton(SDL_GameControllerButton button, int playerID) {
 	PlayerController* player = App->input->GetPlayerController(playerID);
-	return player ? false : player->gameControllerButtons[button];
+	return player ? player->gameControllerButtons[button] == KS_REPEAT : false;
 }
 
 float Input::GetControllerAxisValue(SDL_GameControllerAxis axis, int playerID) {
@@ -389,4 +385,8 @@ bool Camera::CheckObjectInsideFrustum(GameObject* gameObject) {
 
 void Audio::StopAllSources() {
 	App->audio->StopAllSources();
+}
+
+ComponentEventSystem* UserInterface::GetCurrentEventSystem() {
+	return App->userInterface->GetCurrentEventSystem();
 }

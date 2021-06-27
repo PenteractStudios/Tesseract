@@ -10,6 +10,7 @@
 #include "Components/UI/ComponentEventSystem.h"
 #include "Components/UI/ComponentSelectable.h"
 #include "FileSystem/ModelImporter.h"
+#include "Modules/ModuleInput.h"
 #include "Utils/Logging.h"
 
 #include "Math/myassert.h"
@@ -209,6 +210,20 @@ void GameObject::RemoveChild(GameObject* gameObject) {
 
 const std::vector<GameObject*>& GameObject::GetChildren() const {
 	return children;
+}
+
+GameObject* GameObject::GetChild(unsigned index) const {
+	return index < children.size() ? children[index] : nullptr;
+}
+
+GameObject* GameObject::GetChild(const char* name) const {
+	GameObject* ret = nullptr;
+	for (std::vector<GameObject*>::const_iterator it = children.begin(); it != children.end() && ret == nullptr; ++it) {
+		if ((*it)->name == name) {
+			ret = *it;
+		}
+	}
+	return ret;
 }
 
 bool GameObject::IsDescendantOf(GameObject* gameObject) {

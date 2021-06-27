@@ -49,7 +49,7 @@ void PanelScene::Update() {
 
 		if (ImGui::BeginMenuBar()) {
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
-			const char* shadingMode[3] = {"Shaded", "Wireframe", "Depth"};
+			const char* shadingMode[4] = {"Shaded", "Wireframe", "Depth", "Ambient Occlusion"};
 			if (ImGui::Button(currentShadingMode)) {
 				ImGui::OpenPopup("DrawMode");
 			}
@@ -192,7 +192,8 @@ void PanelScene::Update() {
 					UID prefabId = *(UID*) payload->Data;
 					ResourcePrefab* prefab = App->resources->GetResource<ResourcePrefab>(prefabId);
 					if (prefab != nullptr) {
-						prefab->BuildPrefab(App->scene->scene->root);
+						UID gameObjectId = prefab->BuildPrefab(App->scene->scene->root);
+						App->editor->selectedGameObject = App->scene->scene->GetGameObject(gameObjectId);
 					}
 				}
 

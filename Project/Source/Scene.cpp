@@ -60,10 +60,12 @@ void Scene::RebuildQuadtree() {
 	quadtree.Initialize(quadtreeBounds, quadtreeMaxDepth, quadtreeElementsPerNode);
 	for (ComponentBoundingBox& boundingBox : boundingBoxComponents) {
 		GameObject& gameObject = boundingBox.GetOwner();
-		boundingBox.CalculateWorldBoundingBox();
-		const AABB& worldAABB = boundingBox.GetWorldAABB();
-		quadtree.Add(&gameObject, AABB2D(worldAABB.minPoint.xz(), worldAABB.maxPoint.xz()));
-		gameObject.isInQuadtree = true;
+		if (gameObject.IsStatic()) {
+			boundingBox.CalculateWorldBoundingBox();
+			const AABB& worldAABB = boundingBox.GetWorldAABB();
+			quadtree.Add(&gameObject, AABB2D(worldAABB.minPoint.xz(), worldAABB.maxPoint.xz()));
+			gameObject.isInQuadtree = true;
+		}
 	}
 	quadtree.Optimize();
 }
@@ -308,6 +310,9 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		scriptComponents.Release(componentId);
 		break;
 	case ComponentType::PARTICLE:
+		for (ComponentParticleSystem& ps : particleComponents) {
+			ps.DestroyParticlesColliders();
+		}
 		particleComponents.Release(componentId);
 		break;
 	case ComponentType::TRAIL:

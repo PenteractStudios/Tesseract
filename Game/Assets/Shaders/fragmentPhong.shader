@@ -22,10 +22,13 @@ void main()
     // shininess
     float shininess = hasSmoothnessAlpha * exp2(colorSpecular.a * 7 + 1) + (1 - hasSmoothnessAlpha) * smoothness;
 
-    // Ambient Color
-    vec3 colorAmbient = GetAmbientOcclusion(tiledUV);
+    // TODO: IBL doesn't work correctly with Blinn-Phong
+    // roughness
+    float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorSpecular.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
 
-    vec3 colorAccumulative = colorDiffuse.rgb * colorAmbient;
+    // Ambient Light
+    vec3 R = reflect(-viewDir, normal);
+    vec3 colorAccumulative = GetOccludedAmbientLight(R, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness, tiledUV);
 
     // Directional Light
     if (light.directional.isActive == 1) {
