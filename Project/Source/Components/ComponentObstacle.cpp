@@ -23,9 +23,12 @@ void ComponentObstacle::Init() {
 }
 
 void ComponentObstacle::Update() {
-	float3 newPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
-	if (!newPosition.Equals(currentPosition)) {
+	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
+	float3 newPosition = transform->GetGlobalPosition();
+	float3 newRotation = transform->GetGlobalRotation().ToEulerXYZ();
+	if (!newPosition.Equals(currentPosition) || !newRotation.Equals(currentRotation)) {
 		currentPosition = newPosition;
+		currentRotation = newRotation;
 		AddObstacle();
 	}
 }
@@ -41,26 +44,24 @@ void ComponentObstacle::OnEditorUpdate() {
 		}
 	}
 
-	ImGui::Text("");
 	ImGui::Text("Obstacle type");
 	bool mustBeAdded = ImGui::RadioButton("Cylinder", &obstacleType, ObstacleType::DT_OBSTACLE_CYLINDER);
 	ImGui::SameLine();
-	mustBeAdded |= ImGui::RadioButton("Box", &obstacleType, ObstacleType::DT_OBSTACLE_BOX);
-	ImGui::Text("");
+	mustBeAdded |= ImGui::RadioButton("Box", &obstacleType, ObstacleType::DT_OBSTACLE_ORIENTED_BOX);
 	if (mustBeAdded) {
 		SetObstacleType(static_cast<ObstacleType>(obstacleType));
 	}
 
 	if (obstacleType == ObstacleType::DT_OBSTACLE_CYLINDER) {
-		if (ImGui::InputFloat("Cylinder radius", &boxSize.x, App->editor->dragSpeed2f, 0)) {
+		if (ImGui::DragFloat("Cylinder radius", &boxSize.x, App->editor->dragSpeed2f, 0, inf)) {
 			SetRadius(boxSize.x);
 		}
 
-		if (ImGui::InputFloat("Cylinder height", &boxSize.y, App->editor->dragSpeed2f, 0)) {
+		if (ImGui::DragFloat("Cylinder height", &boxSize.y, App->editor->dragSpeed2f, 0, inf)) {
 			SetHeight(boxSize.y);
 		}
 	} else {
-		if (ImGui::DragFloat3("Box Size", boxSize.ptr(), App->editor->dragSpeed2f, -inf, inf)) {
+		if (ImGui::DragFloat3("Box Size", boxSize.ptr(), App->editor->dragSpeed2f, 0, inf)) {
 			SetBoxSize(boxSize);
 		}
 	}
@@ -97,24 +98,20 @@ void ComponentObstacle::AddObstacle() {
 	dtTileCache* tileCache = navMesh.GetTileCache();
 	if (!tileCache)
 		return;
-	
+
 	RemoveObstacle();
 
 	obstacleReference = new dtObstacleRef;
 
-	float3 position = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
+	float3 position = transform->GetGlobalPosition();
 
 	switch (obstacleType) {
 	case ObstacleType::DT_OBSTACLE_CYLINDER:
 		tileCache->addObstacle(&position[0], boxSize.x, boxSize.y, obstacleReference);
 		break;
-	case ObstacleType::DT_OBSTACLE_BOX: {
-		float3 bmin = position - (boxSize / 2);
-		float3 bmax = position + (boxSize / 2);
-		tileCache->addBoxObstacle(&bmin[0], &bmax[0], obstacleReference);
-	}
-		break;
-	default:
+	default:	// DT_OBSTACLE_BOX ||  DT_OBSTACLE_ORIENTED_BOX
+		tileCache->addBoxObstacle(&position[0], &(boxSize / 2)[0], transform->GetGlobalRotation().ToEulerXYZ().y, obstacleReference);
 		break;
 	}
 }

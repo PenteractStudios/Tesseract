@@ -440,6 +440,7 @@ dtStatus dtTileCache::addBoxObstacle(const float* center, const float* halfExten
 	float sinhalf = sinf(-0.5f * yRadians);
 	ob->orientedBox.rotAux[0] = coshalf * sinhalf;
 	ob->orientedBox.rotAux[1] = coshalf * coshalf - 0.5f;
+	ob->orientedBox.yRadian = yRadians;
 
 	ObstacleRequest* req = &m_reqs[m_nreqs++];
 	memset(req, 0, sizeof(ObstacleRequest));
@@ -776,6 +777,8 @@ void dtTileCache::getObstacleBounds(const struct dtTileCacheObstacle* ob, float*
 		dtVcopy(bmin, ob->box.bmin);
 		dtVcopy(bmax, ob->box.bmax);
 	} else if (ob->type == DT_OBSTACLE_ORIENTED_BOX) {
+		// TODO: These magic numbers come from library and they should not be altered since this is logic used in dtMarkBoxArea when adding or modifying a tile.
+
 		const dtObstacleOrientedBox& orientedBox = ob->orientedBox;
 
 		float maxr = 1.41f * dtMax(orientedBox.halfExtents[0], orientedBox.halfExtents[2]);

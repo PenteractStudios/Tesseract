@@ -56,6 +56,7 @@ struct dtObstacleOrientedBox {
 	float center[3];
 	float halfExtents[3];
 	float rotAux[2]; //{ cos(0.5f*angle)*sin(-0.5f*angle); cos(0.5f*angle)*cos(0.5f*angle) - 0.5 }
+	float yRadian;
 };
 
 static const int DT_MAX_TOUCHED_TILES = 8;

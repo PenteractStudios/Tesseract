@@ -31,5 +31,6 @@ private:
 	dtObstacleRef* obstacleReference = nullptr;
 	float3 boxSize = float3::one;
 	float3 currentPosition = float3::zero;
+	float3 currentRotation = float3::zero;
 	int obstacleType = ObstacleType::DT_OBSTACLE_CYLINDER;
 };

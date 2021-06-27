@@ -394,6 +394,20 @@ void drawObstacles(duDebugDraw* dd, const dtTileCache* tc) {
 			duDebugDrawCylinder(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], col);
 			duDebugDrawCylinderWire(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duDarkenCol(col), 2);
 		} else {
+			//AABB localAABB = {{bmin[0], bmin[1], bmin[2]}, {bmax[0], bmax[1], bmax[2]}};
+			//OBB worldOBB = OBB(localAABB);
+			////float3 eulerAngle = float3(0, ob->orientedBox.yRadian, 0);
+			//worldOBB.Transform(Quat::FromEulerXYZ(0, ob->orientedBox.yRadian, 0));
+			//AABB worldAABB = worldOBB.MinimalEnclosingAABB();
+			//bmin[0] = worldAABB.minPoint[0];
+			//bmin[1] = worldAABB.minPoint[1];
+			//bmin[2] = worldAABB.minPoint[2];
+
+			//bmax[0] = worldAABB.maxPoint[0];
+			//bmax[1] = worldAABB.maxPoint[1];
+			//bmax[2] = worldAABB.maxPoint[2];
+			// TODO: PROPERLY SHOW THE DEBUG OBB. In function getObstacleBounds there are magic numbers multiplying the ABB and not applying a rotation. That's source code from the library.
+
 			const unsigned int* colConst = &col;
 			duDebugDrawBox(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], colConst);
 			duDebugDrawBoxWire(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duDarkenCol(col), 2);
@@ -559,8 +573,6 @@ bool NavMesh::Build() {
 		return false;
 	}
 
-	
-	//TODO: memory leak
 	rcChunkyTriMesh* chunkyMesh = new rcChunkyTriMesh;
 	if (!chunkyMesh) {
 		ctx->log(RC_LOG_ERROR, "buildTiledNavigation: Out of memory 'm_chunkyMesh'.");
@@ -613,10 +625,6 @@ bool NavMesh::Build() {
 }
 
 void NavMesh::DrawGizmos() {
-	/*if (nverts == 0) {
-		return;
-	}*/
-
 	DebugDrawGL dds;
 
 	glClearColor(.1f, .1f, .1f, 1.0f);
@@ -762,16 +770,12 @@ void NavMesh::Load(Buffer<char>& buffer) {
 
 	// Read tiles.
 	for (int i = 0; i < header.numTiles; ++i) {
-		//fread(&tileHeader, sizeof(tileHeader), 1, fp);
-
 		TileCacheTileHeader tileHeader = *((TileCacheTileHeader*) cursor);
 		cursor += sizeof(TileCacheTileHeader);
-		LOG("%d", tileHeader.dataSize);
 
 		if (!tileHeader.tileRef || !tileHeader.dataSize)
 			break;
 
-		//unsigned char* data = (unsigned char*) dtAlloc(tileHeader.dataSize, DT_ALLOC_PERM);
 		unsigned char* data = (unsigned char*) malloc(tileHeader.dataSize);
 		if (!data) break;
 		memset(data, 0, tileHeader.dataSize);
