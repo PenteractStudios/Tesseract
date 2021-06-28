@@ -138,7 +138,7 @@ void ComponentTrail::OnEditorUpdate() {
 
 	ImGui::Checkbox("Color Over Trail", &colorOverTrail);
 	if (colorOverTrail) {
-		ImGui::GradientEditor(&gradient, draggingGradient, selectedGradient);
+		ImGui::GradientEditor(gradient, draggingGradient, selectedGradient);
 	}
 
 	UID oldID = textureID;
@@ -211,7 +211,7 @@ void ComponentTrail::Save(JsonValue jComponent) const {
 
 		color++;
 	}
-	jComponent[JSON_TAG_NUMBER_COLORS] = gradient.getMarks().size();
+	jComponent[JSON_TAG_NUMBER_COLORS] = gradient->getMarks().size();
 }
 
 void ComponentTrail::Draw() {
@@ -255,7 +255,7 @@ void ComponentTrail::Draw() {
 		float4 color = float4::one;
 		if (colorOverTrail) {
 			float factor = 1 - currentQuad->life / quadLife; // Life decreasing
-			gradient.getColorAt(factor, color.ptr());
+			gradient->getColorAt(factor, color.ptr());
 		}
 
 		glUniform1i(trailProgram->diffuseMap, 0);
