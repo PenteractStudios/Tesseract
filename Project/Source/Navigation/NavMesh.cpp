@@ -425,7 +425,6 @@ NavMesh::NavMesh() {
 	navQuery = dtAllocNavMeshQuery();
 	crowd = dtAllocCrowd();
 
-	//TODO: memory leaks
 	ctx = new BuildContext();
 	talloc = new LinearAllocator(32000);
 	tcomp = new FastLZCompressor;
