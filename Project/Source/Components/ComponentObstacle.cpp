@@ -54,19 +54,20 @@ void ComponentObstacle::OnEditorUpdate() {
 	}
 
 	if (obstacleType == ObstacleType::DT_OBSTACLE_CYLINDER) {
-		if (ImGui::DragFloat("Cylinder radius", &boxSize.x, App->editor->dragSpeed2f, 0, inf)) {
-			SetRadius(boxSize.x);
+		if (ImGui::DragFloat("Cylinder radius", &obstacleSize.x, App->editor->dragSpeed2f, 0, inf)) {
+			SetRadius(obstacleSize.x);
 		}
 
-		if (ImGui::DragFloat("Cylinder height", &boxSize.y, App->editor->dragSpeed2f, 0, inf)) {
-			SetHeight(boxSize.y);
+		if (ImGui::DragFloat("Cylinder height", &obstacleSize.y, App->editor->dragSpeed2f, 0, inf)) {
+			SetHeight(obstacleSize.y);
 		}
 	} else {
-		if (ImGui::DragFloat3("Box Size", boxSize.ptr(), App->editor->dragSpeed2f, 0, inf)) {
-			SetBoxSize(boxSize);
+		if (ImGui::DragFloat3("Box Size", obstacleSize.ptr(), App->editor->dragSpeed2f, 0, inf)) {
+			SetBoxSize(obstacleSize);
 		}
 	}
 
+	ImGui::Text("");
 	ImGui::TextWrapped("For Debug purposes only");
 	if (ImGui::Checkbox("Draw Gizmos", &mustBeDrawnGizmo)) {
 		SetDrawGizmo(mustBeDrawnGizmo);
@@ -83,9 +84,9 @@ void ComponentObstacle::OnDisable() {
 
 void ComponentObstacle::Save(JsonValue jComponent) const {
 	JsonValue jSize = jComponent[JSON_TAG_SIZE];
-	jSize[0] = boxSize.x;
-	jSize[1] = boxSize.y;
-	jSize[2] = boxSize.z;
+	jSize[0] = obstacleSize.x;
+	jSize[1] = obstacleSize.y;
+	jSize[2] = obstacleSize.z;
 
 	jComponent[JSON_TAG_TYPE] = obstacleType;
 	jComponent[JSON_TAG_DRAWGIZMO] = mustBeDrawnGizmo;
@@ -96,7 +97,7 @@ void ComponentObstacle::Load(JsonValue jComponent) {
 	mustBeDrawnGizmo = jComponent[JSON_TAG_DRAWGIZMO];
 
 	JsonValue jSize = jComponent[JSON_TAG_SIZE];
-	boxSize.Set(jSize[0], jSize[1], jSize[2]);
+	obstacleSize.Set(jSize[0], jSize[1], jSize[2]);
 }
 
 void ComponentObstacle::AddObstacle() {
@@ -116,10 +117,10 @@ void ComponentObstacle::AddObstacle() {
 
 	switch (obstacleType) {
 	case ObstacleType::DT_OBSTACLE_CYLINDER:
-		tileCache->addObstacle(&position[0], boxSize.x, boxSize.y, obstacleReference, mustBeDrawnGizmo);
+		tileCache->addObstacle(&position[0], obstacleSize.x, obstacleSize.y, obstacleReference, mustBeDrawnGizmo);
 		break;
 	default:	// DT_OBSTACLE_BOX ||  DT_OBSTACLE_ORIENTED_BOX
-		tileCache->addBoxObstacle(&position[0], &(boxSize / 2)[0], transform->GetGlobalRotation().ToEulerXYZ().y, obstacleReference, mustBeDrawnGizmo);
+		tileCache->addBoxObstacle(&position[0], &(obstacleSize / 2)[0], transform->GetGlobalRotation().ToEulerXYZ().y, obstacleReference, mustBeDrawnGizmo);
 		break;
 	}
 }
@@ -139,38 +140,37 @@ void ComponentObstacle::RemoveObstacle() {
 
 void ComponentObstacle::SetRadius(float newRadius) {
 	if (obstacleType == ObstacleType::DT_OBSTACLE_CYLINDER) {
-		boxSize.x = newRadius;
+		obstacleSize.x = newRadius;
 		AddObstacle();
 	}
 }
 
 void ComponentObstacle::SetHeight(float newHeight) {
 	if (obstacleType == ObstacleType::DT_OBSTACLE_CYLINDER) {
-		boxSize.y = newHeight;
+		obstacleSize.y = newHeight;
 		AddObstacle();
 	}
 }
 
 void ComponentObstacle::SetBoxSize(float3 size) {
 	if (obstacleType == ObstacleType::DT_OBSTACLE_BOX || obstacleType == ObstacleType::DT_OBSTACLE_ORIENTED_BOX) {
-		boxSize = size;
+		obstacleSize = size;
 		AddObstacle();
 	}
 }
 
 void ComponentObstacle::SetObstacleType(ObstacleType newType) {
 	obstacleType = newType;
-	//ResetSize();
 	AddObstacle();
 }
 
 void ComponentObstacle::ResetSize() {
 	if (obstacleType == ObstacleType::DT_OBSTACLE_CYLINDER) {
-		boxSize.x = 1.0f;
-		boxSize.y = 2.0f;
-		boxSize.z = 0;
+		obstacleSize.x = 1.0f;
+		obstacleSize.y = 2.0f;
+		obstacleSize.z = 0;
 	} else {
-		boxSize = float3::one;
+		obstacleSize = float3::one;
 	}
 }
 
