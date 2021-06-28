@@ -444,7 +444,6 @@ namespace Input {
 	//For these methods, playerID does mean the array index
 	TESSERACT_ENGINE_API bool GetControllerButtonDown(SDL_GameControllerButton button, int playerID);
 	TESSERACT_ENGINE_API bool GetControllerButtonUp(SDL_GameControllerButton button, int playerID);
-	TESSERACT_ENGINE_API bool GetControllerButtonRepeat(SDL_GameControllerButton button, int playerID);
 	TESSERACT_ENGINE_API bool GetControllerButton(SDL_GameControllerButton button, int playerID);
 	TESSERACT_ENGINE_API float GetControllerAxisValue(SDL_GameControllerAxis axis, int playerID);
 	TESSERACT_ENGINE_API bool IsGamepadConnected(int playerID);

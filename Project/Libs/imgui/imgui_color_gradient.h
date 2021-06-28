@@ -68,7 +68,11 @@ public:
 	std::list<ImGradientMark*> const& getMarks() const {
 		return m_marks;
 	}
+
 	void clearList() {
+		for (ImGradientMark* mark : m_marks) {
+			delete mark;
+		}
 		m_marks.clear();
 	}
 

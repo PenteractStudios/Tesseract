@@ -121,8 +121,8 @@ void ModulePrograms::LoadShaders() {
 	drawTexture = new ProgramDrawTexture(CreateProgram(filePath, "vertScreen", "fragDrawTexture"));
 
 	// Particle Shaders
-	billboard = CreateProgram(filePath, "billboardVertex", "billboardFragment");
-	trail = new ProgramTrail(CreateProgram(filePath, "trailVertex", "trailFragment"));
+	billboard = new ProgramBillboard(CreateProgram(filePath, "billboardVertex", "billboardFragment"));
+	trail = CreateProgram(filePath, "trailVertex", "trailFragment");
 
 	unsigned timeMs = timer.Stop();
 	LOG("Shaders loaded in %ums", timeMs);
@@ -154,8 +154,8 @@ void ModulePrograms::UnloadShaders() {
 
 	RELEASE(drawTexture);
 
-	glDeleteProgram(billboard);
-	RELEASE(trail);
+	RELEASE(billboard);
+	glDeleteProgram(trail);
 }
 
 unsigned ModulePrograms::CreateProgram(const char* shaderFile, const char* vertexSnippets, const char* fragmentSnippets) {

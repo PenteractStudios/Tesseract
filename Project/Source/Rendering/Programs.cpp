@@ -216,13 +216,19 @@ ProgramTextUI::ProgramTextUI(unsigned program_)
 	textColorLocation = glGetUniformLocation(program, "textColor");
 }
 
-ProgramTrail::ProgramTrail(unsigned program_)
+ProgramBillboard::ProgramBillboard(unsigned program_)
 	: Program(program_) {
-	//modelLocation = glGetUniformLocation(program, "model");
+	modelLocation = glGetUniformLocation(program, "model");
 	viewLocation = glGetUniformLocation(program, "view");
 	projLocation = glGetUniformLocation(program, "proj");
 
+	diffuseMapLocation = glGetUniformLocation(program, "diffuseMap");
+	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuseMap");
 	inputColorLocation = glGetUniformLocation(program, "inputColor");
-	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
-	diffuseMap = glGetUniformLocation(program, "diffuseMap");
+
+	currentFrameLocation = glGetUniformLocation(program, "currentFrame");
+	xTilesLocation = glGetUniformLocation(program, "Xtiles");
+	yTilesLocation = glGetUniformLocation(program, "Ytiles");
+	xFlipLocation = glGetUniformLocation(program, "flipX");
+	yFlipLocation = glGetUniformLocation(program, "flipY");
 }

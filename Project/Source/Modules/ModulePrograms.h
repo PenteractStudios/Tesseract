@@ -50,6 +50,6 @@ public:
 	ProgramImageUI* imageUI = 0;
 
 	// Particle Shaders
-	unsigned billboard = 0;
-	ProgramTrail* trail = 0;
+	ProgramBillboard* billboard = 0;
+	unsigned trail = 0;
 };

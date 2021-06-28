@@ -22,6 +22,7 @@
 #include "Math/TransformOps.h"
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "imgui_color_gradient.h"
 #include "GL/glew.h"
 #include "debugdraw.h"
 
@@ -34,12 +35,16 @@
 #define JSON_TAG_XTILES "Xtiles"
 #define JSON_TAG_ANIMATION_SPEED "AnimationSpeed"
 
-#define JSON_TAG_INIT_COLOR "InitColor"
-#define JSON_TAG_FINAL_COLOR "FinalColor"
-#define JSON_TAG_START_TRANSITION "StartTransition"
-#define JSON_TAG_END_TRANSITION "EndTransition"
+#define JSON_TAG_COLOR_OVER_LIFETIME "ColorOverLifetime"
+#define JSON_TAG_COLOR_LIFETIME "ColorLifeTime"
+#define JSON_TAG_NUMBER_COLORS "NumberColors"
+#define JSON_TAG_GRADIENT_COLORS "GradientColors"
 
 #define JSON_TAG_FLIP_TEXTURE "FlipTexture"
+
+ComponentBillboard::~ComponentBillboard() {
+	RELEASE(gradient);
+}
 
 void ComponentBillboard::OnEditorUpdate() {
 	if (ImGui::Checkbox("Active", &active)) {
@@ -108,17 +113,16 @@ void ComponentBillboard::OnEditorUpdate() {
 		ImGui::DragFloat("Animation Speed", &animationSpeed, App->editor->dragSpeed2f, -inf, inf);
 
 		ImGui::NewLine();
-		ImGui::BeginColumns("##color_gradient", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder | ImGuiColumnsFlags_NoPreserveWidths | ImGuiOldColumnFlags_NoForceWithinWindow);
-		{
-			ImGui::ColorEdit4("Init Color", initC.ptr(), ImGuiColorEditFlags_NoInputs);
-			ImGui::ColorEdit4("Final Color", finalC.ptr(), ImGuiColorEditFlags_NoInputs);
+		ImGui::TextColored(App->editor->titleColor, "Color over Lifetime");
+		ImGui::Checkbox("##color_over_lifetime", &colorOverLifetime);
+		if (colorOverLifetime) {
+			ImGui::SameLine();
+			ImGui::GradientEditor(gradient, draggingGradient, selectedGradient);
+			ImGui::DragFloat("Color Lifetime", &colorLifetime, App->editor->dragSpeed2f, 0, inf);
+			if (ImGui::Button("Reset Color")) {
+				ResetColor();
+			}
 		}
-		ImGui::NextColumn();
-		{
-			ImGui::SliderFloat("Start##start_transition", &startTransition, 0.0f, endTransition, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-			ImGui::DragFloat("End##end_transition", &endTransition, startTransition, inf);
-		}
-		ImGui::EndColumns();
 
 		ImGui::NewLine();
 		ImGui::Text("Flip: ");
@@ -141,12 +145,16 @@ void ComponentBillboard::Load(JsonValue jComponent) {
 	Xtiles = jComponent[JSON_TAG_XTILES];
 	animationSpeed = jComponent[JSON_TAG_ANIMATION_SPEED];
 
-	JsonValue jColor = jComponent[JSON_TAG_INIT_COLOR];
-	initC.Set(jColor[0], jColor[1], jColor[2]);
-	JsonValue jColor2 = jComponent[JSON_TAG_FINAL_COLOR];
-	finalC.Set(jColor2[0], jColor2[1], jColor2[2]);
-	startTransition = jComponent[JSON_TAG_START_TRANSITION];
-	endTransition = jComponent[JSON_TAG_END_TRANSITION];
+	colorOverLifetime = jComponent[JSON_TAG_COLOR_OVER_LIFETIME];
+	colorLifetime = jComponent[JSON_TAG_COLOR_LIFETIME];
+	int numberColors = jComponent[JSON_TAG_NUMBER_COLORS];
+	if (!gradient) gradient = new ImGradient();
+	gradient->clearList();
+	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLORS];
+	for (int i = 0; i < numberColors; ++i) {
+		JsonValue jMark = jColor[i];
+		gradient->addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
+	}
 
 	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
 	flipTexture[0] = jFlip[0];
@@ -162,16 +170,21 @@ void ComponentBillboard::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_XTILES] = Xtiles;
 	jComponent[JSON_TAG_ANIMATION_SPEED] = animationSpeed;
 
-	JsonValue jColor = jComponent[JSON_TAG_INIT_COLOR];
-	jColor[0] = initC.x;
-	jColor[1] = initC.y;
-	jColor[2] = initC.z;
-	JsonValue jColor2 = jComponent[JSON_TAG_FINAL_COLOR];
-	jColor2[0] = finalC.x;
-	jColor2[1] = finalC.y;
-	jColor2[2] = finalC.z;
-	jComponent[JSON_TAG_START_TRANSITION] = startTransition;
-	jComponent[JSON_TAG_END_TRANSITION] = endTransition;
+	jComponent[JSON_TAG_COLOR_OVER_LIFETIME] = colorOverLifetime;
+	jComponent[JSON_TAG_COLOR_LIFETIME] = colorLifetime;
+	int color = 0;
+	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLORS];
+	for (ImGradientMark* mark : gradient->getMarks()) {
+		JsonValue jMask = jColor[color];
+		jMask[0] = mark->color[0];
+		jMask[1] = mark->color[1];
+		jMask[2] = mark->color[2];
+		jMask[3] = mark->color[3];
+		jMask[4] = mark->position;
+
+		color++;
+	}
+	jComponent[JSON_TAG_NUMBER_COLORS] = gradient->getMarks().size();
 
 	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
 	jFlip[0] = flipTexture[0];
@@ -179,6 +192,7 @@ void ComponentBillboard::Save(JsonValue jComponent) const {
 }
 
 void ComponentBillboard::Init() {
+	if (!gradient) gradient = new ImGradient();
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 	initPos = transform->GetGlobalPosition();
 	previousPos = transform->GetGlobalRotation() * float3::unitY;
@@ -195,15 +209,18 @@ void ComponentBillboard::Update() {
 	}
 	previousPos = position;
 
-	if (App->time->HasGameStarted()) {
-		colorFrame += App->time->GetDeltaTime();
-	} else {
-		colorFrame += App->time->GetRealTimeDeltaTime();
-	}
+	colorFrame += App->time->GetDeltaTimeOrRealDeltaTime();
+	currentFrame += animationSpeed * App->time->GetDeltaTimeOrRealDeltaTime();
 }
 
 void ComponentBillboard::Draw() {
-	unsigned int program = App->programs->billboard;
+	ProgramBillboard* program = App->programs->billboard;
+	glUseProgram(program->program);
+
+	unsigned glTexture = 0;
+	ResourceTexture* texture = App->resources->GetResource<ResourceTexture>(textureID);
+	glTexture = texture ? texture->glTexture : 0;
+	int hasDiffuseMap = texture ? 1 : 0;
 
 	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
@@ -215,7 +232,6 @@ void ComponentBillboard::Draw() {
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*) (sizeof(float) * 6 * 3));
-	glUseProgram(program);
 
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 
@@ -230,13 +246,13 @@ void ComponentBillboard::Draw() {
 
 	float4x4 newModelMatrix;
 
-	if (billboardType == BillboardType::LOOK_AT) {
+	if (billboardType == BillboardType::NORMAL) {
 		newModelMatrix = modelMatrix.LookAt(rotatePart.Col(2), -frustum->Front(), rotatePart.Col(1), float3::unitY);
 		newModelMatrix = float4x4::FromTRS(position, newModelMatrix.RotatePart() * modelMatrix.RotatePart(), scale);
 
 	} else if (billboardType == BillboardType::STRETCH) {
 		float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
-		float3 cameraDir = (cameraPos -  position).Normalized();
+		float3 cameraDir = (cameraPos - position).Normalized();
 		float3 upDir = Cross(direction, cameraDir);
 		float3 newCameraDir = Cross(direction, upDir);
 
@@ -256,43 +272,40 @@ void ComponentBillboard::Draw() {
 		modelMatrix = modelMatrix;
 	}
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_TRUE, newModelMatrix.ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view->ptr());
-	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, proj->ptr());
+	glUniformMatrix4fv(program->modelLocation, 1, GL_TRUE, newModelMatrix.ptr());
+	glUniformMatrix4fv(program->viewLocation, 1, GL_TRUE, view->ptr());
+	glUniformMatrix4fv(program->projLocation, 1, GL_TRUE, proj->ptr());
 
-	if (!isRandomFrame) {
-		if (App->time->HasGameStarted()) {
-			currentFrame += animationSpeed * App->time->GetDeltaTime();
-		} else {
-			currentFrame += animationSpeed * App->time->GetRealTimeDeltaTime();
-		}
+	float4 color = float4::one;
+	if (colorOverLifetime) {
+		float factor = colorFrame / colorLifetime;
+		gradient->getColorAt(factor, color.ptr());
 	}
+
+	glUniform1i(program->diffuseMapLocation, 0);
+	glUniform1i(program->hasDiffuseLocation, hasDiffuseMap);
+	glUniform4fv(program->inputColorLocation, 1, color.ptr());
+
+	glUniform1f(program->currentFrameLocation, currentFrame);
+
+	glUniform1i(program->xTilesLocation, Xtiles);
+	glUniform1i(program->yTilesLocation, Ytiles);
+
+	glUniform1i(program->xFlipLocation, flipTexture[0]);
+	glUniform1i(program->yFlipLocation, flipTexture[1]);
 
 	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(glGetUniformLocation(program, "diffuse"), 0);
-	glUniform1f(glGetUniformLocation(program, "currentFrame"), currentFrame);
-	glUniform1f(glGetUniformLocation(program, "colorFrame"), colorFrame);
-	glUniform4fv(glGetUniformLocation(program, "initColor"), 1, initC.ptr());
-	glUniform4fv(glGetUniformLocation(program, "finalColor"), 1, finalC.ptr());
-	glUniform1f(glGetUniformLocation(program, "startTransition"), startTransition);
-	glUniform1f(glGetUniformLocation(program, "endTransition"), endTransition);
+	glBindTexture(GL_TEXTURE_2D, glTexture);
 
-	glUniform1i(glGetUniformLocation(program, "Xtiles"), Xtiles);
-	glUniform1i(glGetUniformLocation(program, "Ytiles"), Ytiles);
-
-	glUniform1i(glGetUniformLocation(program, "flipX"), flipTexture[0]);
-	glUniform1i(glGetUniformLocation(program, "flipY"), flipTexture[1]);
-
-	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
-	if (textureResource != nullptr) {
-		glBindTexture(GL_TEXTURE_2D, textureResource->glTexture);
-	}
 	//TODO: implement drawarrays
-	//glDrawArraysInstanced(GL_TRIANGLES, 0, 4, 100);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
+}
+
+void ComponentBillboard::ResetColor() {
+	colorFrame = 0.0f;
 }
