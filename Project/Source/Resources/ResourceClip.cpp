@@ -31,6 +31,8 @@
 #define JSON_TAG_SPEED "Speed"
 #define JSON_TAG_ID "Id"
 #define JSON_TAG_FRAMERATE "FrameRate"
+#define JSON_TAG_KEY_FRAME "KeyFrame"
+#define JSON_TAG_KEY_EVENT_CLIP "KeyEventClip"
 
 void ResourceClip::Load() {
 	// Timer to measure loading a clip
@@ -58,6 +60,13 @@ void ResourceClip::Load() {
 	loop = jStateMachine[JSON_TAG_LOOP];
 	speed = jStateMachine[JSON_TAG_SPEED];
 	frameRate = jStateMachine[JSON_TAG_FRAMERATE];
+
+	JsonValue keyEventClipsJson = jStateMachine[JSON_TAG_KEY_EVENT_CLIP];
+	for (unsigned int i = 0; i < keyEventClipsJson.Size(); ++i) {
+		unsigned int keyframe = keyEventClipsJson[i][JSON_TAG_KEY_FRAME];
+		std::string name = keyEventClipsJson[i][JSON_TAG_NAME];
+		keyEventClips.insert(std::make_pair(keyframe, EventClip {false, name}));
+	}
 
 	Init(name, animationUID, beginIndex, endIndex, loop, speed, 0);
 
@@ -90,6 +99,15 @@ void ResourceClip::GetInfoJson() {
 	loop = jStateMachine[JSON_TAG_LOOP];
 	speed = jStateMachine[JSON_TAG_SPEED];
 	frameRate = jStateMachine[JSON_TAG_FRAMERATE];
+
+	JsonValue keyEventClipsJson = jStateMachine[JSON_TAG_KEY_EVENT_CLIP];
+	for (unsigned int i = 0; i < keyEventClipsJson.Size(); ++i) {
+		unsigned int keyframe = keyEventClipsJson[i][JSON_TAG_KEY_FRAME];
+		std::string name = keyEventClipsJson[i][JSON_TAG_NAME];
+		keyEventClips.insert(std::make_pair(keyframe, EventClip {false, name}));
+	}
+	
+
 	unsigned timeMs = timer.Stop();
 	LOG("Clip info received in %ums", timeMs);
 }
@@ -122,6 +140,42 @@ void ResourceClip::OnEditorUpdate() {
 	SetEndIndex(endIndex);
 
 	ImGui::DragFloat("Speed", &speed, 0.001f);
+	ImGui::NewLine();
+
+	ImGui::TextColored(App->editor->textColor, "New key frame event");
+	ImGui::DragScalar("KeyFrame", ImGuiDataType_U32, &newKeyFrameEditor);
+
+	char newNameEvent[100];
+	sprintf_s(newNameEvent, 100, "%s", newNameEditor.c_str());
+	if (ImGui::InputText("##newEventClip_name", newNameEvent, 100)) {
+		newNameEditor = newNameEvent;
+	}
+
+	if (ImGui::Button("Add")) {
+		keyEventClips.insert(std::make_pair(newKeyFrameEditor, EventClip {false, newNameEditor}));
+		newKeyFrameEditor = 0;
+		newNameEditor = "NewName";
+	}
+
+	for (auto& element : keyEventClips) {		
+		ImGui::TextColored(App->editor->textColor, "KeyFrame %d", element.first);
+
+		char nameEvent[100];
+		sprintf_s(nameEvent, 100, "%s", element.second.name.c_str());
+		if (ImGui::InputText("##eventClip_name", nameEvent, 100)) {
+			element.second.name = nameEvent;
+		}
+
+		std::string buttonDelete = "Delete key frame: " + std::to_string(element.first);		
+		if (ImGui::Button(buttonDelete.c_str())) {
+			keyToDelete = element.first;
+		}
+
+	}
+	if (keyToDelete != -1) {
+		keyEventClips.erase(keyToDelete);
+		keyToDelete = -1;
+	}
 
 	ImGui::NewLine();
 	if (ImGui::Button("Save##clip")) {
@@ -147,6 +201,14 @@ bool ResourceClip::SaveToFile(const char* filePath) {
 	jStateMachine[JSON_TAG_LOOP] = loop;
 	jStateMachine[JSON_TAG_SPEED] = speed;
 	jStateMachine[JSON_TAG_FRAMERATE] = frameRate;
+
+	JsonValue keyEventClipArray = jStateMachine[JSON_TAG_KEY_EVENT_CLIP];
+	int i = 0;
+	for (const auto& element : keyEventClips) {
+		keyEventClipArray[i][JSON_TAG_KEY_FRAME] = element.first;
+		keyEventClipArray[i][JSON_TAG_NAME] = element.second.name.c_str();
+		++i;
+	}
 
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
