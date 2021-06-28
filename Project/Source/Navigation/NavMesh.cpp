@@ -198,13 +198,7 @@ struct RasterizationContext {
 	int ntiles;
 };
 
-static int calcLayerBufferSize(const int gridWidth, const int gridHeight) {
-	const int headerSize = dtAlign4(sizeof(dtTileCacheLayerHeader));
-	const int gridSize = gridWidth * gridHeight;
-	return headerSize + gridSize * 4;
-}
-
-static int rasterizeTileLayers(float* verts, int nVerts, int nTris, BuildContext* ctx, rcChunkyTriMesh* chunkyMesh, const int tx, const int ty, const rcConfig& cfg, TileCacheData* tiles, const int maxTiles) {
+static int RasterizeTileLayers(float* verts, int nVerts, int nTris, BuildContext* ctx, rcChunkyTriMesh* chunkyMesh, const int tx, const int ty, const rcConfig& cfg, TileCacheData* tiles, const int maxTiles) {
 	FastLZCompressor comp;
 	RasterizationContext rc;
 
@@ -351,7 +345,7 @@ static int rasterizeTileLayers(float* verts, int nVerts, int nTris, BuildContext
 	return n;
 }
 
-void drawTiles(duDebugDraw* dd, dtTileCache* tc) {
+void DrawTiles(duDebugDraw* dd, dtTileCache* tc) {
 	unsigned int fcol[6];
 	float bmin[3], bmax[3];
 
@@ -378,7 +372,7 @@ void drawTiles(duDebugDraw* dd, dtTileCache* tc) {
 	}
 }
 
-void drawObstacles(duDebugDraw* dd, const dtTileCache* tc) {
+void DrawObstacles(duDebugDraw* dd, const dtTileCache* tc) {
 	// Draw obstacles
 	for (int i = 0; i < tc->getObstacleCount(); ++i) {
 		const dtTileCacheObstacle* ob = tc->getObstacle(i);
@@ -388,12 +382,13 @@ void drawObstacles(duDebugDraw* dd, const dtTileCache* tc) {
 		tc->getObstacleBounds(ob, bmin, bmax);
 
 		unsigned int col = 0;
-		if (ob->state == DT_OBSTACLE_PROCESSING)
+		if (ob->state == DT_OBSTACLE_PROCESSING) {
 			col = duRGBA(255, 255, 0, 128);
-		else if (ob->state == DT_OBSTACLE_PROCESSED)
+		} else if (ob->state == DT_OBSTACLE_PROCESSED) {
 			col = duRGBA(255, 192, 0, 192);
-		else if (ob->state == DT_OBSTACLE_REMOVING)
+		} else if (ob->state == DT_OBSTACLE_REMOVING) {
 			col = duRGBA(220, 0, 0, 128);
+		}
 
 		if (ob->type == ObstacleType::DT_OBSTACLE_CYLINDER) {
 			duDebugDrawCylinder(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], col);
@@ -591,7 +586,7 @@ bool NavMesh::Build() {
 		for (int x = 0; x < tw; ++x) {
 			TileCacheData tiles[MAX_LAYERS];
 			memset(tiles, 0, sizeof(tiles));
-			int ntiles = rasterizeTileLayers(&verts[0], nverts, ntris, ctx, chunkyMesh, x, y, cfg, tiles, MAX_LAYERS);
+			int ntiles = RasterizeTileLayers(&verts[0], nverts, ntris, ctx, chunkyMesh, x, y, cfg, tiles, MAX_LAYERS);
 
 			for (int i = 0; i < ntiles; ++i) {
 				TileCacheData* tile = &tiles[i];
@@ -606,17 +601,20 @@ bool NavMesh::Build() {
 	}
 
 	// Build initial meshes
-	for (int y = 0; y < th; ++y)
-		for (int x = 0; x < tw; ++x)
+	for (int y = 0; y < th; ++y) {
+		for (int x = 0; x < tw; ++x) {
 			tileCache->buildNavMeshTilesAt(x, y, navMesh);
+		}
+	}
 	ctx->stopTimer(RC_TIMER_TOTAL);
 
 	const dtNavMesh* nav = navMesh;
 	int navmeshMemUsage = 0;
 	for (int i = 0; i < nav->getMaxTiles(); ++i) {
 		const dtMeshTile* tile = nav->getTile(i);
-		if (tile->header)
+		if (tile->header) {
 			navmeshMemUsage += tile->dataSize;
+		}
 	}
 
 	RELEASE(chunkyMesh);
@@ -678,10 +676,10 @@ void NavMesh::DrawGizmos() {
 	}
 
 	if (tileCache && drawMode == DRAWMODE_CACHE_BOUNDS)
-		drawTiles(&dd, tileCache);
+		DrawTiles(&dd, tileCache);
 
 	if (tileCache)
-		drawObstacles(&dd, tileCache);
+		DrawObstacles(&dd, tileCache);
 
 	// Draw bounds
 	duDebugDrawBoxWire(&dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duRGBA(255, 255, 255, 128), 1.0f);
@@ -695,14 +693,19 @@ void NavMesh::DrawGizmos() {
 	duDebugDrawGridXZ(&dd, bmin[0], bmin[1], bmin[2], tw, th, s, duRGBA(0, 0, 0, 64), 1.0f);
 
 	if (navMesh && navQuery && (drawMode == DRAWMODE_NAVMESH || drawMode == DRAWMODE_NAVMESH_TRANS || drawMode == DRAWMODE_NAVMESH_BVTREE || drawMode == DRAWMODE_NAVMESH_NODES || drawMode == DRAWMODE_NAVMESH_PORTALS || drawMode == DRAWMODE_NAVMESH_INVIS)) {
-		if (drawMode != DRAWMODE_NAVMESH_INVIS)
+		if (drawMode != DRAWMODE_NAVMESH_INVIS) {
 			duDebugDrawNavMeshWithClosedList(&dd, *navMesh, *navQuery, navMeshDrawFlags /*|DU_DRAWNAVMESH_COLOR_TILES*/);
-		if (drawMode == DRAWMODE_NAVMESH_BVTREE)
+		}
+		if (drawMode == DRAWMODE_NAVMESH_BVTREE) {
 			duDebugDrawNavMeshBVTree(&dd, *navMesh);
-		if (drawMode == DRAWMODE_NAVMESH_PORTALS)
+		}
+		if (drawMode == DRAWMODE_NAVMESH_PORTALS) {
 			duDebugDrawNavMeshPortals(&dd, *navMesh);
-		if (drawMode == DRAWMODE_NAVMESH_NODES)
+		}
+		if (drawMode == DRAWMODE_NAVMESH_NODES) {
 			duDebugDrawNavMeshNodes(&dd, *navQuery);
+		}
+			
 		duDebugDrawNavMeshPolysWithFlags(&dd, *navMesh, SAMPLE_POLYFLAGS_DISABLED, duRGBA(0, 0, 0, 128));
 	}
 

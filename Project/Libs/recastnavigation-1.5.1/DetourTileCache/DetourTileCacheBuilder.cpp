@@ -2030,8 +2030,10 @@ dtStatus dtMarkBoxArea(dtTileCacheLayer& layer, const float* orig, const float c
 	for (int z = minz; z <= maxz; ++z) {
 		for (int x = minx; x <= maxx; ++x) {
 			const int y = layer.heights[x + z * w];
-			if (y < miny || y > maxy)
+			if (y < miny || y > maxy) {
 				continue;
+			}
+				
 			layer.areas[x + z * w] = areaId;
 		}
 	}
@@ -2074,14 +2076,20 @@ dtStatus dtMarkBoxArea(dtTileCacheLayer& layer, const float* orig, const float c
 			float x2 = 2.0f * (float(x) - cx);
 			float z2 = 2.0f * (float(z) - cz);
 			float xrot = rotAux[1] * x2 + rotAux[0] * z2;
-			if (xrot > xhalf || xrot < -xhalf)
+			if (xrot > xhalf || xrot < -xhalf) {
 				continue;
+			}
+				
 			float zrot = rotAux[1] * z2 - rotAux[0] * x2;
-			if (zrot > zhalf || zrot < -zhalf)
+			if (zrot > zhalf || zrot < -zhalf) {
 				continue;
+			}
+
 			const int y = layer.heights[x + z * w];
-			if (y < miny || y > maxy)
+			if (y < miny || y > maxy) {
 				continue;
+			}
+				
 			layer.areas[x + z * w] = areaId;
 		}
 	}
