@@ -445,8 +445,6 @@ NavMesh::~NavMesh() {
 
 bool NavMesh::Build() {
 	CleanUp();
-	CleanCrowd();
-	CleanObstacles();
 
 	verts = App->scene->scene->GetVertices();
 	nverts = verts.size();
@@ -627,6 +625,7 @@ bool NavMesh::Build() {
 	printf("navmeshMemUsage = %.1f kB", navmeshMemUsage / 1024.0f);
 
 	InitCrowd();
+
 	RescanCrowd();
 	RescanObstacles();
 
@@ -647,13 +646,13 @@ void NavMesh::DrawGizmos() {
 	glLoadIdentity();
 	glLoadMatrixf(App->camera->GetViewMatrix().Transposed().ptr());
 
-	glEnable(GL_FOG);
-	//glDepthMask(GL_TRUE);
+	GLboolean depthMaskValue;
+	GLboolean depth;
+	glGetBooleanv(GL_DEPTH_TEST, &depthMaskValue);
+	glDepthMask(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
 
 	const float texScale = 1.0f / (cellSize * 10.0f);
-
-	glDisable(GL_FOG);
-	//glDepthMask(GL_FALSE);
 
 	// Draw bounds
 	float bmin[3] = {FLT_MAX, FLT_MAX, FLT_MAX};
@@ -685,8 +684,6 @@ void NavMesh::DrawGizmos() {
 	if (tileCache)
 		drawObstacles(&dd, tileCache);
 
-	//glDepthMask(GL_FALSE);
-
 	// Draw bounds
 	duDebugDrawBoxWire(&dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duRGBA(255, 255, 255, 128), 1.0f);
 
@@ -710,7 +707,9 @@ void NavMesh::DrawGizmos() {
 		duDebugDrawNavMeshPolysWithFlags(&dd, *navMesh, SAMPLE_POLYFLAGS_DISABLED, duRGBA(0, 0, 0, 128));
 	}
 
-	//glDepthMask(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
+
+	glDepthMask(depthMaskValue);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -737,8 +736,6 @@ struct TileCacheTileHeader {
 
 void NavMesh::Load(Buffer<char>& buffer) {
 	CleanUp();
-	CleanCrowd();
-	CleanObstacles();
 
 	verts = App->scene->scene->GetVertices();
 	nverts = verts.size();
@@ -799,8 +796,6 @@ void NavMesh::Load(Buffer<char>& buffer) {
 		tileCache->addTile(data, tileHeader.dataSize, DT_COMPRESSEDTILE_FREE_DATA, &tile);
 
 		if (tile) tileCache->buildNavMeshTile(tile, navMesh);
-
-		//free(data); 
 	}
 
 	status = navQuery->init(navMesh, 2048);

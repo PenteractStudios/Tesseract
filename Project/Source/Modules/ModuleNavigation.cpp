@@ -25,8 +25,8 @@ UpdateStatus ModuleNavigation::Update() {
 		return UpdateStatus::CONTINUE;
 	}
 
-	navMesh.GetCrowd()->update(App->time->GetDeltaTime(), nullptr);						// Update agents
 	navMesh.GetTileCache()->update(App->time->GetDeltaTime(), navMesh.GetNavMesh());	// Update obstacles
+	navMesh.GetCrowd()->update(App->time->GetDeltaTime(), nullptr);						// Update agents
 
 	return UpdateStatus::CONTINUE;
 }
@@ -53,6 +53,12 @@ void ModuleNavigation::BakeNavMesh() {
 	bool generated = navMesh.Build();
 	unsigned timeMs = timer.Stop();
 	if (generated) {
+		navMesh.GetTileCache()->update(App->time->GetDeltaTime(), navMesh.GetNavMesh());
+		navMesh.GetCrowd()->update(App->time->GetDeltaTime(), nullptr);
+
+		navMesh.RescanCrowd();
+		navMesh.RescanObstacles();
+
 		LOG("NavMesh successfully baked in %ums", timeMs);
 	} else {
 		LOG("NavMesh ERROR. Could not be baked in %ums", timeMs);

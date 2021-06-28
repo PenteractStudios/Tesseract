@@ -26,6 +26,11 @@ public:
 	dtNavMesh* GetNavMesh();			// Returns navMesh
 	dtTileCache* GetTileCache();		// Returns tileCache
 
+	void CleanCrowd();
+	void RescanCrowd();
+	void CleanObstacles();
+	void RescanObstacles();
+
 public:
 	enum DrawMode {
 		DRAWMODE_NAVMESH,
@@ -79,10 +84,7 @@ public:
 
 private:
 	void InitCrowd();			// Inits crowd with MAX_AGENTS
-	void CleanCrowd();
-	void RescanCrowd();
-	void CleanObstacles();
-	void RescanObstacles();
+
 
 private:
 	BuildContext* ctx = nullptr;
