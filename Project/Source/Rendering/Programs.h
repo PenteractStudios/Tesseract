@@ -245,3 +245,13 @@ struct ProgramBillboard : Program {
 	int xFlipLocation = -1;
 	int yFlipLocation = -1;
 };
+struct ProgramTrail : Program {
+	ProgramTrail(unsigned program);
+
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int inputColorLocation = -1;
+	int hasDiffuseLocation = -1;
+	int diffuseMap = -1;
+};

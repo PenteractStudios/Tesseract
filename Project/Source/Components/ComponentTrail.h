@@ -24,6 +24,8 @@ public:
 
 	REGISTER_COMPONENT(ComponentTrail, ComponentType::TRAIL, false);
 
+	~ComponentTrail();
+
 	void Init() override;
 	void Update() override;
 	void OnEditorUpdate() override;
@@ -67,7 +69,7 @@ private:
 	float quadLife = 10.0f;
 
 	// Color Settings
-	ImGradient gradient;
+	ImGradient* gradient = nullptr;
 	ImGradientMark* draggingGradient = nullptr;
 	ImGradientMark* selectedGradient = nullptr;
 

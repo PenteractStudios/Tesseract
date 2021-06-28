@@ -42,8 +42,13 @@
 #define JSON_TAG_NUMBER_COLORS "NumColors"
 #define JSON_TAG_COLOR_LIFE "ColorLife"
 
+ComponentTrail::~ComponentTrail() {
+	RELEASE(gradient);
+}
+
 void ComponentTrail::Init() {
 	glGenBuffers(1, &quadVBO);
+	if (!gradient) gradient = new ImGradient();
 	EditTextureCoords();
 }
 
@@ -139,7 +144,7 @@ void ComponentTrail::OnEditorUpdate() {
 	ImGui::Checkbox("Color Over Trail", &colorOverTrail);
 	if (colorOverTrail) {
 		ImGui::DragFloat("Color Life", &colorLife, App->editor->dragSpeed2f, 0, inf);
-		ImGui::GradientEditor(&gradient, draggingGradient, selectedGradient);
+		ImGui::GradientEditor(gradient, draggingGradient, selectedGradient);
 	}
 
 	UID oldID = textureID;
@@ -181,11 +186,12 @@ void ComponentTrail::Load(JsonValue jComponent) {
 
 	colorOverTrail = jComponent[JSON_TAG_COLOR_OVER_TRAIL];
 	int numberColors = jComponent[JSON_TAG_NUMBER_COLORS];
-	gradient.clearList();
+	if (!gradient) gradient = new ImGradient();
+	gradient->clearList();
 	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLOR];
 	for (int i = 0; i < numberColors; ++i) {
 		JsonValue jMark = jColor[i];
-		gradient.addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
+		gradient->addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
 	}
 	colorLife = jComponent[JSON_TAG_COLOR_LIFE];
 }
@@ -202,7 +208,7 @@ void ComponentTrail::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_COLOR_OVER_TRAIL] = colorOverTrail;
 	int color = 0;
 	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLOR];
-	for (ImGradientMark* mark : gradient.getMarks()) {
+	for (ImGradientMark* mark : gradient->getMarks()) {
 		JsonValue jMask = jColor[color];
 		jMask[0] = mark->color[0];
 		jMask[1] = mark->color[1];
@@ -212,7 +218,7 @@ void ComponentTrail::Save(JsonValue jComponent) const {
 
 		color++;
 	}
-	jComponent[JSON_TAG_NUMBER_COLORS] = gradient.getMarks().size();
+	jComponent[JSON_TAG_NUMBER_COLORS] = gradient->getMarks().size();
 	jComponent[JSON_TAG_COLOR_LIFE] = colorLife;
 }
 
@@ -254,7 +260,7 @@ void ComponentTrail::Draw() {
 		float4 color = float4::one;
 		if (colorOverTrail) {
 			float factor = currentQuad->life / colorLife;
-			gradient.getColorAt(factor, color.ptr());
+			gradient->getColorAt(factor, color.ptr());
 		}
 
 		glUniform1i(trailProgram->diffuseMap, 0);
