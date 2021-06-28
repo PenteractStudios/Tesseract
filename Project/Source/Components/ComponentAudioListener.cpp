@@ -52,7 +52,7 @@ void ComponentAudioListener::OnEnable() {
 }
 
 void ComponentAudioListener::OnDisable() {
-	//alListenerf(AL_GAIN, 0.f);
+	alListenerf(AL_GAIN, 0.f);
 }
 
 void ComponentAudioListener::UpdateAudioListener() {
@@ -107,6 +107,6 @@ float ComponentAudioListener::GetAudioVolume() const {
 
 void ComponentAudioListener::SetAudioVolume(float volume) {
 	gain = volume;
-	//alListenerf(AL_GAIN, (ALfloat) volume);
+	alListenerf(AL_GAIN, (ALfloat) volume);
 	UpdateAudioListener();
 }

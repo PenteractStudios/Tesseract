@@ -92,7 +92,7 @@ void ComponentAudioSource::OnEditorUpdate() {
 		if (mute) {
 			alSourcef(sourceId, AL_GAIN, 0.0f);
 		} else {
-			//alSourcef(sourceId, AL_GAIN, gain);
+			alSourcef(sourceId, AL_GAIN, gain);
 		}
 	}
 
@@ -100,7 +100,7 @@ void ComponentAudioSource::OnEditorUpdate() {
 		alSourcef(sourceId, AL_LOOPING, loopSound);
 	}
 	if (ImGui::DragFloat("Gain", &gain, App->editor->dragSpeed3f, 0, 1)) {
-		//alSourcef(sourceId, AL_GAIN, gain);
+		alSourcef(sourceId, AL_GAIN, gain);
 	}
 	if (ImGui::DragFloat("Pitch", &pitch, App->editor->dragSpeed3f, 0.5, 2)) {
 		alSourcef(sourceId, AL_PITCH, pitch);
@@ -205,7 +205,7 @@ void ComponentAudioSource::UpdateSourceParameters() {
 	if (mute) {
 		alSourcef(sourceId, AL_GAIN, 0.0f);
 	} else {
-		//alSourcef(sourceId, AL_GAIN, gain);
+		alSourcef(sourceId, AL_GAIN, gain);
 	}
 	alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFact);
 	alSourcef(sourceId, AL_REFERENCE_DISTANCE, rollOffFact);
