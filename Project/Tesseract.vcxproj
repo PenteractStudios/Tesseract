@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Components\ComponentObstacle.h" />
+    <ClInclude Include="Libs\imgui\imgui_color_gradient.h" />
     <ClInclude Include="Source\Panels\PanelAudioMixer.h" />
     <ClInclude Include="Source\FileSystem\StateMachinGenerator.h" />
     <ClInclude Include="Source\Components\ComponentBillboard.h" />
@@ -347,6 +348,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Components\ComponentObstacle.cpp" />
+    <ClCompile Include="Libs\imgui\imgui_color_gradient.cpp" />
     <ClCompile Include="Source\Panels\PanelAudioMixer.cpp" />
     <ClCompile Include="Source\FileSystem\StateMachinGenerator.cpp" />
     <ClCompile Include="Source\Components\ComponentBillboard.cpp" />
