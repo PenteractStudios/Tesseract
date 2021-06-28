@@ -48,23 +48,26 @@ void ComponentSkyBox::Draw() {
 	ResourceSkybox* skybox = App->resources->GetResource<ResourceSkybox>(skyboxId);
 	if (skybox == nullptr) return;
 
-	glDepthMask(GL_FALSE);
-	glDepthFunc(GL_LEQUAL);
+	ProgramSkybox* skyboxProgram = App->programs->skybox;
+	if (skyboxProgram == nullptr) return;
 
-	unsigned program = App->programs->skybox;
-	glUseProgram(program);
+	glUseProgram(skyboxProgram->program);
+
 	float4x4 proj = App->camera->GetProjectionMatrix();
 	float4x4 view = App->camera->GetViewMatrix();
+	glUniformMatrix4fv(skyboxProgram->viewLocation, 1, GL_TRUE, &view[0][0]);
+	glUniformMatrix4fv(skyboxProgram->projLocation, 1, GL_TRUE, &proj[0][0]);
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_TRUE, &proj[0][0]);
+	glUniform1i(skyboxProgram->cubemapLocation, 0);
 
-	glBindVertexArray(skybox->GetVAO());
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetGlCubeMap());
-	glDrawArrays(GL_TRIANGLES, 0, 36);
 
+	glBindVertexArray(App->renderer->cubeVAO);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
-	glDepthFunc(GL_LESS);
-	glDepthMask(GL_TRUE);
+}
+
+UID ComponentSkyBox::GetSkyboxResourceID() {
+	return skyboxId;
 }

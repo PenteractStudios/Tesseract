@@ -88,29 +88,40 @@ void ModulePrograms::LoadShaders() {
 	LoadShaderBinFile();
 #endif
 
-	//SkyBox shader
-	skybox = CreateProgram(filePath, "vertSkybox", "fragSkybox");
+	// SkyBox shaders
+	hdrToCubemap = new ProgramHDRToCubemap(CreateProgram(filePath, "vertCube", "fragFunctionIBL fragHDRToCubemap"));
+	irradiance = new ProgramIrradiance(CreateProgram(filePath, "vertCube", "fragFunctionIBL fragIrradianceMap"));
+	preFilteredMap = new ProgramPreFilteredMap(CreateProgram(filePath, "vertCube", "fragFunctionIBL fragPreFilteredMap"));
+	environmentBRDF = new ProgramEnvironmentBRDF(CreateProgram(filePath, "vertScreen", "fragFunctionIBL fragEnvironmentBRDF"));
+	skybox = new ProgramSkybox(CreateProgram(filePath, "vertCube", "fragSkybox"));
 
-	//General shaders
-	phongNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragMainPhong");
-	phongNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragMainPhong");
-	standardNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic");
-	standardNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic");
-	specularNotNormal = CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
-	specularNormal = CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular");
+	// General shaders
+	phongNotNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragMainPhong"));
+	phongNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragMainPhong"));
+	standardNotNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic"));
+	standardNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic"));
+	specularNotNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
+	specularNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainNormal", "fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
+
+	// Depth Prepass Shaders
+	depthPrepass = new ProgramDepthPrepass(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragDepthPrepass"));
+
+	// SSAO Shaders
+	ssao = new ProgramSSAO(CreateProgram(filePath, "vertScreen", "fragSSAO"));
+	ssaoBlur = new ProgramSSAOBlur(CreateProgram(filePath, "vertScreen", "fragGaussianBlur"));
 
 	// Shadow Shaders
 	shadowMap = CreateProgram(filePath, "vertDepthMap", "fragDepthMap");
 
 	//UI shaders
-	textUI = CreateProgram(filePath, "vertTextUI", "fragTextUI");
-	imageUI = CreateProgram(filePath, "vertImageUI", "fragImageUI");
+	textUI = new ProgramTextUI(CreateProgram(filePath, "vertTextUI", "fragTextUI"));
+	imageUI = new ProgramImageUI(CreateProgram(filePath, "vertImageUI", "fragImageUI"));
 
 	// Engine Shaders
-	drawDepthMapTexture = CreateProgram(filePath, "vertDrawDepthMapTexture", "fragDrawDepthMapTexture");
+	drawTexture = new ProgramDrawTexture(CreateProgram(filePath, "vertScreen", "fragDrawTexture"));
 
 	// Particle Shaders
-	billboard = CreateProgram(filePath, "billboardVertex", "billboardFragment");
+	billboard = new ProgramBillboard(CreateProgram(filePath, "billboardVertex", "billboardFragment"));
 	trail = CreateProgram(filePath, "trailVertex", "trailFragment");
 
 	unsigned timeMs = timer.Stop();
@@ -118,18 +129,32 @@ void ModulePrograms::LoadShaders() {
 }
 
 void ModulePrograms::UnloadShaders() {
-	glDeleteProgram(skybox);
-	glDeleteProgram(phongNormal);
-	glDeleteProgram(phongNotNormal);
-	glDeleteProgram(standardNormal);
-	glDeleteProgram(standardNotNormal);
-	glDeleteProgram(specularNormal);
-	glDeleteProgram(specularNotNormal);
+	RELEASE(hdrToCubemap);
+	RELEASE(irradiance);
+	RELEASE(preFilteredMap);
+	RELEASE(environmentBRDF);
+	RELEASE(skybox);
+
+	RELEASE(phongNormal);
+	RELEASE(phongNotNormal);
+	RELEASE(standardNormal);
+	RELEASE(standardNotNormal);
+	RELEASE(specularNormal);
+	RELEASE(specularNotNormal);
+
+	RELEASE(depthPrepass);
+
+	RELEASE(ssao);
+	RELEASE(ssaoBlur);
+
 	glDeleteProgram(shadowMap);
-	glDeleteProgram(drawDepthMapTexture);
-	glDeleteProgram(textUI);
-	glDeleteProgram(imageUI);
-	glDeleteProgram(billboard);
+
+	RELEASE(textUI);
+	RELEASE(imageUI);
+
+	RELEASE(drawTexture);
+
+	RELEASE(billboard);
 	glDeleteProgram(trail);
 }
 

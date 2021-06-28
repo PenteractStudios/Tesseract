@@ -580,8 +580,7 @@ void plane(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,)
 void sphere(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,)
             ddVec3_In center,
             ddVec3_In color,
-            float radius, 
-            int hemisphereDir = 0,
+            float radius,
             int durationMillis = 0,
             bool depthEnabled = true);
 
@@ -2964,9 +2963,8 @@ void plane(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,) ddVec3_In center, ddVec3
 }
 
 void sphere(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,) ddVec3_In center, ddVec3_In color,
-            const float radius, int hemisphereDir, const int durationMillis, const bool depthEnabled)
+            const float radius, const int durationMillis, const bool depthEnabled)
 {
-
     if (!isInitialized(DD_EXPLICIT_CONTEXT_ONLY(ctx)))
     {
         return;
@@ -2984,83 +2982,29 @@ void sphere(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,) ddVec3_In center, ddVec
         vecCopy(cache[n], cache[0]);
     }
 
-    // Hemispheres direction angles
-	int archInitialAngle, archFinalAngle, fillInitialAngle, fillFinalAngle;
-	switch (hemisphereDir) {
-	case 0:
-        // Complete Sphere
-		archInitialAngle = stepSize;
-		archFinalAngle = 360;
-		fillInitialAngle = stepSize;
-		fillFinalAngle = 360;
-		break;
-	case 1:
-        // Top Hemisphere
-		archInitialAngle = 0;
-		archFinalAngle = 180;
-		fillInitialAngle = -90;
-		fillFinalAngle = 90;
-		break;
-	case 2:
-		// Bottom Hemisphere
-		archInitialAngle = 180;
-		archFinalAngle = 360;
-		fillInitialAngle = -90;
-		fillFinalAngle = 90;
-		break;
-	case 3:
-		// Left Hemisphere
-		archInitialAngle = 0;
-		archFinalAngle = 180;
-		fillInitialAngle = 0;
-		fillFinalAngle = 180;
-		break;
-	case 4:
-		// Right Hemisphere
-		archInitialAngle = 180;
-		archFinalAngle = 360;
-		fillInitialAngle = 0;
-		fillFinalAngle = 180;
-		break;
-	case 5:
-		// Far Hemisphere
-		archInitialAngle = -90;
-		archFinalAngle = 90;
-		fillInitialAngle = 0;
-		fillFinalAngle = 180;
-		break;
-	case 6:
-		// Near Hemisphere
-		archInitialAngle = 90;
-		archFinalAngle = 270;
-		fillInitialAngle = 0;
-		fillFinalAngle = 180;
-		break;
-	}
-
     ddVec3 lastPoint, temp;
-	for (int i = archInitialAngle; i <= archFinalAngle; i += stepSize) {
-        // Dibuixa cercle vertical inicial
-		const float s = floatSin(degreesToRadians(i));
-		const float c = floatCos(degreesToRadians(i));
+    for (int i = stepSize; i <= 360; i += stepSize)
+    {
+        const float s = floatSin(degreesToRadians(i));
+        const float c = floatCos(degreesToRadians(i));
 
-		lastPoint[X] = center[X];
-		lastPoint[Y] = center[Y] + radius * s;
-		lastPoint[Z] = center[Z] + radius * c;
+        lastPoint[X] = center[X];
+        lastPoint[Y] = center[Y] + radius * s;
+        lastPoint[Z] = center[Z] + radius * c;
 
-		for (int n = 0, j = fillInitialAngle; j <= fillFinalAngle; j += stepSize, ++n) {
-			temp[X] = center[X] + floatSin(degreesToRadians(j)) * radius * s;
-			temp[Y] = center[Y] + floatCos(degreesToRadians(j)) * radius * s;
-			temp[Z] = lastPoint[Z];
+        for (int n = 0, j = stepSize; j <= 360; j += stepSize, ++n)
+        {
+            temp[X] = center[X] + floatSin(degreesToRadians(j)) * radius * s;
+            temp[Y] = center[Y] + floatCos(degreesToRadians(j)) * radius * s;
+            temp[Z] = lastPoint[Z];
 
-			line(DD_EXPLICIT_CONTEXT_ONLY(ctx, ) lastPoint, temp, color, durationMillis, depthEnabled);
-			if (i != archInitialAngle) 
-                line(DD_EXPLICIT_CONTEXT_ONLY(ctx, ) lastPoint, cache[n], color, durationMillis, depthEnabled);
+            line(DD_EXPLICIT_CONTEXT_ONLY(ctx,) lastPoint, temp, color, durationMillis, depthEnabled);
+            line(DD_EXPLICIT_CONTEXT_ONLY(ctx,) lastPoint, cache[n], color, durationMillis, depthEnabled);
 
-			vecCopy(cache[n], lastPoint);
-			vecCopy(lastPoint, temp);
-		}
-	}
+            vecCopy(cache[n], lastPoint);
+            vecCopy(lastPoint, temp);
+        }
+    }
 }
 
 void cone(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,) ddVec3_In apex, ddVec3_In dir, ddVec3_In color,
@@ -3071,7 +3015,7 @@ void cone(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,) ddVec3_In apex, ddVec3_In
         return;
     }
 
-    static const int stepSize = 15;
+    static const int stepSize = 20;
     ddVec3 axis[3];
     ddVec3 top, temp0, temp1, temp2;
     ddVec3 p1, p2, lastP1, lastP2;
