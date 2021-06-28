@@ -579,11 +579,11 @@ bool NavMesh::Build() {
 
 	rcChunkyTriMesh* chunkyMesh = new rcChunkyTriMesh;
 	if (!chunkyMesh) {
-		ctx->log(RC_LOG_ERROR, "buildTiledNavigation: Out of memory 'm_chunkyMesh'.");
+		LOG("buildTiledNavigation: Out of memory 'm_chunkyMesh'.");
 		return false;
 	}
 	if (!rcCreateChunkyTriMesh(&verts[0], &tris[0], ntris, 256, chunkyMesh)) {
-		ctx->log(RC_LOG_ERROR, "buildTiledNavigation: Failed to build chunky mesh.");
+		LOG("buildTiledNavigation: Failed to build chunky mesh.");
 		return false;
 	}
 
@@ -621,7 +621,7 @@ bool NavMesh::Build() {
 
 	RELEASE(chunkyMesh);
 
-	printf("navmeshMemUsage = %.1f kB", navmeshMemUsage / 1024.0f);
+	LOG("navmeshMemUsage = %.1f kB", navmeshMemUsage / 1024.0f);
 
 	InitCrowd();
 
@@ -838,7 +838,6 @@ Buffer<char> NavMesh::Save() {
 		sizeData += tile->dataSize;
 		sizeData += sizeof(TileCacheTileHeader);
 		numTiles++;
-		LOG("%d", tile->dataSize);
 	}
 
 	// Store header.
