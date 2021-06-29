@@ -237,3 +237,13 @@ ProgramBillboard::ProgramBillboard(unsigned program_)
 	xFlipLocation = glGetUniformLocation(program, "flipX");
 	yFlipLocation = glGetUniformLocation(program, "flipY");
 }
+ProgramTrail::ProgramTrail(unsigned program_)
+	: Program(program_) {
+	//modelLocation = glGetUniformLocation(program, "model");
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
+	inputColorLocation = glGetUniformLocation(program, "inputColor");
+	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
+	diffuseMap = glGetUniformLocation(program, "diffuseMap");
+}
