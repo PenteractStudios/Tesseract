@@ -7,5 +7,5 @@ uniform samplerCube cubemap;
 out vec4 outColor;
 
 void main() {
-	outColor = texture(cubemap, texcoords);
+	outColor = SRGBA(texture(cubemap, texcoords));
 }
