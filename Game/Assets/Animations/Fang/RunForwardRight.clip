@@ -1,9 +1,0 @@
-{
-    "Name": "RunForwardRight",
-    "AnimationUID": 1406535842475188602,
-    "BeginIndex": 545,
-    "EndIndex": 565,
-    "Loop": true,
-    "Speed": 1.0,
-    "FrameRate": 0.0332796536386013
-}

@@ -1,9 +1,0 @@
-{
-    "Name": "Shoot",
-    "AnimationUID": 12840321354034363478,
-    "BeginIndex": 90,
-    "EndIndex": 110,
-    "Loop": false,
-    "Speed": 1.0,
-    "FrameRate": 0.035587187856435779
-}
