@@ -25,6 +25,7 @@
 #include "GL/glew.h"
 #include "debugdraw.h"
 #include "rapidjson/rapidjson.h"
+#include "imgui_color_gradient.h"
 
 #include <string>
 #include "Utils/Leaks.h"

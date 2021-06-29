@@ -8,9 +8,11 @@
 #include "Math/float2.h"
 #include "Math/float4x4.h"
 #include "Math/Quat.h"
-#include "imgui_color_gradient.h"
 
 #define MAX_VERTICES 1500
+
+class ImGradient;
+class ImGradientMark;
 
 class ComponentTrail : public Component {
 public:
