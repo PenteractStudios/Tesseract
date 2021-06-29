@@ -81,22 +81,25 @@ void ComponentAudioListener::UpdateAudioListener() {
 	alListenerfv(AL_ORIENTATION, orientation);
 	switch (distanceModel) {
 	case DistanceModel::EXPONENT:
-		if (clamped)
+		if (clamped) {
 			alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
-		else
+		} else {
 			alDistanceModel(AL_EXPONENT_DISTANCE);
+		}
 		break;
 	case DistanceModel::INVERSE:
-		if (clamped)
+		if (clamped) {
 			alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
-		else
+		} else {
 			alDistanceModel(AL_INVERSE_DISTANCE);
+		}
 		break;
 	case DistanceModel::LINEAR:
-		if (clamped)
+		if (clamped) {
 			alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
-		else
+		} else {
 			alDistanceModel(AL_EXPONENT_DISTANCE);
+		}
 		break;
 	}
 }

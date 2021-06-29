@@ -27,7 +27,7 @@ bool AudioImporter::ImportAudio(const char* filePath, JsonValue jMeta) {
 
 	if (extension == WAV_AUDIO_EXTENSION) {
 		std::string fileIn(filePath);
-		std::string fileOut = fileIn.replace(fileIn.end() - 3, fileIn.end(), "ogg");
+		std::string fileOut = fileIn.replace(fileIn.end() - 4, fileIn.end(), "_Converted.ogg");
 
 		char* filePathOgg;
 		filePathOgg = &fileOut[0];
@@ -71,36 +71,36 @@ bool AudioImporter::ImportAudio(const char* filePath, JsonValue jMeta) {
 void AudioImporter::EncondeWavToOgg(const char* infilename, const char* outfilename) {
 	static double data[BUFFER_LEN];
 
-	SNDFILE *infile, *outfile;
-	SF_INFO sfinfo;
+	SNDFILE *inFile, *outFile;
+	SF_INFO sfInfo, convertTest;
 	int readcount;
 
-	if (!(infile = sf_open(infilename, SFM_READ, &sfinfo))) {
+	if (!(inFile = sf_open(infilename, SFM_READ, &sfInfo))) {
 		printf("Error : could not open file : %s\n", infilename);
 		puts(sf_strerror(NULL));
 		exit(1);
 	}
 
-	sfinfo.format = SF_FORMAT_OGG | SF_FORMAT_VORBIS;
+	sfInfo.format = SF_FORMAT_OGG | SF_FORMAT_VORBIS;
 
-	if (!sf_format_check(&sfinfo)) {
-		sf_close(infile);
+	if (!sf_format_check(&sfInfo)) {
+		sf_close(inFile);
 		printf("Invalid encoding\n");
 		return;
 	};
 
-	if (!(outfile = sf_open(outfilename, SFM_WRITE, &sfinfo))) {
+	if (!(outFile = sf_open(outfilename, SFM_WRITE, &sfInfo))) {
 		printf("Error : could not open file : %s\n", outfilename);
 		puts(sf_strerror(NULL));
 		exit(1);
 	};
 	
-	while ((readcount = sf_read_double(infile, data, BUFFER_LEN))) {
-		sf_write_double(outfile, data, readcount);
+	while ((readcount = sf_read_double(inFile, data, BUFFER_LEN))) {
+		sf_write_double(outFile, data, readcount);
 	}
 
-	sf_close(infile);
-	sf_close(outfile);
+	sf_close(inFile);
+	sf_close(outFile);
 
 	return;
 }

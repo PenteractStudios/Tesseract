@@ -1,7 +1,6 @@
 #pragma once
 
 #include "FileSystem/JsonValue.h"
-//#include "Utils/oggHelper.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,5 +11,5 @@
 namespace AudioImporter {
 	bool ImportAudio(const char* filePath, JsonValue jMeta);
 
-	static void EncondeWavToOgg(const char* infilename, const char* outfilename);
+	void EncondeWavToOgg(const char* infilename, const char* outfilename);
 };
