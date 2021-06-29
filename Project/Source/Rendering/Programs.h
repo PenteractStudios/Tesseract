@@ -179,7 +179,7 @@ struct ProgramSSAO : Program {
 	ProgramSSAO(unsigned program);
 
 	int projLocation = -1;
-	
+
 	int positionsLocation = -1;
 	int normalsLocation = -1;
 
@@ -198,6 +198,13 @@ struct ProgramSSAOBlur : Program {
 
 	int kernelLocation = -1;
 	int horizontalLocation = -1;
+};
+
+struct ProgramPostprocess : Program {
+	ProgramPostprocess(unsigned program);
+
+	int textureSceneLocation = -1;
+	int textureBloomBlurLocation = -1;
 };
 
 struct ProgramDrawTexture : Program {

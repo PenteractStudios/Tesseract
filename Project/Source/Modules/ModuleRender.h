@@ -67,6 +67,8 @@ public:
 	unsigned depthMapTexture = 0;
 	unsigned ssaoTexture = 0;
 	unsigned auxBlurTexture = 0;
+	unsigned colorTextures[2] = { 0, 0 };
+	unsigned bloomBlurTextures[2] = { 0, 0 };
 
 	unsigned depthBuffer = 0;
 
@@ -76,6 +78,8 @@ public:
 	unsigned ssaoTextureBuffer = 0;
 	unsigned ssaoBlurTextureBufferH = 0;
 	unsigned ssaoBlurTextureBufferV = 0;
+	unsigned hdrFramebuffer = 0;
+	unsigned bloomBlurFramebuffers[2] = { 0, 0 };
 
 	// ------- Viewport Updated ------- //
 	bool viewportUpdated = true;
@@ -96,7 +100,7 @@ public:
 	int culledTriangles = 0;
 
 	float3 ambientColor = {0.25f, 0.25f, 0.25f}; // Color of ambient Light
-	float3 clearColor = {0.1f, 0.1f, 0.1f};		 // Color of the viewport between frames
+	float3 clearColor = {0.005f, 0.005f, 0.005f};		 // Color of the viewport between frames
 
 	bool ssaoActive = true;
 	float ssaoRange = 1.0f;
@@ -120,8 +124,10 @@ private:
 
 	void ComputeSSAOTexture();
 	void BlurSSAOTexture(bool horizontal);
+	void BlurBloomTexture(bool horizontal, bool firstTime);
 
 	void DrawTexture(unsigned texture);
+	void DrawScene(bool horizontal);
 
 private:
 	// ------- Viewport Size ------- //

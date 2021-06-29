@@ -62,7 +62,7 @@ static const float cubeVertices[108] = {
 	-1.0f,  1.0f, -1.0f,
 	-1.0f,  1.0f,  1.0f,
 	-1.0f, -1.0f,  1.0f,
-	
+
 	// Right (x, y, z)
 	1.0f, -1.0f, -1.0f,
 	1.0f, -1.0f,  1.0f,
@@ -70,7 +70,7 @@ static const float cubeVertices[108] = {
 	1.0f,  1.0f,  1.0f,
 	1.0f,  1.0f, -1.0f,
 	1.0f, -1.0f, -1.0f,
-	
+
 	// Back (x, y, z)
 	-1.0f, -1.0f,  1.0f,
 	-1.0f,  1.0f,  1.0f,
@@ -78,7 +78,7 @@ static const float cubeVertices[108] = {
 	1.0f,  1.0f,  1.0f,
 	1.0f, -1.0f,  1.0f,
 	-1.0f, -1.0f,  1.0f,
-	
+
 	// Top (x, y, z)
 	-1.0f,  1.0f, -1.0f,
 	1.0f,  1.0f, -1.0f,
@@ -86,7 +86,7 @@ static const float cubeVertices[108] = {
 	1.0f,  1.0f,  1.0f,
 	-1.0f,  1.0f,  1.0f,
 	-1.0f,  1.0f, -1.0f,
-	
+
 	// Bottom (x, y, z)
 	-1.0f, -1.0f, -1.0f,
 	-1.0f, -1.0f,  1.0f,
@@ -197,6 +197,8 @@ bool ModuleRender::Init() {
 	glGenTextures(1, &depthMapTexture);
 	glGenTextures(1, &ssaoTexture);
 	glGenTextures(1, &auxBlurTexture);
+	glGenTextures(2, colorTextures);
+	glGenTextures(2, bloomBlurTextures);
 
 	glGenRenderbuffers(1, &depthBuffer);
 
@@ -206,10 +208,12 @@ bool ModuleRender::Init() {
 	glGenFramebuffers(1, &ssaoTextureBuffer);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferH);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferV);
+	glGenFramebuffers(1, &hdrFramebuffer);
+	glGenFramebuffers(2, bloomBlurFramebuffers);
 
 	ViewportResized(App->window->GetWidth(), App->window->GetHeight());
 	UpdateFramebuffers();
-	
+
 	// Create Unit Cube VAO
 	glGenVertexArrays(1, &cubeVAO);
 	glGenBuffers(1, &cubeVBO);
@@ -334,6 +338,22 @@ void ModuleRender::BlurSSAOTexture(bool horizontal) {
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
+void ModuleRender::BlurBloomTexture(bool horizontal, bool firstTime) {
+	ProgramSSAOBlur* bloomBlurProgram = App->programs->ssaoBlur;
+	if (bloomBlurProgram == nullptr) return;
+
+	glUseProgram(bloomBlurProgram->program);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, firstTime ? colorTextures[1] : bloomBlurTextures[!horizontal]);
+	glUniform1i(bloomBlurProgram->inputTextureLocation, 0);
+
+	glUniform1fv(bloomBlurProgram->kernelLocation, GAUSS_KERNEL_SIZE, gaussKernel);
+	glUniform1i(bloomBlurProgram->horizontalLocation, horizontal ? 1 : 0);
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
 void ModuleRender::DrawTexture(unsigned texture) {
 	ProgramDrawTexture* drawTextureProgram = App->programs->drawTexture;
 	if (drawTextureProgram == nullptr) return;
@@ -345,6 +365,21 @@ void ModuleRender::DrawTexture(unsigned texture) {
 	glUniform1i(drawTextureProgram->textureToDrawLocation, 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
+void ModuleRender::DrawScene(bool horizontal) {
+	ProgramPostprocess* drawScene = App->programs->postprocess;
+	if (drawScene == nullptr) return;
+
+	glUseProgram(drawScene->program);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, colorTextures[0]);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, bloomBlurTextures[!horizontal]);
+	glUniform1i(drawScene->textureSceneLocation, 0);
+	glUniform1i(drawScene->textureBloomBlurLocation, 1);
+
+	glDrawArrays(GL_TRIANGLES, 0, 4);
 }
 
 bool ModuleRender::Start() {
@@ -433,7 +468,7 @@ UpdateStatus ModuleRender::Update() {
 	}
 
 	// Render pass
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);
 	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
@@ -480,6 +515,30 @@ UpdateStatus ModuleRender::Update() {
 	for (ComponentTrail& trail : scene->trailComponents) {
 		if (trail.IsActive()) trail.Draw();
 	}
+
+	// Bloom blur
+	bool horizontal = true, firstIteration = true;
+	int amount = 10;
+	for (unsigned int i = 0; i < amount; i++)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[horizontal]);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glDisable(GL_DEPTH_TEST);
+		glClear(GL_COLOR_BUFFER_BIT);
+		BlurBloomTexture(horizontal, firstIteration);
+		horizontal = !horizontal;
+		if (firstIteration) firstIteration = false;
+	}
+
+	// Render scene blending HDR and bloom
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
+	glDepthFunc(GL_LEQUAL);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	DrawScene(horizontal);
 
 	// Draw Gizmos
 	if (App->camera->IsEngineCameraActive() || debugMode) {
@@ -578,6 +637,8 @@ bool ModuleRender::CleanUp() {
 	glDeleteTextures(1, &depthMapTexture);
 	glDeleteTextures(1, &ssaoTexture);
 	glDeleteTextures(1, &auxBlurTexture);
+	glDeleteTextures(2, colorTextures);
+	glDeleteTextures(2, bloomBlurTextures);
 
 	glDeleteRenderbuffers(1, &depthBuffer);
 
@@ -587,6 +648,8 @@ bool ModuleRender::CleanUp() {
 	glDeleteFramebuffers(1, &ssaoTextureBuffer);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferH);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferV);
+	glDeleteFramebuffers(1, &hdrFramebuffer);
+	glDeleteFramebuffers(2, bloomBlurFramebuffers);
 
 	return true;
 }
@@ -683,6 +746,35 @@ void ModuleRender::UpdateFramebuffers() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoTexture, 0);
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+	// HDR and bloom buffers
+	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);
+
+	for (unsigned int i = 0; i < 2; i++)
+	{
+		glBindTexture(GL_TEXTURE_2D, colorTextures[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorTextures[i], 0);
+	}
+
+	unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, attachments);
+
+	for (unsigned int i = 0; i < 2; i++)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[i]);
+		glBindTexture(GL_TEXTURE_2D, bloomBlurTextures[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloomBlurTextures[i], 0);
+	}
 
 	// Render buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);

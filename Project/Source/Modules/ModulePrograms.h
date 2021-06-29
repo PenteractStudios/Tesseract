@@ -42,6 +42,9 @@ public:
 	// Shadow Shaders
 	unsigned shadowMap = 0;
 
+	// Postprocesses Shaders
+	ProgramPostprocess* postprocess = nullptr;
+
 	// Engine Shaders
 	ProgramDrawTexture* drawTexture = 0;
 

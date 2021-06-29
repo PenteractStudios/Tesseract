@@ -113,6 +113,9 @@ void ModulePrograms::LoadShaders() {
 	// Shadow Shaders
 	shadowMap = CreateProgram(filePath, "vertDepthMap", "fragDepthMap");
 
+	// Postprocess Shaders
+	postprocess = new ProgramPostprocess(CreateProgram(filePath, "vertScreen", "fragPostprocess"));
+
 	//UI shaders
 	textUI = new ProgramTextUI(CreateProgram(filePath, "vertTextUI", "fragTextUI"));
 	imageUI = new ProgramImageUI(CreateProgram(filePath, "vertImageUI", "fragImageUI"));
@@ -146,6 +149,8 @@ void ModulePrograms::UnloadShaders() {
 
 	RELEASE(ssao);
 	RELEASE(ssaoBlur);
+
+	RELEASE(postprocess);
 
 	glDeleteProgram(shadowMap);
 

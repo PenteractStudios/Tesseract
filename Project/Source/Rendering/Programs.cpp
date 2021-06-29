@@ -215,3 +215,9 @@ ProgramTextUI::ProgramTextUI(unsigned program_)
 
 	textColorLocation = glGetUniformLocation(program, "textColor");
 }
+
+ProgramPostprocess::ProgramPostprocess(unsigned program_)
+	: Program(program_) {
+	textureSceneLocation = glGetUniformLocation(program, "scene");
+	textureBloomBlurLocation = glGetUniformLocation(program, "bloomBlur");
+}
