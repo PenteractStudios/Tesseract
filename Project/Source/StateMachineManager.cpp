@@ -119,60 +119,62 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 			}
 			
 			result = AnimationController::GetTransform(*clip, currentTimeStates[currentState->id], gameObject->name.c_str(), position, rotation);
+		}
+	}
 
-			if (gameObject->name == (*resourceStateMachine->bones.begin())) { //Only call this once
-				if (!clip->loop) {
-					// Checking if the current sample is the last keyframe in order to send the event
-					if (currentTimeStates[currentState->id] >= clip->duration) {
-					//if (currentSample == clip->endIndex) {
-						for (ComponentScript& script : owner.GetComponents<ComponentScript>()) {
-							if (script.IsActive()) {
-								Script* scriptInstance = script.GetScriptInstance();
-								if (scriptInstance != nullptr) {
-									switch (stateMachineEnum) {
-									case StateMachineEnum::PRINCIPAL:
-										scriptInstance->OnAnimationFinished();
-										break;
-									case StateMachineEnum::SECONDARY:
-										scriptInstance->OnAnimationSecondaryFinished();
-										break;
-									}
-								}
+
+	if (gameObject->name == (*resourceStateMachine->bones.begin())) {
+		//Sending Event on Finished
+		if (!clip->loop) {
+			// Checking if the current sample is the last keyframe in order to send the event
+			if (currentTimeStates[currentState->id] >= clip->duration) {
+				//if (currentSample == clip->endIndex) {
+				for (ComponentScript& script : owner.GetComponents<ComponentScript>()) {
+					if (script.IsActive()) {
+						Script* scriptInstance = script.GetScriptInstance();
+						if (scriptInstance != nullptr) {
+							switch (stateMachineEnum) {
+							case StateMachineEnum::PRINCIPAL:
+								scriptInstance->OnAnimationFinished();
+								break;
+							case StateMachineEnum::SECONDARY:
+								scriptInstance->OnAnimationSecondaryFinished();
+								break;
 							}
 						}
 					}
 				}
 			}
 		}
-	}
 
-
-	//Sending event on keyframe
-	if (gameObject->name == (*resourceStateMachine->bones.begin()) && !clip->keyEventClips.empty() ) { //Only call this once
-		//Resetting the events since it has been a loop
-		if (clip->currentEventKeyFrame > currentSample) {
-			for (auto& element : clip->keyEventClips) {
-				element.second.sent = false;
+		//Sending event on keyframe
+		if (!clip->keyEventClips.empty()) { //Only call this once
+			//Resetting the events since it has been a loop
+			if (clip->currentEventKeyFrame > currentSample) {
+				for (auto& element : clip->keyEventClips) {
+					element.second.sent = false;
+				}
 			}
-		}
 
-		// Send key Frame event
-		for (int difference = currentSample - clip->currentEventKeyFrame; difference <= currentSample; difference++) {
-			if (clip->keyEventClips.find(difference) != clip->keyEventClips.end() && !clip->keyEventClips[difference].sent) {
-				for (ComponentScript& script : owner.GetComponents<ComponentScript>()) {
-					if (script.IsActive()) {
-						Script* scriptInstance = script.GetScriptInstance();
+			// Send key Frame event
+			for (int difference = currentSample - clip->currentEventKeyFrame; difference <= currentSample; difference++) {
+				if (clip->keyEventClips.find(difference) != clip->keyEventClips.end() && !clip->keyEventClips[difference].sent) {
+					for (ComponentScript& script : owner.GetComponents<ComponentScript>()) {
+						if (script.IsActive()) {
+							Script* scriptInstance = script.GetScriptInstance();
 
-						if (scriptInstance != nullptr) {
-							scriptInstance->OnAnimationEvent(stateMachineEnum, clip->keyEventClips[difference].name.c_str());
-							clip->keyEventClips[difference].sent = true;
+							if (scriptInstance != nullptr) {
+								scriptInstance->OnAnimationEvent(stateMachineEnum, clip->keyEventClips[difference].name.c_str());
+								clip->keyEventClips[difference].sent = true;
+							}
 						}
 					}
 				}
 			}
-		}
 
-		clip->currentEventKeyFrame = currentSample;
+			clip->currentEventKeyFrame = currentSample;
+		}
 	}
+	
 	return result;
 }
