@@ -9,9 +9,9 @@
                 "Type": "Transform",
                 "Active": true,
                 "Position": [
-                    0.0,
-                    0.0,
-                    0.0
+                    1.0739136934280396,
+                    2.6097564697265627,
+                    1.9954833984375
                 ],
                 "Rotation": [
                     0.0,
@@ -37,9 +37,9 @@
                 "MaxVertices": 1500,
                 "TrailQuads": 50,
                 "Width": 0.10000000149011612,
-                "TextureRepeats": 600.0,
+                "TextureRepeats": 1,
                 "QuadLife": 10.0,
-                "ColorOverTrail": false,
+                "HasColorOverTrail": false,
                 "GradientColor": [
                     [
                         0.0,
@@ -56,8 +56,7 @@
                         1.0
                     ]
                 ],
-                "NumColors": 2,
-                "ColorLife": 0.0
+                "NumColors": 2
             }
         ],
         "Children": null
