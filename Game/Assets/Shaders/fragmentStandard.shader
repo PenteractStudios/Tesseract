@@ -15,6 +15,12 @@ out vec4 outColor;
 // Depth Map
 uniform sampler2D depthMapTexture;
 
+// SSAO texture
+uniform sampler2D ssaoTexture;
+
+uniform mat4 proj;
+uniform mat4 view;
+
 uniform vec3 viewPos;
 
 // Material
@@ -32,6 +38,12 @@ uniform int hasAmbientOcclusionMap;
 uniform int hasSmoothnessAlpha; // Generic used for Specular and Metallic
 uniform vec2 tiling;
 uniform vec2 offset;
+
+// IBL
+uniform samplerCube diffuseIBL;
+uniform samplerCube prefilteredIBL;
+uniform sampler2D environmentBRDF;
+uniform int prefilteredIBLNumLevels;
 
 struct AmbientLight
 {
@@ -93,17 +105,31 @@ vec2 GetTiledUVs()
 
 vec4 GetDiffuse(vec2 tiledUV)
 {
-    return hasDiffuseMap * pow(texture(diffuseMap, tiledUV), vec4(2.2)) * diffuseColor + (1 - hasDiffuseMap) * diffuseColor;
+    return hasDiffuseMap * SRGBA(texture(diffuseMap, tiledUV)) * diffuseColor + (1 - hasDiffuseMap) * SRGBA(diffuseColor);
 }
 
 vec4 GetEmissive(vec2 tiledUV)
 {
-    return hasEmissiveMap * pow(texture(emissiveMap, tiledUV), vec4(2.2));
+    return hasEmissiveMap * SRGBA(texture(emissiveMap, tiledUV));
 }
 
-vec3 GetAmbientOcclusion(vec2 tiledUV)
+vec3 GetAmbientLight(in vec3 R, in vec3 normal, in vec3 viewDir, in vec3 Cd, in vec3 F0, float roughness)
 {
-    return hasAmbientOcclusionMap * light.ambient.color * texture(ambientOcclusionMap, tiledUV).rgb + (1 - hasAmbientOcclusionMap) * light.ambient.color;
+	float NV = max(dot(fragNormal, viewDir), 0.0) + EPSILON;
+	vec3 irradiance = texture(diffuseIBL, normal).rgb;
+	vec3 radiance = textureLod(prefilteredIBL, R, roughness * prefilteredIBLNumLevels).rgb;
+	vec2 fab = texture(environmentBRDF, vec2(NV, roughness)).rg;
+	vec3 diffuse = (Cd * (1 - F0));
+	return diffuse * irradiance + radiance * (F0 * fab.x + fab.y);
+}
+
+vec3 GetOccludedAmbientLight(in vec3 R, in vec3 normal, in vec3 viewDir, in vec3 Cd, in vec3 F0, float roughness, vec2 tiledUV)
+{
+	vec4 projectedPos = proj * view * vec4(fragPos, 1.0);
+	vec2 occlusionUV = (projectedPos.xy / projectedPos.w) * 0.5 + 0.5;
+	float occlusionFactor = texture(ssaoTexture, occlusionUV).r;
+	vec3 ambientLight = GetAmbientLight(R, normal, viewDir, Cd, F0, roughness) * occlusionFactor;
+    return hasAmbientOcclusionMap * ambientLight.rgb * texture(ambientOcclusionMap, tiledUV).rgb + (1 - hasAmbientOcclusionMap) * ambientLight.rgb;
 }
 
 vec3 GetNormal(vec2 tiledUV)
@@ -170,9 +196,9 @@ float GGXNormalDistribution(float NH, float roughness)
 	return roughness * roughness / (PI * Pow2(NH * NH * (roughness * roughness - 1) + 1));
 }
 
-vec3 SchlickFresnel(vec3 F0, float LH)
+vec3 SchlickFresnel(vec3 F0, float cosTheta)
 {
-	return F0 + (1 - F0) * pow(1 - LH, 5);
+	return F0 + (1.0 - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 }
 
 float SmithVisibility(float NL, float NV, float roughness)
@@ -268,19 +294,18 @@ void main()
     }
 
     vec4 colorDiffuse = GetDiffuse(tiledUV);
-    vec4 colorMetallic = pow(texture(metallicMap, tiledUV), vec4(2.2));
+    vec4 colorMetallic = texture(metallicMap, tiledUV);
     float metalnessMask = hasMetallicMap * colorMetallic.r + (1 - hasMetallicMap) * metalness;
 
 	float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorMetallic.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
 
-    // Ambient Occlusion
-    vec3 colorAmbient = GetAmbientOcclusion(tiledUV);
-
-    vec3 colorAccumulative = colorDiffuse.rgb * colorAmbient;
-
 	// Schlick Fresnel
 	vec3 Cd = colorDiffuse.rgb * (1 - metalnessMask);
 	vec3 F0 = mix(vec3(0.04), colorDiffuse.rgb, metalnessMask);
+
+    // Ambient Light
+    vec3 R = reflect(-viewDir, normal);
+    vec3 colorAccumulative = GetOccludedAmbientLight(R, normal, viewDir, Cd, F0, roughness, tiledUV);
 
 	float shadow = Shadow(fragPosLight, normal,  normalize(light.directional.direction), depthMapTexture);
 
@@ -305,9 +330,7 @@ void main()
     // Emission
     colorAccumulative += GetEmissive(tiledUV).rgb;
 
-    vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
-    ldr = pow(ldr, vec3(1/2.2)); // gamma correction
-    outColor = vec4(ldr, colorDiffuse.a);
+    outColor = vec4(colorAccumulative, colorDiffuse.a);
 }
 
 --- fragMainSpecular
@@ -324,14 +347,13 @@ void main()
     }
 	
     vec4 colorDiffuse = GetDiffuse(tiledUV);
-    vec4 colorSpecular = hasSpecularMap * pow(texture(specularMap, tiledUV), vec4(2.2)) + (1 - hasSpecularMap) * vec4(specularColor, 1.0);
+    vec4 colorSpecular = hasSpecularMap * SRGBA(texture(specularMap, tiledUV)) + (1 - hasSpecularMap) * vec4(SRGB(specularColor), 1.0);
 
     float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorSpecular.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
     
-    // Ambient Occlusion
-    vec3 colorAmbient = GetAmbientOcclusion(tiledUV);
-
-    vec3 colorAccumulative = colorDiffuse.rgb * colorAmbient;
+    // Ambient Light
+    vec3 R = reflect(-viewDir, normal);
+    vec3 colorAccumulative = GetOccludedAmbientLight(R, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness, tiledUV);
 
 	float shadow = Shadow(fragPosLight, normal, normalize(light.directional.direction), depthMapTexture);
 
@@ -356,7 +378,5 @@ void main()
     // Emission
     colorAccumulative += GetEmissive(tiledUV).rgb;
 
-    vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
-    ldr = pow(ldr, vec3(1/2.2)); // gamma correction
-    outColor = vec4(ldr, colorDiffuse.a);
+    outColor = vec4(colorAccumulative, colorDiffuse.a);
 }

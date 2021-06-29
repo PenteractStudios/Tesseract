@@ -3,10 +3,10 @@
 
 #include "Math/float4x4.h"
 #include "btBulletDynamicsCommon.h"
+#include "Components/ComponentParticleSystem.h"
 
-/* BULLET DEBUG: Uncomment to activate it
-class DebugDrawer;
-*/
+// BULLET DEBUG: Uncomment to activate it
+//class DebugDrawer;
 class MotionState;
 class btBroadphaseInterface;
 class ComponentSphereCollider;
@@ -37,13 +37,13 @@ enum class ColliderType {
 *	EVERYTHING = The default setting. Interaction with all other types except NO_COLLISION.
 */
 enum WorldLayers {
-	NO_COLLISION = 1 << 1,
-	EVENT_TRIGGERS = 1 << 2,
-	WORLD_ELEMENTS = 1 << 3,
-	PLAYER = 1 << 4,
-	ENEMY = 1 << 5,
-	BULLET = 1 << 6,
-	BULLET_ENEMY = 1 << 7,
+	NO_COLLISION = 1,
+	EVENT_TRIGGERS = 1 << 1,
+	WORLD_ELEMENTS = 1 << 2,
+	PLAYER = 1 << 3,
+	ENEMY = 1 << 4,
+	BULLET = 1 << 5,
+	BULLET_ENEMY = 1 << 6,
 	EVERYTHING = -1
 };
 
@@ -73,6 +73,11 @@ public:
 
 	void AddBodyToWorld(btRigidBody* rigidbody, ColliderType colliderType, WorldLayers layer);
 
+	// -- Add/Remove Particle Body -- //
+	void CreateParticleRigidbody(ComponentParticleSystem::Particle* particle);
+	void RemoveParticleRigidbody(ComponentParticleSystem::Particle* particle);
+	void UpdateParticleRigidbody(ComponentParticleSystem::Particle* particle);
+
 	void InitializeRigidBodies(); // Called on Play(), this function adds all the collision objects to the physics world.
 	void ClearPhysicBodies();	  // Called on Stop(), this function removes all the collision objects from the physics world.
 
@@ -90,10 +95,10 @@ private:
 	btSequentialImpulseConstraintSolver* constraintSolver = nullptr;
 	btDiscreteDynamicsWorld* world = nullptr;
 
-	/* BULLET DEBUG: Uncomment to activate it
-	DebugDrawer* debugDrawer;
-	*/
-	bool debug = true;
+	//BULLET DEBUG: Uncomment to activate it
+	//DebugDrawer* debugDrawer;
+
+	//bool debug = true;
 };
 
 /* BULLET DEBUG: Uncomment to activate it
@@ -108,5 +113,4 @@ public:
 	int getDebugMode() const;
 
 	DebugDrawModes mode; // How to initialise this enum?
-};
-*/
+};*/

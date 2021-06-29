@@ -9,9 +9,9 @@
     "QuadtreeElementsPerNode": 200,
     "GameCamera": 8714473313920391581,
     "AmbientLight": [
-        0.0,
-        0.0,
-        0.0
+        0.04901963472366333,
+        0.0410899855196476,
+        0.0410899855196476
     ],
     "Root": {
         "Id": 14453385467099479194,
@@ -65,10 +65,10 @@
                             0.0
                         ],
                         "Rotation": [
-                            0.7071068286895752,
-                            0.0,
-                            0.0,
-                            0.7071068286895752
+                            0.6086366176605225,
+                            -0.359946608543396,
+                            -0.35994666814804079,
+                            0.6086364984512329
                         ],
                         "Scale": [
                             1.0,
@@ -77,7 +77,7 @@
                         ],
                         "LocalEulerAngles": [
                             90.00000762939453,
-                            0.0,
+                            -61.20000076293945,
                             -0.0
                         ]
                     },
@@ -91,7 +91,7 @@
                             1.0,
                             1.0
                         ],
-                        "Intensity": 1.0,
+                        "Intensity": 0.09000000357627869,
                         "Kl": 0.04500000178813934,
                         "Kq": 0.007499999832361937,
                         "InnerAngle": 0.2617993950843811,
@@ -210,7 +210,22 @@
                     },
                     {
                         "Type": "Animation",
-                        "Id": 16664914090741737499,
+                        "Id": 7125098040270349568,
+                        "Active": true,
+                        "StateMachinePrincipalId": 0,
+                        "StateMachineSecondaryId": 0
+                    },
+                    {
+                        "Type": "Agent",
+                        "Id": 11533153875001512392,
+                        "Active": true,
+                        "MaxSpeed": 5.0,
+                        "MaxAcceleration": 8.0,
+                        "AvoidingObstacle": false
+                    },
+                    {
+                        "Type": "Script",
+                        "Id": 5938212545408919740,
                         "Active": true,
                         "StateMachineId": 0,
                         "InitalState": 0
@@ -254,15 +269,15 @@
                                 "Type": "MeshRenderer",
                                 "Id": 6205134767570849538,
                                 "Active": true,
-                                "MeshID": 11506771429777288320,
-                                "MaterialID": 14967989626174305461
+                                "MeshID": 9218848821787111831,
+                                "MaterialID": 16700917984989060701
                             },
                             {
                                 "Type": "MeshRenderer",
                                 "Id": 8081291826578233636,
                                 "Active": true,
-                                "MeshID": 12686129212058750301,
-                                "MaterialID": 3820089261163783628
+                                "MeshID": 9027867366580633265,
+                                "MaterialID": 16700917984989060701
                             },
                             {
                                 "Type": "BoundingBox",
@@ -1638,7 +1653,22 @@
                     },
                     {
                         "Type": "Animation",
-                        "Id": 15814908992642704235,
+                        "Id": 3590275477508162183,
+                        "Active": true,
+                        "StateMachinePrincipalId": 0,
+                        "StateMachineSecondaryId": 0
+                    },
+                    {
+                        "Type": "Agent",
+                        "Id": 8546284859016797692,
+                        "Active": true,
+                        "MaxSpeed": 5.0,
+                        "MaxAcceleration": 8.0,
+                        "AvoidingObstacle": false
+                    },
+                    {
+                        "Type": "Script",
+                        "Id": 14138183332619530506,
                         "Active": true,
                         "StateMachineId": 0,
                         "InitalState": 0
@@ -1682,15 +1712,15 @@
                                 "Type": "MeshRenderer",
                                 "Id": 5993778031957544100,
                                 "Active": true,
-                                "MeshID": 11506771429777288320,
-                                "MaterialID": 14967989626174305461
+                                "MeshID": 9218848821787111831,
+                                "MaterialID": 16700917984989060701
                             },
                             {
                                 "Type": "MeshRenderer",
                                 "Id": 17491388365619769746,
                                 "Active": true,
-                                "MeshID": 12686129212058750301,
-                                "MaterialID": 3820089261163783628
+                                "MeshID": 9027867366580633265,
+                                "MaterialID": 16700917984989060701
                             },
                             {
                                 "Type": "BoundingBox",
@@ -3068,60 +3098,16 @@
                         "Type": "Script",
                         "Id": 1559847407447899274,
                         "Active": true,
-                        "Script": 4240581393573860681,
-                        "Values": [
-                            {
-                                "Name": "winUID",
-                                "Type": "GameObjectUID",
-                                "Value": 5005595502157834361
-                            },
-                            {
-                                "Name": "playerUID",
-                                "Type": "GameObjectUID",
-                                "Value": 16982986676070250529
-                            },
-                            {
-                                "Name": "loseUID",
-                                "Type": "GameObjectUID",
-                                "Value": 4858882706079891586
-                            }
-                        ]
-                    }
-                ],
-                "Children": null
-            },
-            {
-                "Id": 4858882706079891586,
-                "Name": "Lose",
-                "Active": true,
-                "ActiveHierarchy": true,
-                "RootBoneId": 14951181820067883980,
-                "Components": [
+                        "StateMachinePrincipalId": 0,
+                        "StateMachineSecondaryId": 0
+                    },
                     {
                         "Type": "Transform",
                         "Id": 3803138746757456419,
                         "Active": true,
-                        "Position": [
-                            0.0,
-                            0.0,
-                            0.0
-                        ],
-                        "Rotation": [
-                            0.0,
-                            0.0,
-                            0.0,
-                            1.0
-                        ],
-                        "Scale": [
-                            0.009999999776482582,
-                            0.009999999776482582,
-                            0.009999999776482582
-                        ],
-                        "LocalEulerAngles": [
-                            -0.0,
-                            0.0,
-                            -0.0
-                        ]
+                        "MaxSpeed": 5.0,
+                        "MaxAcceleration": 8.0,
+                        "AvoidingObstacle": false
                     },
                     {
                         "Type": "Animation",
@@ -3138,6 +3124,7 @@
                         "Active": true,
                         "ActiveHierarchy": true,
                         "RootBoneId": 0,
+                        "Mask": 8,
                         "Components": [
                             {
                                 "Type": "Transform",
@@ -3169,15 +3156,15 @@
                                 "Type": "MeshRenderer",
                                 "Id": 6856175376775793631,
                                 "Active": true,
-                                "MeshID": 11506771429777288320,
-                                "MaterialID": 14967989626174305461
+                                "MeshID": 9218848821787111831,
+                                "MaterialID": 16700917984989060701
                             },
                             {
                                 "Type": "MeshRenderer",
                                 "Id": 4067701349506972840,
                                 "Active": true,
-                                "MeshID": 12686129212058750301,
-                                "MaterialID": 3820089261163783628
+                                "MeshID": 9027867366580633265,
+                                "MaterialID": 16700917984989060701
                             },
                             {
                                 "Type": "BoundingBox",

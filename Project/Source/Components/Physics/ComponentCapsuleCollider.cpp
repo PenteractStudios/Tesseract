@@ -41,18 +41,18 @@ void ComponentCapsuleCollider::DrawGizmos() {
 			switch (capsuleType) {
 			case CapsuleType::X:
 				dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), float3(height, 0, 0), dd::colors::LawnGreen, radius, radius);
-				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(height / 2, 0, 0), dd::colors::LawnGreen, radius, 3);
-				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), dd::colors::LawnGreen, radius, 4);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(height / 2, 0, 0), dd::colors::LawnGreen, radius);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(height / 2, 0, 0), dd::colors::LawnGreen, radius);
 				break;
 			case CapsuleType::Y:
 				dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), float3(0, height, 0), dd::colors::LawnGreen, radius, radius);
-				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, height / 2, 0), dd::colors::LawnGreen, radius, 1);
-				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), dd::colors::LawnGreen, radius, 2);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, height / 2, 0), dd::colors::LawnGreen, radius);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, height / 2, 0), dd::colors::LawnGreen, radius);
 				break;
 			case CapsuleType::Z:
 				dd::cone(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), float3(0, 0, height), dd::colors::LawnGreen, radius, radius);
-				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, 0, height / 2), dd::colors::LawnGreen, radius, 5);
-				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), dd::colors::LawnGreen, radius, 6);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset + float3(0, 0, height / 2), dd::colors::LawnGreen, radius);
+				dd::sphere(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset - float3(0, 0, height / 2), dd::colors::LawnGreen, radius);
 				break;
 			}
 		}
@@ -60,6 +60,18 @@ void ComponentCapsuleCollider::DrawGizmos() {
 }
 
 void ComponentCapsuleCollider::OnEditorUpdate() {
+	if (ImGui::Checkbox("Active", &active)) {
+		if (GetOwner().IsActive()) {
+			if (active) {
+				Enable();
+			}
+			else {
+				Disable();
+			}
+		}
+	}
+	ImGui::Separator();
+
 	ImGui::Checkbox("Draw Shape", &drawGizmo);
 
 	// World Layers combo box
@@ -212,6 +224,9 @@ void ComponentCapsuleCollider::Load(JsonValue jComponent) {
 
 	JsonValue jFreeze = jComponent[JSON_TAG_FREEZE_ROTATION];
 	freezeRotation = jFreeze;
+
+	if (rigidBody) App->physics->RemoveCapsuleRigidbody(this);
+	rigidBody = nullptr;
 }
 
 void ComponentCapsuleCollider::OnEnable() {
@@ -222,11 +237,12 @@ void ComponentCapsuleCollider::OnDisable() {
 	if (rigidBody && App->time->HasGameStarted()) App->physics->RemoveCapsuleRigidbody(this);
 }
 
-void ComponentCapsuleCollider::OnCollision(GameObject& collidedWith) {
+void ComponentCapsuleCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance,
+										   ComponentParticleSystem::Particle* p) {
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
 		if (script != nullptr) {
-			script->OnCollision(collidedWith);
+			script->OnCollision(collidedWith, collisionNormal, penetrationDistance, p);
 		}
 	}
 }

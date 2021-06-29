@@ -1,7 +1,15 @@
 {
     "Resources": [
         {
+<<<<<<< HEAD
             "Id": 3393824279833403891,
+=======
+<<<<<<<< HEAD:Game/Assets/Textures/Particles/1200px-White_dot.svg.png.meta
+            "Id": 12598882633140149709,
+========
+            "Id": 4367036515584248222,
+>>>>>>>> a23e42ee13b3c481dce6eeaeed3e26233510cf55:Game/Assets/Skybox/nx.png.meta
+>>>>>>> a23e42ee13b3c481dce6eeaeed3e26233510cf55
             "Type": "Texture"
         }
     ]

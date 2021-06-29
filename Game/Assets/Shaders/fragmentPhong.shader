@@ -16,16 +16,19 @@ void main()
     vec4 colorDiffuse = GetDiffuse(tiledUV);
 
     // specular
-    vec4 colorSpecular = hasSpecularMap * pow(texture(specularMap, tiledUV), vec4(2.2)) + (1 - hasSpecularMap) * vec4(specularColor, 1.0);
+    vec4 colorSpecular = hasSpecularMap * SRGBA(texture(specularMap, tiledUV)) + (1 - hasSpecularMap) * vec4(SRGB(specularColor), 1.0);
     vec3 Rf0 = colorSpecular.rgb;
 
     // shininess
     float shininess = hasSmoothnessAlpha * exp2(colorSpecular.a * 7 + 1) + (1 - hasSmoothnessAlpha) * smoothness;
 
-    // Ambient Color
-    vec3 colorAmbient = GetAmbientOcclusion(tiledUV);
+    // TODO: IBL doesn't work correctly with Blinn-Phong
+    // roughness
+    float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorSpecular.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
 
-    vec3 colorAccumulative = colorDiffuse.rgb * colorAmbient;
+    // Ambient Light
+    vec3 R = reflect(-viewDir, normal);
+    vec3 colorAccumulative = GetOccludedAmbientLight(R, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness, tiledUV);
 
     // Directional Light
     if (light.directional.isActive == 1) {
@@ -94,8 +97,6 @@ void main()
 
     // Emission
     colorAccumulative += GetEmissive(tiledUV).rgb;
-
-    vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
-    ldr = pow(ldr, vec3(1/2.2)); // gamma correction
-    outColor = vec4(ldr, colorDiffuse.a);
+    
+    outColor = vec4(colorAccumulative, colorDiffuse.a);
 }

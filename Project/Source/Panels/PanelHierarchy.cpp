@@ -26,6 +26,8 @@
 
 #include "Utils/Leaks.h"
 
+#define JSON_TAG_ROOT "Root"
+
 static ImVec4 grey = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 static ImVec4 white = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -80,6 +82,10 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 				if (App->userInterface->GetCurrentEventSystem()) {
 					App->userInterface->GetCurrentEventSystem()->SetSelected(nullptr);
 				}
+			}
+
+			if (ImGui::Selectable("Duplicate")) {
+				App->editor->selectedGameObject = DuplicateGameObject(gameObject);
 			}
 
 			ImGui::Separator();
@@ -173,7 +179,8 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 			UID prefabId = *(UID*) payload->Data;
 			ResourcePrefab* prefab = App->resources->GetResource<ResourcePrefab>(prefabId);
 			if (prefab != nullptr) {
-				prefab->BuildPrefab(gameObject);
+				UID newGameObjectId = prefab->BuildPrefab(gameObject);
+				App->editor->selectedGameObject = App->scene->scene->GetGameObject(newGameObjectId);
 			}
 		}
 		ImGui::EndDragDropTarget();
@@ -367,6 +374,28 @@ GameObject* PanelHierarchy::CreatePartycleSystemObject(GameObject* gameObject) {
 	transform->SetPosition(float3(0, 0, 0));
 	transform->SetRotation(Quat::identity);
 	transform->SetScale(float3(1, 1, 1));
+	newGameObject->InitComponents();
+
+	return newGameObject;
+}
+
+GameObject* PanelHierarchy::DuplicateGameObject(GameObject* gameObject) {
+	/* Get the object json info */
+	rapidjson::Document document;
+	document.SetObject();
+	JsonValue jTempPrefab(document, document);
+	JsonValue jRoot = jTempPrefab[JSON_TAG_ROOT];
+	gameObject->SavePrefab(jRoot);
+
+	/* Create the new object */
+	GameObject* parent = gameObject->GetParent();
+	Scene* scene = parent->scene;
+	UID gameObjectId = GenerateUID();
+	GameObject* newGameObject = scene->gameObjects.Obtain(gameObjectId);
+	newGameObject->scene = scene;
+	newGameObject->LoadPrefab(jRoot);
+	newGameObject->id = gameObjectId;
+	newGameObject->SetParent(parent);
 	newGameObject->InitComponents();
 
 	return newGameObject;
