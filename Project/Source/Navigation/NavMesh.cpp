@@ -675,12 +675,14 @@ void NavMesh::DrawGizmos() {
 		//m_geom->drawOffMeshConnections(&dd);
 	}
 
-	if (tileCache && drawMode == DRAWMODE_CACHE_BOUNDS)
+	if (tileCache && drawMode == DRAWMODE_CACHE_BOUNDS) {
 		DrawTiles(&dd, tileCache);
+	}
 
-	if (tileCache)
+	if (tileCache) {
 		DrawObstacles(&dd, tileCache);
-
+	}
+	
 	// Draw bounds
 	duDebugDrawBoxWire(&dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duRGBA(255, 255, 255, 128), 1.0f);
 
