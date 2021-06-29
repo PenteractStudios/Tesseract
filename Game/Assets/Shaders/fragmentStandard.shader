@@ -105,12 +105,12 @@ vec2 GetTiledUVs()
 
 vec4 GetDiffuse(vec2 tiledUV)
 {
-    return hasDiffuseMap * pow(texture(diffuseMap, tiledUV), vec4(2.2)) * diffuseColor + (1 - hasDiffuseMap) * diffuseColor;
+    return hasDiffuseMap * SRGBA(texture(diffuseMap, tiledUV)) * diffuseColor + (1 - hasDiffuseMap) * SRGBA(diffuseColor);
 }
 
 vec4 GetEmissive(vec2 tiledUV)
 {
-    return hasEmissiveMap * pow(texture(emissiveMap, tiledUV), vec4(2.2));
+    return hasEmissiveMap * SRGBA(texture(emissiveMap, tiledUV));
 }
 
 vec3 GetAmbientLight(in vec3 R, in vec3 normal, in vec3 viewDir, in vec3 Cd, in vec3 F0, float roughness)
@@ -294,7 +294,7 @@ void main()
     }
 
     vec4 colorDiffuse = GetDiffuse(tiledUV);
-    vec4 colorMetallic = pow(texture(metallicMap, tiledUV), vec4(2.2));
+    vec4 colorMetallic = texture(metallicMap, tiledUV);
     float metalnessMask = hasMetallicMap * colorMetallic.r + (1 - hasMetallicMap) * metalness;
 
 	float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorMetallic.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
@@ -330,9 +330,7 @@ void main()
     // Emission
     colorAccumulative += GetEmissive(tiledUV).rgb;
 
-    vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
-    ldr = pow(ldr, vec3(1/2.2)); // gamma correction
-    outColor = vec4(ldr, colorDiffuse.a);
+    outColor = vec4(colorAccumulative, colorDiffuse.a);
 }
 
 --- fragMainSpecular
@@ -349,7 +347,7 @@ void main()
     }
 	
     vec4 colorDiffuse = GetDiffuse(tiledUV);
-    vec4 colorSpecular = hasSpecularMap * pow(texture(specularMap, tiledUV), vec4(2.2)) + (1 - hasSpecularMap) * vec4(specularColor, 1.0);
+    vec4 colorSpecular = hasSpecularMap * SRGBA(texture(specularMap, tiledUV)) + (1 - hasSpecularMap) * vec4(SRGB(specularColor), 1.0);
 
     float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorSpecular.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
     
@@ -380,7 +378,5 @@ void main()
     // Emission
     colorAccumulative += GetEmissive(tiledUV).rgb;
 
-    vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
-    ldr = pow(ldr, vec3(1/2.2)); // gamma correction
-    outColor = vec4(ldr, colorDiffuse.a);
+    outColor = vec4(colorAccumulative, colorDiffuse.a);
 }

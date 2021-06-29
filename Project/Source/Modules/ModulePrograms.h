@@ -39,6 +39,9 @@ public:
 	ProgramSSAO* ssao = nullptr;
 	ProgramSSAOBlur* ssaoBlur = nullptr;
 
+	// Post-processing Shaders
+	ProgramColorCorrection* colorCorrection = nullptr;
+
 	// Shadow Shaders
 	unsigned shadowMap = 0;
 

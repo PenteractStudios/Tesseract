@@ -200,6 +200,12 @@ struct ProgramSSAOBlur : Program {
 	int horizontalLocation = -1;
 };
 
+struct ProgramColorCorrection : Program {
+	ProgramColorCorrection(unsigned program);
+
+	int inputTextureLocation = -1;
+};
+
 struct ProgramDrawTexture : Program {
 	ProgramDrawTexture(unsigned program);
 
