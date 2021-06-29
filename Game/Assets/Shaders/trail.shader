@@ -19,14 +19,15 @@ void main()
 
 in vec2 uv0;
 
-uniform sampler2D diffuse;
+uniform sampler2D diffuseMap;
 uniform vec4 inputColor;
+uniform int hasDiffuse;
+
 
 out vec4 outColor;
 
 void main()
 {	
-	//outColor = inputColor;
-	outColor = texture2D(diffuse, uv0);
+	outColor = SRGBA(inputColor) * (hasDiffuse * SRGBA(texture2D(diffuseMap,  uv0 )) + (1 - hasDiffuse));
 }
 
