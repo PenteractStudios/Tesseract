@@ -58,6 +58,6 @@ void main()
 	u = X/Xtiles;
 	v = Y/Ytiles;
 	
-	outColor = inputColor * (hasDiffuseMap * texture2D(diffuseMap,  vec2(u, v)) + (1 - hasDiffuseMap));
+	outColor = SRGBA(inputColor) * (hasDiffuseMap * texture2D(SRGBA(diffuseMap),  vec2(u, v)) + (1 - hasDiffuseMap));
 }
 

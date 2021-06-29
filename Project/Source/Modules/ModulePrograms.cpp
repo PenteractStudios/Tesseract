@@ -124,8 +124,8 @@ void ModulePrograms::LoadShaders() {
 	drawTexture = new ProgramDrawTexture(CreateProgram(filePath, "vertScreen", "fragDrawTexture"));
 
 	// Particle Shaders
-	billboard = new ProgramBillboard(CreateProgram(filePath, "billboardVertex", "billboardFragment"));
-	trail = new ProgramTrail(CreateProgram(filePath, "trailVertex", "trailFragment"));
+	billboard = new ProgramBillboard(CreateProgram(filePath, "billboardVertex", "gammaCorrection billboardFragment"));
+	trail = new ProgramTrail(CreateProgram(filePath, "trailVertex", "gammaCorrection trailFragment"));
 
 	unsigned timeMs = timer.Stop();
 	LOG("Shaders loaded in %ums", timeMs);
