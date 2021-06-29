@@ -73,7 +73,7 @@ void AudioImporter::EncondeWavToOgg(const char* infilename, const char* outfilen
 
 	SNDFILE *inFile, *outFile;
 	SF_INFO sfInfo, convertTest;
-	int readcount;
+	int readCount;
 
 	if (!(inFile = sf_open(infilename, SFM_READ, &sfInfo))) {
 		printf("Error : could not open file : %s\n", infilename);
