@@ -110,6 +110,10 @@ void ResourceMesh::Load() {
 		meshVertices.push_back(vertices[i]);
 		meshVertices.push_back(vertices[i + 1]);
 		meshVertices.push_back(vertices[i + 2]);
+
+		meshNormals.push_back(vertices[i + 3]);
+		meshNormals.push_back(vertices[i + 4]);
+		meshNormals.push_back(vertices[i + 5]);
 	}
 
 	// Indices

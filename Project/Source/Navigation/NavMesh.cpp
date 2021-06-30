@@ -4,8 +4,12 @@
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleDebugDraw.h"
 #include "Modules/ModuleCamera.h"
-#include "Scene.h"
 #include "Components/ComponentMeshRenderer.h"
+#include "Components/ComponentAgent.h"
+#include "Components/ComponentObstacle.h"
+
+#include "Scene.h"
+
 #include "Utils/Logging.h"
 
 #include "Recast/Recast.h"
@@ -29,6 +33,9 @@
 #include "Utils/Leaks.h"
 
 #define MAX_AGENTS 128
+
+// This value specifies how many layers (or "floors") each navmesh tile is expected to have.
+static const int EXPECTED_LAYERS_PER_TILE = 4;
 
 /// These are just sample areas to use consistent values across the samples.
 /// The use should specify these base on his needs.
@@ -56,13 +63,367 @@ enum SamplePartitionType {
 	SAMPLE_PARTITION_LAYERS,
 };
 
-NavMesh::NavMesh()
-{
+static const int MAX_LAYERS = 32;
+
+struct TileCacheData {
+	unsigned char* data;
+	int dataSize;
+};
+
+struct FastLZCompressor : public dtTileCacheCompressor {
+	virtual int maxCompressedSize(const int bufferSize) {
+		return (int) (bufferSize * 1.05f);
+	}
+
+	virtual dtStatus compress(const unsigned char* buffer, const int bufferSize, unsigned char* compressed, const int /*maxCompressedSize*/, int* compressedSize) {
+		*compressedSize = fastlz_compress((const void* const) buffer, bufferSize, compressed);
+		return DT_SUCCESS;
+	}
+
+	virtual dtStatus decompress(const unsigned char* compressed, const int compressedSize, unsigned char* buffer, const int maxBufferSize, int* bufferSize) {
+		*bufferSize = fastlz_decompress(compressed, compressedSize, buffer, maxBufferSize);
+		return *bufferSize < 0 ? DT_FAILURE : DT_SUCCESS;
+	}
+};
+
+struct LinearAllocator : public dtTileCacheAlloc {
+	unsigned char* buffer;
+	int capacity;
+	int top;
+	int high;
+
+	LinearAllocator(const int cap)
+		: buffer(0)
+		, capacity(0)
+		, top(0)
+		, high(0) {
+		resize(cap);
+	}
+
+	~LinearAllocator() {
+		dtFree(buffer);
+	}
+
+	void resize(const int cap) {
+		if (buffer) dtFree(buffer);
+		buffer = (unsigned char*) dtAlloc(cap, DT_ALLOC_PERM);
+		capacity = cap;
+	}
+
+	virtual void reset() {
+		high = dtMax(high, top);
+		top = 0;
+	}
+
+	virtual void* alloc(const int size) {
+		if (!buffer)
+			return 0;
+		if (top + size > capacity)
+			return 0;
+		unsigned char* mem = &buffer[top];
+		top += size;
+		return mem;
+	}
+
+	virtual void free(void* /*ptr*/) {
+		// Empty
+	}
+};
+
+struct MeshProcess : public dtTileCacheMeshProcess {
+	InputGeom* m_geom;
+
+	inline MeshProcess()
+		: m_geom(0) {
+	}
+
+	inline void init(InputGeom* geom) {
+		m_geom = geom;
+	}
+
+	virtual void process(struct dtNavMeshCreateParams* params, unsigned char* polyAreas, unsigned short* polyFlags) {
+		// Update poly flags from areas.
+		for (int i = 0; i < params->polyCount; ++i) {
+			if (polyAreas[i] == DT_TILECACHE_WALKABLE_AREA)
+				polyAreas[i] = SAMPLE_POLYAREA_GROUND;
+
+			if (polyAreas[i] == SAMPLE_POLYAREA_GROUND || polyAreas[i] == SAMPLE_POLYAREA_GRASS || polyAreas[i] == SAMPLE_POLYAREA_ROAD) {
+				polyFlags[i] = SAMPLE_POLYFLAGS_WALK;
+			} else if (polyAreas[i] == SAMPLE_POLYAREA_WATER) {
+				polyFlags[i] = SAMPLE_POLYFLAGS_SWIM;
+			} else if (polyAreas[i] == SAMPLE_POLYAREA_DOOR) {
+				polyFlags[i] = SAMPLE_POLYFLAGS_WALK | SAMPLE_POLYFLAGS_DOOR;
+			}
+		}
+
+		// Pass in off-mesh connections.
+		if (m_geom) {
+			params->offMeshConVerts = m_geom->getOffMeshConnectionVerts();
+			params->offMeshConRad = m_geom->getOffMeshConnectionRads();
+			params->offMeshConDir = m_geom->getOffMeshConnectionDirs();
+			params->offMeshConAreas = m_geom->getOffMeshConnectionAreas();
+			params->offMeshConFlags = m_geom->getOffMeshConnectionFlags();
+			params->offMeshConUserID = m_geom->getOffMeshConnectionId();
+			params->offMeshConCount = m_geom->getOffMeshConnectionCount();
+		}
+	}
+};
+
+struct RasterizationContext {
+	RasterizationContext()
+		: solid(0)
+		, triareas(0)
+		, lset(0)
+		, chf(0)
+		, ntiles(0) {
+		memset(tiles, 0, sizeof(TileCacheData) * MAX_LAYERS);
+	}
+
+	~RasterizationContext() {
+		rcFreeHeightField(solid);
+		delete[] triareas;
+		rcFreeHeightfieldLayerSet(lset);
+		rcFreeCompactHeightfield(chf);
+		for (int i = 0; i < MAX_LAYERS; ++i) {
+			dtFree(tiles[i].data);
+			tiles[i].data = 0;
+		}
+	}
+
+	rcHeightfield* solid;
+	unsigned char* triareas;
+	rcHeightfieldLayerSet* lset;
+	rcCompactHeightfield* chf;
+	TileCacheData tiles[MAX_LAYERS];
+	int ntiles;
+};
+
+static int RasterizeTileLayers(float* verts, int nVerts, int nTris, BuildContext* ctx, rcChunkyTriMesh* chunkyMesh, const int tx, const int ty, const rcConfig& cfg, TileCacheData* tiles, const int maxTiles) {
+	FastLZCompressor comp;
+	RasterizationContext rc;
+
+	// Tile bounds.
+	const float tcs = cfg.tileSize * cfg.cs;
+
+	rcConfig tcfg;
+	memcpy(&tcfg, &cfg, sizeof(tcfg));
+
+	tcfg.bmin[0] = cfg.bmin[0] + tx * tcs;
+	tcfg.bmin[1] = cfg.bmin[1];
+	tcfg.bmin[2] = cfg.bmin[2] + ty * tcs;
+	tcfg.bmax[0] = cfg.bmin[0] + (tx + 1) * tcs;
+	tcfg.bmax[1] = cfg.bmax[1];
+	tcfg.bmax[2] = cfg.bmin[2] + (ty + 1) * tcs;
+	tcfg.bmin[0] -= tcfg.borderSize * tcfg.cs;
+	tcfg.bmin[2] -= tcfg.borderSize * tcfg.cs;
+	tcfg.bmax[0] += tcfg.borderSize * tcfg.cs;
+	tcfg.bmax[2] += tcfg.borderSize * tcfg.cs;
+
+	// Allocate voxel heightfield where we rasterize our input data to.
+	rc.solid = rcAllocHeightfield();
+	if (!rc.solid) {
+		LOG("buildNavigation: Out of memory 'solid'.");
+		return 0;
+	}
+	if (!rcCreateHeightfield(ctx, *rc.solid, tcfg.width, tcfg.height, tcfg.bmin, tcfg.bmax, tcfg.cs, tcfg.ch)) {
+		LOG("buildNavigation: Could not create solid heightfield.");
+		return 0;
+	}
+
+	// Allocate array that can hold triangle flags.
+	// If you have multiple meshes you need to process, allocate
+	// and array which can hold the max number of triangles you need to process.
+	rc.triareas = new unsigned char[nTris];
+	if (!rc.triareas) {
+		LOG("buildNavigation: Out of memory 'm_triareas' (%d).", nTris);
+		return 0;
+	}
+
+	float tbmin[2], tbmax[2];
+	tbmin[0] = tcfg.bmin[0];
+	tbmin[1] = tcfg.bmin[2];
+	tbmax[0] = tcfg.bmax[0];
+	tbmax[1] = tcfg.bmax[2];
+	int cid[512]; // TODO: Make grow when returning too many items.
+	const int ncid = rcGetChunksOverlappingRect(chunkyMesh, tbmin, tbmax, cid, 512);
+	if (!ncid) {
+		return 0; // empty
+	}
+
+	for (int i = 0; i < ncid; ++i) {
+		const rcChunkyTriMeshNode& node = chunkyMesh->nodes[cid[i]];
+		const int* tris = &chunkyMesh->tris[node.i * 3];
+		const int ntris = node.n;
+
+		memset(rc.triareas, 0, ntris * sizeof(unsigned char));
+		rcMarkWalkableTriangles(ctx, tcfg.walkableSlopeAngle, verts, nVerts, tris, ntris, rc.triareas);
+
+		if (!rcRasterizeTriangles(ctx, verts, nVerts, tris, rc.triareas, ntris, *rc.solid, tcfg.walkableClimb))
+			return 0;
+	}
+
+	// Once all geometry is rasterized, we do initial pass of filtering to
+	// remove unwanted overhangs caused by the conservative rasterization
+	// as well as filter spans where the character cannot possibly stand.
+	rcFilterLowHangingWalkableObstacles(ctx, tcfg.walkableClimb, *rc.solid);
+	rcFilterLedgeSpans(ctx, tcfg.walkableHeight, tcfg.walkableClimb, *rc.solid);
+	rcFilterWalkableLowHeightSpans(ctx, tcfg.walkableHeight, *rc.solid);
+
+	rc.chf = rcAllocCompactHeightfield();
+	if (!rc.chf) {
+		LOG("buildNavigation: Out of memory 'chf'.");
+		return 0;
+	}
+	if (!rcBuildCompactHeightfield(ctx, tcfg.walkableHeight, tcfg.walkableClimb, *rc.solid, *rc.chf)) {
+		LOG("buildNavigation: Could not build compact data.");
+		return 0;
+	}
+
+	// Erode the walkable area by agent radius.
+	if (!rcErodeWalkableArea(ctx, tcfg.walkableRadius, *rc.chf)) {
+		LOG("buildNavigation: Could not erode.");
+		return 0;
+	}
+
+	//// (Optional) Mark areas.
+	//const ConvexVolume* vols = geom->getConvexVolumes();
+	//for (int i = 0; i < geom->getConvexVolumeCount(); ++i) {
+	//	rcMarkConvexPolyArea(ctx, vols[i].verts, vols[i].nverts, vols[i].hmin, vols[i].hmax, (unsigned char) vols[i].area, *rc.chf);
+	//}
+
+	rc.lset = rcAllocHeightfieldLayerSet();
+	if (!rc.lset) {
+		LOG("buildNavigation: Out of memory 'lset'.");
+		return 0;
+	}
+	if (!rcBuildHeightfieldLayers(ctx, *rc.chf, tcfg.borderSize, tcfg.walkableHeight, *rc.lset)) {
+		LOG("buildNavigation: Could not build heighfield layers.");
+		return 0;
+	}
+
+	rc.ntiles = 0;
+	for (int i = 0; i < rcMin(rc.lset->nlayers, MAX_LAYERS); ++i) {
+		TileCacheData* tile = &rc.tiles[rc.ntiles++];
+		const rcHeightfieldLayer* layer = &rc.lset->layers[i];
+
+		// Store header
+		dtTileCacheLayerHeader header;
+		header.magic = DT_TILECACHE_MAGIC;
+		header.version = DT_TILECACHE_VERSION;
+
+		// Tile layer location in the navmesh.
+		header.tx = tx;
+		header.ty = ty;
+		header.tlayer = i;
+		dtVcopy(header.bmin, layer->bmin);
+		dtVcopy(header.bmax, layer->bmax);
+
+		// Tile info.
+		header.width = (unsigned char) layer->width;
+		header.height = (unsigned char) layer->height;
+		header.minx = (unsigned char) layer->minx;
+		header.maxx = (unsigned char) layer->maxx;
+		header.miny = (unsigned char) layer->miny;
+		header.maxy = (unsigned char) layer->maxy;
+		header.hmin = (unsigned short) layer->hmin;
+		header.hmax = (unsigned short) layer->hmax;
+
+		dtStatus status = dtBuildTileCacheLayer(&comp, &header, layer->heights, layer->areas, layer->cons, &tile->data, &tile->dataSize);
+		if (dtStatusFailed(status)) {
+			return 0;
+		}
+	}
+
+	// Transfer ownsership of tile data from build context to the caller.
+	int n = 0;
+	for (int i = 0; i < rcMin(rc.ntiles, maxTiles); ++i) {
+		tiles[n++] = rc.tiles[i];
+		rc.tiles[i].data = 0;
+		rc.tiles[i].dataSize = 0;
+	}
+
+	return n;
+}
+
+void DrawTiles(duDebugDraw* dd, dtTileCache* tc) {
+	unsigned int fcol[6];
+	float bmin[3], bmax[3];
+
+	for (int i = 0; i < tc->getTileCount(); ++i) {
+		const dtCompressedTile* tile = tc->getTile(i);
+		if (!tile->header) continue;
+
+		tc->calcTightTileBounds(tile->header, bmin, bmax);
+
+		const unsigned int col = duIntToCol(i, 64);
+		duCalcBoxColors(fcol, col, col);
+		duDebugDrawBox(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], fcol);
+	}
+
+	for (int i = 0; i < tc->getTileCount(); ++i) {
+		const dtCompressedTile* tile = tc->getTile(i);
+		if (!tile->header) continue;
+
+		tc->calcTightTileBounds(tile->header, bmin, bmax);
+
+		const unsigned int col = duIntToCol(i, 255);
+		const float pad = tc->getParams()->cs * 0.1f;
+		duDebugDrawBoxWire(dd, bmin[0] - pad, bmin[1] - pad, bmin[2] - pad, bmax[0] + pad, bmax[1] + pad, bmax[2] + pad, col, 2.0f);
+	}
+}
+
+void DrawObstacles(duDebugDraw* dd, const dtTileCache* tc) {
+	// Draw obstacles
+	for (int i = 0; i < tc->getObstacleCount(); ++i) {
+		const dtTileCacheObstacle* ob = tc->getObstacle(i);
+		if (ob->state == DT_OBSTACLE_EMPTY) continue;
+		if (!ob->mustBeDrawnGizmo) continue;
+		float bmin[3], bmax[3];
+		tc->getObstacleBounds(ob, bmin, bmax);
+
+		unsigned int col = 0;
+		if (ob->state == DT_OBSTACLE_PROCESSING) {
+			col = duRGBA(255, 255, 0, 128);
+		} else if (ob->state == DT_OBSTACLE_PROCESSED) {
+			col = duRGBA(255, 192, 0, 192);
+		} else if (ob->state == DT_OBSTACLE_REMOVING) {
+			col = duRGBA(220, 0, 0, 128);
+		}
+
+		if (ob->type == ObstacleType::DT_OBSTACLE_CYLINDER) {
+			duDebugDrawCylinder(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], col);
+			duDebugDrawCylinderWire(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duDarkenCol(col), 2);
+		} else {
+			//AABB localAABB = {{bmin[0], bmin[1], bmin[2]}, {bmax[0], bmax[1], bmax[2]}};
+			//OBB worldOBB = OBB(localAABB);
+			////float3 eulerAngle = float3(0, ob->orientedBox.yRadian, 0);
+			//worldOBB.Transform(Quat::FromEulerXYZ(0, ob->orientedBox.yRadian, 0));
+			//AABB worldAABB = worldOBB.MinimalEnclosingAABB();
+			//bmin[0] = worldAABB.minPoint[0];
+			//bmin[1] = worldAABB.minPoint[1];
+			//bmin[2] = worldAABB.minPoint[2];
+
+			//bmax[0] = worldAABB.maxPoint[0];
+			//bmax[1] = worldAABB.maxPoint[1];
+			//bmax[2] = worldAABB.maxPoint[2];
+			// TODO: PROPERLY SHOW THE DEBUG OBB. In function getObstacleBounds there are magic numbers multiplying the ABB and not applying a rotation. That's source code from the library.
+
+			const unsigned int* colConst = &col;
+			duDebugDrawBox(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], colConst);
+			duDebugDrawBoxWire(dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duDarkenCol(col), 2);
+		}
+	}
+}
+
+NavMesh::NavMesh() {
 	navMeshDrawFlags = DU_DRAWNAVMESH_OFFMESHCONS | DU_DRAWNAVMESH_CLOSEDLIST;
 	navQuery = dtAllocNavMeshQuery();
 	crowd = dtAllocCrowd();
 
 	ctx = new BuildContext();
+	talloc = new LinearAllocator(32000);
+	tcomp = new FastLZCompressor;
+	tmproc = new MeshProcess;
 }
 
 NavMesh::~NavMesh() {
@@ -79,16 +440,21 @@ NavMesh::~NavMesh() {
 bool NavMesh::Build() {
 	CleanUp();
 
-	std::vector<float> verts = App->scene->scene->GetVertices();
-	const int nverts = verts.size();
-	std::vector<int> tris = App->scene->scene->GetTriangles();
-	const int ntris = tris.size() / 3;
+	verts = App->scene->scene->GetVertices();
+	nverts = verts.size();
+	tris = App->scene->scene->GetTriangles();
+	ntris = tris.size() / 3;
+	normals = App->scene->scene->GetNormals();
 
 	if (nverts == 0) {
 		LOG("Building navigation:");
 		LOG("There's no mesh to build");
 		return false;
 	}
+
+	talloc = new LinearAllocator(32000);
+	tcomp = new FastLZCompressor;
+	tmproc = new MeshProcess;
 
 	float bmin[3] = {FLT_MAX, FLT_MAX, FLT_MAX};
 	float bmax[3] = {FLT_MIN, FLT_MIN, FLT_MIN};
@@ -122,6 +488,10 @@ bool NavMesh::Build() {
 	cfg.minRegionArea = static_cast<int>(rcSqr(regionMinSize));		// Note: area = size*size
 	cfg.mergeRegionArea = static_cast<int>(rcSqr(regionMergeSize)); // Note: area = size*size
 	cfg.maxVertsPerPoly = static_cast<int>(vertsPerPoly);
+	cfg.tileSize = (int) tileSize;
+	cfg.borderSize = cfg.walkableRadius + 3; // Reserve enough padding.
+	cfg.width = cfg.tileSize + cfg.borderSize * 2;
+	cfg.height = cfg.tileSize + cfg.borderSize * 2;
 	cfg.detailSampleDist = detailSampleDist < 0.9f ? 0 : cellSize * detailSampleDist;
 	cfg.detailSampleMaxError = cellHeight * detailSampleMaxError;
 
@@ -130,297 +500,136 @@ bool NavMesh::Build() {
 	// area could be specified by an user defined box, etc.
 	rcVcopy(cfg.bmin, bmin);
 	rcVcopy(cfg.bmax, bmax);
-	rcCalcGridSize(cfg.bmin, cfg.bmax, cfg.cs, &cfg.width, &cfg.height);
+	int gw = 0, gh = 0;
+	rcCalcGridSize(bmin, bmax, cellSize, &gw, &gh);
+	const int ts = (int) tileSize;
+	const int tw = (gw + ts - 1) / ts;
+	const int th = (gh + ts - 1) / ts;
 
 	LOG("Building navigation:");
 	LOG(" - %d x %d cells", cfg.width, cfg.height);
 	LOG(" - %.1fK verts, %.1fK tris", nverts / 1000.0f, ntris / 1000.0f);
 
-	//
-	// Step 2. Rasterize input polygon soup.
-	//
+	int tileBits = rcMin((int) dtIlog2(dtNextPow2(tw * th * EXPECTED_LAYERS_PER_TILE)), 14);
+	if (tileBits > 14) tileBits = 14;
+	int polyBits = 22 - tileBits;
+	maxTiles = 1 << tileBits;
+	maxPolysPerTile = 1 << polyBits;
 
-	// Allocate voxel heightfield where we rasterize our input data to.
-	solid = rcAllocHeightfield();
-	if (!solid) {
-		LOG("buildNavigation: Out of memory 'solid'.");
+	// Tile cache params.
+	dtTileCacheParams tcparams;
+	memset(&tcparams, 0, sizeof(tcparams));
+	rcVcopy(tcparams.orig, bmin);
+	tcparams.cs = cellSize;
+	tcparams.ch = cellHeight;
+	tcparams.width = (int) tileSize;
+	tcparams.height = (int) tileSize;
+	tcparams.walkableHeight = agentHeight;
+	tcparams.walkableRadius = agentRadius;
+	tcparams.walkableClimb = agentMaxClimb;
+	tcparams.maxSimplificationError = edgeMaxError;
+	tcparams.maxTiles = tw * th * EXPECTED_LAYERS_PER_TILE;
+	tcparams.maxObstacles = 128;
+
+	dtFreeTileCache(tileCache);
+
+	tileCache = dtAllocTileCache();
+	if (!tileCache) {
+		LOG("buildTiledNavigation: Could not allocate tile cache.");
 		return false;
 	}
-	if (!rcCreateHeightfield(ctx, *solid, cfg.width, cfg.height, cfg.bmin, cfg.bmax, cfg.cs, cfg.ch)) {
-		LOG("buildNavigation: Could not create solid heightfield.");
-		return false;
-	}
-
-	// Allocate array that can hold triangle area types.
-	// If you have multiple meshes you need to process, allocate
-	// and array which can hold the max number of triangles you need to process.
-	triareas = new unsigned char[ntris];
-	if (!triareas) {
-		LOG("buildNavigation: Out of memory 'triareas' (%d).", ntris);
-		return false;
-	}
-
-	// Find triangles which are walkable based on their slope and rasterize them.
-	// If your input data is multiple meshes, you can transform them here, calculate
-	// the are type for each of the meshes and rasterize them.
-	memset(triareas, 0, ntris * sizeof(unsigned char));
-	rcMarkWalkableTriangles(ctx, cfg.walkableSlopeAngle, &verts[0], nverts, &tris[0], ntris, triareas);
-	if (!rcRasterizeTriangles(ctx, &verts[0], nverts, &tris[0], triareas, ntris, *solid, cfg.walkableClimb)) {
-		LOG("buildNavigation: Could not rasterize triangles.");
-		return false;
-	}
-
-	if (!keepInterResults) {
-		delete[] triareas;
-		triareas = 0;
-	}
-
-	//
-	// Step 3. Filter walkables surfaces.
-	//
-
-	// Once all geoemtry is rasterized, we do initial pass of filtering to
-	// remove unwanted overhangs caused by the conservative rasterization
-	// as well as filter spans where the character cannot possibly stand.
-	rcFilterLowHangingWalkableObstacles(ctx, cfg.walkableClimb, *solid);
-	rcFilterLedgeSpans(ctx, cfg.walkableHeight, cfg.walkableClimb, *solid);
-	rcFilterWalkableLowHeightSpans(ctx, cfg.walkableHeight, *solid);
-
-	//
-	// Step 4. Partition walkable surface to simple regions.
-	//
-
-	// Compact the heightfield so that it is faster to handle from now on.
-	// This will result more cache coherent data as well as the neighbours
-	// between walkable cells will be calculated.
-	chf = rcAllocCompactHeightfield();
-	if (!chf) {
-		LOG("buildNavigation: Out of memory 'chf'.");
-		return false;
-	}
-	if (!rcBuildCompactHeightfield(ctx, cfg.walkableHeight, cfg.walkableClimb, *solid, *chf)) {
-		LOG("buildNavigation: Could not build compact data.");
+	dtStatus status = tileCache->init(&tcparams, talloc, tcomp, tmproc);
+	if (dtStatusFailed(status)) {
+		LOG("buildTiledNavigation: Could not init tile cache.");
 		return false;
 	}
 
-	if (!keepInterResults) {
-		rcFreeHeightField(solid);
-		solid = nullptr;
-	}
+	dtFreeNavMesh(navMesh);
 
-	// Erode the walkable area by agent radius.
-	if (!rcErodeWalkableArea(ctx, cfg.walkableRadius, *chf)) {
-		LOG("buildNavigation: Could not erode.");
+	navMesh = dtAllocNavMesh();
+	if (!navMesh) {
+		LOG("buildTiledNavigation: Could not allocate navmesh.");
 		return false;
 	}
 
-	// (Optional) Mark areas.
-	//const ConvexVolume* vols = geom->getConvexVolumes();
-	//for (int i = 0; i < geom->getConvexVolumeCount(); ++i)
-	//	rcMarkConvexPolyArea(ctx, vols[i].verts, vols[i].nverts, vols[i].hmin, vols[i].hmax, (unsigned char) vols[i].area, *chf);
+	dtNavMeshParams params;
+	memset(&params, 0, sizeof(params));
+	rcVcopy(params.orig, bmin);
+	params.tileWidth = tileSize * cellSize;
+	params.tileHeight = tileSize * cellSize;
+	params.maxTiles = maxTiles;
+	params.maxPolys = maxPolysPerTile;
 
-	// Partition the heightfield so that we can use simple algorithm later to triangulate the walkable areas.
-	// There are 3 martitioning methods, each with some pros and cons:
-	// 1) Watershed partitioning
-	//   - the classic Recast partitioning
-	//   - creates the nicest tessellation
-	//   - usually slowest
-	//   - partitions the heightfield into nice regions without holes or overlaps
-	//   - the are some corner cases where this method creates produces holes and overlaps
-	//      - holes may appear when a small obstacles is close to large open area (triangulation can handle this)
-	//      - overlaps may occur if you have narrow spiral corridors (i.e stairs), this make triangulation to fail
-	//   * generally the best choice if you precompute the nacmesh, use this if you have large open areas
-	// 2) Monotone partioning
-	//   - fastest
-	//   - partitions the heightfield into regions without holes and overlaps (guaranteed)
-	//   - creates long thin polygons, which sometimes causes paths with detours
-	//   * use this if you want fast navmesh generation
-	// 3) Layer partitoining
-	//   - quite fast
-	//   - partitions the heighfield into non-overlapping regions
-	//   - relies on the triangulation code to cope with holes (thus slower than monotone partitioning)
-	//   - produces better triangles than monotone partitioning
-	//   - does not have the corner cases of watershed partitioning
-	//   - can be slow and create a bit ugly tessellation (still better than monotone)
-	//     if you have large open areas with small obstacles (not a problem if you use tiles)
-	//   * good choice to use for tiled navmesh with medium and small sized tiles
-
-	if (partitionType == SAMPLE_PARTITION_WATERSHED) {
-		// Prepare for region partitioning, by calculating distance field along the walkable surface.
-		if (!rcBuildDistanceField(ctx, *chf)) {
-			LOG("buildNavigation: Could not build distance field.");
-			return false;
-		}
-
-		// Partition the walkable surface into simple regions without holes.
-		if (!rcBuildRegions(ctx, *chf, 0, cfg.minRegionArea, cfg.mergeRegionArea)) {
-			LOG("buildNavigation: Could not build watershed regions.");
-			return false;
-		}
-	} else if (partitionType == SAMPLE_PARTITION_MONOTONE) {
-		// Partition the walkable surface into simple regions without holes.
-		// Monotone partitioning does not need distancefield.
-		if (!rcBuildRegionsMonotone(ctx, *chf, 0, cfg.minRegionArea, cfg.mergeRegionArea)) {
-			LOG("buildNavigation: Could not build monotone regions.");
-			return false;
-		}
-	} else // SAMPLE_PARTITION_LAYERS
-	{
-		// Partition the walkable surface into simple regions without holes.
-		if (!rcBuildLayerRegions(ctx, *chf, 0, cfg.minRegionArea)) {
-			LOG("buildNavigation: Could not build layer regions.");
-			return false;
-		}
-	}
-
-	//
-	// Step 5. Trace and simplify region contours.
-	//
-
-	// Create contours.
-	cset = rcAllocContourSet();
-	if (!cset) {
-		LOG("buildNavigation: Out of memory 'cset'.");
-		return false;
-	}
-	if (!rcBuildContours(ctx, *chf, cfg.maxSimplificationError, cfg.maxEdgeLen, *cset)) {
-		LOG("buildNavigation: Could not create contours.");
+	status = navMesh->init(&params);
+	if (dtStatusFailed(status)) {
+		LOG("buildTiledNavigation: Could not init navmesh.");
 		return false;
 	}
 
-	//
-	// Step 6. Build polygons mesh from contours.
-	//
-
-	// Build polygon navmesh from the contours.
-	pmesh = rcAllocPolyMesh();
-	if (!pmesh) {
-		LOG("buildNavigation: Out of memory 'pmesh'.");
-		return false;
-	}
-	if (!rcBuildPolyMesh(ctx, *cset, cfg.maxVertsPerPoly, *pmesh)) {
-		LOG("buildNavigation: Could not triangulate contours.");
+	status = navQuery->init(navMesh, 2048);
+	if (dtStatusFailed(status)) {
+		LOG("buildTiledNavigation: Could not init Detour navmesh query");
 		return false;
 	}
 
-	//
-	// Step 7. Create detail mesh which allows to access approximate height on each polygon.
-	//
-
-	dmesh = rcAllocPolyMeshDetail();
-	if (!dmesh) {
-		LOG("buildNavigation: Out of memory 'pmdtl'.");
+	rcChunkyTriMesh* chunkyMesh = new rcChunkyTriMesh;
+	if (!chunkyMesh) {
+		LOG("buildTiledNavigation: Out of memory 'm_chunkyMesh'.");
+		return false;
+	}
+	if (!rcCreateChunkyTriMesh(&verts[0], &tris[0], ntris, 256, chunkyMesh)) {
+		LOG("buildTiledNavigation: Failed to build chunky mesh.");
 		return false;
 	}
 
-	if (!rcBuildPolyMeshDetail(ctx, *pmesh, *chf, cfg.detailSampleDist, cfg.detailSampleMaxError, *dmesh)) {
-		LOG("buildNavigation: Could not build detail mesh.");
-		return false;
-	}
+	for (int y = 0; y < th; ++y) {
+		for (int x = 0; x < tw; ++x) {
+			TileCacheData tiles[MAX_LAYERS];
+			memset(tiles, 0, sizeof(tiles));
+			int ntiles = RasterizeTileLayers(&verts[0], nverts, ntris, ctx, chunkyMesh, x, y, cfg, tiles, MAX_LAYERS);
 
-	if (!keepInterResults) {
-		rcFreeCompactHeightfield(chf);
-		chf = nullptr;
-		rcFreeContourSet(cset);
-		cset = nullptr;
-	}
-
-	// At this point the navigation mesh data is ready, you can access it from pmesh.
-	// See duDebugDrawPolyMesh or dtCreateNavMeshData as examples how to access the data.
-
-	//
-	// (Optional) Step 8. Create Detour data from Recast poly mesh.
-	//
-
-	// The GUI may allow more max points per polygon than Detour can handle.
-	// Only build the detour navmesh if we do not exceed the limit.
-	if (cfg.maxVertsPerPoly <= DT_VERTS_PER_POLYGON) {
-		navData = nullptr;
-		navDataSize = 0;
-
-		// Update poly flags from areas.
-		for (int i = 0; i < pmesh->npolys; ++i) {
-			if (pmesh->areas[i] == RC_WALKABLE_AREA)
-				pmesh->areas[i] = SAMPLE_POLYAREA_GROUND;
-
-			if (pmesh->areas[i] == SAMPLE_POLYAREA_GROUND || pmesh->areas[i] == SAMPLE_POLYAREA_GRASS || pmesh->areas[i] == SAMPLE_POLYAREA_ROAD) {
-				pmesh->flags[i] = SAMPLE_POLYFLAGS_WALK;
-			} else if (pmesh->areas[i] == SAMPLE_POLYAREA_WATER) {
-				pmesh->flags[i] = SAMPLE_POLYFLAGS_SWIM;
-			} else if (pmesh->areas[i] == SAMPLE_POLYAREA_DOOR) {
-				pmesh->flags[i] = SAMPLE_POLYFLAGS_WALK | SAMPLE_POLYFLAGS_DOOR;
+			for (int i = 0; i < ntiles; ++i) {
+				TileCacheData* tile = &tiles[i];
+				status = tileCache->addTile(tile->data, tile->dataSize, DT_COMPRESSEDTILE_FREE_DATA, 0);
+				if (dtStatusFailed(status)) {
+					dtFree(tile->data);
+					tile->data = 0;
+					continue;
+				}
 			}
 		}
+	}
 
-		dtNavMeshCreateParams params;
-		memset(&params, 0, sizeof(params));
-		params.verts = pmesh->verts;
-		params.vertCount = pmesh->nverts;
-		params.polys = pmesh->polys;
-		params.polyAreas = pmesh->areas;
-		params.polyFlags = pmesh->flags;
-		params.polyCount = pmesh->npolys;
-		params.nvp = pmesh->nvp;
-		params.detailMeshes = dmesh->meshes;
-		params.detailVerts = dmesh->verts;
-		params.detailVertsCount = dmesh->nverts;
-		params.detailTris = dmesh->tris;
-		params.detailTriCount = dmesh->ntris;
-		params.walkableHeight = agentHeight;
-		params.walkableRadius = agentRadius;
-		params.walkableClimb = agentMaxClimb;
-		rcVcopy(params.bmin, pmesh->bmin);
-		rcVcopy(params.bmax, pmesh->bmax);
-		params.cs = cfg.cs;
-		params.ch = cfg.ch;
-		params.buildBvTree = true;
-
-		if (!dtCreateNavMeshData(&params, &navData, &navDataSize)) {
-			LOG("Could not build Detour navmesh.");
-			return false;
+	// Build initial meshes
+	for (int y = 0; y < th; ++y) {
+		for (int x = 0; x < tw; ++x) {
+			tileCache->buildNavMeshTilesAt(x, y, navMesh);
 		}
+	}
+	ctx->stopTimer(RC_TIMER_TOTAL);
 
-		navMesh = dtAllocNavMesh();
-		if (!navMesh) {
-			dtFree(navData);
-			navData = nullptr;
-			navDataSize = 0;
-			LOG("Could not create Detour navmesh");
-			return false;
-		}
-
-		dtStatus status;
-
-		status = navMesh->init(navData, navDataSize, DT_TILE_FREE_DATA);
-		if (dtStatusFailed(status)) {
-			dtFree(navData);
-			navData = nullptr;
-			navDataSize = 0;
-			LOG("Could not init Detour navmesh");
-			return false;
-		}
-
-		status = navQuery->init(navMesh, 2048);
-		if (dtStatusFailed(status)) {
-			LOG("Could not init Detour navmesh query");
-			return false;
+	const dtNavMesh* nav = navMesh;
+	int navmeshMemUsage = 0;
+	for (int i = 0; i < nav->getMaxTiles(); ++i) {
+		const dtMeshTile* tile = nav->getTile(i);
+		if (tile->header) {
+			navmeshMemUsage += tile->dataSize;
 		}
 	}
 
+	RELEASE(chunkyMesh);
 
-	// Show performance stats.
-	LOG(">> Polymesh: %d vertices  %d polygons", pmesh->nverts, pmesh->npolys);
+	LOG("navmeshMemUsage = %.1f kB", navmeshMemUsage / 1024.0f);
 
 	InitCrowd();
+
+	RescanCrowd();
+	RescanObstacles();
 
 	return true;
 }
 
 void NavMesh::DrawGizmos() {
-	if (navData == nullptr) {
-		return;
-	}
-
 	DebugDrawGL dds;
 
 	glClearColor(.1f, .1f, .1f, 1.0f);
@@ -434,13 +643,13 @@ void NavMesh::DrawGizmos() {
 	glLoadIdentity();
 	glLoadMatrixf(App->camera->GetViewMatrix().Transposed().ptr());
 
-	glEnable(GL_FOG);
+	GLboolean depthMaskValue;
+	GLboolean depth;
+	glGetBooleanv(GL_DEPTH_TEST, &depthMaskValue);
 	glDepthMask(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
 
 	const float texScale = 1.0f / (cellSize * 10.0f);
-
-	glDisable(GL_FOG);
-	glDepthMask(GL_FALSE);
 
 	// Draw bounds
 	float bmin[3] = {FLT_MAX, FLT_MAX, FLT_MAX};
@@ -457,76 +666,54 @@ void NavMesh::DrawGizmos() {
 		bmax[2] = currentBBMax.z > bmax[2] ? currentBBMax.z : bmax[2];
 	}
 
-	duDebugDrawBoxWire(&dds, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duRGBA(255, 255, 255, 128), 1.0f);
+	DebugDrawGL dd;
 
-	dds.begin(DU_DRAW_POINTS, 5.0f);
-	dds.vertex(bmin[0], bmin[1], bmin[2], duRGBA(255, 255, 255, 128));
-	dds.end();
-
-	if (navMesh && navQuery && (drawMode == DRAWMODE_NAVMESH || drawMode == DRAWMODE_NAVMESH_TRANS || drawMode == DRAWMODE_NAVMESH_BVTREE || drawMode == DRAWMODE_NAVMESH_NODES || drawMode == DRAWMODE_NAVMESH_INVIS)) {
-		if (drawMode != DRAWMODE_NAVMESH_INVIS)
-			duDebugDrawNavMeshWithClosedList(&dds, *navMesh, *navQuery, navMeshDrawFlags);
-		if (drawMode == DRAWMODE_NAVMESH_BVTREE)
-			duDebugDrawNavMeshBVTree(&dds, *navMesh);
-		if (drawMode == DRAWMODE_NAVMESH_NODES)
-			duDebugDrawNavMeshNodes(&dds, *navQuery);
-		duDebugDrawNavMeshPolysWithFlags(&dds, *navMesh, SAMPLE_POLYFLAGS_DISABLED, duRGBA(0, 0, 0, 128));
+	// Draw mesh
+	if (drawMode != DRAWMODE_NAVMESH_TRANS && nverts > 0) {
+		// Draw mesh
+		duDebugDrawTriMeshSlope(&dd, &verts[0], nverts, &tris[0], &normals[0], ntris, agentMaxSlope, texScale);
+		//m_geom->drawOffMeshConnections(&dd);
 	}
 
-	glDepthMask(GL_TRUE);
-
-	if (chf && drawMode == DRAWMODE_COMPACT)
-		duDebugDrawCompactHeightfieldSolid(&dds, *chf);
-
-	if (chf && drawMode == DRAWMODE_COMPACT_DISTANCE)
-		duDebugDrawCompactHeightfieldDistance(&dds, *chf);
-	if (chf && drawMode == DRAWMODE_COMPACT_REGIONS)
-		duDebugDrawCompactHeightfieldRegions(&dds, *chf);
-	if (solid && drawMode == DRAWMODE_VOXELS) {
-		glEnable(GL_FOG);
-		duDebugDrawHeightfieldSolid(&dds, *solid);
-		glDisable(GL_FOG);
-	}
-	if (solid && drawMode == DRAWMODE_VOXELS_WALKABLE) {
-		glEnable(GL_FOG);
-		duDebugDrawHeightfieldWalkable(&dds, *solid);
-		glDisable(GL_FOG);
-	}
-	if (cset && drawMode == DRAWMODE_RAW_CONTOURS) {
-		glDepthMask(GL_FALSE);
-		duDebugDrawRawContours(&dds, *cset);
-		glDepthMask(GL_TRUE);
-	}
-	if (cset && drawMode == DRAWMODE_BOTH_CONTOURS) {
-		glDepthMask(GL_FALSE);
-		duDebugDrawRawContours(&dds, *cset, 0.5f);
-		duDebugDrawContours(&dds, *cset);
-		glDepthMask(GL_TRUE);
-	}
-	if (cset && drawMode == DRAWMODE_CONTOURS) {
-		glDepthMask(GL_FALSE);
-		duDebugDrawContours(&dds, *cset);
-		glDepthMask(GL_TRUE);
-	}
-	if (chf && cset && drawMode == DRAWMODE_REGION_CONNECTIONS) {
-		duDebugDrawCompactHeightfieldRegions(&dds, *chf);
-
-		glDepthMask(GL_FALSE);
-		duDebugDrawRegionConnections(&dds, *cset);
-		glDepthMask(GL_TRUE);
-	}
-	if (pmesh && drawMode == DRAWMODE_POLYMESH) {
-		glDepthMask(GL_FALSE);
-		duDebugDrawPolyMesh(&dds, *pmesh);
-		glDepthMask(GL_TRUE);
-	}
-	if (dmesh && drawMode == DRAWMODE_POLYMESH_DETAIL) {
-		glDepthMask(GL_FALSE);
-		duDebugDrawPolyMeshDetail(&dds, *dmesh);
-		glDepthMask(GL_TRUE);
+	if (tileCache && drawMode == DRAWMODE_CACHE_BOUNDS) {
+		DrawTiles(&dd, tileCache);
 	}
 
-	glDepthMask(GL_TRUE);
+	if (tileCache) {
+		DrawObstacles(&dd, tileCache);
+	}
+	
+	// Draw bounds
+	duDebugDrawBoxWire(&dd, bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2], duRGBA(255, 255, 255, 128), 1.0f);
+
+	// Tiling grid.
+	int gw = 0, gh = 0;
+	rcCalcGridSize(bmin, bmax, cellSize, &gw, &gh);
+	const int tw = (gw + (int) tileSize - 1) / (int) tileSize;
+	const int th = (gh + (int) tileSize - 1) / (int) tileSize;
+	const float s = tileSize * cellSize;
+	duDebugDrawGridXZ(&dd, bmin[0], bmin[1], bmin[2], tw, th, s, duRGBA(0, 0, 0, 64), 1.0f);
+
+	if (navMesh && navQuery && (drawMode == DRAWMODE_NAVMESH || drawMode == DRAWMODE_NAVMESH_TRANS || drawMode == DRAWMODE_NAVMESH_BVTREE || drawMode == DRAWMODE_NAVMESH_NODES || drawMode == DRAWMODE_NAVMESH_PORTALS || drawMode == DRAWMODE_NAVMESH_INVIS)) {
+		if (drawMode != DRAWMODE_NAVMESH_INVIS) {
+			duDebugDrawNavMeshWithClosedList(&dd, *navMesh, *navQuery, navMeshDrawFlags /*|DU_DRAWNAVMESH_COLOR_TILES*/);
+		}
+		if (drawMode == DRAWMODE_NAVMESH_BVTREE) {
+			duDebugDrawNavMeshBVTree(&dd, *navMesh);
+		}
+		if (drawMode == DRAWMODE_NAVMESH_PORTALS) {
+			duDebugDrawNavMeshPortals(&dd, *navMesh);
+		}
+		if (drawMode == DRAWMODE_NAVMESH_NODES) {
+			duDebugDrawNavMeshNodes(&dd, *navQuery);
+		}
+			
+		duDebugDrawNavMeshPolysWithFlags(&dd, *navMesh, SAMPLE_POLYFLAGS_DISABLED, duRGBA(0, 0, 0, 128));
+	}
+
+	glEnable(GL_DEPTH_TEST);
+
+	glDepthMask(depthMaskValue);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -535,27 +722,85 @@ void NavMesh::DrawGizmos() {
 	glLoadIdentity();
 }
 
+static const int TILECACHESET_MAGIC = 'T' << 24 | 'S' << 16 | 'E' << 8 | 'T'; //'TSET';
+static const int TILECACHESET_VERSION = 1;
+
+struct TileCacheSetHeader {
+	int magic;
+	int version;
+	int numTiles;
+	dtNavMeshParams meshParams;
+	dtTileCacheParams cacheParams;
+};
+
+struct TileCacheTileHeader {
+	dtCompressedTileRef tileRef;
+	int dataSize;
+};
+
 void NavMesh::Load(Buffer<char>& buffer) {
 	CleanUp();
+
+	verts = App->scene->scene->GetVertices();
+	nverts = verts.size();
+	tris = App->scene->scene->GetTriangles();
+	ntris = tris.size() / 3;
+	normals = App->scene->scene->GetNormals();
+
+	talloc = new LinearAllocator(32000);
+	tcomp = new FastLZCompressor;
+	tmproc = new MeshProcess;
+
+	char* cursor = buffer.Data();
+
+	// Read header.
+	TileCacheSetHeader header;
+	header = *((TileCacheSetHeader*) cursor);
+	cursor += sizeof(TileCacheSetHeader);
 
 	navMesh = dtAllocNavMesh();
 	if (!navMesh) {
 		LOG("Could not create Detour navmesh");
 		return;
 	}
-
-	dtStatus status;
-
-	unsigned int bufferSize = buffer.Size();
-	char* bufferData = buffer.ObtainData();
-
-	status = navMesh->init(reinterpret_cast<unsigned char*>(bufferData), bufferSize, DT_TILE_FREE_DATA);
+	dtStatus status = navMesh->init(&header.meshParams);
 	if (dtStatusFailed(status)) {
 		LOG("Could not init Detour navmesh");
 		return;
 	}
-	navData = reinterpret_cast<unsigned char*>(bufferData);
-	navDataSize = bufferSize;
+
+	tileCache = dtAllocTileCache();
+	if (!tileCache) {
+		LOG("Could not allocate tileCache");
+		return;
+	}
+	status = tileCache->init(&header.cacheParams, talloc, tcomp, tmproc);
+	if (dtStatusFailed(status)) {
+		LOG("Could not init tileCache");
+		return;
+	}
+
+	// Read tiles.
+	for (int i = 0; i < header.numTiles; ++i) {
+		TileCacheTileHeader tileHeader = *((TileCacheTileHeader*) cursor);
+		cursor += sizeof(TileCacheTileHeader);
+
+		if (!tileHeader.tileRef || !tileHeader.dataSize)
+			break;
+
+		unsigned char* data = (unsigned char*) malloc(tileHeader.dataSize);
+		if (!data) break;
+		memset(data, 0, tileHeader.dataSize);
+
+		unsigned int _dataSize = sizeof(unsigned char) * tileHeader.dataSize;
+		memcpy_s(data, _dataSize, cursor, _dataSize);		// IMPORTANT! DO NOT FREE DATA NOW BECAUSE IT WILL BE RELEASED WHEN CLOSING THE APPLICATION.
+		cursor += _dataSize;
+
+		dtCompressedTileRef tile = 0;
+		tileCache->addTile(data, tileHeader.dataSize, DT_COMPRESSEDTILE_FREE_DATA, &tile);
+
+		if (tile) tileCache->buildNavMeshTile(tile, navMesh);
+	}
 
 	status = navQuery->init(navMesh, 2048);
 	if (dtStatusFailed(status)) {
@@ -563,26 +808,78 @@ void NavMesh::Load(Buffer<char>& buffer) {
 		return;
 	}
 
+
 	InitCrowd();
+	RescanCrowd();
+	RescanObstacles();
 }
 
 void NavMesh::CleanUp() {
 	dtFreeNavMesh(navMesh);
 	navMesh = nullptr;
-	navData = nullptr;
-	navDataSize = 0;
-	delete[] triareas;
-	triareas = nullptr;
-	rcFreeHeightField(solid);
-	solid = nullptr;
-	rcFreeCompactHeightfield(chf);
-	chf = nullptr;
-	rcFreeContourSet(cset);
-	cset = nullptr;
-	rcFreePolyMesh(pmesh);
-	pmesh = nullptr;
-	rcFreePolyMeshDetail(dmesh);
-	dmesh = nullptr;
+	
+	dtFreeTileCache(tileCache);
+	tileCache = nullptr;
+
+	RELEASE(tmproc);
+	RELEASE(tcomp);
+	RELEASE(talloc);
+	nverts = 0;
+	ntris = 0;
+	verts.clear();
+	tris.clear();
+	normals.clear();
+}
+
+Buffer<char> NavMesh::Save() {
+	if (!tileCache || !navMesh) return Buffer<char>();
+
+	int sizeData = 0;
+	int numTiles = 0;
+	for (int i = 0; i < tileCache->getTileCount(); ++i) {
+		const dtCompressedTile* tile = tileCache->getTile(i);
+		if (!tile || !tile->header || !tile->dataSize) continue;
+
+		sizeData += tile->dataSize;
+		sizeData += sizeof(TileCacheTileHeader);
+		numTiles++;
+	}
+
+	// Store header.
+	TileCacheSetHeader header;
+	header.magic = TILECACHESET_MAGIC;
+	header.version = TILECACHESET_VERSION;
+	header.numTiles = numTiles;
+
+	memcpy(&header.cacheParams, tileCache->getParams(), sizeof(dtTileCacheParams));
+	memcpy(&header.meshParams, navMesh->getParams(), sizeof(dtNavMeshParams));
+
+	int size = sizeof(TileCacheSetHeader) + sizeData;
+	Buffer<char> buffer = Buffer<char>(size);
+	char* cursor = buffer.Data();
+
+	*((TileCacheSetHeader*) cursor) = header;
+	cursor += sizeof(TileCacheSetHeader);
+
+	// Store tiles.
+	for (int i = 0; i < tileCache->getTileCount(); ++i) {
+		const dtCompressedTile* tile = tileCache->getTile(i);
+		if (!tile || !tile->header || !tile->dataSize) continue;
+
+		TileCacheTileHeader tileHeader;
+		tileHeader.tileRef = tileCache->getTileRef(tile);
+		tileHeader.dataSize = tile->dataSize;
+
+		*((TileCacheTileHeader*) cursor) = tileHeader;
+		cursor += sizeof(TileCacheTileHeader);
+
+		unsigned int _dataSize = sizeof(unsigned char) * tile->dataSize;
+		memcpy_s(cursor, _dataSize, tile->data, _dataSize);
+		cursor += _dataSize;
+
+	}
+
+	return buffer;
 }
 
 dtCrowd* NavMesh::GetCrowd() {
@@ -590,11 +887,19 @@ dtCrowd* NavMesh::GetCrowd() {
 }
 
 bool NavMesh::IsGenerated() {
-	return navData != nullptr;
+	return tileCache != nullptr;
 }
 
 dtNavMeshQuery* NavMesh::GetNavMeshQuery() {
 	return navQuery;
+}
+
+dtNavMesh* NavMesh::GetNavMesh() {
+	return navMesh;
+}
+
+dtTileCache* NavMesh::GetTileCache() {
+	return tileCache;
 }
 
 void NavMesh::InitCrowd() {
@@ -636,4 +941,28 @@ void NavMesh::InitCrowd() {
 	params.adaptiveDepth = 3;
 
 	crowd->setObstacleAvoidanceParams(3, &params);
+}
+
+void NavMesh::CleanCrowd() {
+	for (ComponentAgent& agent : App->scene->scene->agentComponents) {
+		agent.RemoveAgentFromCrowd();
+	}
+}
+
+void NavMesh::RescanCrowd() {
+	for (ComponentAgent& agent : App->scene->scene->agentComponents) {
+		agent.AddAgentToCrowd();
+	}
+}
+
+void NavMesh::CleanObstacles() {
+	for (ComponentObstacle& obstacle : App->scene->scene->obstacleComponents) {
+		obstacle.RemoveObstacle();
+	}
+}
+
+void NavMesh::RescanObstacles() {
+	for (ComponentObstacle& obstacle : App->scene->scene->obstacleComponents) {
+		obstacle.AddObstacle();
+	}
 }

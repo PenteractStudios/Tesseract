@@ -14,6 +14,7 @@
 #include "Components/ComponentMeshRenderer.h"
 #include "Components/ComponentBoundingBox2D.h"
 #include "Components/ComponentAgent.h"
+#include "Components/ComponentObstacle.h"
 #include "Components/UI/ComponentEventSystem.h"
 #include "Components/UI/ComponentText.h"
 #include "Components/UI/ComponentImage.h"
@@ -194,6 +195,9 @@ void PanelInspector::Update() {
 				case ComponentType::AGENT:
 					cName = "Agent";
 					break;
+				case ComponentType::OBSTACLE:
+					cName = "Obstacle";
+					break;
 				default:
 					cName = "";
 					break;
@@ -327,20 +331,13 @@ void PanelInspector::Update() {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
 				}
-				if (ImGui::MenuItem("Agent")) {
-					ComponentAgent* agent = selected->CreateComponent<ComponentAgent>();
-					if (agent != nullptr) {
-						agent->Init();
-					} else {
-						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
-					}
-				}
+				
 				// TRANSFORM is always there, cannot add a new one.
 
 				AddAudioComponentsOptions(selected);
 				AddUIComponentsOptions(selected);
-
 				AddColliderComponentsOptions(selected);
+				AddNavigationComponentsOptions(selected);
 
 				ImGui::EndPopup();
 			}
@@ -530,6 +527,7 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 		ImGui::EndMenu();
 	}
 }
+
 void PanelInspector::AddColliderComponentsOptions(GameObject* selected) {
 	if (ImGui::BeginMenu("Collider")) {
 		if (ImGui::MenuItem("Sphere Collider")) {
@@ -556,6 +554,29 @@ void PanelInspector::AddColliderComponentsOptions(GameObject* selected) {
 				capsuleComponent->Init();
 			} else {
 				App->editor->modalToOpen = Modal::COMPONENT_EXISTS; // TODO: Control other colliders exists.
+			}
+		}
+
+		ImGui::EndMenu();
+	}
+}
+
+void PanelInspector::AddNavigationComponentsOptions(GameObject* selected) {
+	if (ImGui::BeginMenu("Navigation")) {
+		if (ImGui::MenuItem("Agent")) {
+			ComponentAgent* agent = selected->CreateComponent<ComponentAgent>();
+			if (agent != nullptr) {
+				agent->Init();
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+			}
+		}
+		if (ImGui::MenuItem("Obstacle")) {
+			ComponentObstacle* obstacle = selected->CreateComponent<ComponentObstacle>();
+			if (obstacle != nullptr) {
+				obstacle->Init();
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 			}
 		}
 
