@@ -64,7 +64,8 @@ private:
 
 class TESSERACT_ENGINE_API GameObject {
 public:
-	void InitComponents();
+	void Init();
+	void Start();
 	void Update();
 	void DrawGizmos();
 
