@@ -57,12 +57,11 @@ public:
 
 		float3 initialPosition = float3(0.0f, 0.0f, 0.0f);
 		float3 position = float3(0.0f, 0.0f, 0.0f);
-		float3 direction = float3(0.0f, 0.0f, 0.0f);
-		float3 scale = float3(0.1f, 0.1f, 0.1f);
-
 		Quat rotation = Quat(0.0f, 0.0f, 0.0f, 0.0f);
+		float3 scale = float3(0.1f, 0.1f, 0.1f);
+		float3 direction = float3(0.0f, 0.0f, 0.0f);
 
-		float velocity = 0.0f;
+		float speed = 0.0f;
 		float life = 0.0f;
 		float currentFrame = 0.0f;
 
@@ -98,11 +97,13 @@ public:
 	void SpawnParticleUnit();
 
 	void InitParticlePosAndDir(Particle* currentParticle);
+	void InitParticleRotation(Particle* currentParticle);
 	void InitParticleScale(Particle* currentParticle);
-	void InitParticleVelocity(Particle* currentParticle);
-	void InitParticleLifetime(Particle* currentParticle);
+	void InitParticleSpeed(Particle* currentParticle);
+	void InitParticleLife(Particle* currentParticle);
 
 	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
+	void UpdateRotation(Particle* currentParticle);
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
 
@@ -136,7 +137,8 @@ private:
 	float duration = 5.0f; // Emitter duration
 	bool looping = false;
 	float life = 5.0f;	   // Start life
-	float velocity = 1.3f; // Start speed
+	float speed = 1.3f;	   // Start speed
+	float rotation = 0.0f; // Start rotation
 	float scale = 1.0f;	   // Start size
 	bool reverseEffect = false;
 	float reverseDistance = 5.0f;
@@ -152,6 +154,10 @@ private:
 	float coneRadiusDown = 0.5f;
 	bool randomConeRadiusDown = false;
 	bool randomConeRadiusUp = false;
+
+	// Rotation over Lifetime
+	bool rotationOverLifetime = false;
+	float rotationFactor = 0.f;
 
 	// Size over Lifetime
 	bool sizeOverLifetime = false;
