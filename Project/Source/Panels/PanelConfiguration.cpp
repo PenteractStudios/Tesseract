@@ -229,6 +229,7 @@ void PanelConfiguration::Update() {
 				ImGui::DragFloat("Bias", &App->renderer->ssaoBias, 0.0001f, 0.0f, 10.0f, "%.5f");
 				ImGui::DragFloat("Power", &App->renderer->ssaoPower, 0.01f, 0.01f, 100.0f);
 			}
+			ImGui::SliderFloat("Bloom Threshold", &App->renderer->bloomThreshold, 0.001f, 10.0f);
 
 			ImGui::ResourceSlot<ResourceNavMesh>("Nav Mesh", &scene->navMeshId);
 		}

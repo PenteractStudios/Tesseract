@@ -100,12 +100,13 @@ public:
 	int culledTriangles = 0;
 
 	float3 ambientColor = {0.25f, 0.25f, 0.25f}; // Color of ambient Light
-	float3 clearColor = {0.005f, 0.005f, 0.005f};		 // Color of the viewport between frames
+	float3 clearColor = {0.002f, 0.002f, 0.002f};		 // Color of the viewport between frames
 
 	bool ssaoActive = true;
 	float ssaoRange = 1.0f;
 	float ssaoBias = 0.0f;
 	float ssaoPower = 1.0f;
+	float bloomThreshold = 1.0f;
 
 	LightFrustum lightFrustum;
 
