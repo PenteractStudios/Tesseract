@@ -518,7 +518,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// Bloom blur
 	bool horizontal = true, firstIteration = true;
-	int amount = 10;
+	int amount = 6;
 	for (unsigned int i = 0; i < amount; i++)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[horizontal]);
@@ -749,6 +749,7 @@ void ModuleRender::UpdateFramebuffers() {
 
 	// HDR and bloom buffers
 	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
 	for (unsigned int i = 0; i < 2; i++)
 	{
