@@ -27,11 +27,10 @@ void StateMachineManager::SendTrigger(const std::string& trigger, std::unordered
 			animationInterpolations.push_front(AnimationInterpolation(&transition->target, currentTimeStatesPrincipal[transition->target.id], 0, transition->interpolationDuration));
 			
 
-
-			//if principalstatemachine  y el estado de la secondary ==  estado de la principal && animation_InterpolationSecondary > 0
-			// cambiar de estado de la segunda = transition target
-			// animation interpolation limpiar y agregar la nueva que vaya hacia la nueva
+			//Check for fixing gap if the principal state machine changes and the secondary is doing the interpolation to another state 
+			// different than the previous one
 			if (stateMachineEnum == StateMachineEnum::PRINCIPAL && currentStateSecondary.id == currentState.id && animationInterpolationsSecondary.size() > 0) {
+				// change the animation interpolation in order to go to the new transition
 				currentStateSecondary = transition->target;
 				animationInterpolationsSecondary.pop_front();
 				animationInterpolationsSecondary.push_front(AnimationInterpolation(&transition->target, currentTimeStatesPrincipal[transition->target.id], 0, transition->interpolationDuration));
