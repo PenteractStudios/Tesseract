@@ -41,6 +41,14 @@ enum class BillboardType {
 	VERTICAL
 };
 
+enum class ParticleRenderAlignment {
+	VIEW,
+	WORLD,
+	LOCAL,
+	FACING,
+	VELOCITY
+};
+
 class ComponentParticleSystem : public Component {
 public:
 	struct Particle {
@@ -58,7 +66,8 @@ public:
 		float life = 0.0f;
 		float currentFrame = 0.0f;
 
-		float3 emitterPosition = float3(0.0f, 0.0f, 0.0f);
+		float3 emitterPosition = float3::zero;
+		float3 emitterRotation = float3::zero;
 
 		// Collider
 		ParticleMotionState* motionState = nullptr;
@@ -134,7 +143,7 @@ private:
 	unsigned maxParticles = 100;
 
 	// Emision
-	bool attachEmitter = false;
+	bool attachEmitter = true;
 
 	// Shape
 	ParticleEmitterType emitterType = ParticleEmitterType::CONE;
@@ -164,6 +173,7 @@ private:
 	UID textureID = 0;
 	BillboardType billboardType = BillboardType::NORMAL;
 	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
+	ParticleRenderAlignment renderAlignment = ParticleRenderAlignment::VIEW;
 	bool flipTexture[2] = {false, false};
 
 	// Collision

@@ -77,6 +77,7 @@
 #define JSON_TAG_TEXTURE_TEXTURE_ID "TextureId"
 #define JSON_TAG_BILLBOARD_TYPE "BillboardType"
 #define JSON_TAG_PARTICLE_RENDER_MODE "ParticleRenderMode"
+#define JSON_TAG_PARTICLE_RENDER_ALIGNMENT "ParticleRenderAlignment"
 #define JSON_TAG_FLIP_TEXTURE "FlipTexture"
 
 // Collision
@@ -209,7 +210,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 	// Render
 	if (ImGui::CollapsingHeader("Render")) {
-		const char* billboardTypeCombo[] = {"Billboard", "Stretched Billboard", "Horitzontal Billboard ", "Vertical Billboard"};
+		const char* billboardTypeCombo[] = {"Billboard", "Stretched Billboard", "Horitzontal Billboard", "Vertical Billboard"};
 		const char* billboardTypeComboCurrent = billboardTypeCombo[(int) billboardType];
 		if (ImGui::BeginCombo("Bilboard Mode##", billboardTypeComboCurrent)) {
 			for (int n = 0; n < IM_ARRAYSIZE(billboardTypeCombo); ++n) {
@@ -222,6 +223,24 @@ void ComponentParticleSystem::OnEditorUpdate() {
 				}
 			}
 			ImGui::EndCombo();
+		}
+		if (billboardType == BillboardType::NORMAL) {
+			ImGui::Indent();
+			const char* renderAlignmentCombo[] = {"View", "World", "Local", "Facing", "Velocity"};
+			const char* renderAlignmentComboCurrent = renderAlignmentCombo[(int) renderAlignment];
+			if (ImGui::BeginCombo("Render Alignment##", renderAlignmentComboCurrent)) {
+				for (int n = 0; n < IM_ARRAYSIZE(renderAlignmentCombo); ++n) {
+					bool isSelected = (renderAlignmentComboCurrent == renderAlignmentCombo[n]);
+					if (ImGui::Selectable(renderAlignmentCombo[n], isSelected)) {
+						renderAlignment = (ParticleRenderAlignment) n;
+					}
+					if (isSelected) {
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::Unindent();
 		}
 		const char* renderModeCombo[] = {"Additive", "Transparent"};
 		const char* renderModeComboCurrent = renderModeCombo[(int) renderMode];
@@ -429,7 +448,7 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	}
 	billboardType = (BillboardType)(int) jComponent[JSON_TAG_BILLBOARD_TYPE];
 	renderMode = (ParticleRenderMode)(int) jComponent[JSON_TAG_PARTICLE_RENDER_MODE];
-
+	renderAlignment = (ParticleRenderAlignment)(int) jComponent[JSON_TAG_PARTICLE_RENDER_ALIGNMENT];
 	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
 	flipTexture[0] = jFlip[0];
 	flipTexture[1] = jFlip[1];
@@ -501,6 +520,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_TEXTURE_TEXTURE_ID] = textureID;
 	jComponent[JSON_TAG_BILLBOARD_TYPE] = (int) billboardType;
 	jComponent[JSON_TAG_PARTICLE_RENDER_MODE] = (int) renderMode;
+	jComponent[JSON_TAG_PARTICLE_RENDER_ALIGNMENT] = (int) renderAlignment;
 	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
 	jFlip[0] = flipTexture[0];
 	jFlip[1] = flipTexture[1];
@@ -527,6 +547,9 @@ void ComponentParticleSystem::Update() {
 				if (sizeOverLifetime) {
 					UpdateScale(&currentParticle);
 				}
+
+				// Update Model
+				currentParticle.model = float4x4::FromTRS(currentParticle.position, currentParticle.rotation, currentParticle.scale);
 
 				if (!isRandomFrame) {
 					currentParticle.currentFrame += animationSpeed * App->time->GetDeltaTimeOrRealDeltaTime();
@@ -556,25 +579,25 @@ void ComponentParticleSystem::UndertakerParticle() {
 }
 
 void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
-	if (reverseEffect) {
-		currentParticle->position -= currentParticle->direction * velocity * App->time->GetDeltaTimeOrRealDeltaTime();
-	} else {
-		currentParticle->position += currentParticle->direction * velocity * App->time->GetDeltaTimeOrRealDeltaTime();
-	}
-
-	// TODO: Implement attachEmmiter properly
 	if (attachEmitter) {
-		float3 position = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
+		float3 position = transform->GetGlobalPosition();
+		float3 rotation = transform->GetGlobalRotation().ToEulerXYZ();
+		float3 newRotation = rotation - currentParticle->emitterRotation;
+		currentParticle->position = float3x3::FromEulerXYZ(newRotation.x, newRotation.y, newRotation.z) * currentParticle->position;
+		currentParticle->direction = float3x3::FromEulerXYZ(newRotation.x, newRotation.y, newRotation.z) * currentParticle->direction;
+		currentParticle->emitterRotation = rotation;
+
 		if (!currentParticle->emitterPosition.Equals(position)) {
 			currentParticle->position = (position - currentParticle->emitterPosition).Normalized() * Length(position - currentParticle->emitterPosition) + currentParticle->position;
 			currentParticle->emitterPosition = position;
 		}
 	}
 
-	if (billboardType == BillboardType::NORMAL) {
-		currentParticle->model = float4x4::FromTRS(currentParticle->position, currentParticle->rotation, currentParticle->scale);
+	if (reverseEffect) {
+		currentParticle->position -= currentParticle->direction * velocity * App->time->GetDeltaTimeOrRealDeltaTime();
 	} else {
-		currentParticle->modelStretch.SetTranslatePart(currentParticle->position);
+		currentParticle->position += currentParticle->direction * velocity * App->time->GetDeltaTimeOrRealDeltaTime();
 	}
 }
 
@@ -702,13 +725,30 @@ void ComponentParticleSystem::Draw() {
 
 			ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 			float3x3 rotatePart = currentParticle.model.RotatePart();
-			float3x3 transformRotatePart = transform->GetGlobalMatrix().RotatePart();
 			Frustum* frustum = App->camera->GetActiveCamera()->GetFrustum();
 
 			float4x4 modelMatrix;
+			float4x4 newModelMatrix;
 			if (billboardType == BillboardType::NORMAL) {
-				float4x4 newModelMatrix = currentParticle.model.LookAt(rotatePart.Col(2), -frustum->Front(), rotatePart.Col(1), float3::unitY);
+				if (renderAlignment == ParticleRenderAlignment::VIEW) {
+					newModelMatrix = currentParticle.model.LookAt(rotatePart.Col(2), -frustum->Front(), rotatePart.Col(1), float3::unitY);
+
+				} else if (renderAlignment == ParticleRenderAlignment::WORLD) {
+					newModelMatrix = float4x4::identity;
+					newModelMatrix[1][1] = -1; // Invert z axis
+
+				} else if (renderAlignment == ParticleRenderAlignment::LOCAL) {
+					newModelMatrix = currentParticle.model.LookAt(rotatePart.Col(2), -(transform->GetGlobalRotation() * float3::unitY), rotatePart.Col(1), float3::unitY);
+
+				} else if (renderAlignment == ParticleRenderAlignment::FACING) {
+					float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
+					newModelMatrix = currentParticle.model.LookAt(rotatePart.Col(2), cameraPos - currentParticle.position, rotatePart.Col(1), float3::unitY);
+
+				} else { // Velocity
+					newModelMatrix = currentParticle.model.LookAt(rotatePart.Col(2), -currentParticle.direction, rotatePart.Col(1), float3::unitY);
+				}
 				modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart(), currentParticle.scale);
+
 			} else if (billboardType == BillboardType::STRETCH) {
 				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
 				float3 cameraDir = (cameraPos - currentParticle.position).Normalized();
