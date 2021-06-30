@@ -134,7 +134,7 @@ UpdateStatus ModulePhysics::PreUpdate() {
 						case ComponentType::CAPSULE_COLLIDER: {
 							ComponentCapsuleCollider* capsuleCol = (ComponentCapsuleCollider*)pbodyB;
 
-							if (bodyA->tid == typeid(Component*)) {
+							if (bodyA->tid == typeid(Component)) {
 								Component* pbodyA = (Component*)bodyA->collider;
 								capsuleCol->OnCollision(pbodyA->GetOwner(), -float3(contactManifold->getContactPoint(0).m_normalWorldOnB), -diff);
 							}
