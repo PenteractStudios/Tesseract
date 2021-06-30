@@ -200,6 +200,12 @@ struct ProgramSSAOBlur : Program {
 	int horizontalLocation = -1;
 };
 
+struct ProgramColorCorrection : Program {
+	ProgramColorCorrection(unsigned program);
+
+	int inputTextureLocation = -1;
+};
+
 struct ProgramDrawTexture : Program {
 	ProgramDrawTexture(unsigned program);
 
@@ -244,4 +250,14 @@ struct ProgramBillboard : Program {
 	int yTilesLocation = -1;
 	int xFlipLocation = -1;
 	int yFlipLocation = -1;
+};
+struct ProgramTrail : Program {
+	ProgramTrail(unsigned program);
+
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int inputColorLocation = -1;
+	int hasDiffuseLocation = -1;
+	int diffuseMap = -1;
 };

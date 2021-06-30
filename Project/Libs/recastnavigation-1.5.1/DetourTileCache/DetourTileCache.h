@@ -35,17 +35,47 @@ enum ObstacleState
 	DT_OBSTACLE_REMOVING,
 };
 
+enum ObstacleType {
+	DT_OBSTACLE_CYLINDER,
+	DT_OBSTACLE_BOX,		  // AABB
+	DT_OBSTACLE_ORIENTED_BOX, // OBB
+};
+
+struct dtObstacleCylinder {
+	float pos[3];
+	float radius;
+	float height;
+};
+
+struct dtObstacleBox {
+	float bmin[3];
+	float bmax[3];
+};
+
+struct dtObstacleOrientedBox {
+	float center[3];
+	float halfExtents[3];
+	float rotAux[2]; //{ cos(0.5f*angle)*sin(-0.5f*angle); cos(0.5f*angle)*cos(0.5f*angle) - 0.5 }
+	float yRadian;
+};
+
 static const int DT_MAX_TOUCHED_TILES = 8;
-struct dtTileCacheObstacle
-{
-	float pos[3], radius, height;
+struct dtTileCacheObstacle {
+	union {
+		dtObstacleCylinder cylinder;
+		dtObstacleBox box;
+		dtObstacleOrientedBox orientedBox;
+	};
+
 	dtCompressedTileRef touched[DT_MAX_TOUCHED_TILES];
 	dtCompressedTileRef pending[DT_MAX_TOUCHED_TILES];
 	unsigned short salt;
+	unsigned char type;
 	unsigned char state;
 	unsigned char ntouched;
 	unsigned char npending;
 	dtTileCacheObstacle* next;
+	bool mustBeDrawnGizmo = true;
 };
 
 struct dtTileCacheParams
@@ -105,7 +135,14 @@ public:
 	
 	dtStatus removeTile(dtCompressedTileRef ref, unsigned char** data, int* dataSize);
 	
-	dtStatus addObstacle(const float* pos, const float radius, const float height, dtObstacleRef* result);
+	// Cylinder obstacle.
+	dtStatus addObstacle(const float* pos, const float radius, const float height, dtObstacleRef* result, bool mustBeDrawnGizmo);
+
+	// Aabb obstacle.
+	dtStatus addBoxObstacle(const float* bmin, const float* bmax, dtObstacleRef* result, bool mustBeDrawnGizmo);
+
+	// Box obstacle: can be rotated in Y.
+	dtStatus addBoxObstacle(const float* center, const float* halfExtents, const float yRadians, dtObstacleRef* result, bool mustBeDrawnGizmo);
 	dtStatus removeObstacle(const dtObstacleRef ref);
 	
 	dtStatus queryTiles(const float* bmin, const float* bmax,

@@ -191,6 +191,11 @@ ProgramSSAOBlur::ProgramSSAOBlur(unsigned program_)
 	horizontalLocation = glGetUniformLocation(program, "horizontal");
 }
 
+ProgramColorCorrection::ProgramColorCorrection(unsigned program_)
+	: Program(program_) {
+	inputTextureLocation = glGetUniformLocation(program, "inputTexture");
+}
+
 ProgramDrawTexture::ProgramDrawTexture(unsigned program_)
 	: Program(program_) {
 	textureToDrawLocation = glGetUniformLocation(program, "textureToDraw");
@@ -231,4 +236,14 @@ ProgramBillboard::ProgramBillboard(unsigned program_)
 	yTilesLocation = glGetUniformLocation(program, "Ytiles");
 	xFlipLocation = glGetUniformLocation(program, "flipX");
 	yFlipLocation = glGetUniformLocation(program, "flipY");
+}
+ProgramTrail::ProgramTrail(unsigned program_)
+	: Program(program_) {
+	//modelLocation = glGetUniformLocation(program, "model");
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
+	inputColorLocation = glGetUniformLocation(program, "inputColor");
+	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
+	diffuseMap = glGetUniformLocation(program, "diffuseMap");
 }

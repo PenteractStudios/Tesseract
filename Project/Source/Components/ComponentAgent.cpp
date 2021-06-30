@@ -115,6 +115,7 @@ void ComponentAgent::AddAgentToCrowd() {
 	ap.updateFlags |= DT_CROWD_ANTICIPATE_TURNS;
 	ap.updateFlags |= DT_CROWD_OPTIMIZE_VIS;
 	ap.updateFlags |= DT_CROWD_OPTIMIZE_TOPO;
+	ap.updateFlags |= DT_CROWD_SEPARATION;
 	if (avoidingObstacle) {
 		ap.updateFlags |= DT_CROWD_OBSTACLE_AVOIDANCE;
 	}
