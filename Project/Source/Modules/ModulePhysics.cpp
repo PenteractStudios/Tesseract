@@ -53,6 +53,8 @@ UpdateStatus ModulePhysics::PreUpdate() {
 					float3 contactOnB = float3(contactManifold->getContactPoint(0).getPositionWorldOnB());
 					float3 diff = contactOnB - contactOnA;
 
+					float3 collisionNormal = float3(contactManifold->getContactPoint(0).m_normalWorldOnB);
+
 					if (bodyA->tid == typeid(Component)) {
 						Component* pbodyA = (Component*)bodyA->collider;
 						switch (pbodyA->GetType()) {
@@ -62,11 +64,11 @@ UpdateStatus ModulePhysics::PreUpdate() {
 							// Different casts whether it is a Component collider or a particle
 							if (bodyB->tid == typeid(Component)) {
 								Component* pbodyB = (Component*)bodyB->collider;
-								sphereCol->OnCollision(pbodyB->GetOwner(), float3(contactManifold->getContactPoint(0).m_normalWorldOnB), diff);
+								sphereCol->OnCollision(pbodyB->GetOwner(), collisionNormal, diff);
 							}
 							else {
 								ComponentParticleSystem::Particle* pbodyB = (ComponentParticleSystem::Particle*)bodyB->collider;
-								sphereCol->OnCollision(pbodyB->emitter->GetOwner(), float3(contactManifold->getContactPoint(0).m_normalWorldOnB), diff, pbodyB);
+								sphereCol->OnCollision(pbodyB->emitter->GetOwner(), collisionNormal, diff, pbodyB);
 							}
 							break;
 						}
@@ -75,11 +77,11 @@ UpdateStatus ModulePhysics::PreUpdate() {
 
 							if (bodyB->tid == typeid(Component)) {
 								Component* pbodyB = (Component*)bodyB->collider;
-								boxCol->OnCollision(pbodyB->GetOwner(), float3(contactManifold->getContactPoint(0).m_normalWorldOnB), diff);
+								boxCol->OnCollision(pbodyB->GetOwner(), collisionNormal, diff);
 							}
 							else {
 								ComponentParticleSystem::Particle* pbodyB = (ComponentParticleSystem::Particle*)bodyB->collider;
-								boxCol->OnCollision(pbodyB->emitter->GetOwner(), float3(contactManifold->getContactPoint(0).m_normalWorldOnB), diff, pbodyB);
+								boxCol->OnCollision(pbodyB->emitter->GetOwner(), collisionNormal, diff, pbodyB);
 							}
 
 							break;
@@ -89,11 +91,11 @@ UpdateStatus ModulePhysics::PreUpdate() {
 
 							if (bodyB->tid == typeid(Component)) {
 								Component* pbodyB = (Component*)bodyB->collider;
-								capsuleCol->OnCollision(pbodyB->GetOwner(), float3(contactManifold->getContactPoint(0).m_normalWorldOnB), diff);
+								capsuleCol->OnCollision(pbodyB->GetOwner(), collisionNormal, diff);
 							}
 							else {
 								ComponentParticleSystem::Particle* pbodyB = (ComponentParticleSystem::Particle*)bodyB->collider;
-								capsuleCol->OnCollision(pbodyB->emitter->GetOwner(), float3(contactManifold->getContactPoint(0).m_normalWorldOnB), diff, pbodyB);
+								capsuleCol->OnCollision(pbodyB->emitter->GetOwner(), collisionNormal, diff, pbodyB);
 							}
 							break;
 						}
@@ -110,11 +112,11 @@ UpdateStatus ModulePhysics::PreUpdate() {
 
 							if (bodyA->tid == typeid(Component)) {
 								Component* pbodyA = (Component*)bodyA->collider;
-								sphereCol->OnCollision(pbodyA->GetOwner(), -float3(contactManifold->getContactPoint(0).m_normalWorldOnB), -diff);
+								sphereCol->OnCollision(pbodyA->GetOwner(), -collisionNormal, -diff);
 							}
 							else {
 								ComponentParticleSystem::Particle* pbodyA = (ComponentParticleSystem::Particle*)bodyA->collider;
-								sphereCol->OnCollision(pbodyA->emitter->GetOwner(), -float3(contactManifold->getContactPoint(0).m_normalWorldOnB), -diff, pbodyA);
+								sphereCol->OnCollision(pbodyA->emitter->GetOwner(), -collisionNormal, -diff, pbodyA);
 							}
 							break;
 						}
@@ -123,11 +125,11 @@ UpdateStatus ModulePhysics::PreUpdate() {
 
 							if (bodyA->tid == typeid(Component)) {
 								Component* pbodyA = (Component*)bodyA->collider;
-								boxCol->OnCollision(pbodyA->GetOwner(), -float3(contactManifold->getContactPoint(0).m_normalWorldOnB), -diff);
+								boxCol->OnCollision(pbodyA->GetOwner(), -collisionNormal, -diff);
 							}
 							else {
 								ComponentParticleSystem::Particle* pbodyA = (ComponentParticleSystem::Particle*)bodyA->collider;
-								boxCol->OnCollision(pbodyA->emitter->GetOwner(), -float3(contactManifold->getContactPoint(0).m_normalWorldOnB), -diff, pbodyA);
+								boxCol->OnCollision(pbodyA->emitter->GetOwner(), -collisionNormal, -diff, pbodyA);
 							}
 							break;
 						}
@@ -136,11 +138,11 @@ UpdateStatus ModulePhysics::PreUpdate() {
 
 							if (bodyA->tid == typeid(Component)) {
 								Component* pbodyA = (Component*)bodyA->collider;
-								capsuleCol->OnCollision(pbodyA->GetOwner(), -float3(contactManifold->getContactPoint(0).m_normalWorldOnB), -diff);
+								capsuleCol->OnCollision(pbodyA->GetOwner(), -collisionNormal, -diff);
 							}
 							else {
 								ComponentParticleSystem::Particle* pbodyA = (ComponentParticleSystem::Particle*)bodyA->collider;
-								capsuleCol->OnCollision(pbodyA->emitter->GetOwner(), -float3(contactManifold->getContactPoint(0).m_normalWorldOnB), -diff, pbodyA);
+								capsuleCol->OnCollision(pbodyA->emitter->GetOwner(), -collisionNormal, -diff, pbodyA);
 							}
 							break;
 						}
@@ -156,6 +158,14 @@ UpdateStatus ModulePhysics::PreUpdate() {
 }
 
 UpdateStatus ModulePhysics::Update() {
+	for (btRigidBody* rigidBody : rigidBodiesToRemove) {
+		world->removeCollisionObject(rigidBody);
+		btCollisionShape* shape = rigidBody->getCollisionShape();
+		RELEASE(shape);
+		delete rigidBody;
+	}
+	rigidBodiesToRemove.clear();
+
     // BULLET DEBUG: Uncomment to activate it
 	/*if (debug == true) {
 		world->debugDrawWorld();
@@ -202,10 +212,8 @@ btRigidBody* ModulePhysics::AddSphereBody(MotionState* myMotionState, float radi
 
 void ModulePhysics::RemoveSphereRigidbody(ComponentSphereCollider* sphereCollider) {
 	if (sphereCollider->rigidBody) {
-		world->removeCollisionObject(sphereCollider->rigidBody);
-		btCollisionShape* shape = sphereCollider->rigidBody->getCollisionShape();
-		RELEASE(shape);
-		RELEASE(sphereCollider->rigidBody);
+		rigidBodiesToRemove.push_back(sphereCollider->rigidBody);
+		sphereCollider->rigidBody = nullptr;
 	}
 }
 
@@ -237,10 +245,8 @@ btRigidBody* ModulePhysics::AddBoxBody(MotionState* myMotionState, float3 size, 
 
 void ModulePhysics::RemoveBoxRigidbody(ComponentBoxCollider* boxCollider) {
 	if (boxCollider->rigidBody) {
-		world->removeCollisionObject(boxCollider->rigidBody);
-		btCollisionShape* shape = boxCollider->rigidBody->getCollisionShape();
-		RELEASE(shape);
-		RELEASE(boxCollider->rigidBody);
+		rigidBodiesToRemove.push_back(boxCollider->rigidBody);
+		boxCollider->rigidBody = nullptr;
 	}
 }
 
@@ -284,10 +290,8 @@ btRigidBody* ModulePhysics::AddCapsuleBody(MotionState* myMotionState, float rad
 
 void ModulePhysics::RemoveCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider) {
 	if (capsuleCollider->rigidBody) {
-		world->removeCollisionObject(capsuleCollider->rigidBody);
-		btCollisionShape* shape = capsuleCollider->rigidBody->getCollisionShape();
-		RELEASE(shape);
-		RELEASE(capsuleCollider->rigidBody);
+		rigidBodiesToRemove.push_back(capsuleCollider->rigidBody);
+		capsuleCollider->rigidBody = nullptr;
 	}
 }
 
@@ -343,8 +347,7 @@ void ModulePhysics::AddBodyToWorld(btRigidBody* rigidbody, ColliderType collider
 	world->addRigidBody(rigidbody, layer, collisionMask);
 }
 
-void ModulePhysics::CreateParticleRigidbody(ComponentParticleSystem::Particle* currentParticle)
-{
+void ModulePhysics::CreateParticleRigidbody(ComponentParticleSystem::Particle* currentParticle) {
 	currentParticle->motionState = new ParticleMotionState(currentParticle);
 
 	// Create rigidbody
@@ -356,14 +359,11 @@ void ModulePhysics::CreateParticleRigidbody(ComponentParticleSystem::Particle* c
 	AddBodyToWorld(currentParticle->rigidBody, ColliderType::KINEMATIC, currentParticle->emitter->layer);
 }
 
-void ModulePhysics::RemoveParticleRigidbody(ComponentParticleSystem::Particle* particle)
-{
+void ModulePhysics::RemoveParticleRigidbody(ComponentParticleSystem::Particle* particle) {
 	if (particle->rigidBody) {
-		world->removeCollisionObject(particle->rigidBody);
-		btCollisionShape* shape = particle->rigidBody->getCollisionShape();
-		RELEASE(shape);
+		rigidBodiesToRemove.push_back(particle->rigidBody);
+		particle->rigidBody = nullptr;
 		RELEASE(particle->motionState);
-		RELEASE(particle->rigidBody);
 	}
 }
 
@@ -389,11 +389,7 @@ void ModulePhysics::InitializeRigidBodies() {
 void ModulePhysics::ClearPhysicBodies() {
 	for (int i = world->getNumCollisionObjects() - 1; i >= 0; i--) {
 		btCollisionObject* obj = world->getCollisionObjectArray()[i];
-		world->removeCollisionObject(obj);
-		btRigidBody* body = (btRigidBody*)obj;
-		btCollisionShape* shape = body->getCollisionShape();
-		RELEASE(shape);
-		RELEASE(obj);
+		rigidBodiesToRemove.push_back((btRigidBody*) obj);
 	}
 }
 
