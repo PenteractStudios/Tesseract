@@ -4,6 +4,8 @@
 #include "Utils/Pool.h"
 #include "Utils/UID.h"
 #include "Utils/Collider.h"
+
+#include "Math/float2.h"
 #include "Math/float3.h"
 #include "Math/float4.h"
 #include "Math/float4x4.h"
@@ -49,6 +51,11 @@ enum class ParticleRenderAlignment {
 	VELOCITY
 };
 
+enum class RandomMode {
+	CONST,
+	CONST_MULT
+};
+
 class ComponentParticleSystem : public Component {
 public:
 	struct Particle {
@@ -63,6 +70,7 @@ public:
 
 		float speed = 0.0f;
 		float life = 0.0f;
+		float initialLife = 0.0f;
 		float currentFrame = 0.0f;
 
 		float3 emitterPosition = float3::zero;
@@ -88,6 +96,7 @@ public:
 	void Save(JsonValue jComponent) const override;
 
 	void Draw();
+	void ImguiRandomMenu(float2& values, RandomMode mode);
 
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Stop();
@@ -136,12 +145,17 @@ private:
 	// Particle System
 	float duration = 5.0f; // Emitter duration
 	bool looping = false;
-	float life = 5.0f;	   // Start life
-	float speed = 1.3f;	   // Start speed
-	float rotation = 0.0f; // Start rotation
-	float scale = 1.0f;	   // Start size
+	RandomMode lifeRM = RandomMode::CONST;
+	float2 life = {5.0f, 5.0f}; // Start life
+	RandomMode speedRM = RandomMode::CONST;
+	float2 speed = {1.3f, 1.3f}; // Start speed
+	RandomMode rotationRM = RandomMode::CONST;
+	float2 rotation = {0.0f, 0.0f}; // Start rotation
+	RandomMode scaleRM = RandomMode::CONST;
+	float2 scale = {3.0f, 3.0f}; // Start scale
 	bool reverseEffect = false;
-	float reverseDistance = 5.0f;
+	RandomMode reverseDistanceRM = RandomMode::CONST;
+	float2 reverseDistance = {5.0f, 5.0f};
 	unsigned maxParticles = 100;
 
 	// Emision
@@ -150,18 +164,20 @@ private:
 	// Shape
 	ParticleEmitterType emitterType = ParticleEmitterType::CONE;
 	// -- Cone
-	float coneRadiusUp = 1.f;
+	float coneRadiusUp = 1.0f;
 	float coneRadiusDown = 0.5f;
 	bool randomConeRadiusDown = false;
 	bool randomConeRadiusUp = false;
 
 	// Rotation over Lifetime
 	bool rotationOverLifetime = false;
-	float rotationFactor = 0.f;
+	RandomMode rotationFactorRM = RandomMode::CONST;
+	float2 rotationFactor = {0.0f, 0.0f};
 
 	// Size over Lifetime
 	bool sizeOverLifetime = false;
-	float scaleFactor = 0.f;
+	RandomMode scaleFactorRM = RandomMode::CONST;
+	float2 scaleFactor = {0.0f, 0.0f};
 
 	// Color over Lifetime
 	bool colorOverLifetime = false;

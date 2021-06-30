@@ -41,10 +41,16 @@
 // Particle System
 #define JSON_TAG_DURATION "Duration"
 #define JSON_TAG_LOOPING "Looping"
+#define JSON_TAG_LIFE_RM "LifeRM"
 #define JSON_TAG_LIFE "Life"
+#define JSON_TAG_SPEED_RM "SpeedRM"
 #define JSON_TAG_SPEED "Speed"
+#define JSON_TAG_ROTATION_RM "RotationRM"
+#define JSON_TAG_ROTATION "Rotation"
+#define JSON_TAG_SCALE_RM "ScaleRM"
 #define JSON_TAG_SCALE "Scale"
 #define JSON_TAG_REVERSE_EFFECT "ReverseEffect"
+#define JSON_TAG_REVERSE_DISTANCE_RM "ReverseDistanceRM"
 #define JSON_TAG_REVERSE_DISTANCE "ReverseDistance"
 #define JSON_TAG_MAX_PARTICLE "MaxParticle"
 
@@ -60,10 +66,12 @@
 
 // Rotation over Lifetime
 #define JSON_TAG_ROTATION_OVER_LIFETIME "RotationOverLifetime"
+#define JSON_TAG_ROTATION_FACTOR_RM "RotationFactorRM"
 #define JSON_TAG_ROTATION_FACTOR "RotationFactor"
 
 // Size over Lifetime
 #define JSON_TAG_SIZE_OVER_LIFETIME "SizeOverLifetime"
+#define JSON_TAG_SCALE_FACTOR_RM "ScaleFactorRM"
 #define JSON_TAG_SCALE_FACTOR "ScaleFactor"
 
 // Color over Lifetime
@@ -87,6 +95,37 @@
 // Collision
 #define JSON_TAG_HAS_COLLISION "HasCollision"
 #define JSON_TAG_LAYER_INDEX "LayerIndex"
+
+static bool ImGuiRandomMenu(const char* name, float2& values, RandomMode& mode, float speed = 0.01f, float min = 0, float max = inf) {
+	ImGui::PushID(name);
+	bool used = false;
+	if (mode == RandomMode::CONST) {
+		used = ImGui::DragFloat(name, &values[0], App->editor->dragSpeed2f, min, max);
+	} else if (mode == RandomMode::CONST_MULT) {
+		used = ImGui::DragFloat2(name, &values[0], App->editor->dragSpeed2f, min, max);
+	}
+	if (used && values[0] > values[1]) {
+		values[1] = values[0];
+	}
+
+	const char* randomModes[] = {"Constant", "Random Between Two Constants"};
+	const char* randomModesCurrent = randomModes[(int) mode];
+	ImGui::SameLine();
+	if (ImGui::BeginCombo("##", randomModesCurrent, ImGuiComboFlags_NoPreview)) {
+		for (int n = 0; n < IM_ARRAYSIZE(randomModes); ++n) {
+			bool isSelected = (randomModesCurrent == randomModes[n]);
+			if (ImGui::Selectable(randomModes[n], isSelected)) {
+				mode = (RandomMode) n;
+			}
+			if (isSelected) {
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+	ImGui::PopID();
+	return used;
+};
 
 ComponentParticleSystem::~ComponentParticleSystem() {
 	RELEASE(gradient);
@@ -132,19 +171,20 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		if (looping) {
 			Play();
 		}
-		ImGui::DragFloat("Start Life", &life, App->editor->dragSpeed2f, 0, inf);
-		if (ImGui::DragFloat("Start Speed", &speed, App->editor->dragSpeed2f, 0, inf)) {
+
+		ImGuiRandomMenu("Start Life", life, lifeRM);
+		if (ImGuiRandomMenu("Start Speed", speed, speedRM)) {
 			CreateParticles();
 		}
-		float rotDegree = rotation * RADTODEG;
-		if (ImGui::DragFloat("Start Rotation", &rotDegree, App->editor->dragSpeed2f, 0, inf)) {
-			rotation = rotDegree * DEGTORAD;
+		float2 rotDegree = -rotation * RADTODEG;
+		if (ImGuiRandomMenu("Start Rotation", rotDegree, rotationRM, App->editor->dragSpeed1f, -inf, inf)) {
+			rotation = -rotDegree * DEGTORAD;
 		}
-		ImGui::DragFloat("Start Size", &scale, App->editor->dragSpeed2f, 0, inf);
+		ImGuiRandomMenu("Start Size", scale, scaleRM, App->editor->dragSpeed3f);
 		ImGui::Checkbox("Reverse Effect", &reverseEffect);
 		if (reverseEffect) {
 			ImGui::Indent();
-			ImGui::DragFloat("Distance", &reverseDistance, App->editor->dragSpeed2f, 0, inf);
+			ImGuiRandomMenu("Distance", reverseDistance, reverseDistanceRM);
 			ImGui::Unindent();
 		}
 		if (ImGui::DragScalar("MaxParticles", ImGuiDataType_U32, &maxParticles)) {
@@ -195,9 +235,9 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::Checkbox("##rot_over_lifetime", &rotationOverLifetime);
 		if (rotationOverLifetime) {
 			ImGui::SameLine();
-			float rotDegree = rotationFactor * RADTODEG;
-			if (ImGui::DragFloat("Rotation Factor", &rotDegree, App->editor->dragSpeed2f, -inf, inf)) {
-				rotationFactor = rotDegree * DEGTORAD;
+			float2 rotDegree = -rotationFactor * RADTODEG;
+			if (ImGuiRandomMenu("Rotation Factor", rotDegree, rotationFactorRM, App->editor->dragSpeed1f, -inf, inf)) {
+				rotationFactor = -rotDegree * DEGTORAD;
 			}
 		}
 	}
@@ -207,7 +247,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::Checkbox("##size_over_lifetime", &sizeOverLifetime);
 		if (sizeOverLifetime) {
 			ImGui::SameLine();
-			ImGui::DragFloat("Scale Factor", &scaleFactor, App->editor->dragSpeed2f, -inf, inf);
+			ImGuiRandomMenu("Scale Factor", scaleFactor, scaleFactorRM, App->editor->dragSpeed3f, -inf, inf);
 		}
 	}
 
@@ -348,6 +388,13 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 
+	float reverseDist;
+	if (reverseDistanceRM == RandomMode::CONST_MULT) {
+		reverseDist = rand() / (float) RAND_MAX * (reverseDistance[1] - reverseDistance[0]) + reverseDistance[0];
+	} else {
+		reverseDist = reverseDistance[0];
+	}
+
 	if (emitterType == ParticleEmitterType::CONE) {
 		float theta = 2 * pi * float(rand()) / float(RAND_MAX);
 		if (randomConeRadiusDown) {
@@ -372,7 +419,7 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 		localDir = (localPos1 - localPos0).Normalized();
 
 		if (reverseEffect) {
-			localPos = localPos0 + localDir * reverseDistance;
+			localPos = localPos0 + localDir * reverseDist;
 		} else {
 			localPos = localPos0;
 		}
@@ -385,7 +432,7 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 		localDir = float3(x1, y1, z1);
 
 		if (reverseEffect) {
-			localPos = localDir * reverseDistance;
+			localPos = localDir * reverseDist;
 		} else {
 			localPos = float3::zero;
 		}
@@ -397,7 +444,13 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::InitParticleRotation(Particle* currentParticle) {
-	float newRotation = rotation;
+	float newRotation;
+	if (rotationRM == RandomMode::CONST_MULT) {
+		newRotation = rand() / (float) RAND_MAX * (rotation[1] - rotation[0]) + rotation[0];
+	} else {
+		newRotation = rotation[0];
+	}
+
 	if (billboardType == BillboardType::STRETCH) {
 		newRotation += pi / 2;
 	}
@@ -405,15 +458,31 @@ void ComponentParticleSystem::InitParticleRotation(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::InitParticleScale(Particle* currentParticle) {
-	currentParticle->scale = float3(0.1f, 0.1f, 0.1f) * scale;
+	if (scaleRM == RandomMode::CONST_MULT) {
+		currentParticle->scale = float3(0.1f, 0.1f, 0.1f) * (rand() / (float) RAND_MAX * (scale[1] - scale[0]) + scale[0]);
+
+	} else {
+		currentParticle->scale = float3(0.1f, 0.1f, 0.1f) * scale[0];
+	}
 }
 
 void ComponentParticleSystem::InitParticleSpeed(Particle* currentParticle) {
-	currentParticle->speed = speed;
+	if (speedRM == RandomMode::CONST_MULT) {
+		currentParticle->speed = rand() / (float) RAND_MAX * (speed[1] - speed[0]) + speed[0];
+
+	} else {
+		currentParticle->speed = speed[0];
+	}
 }
 
 void ComponentParticleSystem::InitParticleLife(Particle* currentParticle) {
-	currentParticle->life = life;
+	if (lifeRM == RandomMode::CONST_MULT) {
+		currentParticle->initialLife = rand() / (float) RAND_MAX * (life[1] - life[0]) + life[0];
+
+	} else {
+		currentParticle->initialLife = life[0];
+	}
+	currentParticle->life = currentParticle->initialLife;
 }
 
 void ComponentParticleSystem::CreateParticles() {
@@ -431,11 +500,27 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	// Particle System
 	duration = jComponent[JSON_TAG_DURATION];
 	looping = jComponent[JSON_TAG_LOOPING];
-	life = jComponent[JSON_TAG_LIFE];
-	speed = jComponent[JSON_TAG_SPEED];
-	scale = jComponent[JSON_TAG_SCALE];
+	lifeRM = (RandomMode)(int) jComponent[JSON_TAG_LIFE_RM];
+	JsonValue jLife = jComponent[JSON_TAG_LIFE];
+	life[0] = jLife[0];
+	life[1] = jLife[1];
+	speedRM = (RandomMode)(int) jComponent[JSON_TAG_SPEED_RM];
+	JsonValue jSpeed = jComponent[JSON_TAG_SPEED];
+	speed[0] = jSpeed[0];
+	speed[1] = jSpeed[1];
+	rotationRM = (RandomMode)(int) jComponent[JSON_TAG_ROTATION_RM];
+	JsonValue jRotation = jComponent[JSON_TAG_ROTATION];
+	rotation[0] = jRotation[0];
+	rotation[1] = jRotation[1];
+	scaleRM = (RandomMode)(int) jComponent[JSON_TAG_SCALE_RM];
+	JsonValue jScale = jComponent[JSON_TAG_SCALE];
+	scale[0] = jScale[0];
+	scale[1] = jScale[1];
 	reverseEffect = jComponent[JSON_TAG_REVERSE_EFFECT];
-	reverseDistance = jComponent[JSON_TAG_REVERSE_DISTANCE];
+	reverseDistanceRM = (RandomMode)(int) jComponent[JSON_TAG_REVERSE_DISTANCE_RM];
+	JsonValue jReverseDistance = jComponent[JSON_TAG_REVERSE_DISTANCE];
+	reverseDistance[0] = jReverseDistance[0];
+	reverseDistance[1] = jReverseDistance[1];
 	maxParticles = jComponent[JSON_TAG_MAX_PARTICLE];
 
 	//Emision
@@ -450,11 +535,17 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 
 	// Rotation over Lifetime
 	rotationOverLifetime = jComponent[JSON_TAG_ROTATION_OVER_LIFETIME];
-	rotationFactor = jComponent[JSON_TAG_ROTATION_FACTOR];
+	rotationFactorRM = (RandomMode)(int) jComponent[JSON_TAG_ROTATION_FACTOR_RM];
+	JsonValue jRotationFactor = jComponent[JSON_TAG_ROTATION_FACTOR];
+	rotationFactor[0] = jRotationFactor[0];
+	rotationFactor[1] = jRotationFactor[1];
 
 	// Size over Lifetime
 	sizeOverLifetime = jComponent[JSON_TAG_SIZE_OVER_LIFETIME];
-	scaleFactor = jComponent[JSON_TAG_SCALE_FACTOR];
+	scaleFactorRM = (RandomMode)(int) jComponent[JSON_TAG_SCALE_FACTOR_RM];
+	JsonValue jScaleFactor = jComponent[JSON_TAG_SCALE_FACTOR];
+	scaleFactor[0] = jScaleFactor[0];
+	scaleFactor[1] = jScaleFactor[1];
 
 	// Color over Lifetime
 	colorOverLifetime = jComponent[JSON_TAG_COLOR_OVER_LIFETIME];
@@ -505,11 +596,27 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	// Particle System
 	jComponent[JSON_TAG_DURATION] = duration;
 	jComponent[JSON_TAG_LOOPING] = looping;
-	jComponent[JSON_TAG_LIFE] = life;
-	jComponent[JSON_TAG_SPEED] = speed;
-	jComponent[JSON_TAG_SCALE] = scale;
+	jComponent[JSON_TAG_LIFE_RM] = (int) lifeRM;
+	JsonValue jLife = jComponent[JSON_TAG_LIFE];
+	jLife[0] = life[0];
+	jLife[1] = life[1];
+	jComponent[JSON_TAG_SPEED_RM] = (int) speedRM;
+	JsonValue jSpeed = jComponent[JSON_TAG_SPEED];
+	jSpeed[0] = speed[0];
+	jSpeed[1] = speed[1];
+	jComponent[JSON_TAG_ROTATION_RM] = (int) rotationRM;
+	JsonValue jRotation = jComponent[JSON_TAG_ROTATION];
+	jRotation[0] = rotation[0];
+	jRotation[1] = rotation[1];
+	jComponent[JSON_TAG_SCALE_RM] = (int) scaleRM;
+	JsonValue jScale = jComponent[JSON_TAG_SCALE];
+	jScale[0] = scale[0];
+	jScale[1] = scale[1];
 	jComponent[JSON_TAG_REVERSE_EFFECT] = reverseEffect;
-	jComponent[JSON_TAG_REVERSE_DISTANCE] = reverseDistance;
+	jComponent[JSON_TAG_REVERSE_DISTANCE_RM] = (int) reverseDistanceRM;
+	JsonValue jReverseDistance = jComponent[JSON_TAG_REVERSE_DISTANCE];
+	jReverseDistance[0] = reverseDistance[0];
+	jReverseDistance[1] = reverseDistance[1];
 	jComponent[JSON_TAG_MAX_PARTICLE] = maxParticles;
 
 	//Emision
@@ -524,11 +631,17 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 
 	// Rotation over Lifetime
 	jComponent[JSON_TAG_ROTATION_OVER_LIFETIME] = rotationOverLifetime;
-	jComponent[JSON_TAG_ROTATION_FACTOR] = rotationFactor;
+	jComponent[JSON_TAG_ROTATION_FACTOR_RM] = (int) rotationFactorRM;
+	JsonValue jRotationFactor = jComponent[JSON_TAG_ROTATION_FACTOR];
+	jRotationFactor[0] = rotationFactor[0];
+	jRotationFactor[1] = rotationFactor[1];
 
 	// Size over Lifetime
 	jComponent[JSON_TAG_SIZE_OVER_LIFETIME] = sizeOverLifetime;
-	jComponent[JSON_TAG_SCALE_FACTOR] = scaleFactor;
+	jComponent[JSON_TAG_SCALE_FACTOR_RM] = (int) scaleFactorRM;
+	JsonValue jScaleFactor = jComponent[JSON_TAG_SCALE_FACTOR];
+	jScaleFactor[0] = scaleFactor[0];
+	jScaleFactor[1] = scaleFactor[1];
 
 	// Color over Lifetime
 	jComponent[JSON_TAG_COLOR_OVER_LIFETIME] = colorOverLifetime;
@@ -635,25 +748,40 @@ void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
 	}
 
 	if (reverseEffect) {
-		currentParticle->position -= currentParticle->direction * speed * App->time->GetDeltaTimeOrRealDeltaTime();
+		currentParticle->position -= currentParticle->direction * currentParticle->speed * App->time->GetDeltaTimeOrRealDeltaTime();
 	} else {
-		currentParticle->position += currentParticle->direction * speed * App->time->GetDeltaTimeOrRealDeltaTime();
+		currentParticle->position += currentParticle->direction * currentParticle->speed * App->time->GetDeltaTimeOrRealDeltaTime();
 	}
 }
 
 void ComponentParticleSystem::UpdateRotation(Particle* currentParticle) {
+	float newRotation;
+	if (rotationFactorRM == RandomMode::CONST_MULT) {
+		newRotation = rand() / (float) RAND_MAX * (rotationFactor[1] - rotationFactor[0]) + rotationFactor[0];
+
+	} else {
+		newRotation = rotationFactor[0];
+	}
 	float rotation = currentParticle->rotation.ToEulerXYZ().z;
-	rotation += rotationFactor * App->time->GetDeltaTimeOrRealDeltaTime();
+	rotation += newRotation * App->time->GetDeltaTimeOrRealDeltaTime();
 	currentParticle->rotation = Quat::FromEulerXYZ(0.0f, 0.0f, rotation);
 }
 
 void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
-	currentParticle->radius *= 1 + scaleFactor * App->time->GetDeltaTimeOrRealDeltaTime() / currentParticle->scale.x;
+	float newScale;
+	if (scaleFactorRM == RandomMode::CONST_MULT) {
+		newScale = rand() / (float) RAND_MAX * (scaleFactor[1] - scaleFactor[0]) + scaleFactor[0];
+
+	} else {
+		newScale = scaleFactor[0];
+	}
+
+	currentParticle->radius *= 1 + newScale * App->time->GetDeltaTimeOrRealDeltaTime() / currentParticle->scale.x;
 	if (collision) App->physics->UpdateParticleRigidbody(currentParticle);
 
-	currentParticle->scale.x += scaleFactor * App->time->GetDeltaTimeOrRealDeltaTime();
-	currentParticle->scale.y += scaleFactor * App->time->GetDeltaTimeOrRealDeltaTime();
-	currentParticle->scale.z += scaleFactor * App->time->GetDeltaTimeOrRealDeltaTime();
+	currentParticle->scale.x += newScale * App->time->GetDeltaTimeOrRealDeltaTime();
+	currentParticle->scale.y += newScale * App->time->GetDeltaTimeOrRealDeltaTime();
+	currentParticle->scale.z += newScale * App->time->GetDeltaTimeOrRealDeltaTime();
 
 	if (currentParticle->scale.x < 0) {
 		currentParticle->scale.x = 0;
@@ -820,7 +948,7 @@ void ComponentParticleSystem::Draw() {
 
 			float4 color = float4::one;
 			if (colorOverLifetime) {
-				float factor = 1 - currentParticle.life / life; // Life decreases from Life to 0
+				float factor = 1 - currentParticle.life / currentParticle.initialLife; // Life decreases from Life to 0
 				gradient->getColorAt(factor, color.ptr());
 			}
 
