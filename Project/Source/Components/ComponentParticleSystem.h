@@ -86,9 +86,6 @@ public:
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Stop();
 
-	float3 CreatePosition();
-	float3 CreateDirection();
-	void UpdateGravityDirection(Particle* currentParticle);
 	void CreateParticles();
 	void SpawnParticles();
 	void SpawnParticleUnit();
@@ -101,6 +98,7 @@ public:
 	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
+	void UpdateGravityDirection(Particle* currentParticle);
 
 	TESSERACT_ENGINE_API void KillParticle(Particle* currentParticle);
 	void UndertakerParticle();
@@ -117,6 +115,7 @@ private:
 	Pool<Particle> particles;
 	std::vector<Particle*> deadParticles;
 	unsigned particleSpawned = 0;
+	bool executer = false;
 
 	float3 cameraDir = {0.f, 0.f, 0.f};
 	float emitterTime = 0.0f;
@@ -126,19 +125,13 @@ private:
 
 	// Control
 	bool isPlaying = false;
-	bool sizeOverTime = false;
-	bool gravityEffect = false;
-	bool executer = false;
-	bool hasChildWithParticles = false;
-	float distanceReverse = 0.f;
 	float startDelay = 0.f;
 	float restDelayTime = 0.f;
-	float duration = 5.0f; // Emitter duration
-	float restDuration = 0.0f;
-	float gravityFactor = 0.0f;
 	float particlesPerSecond = 1.0f;
 	float restParticlesPerSecond = 0.0f;
+
 	// Particle System
+	float duration = 5.0f; // Emitter duration
 	bool looping = false;
 	float life = 5.0f;	   // Start life
 	float velocity = 1.3f; // Start speed
@@ -149,6 +142,10 @@ private:
 
 	// Emision
 	bool attachEmitter = false;
+
+	// Gravity
+	bool gravityEffect = false;
+	float gravityFactor = 0.0f;
 
 	// Shape
 	ParticleEmitterType emitterType = ParticleEmitterType::CONE;

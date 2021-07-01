@@ -37,6 +37,7 @@
 // Control
 #define JSON_TAG_IS_PLAYING "IsPlaying"
 #define JSON_TAG_START_DELAY "StartDelay"
+#define JSON_TAG_PARTICLES_SECOND "ParticlesPerSecond"
 
 // Particle System
 #define JSON_TAG_DURATION "Duration"
@@ -48,8 +49,12 @@
 #define JSON_TAG_REVERSE_DISTANCE "ReverseDistance"
 #define JSON_TAG_MAX_PARTICLE "MaxParticle"
 
-//Emision
+// Emision
 #define JSON_TAG_ATTACH_EMITTER "AttachEmitter"
+
+// Gravity
+#define JSON_TAG_GRAVITY_EFFECT "GravityEffect"
+#define JSON_TAG_GRAVITY_FACTOR "GravityFactor"
 
 // Shape
 #define JSON_TAG_EMITTER_TYPE "ParticleEmitterType"
@@ -118,15 +123,13 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			restDelayTime = startDelay;
 		}
 		if (startDelay > 0) ImGui::DragFloat("Rest Time", &restDelayTime, App->editor->dragSpeed2f, 0, inf, "%.3f", ImGuiSliderFlags_NoInput);
-		if (ImGui::DragFloat("Duration", &duration, App->editor->dragSpeed2f, 0, inf)) {
-			restDuration = duration;
-		}
 	}
 
 	ImGui::NewLine();
 
 	// General Particle System
 	if (ImGui::CollapsingHeader("Particle System")) {
+		ImGui::DragFloat("Duration", &duration, App->editor->dragSpeed2f, 0, inf);
 		ImGui::Checkbox("Loop", &looping);
 		if (looping) {
 			Play();
@@ -156,12 +159,13 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::Checkbox("Attach to Emitter", &attachEmitter);
 	}
 
-	ImGui::Checkbox("Gravity Effect", &gravityEffect);
-	if (gravityEffect) {
-		ImGui::DragFloat("Gravity", &gravityFactor, App->editor->dragSpeed2f, 0, inf);
+	// Gravity
+	if (ImGui::CollapsingHeader("Gravity")) {
+		ImGui::Checkbox("Gravity Effect", &gravityEffect);
+		if (gravityEffect) {
+			ImGui::DragFloat("Gravity", &gravityFactor, App->editor->dragSpeed2f, 0, inf);
+		}
 	}
-	UID oldID = textureID;
-	ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
 
 	// Shape
 	if (ImGui::CollapsingHeader("Shape")) {
@@ -296,20 +300,12 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
 			glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
 
-			//if (oldID != textureID) {
-			//	ComponentTransform2D* transform2D = GetOwner().GetComponent<ComponentTransform2D>();
-			//	if (transform2D != nullptr) {
-			//		transform2D->SetSize(float2(static_cast<float>(width), static_cast<float>(height)));
-			//	}
-			//}
-
 			ImGui::TextWrapped("Size:");
 			ImGui::SameLine();
 			ImGui::TextWrapped("%i x %i", width, height);
 			ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
 		}
 	}
-
 	ImGui::Unindent();
 }
 
@@ -390,6 +386,7 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	// Control
 	isPlaying = jComponent[JSON_TAG_IS_PLAYING];
 	startDelay = jComponent[JSON_TAG_START_DELAY];
+	particlesPerSecond = jComponent[JSON_TAG_PARTICLES_SECOND];
 
 	// Particle System
 	duration = jComponent[JSON_TAG_DURATION];
@@ -401,8 +398,12 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	reverseDistance = jComponent[JSON_TAG_REVERSE_DISTANCE];
 	maxParticles = jComponent[JSON_TAG_MAX_PARTICLE];
 
-	//Emision
+	// Emision
 	attachEmitter = jComponent[JSON_TAG_ATTACH_EMITTER];
+
+	// Gravity
+	gravityEffect = jComponent[JSON_TAG_GRAVITY_EFFECT];
+	gravityFactor = jComponent[JSON_TAG_GRAVITY_FACTOR];
 
 	// Shape
 	emitterType = (ParticleEmitterType)(int) jComponent[JSON_TAG_EMITTER_TYPE];
@@ -460,6 +461,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	// Control
 	jComponent[JSON_TAG_IS_PLAYING] = isPlaying;
 	jComponent[JSON_TAG_START_DELAY] = startDelay;
+	jComponent[JSON_TAG_PARTICLES_SECOND] = particlesPerSecond;
 
 	// Particle System
 	jComponent[JSON_TAG_DURATION] = duration;
@@ -471,8 +473,12 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_REVERSE_DISTANCE] = reverseDistance;
 	jComponent[JSON_TAG_MAX_PARTICLE] = maxParticles;
 
-	//Emision
+	// Emision
 	jComponent[JSON_TAG_ATTACH_EMITTER] = attachEmitter;
+
+	// Gravity
+	jComponent[JSON_TAG_GRAVITY_EFFECT] = gravityEffect;
+	jComponent[JSON_TAG_GRAVITY_FACTOR] = gravityFactor;
 
 	// Shape
 	jComponent[JSON_TAG_EMITTER_TYPE] = (int) emitterType;
