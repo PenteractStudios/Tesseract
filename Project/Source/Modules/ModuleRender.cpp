@@ -498,7 +498,15 @@ UpdateStatus ModuleRender::Update() {
 	}
 
 	// Draw Gizmos
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	glDepthFunc(GL_LESS);
 	if (App->camera->IsEngineCameraActive() || debugMode) {
+		// Draw NavMesh
+		if (drawNavMesh) {
+			App->navigation->DrawGizmos();
+		}
+
 		GameObject* selectedGameObject = App->editor->selectedGameObject;
 		if (selectedGameObject) selectedGameObject->DrawGizmos();
 
@@ -548,11 +556,6 @@ UpdateStatus ModuleRender::Update() {
 		// Draw debug draw Light Frustum
 		if (drawLightFrustumGizmo) {
 			lightFrustum.DrawGizmos();
-		}
-
-		// Draw NavMesh
-		if (drawNavMesh) {
-			App->navigation->DrawGizmos();
 		}
 	}
 
