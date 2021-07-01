@@ -70,6 +70,24 @@ ProgramSkybox::ProgramSkybox(unsigned program_)
 	cubemapLocation = glGetUniformLocation(program, "cubemap");
 }
 
+
+ProgramUnlit::ProgramUnlit(unsigned program_)
+	: Program(program_) {
+	modelLocation = glGetUniformLocation(program, "model");
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
+	diffuseMapLocation = glGetUniformLocation(program, "diffuseMap");
+	diffuseColorLocation = glGetUniformLocation(program, "diffuseColor");
+	hasDiffuseMapLocation = glGetUniformLocation(program, "hasDiffuseMap");
+
+	emissiveMapLocation = glGetUniformLocation(program, "emissiveMap");
+	hasEmissiveMapLocation = glGetUniformLocation(program, "hasEmissiveMap");
+
+	tilingLocation = glGetUniformLocation(program, "tiling");
+	offsetLocation = glGetUniformLocation(program, "offset");
+}
+
 ProgramStandard::ProgramStandard(unsigned program_)
 	: Program(program_) {
 	modelLocation = glGetUniformLocation(program, "model");

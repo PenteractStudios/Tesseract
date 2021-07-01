@@ -76,6 +76,24 @@ struct ProgramSkybox : Program {
 	int cubemapLocation = -1;
 };
 
+struct ProgramUnlit : public Program {
+	ProgramUnlit(unsigned program);
+
+	int modelLocation = -1;
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int diffuseMapLocation = -1;
+	int diffuseColorLocation = -1;
+	int hasDiffuseMapLocation = -1;
+
+	int emissiveMapLocation = -1;
+	int hasEmissiveMapLocation = -1;
+
+	int tilingLocation = -1;
+	int offsetLocation = -1;
+};
+
 struct ProgramStandard : public Program {
 	ProgramStandard(unsigned program);
 
