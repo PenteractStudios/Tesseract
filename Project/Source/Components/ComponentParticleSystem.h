@@ -60,7 +60,6 @@ class ComponentParticleSystem : public Component {
 public:
 	struct Particle {
 		float4x4 model = float4x4::identity;
-		float4x4 modelStretch = float4x4::identity;
 
 		float3 initialPosition = float3(0.0f, 0.0f, 0.0f);
 		float3 position = float3(0.0f, 0.0f, 0.0f);
@@ -74,7 +73,7 @@ public:
 		float currentFrame = 0.0f;
 
 		float3 emitterPosition = float3::zero;
-		float3 emitterRotation = float3::zero;
+		float3 emitterDirection = float3::zero;
 
 		// Collider
 		ParticleMotionState* motionState = nullptr;

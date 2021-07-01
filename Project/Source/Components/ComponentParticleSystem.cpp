@@ -364,13 +364,6 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
 			glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
 
-			//if (oldID != textureID) {
-			//	ComponentTransform2D* transform2D = GetOwner().GetComponent<ComponentTransform2D>();
-			//	if (transform2D != nullptr) {
-			//		transform2D->SetSize(float2(static_cast<float>(width), static_cast<float>(height)));
-			//	}
-			//}
-
 			ImGui::TextWrapped("Size:");
 			ImGui::SameLine();
 			ImGui::TextWrapped("%i x %i", width, height);
@@ -735,11 +728,13 @@ void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
 	if (attachEmitter) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 		float3 position = transform->GetGlobalPosition();
-		float3 rotation = transform->GetGlobalRotation().ToEulerXYZ();
-		float3 newRotation = rotation - currentParticle->emitterRotation;
-		currentParticle->position = float3x3::FromEulerXYZ(newRotation.x, newRotation.y, newRotation.z) * currentParticle->position;
-		currentParticle->direction = float3x3::FromEulerXYZ(newRotation.x, newRotation.y, newRotation.z) * currentParticle->direction;
-		currentParticle->emitterRotation = rotation;
+		float3 direction = transform->GetGlobalRotation() * float3::unitY;
+
+		if (!currentParticle->emitterDirection.Equals(direction)) {
+			currentParticle->position = float3x3::RotateFromTo(currentParticle->emitterDirection, direction) * currentParticle->position;
+			currentParticle->direction = float3x3::RotateFromTo(currentParticle->emitterDirection, direction) * currentParticle->direction;
+			currentParticle->emitterDirection = direction;
+		}
 
 		if (!currentParticle->emitterPosition.Equals(position)) {
 			currentParticle->position = (position - currentParticle->emitterPosition).Normalized() * Length(position - currentParticle->emitterPosition) + currentParticle->position;
@@ -838,6 +833,7 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 		InitParticleSpeed(currentParticle);
 		InitParticleLife(currentParticle);
 		currentParticle->emitterPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+		currentParticle->emitterDirection = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation() * float3::unitY;
 		currentParticle->model = float4x4::FromTRS(currentParticle->position, currentParticle->rotation, currentParticle->scale);
 
 		if (collision) {
