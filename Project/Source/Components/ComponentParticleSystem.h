@@ -4,8 +4,8 @@
 #include "Utils/Pool.h"
 #include "Utils/UID.h"
 #include "Utils/Collider.h"
+#include "Math/float3.h"
 #include "Math/float4.h"
-#include "Math/float2.h"
 #include "Math/float4x4.h"
 #include "Math/Quat.h"
 
@@ -15,10 +15,12 @@ class ComponentTransform;
 class ParticleModule;
 class btRigidBody;
 class ParticleMotionState;
+class ImGradient;
+class ImGradientMark;
 
 enum WorldLayers;
 
-enum class EmitterType {
+enum class ParticleEmitterType {
 	CONE,
 	SPHERE,
 	HEMISPHERE,
@@ -27,8 +29,13 @@ enum class EmitterType {
 	RECTANGLE
 };
 
+enum class ParticleRenderMode {
+	ADDITIVE,
+	TRANSPARENT
+};
+
 enum class BillboardType {
-	LOOK_AT,
+	NORMAL,
 	STRETCH,
 	HORIZONTAL,
 	VERTICAL
@@ -59,11 +66,13 @@ public:
 		ParticleMotionState* motionState = nullptr;
 		btRigidBody* rigidBody = nullptr;
 		ComponentParticleSystem* emitter = nullptr;
-		Collider col{ this, typeid(Particle) };
+		Collider col {this, typeid(Particle)};
 		float radius = 0;
 	};
 
 	REGISTER_COMPONENT(ComponentParticleSystem, ComponentType::PARTICLE, false);
+
+	~ComponentParticleSystem();
 
 	void Update() override;
 	void Init() override;
@@ -73,25 +82,31 @@ public:
 	void Save(JsonValue jComponent) const override;
 
 	void Draw();
+
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Stop();
-	void SpawnParticle();
-	void DestroyParticlesColliders();
 
 	float3 CreatePosition();
 	float3 CreateDirection();
 	void UpdateGravityDirection(Particle* currentParticle);
+	void CreateParticles();
+	void SpawnParticles();
+	void SpawnParticleUnit();
+
+	void InitParticlePosAndDir(Particle* currentParticle);
+	void InitParticleScale(Particle* currentParticle);
+	void InitParticleVelocity(Particle* currentParticle);
+	void InitParticleLifetime(Particle* currentParticle);
 
 	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
-	TESSERACT_ENGINE_API void UpdateVelocity(Particle* currentParticle);
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
+
 	TESSERACT_ENGINE_API void KillParticle(Particle* currentParticle);
 	void UndertakerParticle();
+	void DestroyParticlesColliders();
 
-private:
-	float4 GetTintColor() const; // Gets an additional color that needs to be applied to the image. Currently gets the color of the Button
-	void CreateParticles(unsigned nParticles, float vel);
+	void PlayChildParticles();
 
 public:
 	WorldLayers layer;
@@ -99,59 +114,72 @@ public:
 	float radius = .25f;
 
 private:
-	UID textureID = 0; // ID of the image
-
-	EmitterType emitterType = EmitterType::CONE;
-	BillboardType billboardType = BillboardType::LOOK_AT;
-
 	Pool<Particle> particles;
 	std::vector<Particle*> deadParticles;
+	unsigned particleSpawned = 0;
 
 	float3 cameraDir = {0.f, 0.f, 0.f};
+	float emitterTime = 0.0f;
 
-	// General Options
+	// Gizmo
+	bool drawGizmo = true;
 
-	bool looping = false;
+	// Control
 	bool isPlaying = false;
-	bool isRandomFrame = false;
 	bool sizeOverTime = false;
-	bool reverseEffect = false;
-	bool attachEmitter = false;
 	bool gravityEffect = false;
 	bool executer = false;
-	float scale = 5.f;
+	bool hasChildWithParticles = false;
 	float distanceReverse = 0.f;
 	float startDelay = 0.f;
 	float restDelayTime = 0.f;
+	float duration = 5.0f; // Emitter duration
+	float restDuration = 0.0f;
 	float gravityFactor = 0.0f;
-
+	float particlesPerSecond = 1.0f;
+	float restParticlesPerSecond = 0.0f;
+	// Particle System
+	bool looping = false;
+	float life = 5.0f;	   // Start life
+	float velocity = 1.3f; // Start speed
+	float scale = 1.0f;	   // Start size
+	bool reverseEffect = false;
+	float reverseDistance = 5.0f;
 	unsigned maxParticles = 100;
-	unsigned particleSpawned = 0;
-	float velocity = 0.1f;
-	float particleLife = 5.f;
-	float scaleFactor = 0.f;
+
+	// Emision
+	bool attachEmitter = false;
+
+	// Shape
+	ParticleEmitterType emitterType = ParticleEmitterType::CONE;
+	// -- Cone
 	float coneRadiusUp = 1.f;
 	float coneRadiusDown = 0.5f;
-	bool collisions = false;
+	bool randomConeRadiusDown = false;
+	bool randomConeRadiusUp = false;
+
+	// Size over Lifetime
+	bool sizeOverLifetime = false;
+	float scaleFactor = 0.f;
+
+	// Color over Lifetime
+	bool colorOverLifetime = false;
+	ImGradient* gradient = nullptr;
+	ImGradientMark* draggingGradient = nullptr;
+	ImGradientMark* selectedGradient = nullptr;
 
 	// Texture Sheet Animation
 	unsigned Xtiles = 1;
 	unsigned Ytiles = 1;
 	float animationSpeed = 0.0f;
+	bool isRandomFrame = false;
 
-	// Color Options
-	float4 initC = float4::one;
-	float4 finalC = float4::one;
-	float startTransition = 0.0f;
-	float endTransition = 0.0f;
-
-	// Texture Options
+	// Render
+	UID textureID = 0;
+	BillboardType billboardType = BillboardType::NORMAL;
+	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
 	bool flipTexture[2] = {false, false};
 
-	// Guizmos Options
-	float kc = 1.0f; //Keep in one to avoid having denominator less than 1
-	float kl = 0.045f;
-	float kq = 0.0075f;
-	float innerAngle = pi / 12;
-	float outerAngle = pi / 6;
+	// Collision
+	bool collision = false;
 };

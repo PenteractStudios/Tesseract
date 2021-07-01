@@ -37,19 +37,22 @@ public:
 
 	// SSAO Shaders
 	ProgramSSAO* ssao = nullptr;
-	ProgramSSAOBlur* ssaoBlur = 0;
+	ProgramSSAOBlur* ssaoBlur = nullptr;
+
+	// Post-processing Shaders
+	ProgramColorCorrection* colorCorrection = nullptr;
 
 	// Shadow Shaders
 	unsigned shadowMap = 0;
 
 	// Engine Shaders
-	ProgramDrawTexture* drawTexture = 0;
+	ProgramDrawTexture* drawTexture = nullptr;
 
 	// UI Shaders
-	ProgramTextUI* textUI = 0;
-	ProgramImageUI* imageUI = 0;
+	ProgramTextUI* textUI = nullptr;
+	ProgramImageUI* imageUI = nullptr;
 
 	// Particle Shaders
-	unsigned billboard = 0;
-	unsigned trail = 0;
+	ProgramBillboard* billboard = nullptr;
+	ProgramTrail* trail = nullptr;
 };

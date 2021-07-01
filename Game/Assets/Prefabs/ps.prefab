@@ -1,0 +1,90 @@
+{
+    "Root": {
+        "Name": "ParticleSystem",
+        "Active": true,
+        "RootBoneName": "",
+        "Mask": 0,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    2.473421335220337,
+                    0.0,
+                    0.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "LocalEulerAngles": [
+                    -0.0,
+                    0.0,
+                    -0.0
+                ]
+            },
+            {
+                "Type": "Particle",
+                "Active": true,
+                "DrawGizmo": true,
+                "IsPlaying": true,
+                "StartDelay": 0.0,
+                "Duration": 5.0,
+                "Looping": true,
+                "Life": 5.0,
+                "Velocity": 1.2999999523162842,
+                "Scale": 1.0,
+                "ReverseEffect": false,
+                "ReverseDistance": 5.0,
+                "MaxParticle": 100,
+                "AttachEmitter": false,
+                "ParticleEmitterType": 0,
+                "ConeRadiusUp": 1.0,
+                "ConeRadiusDown": 0.5,
+                "RandomConeRadiusUp": false,
+                "RandomConeRadiusDown": false,
+                "SizeOverLifetime": false,
+                "ScaleFactor": 0.0,
+                "ColorOverLifetime": false,
+                "GradientColors": [
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ]
+                ],
+                "NumberColors": 2,
+                "Ytiles": 1,
+                "Xtiles": 1,
+                "AnimationSpeed": 0.0,
+                "IsRandomFrame": false,
+                "TextureId": 0,
+                "BillboardType": 0,
+                "ParticleRenderMode": 0,
+                "FlipTexture": [
+                    false,
+                    false
+                ],
+                "HasCollision": false,
+                "LayerIndex": 5
+            }
+        ],
+        "Children": null
+    }
+}

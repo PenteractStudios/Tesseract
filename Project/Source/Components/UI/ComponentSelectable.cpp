@@ -334,7 +334,6 @@ bool ComponentSelectable::IsClicked() const {
 			return false;
 		}
 	}
-
 	return false;
 }
 
