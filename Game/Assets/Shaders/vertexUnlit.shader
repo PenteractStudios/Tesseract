@@ -16,7 +16,6 @@ uniform mat4 proj;
 uniform mat4 palette[MAX_BONES];
 uniform bool hasBones;
 
-out vec3 fragPos;
 out vec2 uv;
 
 void main()
@@ -32,7 +31,6 @@ void main()
     }
 
     gl_Position = proj * view * model * position;
-    fragPos = vec3(model * position);
 
     uv = uvs;
 }

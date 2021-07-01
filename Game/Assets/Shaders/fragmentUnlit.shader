@@ -1,6 +1,5 @@
 --- fragUnlit
 
-in vec3 fragPos;
 in vec2 uv;
 out vec4 outColor;
 
@@ -32,6 +31,5 @@ vec4 GetEmissive(vec2 tiledUV)
 void main()
 {    
     vec2 tiledUV = GetTiledUVs(); 
-    //vec4 colorDiffuse = 
     outColor = GetDiffuse(tiledUV) + vec4(GetEmissive(tiledUV).rgb, 0);
 }
