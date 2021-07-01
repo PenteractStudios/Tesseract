@@ -694,9 +694,6 @@ void ComponentParticleSystem::Update() {
 					UpdateScale(&currentParticle);
 				}
 
-				// Update Model
-				currentParticle.model = float4x4::FromTRS(currentParticle.position, currentParticle.rotation, currentParticle.scale);
-
 				if (!isRandomFrame) {
 					currentParticle.currentFrame += animationSpeed * App->time->GetDeltaTimeOrRealDeltaTime();
 				}
@@ -834,7 +831,6 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 		InitParticleLife(currentParticle);
 		currentParticle->emitterPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		currentParticle->emitterDirection = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation() * float3::unitY;
-		currentParticle->model = float4x4::FromTRS(currentParticle->position, currentParticle->rotation, currentParticle->scale);
 
 		if (collision) {
 			currentParticle->emitter = this;
@@ -934,7 +930,7 @@ void ComponentParticleSystem::Draw() {
 				newModelMatrix = float4x4::LookAt(float3::unitZ, cameraDir, float3::unitY, float3::unitY);
 			}
 
-			float4x4 modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart() * currentParticle.model.RotatePart(), currentParticle.scale);
+			float4x4 modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart() * float3x3::FromQuat(currentParticle.rotation), currentParticle.scale);
 			float4x4* view = &App->camera->GetViewMatrix();
 			float4x4* proj = &App->camera->GetProjectionMatrix();
 

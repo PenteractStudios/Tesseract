@@ -59,8 +59,6 @@ enum class RandomMode {
 class ComponentParticleSystem : public Component {
 public:
 	struct Particle {
-		float4x4 model = float4x4::identity;
-
 		float3 initialPosition = float3(0.0f, 0.0f, 0.0f);
 		float3 position = float3(0.0f, 0.0f, 0.0f);
 		Quat rotation = Quat(0.0f, 0.0f, 0.0f, 0.0f);
@@ -151,7 +149,7 @@ private:
 	RandomMode rotationRM = RandomMode::CONST;
 	float2 rotation = {0.0f, 0.0f}; // Start rotation
 	RandomMode scaleRM = RandomMode::CONST;
-	float2 scale = {3.0f, 3.0f}; // Start scale
+	float2 scale = {1.0f, 1.0f}; // Start scale
 	bool reverseEffect = false;
 	RandomMode reverseDistanceRM = RandomMode::CONST;
 	float2 reverseDistance = {5.0f, 5.0f};
