@@ -95,6 +95,8 @@ private:
 	btSequentialImpulseConstraintSolver* constraintSolver = nullptr;
 	btDiscreteDynamicsWorld* world = nullptr;
 
+	std::vector<btRigidBody*> rigidBodiesToRemove;
+
 	//BULLET DEBUG: Uncomment to activate it
 	//DebugDrawer* debugDrawer;
 

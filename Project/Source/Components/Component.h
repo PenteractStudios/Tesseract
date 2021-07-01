@@ -18,7 +18,8 @@ public:
 	virtual ~Component();
 
 	// ------- Core Functions ------ //
-	virtual void Init();								// Performs the initialisations of the Component that are detached from the constructora. Called from owner->InitComponents().
+	virtual void Init();								// Called after instantiating the objects. Children may not be loaded yet.
+	virtual void Start();								// Called after all children have been initialized.
 	virtual void Update();								// Updates the Component at each frame. Called on owner->Update()
 	virtual void DrawGizmos();							// Draws the visual representation of the component in the screen (if exists, I.E. Light direction or camera frustum).
 	virtual void OnEditorUpdate();						// Draw the ImGui elements & info of the Component in the Inspector. Called from PanelInspector->Update()

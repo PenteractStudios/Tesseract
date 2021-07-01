@@ -632,8 +632,9 @@ bool NavMesh::Build() {
 void NavMesh::DrawGizmos() {
 	DebugDrawGL dds;
 
-	glClearColor(.1f, .1f, .1f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glUseProgram(0);
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -642,12 +643,6 @@ void NavMesh::DrawGizmos() {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glLoadMatrixf(App->camera->GetViewMatrix().Transposed().ptr());
-
-	GLboolean depthMaskValue;
-	GLboolean depth;
-	glGetBooleanv(GL_DEPTH_TEST, &depthMaskValue);
-	glDepthMask(GL_TRUE);
-	glEnable(GL_DEPTH_TEST);
 
 	const float texScale = 1.0f / (cellSize * 10.0f);
 
@@ -667,13 +662,6 @@ void NavMesh::DrawGizmos() {
 	}
 
 	DebugDrawGL dd;
-
-	// Draw mesh
-	if (drawMode != DRAWMODE_NAVMESH_TRANS && nverts > 0) {
-		// Draw mesh
-		duDebugDrawTriMeshSlope(&dd, &verts[0], nverts, &tris[0], &normals[0], ntris, agentMaxSlope, texScale);
-		//m_geom->drawOffMeshConnections(&dd);
-	}
 
 	if (tileCache && drawMode == DRAWMODE_CACHE_BOUNDS) {
 		DrawTiles(&dd, tileCache);
@@ -710,10 +698,6 @@ void NavMesh::DrawGizmos() {
 			
 		duDebugDrawNavMeshPolysWithFlags(&dd, *navMesh, SAMPLE_POLYFLAGS_DISABLED, duRGBA(0, 0, 0, 128));
 	}
-
-	glEnable(GL_DEPTH_TEST);
-
-	glDepthMask(depthMaskValue);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
