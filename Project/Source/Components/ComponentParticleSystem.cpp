@@ -210,9 +210,10 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 	// Gravity
 	if (ImGui::CollapsingHeader("Gravity")) {
-		ImGui::Checkbox("Gravity Effect", &gravityEffect);
+		ImGui::Checkbox("##gravity_effect", &gravityEffect);
 		if (gravityEffect) {
-			ImGui::DragFloat("Gravity", &gravityFactor, App->editor->dragSpeed2f, 0, inf);
+			ImGui::SameLine();
+			ImGui::DragFloat("Gravity##gravity_factor", &gravityFactor, App->editor->dragSpeed2f, 0, inf);
 		}
 	}
 
@@ -821,8 +822,7 @@ void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) 
 	float z = currentParticle->direction.z;
 	if (App->time->HasGameStarted()) {
 		currentParticle->gravityTime += 10 * App->time->GetDeltaTime();
-	}
-	else {
+	} else {
 		currentParticle->gravityTime += 10 * App->time->GetRealTimeDeltaTime();
 	}
 	currentParticle->direction = float3(x, y, z);
