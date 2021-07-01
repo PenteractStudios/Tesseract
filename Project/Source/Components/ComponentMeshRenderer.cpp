@@ -322,6 +322,12 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniformMatrix4fv(unlitProgram->viewLocation, 1, GL_TRUE, viewMatrix.ptr());
 		glUniformMatrix4fv(unlitProgram->projLocation, 1, GL_TRUE, projMatrix.ptr());
 
+		if (palette.size() > 0) {
+			glUniformMatrix4fv(unlitProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
+		}
+
+		glUniform1i(unlitProgram->hasBonesLocation, goBones.size());
+
 		// Diffuse
 		unsigned glTextureDiffuse = 0;
 		ResourceTexture* diffuse = App->resources->GetResource<ResourceTexture>(material->diffuseMapId);

@@ -77,6 +77,9 @@ ProgramUnlit::ProgramUnlit(unsigned program_)
 	viewLocation = glGetUniformLocation(program, "view");
 	projLocation = glGetUniformLocation(program, "proj");
 
+	paletteLocation = glGetUniformLocation(program, "palette");
+	hasBonesLocation = glGetUniformLocation(program, "hasBones");
+
 	diffuseMapLocation = glGetUniformLocation(program, "diffuseMap");
 	diffuseColorLocation = glGetUniformLocation(program, "diffuseColor");
 	hasDiffuseMapLocation = glGetUniformLocation(program, "hasDiffuseMap");

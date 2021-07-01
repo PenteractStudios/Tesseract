@@ -83,6 +83,9 @@ struct ProgramUnlit : public Program {
 	int viewLocation = -1;
 	int projLocation = -1;
 
+	int paletteLocation = -1;
+	int hasBonesLocation = -1;
+
 	int diffuseMapLocation = -1;
 	int diffuseColorLocation = -1;
 	int hasDiffuseMapLocation = -1;

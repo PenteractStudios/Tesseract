@@ -155,6 +155,8 @@ void ModulePrograms::UnloadShaders() {
 	RELEASE(ssao);
 	RELEASE(ssaoBlur);
 
+	RELEASE(colorCorrection);
+
 	glDeleteProgram(shadowMap);
 
 	RELEASE(textUI);
