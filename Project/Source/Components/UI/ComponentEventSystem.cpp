@@ -187,7 +187,10 @@ ComponentSelectable* ComponentEventSystem::GetCurrentSelected() const {
 
 ComponentSelectable* ComponentEventSystem::GetCurrentlyHovered() const {
 	if (hoveredSelectableID == 0) return nullptr;
-	return GetOwner().scene->GetComponent<ComponentSelectable>(hoveredSelectableID);
+
+	ComponentSelectable* sel = GetOwner().scene->GetComponent<ComponentSelectable>(hoveredSelectableID);
+
+	return sel->GetOwner().IsActive() ? sel : nullptr;
 }
 
 void ComponentEventSystem::SetClickedGameObject(GameObject* clickedObj_) {
