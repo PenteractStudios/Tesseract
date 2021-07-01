@@ -48,9 +48,10 @@ void ComponentSlider::Update() {
 			}
 		}
 	}
+
 	SearchForMissingGameObjectReferences();
 
-	if (background) return;
+	if (background == nullptr || handle == nullptr || fill == nullptr) return;
 
 	ComponentTransform2D* backgroundTransform = background->GetComponent<ComponentTransform2D>();
 	ComponentTransform2D* fillTransform = fill->GetComponent<ComponentTransform2D>();
@@ -169,8 +170,8 @@ void ComponentSlider::OnSliderDragged() {
 	// TODO: support for vertical sliders
 
 	SearchForMissingGameObjectReferences();
-	
-	if (background) return;
+
+	if (background == nullptr || handle == nullptr || fill == nullptr) return;
 
 	ComponentTransform2D* backgroundTransform = background->GetComponent<ComponentTransform2D>();
 	float size = 0.f;
