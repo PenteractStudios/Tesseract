@@ -48,7 +48,8 @@ enum class ComponentType {
 	SPHERE_COLLIDER,
 	BOX_COLLIDER,
 	CAPSULE_COLLIDER,
-	AGENT
+	AGENT,
+	OBSTACLE
 };
 
 const char* GetComponentTypeName(ComponentType type);

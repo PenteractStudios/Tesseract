@@ -27,5 +27,5 @@ out vec4 outColor;
 
 void main()
 {	
-	outColor = (hasDiffuse * texture2D(diffuse, uv0) + 1 - hasDiffuse) * inputColor;
+	outColor = (hasDiffuse * SRGBA(texture2D(diffuse, uv0)) + 1 - hasDiffuse) * SRGBA(inputColor);
 }
