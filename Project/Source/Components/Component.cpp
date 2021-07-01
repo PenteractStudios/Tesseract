@@ -15,6 +15,8 @@ Component::~Component() {}
 
 void Component::Init() {}
 
+void Component::Start() {}
+
 void Component::Update() {}
 
 void Component::DrawGizmos() {}
