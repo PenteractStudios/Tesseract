@@ -9,7 +9,8 @@
 enum class MaterialShader {
 	PHONG,
 	STANDARD_SPECULAR,
-	STANDARD
+	STANDARD,
+	UNLIT
 };
 
 enum class RenderingMode {

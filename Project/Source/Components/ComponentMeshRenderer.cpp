@@ -308,7 +308,63 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		standardProgram = metallicProgram;
 		break;
 	}
+	case MaterialShader::UNLIT: {
+		ProgramUnlit* unlitProgram = App->programs->unlit;
+		if (unlitProgram == nullptr) return;
+
+		glUseProgram(unlitProgram->program);
+
+		// Matrices
+		float4x4 viewMatrix = App->camera->GetViewMatrix();
+		float4x4 projMatrix = App->camera->GetProjectionMatrix();
+
+		glUniformMatrix4fv(unlitProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
+		glUniformMatrix4fv(unlitProgram->viewLocation, 1, GL_TRUE, viewMatrix.ptr());
+		glUniformMatrix4fv(unlitProgram->projLocation, 1, GL_TRUE, projMatrix.ptr());
+
+		if (palette.size() > 0) {
+			glUniformMatrix4fv(unlitProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
+		}
+
+		glUniform1i(unlitProgram->hasBonesLocation, goBones.size());
+
+		// Diffuse
+		unsigned glTextureDiffuse = 0;
+		ResourceTexture* diffuse = App->resources->GetResource<ResourceTexture>(material->diffuseMapId);
+		glTextureDiffuse = diffuse ? diffuse->glTexture : 0;
+		int hasDiffuseMap = diffuse ? 1 : 0;
+		
+		glUniform1i(unlitProgram->diffuseMapLocation, 0);
+		glUniform4fv(unlitProgram->diffuseColorLocation, 1, material->diffuseColor.ptr());
+		glUniform1i(unlitProgram->hasDiffuseMapLocation, hasDiffuseMap);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, glTextureDiffuse);
+
+		// Emissive
+		unsigned glTextureEmissive = 0;
+		ResourceTexture* emissive = App->resources->GetResource<ResourceTexture>(material->emissiveMapId);
+		glTextureEmissive = emissive ? emissive->glTexture : 0;
+		int hasEmissiveMap = glTextureEmissive ? 1 : 0;
+
+		glUniform1i(unlitProgram->emissiveMapLocation, 1);
+		glUniform1i(unlitProgram->hasEmissiveMapLocation, hasEmissiveMap);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, glTextureEmissive);
+
+		// Tilling settings
+		glUniform2fv(unlitProgram->tilingLocation, 1, material->tiling.ptr());
+		glUniform2fv(unlitProgram->offsetLocation, 1, material->offset.ptr());
+
+		glBindVertexArray(mesh->vao);
+		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
+		glBindVertexArray(0);
+
+		break;
 	}
+	}
+
+	// Unlit material already set
+	if (material->shaderType == MaterialShader::UNLIT) return;
 
 	// Common shader settings
 	if (standardProgram == nullptr) return;
