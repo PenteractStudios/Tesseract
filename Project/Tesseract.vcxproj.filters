@@ -368,9 +368,12 @@
     <ClCompile Include="Source\FileSystem\NavMeshImporter.cpp" />
     <ClCompile Include="Source\Components\ComponentAgent.cpp" />
     <ClCompile Include="Source\Panels\PanelAudioMixer.cpp" />
+    <ClCompile Include="Source\Components\ComponentObstacle.cpp" />
+    <ClCompile Include="Libs\imgui\imgui_color_gradient.cpp" />
     <ClCompile Include="Source\Utils\Random.cpp" />
     <ClCompile Include="Source\Rendering\Programs.cpp" />
     <ClCompile Include="Source\Utils\ParticleMotionState.cpp" />
+    <ClCompile Include="Libs\imgui\imgui_color_gradient.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\LightFrustum.h" />
@@ -716,10 +719,13 @@
     <ClInclude Include="Source\FileSystem\NavMeshImporter.h" />
     <ClInclude Include="Source\Components\ComponentAgent.h" />
     <ClInclude Include="Source\Panels\PanelAudioMixer.h" />
+    <ClInclude Include="Source\Components\ComponentObstacle.h" />
+    <ClInclude Include="Libs\imgui\imgui_color_gradient.h" />
     <ClInclude Include="Source\Utils\Random.h" />
     <ClInclude Include="Source\Rendering\Programs.h" />
     <ClInclude Include="Source\Utils\ParticleMotionState.h" />
     <ClInclude Include="Source\Utils\Collider.h" />
+    <ClInclude Include="Libs\imgui\imgui_color_gradient.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />

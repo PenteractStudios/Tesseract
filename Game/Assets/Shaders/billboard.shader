@@ -20,7 +20,9 @@ void main()
 
 in vec2 uv0;
 
-uniform sampler2D diffuse;
+uniform sampler2D diffuseMap;
+uniform int hasDiffuseMap;
+uniform vec4 inputColor;
 
 uniform float currentFrame;
 uniform int Xtiles;
@@ -28,12 +30,6 @@ uniform int Ytiles;
 
 uniform bool flipX;
 uniform bool flipY;
-
-uniform float colorFrame;
-uniform vec4 initColor;
-uniform vec4 finalColor;
-uniform float startTransition;
-uniform float endTransition;
 
 float X;
 float Y;
@@ -63,19 +59,7 @@ void main()
 	u = X/Xtiles;
 	v = Y/Ytiles;
 
-	if (colorFrame < startTransition)
-	{
-		outColor = initColor * texture2D(diffuse,  vec2(u, v));
-	}
-	else if (colorFrame <= endTransition)
-	{
-		float a = (colorFrame - startTransition) / (endTransition - startTransition);
-		outColor = mix(initColor, finalColor, a) * texture2D(diffuse, vec2(u, v));
-	}else
-	{
-		outColor = finalColor * texture2D(diffuse,  vec2(u, v) ) ;
-	}
-
+	outColor = SRGBA(inputColor) * (hasDiffuseMap * SRGBA(texture2D(diffuseMap,  vec2(u, v))) + (1 - hasDiffuseMap));
 	// Bloom
 	float brightness = dot(outColor.rgb, vec3(0.2126, 0.7152, 0.0722));
 	if (brightness > 1.0) brightColor = outColor;

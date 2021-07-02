@@ -350,46 +350,129 @@ dtStatus dtTileCache::removeTile(dtCompressedTileRef ref, unsigned char** data, 
 }
 
 
-dtStatus dtTileCache::addObstacle(const float* pos, const float radius, const float height, dtObstacleRef* result)
-{
-	if (m_nreqs >= MAX_REQUESTS)
+dtStatus dtTileCache::addObstacle(const float* pos, const float radius, const float height, dtObstacleRef* result, bool mustBeDrawnGizmo) {
+	if (m_nreqs >= MAX_REQUESTS) {
 		return DT_FAILURE | DT_BUFFER_TOO_SMALL;
-	
+	}
+
 	dtTileCacheObstacle* ob = 0;
-	if (m_nextFreeObstacle)
-	{
+	if (m_nextFreeObstacle) {
 		ob = m_nextFreeObstacle;
 		m_nextFreeObstacle = ob->next;
 		ob->next = 0;
 	}
-	if (!ob)
+	if (!ob) {
 		return DT_FAILURE | DT_OUT_OF_MEMORY;
-	
+	}
+
 	unsigned short salt = ob->salt;
 	memset(ob, 0, sizeof(dtTileCacheObstacle));
 	ob->salt = salt;
 	ob->state = DT_OBSTACLE_PROCESSING;
-	dtVcopy(ob->pos, pos);
-	ob->radius = radius;
-	ob->height = height;
-	
+	ob->type = DT_OBSTACLE_CYLINDER;
+	dtVcopy(ob->cylinder.pos, pos);
+	ob->cylinder.radius = radius;
+	ob->cylinder.height = height;
+	ob->mustBeDrawnGizmo = mustBeDrawnGizmo;
+
 	ObstacleRequest* req = &m_reqs[m_nreqs++];
 	memset(req, 0, sizeof(ObstacleRequest));
 	req->action = REQUEST_ADD;
 	req->ref = getObstacleRef(ob);
-	
-	if (result)
+
+	if (result) {
 		*result = req->ref;
-	
+	}
+
+	return DT_SUCCESS;
+}
+
+dtStatus dtTileCache::addBoxObstacle(const float* bmin, const float* bmax, dtObstacleRef* result, bool mustBeDrawnGizmo) {
+	if (m_nreqs >= MAX_REQUESTS) {
+		return DT_FAILURE | DT_BUFFER_TOO_SMALL;
+	}
+
+	dtTileCacheObstacle* ob = 0;
+	if (m_nextFreeObstacle) {
+		ob = m_nextFreeObstacle;
+		m_nextFreeObstacle = ob->next;
+		ob->next = 0;
+	}
+	if (!ob) {
+		return DT_FAILURE | DT_OUT_OF_MEMORY;
+	}
+
+	unsigned short salt = ob->salt;
+	memset(ob, 0, sizeof(dtTileCacheObstacle));
+	ob->salt = salt;
+	ob->state = DT_OBSTACLE_PROCESSING;
+	ob->type = DT_OBSTACLE_BOX;
+	dtVcopy(ob->box.bmin, bmin);
+	dtVcopy(ob->box.bmax, bmax);
+	ob->mustBeDrawnGizmo = mustBeDrawnGizmo;
+
+	ObstacleRequest* req = &m_reqs[m_nreqs++];
+	memset(req, 0, sizeof(ObstacleRequest));
+	req->action = REQUEST_ADD;
+	req->ref = getObstacleRef(ob);
+
+	if (result) {
+		*result = req->ref;
+	}
+
+	return DT_SUCCESS;
+}
+
+dtStatus dtTileCache::addBoxObstacle(const float* center, const float* halfExtents, const float yRadians, dtObstacleRef* result, bool mustBeDrawnGizmo) {
+	if (m_nreqs >= MAX_REQUESTS) {
+		return DT_FAILURE | DT_BUFFER_TOO_SMALL;
+	}
+
+	dtTileCacheObstacle* ob = 0;
+	if (m_nextFreeObstacle) {
+		ob = m_nextFreeObstacle;
+		m_nextFreeObstacle = ob->next;
+		ob->next = 0;
+	}
+	if (!ob) {
+		return DT_FAILURE | DT_OUT_OF_MEMORY;
+	}
+
+	unsigned short salt = ob->salt;
+	memset(ob, 0, sizeof(dtTileCacheObstacle));
+	ob->salt = salt;
+	ob->state = DT_OBSTACLE_PROCESSING;
+	ob->type = DT_OBSTACLE_ORIENTED_BOX;
+	dtVcopy(ob->orientedBox.center, center);
+	dtVcopy(ob->orientedBox.halfExtents, halfExtents);
+	ob->mustBeDrawnGizmo = mustBeDrawnGizmo;
+
+	float coshalf = cosf(0.5f * yRadians);
+	float sinhalf = sinf(-0.5f * yRadians);
+	ob->orientedBox.rotAux[0] = coshalf * sinhalf;
+	ob->orientedBox.rotAux[1] = coshalf * coshalf - 0.5f;
+	ob->orientedBox.yRadian = yRadians;
+
+	ObstacleRequest* req = &m_reqs[m_nreqs++];
+	memset(req, 0, sizeof(ObstacleRequest));
+	req->action = REQUEST_ADD;
+	req->ref = getObstacleRef(ob);
+
+	if (result) {
+		*result = req->ref;
+	}
+
 	return DT_SUCCESS;
 }
 
 dtStatus dtTileCache::removeObstacle(const dtObstacleRef ref)
 {
-	if (!ref)
+	if (!ref) {
 		return DT_SUCCESS;
-	if (m_nreqs >= MAX_REQUESTS)
+	}
+	if (m_nreqs >= MAX_REQUESTS) {
 		return DT_FAILURE | DT_BUFFER_TOO_SMALL;
+	}
 	
 	ObstacleRequest* req = &m_reqs[m_nreqs++];
 	memset(req, 0, sizeof(ObstacleRequest));
@@ -450,12 +533,15 @@ dtStatus dtTileCache::update(const float /*dt*/, dtNavMesh* navmesh)
 			ObstacleRequest* req = &m_reqs[i];
 			
 			unsigned int idx = decodeObstacleIdObstacle(req->ref);
-			if ((int)idx >= m_params.maxObstacles)
+			if ((int)idx >= m_params.maxObstacles) {
 				continue;
+			}
+				
 			dtTileCacheObstacle* ob = &m_obstacles[idx];
 			unsigned int salt = decodeObstacleIdSalt(req->ref);
-			if (ob->salt != salt)
+			if (ob->salt != salt) {
 				continue;
+			}
 			
 			if (req->action == REQUEST_ADD)
 			{
@@ -506,8 +592,9 @@ dtStatus dtTileCache::update(const float /*dt*/, dtNavMesh* navmesh)
 		const dtCompressedTileRef ref = m_update[0];
 		dtStatus status = buildNavMeshTile(ref, navmesh);
 		m_nupdate--;
-		if (m_nupdate > 0)
-			memmove(m_update, m_update+1, m_nupdate*sizeof(dtCompressedTileRef));
+		if (m_nupdate > 0) {
+			memmove(m_update, m_update + 1, m_nupdate * sizeof(dtCompressedTileRef));
+		}
 
 		// Update obstacle states.
 		for (int i = 0; i < m_params.maxObstacles; ++i)
@@ -565,78 +652,82 @@ dtStatus dtTileCache::buildNavMeshTilesAt(const int tx, const int ty, dtNavMesh*
 	for (int i = 0; i < ntiles; ++i)
 	{
 		dtStatus status = buildNavMeshTile(tiles[i], navmesh);
-		if (dtStatusFailed(status))
+		if (dtStatusFailed(status)) {
 			return status;
+		}
 	}
 	
 	return DT_SUCCESS;
 }
 
-dtStatus dtTileCache::buildNavMeshTile(const dtCompressedTileRef ref, dtNavMesh* navmesh)
-{	
+dtStatus dtTileCache::buildNavMeshTile(const dtCompressedTileRef ref, dtNavMesh* navmesh) {
 	dtAssert(m_talloc);
 	dtAssert(m_tcomp);
-	
+
 	unsigned int idx = decodeTileIdTile(ref);
-	if (idx > (unsigned int)m_params.maxTiles)
+	if (idx > (unsigned int) m_params.maxTiles) {
 		return DT_FAILURE | DT_INVALID_PARAM;
+	}
 	const dtCompressedTile* tile = &m_tiles[idx];
 	unsigned int salt = decodeTileIdSalt(ref);
-	if (tile->salt != salt)
+	if (tile->salt != salt) {
 		return DT_FAILURE | DT_INVALID_PARAM;
-	
+	}
+
 	m_talloc->reset();
-	
+
 	NavMeshTileBuildContext bc(m_talloc);
-	const int walkableClimbVx = (int)(m_params.walkableClimb / m_params.ch);
+	const int walkableClimbVx = (int) (m_params.walkableClimb / m_params.ch);
 	dtStatus status;
-	
-	// Decompress tile layer data. 
+
+	// Decompress tile layer data.
 	status = dtDecompressTileCacheLayer(m_talloc, m_tcomp, tile->data, tile->dataSize, &bc.layer);
-	if (dtStatusFailed(status))
+	if (dtStatusFailed(status)) {
 		return status;
-	
+	}
+
 	// Rasterize obstacles.
-	for (int i = 0; i < m_params.maxObstacles; ++i)
-	{
+	for (int i = 0; i < m_params.maxObstacles; ++i) {
 		const dtTileCacheObstacle* ob = &m_obstacles[i];
 		if (ob->state == DT_OBSTACLE_EMPTY || ob->state == DT_OBSTACLE_REMOVING)
 			continue;
-		if (contains(ob->touched, ob->ntouched, ref))
-		{
-			dtMarkCylinderArea(*bc.layer, tile->header->bmin, m_params.cs, m_params.ch,
-							   ob->pos, ob->radius, ob->height, 0);
+		if (contains(ob->touched, ob->ntouched, ref)) {
+			if (ob->type == DT_OBSTACLE_CYLINDER) {
+				dtMarkCylinderArea(*bc.layer, tile->header->bmin, m_params.cs, m_params.ch, ob->cylinder.pos, ob->cylinder.radius, ob->cylinder.height, 0);
+			} else if (ob->type == DT_OBSTACLE_BOX) {
+				dtMarkBoxArea(*bc.layer, tile->header->bmin, m_params.cs, m_params.ch, ob->box.bmin, ob->box.bmax, 0);
+			} else if (ob->type == DT_OBSTACLE_ORIENTED_BOX) {
+				dtMarkBoxArea(*bc.layer, tile->header->bmin, m_params.cs, m_params.ch, ob->orientedBox.center, ob->orientedBox.halfExtents, ob->orientedBox.rotAux, 0);
+			}
 		}
 	}
-	
+
 	// Build navmesh
 	status = dtBuildTileCacheRegions(m_talloc, *bc.layer, walkableClimbVx);
 	if (dtStatusFailed(status))
 		return status;
-	
+
 	bc.lcset = dtAllocTileCacheContourSet(m_talloc);
 	if (!bc.lcset)
-		return status;
-	status = dtBuildTileCacheContours(m_talloc, *bc.layer, walkableClimbVx,
-									  m_params.maxSimplificationError, *bc.lcset);
+		return DT_FAILURE | DT_OUT_OF_MEMORY;
+	status = dtBuildTileCacheContours(m_talloc, *bc.layer, walkableClimbVx, m_params.maxSimplificationError, *bc.lcset);
 	if (dtStatusFailed(status))
 		return status;
-	
+
 	bc.lmesh = dtAllocTileCachePolyMesh(m_talloc);
 	if (!bc.lmesh)
-		return status;
+		return DT_FAILURE | DT_OUT_OF_MEMORY;
 	status = dtBuildTileCachePolyMesh(m_talloc, *bc.lcset, *bc.lmesh);
 	if (dtStatusFailed(status))
 		return status;
-	
+
 	// Early out if the mesh tile is empty.
-	if (!bc.lmesh->npolys)
-	{
+	if (!bc.lmesh->npolys) {
 		// Remove existing tile.
-		navmesh->removeTile(navmesh->getTileRefAt(tile->header->tx,tile->header->ty,tile->header->tlayer),0,0);
+		navmesh->removeTile(navmesh->getTileRefAt(tile->header->tx, tile->header->ty, tile->header->tlayer), 0, 0);
 		return DT_SUCCESS;
 	}
-	
+
 	dtNavMeshCreateParams params;
 	memset(&params, 0, sizeof(params));
 	params.verts = bc.lmesh->verts;
@@ -657,32 +748,29 @@ dtStatus dtTileCache::buildNavMeshTile(const dtCompressedTileRef ref, dtNavMesh*
 	params.buildBvTree = false;
 	dtVcopy(params.bmin, tile->header->bmin);
 	dtVcopy(params.bmax, tile->header->bmax);
-	
-	if (m_tmproc)
-	{
+
+	if (m_tmproc) {
 		m_tmproc->process(&params, bc.lmesh->areas, bc.lmesh->flags);
 	}
-	
+
 	unsigned char* navData = 0;
 	int navDataSize = 0;
 	if (!dtCreateNavMeshData(&params, &navData, &navDataSize))
 		return DT_FAILURE;
 
 	// Remove existing tile.
-	navmesh->removeTile(navmesh->getTileRefAt(tile->header->tx,tile->header->ty,tile->header->tlayer),0,0);
+	navmesh->removeTile(navmesh->getTileRefAt(tile->header->tx, tile->header->ty, tile->header->tlayer), 0, 0);
 
 	// Add new tile, or leave the location empty.
-	if (navData)
-	{
+	if (navData) {
 		// Let the navmesh own the data.
-		status = navmesh->addTile(navData,navDataSize,DT_TILE_FREE_DATA,0,0);
-		if (dtStatusFailed(status))
-		{
+		status = navmesh->addTile(navData, navDataSize, DT_TILE_FREE_DATA, 0, 0);
+		if (dtStatusFailed(status)) {
 			dtFree(navData);
 			return status;
 		}
 	}
-	
+
 	return DT_SUCCESS;
 }
 
@@ -697,12 +785,30 @@ void dtTileCache::calcTightTileBounds(const dtTileCacheLayerHeader* header, floa
 	bmax[2] = header->bmin[2] + (header->maxy+1)*cs;
 }
 
-void dtTileCache::getObstacleBounds(const struct dtTileCacheObstacle* ob, float* bmin, float* bmax) const
-{
-	bmin[0] = ob->pos[0] - ob->radius;
-	bmin[1] = ob->pos[1];
-	bmin[2] = ob->pos[2] - ob->radius;
-	bmax[0] = ob->pos[0] + ob->radius;
-	bmax[1] = ob->pos[1] + ob->height;
-	bmax[2] = ob->pos[2] + ob->radius;	
+void dtTileCache::getObstacleBounds(const struct dtTileCacheObstacle* ob, float* bmin, float* bmax) const {
+	if (ob->type == DT_OBSTACLE_CYLINDER) {
+		const dtObstacleCylinder& cl = ob->cylinder;
+
+		bmin[0] = cl.pos[0] - cl.radius;
+		bmin[1] = cl.pos[1];
+		bmin[2] = cl.pos[2] - cl.radius;
+		bmax[0] = cl.pos[0] + cl.radius;
+		bmax[1] = cl.pos[1] + cl.height;
+		bmax[2] = cl.pos[2] + cl.radius;
+	} else if (ob->type == DT_OBSTACLE_BOX) {
+		dtVcopy(bmin, ob->box.bmin);
+		dtVcopy(bmax, ob->box.bmax);
+	} else if (ob->type == DT_OBSTACLE_ORIENTED_BOX) {
+		// TODO: These magic numbers come from library and they should not be altered since this is logic used in dtMarkBoxArea when adding or modifying a tile.
+
+		const dtObstacleOrientedBox& orientedBox = ob->orientedBox;
+
+		float maxr = 1.41f * dtMax(orientedBox.halfExtents[0], orientedBox.halfExtents[2]);
+		bmin[0] = orientedBox.center[0] - maxr;
+		bmax[0] = orientedBox.center[0] + maxr;
+		bmin[1] = orientedBox.center[1] - orientedBox.halfExtents[1];
+		bmax[1] = orientedBox.center[1] + orientedBox.halfExtents[1];
+		bmin[2] = orientedBox.center[2] - maxr;
+		bmax[2] = orientedBox.center[2] + maxr;
+	}
 }
