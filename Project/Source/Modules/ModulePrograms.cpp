@@ -114,13 +114,11 @@ void ModulePrograms::LoadShaders() {
 	ssaoBlur = new ProgramSSAOBlur(CreateProgram(filePath, "vertScreen", "fragGaussianBlur"));
 
 	// Post-processing Shaders
+	postprocess = new ProgramPostprocess(CreateProgram(filePath, "vertScreen", "fragPostprocess"));
 	colorCorrection = new ProgramColorCorrection(CreateProgram(filePath, "vertScreen", "gammaCorrection fragColorCorrection"));
 
 	// Shadow Shaders
 	shadowMap = CreateProgram(filePath, "vertDepthMap", "fragDepthMap");
-
-	// Postprocess Shaders
-	postprocess = new ProgramPostprocess(CreateProgram(filePath, "vertScreen", "fragPostprocess"));
 
 	//UI shaders
 	textUI = new ProgramTextUI(CreateProgram(filePath, "vertTextUI", "gammaCorrection fragTextUI"));

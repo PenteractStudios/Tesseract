@@ -68,8 +68,8 @@ public:
 	unsigned depthMapTexture = 0;
 	unsigned ssaoTexture = 0;
 	unsigned auxBlurTexture = 0;
-	unsigned colorTextures[2] = { 0, 0 };
-	unsigned bloomBlurTextures[2] = { 0, 0 };
+	unsigned colorTextures[2] = { 0, 0 }; // position 0: scene render texture; position 1: bloom texture to be blurred
+	unsigned bloomBlurTextures[2] = { 0, 0 }; // ping-pong buffers to blur bloom horizontally and vertically, alternatively stores the bloom texture
 
 	unsigned depthBuffer = 0;
 
@@ -129,10 +129,10 @@ private:
 	void BlurSSAOTexture(bool horizontal);
 	void BlurBloomTexture(bool horizontal, bool firstTime);
 
-	void ExecuteColorCorrection();
+	void ExecuteColorCorrection(bool horizontal);
 
 	void DrawTexture(unsigned texture);
-	void DrawScene(bool horizontal);
+	void DrawScene();
 
 private:
 	// ------- Viewport Size ------- //

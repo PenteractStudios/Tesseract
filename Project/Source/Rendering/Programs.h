@@ -224,14 +224,14 @@ struct ProgramSSAOBlur : Program {
 struct ProgramColorCorrection : Program {
 	ProgramColorCorrection(unsigned program);
 
-	int inputTextureLocation = -1;
+	int textureSceneLocation = -1;
+	int textureBloomBlurLocation = -1;
 };
 
 struct ProgramPostprocess : Program {
 	ProgramPostprocess(unsigned program);
 
 	int textureSceneLocation = -1;
-	int textureBloomBlurLocation = -1;
 };
 
 struct ProgramDrawTexture : Program {

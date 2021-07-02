@@ -14,9 +14,10 @@ vec3 SRGB(in vec3 color) {
 
 in vec2 uv;
 
-out vec4 color;
+out vec4 outColor;
 
-uniform sampler2D inputTexture;
+uniform sampler2D scene;
+uniform sampler2D bloomBlur;
 
 vec3 ACESFilm(in vec3 x) {
 	float a = 2.51f;
@@ -27,13 +28,18 @@ vec3 ACESFilm(in vec3 x) {
 	return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
 }
 
-void main() {
+void main()
+{
+	vec4 hdrColor = texture(scene, uv);
+	//vec3 bloomColor = texture(bloomBlur, uv).rgb;
+	//hdrColor.rgb += bloomColor; // additive blending
+
 	// ACES Tonemapping
-	vec3 ldr = ACESFilm(texture(inputTexture, uv).rgb);
-	
+	vec3 ldr = ACESFilm(hdrColor.rgb);
+
 	// Gamma Correction
-    ldr = pow(ldr, vec3(1/GAMMA)); 
+	ldr = pow(ldr, vec3(1 / GAMMA));
 
 	// Output
-	color = vec4(ldr, 1.0);
+	outColor = vec4(ldr, 1.0);
 }

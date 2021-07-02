@@ -340,15 +340,17 @@ void ModuleRender::BlurSSAOTexture(bool horizontal) {
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
-void ModuleRender::ExecuteColorCorrection() {
+void ModuleRender::ExecuteColorCorrection(bool horizontal) {
 	ProgramColorCorrection* colorCorrectionProgram = App->programs->colorCorrection;
 	if (colorCorrectionProgram == nullptr) return;
 
 	glUseProgram(colorCorrectionProgram->program);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, renderTexture);
-	glUniform1i(colorCorrectionProgram->inputTextureLocation, 0);
+	glBindTexture(GL_TEXTURE_2D, colorTextures[0]);
+	glUniform1i(colorCorrectionProgram->textureSceneLocation, 0);
+	glBindTexture(GL_TEXTURE_2D, bloomBlurTextures[!horizontal]);
+	glUniform1i(colorCorrectionProgram->textureBloomBlurLocation, 1);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
@@ -382,19 +384,16 @@ void ModuleRender::DrawTexture(unsigned texture) {
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
-void ModuleRender::DrawScene(bool horizontal) {
+void ModuleRender::DrawScene() {
 	ProgramPostprocess* drawScene = App->programs->postprocess;
 	if (drawScene == nullptr) return;
 
 	glUseProgram(drawScene->program);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, colorTextures[0]);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, bloomBlurTextures[!horizontal]);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, renderTexture);
 	glUniform1i(drawScene->textureSceneLocation, 0);
-	glUniform1i(drawScene->textureBloomBlurLocation, 1);
 
-	glDrawArrays(GL_TRIANGLES, 0, 4);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 bool ModuleRender::Start() {
@@ -532,7 +531,13 @@ UpdateStatus ModuleRender::Update() {
 		if (trail.IsActive()) trail.Draw();
 	}
 
-	/*// Bloom blur
+	// Apply MSAA and bloom threshold
+	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);
+	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	DrawScene();
+
+	// Bloom blur
 	bool horizontal = true, firstIteration = true;
 	int amount = 6;
 	for (unsigned int i = 0; i < amount; i++)
@@ -546,16 +551,6 @@ UpdateStatus ModuleRender::Update() {
 		if (firstIteration) firstIteration = false;
 	}
 
-	// Render scene blending HDR and bloom
-	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);
-	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
-	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
-	glDepthFunc(GL_LEQUAL);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	DrawScene(horizontal);
-	*/
 	// Draw Gizmos
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
@@ -627,7 +622,7 @@ UpdateStatus ModuleRender::Update() {
 	glDisable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	ExecuteColorCorrection();
+	ExecuteColorCorrection(horizontal);
 
 	// Render to screen
 #if GAME
@@ -636,7 +631,7 @@ UpdateStatus ModuleRender::Update() {
 	glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 #else
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, colorCorrectionBuffer);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderPassBuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, hdrFramebuffer);
 	glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 #endif
 
@@ -707,7 +702,7 @@ void ModuleRender::ReceiveEvent(TesseractEvent& ev) {
 void ModuleRender::UpdateFramebuffers() {
 	// Depth buffer
 	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// Depth prepass buffer
@@ -780,6 +775,20 @@ void ModuleRender::UpdateFramebuffers() {
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
+	// Render buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, renderTexture);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, renderTexture, 0);
+
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
 	// HDR and bloom buffers
 	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
@@ -809,20 +818,6 @@ void ModuleRender::UpdateFramebuffers() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloomBlurTextures[i], 0);
 	}
-
-	// Render buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
-
-	glBindTexture(GL_TEXTURE_2D, renderTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTexture, 0);
-
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
 	// Color correction buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, colorCorrectionBuffer);

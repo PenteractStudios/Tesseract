@@ -10,8 +10,7 @@ in mat3 TBN;
 in vec3 fragPos;
 in vec2 uv;
 in vec4 fragPosLight;
-layout(location = 0) out vec4 outColor;
-layout(location = 1) out vec4 brightColor;
+out vec4 outColor;
 
 // Depth Map
 uniform sampler2D depthMapTexture;
@@ -101,7 +100,7 @@ float Pow2(float a)
 
 vec2 GetTiledUVs()
 {
-    return uv * tiling + offset;
+    return uv * tiling + offset; 
 }
 
 vec4 GetDiffuse(vec2 tiledUV)
@@ -162,8 +161,8 @@ float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMa
     float currentDepth = projCoords.z;
 	float bias = max(0.05 * (1 - dot(normal, lightDirection)), 0.005);
 
-	float shadow = 0.0;
-
+	float shadow = 0.0;  
+	
 	vec2 texelSize = 1.0/textureSize(shadowMap, 0);
 	for(int x = -1; x <= 1; ++x){
 		for(int y = -1; y <= 1; ++y){
@@ -284,9 +283,9 @@ vec3 ProcessSpotLight(SpotLight spot, vec3 fragNormal, vec3 viewDir, vec3 Cd, ve
 --- fragMainMetallic
 
 void main()
-{
+{    
     vec3 viewDir = normalize(viewPos - fragPos);
-    vec2 tiledUV = GetTiledUVs();
+    vec2 tiledUV = GetTiledUVs(); 
     vec3 normal = fragNormal;
 
     if (hasNormalMap)
@@ -331,34 +330,27 @@ void main()
     // Emission
     colorAccumulative += GetEmissive(tiledUV).rgb;
 
-	// Bloom
-	outColor = vec4(colorAccumulative, colorDiffuse.a);
-	float brightness = dot(outColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-	if (brightness > 1.0) brightColor = outColor;
-	else brightColor = vec4(0.0, 0.0, 0.0, 1.0);
-    /*vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
-    ldr = pow(ldr, vec3(1/2.2)); // gamma correction
-    outColor = vec4(ldr, colorDiffuse.a);*/
+    outColor = vec4(colorAccumulative, colorDiffuse.a);
 }
 
 --- fragMainSpecular
 
 void main()
-{
+{    
     vec3 viewDir = normalize(viewPos - fragPos);
-    vec2 tiledUV = GetTiledUVs();
+    vec2 tiledUV = GetTiledUVs(); 
     vec3 normal = fragNormal;
 
     if (hasNormalMap)
     {
 	    normal = GetNormal(tiledUV);
     }
-
+	
     vec4 colorDiffuse = GetDiffuse(tiledUV);
     vec4 colorSpecular = hasSpecularMap * SRGBA(texture(specularMap, tiledUV)) + (1 - hasSpecularMap) * vec4(SRGB(specularColor), 1.0);
 
     float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorSpecular.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
-
+    
     // Ambient Light
     vec3 R = reflect(-viewDir, normal);
     vec3 colorAccumulative = GetOccludedAmbientLight(R, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness, tiledUV);
@@ -386,12 +378,5 @@ void main()
     // Emission
     colorAccumulative += GetEmissive(tiledUV).rgb;
 
-	// Bloom
-	outColor = vec4(colorAccumulative, colorDiffuse.a);
-	float brightness = dot(outColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-	if (brightness > 1.0) brightColor = outColor;
-	else brightColor = vec4(0.0, 0.0, 0.0, 1.0);
-    /*vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
-    ldr = pow(ldr, vec3(1/2.2)); // gamma correction
-    outColor = vec4(ldr, colorDiffuse.a);*/
+    outColor = vec4(colorAccumulative, colorDiffuse.a);
 }

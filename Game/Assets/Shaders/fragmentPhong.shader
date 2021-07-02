@@ -1,10 +1,10 @@
 --- fragMainPhong
 
-void main()
+void main() 
 {
 
     vec3 viewDir = normalize(viewPos - fragPos);
-    vec2 tiledUV = GetTiledUVs();
+    vec2 tiledUV = GetTiledUVs(); 
     vec3 normal = fragNormal;
 
     if (hasNormalMap)
@@ -43,7 +43,7 @@ void main()
         vec3 directionalColor = (colorDiffuse.rgb * (1 - Rf0) + (shininess + 2) / 2 * Rf * VRn) * light.directional.color * light.directional.intensity * NL;
 
         float shadow = Shadow(fragPosLight, normal, normalize(light.directional.direction), depthMapTexture);
-
+        
         colorAccumulative += (1.0 - shadow) * directionalColor;
     }
 
@@ -97,13 +97,6 @@ void main()
 
     // Emission
     colorAccumulative += GetEmissive(tiledUV).rgb;
-
-    // Bloom
+    
     outColor = vec4(colorAccumulative, colorDiffuse.a);
-    float brightness = dot(outColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-    if (brightness > 1.0) brightColor = outColor;
-    else brightColor = vec4(0.0, 0.0, 0.0, 1.0);
-    /*vec3 ldr = colorAccumulative.rgb / (colorAccumulative.rgb + vec3(1.0)); // reinhard tone mapping
-    ldr = pow(ldr, vec3(1/2.2)); // gamma correction
-    outColor = vec4(ldr, colorDiffuse.a);*/
 }

@@ -24,7 +24,7 @@ uniform sampler2D diffuseMap;
 uniform int hasDiffuseMap;
 uniform vec4 inputColor;
 
-uniform float currentFrame;
+uniform float currentFrame; 
 uniform int Xtiles;
 uniform int Ytiles;
 
@@ -35,18 +35,17 @@ float X;
 float Y;
 float u;
 float v;
-layout(location = 0) out vec4 outColor;
-layout(location = 1) out vec4 brightColor;
+out vec4 outColor;
 
 void main()
-{
+{	
 	vec2 uvs = uv0;
-	if (flipX)
+	if (flipX) 
 	{
 		uvs.x = 1 - uv0.x;
 	}
 
-	if (flipY)
+	if (flipY) 
 	{
 		uvs.y = 1 - uv0.y;
 	}
@@ -58,11 +57,7 @@ void main()
 	Y = mix(Y,Y+1, uvs.y);
 	u = X/Xtiles;
 	v = Y/Ytiles;
-
+	
 	outColor = SRGBA(inputColor) * (hasDiffuseMap * SRGBA(texture2D(diffuseMap,  vec2(u, v))) + (1 - hasDiffuseMap));
-	// Bloom
-	float brightness = dot(outColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-	if (brightness > 1.0) brightColor = outColor;
-	else brightColor = vec4(0.0, 0.0, 0.0, 1.0);
 }
 
