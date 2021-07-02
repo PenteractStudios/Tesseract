@@ -27,16 +27,7 @@ ComponentSlider::~ComponentSlider() {
 
 void ComponentSlider::Init() {
 	// TODO: Refactor this. It's not good right now but it lets me check the functionality
-	std::vector<GameObject*> children = GetOwner().GetChildren();
-	for (std::vector<GameObject*>::iterator it = children.begin(); it != children.end(); ++it) {
-		if (it == children.begin()) {
-			background = *it;
-		} else if (it == children.end() - 1) {
-			handle = *it;
-		} else {
-			fill = *it;
-		}
-	}
+	SearchForMissingGameObjectReferences();
 	SetNormalizedValue();
 }
 
@@ -57,6 +48,10 @@ void ComponentSlider::Update() {
 			}
 		}
 	}
+
+	SearchForMissingGameObjectReferences();
+
+	if (background == nullptr || handle == nullptr || fill == nullptr) return;
 
 	ComponentTransform2D* backgroundTransform = background->GetComponent<ComponentTransform2D>();
 	ComponentTransform2D* fillTransform = fill->GetComponent<ComponentTransform2D>();
@@ -173,8 +168,12 @@ void ComponentSlider::OnClickedInternal() {
 
 void ComponentSlider::OnSliderDragged() {
 	// TODO: support for vertical sliders
-	ComponentTransform2D* backgroundTransform = background->GetComponent<ComponentTransform2D>();
 
+	SearchForMissingGameObjectReferences();
+
+	if (background == nullptr || handle == nullptr || fill == nullptr) return;
+
+	ComponentTransform2D* backgroundTransform = background->GetComponent<ComponentTransform2D>();
 	float size = 0.f;
 	if (newPosition.x > backgroundTransform->GetPosition().x - backgroundTransform->GetSize().x / 2.0f) {
 		size = newPosition.x - (backgroundTransform->GetPosition().x - backgroundTransform->GetSize().x / 2.0f);
@@ -290,7 +289,6 @@ void ComponentSlider::ChangeNormalizedValue(float normalizedValue_) {
 	currentValue = (maxValue - minValue) * normalizedValue;
 }
 
-
 float4 ComponentSlider::GetTintColor() const {
 	if (!IsActive()) return App->userInterface->GetErrorColor();
 
@@ -320,4 +318,19 @@ void ComponentSlider::SetNormalizedValue() {
 		normalizedValue = 0;
 	else
 		normalizedValue = (currentValue - minValue) / (maxValue - minValue);
+}
+
+void ComponentSlider::SearchForMissingGameObjectReferences() {
+	if (background == nullptr || handle == nullptr || fill == nullptr) {
+		std::vector<GameObject*> children = GetOwner().GetChildren();
+		for (std::vector<GameObject*>::iterator it = children.begin(); it != children.end(); ++it) {
+			if (it == children.begin()) {
+				background = *it;
+			} else if (it == children.end() - 1) {
+				handle = *it;
+			} else {
+				fill = *it;
+			}
+		}
+	}
 }
