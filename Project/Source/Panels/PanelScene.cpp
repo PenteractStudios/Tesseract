@@ -176,6 +176,8 @@ void PanelScene::Update() {
 				size.x,
 				size.y,
 			};
+			windowsPos.x = ImGui::GetWindowPos().x;
+			windowsPos.y = ImGui::GetWindowPos().y;
 		}
 
 		ImVec2 framebufferPosition = ImGui::GetWindowPos();
@@ -288,6 +290,10 @@ void PanelScene::Update() {
 		ImGui::End();
 		ImGui::PopStyleVar();
 	}
+}
+
+const float2& PanelScene::GetWindowsPos() const {
+	return windowsPos;
 }
 
 const float2& PanelScene::GetMousePosOnScene() const {

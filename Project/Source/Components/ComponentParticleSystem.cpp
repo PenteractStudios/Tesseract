@@ -34,14 +34,11 @@
 // Gizmo
 #define JSON_TAG_DRAW_GIZMO "DrawGizmo"
 
-// Control
-#define JSON_TAG_IS_PLAYING "IsPlaying"
-#define JSON_TAG_START_DELAY "StartDelay"
-#define JSON_TAG_PARTICLES_SECOND "ParticlesPerSecond"
-
 // Particle System
 #define JSON_TAG_DURATION "Duration"
 #define JSON_TAG_LOOPING "Looping"
+#define JSON_TAG_START_DELAY_RM "StartDelayRM"
+#define JSON_TAG_START_DELAY "StartDelay"
 #define JSON_TAG_LIFE_RM "LifeRM"
 #define JSON_TAG_LIFE "Life"
 #define JSON_TAG_SPEED_RM "SpeedRM"
@@ -57,6 +54,8 @@
 
 // Emision
 #define JSON_TAG_ATTACH_EMITTER "AttachEmitter"
+#define JSON_TAG_PARTICLES_SECOND_RM "ParticlesPerSecondRM"
+#define JSON_TAG_PARTICLES_SECOND "ParticlesPerSecond"
 
 // Gravity
 #define JSON_TAG_GRAVITY_EFFECT "GravityEffect"
@@ -136,6 +135,11 @@ ComponentParticleSystem::~ComponentParticleSystem() {
 	RELEASE(gradient);
 }
 
+void ComponentParticleSystem::Init() {
+	if (!gradient) gradient = new ImGradient();
+	CreateParticles();
+}
+
 void ComponentParticleSystem::OnEditorUpdate() {
 	if (ImGui::Checkbox("Active", &active)) {
 		if (GetOwner().IsActive()) {
@@ -151,32 +155,16 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	ImGui::Separator();
 
 	ImGui::Indent();
-
-	// Control
-	if (ImGui::CollapsingHeader("Control Options")) {
-		if (ImGui::Button("Play")) Play();
-		if (isPlaying) {
-			ImGui::SameLine();
-			ImGui::TextColored(App->editor->textColor, "Is Playing");
-		}
-		if (ImGui::Button("Stop")) Stop();
-		if (ImGui::Button("Play Childs Particles")) PlayChildParticles();
-		ImGui::DragFloat("Particles Per Second", &particlesPerSecond, App->editor->dragSpeed2f, 0, inf);
-
-		if (ImGui::DragFloat("Start Delay", &startDelay, App->editor->dragSpeed2f, 0, inf)) {
-			restDelayTime = startDelay;
-		}
-		if (startDelay > 0) ImGui::DragFloat("Rest Time", &restDelayTime, App->editor->dragSpeed2f, 0, inf, "%.3f", ImGuiSliderFlags_NoInput);
-	}
-
-	ImGui::NewLine();
-
 	// General Particle System
 	if (ImGui::CollapsingHeader("Particle System")) {
 		ImGui::DragFloat("Duration", &duration, App->editor->dragSpeed2f, 0, inf);
 		ImGui::Checkbox("Loop", &looping);
-		if (looping) {
-			Play();
+
+		ImGuiRandomMenu("Start Delay", startDelay, startDelayRM, App->editor->dragSpeed2f, 0, inf);
+		if (isPlaying && restDelayTime > 0) {
+			ImGui::Indent();
+			ImGui::DragFloat("Rest Time", &restDelayTime, App->editor->dragSpeed2f, 0, inf, "%.3f", ImGuiSliderFlags_NoInput);
+			ImGui::Unindent();
 		}
 
 		ImGuiRandomMenu("Start Life", life, lifeRM);
@@ -194,7 +182,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			ImGuiRandomMenu("Distance", reverseDistance, reverseDistanceRM);
 			ImGui::Unindent();
 		}
-		if (ImGui::DragScalar("MaxParticles", ImGuiDataType_U32, &maxParticles)) {
+		if (ImGui::DragScalar("Max Particles", ImGuiDataType_U32, &maxParticles)) {
 			if (maxParticles <= 2000) {
 				CreateParticles();
 			} else {
@@ -206,6 +194,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	// Emission
 	if (ImGui::CollapsingHeader("Emission")) {
 		ImGui::Checkbox("Attach to Emitter", &attachEmitter);
+		ImGuiRandomMenu("Rate over Time", particlesPerSecond, particlesPerSecondRM, 1, 0, inf);
 	}
 
 	// Gravity
@@ -389,6 +378,258 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	ImGui::Unindent();
 }
 
+void ComponentParticleSystem::Load(JsonValue jComponent) {
+	// Gizmo
+	drawGizmo = jComponent[JSON_TAG_DRAW_GIZMO];
+
+	// Particle System
+	duration = jComponent[JSON_TAG_DURATION];
+	looping = jComponent[JSON_TAG_LOOPING];
+	startDelayRM = (RandomMode)(int) jComponent[JSON_TAG_START_DELAY];
+	JsonValue jStartDelay = jComponent[JSON_TAG_START_DELAY];
+	startDelay[0] = jStartDelay[0];
+	startDelay[1] = jStartDelay[1];
+	lifeRM = (RandomMode)(int) jComponent[JSON_TAG_LIFE_RM];
+	JsonValue jLife = jComponent[JSON_TAG_LIFE];
+	life[0] = jLife[0];
+	life[1] = jLife[1];
+	speedRM = (RandomMode)(int) jComponent[JSON_TAG_SPEED_RM];
+	JsonValue jSpeed = jComponent[JSON_TAG_SPEED];
+	speed[0] = jSpeed[0];
+	speed[1] = jSpeed[1];
+	rotationRM = (RandomMode)(int) jComponent[JSON_TAG_ROTATION_RM];
+	JsonValue jRotation = jComponent[JSON_TAG_ROTATION];
+	rotation[0] = jRotation[0];
+	rotation[1] = jRotation[1];
+	scaleRM = (RandomMode)(int) jComponent[JSON_TAG_SCALE_RM];
+	JsonValue jScale = jComponent[JSON_TAG_SCALE];
+	scale[0] = jScale[0];
+	scale[1] = jScale[1];
+	reverseEffect = jComponent[JSON_TAG_REVERSE_EFFECT];
+	reverseDistanceRM = (RandomMode)(int) jComponent[JSON_TAG_REVERSE_DISTANCE_RM];
+	JsonValue jReverseDistance = jComponent[JSON_TAG_REVERSE_DISTANCE];
+	reverseDistance[0] = jReverseDistance[0];
+	reverseDistance[1] = jReverseDistance[1];
+	maxParticles = jComponent[JSON_TAG_MAX_PARTICLE];
+
+	// Emision
+	attachEmitter = jComponent[JSON_TAG_ATTACH_EMITTER];
+	particlesPerSecondRM = (RandomMode)(int) jComponent[JSON_TAG_PARTICLES_SECOND_RM];
+	JsonValue jParticlesPerSecond = jComponent[JSON_TAG_PARTICLES_SECOND];
+	particlesPerSecond[0] = jParticlesPerSecond[0];
+	particlesPerSecond[1] = jParticlesPerSecond[1];
+
+	// Gravity
+	gravityEffect = jComponent[JSON_TAG_GRAVITY_EFFECT];
+	gravityFactor = jComponent[JSON_TAG_GRAVITY_FACTOR];
+
+	// Shape
+	emitterType = (ParticleEmitterType)(int) jComponent[JSON_TAG_EMITTER_TYPE];
+	coneRadiusUp = jComponent[JSON_TAG_CONE_RADIUS_UP];
+	coneRadiusDown = jComponent[JSON_TAG_CONE_RADIUS_DOWN];
+	randomConeRadiusUp = jComponent[JSON_TAG_RANDOM_CONE_RADIUS_UP];
+	randomConeRadiusDown = jComponent[JSON_TAG_RANDOM_CONE_RADIUS_DOWN];
+
+	// Rotation over Lifetime
+	rotationOverLifetime = jComponent[JSON_TAG_ROTATION_OVER_LIFETIME];
+	rotationFactorRM = (RandomMode)(int) jComponent[JSON_TAG_ROTATION_FACTOR_RM];
+	JsonValue jRotationFactor = jComponent[JSON_TAG_ROTATION_FACTOR];
+	rotationFactor[0] = jRotationFactor[0];
+	rotationFactor[1] = jRotationFactor[1];
+
+	// Size over Lifetime
+	sizeOverLifetime = jComponent[JSON_TAG_SIZE_OVER_LIFETIME];
+	scaleFactorRM = (RandomMode)(int) jComponent[JSON_TAG_SCALE_FACTOR_RM];
+	JsonValue jScaleFactor = jComponent[JSON_TAG_SCALE_FACTOR];
+	scaleFactor[0] = jScaleFactor[0];
+	scaleFactor[1] = jScaleFactor[1];
+
+	// Color over Lifetime
+	colorOverLifetime = jComponent[JSON_TAG_COLOR_OVER_LIFETIME];
+	int numberColors = jComponent[JSON_TAG_NUMBER_COLORS];
+	if (!gradient) gradient = new ImGradient();
+	gradient->clearList();
+	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLORS];
+	for (int i = 0; i < numberColors; ++i) {
+		JsonValue jMark = jColor[i];
+		gradient->addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
+	}
+
+	// Texture Sheet Animation
+	Ytiles = jComponent[JSON_TAG_YTILES];
+	Xtiles = jComponent[JSON_TAG_XTILES];
+	animationSpeed = jComponent[JSON_TAG_ANIMATION_SPEED];
+	isRandomFrame = jComponent[JSON_TAG_IS_RANDOM_FRAME];
+
+	// Render
+	textureID = jComponent[JSON_TAG_TEXTURE_TEXTURE_ID];
+	if (textureID != 0) {
+		App->resources->IncreaseReferenceCount(textureID);
+	}
+	billboardType = (BillboardType)(int) jComponent[JSON_TAG_BILLBOARD_TYPE];
+	renderMode = (ParticleRenderMode)(int) jComponent[JSON_TAG_PARTICLE_RENDER_MODE];
+	renderAlignment = (ParticleRenderAlignment)(int) jComponent[JSON_TAG_PARTICLE_RENDER_ALIGNMENT];
+	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
+	flipTexture[0] = jFlip[0];
+	flipTexture[1] = jFlip[1];
+
+	// Collision
+	collision = jComponent[JSON_TAG_HAS_COLLISION];
+	layerIndex = jComponent[JSON_TAG_LAYER_INDEX];
+	layer = WorldLayers(1 << layerIndex);
+
+	particleSpawned = 0;
+	CreateParticles();
+}
+
+void ComponentParticleSystem::Save(JsonValue jComponent) const {
+	// Gizmo
+	jComponent[JSON_TAG_DRAW_GIZMO] = drawGizmo;
+
+	// Particle System
+	jComponent[JSON_TAG_DURATION] = duration;
+	jComponent[JSON_TAG_LOOPING] = looping;
+	jComponent[JSON_TAG_START_DELAY] = (int) startDelayRM;
+	JsonValue jStartDelay = jComponent[JSON_TAG_START_DELAY];
+	jStartDelay[0] = startDelay[0];
+	jStartDelay[1] = startDelay[1];
+	jComponent[JSON_TAG_LIFE_RM] = (int) lifeRM;
+	JsonValue jLife = jComponent[JSON_TAG_LIFE];
+	jLife[0] = life[0];
+	jLife[1] = life[1];
+	jComponent[JSON_TAG_SPEED_RM] = (int) speedRM;
+	JsonValue jSpeed = jComponent[JSON_TAG_SPEED];
+	jSpeed[0] = speed[0];
+	jSpeed[1] = speed[1];
+	jComponent[JSON_TAG_ROTATION_RM] = (int) rotationRM;
+	JsonValue jRotation = jComponent[JSON_TAG_ROTATION];
+	jRotation[0] = rotation[0];
+	jRotation[1] = rotation[1];
+	jComponent[JSON_TAG_SCALE_RM] = (int) scaleRM;
+	JsonValue jScale = jComponent[JSON_TAG_SCALE];
+	jScale[0] = scale[0];
+	jScale[1] = scale[1];
+	jComponent[JSON_TAG_REVERSE_EFFECT] = reverseEffect;
+	jComponent[JSON_TAG_REVERSE_DISTANCE_RM] = (int) reverseDistanceRM;
+	JsonValue jReverseDistance = jComponent[JSON_TAG_REVERSE_DISTANCE];
+	jReverseDistance[0] = reverseDistance[0];
+	jReverseDistance[1] = reverseDistance[1];
+	jComponent[JSON_TAG_MAX_PARTICLE] = maxParticles;
+
+	// Emision
+	jComponent[JSON_TAG_ATTACH_EMITTER] = attachEmitter;
+	jComponent[JSON_TAG_PARTICLES_SECOND_RM] = (int) particlesPerSecondRM;
+	JsonValue jParticlesPerSecond = jComponent[JSON_TAG_PARTICLES_SECOND];
+	jParticlesPerSecond[0] = particlesPerSecond[0];
+	jParticlesPerSecond[1] = particlesPerSecond[1];
+
+	// Gravity
+	jComponent[JSON_TAG_GRAVITY_EFFECT] = gravityEffect;
+	jComponent[JSON_TAG_GRAVITY_FACTOR] = gravityFactor;
+
+	// Shape
+	jComponent[JSON_TAG_EMITTER_TYPE] = (int) emitterType;
+	jComponent[JSON_TAG_CONE_RADIUS_UP] = coneRadiusUp;
+	jComponent[JSON_TAG_CONE_RADIUS_DOWN] = coneRadiusDown;
+	jComponent[JSON_TAG_RANDOM_CONE_RADIUS_UP] = randomConeRadiusUp;
+	jComponent[JSON_TAG_RANDOM_CONE_RADIUS_DOWN] = randomConeRadiusDown;
+
+	// Rotation over Lifetime
+	jComponent[JSON_TAG_ROTATION_OVER_LIFETIME] = rotationOverLifetime;
+	jComponent[JSON_TAG_ROTATION_FACTOR_RM] = (int) rotationFactorRM;
+	JsonValue jRotationFactor = jComponent[JSON_TAG_ROTATION_FACTOR];
+	jRotationFactor[0] = rotationFactor[0];
+	jRotationFactor[1] = rotationFactor[1];
+
+	// Size over Lifetime
+	jComponent[JSON_TAG_SIZE_OVER_LIFETIME] = sizeOverLifetime;
+	jComponent[JSON_TAG_SCALE_FACTOR_RM] = (int) scaleFactorRM;
+	JsonValue jScaleFactor = jComponent[JSON_TAG_SCALE_FACTOR];
+	jScaleFactor[0] = scaleFactor[0];
+	jScaleFactor[1] = scaleFactor[1];
+
+	// Color over Lifetime
+	jComponent[JSON_TAG_COLOR_OVER_LIFETIME] = colorOverLifetime;
+	int color = 0;
+	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLORS];
+	for (ImGradientMark* mark : gradient->getMarks()) {
+		JsonValue jMask = jColor[color];
+		jMask[0] = mark->color[0];
+		jMask[1] = mark->color[1];
+		jMask[2] = mark->color[2];
+		jMask[3] = mark->color[3];
+		jMask[4] = mark->position;
+
+		color++;
+	}
+	jComponent[JSON_TAG_NUMBER_COLORS] = gradient->getMarks().size();
+
+	// Texture Sheet Animation
+	jComponent[JSON_TAG_YTILES] = Ytiles;
+	jComponent[JSON_TAG_XTILES] = Xtiles;
+	jComponent[JSON_TAG_ANIMATION_SPEED] = animationSpeed;
+	jComponent[JSON_TAG_IS_RANDOM_FRAME] = isRandomFrame;
+
+	// Render
+	jComponent[JSON_TAG_TEXTURE_TEXTURE_ID] = textureID;
+	jComponent[JSON_TAG_BILLBOARD_TYPE] = (int) billboardType;
+	jComponent[JSON_TAG_PARTICLE_RENDER_MODE] = (int) renderMode;
+	jComponent[JSON_TAG_PARTICLE_RENDER_ALIGNMENT] = (int) renderAlignment;
+	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
+	jFlip[0] = flipTexture[0];
+	jFlip[1] = flipTexture[1];
+
+	// Collision
+	jComponent[JSON_TAG_HAS_COLLISION] = collision;
+	jComponent[JSON_TAG_LAYER_INDEX] = layerIndex;
+}
+
+void ComponentParticleSystem::CreateParticles() {
+	particles.Allocate(maxParticles);
+}
+
+void ComponentParticleSystem::SpawnParticles() {
+	if (isPlaying && particleSpawned < maxParticles) {
+		if (emitterTime < duration || looping) {
+			if (restParticlesPerSecond <= 0) {
+				InitStartRate();
+				SpawnParticleUnit();
+			} else {
+				restParticlesPerSecond -= App->time->GetDeltaTimeOrRealDeltaTime();
+			}
+		} else if (particles.Count() == 0) {
+			isPlaying = false;
+		}
+	}
+}
+
+void ComponentParticleSystem::SpawnParticleUnit() {
+	Particle* currentParticle = particles.Obtain();
+	if (!looping) {
+		particleSpawned++;
+	}
+	if (currentParticle) {
+		if (isRandomFrame) {
+			currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
+		} else {
+			currentParticle->currentFrame = 0;
+		}
+		InitParticlePosAndDir(currentParticle);
+		InitParticleRotation(currentParticle);
+		InitParticleScale(currentParticle);
+		InitParticleSpeed(currentParticle);
+		InitParticleLife(currentParticle);
+		currentParticle->emitterPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+		currentParticle->emitterDirection = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation() * float3::unitY;
+
+		if (collision) {
+			currentParticle->emitter = this;
+			currentParticle->radius = radius;
+			App->physics->CreateParticleRigidbody(currentParticle);
+		}
+	}
+}
+
 void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 	float x0 = 0, y0 = 0, z0 = 0, x1 = 0, y1 = 0, z1 = 0;
 	float3 localPos = float3::zero;
@@ -492,220 +733,34 @@ void ComponentParticleSystem::InitParticleLife(Particle* currentParticle) {
 	currentParticle->life = currentParticle->initialLife;
 }
 
-void ComponentParticleSystem::CreateParticles() {
-	particles.Allocate(maxParticles);
+void ComponentParticleSystem::InitStartDelay() {
+	if (startDelayRM == RandomMode::CONST_MULT) {
+		restDelayTime = rand() / (float) RAND_MAX * (startDelay[1] - startDelay[0]) + startDelay[0];
+
+	} else {
+		restDelayTime = startDelay[0];
+	}
 }
 
-void ComponentParticleSystem::Load(JsonValue jComponent) {
-	// Gizmo
-	drawGizmo = jComponent[JSON_TAG_DRAW_GIZMO];
+void ComponentParticleSystem::InitStartRate() {
+	if (particlesPerSecondRM == RandomMode::CONST_MULT) {
+		restParticlesPerSecond = 1 / (rand() / (float) RAND_MAX * (particlesPerSecond[1] - particlesPerSecond[0]) + particlesPerSecond[0]);
 
-	// Control
-	isPlaying = jComponent[JSON_TAG_IS_PLAYING];
-	startDelay = jComponent[JSON_TAG_START_DELAY];
-	particlesPerSecond = jComponent[JSON_TAG_PARTICLES_SECOND];
-
-	// Particle System
-	duration = jComponent[JSON_TAG_DURATION];
-	looping = jComponent[JSON_TAG_LOOPING];
-	lifeRM = (RandomMode)(int) jComponent[JSON_TAG_LIFE_RM];
-	JsonValue jLife = jComponent[JSON_TAG_LIFE];
-	life[0] = jLife[0];
-	life[1] = jLife[1];
-	speedRM = (RandomMode)(int) jComponent[JSON_TAG_SPEED_RM];
-	JsonValue jSpeed = jComponent[JSON_TAG_SPEED];
-	speed[0] = jSpeed[0];
-	speed[1] = jSpeed[1];
-	rotationRM = (RandomMode)(int) jComponent[JSON_TAG_ROTATION_RM];
-	JsonValue jRotation = jComponent[JSON_TAG_ROTATION];
-	rotation[0] = jRotation[0];
-	rotation[1] = jRotation[1];
-	scaleRM = (RandomMode)(int) jComponent[JSON_TAG_SCALE_RM];
-	JsonValue jScale = jComponent[JSON_TAG_SCALE];
-	scale[0] = jScale[0];
-	scale[1] = jScale[1];
-	reverseEffect = jComponent[JSON_TAG_REVERSE_EFFECT];
-	reverseDistanceRM = (RandomMode)(int) jComponent[JSON_TAG_REVERSE_DISTANCE_RM];
-	JsonValue jReverseDistance = jComponent[JSON_TAG_REVERSE_DISTANCE];
-	reverseDistance[0] = jReverseDistance[0];
-	reverseDistance[1] = jReverseDistance[1];
-	maxParticles = jComponent[JSON_TAG_MAX_PARTICLE];
-
-	// Emision
-	attachEmitter = jComponent[JSON_TAG_ATTACH_EMITTER];
-
-	// Gravity
-	gravityEffect = jComponent[JSON_TAG_GRAVITY_EFFECT];
-	gravityFactor = jComponent[JSON_TAG_GRAVITY_FACTOR];
-
-	// Shape
-	emitterType = (ParticleEmitterType)(int) jComponent[JSON_TAG_EMITTER_TYPE];
-	coneRadiusUp = jComponent[JSON_TAG_CONE_RADIUS_UP];
-	coneRadiusDown = jComponent[JSON_TAG_CONE_RADIUS_DOWN];
-	randomConeRadiusUp = jComponent[JSON_TAG_RANDOM_CONE_RADIUS_UP];
-	randomConeRadiusDown = jComponent[JSON_TAG_RANDOM_CONE_RADIUS_DOWN];
-
-	// Rotation over Lifetime
-	rotationOverLifetime = jComponent[JSON_TAG_ROTATION_OVER_LIFETIME];
-	rotationFactorRM = (RandomMode)(int) jComponent[JSON_TAG_ROTATION_FACTOR_RM];
-	JsonValue jRotationFactor = jComponent[JSON_TAG_ROTATION_FACTOR];
-	rotationFactor[0] = jRotationFactor[0];
-	rotationFactor[1] = jRotationFactor[1];
-
-	// Size over Lifetime
-	sizeOverLifetime = jComponent[JSON_TAG_SIZE_OVER_LIFETIME];
-	scaleFactorRM = (RandomMode)(int) jComponent[JSON_TAG_SCALE_FACTOR_RM];
-	JsonValue jScaleFactor = jComponent[JSON_TAG_SCALE_FACTOR];
-	scaleFactor[0] = jScaleFactor[0];
-	scaleFactor[1] = jScaleFactor[1];
-
-	// Color over Lifetime
-	colorOverLifetime = jComponent[JSON_TAG_COLOR_OVER_LIFETIME];
-	int numberColors = jComponent[JSON_TAG_NUMBER_COLORS];
-	if (!gradient) gradient = new ImGradient();
-	gradient->clearList();
-	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLORS];
-	for (int i = 0; i < numberColors; ++i) {
-		JsonValue jMark = jColor[i];
-		gradient->addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
+	} else {
+		restParticlesPerSecond = 1 / particlesPerSecond[0];
 	}
-
-	// Texture Sheet Animation
-	Ytiles = jComponent[JSON_TAG_YTILES];
-	Xtiles = jComponent[JSON_TAG_XTILES];
-	animationSpeed = jComponent[JSON_TAG_ANIMATION_SPEED];
-	isRandomFrame = jComponent[JSON_TAG_IS_RANDOM_FRAME];
-
-	// Render
-	textureID = jComponent[JSON_TAG_TEXTURE_TEXTURE_ID];
-	if (textureID != 0) {
-		App->resources->IncreaseReferenceCount(textureID);
-	}
-	billboardType = (BillboardType)(int) jComponent[JSON_TAG_BILLBOARD_TYPE];
-	renderMode = (ParticleRenderMode)(int) jComponent[JSON_TAG_PARTICLE_RENDER_MODE];
-	renderAlignment = (ParticleRenderAlignment)(int) jComponent[JSON_TAG_PARTICLE_RENDER_ALIGNMENT];
-	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
-	flipTexture[0] = jFlip[0];
-	flipTexture[1] = jFlip[1];
-
-	// Collision
-	collision = jComponent[JSON_TAG_HAS_COLLISION];
-	layerIndex = jComponent[JSON_TAG_LAYER_INDEX];
-	layer = WorldLayers(1 << layerIndex);
-
-	particleSpawned = 0;
-	CreateParticles();
-}
-
-void ComponentParticleSystem::Save(JsonValue jComponent) const {
-	// Gizmo
-	jComponent[JSON_TAG_DRAW_GIZMO] = drawGizmo;
-
-	// Control
-	jComponent[JSON_TAG_IS_PLAYING] = isPlaying;
-	jComponent[JSON_TAG_START_DELAY] = startDelay;
-	jComponent[JSON_TAG_PARTICLES_SECOND] = particlesPerSecond;
-
-	// Particle System
-	jComponent[JSON_TAG_DURATION] = duration;
-	jComponent[JSON_TAG_LOOPING] = looping;
-	jComponent[JSON_TAG_LIFE_RM] = (int) lifeRM;
-	JsonValue jLife = jComponent[JSON_TAG_LIFE];
-	jLife[0] = life[0];
-	jLife[1] = life[1];
-	jComponent[JSON_TAG_SPEED_RM] = (int) speedRM;
-	JsonValue jSpeed = jComponent[JSON_TAG_SPEED];
-	jSpeed[0] = speed[0];
-	jSpeed[1] = speed[1];
-	jComponent[JSON_TAG_ROTATION_RM] = (int) rotationRM;
-	JsonValue jRotation = jComponent[JSON_TAG_ROTATION];
-	jRotation[0] = rotation[0];
-	jRotation[1] = rotation[1];
-	jComponent[JSON_TAG_SCALE_RM] = (int) scaleRM;
-	JsonValue jScale = jComponent[JSON_TAG_SCALE];
-	jScale[0] = scale[0];
-	jScale[1] = scale[1];
-	jComponent[JSON_TAG_REVERSE_EFFECT] = reverseEffect;
-	jComponent[JSON_TAG_REVERSE_DISTANCE_RM] = (int) reverseDistanceRM;
-	JsonValue jReverseDistance = jComponent[JSON_TAG_REVERSE_DISTANCE];
-	jReverseDistance[0] = reverseDistance[0];
-	jReverseDistance[1] = reverseDistance[1];
-	jComponent[JSON_TAG_MAX_PARTICLE] = maxParticles;
-
-	// Emision
-	jComponent[JSON_TAG_ATTACH_EMITTER] = attachEmitter;
-
-	// Gravity
-	jComponent[JSON_TAG_GRAVITY_EFFECT] = gravityEffect;
-	jComponent[JSON_TAG_GRAVITY_FACTOR] = gravityFactor;
-
-	// Shape
-	jComponent[JSON_TAG_EMITTER_TYPE] = (int) emitterType;
-	jComponent[JSON_TAG_CONE_RADIUS_UP] = coneRadiusUp;
-	jComponent[JSON_TAG_CONE_RADIUS_DOWN] = coneRadiusDown;
-	jComponent[JSON_TAG_RANDOM_CONE_RADIUS_UP] = randomConeRadiusUp;
-	jComponent[JSON_TAG_RANDOM_CONE_RADIUS_DOWN] = randomConeRadiusDown;
-
-	// Rotation over Lifetime
-	jComponent[JSON_TAG_ROTATION_OVER_LIFETIME] = rotationOverLifetime;
-	jComponent[JSON_TAG_ROTATION_FACTOR_RM] = (int) rotationFactorRM;
-	JsonValue jRotationFactor = jComponent[JSON_TAG_ROTATION_FACTOR];
-	jRotationFactor[0] = rotationFactor[0];
-	jRotationFactor[1] = rotationFactor[1];
-
-	// Size over Lifetime
-	jComponent[JSON_TAG_SIZE_OVER_LIFETIME] = sizeOverLifetime;
-	jComponent[JSON_TAG_SCALE_FACTOR_RM] = (int) scaleFactorRM;
-	JsonValue jScaleFactor = jComponent[JSON_TAG_SCALE_FACTOR];
-	jScaleFactor[0] = scaleFactor[0];
-	jScaleFactor[1] = scaleFactor[1];
-
-	// Color over Lifetime
-	jComponent[JSON_TAG_COLOR_OVER_LIFETIME] = colorOverLifetime;
-	int color = 0;
-	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLORS];
-	for (ImGradientMark* mark : gradient->getMarks()) {
-		JsonValue jMask = jColor[color];
-		jMask[0] = mark->color[0];
-		jMask[1] = mark->color[1];
-		jMask[2] = mark->color[2];
-		jMask[3] = mark->color[3];
-		jMask[4] = mark->position;
-
-		color++;
-	}
-	jComponent[JSON_TAG_NUMBER_COLORS] = gradient->getMarks().size();
-
-	// Texture Sheet Animation
-	jComponent[JSON_TAG_YTILES] = Ytiles;
-	jComponent[JSON_TAG_XTILES] = Xtiles;
-	jComponent[JSON_TAG_ANIMATION_SPEED] = animationSpeed;
-	jComponent[JSON_TAG_IS_RANDOM_FRAME] = isRandomFrame;
-
-	// Render
-	jComponent[JSON_TAG_TEXTURE_TEXTURE_ID] = textureID;
-	jComponent[JSON_TAG_BILLBOARD_TYPE] = (int) billboardType;
-	jComponent[JSON_TAG_PARTICLE_RENDER_MODE] = (int) renderMode;
-	jComponent[JSON_TAG_PARTICLE_RENDER_ALIGNMENT] = (int) renderAlignment;
-	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
-	jFlip[0] = flipTexture[0];
-	jFlip[1] = flipTexture[1];
-
-	// Collision
-	jComponent[JSON_TAG_HAS_COLLISION] = collision;
-	jComponent[JSON_TAG_LAYER_INDEX] = layerIndex;
 }
 
 void ComponentParticleSystem::Update() {
+	if (App->editor->selectedGameObject == &GetOwner()) {
+		ImGuiParticlesEffect();
+	}
+
 	if (restDelayTime <= 0) {
 		if (isPlaying) {
 			emitterTime += App->time->GetDeltaTimeOrRealDeltaTime();
-		}
 
-		for (Particle& currentParticle : particles) {
-			if (executer) {
-				currentParticle.life = -1;
-			} else {
+			for (Particle& currentParticle : particles) {
 				UpdatePosition(&currentParticle);
 
 				UpdateLife(&currentParticle);
@@ -721,27 +776,24 @@ void ComponentParticleSystem::Update() {
 				if (!isRandomFrame) {
 					currentParticle.currentFrame += animationSpeed * App->time->GetDeltaTimeOrRealDeltaTime();
 				}
-			}
-			if (currentParticle.life < 0) {
-				deadParticles.push_back(&currentParticle);
+
+				if (currentParticle.life < 0) {
+					deadParticles.push_back(&currentParticle);
+				}
 			}
 		}
-		if (executer) executer = false;
+		if (executer) {
+			for (Particle& currentParticle : particles) {
+				deadParticles.push_back(&currentParticle);
+			}
+			executer = false;
+		}
 		UndertakerParticle();
 		SpawnParticles();
 	} else {
 		if (!isPlaying) return;
 		restDelayTime -= App->time->GetDeltaTimeOrRealDeltaTime();
 	}
-}
-
-void ComponentParticleSystem::UndertakerParticle() {
-	for (Particle* currentParticle : deadParticles) {
-		App->physics->RemoveParticleRigidbody(currentParticle);
-		RELEASE(currentParticle->motionState);
-		particles.Release(currentParticle);
-	}
-	deadParticles.clear();
 }
 
 void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
@@ -820,11 +872,7 @@ void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) 
 	float x = currentParticle->direction.x;
 	float y = -(1 / gravityFactor) * Pow(currentParticle->gravityTime, 2) + currentParticle->gravityTime;
 	float z = currentParticle->direction.z;
-	if (App->time->HasGameStarted()) {
-		currentParticle->gravityTime += 10 * App->time->GetDeltaTime();
-	} else {
-		currentParticle->gravityTime += 10 * App->time->GetRealTimeDeltaTime();
-	}
+	currentParticle->gravityTime += 10 * App->time->GetDeltaTimeOrRealDeltaTime();
 	currentParticle->direction = float3(x, y, z);
 }
 
@@ -834,67 +882,19 @@ void ComponentParticleSystem::KillParticle(Particle* currentParticle) {
 	RELEASE(currentParticle->motionState);
 }
 
-void ComponentParticleSystem::SpawnParticles() {
-	if ((looping || (particleSpawned < maxParticles) && isPlaying)) {
-		if (restParticlesPerSecond <= 0) {
-			restParticlesPerSecond = (1 / particlesPerSecond);
-			SpawnParticleUnit();
-		} else {
-			restParticlesPerSecond -= App->time->GetDeltaTimeOrRealDeltaTime();
-		}
-	} else {
-		if (particles.Count() == 0) {
-			restDelayTime = startDelay;
-			isPlaying = false;
-		}
+void ComponentParticleSystem::UndertakerParticle() {
+	for (Particle* currentParticle : deadParticles) {
+		App->physics->RemoveParticleRigidbody(currentParticle);
+		RELEASE(currentParticle->motionState);
+		particles.Release(currentParticle);
 	}
-}
-
-void ComponentParticleSystem::Init() {
-	if (!gradient) gradient = new ImGradient();
-	CreateParticles();
-}
-
-void ComponentParticleSystem::SpawnParticleUnit() {
-	Particle* currentParticle = particles.Obtain();
-	if (!looping) {
-		particleSpawned++;
-	}
-	if (currentParticle) {
-		if (isRandomFrame) {
-			currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
-		} else {
-			currentParticle->currentFrame = 0;
-		}
-		InitParticlePosAndDir(currentParticle);
-		InitParticleRotation(currentParticle);
-		InitParticleScale(currentParticle);
-		InitParticleSpeed(currentParticle);
-		InitParticleLife(currentParticle);
-		currentParticle->emitterPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
-		currentParticle->emitterDirection = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation() * float3::unitY;
-
-		if (collision) {
-			currentParticle->emitter = this;
-			currentParticle->radius = radius;
-			App->physics->CreateParticleRigidbody(currentParticle);
-		}
-	}
+	deadParticles.clear();
 }
 
 void ComponentParticleSystem::DestroyParticlesColliders() {
 	for (Particle& currentParticle : particles) {
 		App->physics->RemoveParticleRigidbody(&currentParticle);
 		RELEASE(currentParticle.motionState);
-	}
-}
-
-void ComponentParticleSystem::PlayChildParticles() {
-	Play();
-	for (GameObject* currentChild : GetOwner().GetChildren()) {
-		if (currentChild->GetComponent<ComponentParticleSystem>()) {
-			currentChild->GetComponent<ComponentParticleSystem>()->PlayChildParticles();
-		}
 	}
 }
 
@@ -1025,16 +1025,71 @@ void ComponentParticleSystem::Draw() {
 	}
 }
 
+void ComponentParticleSystem::ImGuiParticlesEffect() {
+	float2 pos = App->editor->panelScene.GetWindowsPos();
+	ImGui::SetNextWindowPos(ImVec2(pos.x + 10, pos.y + 50));
+	ImGui::Begin("Particle Effect##particle_effect", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
+	ImGui::Text("GameObject: ");
+	ImGui::SameLine();
+	ImGui::TextColored(App->editor->textColor, GetOwner().name.c_str());
+	ImGui::Separator();
+
+	if (ImGui::Button("Play")) {
+		PlayChildParticles();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Restart")) {
+		RestartChildParticles();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Stop")) {
+		StopChildParticles();
+	}
+	ImGui::End();
+}
+
 void ComponentParticleSystem::Play() {
 	if (!isPlaying) {
 		isPlaying = true;
 		particleSpawned = 0;
-		restDelayTime = startDelay;
+		InitStartDelay();
 		emitterTime = 0.0f;
 	}
 }
 
+void ComponentParticleSystem::Restart() {
+	Stop();
+	Play();
+}
+
 void ComponentParticleSystem::Stop() {
-	particleSpawned = maxParticles;
 	executer = true;
+	isPlaying = false;
+}
+
+void ComponentParticleSystem::PlayChildParticles() {
+	Play();
+	for (GameObject* currentChild : GetOwner().GetChildren()) {
+		if (currentChild->GetComponent<ComponentParticleSystem>()) {
+			currentChild->GetComponent<ComponentParticleSystem>()->PlayChildParticles();
+		}
+	}
+}
+
+void ComponentParticleSystem::RestartChildParticles() {
+	Restart();
+	for (GameObject* currentChild : GetOwner().GetChildren()) {
+		if (currentChild->GetComponent<ComponentParticleSystem>()) {
+			currentChild->GetComponent<ComponentParticleSystem>()->RestartChildParticles();
+		}
+	}
+}
+
+void ComponentParticleSystem::StopChildParticles() {
+	Stop();
+	for (GameObject* currentChild : GetOwner().GetChildren()) {
+		if (currentChild->GetComponent<ComponentParticleSystem>()) {
+			currentChild->GetComponent<ComponentParticleSystem>()->StopChildParticles();
+		}
+	}
 }
