@@ -486,8 +486,6 @@ UpdateStatus ModuleRender::Update() {
 	// Render pass
 	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
 	glClearColor(gammaClearColor.x, gammaClearColor.y, gammaClearColor.z, 1.0f);
-	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);
-	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL);
@@ -534,7 +532,7 @@ UpdateStatus ModuleRender::Update() {
 		if (trail.IsActive()) trail.Draw();
 	}
 
-	// Bloom blur
+	/*// Bloom blur
 	bool horizontal = true, firstIteration = true;
 	int amount = 6;
 	for (unsigned int i = 0; i < amount; i++)
@@ -557,7 +555,7 @@ UpdateStatus ModuleRender::Update() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	DrawScene(horizontal);
-
+	*/
 	// Draw Gizmos
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);

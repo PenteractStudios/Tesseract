@@ -55,6 +55,7 @@ public:
 
 private:
 	void SetNormalizedValue();
+	void SearchForMissingGameObjectReferences();
 
 private:
 	GameObject* background = nullptr;

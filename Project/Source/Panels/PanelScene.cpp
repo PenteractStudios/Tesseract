@@ -182,7 +182,7 @@ void PanelScene::Update() {
 		framebufferPosition.y += (ImGui::GetWindowHeight() - size.y);
 
 		// Draw
-		ImGui::Image((void*) App->renderer->renderTexture, size, ImVec2(0, 1), ImVec2(1, 0));
+		ImGui::Image((void*) App->renderer->outputTexture, size, ImVec2(0, 1), ImVec2(1, 0));
 
 		if (App->camera->IsEngineCameraActive()) {
 			// Drag and drop
