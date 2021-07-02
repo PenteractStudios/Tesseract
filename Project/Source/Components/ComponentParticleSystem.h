@@ -69,7 +69,6 @@ public:
 		float life = 0.0f;
 		float initialLife = 0.0f;
 		float currentFrame = 0.0f;
-		float colorFrame = 0.0f;
 		float gravityTime = 0.0f;
 
 		float3 emitterPosition = float3::zero;
@@ -171,7 +170,8 @@ private:
 
 	// Gravity
 	bool gravityEffect = false;
-	float gravityFactor = 0.0f;
+	RandomMode gravityFactorRM = RandomMode::CONST;
+	float2 gravityFactor = {0.0f, 0.0f};
 
 	// Shape
 	ParticleEmitterType emitterType = ParticleEmitterType::CONE;

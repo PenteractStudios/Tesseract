@@ -59,6 +59,7 @@
 
 // Gravity
 #define JSON_TAG_GRAVITY_EFFECT "GravityEffect"
+#define JSON_TAG_GRAVITY_FACTOR_RM "GravityFactorRM"
 #define JSON_TAG_GRAVITY_FACTOR "GravityFactor"
 
 // Shape
@@ -131,6 +132,14 @@ static bool ImGuiRandomMenu(const char* name, float2& values, RandomMode& mode, 
 	return used;
 };
 
+static float ObtainRandomValueFloat(float2& values, RandomMode& mode) {
+	if (mode == RandomMode::CONST_MULT) {
+		return rand() / (float) RAND_MAX * (values[1] - values[0]) + values[0];
+	} else {
+		return values[0];
+	}
+}
+
 ComponentParticleSystem::~ComponentParticleSystem() {
 	RELEASE(gradient);
 }
@@ -202,7 +211,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::Checkbox("##gravity_effect", &gravityEffect);
 		if (gravityEffect) {
 			ImGui::SameLine();
-			ImGui::DragFloat("Gravity##gravity_factor", &gravityFactor, App->editor->dragSpeed2f, 0, inf);
+			ImGuiRandomMenu("Gravity##gravity_factor", gravityFactor, gravityFactorRM, App->editor->dragSpeed2f, 0, inf);
 		}
 	}
 
@@ -421,7 +430,10 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 
 	// Gravity
 	gravityEffect = jComponent[JSON_TAG_GRAVITY_EFFECT];
-	gravityFactor = jComponent[JSON_TAG_GRAVITY_FACTOR];
+	gravityFactorRM = (RandomMode)(int) jComponent[JSON_TAG_GRAVITY_FACTOR_RM];
+	JsonValue jGravityFactor = jComponent[JSON_TAG_GRAVITY_FACTOR];
+	gravityFactor[0] = jGravityFactor[0];
+	gravityFactor[1] = jGravityFactor[1];
 
 	// Shape
 	emitterType = (ParticleEmitterType)(int) jComponent[JSON_TAG_EMITTER_TYPE];
@@ -525,7 +537,10 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 
 	// Gravity
 	jComponent[JSON_TAG_GRAVITY_EFFECT] = gravityEffect;
-	jComponent[JSON_TAG_GRAVITY_FACTOR] = gravityFactor;
+	jComponent[JSON_TAG_GRAVITY_FACTOR_RM] = (int) gravityFactorRM;
+	JsonValue jGravityFactor = jComponent[JSON_TAG_GRAVITY_FACTOR];
+	jGravityFactor[0] = gravityFactor[0];
+	jGravityFactor[1] = gravityFactor[1];
 
 	// Shape
 	jComponent[JSON_TAG_EMITTER_TYPE] = (int) emitterType;
@@ -637,12 +652,7 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 
-	float reverseDist;
-	if (reverseDistanceRM == RandomMode::CONST_MULT) {
-		reverseDist = rand() / (float) RAND_MAX * (reverseDistance[1] - reverseDistance[0]) + reverseDistance[0];
-	} else {
-		reverseDist = reverseDistance[0];
-	}
+	float reverseDist = ObtainRandomValueFloat(reverseDistance, reverseDistanceRM);
 
 	if (emitterType == ParticleEmitterType::CONE) {
 		float theta = 2 * pi * float(rand()) / float(RAND_MAX);
@@ -692,12 +702,7 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::InitParticleRotation(Particle* currentParticle) {
-	float newRotation;
-	if (rotationRM == RandomMode::CONST_MULT) {
-		newRotation = rand() / (float) RAND_MAX * (rotation[1] - rotation[0]) + rotation[0];
-	} else {
-		newRotation = rotation[0];
-	}
+	float newRotation = ObtainRandomValueFloat(rotation, rotationRM);
 
 	if (billboardType == BillboardType::STRETCH) {
 		newRotation += pi / 2;
@@ -706,49 +711,24 @@ void ComponentParticleSystem::InitParticleRotation(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::InitParticleScale(Particle* currentParticle) {
-	if (scaleRM == RandomMode::CONST_MULT) {
-		currentParticle->scale = float3(0.1f, 0.1f, 0.1f) * (rand() / (float) RAND_MAX * (scale[1] - scale[0]) + scale[0]);
-
-	} else {
-		currentParticle->scale = float3(0.1f, 0.1f, 0.1f) * scale[0];
-	}
+	currentParticle->scale = float3(0.1f, 0.1f, 0.1f) * ObtainRandomValueFloat(scale, scaleRM);
 }
 
 void ComponentParticleSystem::InitParticleSpeed(Particle* currentParticle) {
-	if (speedRM == RandomMode::CONST_MULT) {
-		currentParticle->speed = rand() / (float) RAND_MAX * (speed[1] - speed[0]) + speed[0];
-
-	} else {
-		currentParticle->speed = speed[0];
-	}
+	currentParticle->speed = ObtainRandomValueFloat(speed, speedRM);
 }
 
 void ComponentParticleSystem::InitParticleLife(Particle* currentParticle) {
-	if (lifeRM == RandomMode::CONST_MULT) {
-		currentParticle->initialLife = rand() / (float) RAND_MAX * (life[1] - life[0]) + life[0];
-
-	} else {
-		currentParticle->initialLife = life[0];
-	}
+	currentParticle->initialLife = ObtainRandomValueFloat(life, lifeRM);
 	currentParticle->life = currentParticle->initialLife;
 }
 
 void ComponentParticleSystem::InitStartDelay() {
-	if (startDelayRM == RandomMode::CONST_MULT) {
-		restDelayTime = rand() / (float) RAND_MAX * (startDelay[1] - startDelay[0]) + startDelay[0];
-
-	} else {
-		restDelayTime = startDelay[0];
-	}
+	restDelayTime = ObtainRandomValueFloat(startDelay, startDelayRM);
 }
 
 void ComponentParticleSystem::InitStartRate() {
-	if (particlesPerSecondRM == RandomMode::CONST_MULT) {
-		restParticlesPerSecond = 1 / (rand() / (float) RAND_MAX * (particlesPerSecond[1] - particlesPerSecond[0]) + particlesPerSecond[0]);
-
-	} else {
-		restParticlesPerSecond = 1 / particlesPerSecond[0];
-	}
+	restParticlesPerSecond = 1 / ObtainRandomValueFloat(particlesPerSecond, particlesPerSecondRM);
 }
 
 void ComponentParticleSystem::Update() {
@@ -825,26 +805,14 @@ void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::UpdateRotation(Particle* currentParticle) {
-	float newRotation;
-	if (rotationFactorRM == RandomMode::CONST_MULT) {
-		newRotation = rand() / (float) RAND_MAX * (rotationFactor[1] - rotationFactor[0]) + rotationFactor[0];
-
-	} else {
-		newRotation = rotationFactor[0];
-	}
+	float newRotation = ObtainRandomValueFloat(rotationFactor, rotationFactorRM);
 	float rotation = currentParticle->rotation.ToEulerXYZ().z;
 	rotation += newRotation * App->time->GetDeltaTimeOrRealDeltaTime();
 	currentParticle->rotation = Quat::FromEulerXYZ(0.0f, 0.0f, rotation);
 }
 
 void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
-	float newScale;
-	if (scaleFactorRM == RandomMode::CONST_MULT) {
-		newScale = rand() / (float) RAND_MAX * (scaleFactor[1] - scaleFactor[0]) + scaleFactor[0];
-
-	} else {
-		newScale = scaleFactor[0];
-	}
+	float newScale = ObtainRandomValueFloat(scaleFactor, scaleFactorRM);
 
 	currentParticle->radius *= 1 + newScale * App->time->GetDeltaTimeOrRealDeltaTime() / currentParticle->scale.x;
 	if (collision) App->physics->UpdateParticleRigidbody(currentParticle);
@@ -869,8 +837,9 @@ void ComponentParticleSystem::UpdateLife(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) {
+	float newGravityFactor = ObtainRandomValueFloat(gravityFactor, gravityFactorRM);
 	float x = currentParticle->direction.x;
-	float y = -(1 / gravityFactor) * Pow(currentParticle->gravityTime, 2) + currentParticle->gravityTime;
+	float y = -(1 / newGravityFactor) * Pow(currentParticle->gravityTime, 2) + currentParticle->gravityTime;
 	float z = currentParticle->direction.z;
 	currentParticle->gravityTime += 10 * App->time->GetDeltaTimeOrRealDeltaTime();
 	currentParticle->direction = float3(x, y, z);
