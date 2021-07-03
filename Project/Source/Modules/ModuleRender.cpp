@@ -194,7 +194,9 @@ bool ModuleRender::Init() {
 	glGenTextures(1, &renderTexture);
 	glGenTextures(1, &positionsTexture);
 	glGenTextures(1, &normalsTexture);
-	glGenTextures(1, &depthMapTexture);
+	for (unsigned i = 0; i < NUM_CASCADE_FRUSTUM; i++) {
+		glGenTextures(1, &depthMapTextures[i]);
+	}
 	glGenTextures(1, &ssaoTexture);
 	glGenTextures(1, &auxBlurTexture);
 
@@ -274,7 +276,7 @@ void ModuleRender::ClassifyGameObjects() {
 
 		const AABB& gameObjectAABB = boundingBox.GetWorldAABB();
 		const OBB& gameObjectOBB = boundingBox.GetWorldOBB();
-		if (CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
+		if (App->camera->GetFrustumPlanes().CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
 			if ((gameObject.GetMask().bitMask & static_cast<int>(MaskType::TRANSPARENT)) == 0) {
 				opaqueGameObjects.push_back(&gameObject);
 			} else {
@@ -374,6 +376,8 @@ UpdateStatus ModuleRender::Update() {
 	culledTriangles = 0;
 	Scene* scene = App->scene->scene;
 
+	lightFrustum.UpdateFrustums();
+
 	ClassifyGameObjects();
 
 	// Shadow Pass
@@ -446,7 +450,7 @@ UpdateStatus ModuleRender::Update() {
 		return UpdateStatus::CONTINUE;
 	}
 	if (drawDepthMapTexture) {
-		DrawTexture(depthMapTexture);
+		DrawTexture(depthMapTextures[0]);
 		return UpdateStatus::CONTINUE;
 	}
 
@@ -575,7 +579,9 @@ bool ModuleRender::CleanUp() {
 	glDeleteTextures(1, &renderTexture);
 	glDeleteTextures(1, &positionsTexture);
 	glDeleteTextures(1, &normalsTexture);
-	glDeleteTextures(1, &depthMapTexture);
+	for (unsigned i = 0; i < NUM_CASCADE_FRUSTUM; i++) {
+		glDeleteTextures(1, &depthMapTextures[i]);
+	}
 	glDeleteTextures(1, &ssaoTexture);
 	glDeleteTextures(1, &auxBlurTexture);
 
@@ -640,13 +646,13 @@ void ModuleRender::UpdateFramebuffers() {
 	// Shadow buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
 
-	glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+	glBindTexture(GL_TEXTURE_2D, depthMapTextures[0]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTextures[0], 0);
 
 	glDrawBuffer(GL_NONE);
 
@@ -810,7 +816,7 @@ void ModuleRender::DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node,
 
 void ModuleRender::ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::Node& node, const AABB2D& aabb) {
 	AABB aabb3d = AABB({aabb.minPoint.x, -1000000.0f, aabb.minPoint.y}, {aabb.maxPoint.x, 1000000.0f, aabb.maxPoint.y});
-	if (CheckIfInsideFrustum(aabb3d, OBB(aabb3d))) {
+	if (App->camera->GetFrustumPlanes().CheckIfInsideFrustum(aabb3d, OBB(aabb3d))) {
 		if (node.IsBranch()) {
 			vec2d center = aabb.minPoint + (aabb.maxPoint - aabb.minPoint) * 0.5f;
 
@@ -844,7 +850,7 @@ void ModuleRender::ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::N
 						shadowGameObjects.push_back(gameObject);
 					}
 
-					if (CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
+					if (App->camera->GetFrustumPlanes().CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
 						if ((gameObject->GetMask().bitMask & static_cast<int>(MaskType::TRANSPARENT)) == 0) {
 							opaqueGameObjects.push_back(gameObject);
 						} else {
@@ -862,6 +868,7 @@ void ModuleRender::ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::N
 	}
 }
 
+/*
 bool ModuleRender::CheckIfInsideFrustum(const AABB& aabb, const OBB& obb) {
 	float3 points[8] {
 		obb.pos - obb.r.x * obb.axis[0] - obb.r.y * obb.axis[1] - obb.r.z * obb.axis[2],
@@ -906,6 +913,7 @@ bool ModuleRender::CheckIfInsideFrustum(const AABB& aabb, const OBB& obb) {
 
 	return true;
 }
+*/
 
 void ModuleRender::DrawGameObject(GameObject* gameObject) {
 	ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
@@ -983,7 +991,7 @@ const float2 ModuleRender::GetViewportSize() {
 bool ModuleRender::ObjectInsideFrustum(GameObject* gameObject) {
 	ComponentBoundingBox* boundingBox = gameObject->GetComponent<ComponentBoundingBox>();
 	if (boundingBox) {
-		return CheckIfInsideFrustum(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB());
+		return App->camera->GetFrustumPlanes().CheckIfInsideFrustum(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB());
 	}
 	return false;
 }

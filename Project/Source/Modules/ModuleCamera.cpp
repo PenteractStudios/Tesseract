@@ -248,8 +248,11 @@ void ModuleCamera::CalculateFrustumNearestObject(float2 pos) {
 	LOG("Ray Tracing in %ums", timer.Stop());
 }
 
+
 void ModuleCamera::CalculateFrustumPlanes() {
 	Frustum* cullingFrustum = cullingCamera->GetFrustum();
+	frustumPlanes.CalculateFrustumPlanes(*cullingFrustum);
+	/*
 	float3 pos = cullingFrustum->Pos();
 	float3 up = cullingFrustum->Up().Normalized();
 	float3 front = cullingFrustum->Front();
@@ -281,7 +284,9 @@ void ModuleCamera::CalculateFrustumPlanes() {
 	frustumPlanes.planes[3] = cullingFrustum->BottomPlane();
 	frustumPlanes.planes[4] = cullingFrustum->FarPlane();
 	frustumPlanes.planes[5] = cullingFrustum->NearPlane();
+	*/
 }
+
 
 bool ModuleCamera::IsEngineCameraActive() const {
 	if (activeCamera == &engineCamera) {

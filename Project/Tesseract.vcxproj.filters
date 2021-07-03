@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Source\LightFrustum.cpp" />
+    <ClCompile Include="Source\Rendering\LightFrustum.cpp" />
     <ClCompile Include="Source\Components\ComponentAgent.cpp" />
     <ClCompile Include="Source\FileSystem\NavMeshImporter.cpp" />
     <ClCompile Include="Source\Panels\PanelDebug.cpp" />
@@ -312,7 +312,6 @@
     <ClCompile Include="Source\Components\UI\ComponentSlider.cpp" />
     <ClCompile Include="Source\Utils\ImGuiUtils.cpp" />
     <ClCompile Include="Source\Scripting\Member.cpp" />
-    <ClCompile Include="Source\LightFrustum.cpp" />
     <ClCompile Include="Source\Modules\ModuleNavigation.cpp" />
     <ClCompile Include="Source\Panels\PanelNavigation.cpp" />
     <ClCompile Include="Source\Navigation\NavMesh.cpp" />
@@ -370,9 +369,10 @@
     <ClCompile Include="Source\Panels\PanelAudioMixer.cpp" />
     <ClCompile Include="Source\Utils\Random.cpp" />
     <ClCompile Include="Source\Rendering\Programs.cpp" />
+    <ClCompile Include="Source\Rendering\FrustumPlanes.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\LightFrustum.h" />
+    <ClInclude Include="Source\Rendering\LightFrustum.h" />
     <ClInclude Include="Source\Components\ComponentAgent.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\DebugUtils\DebugDraw.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\DebugUtils\DetourDebugDraw.h" />
@@ -694,7 +694,6 @@
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
     <ClInclude Include="Source\StateMachineManager.h" />
     <ClInclude Include="Source\FileSystem\StateMachinGenerator.h" />
-    <ClInclude Include="Source\LightFrustum.h" />
     <ClInclude Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />
     <ClInclude Include="Source\Components\ComponentParticleSystem.h" />
@@ -717,6 +716,7 @@
     <ClInclude Include="Source\Panels\PanelAudioMixer.h" />
     <ClInclude Include="Source\Utils\Random.h" />
     <ClInclude Include="Source\Rendering\Programs.h" />
+    <ClInclude Include="Source\Rendering\FrustumPlanes.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />

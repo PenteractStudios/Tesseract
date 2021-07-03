@@ -408,6 +408,16 @@ std::vector<int> Scene::GetTriangles() {
 	return result;
 }
 
+std::vector<GameObject*> Scene::GetCulledMeshes(const Frustum& frustum) {
+	std::vector<GameObject*> meshes;
+
+	for (GameObject go : gameObjects) {
+		
+	}
+
+	return meshes;
+}
+
 void Scene::SetNavMesh(UID navMesh) {
 	if (navMeshId != 0) {
 		App->resources->DecreaseReferenceCount(navMeshId);

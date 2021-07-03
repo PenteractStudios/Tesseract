@@ -435,7 +435,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glTextureDiffuse = diffuse ? diffuse->glTexture : 0;
 	int hasDiffuseMap = diffuse ? 1 : 0;
 
-	unsigned gldepthMapTexture = App->renderer->depthMapTexture;
+	unsigned gldepthMapTexture = App->renderer->depthMapTextures[0];
 
 	unsigned glSSAOTexture = App->renderer->ssaoTexture;
 

@@ -15,10 +15,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Rendering\FrustumPlanes.h" />
     <ClInclude Include="Source\Panels\PanelAudioMixer.h" />
     <ClInclude Include="Source\FileSystem\StateMachinGenerator.h" />
     <ClInclude Include="Source\Components\ComponentBillboard.h" />
-    <ClInclude Include="Source\LightFrustum.h" />
+    <ClInclude Include="Source\Rendering\LightFrustum.h" />
     <ClInclude Include="Source\Components\ComponentAgent.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\DebugUtils\DebugDraw.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\DebugUtils\DetourDebugDraw.h" />
@@ -343,10 +344,11 @@
     <ClInclude Include="Source\StateMachineManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Rendering\FrustumPlanes.cpp" />
     <ClCompile Include="Source\Panels\PanelAudioMixer.cpp" />
     <ClCompile Include="Source\FileSystem\StateMachinGenerator.cpp" />
     <ClCompile Include="Source\Components\ComponentBillboard.cpp" />
-    <ClCompile Include="Source\LightFrustum.cpp" />
+    <ClCompile Include="Source\Rendering\LightFrustum.cpp" />
     <ClCompile Include="Source\Components\ComponentAgent.cpp" />
     <ClCompile Include="Source\FileSystem\NavMeshImporter.cpp" />
     <ClCompile Include="Source\Panels\PanelDebug.cpp" />

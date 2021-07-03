@@ -2,10 +2,10 @@
 
 #include "Module.h"
 #include "Utils/Quadtree.h"
+#include "Rendering/LightFrustum.h"
 
 #include "MathGeoLibFwd.h"
 #include "Math/float3.h"
-#include "LightFrustum.h"
 
 #include <map>
 
@@ -64,7 +64,7 @@ public:
 	unsigned renderTexture = 0;
 	unsigned positionsTexture = 0;
 	unsigned normalsTexture = 0;
-	unsigned depthMapTexture = 0;
+	unsigned depthMapTextures[NUM_CASCADE_FRUSTUM] = {0, 0, 0, 0};
 	unsigned ssaoTexture = 0;
 	unsigned auxBlurTexture = 0;
 
@@ -109,7 +109,7 @@ private:
 	void DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb);			  // Draws the quadrtee nodes if 'drawQuadtree' is set to true.
 	void ClassifyGameObjects();																		  // Classify Game Objects from Scene taking into account Frustum Culling, Shadows and Rendering Mode
 	void ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::Node& node, const AABB2D& aabb); // Classify Game Objects from Scene taking into account Frustum Culling, Quadtree, Shadows and Rendering Mode
-	bool CheckIfInsideFrustum(const AABB& aabb, const OBB& obb);									  // ??
+	//bool CheckIfInsideFrustum(const AABB& aabb, const OBB& obb);									  // ??
 	void DrawGameObject(GameObject* gameObject);													  // ??
 	void DrawGameObjectDepthPrepass(GameObject* gameObject);
 	void DrawGameObjectShadowPass(GameObject* gameObject);

@@ -32,6 +32,8 @@
 #include "Components/Physics/ComponentCapsuleCollider.h"
 #include "Components/ComponentAgent.h"
 
+#include "Geometry/Frustum.h"
+
 class GameObject;
 
 class Scene {
@@ -58,6 +60,8 @@ public:
 	int GetTotalTriangles() const;
 	std::vector<float> GetVertices(); // Gets all the vertices from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
 	std::vector<int> GetTriangles();  // Gets all the triangles from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
+
+	std::vector<GameObject*> GetCulledMeshes(const Frustum& frustum); // Gets all the game objects inside in the given frustum
 
 	void SetNavMesh(UID navMesh);
 	UID GetNavMesh();
