@@ -232,6 +232,7 @@ struct ProgramPostprocess : Program {
 	ProgramPostprocess(unsigned program);
 
 	int textureSceneLocation = -1;
+	int bloomThresholdLocation = -1;
 };
 
 struct ProgramDrawTexture : Program {

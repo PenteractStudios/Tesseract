@@ -349,6 +349,7 @@ void ModuleRender::ExecuteColorCorrection(bool horizontal) {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, colorTextures[0]);
 	glUniform1i(colorCorrectionProgram->textureSceneLocation, 0);
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, bloomBlurTextures[!horizontal]);
 	glUniform1i(colorCorrectionProgram->textureBloomBlurLocation, 1);
 
@@ -392,6 +393,7 @@ void ModuleRender::DrawScene() {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, renderTexture);
 	glUniform1i(drawScene->textureSceneLocation, 0);
+	glUniform1f(drawScene->bloomThresholdLocation, bloomThreshold);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
@@ -821,7 +823,6 @@ void ModuleRender::UpdateFramebuffers() {
 
 	// Color correction buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, colorCorrectionBuffer);
-
 	glBindTexture(GL_TEXTURE_2D, outputTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

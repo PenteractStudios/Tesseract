@@ -6,6 +6,7 @@ layout(location = 0) out vec4 color;
 layout(location = 1) out vec4 bloom;
 
 uniform sampler2DMS sceneTexture;
+uniform float bloomThreshold;
 
 vec3 GetTexel(in vec2 uv)
 {
@@ -22,6 +23,6 @@ void main()
 {
 	color = vec4(GetTexel(uv), 1.0);
 	float bright = dot(color.rgb, vec3(0.3, 0.6, 0.2));
-	if (bright > 1.0) bloom = color;
+	if (bright > bloomThreshold) bloom = color;
 	else bloom = vec4(0.0, 0.0, 0.0, 1.0);
 }

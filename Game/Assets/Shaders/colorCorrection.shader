@@ -31,8 +31,8 @@ vec3 ACESFilm(in vec3 x) {
 void main()
 {
 	vec4 hdrColor = texture(scene, uv);
-	//vec3 bloomColor = texture(bloomBlur, uv).rgb;
-	//hdrColor.rgb += bloomColor; // additive blending
+	vec3 bloomColor = texture(bloomBlur, uv).rgb;
+	hdrColor.rgb += bloomColor; // additive blending
 
 	// ACES Tonemapping
 	vec3 ldr = ACESFilm(hdrColor.rgb);
