@@ -129,7 +129,9 @@ void ComponentTrail::UpdateLife(Quad* currentQuad) {
 void ComponentTrail::OnEditorUpdate() {
 	if (ImGui::Button("Play")) Play();
 	if (ImGui::Button("Stop")) Stop();
-
+	if (ImGui::Checkbox("Render", &isRendering)) {
+		isStarted = false;
+	}
 	ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
 	if (ImGui::DragInt("Trail Quads", &trailQuads, 1.0f, 1, 50, "%d", ImGuiSliderFlags_AlwaysClamp)) {
 		if (nTextures > trailQuads) nTextures = trailQuads;
