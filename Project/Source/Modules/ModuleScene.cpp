@@ -96,7 +96,7 @@ bool ModuleScene::Start() {
 
 #if GAME
 	App->events->AddEvent(TesseractEventType::PRESSED_PLAY);
-	SceneImporter::LoadScene("Library/29/2968379164312150788"); // TODO: This should be saved in a project file
+	SceneImporter::LoadScene("Library/38/3854012141585653819"); // TODO: This should be saved in a project file
 	if (App->scene->scene->root == nullptr) {
 		App->scene->CreateEmptyScene();
 	}

@@ -206,7 +206,6 @@ bool ModuleRender::Init() {
 	glGenFramebuffers(1, &renderPassBuffer);
 	glGenFramebuffers(1, &depthPrepassTextureBuffer);
 	glGenFramebuffers(1, &depthMapTextureBuffer);
-	glGenFramebuffers(1, &depthMSAABuffer);
 	glGenFramebuffers(1, &ssaoTextureBuffer);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferH);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferV);
@@ -489,7 +488,7 @@ UpdateStatus ModuleRender::Update() {
 	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
 	glClearColor(gammaClearColor.x, gammaClearColor.y, gammaClearColor.z, 1.0f);
 	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
+	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LEQUAL);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -516,6 +515,7 @@ UpdateStatus ModuleRender::Update() {
 	glDepthFunc(GL_LEQUAL);
 
 	// Draw Transparent
+	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	for (std::map<float, GameObject*>::reverse_iterator it = transparentGameObjects.rbegin(); it != transparentGameObjects.rend(); ++it) {
@@ -537,6 +537,7 @@ UpdateStatus ModuleRender::Update() {
 	// Apply MSAA and bloom threshold
 	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);
 	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
+	glDisable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT);
 	DrawScene();
 
@@ -554,6 +555,7 @@ UpdateStatus ModuleRender::Update() {
 		if (firstIteration) firstIteration = false;
 	}
 
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, hdrFramebuffer);
 	// Draw Gizmos
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
@@ -633,8 +635,8 @@ UpdateStatus ModuleRender::Update() {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 #else
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, colorCorrectionBuffer);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, hdrFramebuffer);
+	//glBindFramebuffer(GL_READ_FRAMEBUFFER, colorCorrectionBuffer);
+	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, hdrFramebuffer);
 	//glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 #endif
 
@@ -675,7 +677,6 @@ bool ModuleRender::CleanUp() {
 	glDeleteFramebuffers(1, &renderPassBuffer);
 	glDeleteFramebuffers(1, &depthPrepassTextureBuffer);
 	glDeleteFramebuffers(1, &depthMapTextureBuffer);
-	glDeleteFramebuffers(1, &depthMSAABuffer);
 	glDeleteFramebuffers(1, &ssaoTextureBuffer);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferH);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferV);
@@ -706,10 +707,6 @@ void ModuleRender::ReceiveEvent(TesseractEvent& ev) {
 void ModuleRender::UpdateFramebuffers() {
 	// Depth buffer
 	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	
-	glBindRenderbuffer(GL_RENDERBUFFER, depthMSAABuffer);
 	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
@@ -785,17 +782,21 @@ void ModuleRender::UpdateFramebuffers() {
 
 	// Render buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthMSAABuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, renderTexture);
 	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, renderTexture, 0);
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+	/*glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, depthMSAABuffer);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, depthMSAABuffer, 0);*/
 
 	// HDR and bloom buffers
 	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);

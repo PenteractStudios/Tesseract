@@ -72,8 +72,6 @@ public:
 	unsigned bloomBlurTextures[2] = { 0, 0 }; // ping-pong buffers to blur bloom horizontally and vertically, alternatively stores the bloom texture
 
 	unsigned depthBuffer = 0;
-	unsigned depthMSAABuffer = 0;
-
 
 	unsigned renderPassBuffer = 0;
 	unsigned depthPrepassTextureBuffer = 0;
