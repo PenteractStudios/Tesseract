@@ -634,10 +634,6 @@ UpdateStatus ModuleRender::Update() {
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, colorCorrectionBuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
-#else
-	//glBindFramebuffer(GL_READ_FRAMEBUFFER, colorCorrectionBuffer);
-	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, hdrFramebuffer);
-	//glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 #endif
 
 	return UpdateStatus::CONTINUE;
@@ -786,17 +782,9 @@ void ModuleRender::UpdateFramebuffers() {
 
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, renderTexture);
 	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
-	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, renderTexture, 0);
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
-	/*glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, depthMSAABuffer);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, depthMSAABuffer, 0);*/
 
 	// HDR and bloom buffers
 	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);
