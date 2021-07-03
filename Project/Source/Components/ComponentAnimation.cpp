@@ -1,10 +1,10 @@
 #include "ComponentAnimation.h"
 
 #include "Application.h"
-#include "Transition.h"
 #include "GameObject.h"
-#include "AnimationInterpolation.h"
-#include "AnimationController.h"
+#include "Animation/Transition.h"
+#include "Animation/AnimationInterpolation.h"
+#include "Animation/AnimationController.h"
 #include "Resources/ResourceAnimation.h"
 #include "Resources/ResourceClip.h"
 #include "Components/ComponentType.h"
@@ -17,8 +17,8 @@
 #include "Utils/UID.h"
 #include "Utils/Logging.h"
 #include "Utils/ImGuiUtils.h"
-#include "StateMachineEnum.h"
-#include "StateMachineManager.h"
+#include "Animation/StateMachineEnum.h"
+#include "Animation/StateMachineManager.h"
 
 #include <algorithm> // std::find
 

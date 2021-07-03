@@ -252,6 +252,7 @@ void ModuleCamera::CalculateFrustumNearestObject(float2 pos) {
 void ModuleCamera::CalculateFrustumPlanes() {
 	Frustum* cullingFrustum = cullingCamera->GetFrustum();
 	frustumPlanes.CalculateFrustumPlanes(*cullingFrustum);
+	// TODO: Remove
 	/*
 	float3 pos = cullingFrustum->Pos();
 	float3 up = cullingFrustum->Up().Normalized();
@@ -286,7 +287,6 @@ void ModuleCamera::CalculateFrustumPlanes() {
 	frustumPlanes.planes[5] = cullingFrustum->NearPlane();
 	*/
 }
-
 
 bool ModuleCamera::IsEngineCameraActive() const {
 	if (activeCamera == &engineCamera) {

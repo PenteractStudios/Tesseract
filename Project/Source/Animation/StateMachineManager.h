@@ -1,10 +1,11 @@
 #pragma once
-#include <AnimationInterpolation.h>
-#include "Utils/UID.h"
-#include "StateMachineEnum.h"
 
-#include <Math/float3.h>
-#include <Math/Quat.h>
+#include "AnimationInterpolation.h"
+#include "StateMachineEnum.h"
+#include "Utils/UID.h"
+
+#include "Math/float3.h"
+#include "Math/Quat.h"
 
 #include <string>
 #include <unordered_map>

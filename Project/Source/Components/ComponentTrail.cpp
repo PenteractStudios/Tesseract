@@ -323,7 +323,7 @@ void ComponentTrail::EditTextureCoords() {
 
 	int nLine = 0;
 	float factor = nTextures / (float) trailQuads;
-	nRepeats = (trailQuads / nTextures) * 12;
+	nRepeats = (trailQuads / nTextures) * 12.f;
 	for (int textureEdited = 0; textureEdited < nRepeats;) {
 		///vertice1
 		textureCords[textureEdited++] = nLine * factor;

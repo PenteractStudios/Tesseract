@@ -1,5 +1,7 @@
 #include "FrustumPlanes.h"
 
+#include "Utils/Leaks.h"
+
 FrustumPlanes::FrustumPlanes() {
 
 }
@@ -40,7 +42,7 @@ void FrustumPlanes::CalculateFrustumPlanes(const Frustum& frustum) {
 
 }
 
-bool FrustumPlanes::CheckIfInsideFrustum(const AABB& aabb, const OBB& obb) const {
+bool FrustumPlanes::CheckIfInsideFrustumPlanes(const AABB& aabb, const OBB& obb) const {
 
 	float3 points[8] {
 		obb.pos - obb.r.x * obb.axis[0] - obb.r.y * obb.axis[1] - obb.r.z * obb.axis[2],

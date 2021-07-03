@@ -1,7 +1,7 @@
 #include "ResourceStateMachine.h"
 #include "Application.h"
-#include "Transition.h"
-#include "State.h"
+#include "Animation/Transition.h"
+#include "Animation/State.h"
 
 #include "Resources/ResourceClip.h"
 #include "Modules/ModuleFiles.h"

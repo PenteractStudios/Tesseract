@@ -131,7 +131,7 @@
     <ClCompile Include="Source\Modules\ModuleUserInterface.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentButton.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentSelectable.cpp" />
-    <ClCompile Include="Source\AnimationController.cpp" />
+    <ClCompile Include="Source\Animation\AnimationController.cpp" />
     <ClCompile Include="Source\Resources\ResourceMaterial.cpp" />
     <ClCompile Include="Source\Resources\ResourceMesh.cpp" />
     <ClCompile Include="Source\Resources\ResourceScene.cpp" />
@@ -226,7 +226,7 @@
     <ClCompile Include="Libs\MathGeoLib\Math\SSEMath.cpp" />
     <ClCompile Include="Libs\MathGeoLib\Math\TransformOps.cpp" />
     <ClCompile Include="Libs\MathGeoLib\Time\Clock.cpp" />
-    <ClCompile Include="Source\StateMachineManager.cpp" />
+    <ClCompile Include="Source\Animation\StateMachineManager.cpp" />
     <ClCompile Include="Source\FileSystem\StateMachinGenerator.cpp" />
     <ClCompile Include="Source\Components\ComponentAnimation.cpp" />
     <ClCompile Include="Libs\PhysicsFS\physfs.c" />
@@ -421,9 +421,9 @@
     <ClInclude Include="Source\MaskType.h" />
     <ClInclude Include="Source\FileSystem\ClipImporter.h" />
     <ClInclude Include="Source\FileSystem\StateMachineImporter.h" />
-    <ClInclude Include="Source\AnimationInterpolation.h" />
+    <ClInclude Include="Source\Animation\AnimationInterpolation.h" />
     <ClInclude Include="Source\Resources\ResourceClip.h" />
-    <ClInclude Include="Source\State.h" />
+    <ClInclude Include="Source\Animation\State.h" />
     <ClInclude Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Source\Panels\PanelImportOptions.h" />
     <ClInclude Include="Source\Components\Physics\ComponentBoxCollider.h" />
@@ -485,7 +485,7 @@
     <ClInclude Include="Source\Resources\ResourceFont.h" />
     <ClInclude Include="Source\Components\ComponentBoundingBox2D.h" />
     <ClInclude Include="Source\Scripting\Member.h" />
-    <ClInclude Include="Source\StateMachineEnum.h" />
+    <ClInclude Include="Source\Animation\StateMachineEnum.h" />
     <ClInclude Include="Source\UI\Interfaces\IMouseClickHandler.h" />
     <ClInclude Include="Source\UI\Interfaces\IPointerEnterHandler.h" />
     <ClInclude Include="Source\UI\Interfaces\IPointerExitHandler.h" />
@@ -556,7 +556,7 @@
     <ClInclude Include="Source\Components\UI\ComponentButton.h" />
     <ClInclude Include="Source\Components\UI\ComponentSelectable.h" />
     <ClInclude Include="Source\Utils\ImGuiUtils.h" />
-    <ClInclude Include="Source\AnimationController.h" />
+    <ClInclude Include="Source\Animation\AnimationController.h" />
     <ClInclude Include="Source\Utils\Leaks.h" />
     <ClInclude Include="Source\Utils\Logging.h" />
     <ClInclude Include="Source\Utils\Buffer.h" />
@@ -692,11 +692,11 @@
     <ClInclude Include="Libs\MathGeoLib\Math\TransformOps.h" />
     <ClInclude Include="Libs\MathGeoLib\Math\vec2d.h" />
     <ClInclude Include="Libs\MathGeoLib\Time\Clock.h" />
-    <ClInclude Include="Source\Transition.h" />
+    <ClInclude Include="Source\Animation\Transition.h" />
     <ClInclude Include="Source\Utils\VectorMap.h" />
     <ClInclude Include="Source\Utils\PoolMap.h" />
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
-    <ClInclude Include="Source\StateMachineManager.h" />
+    <ClInclude Include="Source\Animation\StateMachineManager.h" />
     <ClInclude Include="Source\FileSystem\StateMachinGenerator.h" />
     <ClInclude Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />

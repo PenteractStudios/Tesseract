@@ -278,7 +278,7 @@ void ModuleRender::ClassifyGameObjects() {
 
 		const AABB& gameObjectAABB = boundingBox.GetWorldAABB();
 		const OBB& gameObjectOBB = boundingBox.GetWorldOBB();
-		if (App->camera->GetFrustumPlanes().CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
+		if (App->camera->GetFrustumPlanes().CheckIfInsideFrustumPlanes(gameObjectAABB, gameObjectOBB)) {
 			if ((gameObject.GetMask().bitMask & static_cast<int>(MaskType::TRANSPARENT)) == 0) {
 				opaqueGameObjects.push_back(&gameObject);
 			} else {
@@ -862,7 +862,7 @@ void ModuleRender::DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node,
 
 void ModuleRender::ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::Node& node, const AABB2D& aabb) {
 	AABB aabb3d = AABB({aabb.minPoint.x, -1000000.0f, aabb.minPoint.y}, {aabb.maxPoint.x, 1000000.0f, aabb.maxPoint.y});
-	if (App->camera->GetFrustumPlanes().CheckIfInsideFrustum(aabb3d, OBB(aabb3d))) {
+	if (App->camera->GetFrustumPlanes().CheckIfInsideFrustumPlanes(aabb3d, OBB(aabb3d))) {
 		if (node.IsBranch()) {
 			vec2d center = aabb.minPoint + (aabb.maxPoint - aabb.minPoint) * 0.5f;
 
@@ -896,7 +896,7 @@ void ModuleRender::ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::N
 						shadowGameObjects.push_back(gameObject);
 					}
 
-					if (App->camera->GetFrustumPlanes().CheckIfInsideFrustum(gameObjectAABB, gameObjectOBB)) {
+					if (App->camera->GetFrustumPlanes().CheckIfInsideFrustumPlanes(gameObjectAABB, gameObjectOBB)) {
 						if ((gameObject->GetMask().bitMask & static_cast<int>(MaskType::TRANSPARENT)) == 0) {
 							opaqueGameObjects.push_back(gameObject);
 						} else {
@@ -914,6 +914,7 @@ void ModuleRender::ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::N
 	}
 }
 
+// TODO: Remove
 /*
 bool ModuleRender::CheckIfInsideFrustum(const AABB& aabb, const OBB& obb) {
 	float3 points[8] {
@@ -1037,7 +1038,7 @@ const float2 ModuleRender::GetViewportSize() {
 bool ModuleRender::ObjectInsideFrustum(GameObject* gameObject) {
 	ComponentBoundingBox* boundingBox = gameObject->GetComponent<ComponentBoundingBox>();
 	if (boundingBox) {
-		return App->camera->GetFrustumPlanes().CheckIfInsideFrustum(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB());
+		return App->camera->GetFrustumPlanes().CheckIfInsideFrustumPlanes(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB());
 	}
 	return false;
 }

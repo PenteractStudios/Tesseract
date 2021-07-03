@@ -1,16 +1,16 @@
 #pragma once
 
-#include "Application.h"
 #include "Component.h"
-#include "AnimationController.h"
-#include "AnimationInterpolation.h"
-#include "State.h"
+#include "Application.h"
 #include "Modules/ModuleResources.h"
+#include "Animation/State.h"
+#include "Animation/StateMachineEnum.h"
+#include "Animation/AnimationController.h"
+#include "Animation/AnimationInterpolation.h"
 #include "Resources/ResourceStateMachine.h"
 #include "Utils/UID.h"
-#include <string>
-#include "StateMachineEnum.h"
 
+#include <string>
 #include <unordered_map>
 
 class GameObject;
