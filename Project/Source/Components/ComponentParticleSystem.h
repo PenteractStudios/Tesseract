@@ -69,6 +69,7 @@ public:
 		float life = 0.0f;
 		float initialLife = 0.0f;
 		float currentFrame = 0.0f;
+		float animationSpeed = 1.0f;
 
 		float3 emitterPosition = float3::zero;
 		float3 emitterDirection = float3::zero;
@@ -107,6 +108,7 @@ public:
 	void InitParticleScale(Particle* currentParticle);
 	void InitParticleSpeed(Particle* currentParticle);
 	void InitParticleLife(Particle* currentParticle);
+	void InitParticleAnimationSpeed(Particle* currentParticle);
 
 	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
 	void UpdateRotation(Particle* currentParticle);
@@ -187,6 +189,8 @@ private:
 	unsigned Ytiles = 1;
 	float animationSpeed = 0.0f;
 	bool isRandomFrame = false;
+	bool loopAnimation = true;
+	float nCycles = 1.0f;
 
 	// Render
 	UID textureID = 0;

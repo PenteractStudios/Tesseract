@@ -84,6 +84,8 @@
 #define JSON_TAG_XTILES "Xtiles"
 #define JSON_TAG_ANIMATION_SPEED "AnimationSpeed"
 #define JSON_TAG_IS_RANDOM_FRAME "IsRandomFrame"
+#define JSON_TAG_lOOP_ANIMATION "LoopAnimation"
+#define JSON_TAG_N_CYCLES "NCycles"
 
 // Render
 #define JSON_TAG_TEXTURE_TEXTURE_ID "TextureId"
@@ -264,7 +266,12 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	if (ImGui::CollapsingHeader("Texture Sheet Animation")) {
 		ImGui::DragScalar("X Tiles", ImGuiDataType_U32, &Xtiles);
 		ImGui::DragScalar("Y Tiles", ImGuiDataType_U32, &Ytiles);
-		ImGui::DragFloat("Animation Speed", &animationSpeed, App->editor->dragSpeed2f, -inf, inf);
+		ImGui::Checkbox("Loop Animation", &loopAnimation);
+		if (loopAnimation) {
+			ImGui::DragFloat("Animation Speed", &animationSpeed, App->editor->dragSpeed2f, -inf, inf);
+		} else {
+			ImGui::DragFloat("Cycles", &nCycles, App->editor->dragSpeed2f, 1, inf);
+		}
 		ImGui::Checkbox("Random Frame", &isRandomFrame);
 	}
 
@@ -416,7 +423,6 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 		} else {
 			localPos = localPos0;
 		}
-
 	} else if (emitterType == ParticleEmitterType::SPHERE) {
 		x1 = float(rand()) / float(RAND_MAX) * 2.0f - 1.0f;
 		y1 = float(rand()) / float(RAND_MAX) * 2.0f - 1.0f;
@@ -453,7 +459,6 @@ void ComponentParticleSystem::InitParticleRotation(Particle* currentParticle) {
 void ComponentParticleSystem::InitParticleScale(Particle* currentParticle) {
 	if (scaleRM == RandomMode::CONST_MULT) {
 		currentParticle->scale = float3(0.1f, 0.1f, 0.1f) * (rand() / (float) RAND_MAX * (scale[1] - scale[0]) + scale[0]);
-
 	} else {
 		currentParticle->scale = float3(0.1f, 0.1f, 0.1f) * scale[0];
 	}
@@ -462,7 +467,6 @@ void ComponentParticleSystem::InitParticleScale(Particle* currentParticle) {
 void ComponentParticleSystem::InitParticleSpeed(Particle* currentParticle) {
 	if (speedRM == RandomMode::CONST_MULT) {
 		currentParticle->speed = rand() / (float) RAND_MAX * (speed[1] - speed[0]) + speed[0];
-
 	} else {
 		currentParticle->speed = speed[0];
 	}
@@ -471,11 +475,20 @@ void ComponentParticleSystem::InitParticleSpeed(Particle* currentParticle) {
 void ComponentParticleSystem::InitParticleLife(Particle* currentParticle) {
 	if (lifeRM == RandomMode::CONST_MULT) {
 		currentParticle->initialLife = rand() / (float) RAND_MAX * (life[1] - life[0]) + life[0];
-
 	} else {
 		currentParticle->initialLife = life[0];
 	}
 	currentParticle->life = currentParticle->initialLife;
+}
+
+void ComponentParticleSystem::InitParticleAnimationSpeed(Particle* currentParticle) {
+	if (loopAnimation) {
+		currentParticle->animationSpeed = animationSpeed;
+	} else {
+		float timePerCycle = currentParticle->initialLife / nCycles;
+		float timePerFrame = (Ytiles * Xtiles) / timePerCycle;
+		currentParticle->animationSpeed = timePerFrame;
+	}
 }
 
 void ComponentParticleSystem::CreateParticles() {
@@ -556,6 +569,8 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	Xtiles = jComponent[JSON_TAG_XTILES];
 	animationSpeed = jComponent[JSON_TAG_ANIMATION_SPEED];
 	isRandomFrame = jComponent[JSON_TAG_IS_RANDOM_FRAME];
+	loopAnimation = jComponent[JSON_TAG_lOOP_ANIMATION];
+	nCycles = jComponent[JSON_TAG_N_CYCLES];
 
 	// Render
 	textureID = jComponent[JSON_TAG_TEXTURE_TEXTURE_ID];
@@ -657,6 +672,8 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_XTILES] = Xtiles;
 	jComponent[JSON_TAG_ANIMATION_SPEED] = animationSpeed;
 	jComponent[JSON_TAG_IS_RANDOM_FRAME] = isRandomFrame;
+	jComponent[JSON_TAG_lOOP_ANIMATION] = loopAnimation;
+	jComponent[JSON_TAG_N_CYCLES] = nCycles;
 
 	// Render
 	jComponent[JSON_TAG_TEXTURE_TEXTURE_ID] = textureID;
@@ -695,7 +712,7 @@ void ComponentParticleSystem::Update() {
 				}
 
 				if (!isRandomFrame) {
-					currentParticle.currentFrame += animationSpeed * App->time->GetDeltaTimeOrRealDeltaTime();
+					currentParticle.currentFrame += currentParticle.animationSpeed * App->time->GetDeltaTimeOrRealDeltaTime();
 				}
 			}
 			if (currentParticle.life < 0) {
@@ -705,7 +722,6 @@ void ComponentParticleSystem::Update() {
 		if (executer) executer = false;
 		UndertakerParticle();
 		SpawnParticles();
-
 	} else {
 		if (!isPlaying) return;
 		restDelayTime -= App->time->GetDeltaTimeOrRealDeltaTime();
@@ -750,7 +766,6 @@ void ComponentParticleSystem::UpdateRotation(Particle* currentParticle) {
 	float newRotation;
 	if (rotationFactorRM == RandomMode::CONST_MULT) {
 		newRotation = rand() / (float) RAND_MAX * (rotationFactor[1] - rotationFactor[0]) + rotationFactor[0];
-
 	} else {
 		newRotation = rotationFactor[0];
 	}
@@ -763,7 +778,6 @@ void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
 	float newScale;
 	if (scaleFactorRM == RandomMode::CONST_MULT) {
 		newScale = rand() / (float) RAND_MAX * (scaleFactor[1] - scaleFactor[0]) + scaleFactor[0];
-
 	} else {
 		newScale = scaleFactor[0];
 	}
@@ -799,7 +813,6 @@ void ComponentParticleSystem::KillParticle(Particle* currentParticle) {
 void ComponentParticleSystem::SpawnParticles() {
 	if ((looping || (particleSpawned < maxParticles && emitterTime < duration)) && isPlaying) {
 		SpawnParticleUnit();
-
 	} else {
 		if (particles.Count() == 0) {
 			restDelayTime = startDelay;
@@ -829,6 +842,8 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 		InitParticleScale(currentParticle);
 		InitParticleSpeed(currentParticle);
 		InitParticleLife(currentParticle);
+		InitParticleAnimationSpeed(currentParticle);
+
 		currentParticle->emitterPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		currentParticle->emitterDirection = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation() * float3::unitY;
 
@@ -891,23 +906,18 @@ void ComponentParticleSystem::Draw() {
 				if (renderAlignment == ParticleRenderAlignment::VIEW) {
 					Frustum* frustum = App->camera->GetActiveCamera()->GetFrustum();
 					newModelMatrix = float4x4::LookAt(float3::unitZ, -frustum->Front(), float3::unitY, float3::unitY);
-
 				} else if (renderAlignment == ParticleRenderAlignment::WORLD) {
 					newModelMatrix = float3x3::identity;
 					newModelMatrix[1][1] = -1; // Invert z axis
-
 				} else if (renderAlignment == ParticleRenderAlignment::LOCAL) {
 					ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 					newModelMatrix = float4x4::LookAt(float3::unitZ, -(transform->GetGlobalRotation() * float3::unitY), float3::unitY, float3::unitY);
-
 				} else if (renderAlignment == ParticleRenderAlignment::FACING) {
 					float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
 					newModelMatrix = float4x4::LookAt(float3::unitZ, cameraPos - currentParticle.position, float3::unitY, float3::unitY);
-
 				} else { // Velocity
 					newModelMatrix = float4x4::LookAt(float3::unitZ, -currentParticle.direction, float3::unitY, float3::unitY);
 				}
-
 			} else if (billboardType == BillboardType::STRETCH) {
 				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
 				float3 cameraDir = (cameraPos - currentParticle.position).Normalized();
@@ -920,10 +930,8 @@ void ComponentParticleSystem::Draw() {
 				newRotation.SetCol(2, newCameraDir);
 
 				newModelMatrix = float4x4::identity * newRotation;
-
 			} else if (billboardType == BillboardType::HORIZONTAL) {
 				newModelMatrix = float4x4::LookAt(float3::unitZ, float3::unitY, float3::unitY, float3::unitY);
-
 			} else if (billboardType == BillboardType::VERTICAL) {
 				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
 				float3 cameraDir = (float3(cameraPos.x, currentParticle.position.y, cameraPos.z) - currentParticle.position).Normalized();
