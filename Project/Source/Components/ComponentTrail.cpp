@@ -37,6 +37,7 @@
 #define JSON_TAG_TRAIL_QUADS "TrailQuads"
 #define JSON_TAG_TEXTURE_REPEATS "TextureRepeats"
 #define JSON_TAG_QUAD_LIFE "QuadLife"
+#define JSON_TAG_IS_RENDERING "IsRendering"
 
 #define JSON_TAG_HAS_COLOR_OVER_TRAIL "HasColorOverTrail"
 #define JSON_TAG_GRADIENT_COLOR "GradientColor"
@@ -180,6 +181,7 @@ void ComponentTrail::Load(JsonValue jComponent) {
 	maxVertices = jComponent[JSON_TAG_MAXVERTICES];
 	trailQuads = jComponent[JSON_TAG_TRAIL_QUADS];
 	quadLife = jComponent[JSON_TAG_QUAD_LIFE];
+	isRendering = jComponent[JSON_TAG_IS_RENDERING];
 	width = jComponent[JSON_TAG_WIDTH];
 	nTextures = jComponent[JSON_TAG_TEXTURE_REPEATS];
 
@@ -202,6 +204,7 @@ void ComponentTrail::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_WIDTH] = width;
 	jComponent[JSON_TAG_TEXTURE_REPEATS] = nTextures;
 	jComponent[JSON_TAG_QUAD_LIFE] = quadLife;
+	jComponent[JSON_TAG_IS_RENDERING] = isRendering;
 	// Color
 	jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL] = colorOverTrail;
 	int color = 0;
