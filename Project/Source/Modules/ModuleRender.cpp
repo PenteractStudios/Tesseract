@@ -206,6 +206,7 @@ bool ModuleRender::Init() {
 	glGenFramebuffers(1, &renderPassBuffer);
 	glGenFramebuffers(1, &depthPrepassTextureBuffer);
 	glGenFramebuffers(1, &depthMapTextureBuffer);
+	glGenFramebuffers(1, &depthMSAABuffer);
 	glGenFramebuffers(1, &ssaoTextureBuffer);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferH);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferV);
@@ -634,7 +635,7 @@ UpdateStatus ModuleRender::Update() {
 #else
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, colorCorrectionBuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, hdrFramebuffer);
-	glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	//glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 #endif
 
 	return UpdateStatus::CONTINUE;
@@ -674,6 +675,7 @@ bool ModuleRender::CleanUp() {
 	glDeleteFramebuffers(1, &renderPassBuffer);
 	glDeleteFramebuffers(1, &depthPrepassTextureBuffer);
 	glDeleteFramebuffers(1, &depthMapTextureBuffer);
+	glDeleteFramebuffers(1, &depthMSAABuffer);
 	glDeleteFramebuffers(1, &ssaoTextureBuffer);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferH);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferV);
@@ -704,6 +706,10 @@ void ModuleRender::ReceiveEvent(TesseractEvent& ev) {
 void ModuleRender::UpdateFramebuffers() {
 	// Depth buffer
 	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	
+	glBindRenderbuffer(GL_RENDERBUFFER, depthMSAABuffer);
 	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
@@ -779,7 +785,7 @@ void ModuleRender::UpdateFramebuffers() {
 
 	// Render buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthMSAABuffer);
 
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, renderTexture);
 	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
