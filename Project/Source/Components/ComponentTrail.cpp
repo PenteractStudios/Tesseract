@@ -53,6 +53,7 @@ void ComponentTrail::Init() {
 }
 
 void ComponentTrail::Update() {
+	if (!isRendering) return;
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 	float3 vectorUp = (transform->GetGlobalRotation() * float3::unitY).Normalized();
 
@@ -125,6 +126,9 @@ void ComponentTrail::UpdateLife(Quad* currentQuad) {
 }
 
 void ComponentTrail::OnEditorUpdate() {
+	if (ImGui::Button("Play")) Play();
+	if (ImGui::Button("Stop")) Stop();
+
 	ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
 	if (ImGui::DragInt("Trail Quads", &trailQuads, 1.0f, 1, 50, "%d", ImGuiSliderFlags_AlwaysClamp)) {
 		if (nTextures > trailQuads) nTextures = trailQuads;
@@ -347,4 +351,18 @@ void ComponentTrail::EditTextureCoords() {
 
 		nLine++;
 	}
+}
+
+TESSERACT_ENGINE_API void ComponentTrail::Play() {
+	isRendering = true;
+}
+
+TESSERACT_ENGINE_API void ComponentTrail::Stop() {
+	isRendering = false;
+	isStarted = false;
+	DeleteQuads();
+}
+
+TESSERACT_ENGINE_API void ComponentTrail::SetWidth(float w) {
+	width = w;
 }
