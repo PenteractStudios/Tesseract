@@ -62,6 +62,7 @@ public:
 	unsigned cubeVBO = 0;
 
 	unsigned renderTexture = 0;
+	unsigned outputTexture = 0;
 	unsigned positionsTexture = 0;
 	unsigned normalsTexture = 0;
 	unsigned depthMapTextures[NUM_CASCADE_FRUSTUM] = {0, 0, 0, 0};
@@ -70,12 +71,13 @@ public:
 
 	unsigned depthBuffer = 0;
 
-	unsigned framebuffer = 0;
+	unsigned renderPassBuffer = 0;
 	unsigned depthPrepassTextureBuffer = 0;
 	unsigned depthMapTextureBuffer = 0;
 	unsigned ssaoTextureBuffer = 0;
 	unsigned ssaoBlurTextureBufferH = 0;
 	unsigned ssaoBlurTextureBufferV = 0;
+	unsigned colorCorrectionBuffer = 0;
 
 	// ------- Viewport Updated ------- //
 	bool viewportUpdated = true;
@@ -120,6 +122,8 @@ private:
 
 	void ComputeSSAOTexture();
 	void BlurSSAOTexture(bool horizontal);
+
+	void ExecuteColorCorrection();
 
 	void DrawTexture(unsigned texture);
 

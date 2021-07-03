@@ -4,6 +4,7 @@
 #include "Creator.h"
 #include "Member.h"
 #include "TesseractEvent.h"
+#include "StateMachineEnum.h"
 
 #include <vector>
 
@@ -44,7 +45,8 @@ public:
 	virtual void OnValueChanged() {}
 	virtual void OnAnimationFinished() {}
 	virtual void OnAnimationSecondaryFinished() {}
-	virtual void OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance) {}
+	virtual void OnAnimationEvent(StateMachineEnum stateMachineEnum, const char* eventName) {}
+	virtual void OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance, void* particle = nullptr) {}
 
 private:
 	GameObject* owner = nullptr;

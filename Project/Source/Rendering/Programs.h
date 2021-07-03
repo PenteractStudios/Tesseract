@@ -76,6 +76,27 @@ struct ProgramSkybox : Program {
 	int cubemapLocation = -1;
 };
 
+struct ProgramUnlit : public Program {
+	ProgramUnlit(unsigned program);
+
+	int modelLocation = -1;
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int paletteLocation = -1;
+	int hasBonesLocation = -1;
+
+	int diffuseMapLocation = -1;
+	int diffuseColorLocation = -1;
+	int hasDiffuseMapLocation = -1;
+
+	int emissiveMapLocation = -1;
+	int hasEmissiveMapLocation = -1;
+
+	int tilingLocation = -1;
+	int offsetLocation = -1;
+};
+
 struct ProgramStandard : public Program {
 	ProgramStandard(unsigned program);
 
@@ -179,7 +200,7 @@ struct ProgramSSAO : Program {
 	ProgramSSAO(unsigned program);
 
 	int projLocation = -1;
-	
+
 	int positionsLocation = -1;
 	int normalsLocation = -1;
 
@@ -198,6 +219,12 @@ struct ProgramSSAOBlur : Program {
 
 	int kernelLocation = -1;
 	int horizontalLocation = -1;
+};
+
+struct ProgramColorCorrection : Program {
+	ProgramColorCorrection(unsigned program);
+
+	int inputTextureLocation = -1;
 };
 
 struct ProgramDrawTexture : Program {
@@ -226,4 +253,32 @@ struct ProgramTextUI : Program {
 	int projLocation = -1;
 
 	int textColorLocation = -1;
+};
+
+struct ProgramBillboard : Program {
+	ProgramBillboard(unsigned program);
+
+	int modelLocation = -1;
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int inputColorLocation = -1;
+	int hasDiffuseLocation = -1;
+	int diffuseMapLocation = -1;
+
+	int currentFrameLocation = -1;
+	int xTilesLocation = -1;
+	int yTilesLocation = -1;
+	int xFlipLocation = -1;
+	int yFlipLocation = -1;
+};
+struct ProgramTrail : Program {
+	ProgramTrail(unsigned program);
+
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int inputColorLocation = -1;
+	int hasDiffuseLocation = -1;
+	int diffuseMap = -1;
 };

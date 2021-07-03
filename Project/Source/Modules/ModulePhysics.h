@@ -3,6 +3,7 @@
 
 #include "Math/float4x4.h"
 #include "btBulletDynamicsCommon.h"
+#include "Components/ComponentParticleSystem.h"
 
 // BULLET DEBUG: Uncomment to activate it
 //class DebugDrawer;
@@ -72,6 +73,11 @@ public:
 
 	void AddBodyToWorld(btRigidBody* rigidbody, ColliderType colliderType, WorldLayers layer);
 
+	// -- Add/Remove Particle Body -- //
+	void CreateParticleRigidbody(ComponentParticleSystem::Particle* particle);
+	void RemoveParticleRigidbody(ComponentParticleSystem::Particle* particle);
+	void UpdateParticleRigidbody(ComponentParticleSystem::Particle* particle);
+
 	void InitializeRigidBodies(); // Called on Play(), this function adds all the collision objects to the physics world.
 	void ClearPhysicBodies();	  // Called on Stop(), this function removes all the collision objects from the physics world.
 
@@ -88,6 +94,8 @@ private:
 	btBroadphaseInterface* broadPhase = nullptr;
 	btSequentialImpulseConstraintSolver* constraintSolver = nullptr;
 	btDiscreteDynamicsWorld* world = nullptr;
+
+	std::vector<btRigidBody*> rigidBodiesToRemove;
 
 	//BULLET DEBUG: Uncomment to activate it
 	//DebugDrawer* debugDrawer;

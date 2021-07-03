@@ -70,6 +70,27 @@ ProgramSkybox::ProgramSkybox(unsigned program_)
 	cubemapLocation = glGetUniformLocation(program, "cubemap");
 }
 
+
+ProgramUnlit::ProgramUnlit(unsigned program_)
+	: Program(program_) {
+	modelLocation = glGetUniformLocation(program, "model");
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
+	paletteLocation = glGetUniformLocation(program, "palette");
+	hasBonesLocation = glGetUniformLocation(program, "hasBones");
+
+	diffuseMapLocation = glGetUniformLocation(program, "diffuseMap");
+	diffuseColorLocation = glGetUniformLocation(program, "diffuseColor");
+	hasDiffuseMapLocation = glGetUniformLocation(program, "hasDiffuseMap");
+
+	emissiveMapLocation = glGetUniformLocation(program, "emissiveMap");
+	hasEmissiveMapLocation = glGetUniformLocation(program, "hasEmissiveMap");
+
+	tilingLocation = glGetUniformLocation(program, "tiling");
+	offsetLocation = glGetUniformLocation(program, "offset");
+}
+
 ProgramStandard::ProgramStandard(unsigned program_)
 	: Program(program_) {
 	modelLocation = glGetUniformLocation(program, "model");
@@ -191,6 +212,11 @@ ProgramSSAOBlur::ProgramSSAOBlur(unsigned program_)
 	horizontalLocation = glGetUniformLocation(program, "horizontal");
 }
 
+ProgramColorCorrection::ProgramColorCorrection(unsigned program_)
+	: Program(program_) {
+	inputTextureLocation = glGetUniformLocation(program, "inputTexture");
+}
+
 ProgramDrawTexture::ProgramDrawTexture(unsigned program_)
 	: Program(program_) {
 	textureToDrawLocation = glGetUniformLocation(program, "textureToDraw");
@@ -214,4 +240,31 @@ ProgramTextUI::ProgramTextUI(unsigned program_)
 	projLocation = glGetUniformLocation(program, "proj");
 
 	textColorLocation = glGetUniformLocation(program, "textColor");
+}
+
+ProgramBillboard::ProgramBillboard(unsigned program_)
+	: Program(program_) {
+	modelLocation = glGetUniformLocation(program, "model");
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
+	diffuseMapLocation = glGetUniformLocation(program, "diffuseMap");
+	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuseMap");
+	inputColorLocation = glGetUniformLocation(program, "inputColor");
+
+	currentFrameLocation = glGetUniformLocation(program, "currentFrame");
+	xTilesLocation = glGetUniformLocation(program, "Xtiles");
+	yTilesLocation = glGetUniformLocation(program, "Ytiles");
+	xFlipLocation = glGetUniformLocation(program, "flipX");
+	yFlipLocation = glGetUniformLocation(program, "flipY");
+}
+ProgramTrail::ProgramTrail(unsigned program_)
+	: Program(program_) {
+	//modelLocation = glGetUniformLocation(program, "model");
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
+	inputColorLocation = glGetUniformLocation(program, "inputColor");
+	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
+	diffuseMap = glGetUniformLocation(program, "diffuseMap");
 }

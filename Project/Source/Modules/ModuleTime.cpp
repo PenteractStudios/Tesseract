@@ -141,6 +141,14 @@ unsigned int ModuleTime::GetFrameCount() const {
 	return frameCount;
 }
 
+float ModuleTime::GetDeltaTimeOrRealDeltaTime() const {
+	if (HasGameStarted()) {
+		return GetDeltaTime();
+	} else {
+		return GetRealTimeDeltaTime();
+	}
+}
+
 void ModuleTime::StartGame() {
 	if (gameStarted) return;
 

@@ -162,11 +162,12 @@ void ComponentSphereCollider::OnDisable() {
 	if (rigidBody && App->time->HasGameStarted()) App->physics->RemoveSphereRigidbody(this);
 }
 
-void ComponentSphereCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance) {
+void ComponentSphereCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance,
+										  ComponentParticleSystem::Particle* p) {
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
 		if (script != nullptr) {
-			script->OnCollision(collidedWith, collisionNormal, penetrationDistance);
+			script->OnCollision(collidedWith, collisionNormal, penetrationDistance, p);
 		}
 	}
 }

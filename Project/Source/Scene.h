@@ -31,6 +31,7 @@
 #include "Components/Physics/ComponentBoxCollider.h"
 #include "Components/Physics/ComponentCapsuleCollider.h"
 #include "Components/ComponentAgent.h"
+#include "Components/ComponentObstacle.h"
 
 #include "Geometry/Frustum.h"
 
@@ -60,6 +61,7 @@ public:
 	int GetTotalTriangles() const;
 	std::vector<float> GetVertices(); // Gets all the vertices from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
 	std::vector<int> GetTriangles();  // Gets all the triangles from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
+	std::vector<float> GetNormals();
 
 	std::vector<GameObject*> GetCulledMeshes(const Frustum& frustum); // Gets all the game objects inside in the given frustum
 
@@ -104,6 +106,7 @@ public:
 	PoolMap<UID, ComponentBoxCollider> boxColliderComponents;
 	PoolMap<UID, ComponentCapsuleCollider> capsuleColliderComponents;
 	PoolMap<UID, ComponentAgent> agentComponents;
+	PoolMap<UID, ComponentObstacle> obstacleComponents;
 
 	// ---- Quadtree Parameters ---- //
 	Quadtree<GameObject> quadtree;

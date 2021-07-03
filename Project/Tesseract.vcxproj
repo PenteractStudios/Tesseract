@@ -16,6 +16,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Rendering\FrustumPlanes.h" />
+    <ClInclude Include="Source\Components\ComponentObstacle.h" />
+    <ClInclude Include="Libs\imgui\imgui_color_gradient.h" />
     <ClInclude Include="Source\Panels\PanelAudioMixer.h" />
     <ClInclude Include="Source\FileSystem\StateMachinGenerator.h" />
     <ClInclude Include="Source\Components\ComponentBillboard.h" />
@@ -72,6 +74,7 @@
     <ClInclude Include="Source\Panels\PanelImportOptions.h" />
     <ClInclude Include="Source\Components\Physics\ComponentBoxCollider.h" />
     <ClInclude Include="Source\Components\Physics\ComponentCapsuleCollider.h" />
+    <ClInclude Include="Source\Utils\Collider.h" />
     <ClInclude Include="Source\Utils\MotionState.h" />
     <ClInclude Include="Source\Components\Physics\ComponentSphereCollider.h" />
     <ClInclude Include="Source\Modules\ModulePhysics.h" />
@@ -205,6 +208,7 @@
     <ClInclude Include="Source\Utils\Logging.h" />
     <ClInclude Include="Source\Utils\Buffer.h" />
     <ClInclude Include="Source\Utils\Random.h" />
+    <ClInclude Include="Source\Utils\ParticleMotionState.h" />
     <ClInclude Include="Source\Utils\UID.h" />
     <ClInclude Include="Source\Utils\MSTimer.h" />
     <ClInclude Include="Source\Utils\PerformanceTimer.h" />
@@ -345,6 +349,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Rendering\FrustumPlanes.cpp" />
+    <ClCompile Include="Source\Components\ComponentObstacle.cpp" />
+    <ClCompile Include="Libs\imgui\imgui_color_gradient.cpp" />
     <ClCompile Include="Source\Panels\PanelAudioMixer.cpp" />
     <ClCompile Include="Source\FileSystem\StateMachinGenerator.cpp" />
     <ClCompile Include="Source\Components\ComponentBillboard.cpp" />
@@ -489,6 +495,7 @@
     <ClCompile Include="Source\Utils\ImGuiUtils.cpp" />
     <ClCompile Include="Source\Utils\Logging.cpp" />
     <ClCompile Include="Source\Utils\MSTimer.cpp" />
+    <ClCompile Include="Source\Utils\ParticleMotionState.cpp" />
     <ClCompile Include="Source\Utils\PerformanceTimer.cpp" />
     <ClCompile Include="Source\Utils\Random.cpp" />
     <ClCompile Include="Source\Utils\UID.cpp" />

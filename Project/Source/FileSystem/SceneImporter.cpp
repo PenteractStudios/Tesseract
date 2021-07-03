@@ -119,7 +119,7 @@ void SceneImporter::LoadScene(const char* filePath) {
 	scene->root = root;
 	root->scene = scene;
 	root->Load(jRoot);
-	root->InitComponents();
+	root->Start();
 
 	// Quadtree generation
 	JsonValue jQuadtreeBounds = jScene[JSON_TAG_QUADTREE_BOUNDS];

@@ -37,5 +37,6 @@ public:
 	unsigned numBones = 0;
 	std::vector<ResourceMesh::Bone> bones;		// The bones and it's transform from a Mesh
 	std::vector<float> meshVertices;
+	std::vector<float> meshNormals;
 	std::vector<unsigned> meshIndices;
 };

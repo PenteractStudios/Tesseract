@@ -30,9 +30,19 @@
 #define JSON_TAG_CHILDREN "Children"
 #define JSON_TAG_MASK "Mask"
 
-void GameObject::InitComponents() {
+void GameObject::Init() {
 	for (Component* component : components) {
 		component->Init();
+	}
+}
+
+void GameObject::Start() {
+	for (Component* component : components) {
+		component->Start();
+	}
+
+	for (GameObject* child : children) {
+		child->Start();
 	}
 }
 
@@ -320,6 +330,7 @@ void GameObject::Load(JsonValue jGameObject) {
 			}
 		}
 	}
+	Init();
 
 	JsonValue jChildren = jGameObject[JSON_TAG_CHILDREN];
 	for (unsigned i = 0; i < jChildren.Size(); ++i) {
@@ -328,9 +339,8 @@ void GameObject::Load(JsonValue jGameObject) {
 
 		GameObject* child = scene->gameObjects.Obtain(0);
 		child->scene = scene;
-		child->Load(jChild);
 		child->SetParent(this);
-		child->InitComponents();
+		child->Load(jChild);
 	}
 
 	UID rootBoneId = jGameObject[JSON_TAG_ROOT_BONE_ID];
@@ -394,6 +404,7 @@ void GameObject::LoadPrefab(JsonValue jGameObject) {
 		components.push_back(component);
 		component->Load(jComponent);
 	}
+	Init();
 
 	JsonValue jChildren = jGameObject[JSON_TAG_CHILDREN];
 	for (unsigned i = 0; i < jChildren.Size(); ++i) {
@@ -403,10 +414,9 @@ void GameObject::LoadPrefab(JsonValue jGameObject) {
 		UID childId = GenerateUID();
 		GameObject* child = scene->gameObjects.Obtain(childId);
 		child->scene = scene;
-		child->LoadPrefab(jChild);
 		child->id = childId;
 		child->SetParent(this);
-		child->InitComponents();
+		child->LoadPrefab(jChild);
 	}
 
 	std::string rootBoneName = jGameObject[JSON_TAG_ROOT_BONE_NAME];
