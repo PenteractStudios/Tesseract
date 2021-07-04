@@ -23,16 +23,17 @@ public:
 	void OnDisable() override;
 
 	void UpdateAudioListener();
+	void UpdateDistanceModel();
 
 	TESSERACT_ENGINE_API float GetAudioVolume() const;
 	TESSERACT_ENGINE_API void SetAudioVolume(float volume);
 
 private:
 	float gain = 1.0f;
-	DistanceModel distanceModel = DistanceModel::EXPONENT;
-
-	bool clamped = false;
 	int model = 0;
+	bool clamped = false;
+
+	DistanceModel distanceModel = DistanceModel::EXPONENT;
 
 	inline static const char* distanceModels[] {"Exponent", "Inverse", "Linear"};
 };

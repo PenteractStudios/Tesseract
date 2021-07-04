@@ -27,7 +27,7 @@ bool AudioImporter::ImportAudio(const char* filePath, JsonValue jMeta) {
 
 	if (extension == WAV_AUDIO_EXTENSION) {
 		std::string fileIn(filePath);
-		std::string fileOut = fileIn.replace(fileIn.end() - 4, fileIn.end(), "_Converted.ogg");
+		std::string fileOut = fileIn.replace(fileIn.end() - 4, fileIn.end(), ".ogg");
 
 		char* filePathOgg;
 		filePathOgg = &fileOut[0];
@@ -95,8 +95,8 @@ void AudioImporter::EncondeWavToOgg(const char* infilename, const char* outfilen
 		exit(1);
 	};
 	
-	while ((readcount = sf_read_double(inFile, data, BUFFER_LEN))) {
-		sf_write_double(outFile, data, readcount);
+	while ((readCount = sf_read_double(inFile, data, BUFFER_LEN))) {
+		sf_write_double(outFile, data, readCount);
 	}
 
 	sf_close(inFile);
