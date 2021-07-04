@@ -122,116 +122,116 @@ public:
 	//Getters
 
 	// Particle System
-	float GetDuration() const;
-	bool GetIsLooping() const;
-	float2 GetLife() const;
-	float2 GetSpeed() const;
-	float2 GetRotation() const;
-	float2 GetScale() const;
-	bool GetIsReverseEffect() const;
-	float2 GetReserseDistance() const;
-	unsigned GetMaxParticles() const;
+	TESSERACT_ENGINE_API float GetDuration() const;
+	TESSERACT_ENGINE_API bool GetIsLooping() const;
+	TESSERACT_ENGINE_API float2 GetLife() const;
+	TESSERACT_ENGINE_API float2 GetSpeed() const;
+	TESSERACT_ENGINE_API float2 GetRotation() const;
+	TESSERACT_ENGINE_API float2 GetScale() const;
+	TESSERACT_ENGINE_API bool GetIsReverseEffect() const;
+	TESSERACT_ENGINE_API float2 GetReserseDistance() const;
+	TESSERACT_ENGINE_API unsigned GetMaxParticles() const;
 
 	// Emision
-	bool GetIsAttachEmmitter() const;
+	TESSERACT_ENGINE_API bool GetIsAttachEmmitter() const;
 
 	// Shape
-	ParticleEmitterType GetEmmitterType() const;
+	TESSERACT_ENGINE_API ParticleEmitterType GetEmmitterType() const;
 
 	// -- Cone
-	float GetConeRadiusUp() const;
-	float GetConeRadiusDown() const;
-	bool GetRandomConeRadiusDown() const;
-	bool GetRandomConeRadiusUp() const;
+	TESSERACT_ENGINE_API float GetConeRadiusUp() const;
+	TESSERACT_ENGINE_API float GetConeRadiusDown() const;
+	TESSERACT_ENGINE_API bool GetRandomConeRadiusDown() const;
+	TESSERACT_ENGINE_API bool GetRandomConeRadiusUp() const;
 
 	// Rotation over Lifetime
-	bool GetRotationOverLifetime() const;
-	float2 GetRotationFactor() const;
+	TESSERACT_ENGINE_API bool GetRotationOverLifetime() const;
+	TESSERACT_ENGINE_API float2 GetRotationFactor() const;
 
 	// Size over Lifetime
-	bool GetSizeOverLifetime() const;
-	float2 GetScaleFactor() const;
+	TESSERACT_ENGINE_API bool GetSizeOverLifetime() const;
+	TESSERACT_ENGINE_API float2 GetScaleFactor() const;
 
 	// Color over Lifetime
-	bool GetColorOverLifetime() const;
-	ImGradient* GetGradient() const;
-	ImGradientMark* GetDraggingGradient() const;
-	ImGradientMark* GetSelectedGradient() const;
+	TESSERACT_ENGINE_API bool GetColorOverLifetime() const;
+	TESSERACT_ENGINE_API ImGradient* GetGradient() const;
+	TESSERACT_ENGINE_API ImGradientMark* GetDraggingGradient() const;
+	TESSERACT_ENGINE_API ImGradientMark* GetSelectedGradient() const;
 
 	// Texture Sheet Animation
-	unsigned GetXtiles() const;
-	unsigned GetYtiles() const;
-	float GetAnimationSpeed() const;
-	bool GetIsRandomFrame() const;
-	bool GetIsLoopAnimation() const;
-	float GetNCycles() const;
+	TESSERACT_ENGINE_API unsigned GetXtiles() const;
+	TESSERACT_ENGINE_API unsigned GetYtiles() const;
+	TESSERACT_ENGINE_API float GetAnimationSpeed() const;
+	TESSERACT_ENGINE_API bool GetIsRandomFrame() const;
+	TESSERACT_ENGINE_API bool GetIsLoopAnimation() const;
+	TESSERACT_ENGINE_API float GetNCycles() const;
 
 	// Render
-	BillboardType GetBillboardType() const;
-	ParticleRenderMode GetRenderMode() const;
-	ParticleRenderAlignment GetRenderAlignment() const;
-	bool GetFlipXTexture() const;
-	bool GetFlipYTexture() const;
+	TESSERACT_ENGINE_API BillboardType GetBillboardType() const;
+	TESSERACT_ENGINE_API ParticleRenderMode GetRenderMode() const;
+	TESSERACT_ENGINE_API ParticleRenderAlignment GetRenderAlignment() const;
+	TESSERACT_ENGINE_API bool GetFlipXTexture() const;
+	TESSERACT_ENGINE_API bool GetFlipYTexture() const;
 
 	// Collision
-	bool GetCollision() const;
+	TESSERACT_ENGINE_API bool GetCollision() const;
 
 	//Setters
 
 	// Particle System
-	float SetDuration(float _duration);
-	bool SetIsLooping(bool _isLooping);
-	float2 SetLife(float2 _life);
-	float2 SetSpeed(float2 _speed);
-	float2 SetRotation(float2 _rotation);
-	float2 SetScale(float2 _scale);
-	bool SetIsReverseEffect(bool _isReverse);
-	float2 SetReserseDistance(float2 _reverseDistance);
-	unsigned SetMaxParticles(unsigned _maxParticle);
+	TESSERACT_ENGINE_API float SetDuration(float _duration);
+	TESSERACT_ENGINE_API bool SetIsLooping(bool _isLooping);
+	TESSERACT_ENGINE_API float2 SetLife(float2 _life);
+	TESSERACT_ENGINE_API float2 SetSpeed(float2 _speed);
+	TESSERACT_ENGINE_API float2 SetRotation(float2 _rotation);
+	TESSERACT_ENGINE_API float2 SetScale(float2 _scale);
+	TESSERACT_ENGINE_API bool SetIsReverseEffect(bool _isReverse);
+	TESSERACT_ENGINE_API float2 SetReserseDistance(float2 _reverseDistance);
+	TESSERACT_ENGINE_API unsigned SetMaxParticles(unsigned _maxParticle);
 
 	// Emision
-	bool SetIsAttachEmmitter(bool _isAttachEmmiter);
+	TESSERACT_ENGINE_API bool SetIsAttachEmmitter(bool _isAttachEmmiter);
 
 	// Shape
-	ParticleEmitterType SetEmmitterType(ParticleEmitterType _emmitterType);
+	TESSERACT_ENGINE_API ParticleEmitterType SetEmmitterType(ParticleEmitterType _emmitterType);
 
 	// -- Cone
-	float SetConeRadiusUp(float _coneRadiusUp);
-	float SetConeRadiusDown(float _coneRadiusUp);
-	bool SetRandomConeRadiusDown(bool _randomConeRadiusDown);
-	bool SetRandomConeRadiusUp(bool _randomConeRadiusUp);
+	TESSERACT_ENGINE_API float SetConeRadiusUp(float _coneRadiusUp);
+	TESSERACT_ENGINE_API float SetConeRadiusDown(float _coneRadiusUp);
+	TESSERACT_ENGINE_API bool SetRandomConeRadiusDown(bool _randomConeRadiusDown);
+	TESSERACT_ENGINE_API bool SetRandomConeRadiusUp(bool _randomConeRadiusUp);
 
 	// Rotation over Lifetime
-	bool SetRotationOverLifetime(bool _rotationOverLifeTime);
-	float2 SetRotationFactor(float2 _rotationFactor);
+	TESSERACT_ENGINE_API bool SetRotationOverLifetime(bool _rotationOverLifeTime);
+	TESSERACT_ENGINE_API float2 SetRotationFactor(float2 _rotationFactor);
 
 	// Size over Lifetime
-	bool SetSizeOverLifetime(bool _sizeOverLifeTime);
-	float2 SetScaleFactor(float2 _scaleFactor);
+	TESSERACT_ENGINE_API bool SetSizeOverLifetime(bool _sizeOverLifeTime);
+	TESSERACT_ENGINE_API float2 SetScaleFactor(float2 _scaleFactor);
 
 	// Color over Lifetime
-	bool SetColorOverLifetime(bool _colorOverLifeTime);
-	ImGradient* SetGradient(ImGradient _gradient);
-	ImGradientMark* SetDraggingGradient(ImGradientMark _draggingGradient);
-	ImGradientMark* SetSelectedGradient(ImGradientMark _selectGradient);
+	TESSERACT_ENGINE_API bool SetColorOverLifetime(bool _colorOverLifeTime);
+	TESSERACT_ENGINE_API ImGradient* SetGradient(ImGradient _gradient);
+	TESSERACT_ENGINE_API ImGradientMark* SetDraggingGradient(ImGradientMark _draggingGradient);
+	TESSERACT_ENGINE_API ImGradientMark* SetSelectedGradient(ImGradientMark _selectGradient);
 
 	// Texture Sheet Animation
-	unsigned SetXtiles(unsigned _Xtiles);
-	unsigned SetYtiles(unsigned _Ytiles);
-	float SetAnimationSpeed(float _animationSpeed);
-	bool SetIsRandomFrame(bool _randomFrame);
-	bool SetIsLoopAnimation(bool _loopAnimation);
-	float SetNCycles(float _nCycles);
+	TESSERACT_ENGINE_API unsigned SetXtiles(unsigned _Xtiles);
+	TESSERACT_ENGINE_API unsigned SetYtiles(unsigned _Ytiles);
+	TESSERACT_ENGINE_API float SetAnimationSpeed(float _animationSpeed);
+	TESSERACT_ENGINE_API bool SetIsRandomFrame(bool _randomFrame);
+	TESSERACT_ENGINE_API bool SetIsLoopAnimation(bool _loopAnimation);
+	TESSERACT_ENGINE_API float SetNCycles(float _nCycles);
 
 	// Render
-	BillboardType SetBillboardType(BillboardType _bilboardType);
-	ParticleRenderMode SetRenderMode(ParticleRenderMode _renderMode);
-	ParticleRenderAlignment SetRenderAlignment(ParticleRenderAlignment _renderAligment);
-	bool SetFlipXTexture(bool _flipX);
-	bool SetFlipYTexture(bool _flipY);
+	TESSERACT_ENGINE_API BillboardType SetBillboardType(BillboardType _bilboardType);
+	TESSERACT_ENGINE_API ParticleRenderMode SetRenderMode(ParticleRenderMode _renderMode);
+	TESSERACT_ENGINE_API ParticleRenderAlignment SetRenderAlignment(ParticleRenderAlignment _renderAligment);
+	TESSERACT_ENGINE_API bool SetFlipXTexture(bool _flipX);
+	TESSERACT_ENGINE_API bool SetFlipYTexture(bool _flipY);
 
 	// Collision
-	bool SetCollision(bool _collision);
+	TESSERACT_ENGINE_API bool SetCollision(bool _collision);
 
 public:
 	WorldLayers layer;
@@ -309,7 +309,7 @@ private:
 
 	// Render
 	UID textureID = 0;
-	BillboardType = BillboardType::NORMAL;
+	BillboardType billboardType = BillboardType::NORMAL;
 	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
 	ParticleRenderAlignment renderAlignment = ParticleRenderAlignment::VIEW;
 	bool flipTexture[2] = {false, false};
