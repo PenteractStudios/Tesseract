@@ -535,28 +535,7 @@ UpdateStatus ModuleRender::Update() {
 		if (trail.IsActive()) trail.Draw();
 	}
 
-	// Apply MSAA and bloom threshold
-	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);
-	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
-	glDisable(GL_DEPTH_TEST);
-	glClear(GL_COLOR_BUFFER_BIT);
-	DrawScene();
-
-	// Bloom blur
-	bool horizontal = true, firstIteration = true;
-	int amount = 6;
-	for (unsigned int i = 0; i < amount; i++)
-	{
-		glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[horizontal]);
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glDisable(GL_DEPTH_TEST);
-		glClear(GL_COLOR_BUFFER_BIT);
-		BlurBloomTexture(horizontal, firstIteration);
-		horizontal = !horizontal;
-		if (firstIteration) firstIteration = false;
-	}
-
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, hdrFramebuffer);
+	
 	// Draw Gizmos
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
@@ -621,6 +600,28 @@ UpdateStatus ModuleRender::Update() {
 
 	//Render UI
 	RenderUI();
+
+	// Apply MSAA and bloom threshold
+	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);
+	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
+	glDisable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT);
+	DrawScene();
+
+	// Bloom blur
+	bool horizontal = true, firstIteration = true;
+	int amount = 6;
+	for (unsigned int i = 0; i < amount; i++) {
+		glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[horizontal]);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glDisable(GL_DEPTH_TEST);
+		glClear(GL_COLOR_BUFFER_BIT);
+		BlurBloomTexture(horizontal, firstIteration);
+		horizontal = !horizontal;
+		if (firstIteration) firstIteration = false;
+	}
+
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, hdrFramebuffer);
 
 	// Color correction
 	glBindFramebuffer(GL_FRAMEBUFFER, colorCorrectionBuffer);
