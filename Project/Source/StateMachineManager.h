@@ -19,6 +19,6 @@ namespace StateMachineManager {
 
 	bool SecondaryEqualsToAnyPrincipal(const State& currentStateSecondary, const std::unordered_map<UID, State>& states);
 
-	bool CalculateAnimation(GameObject* gameObject, const GameObject& owner, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State* currentState, float3& position, Quat& rotation, bool& resetSecondaryStatemachine, StateMachineEnum stateMachineEnum, bool principalEqualSecondary = false);
+	bool CalculateAnimation(GameObject* gameObject, const GameObject& owner, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State* currentState, float3& position, Quat& rotation, bool& resetSecondaryStatemachine,const StateMachineEnum stateMachineEnum, bool principalEqualSecondary = false);
 
 }; // namespace StateMachineManager
