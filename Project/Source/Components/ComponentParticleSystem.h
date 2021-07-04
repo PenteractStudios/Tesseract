@@ -70,6 +70,7 @@ public:
 		float initialLife = 0.0f;
 		float currentFrame = 0.0f;
 		float animationSpeed = 1.0f;
+		float gravityTime = 0.0f;
 
 		float3 emitterPosition = float3::zero;
 		float3 emitterDirection = float3::zero;
@@ -86,18 +87,12 @@ public:
 
 	~ComponentParticleSystem();
 
-	void Update() override;
 	void Init() override;
+	void Update() override;
 	void DrawGizmos() override;
 	void OnEditorUpdate() override;
 	void Load(JsonValue jComponent) override;
 	void Save(JsonValue jComponent) const override;
-
-	void Draw();
-	void ImguiRandomMenu(float2& values, RandomMode mode);
-
-	TESSERACT_ENGINE_API void Play();
-	TESSERACT_ENGINE_API void Stop();
 
 	void CreateParticles();
 	void SpawnParticles();
@@ -109,15 +104,27 @@ public:
 	void InitParticleSpeed(Particle* currentParticle);
 	void InitParticleLife(Particle* currentParticle);
 	void InitParticleAnimationSpeed(Particle* currentParticle);
+	void InitStartDelay();
+	void InitStartRate();
 
 	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
 	void UpdateRotation(Particle* currentParticle);
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
+	void UpdateGravityDirection(Particle* currentParticle);
 
 	TESSERACT_ENGINE_API void KillParticle(Particle* currentParticle);
 	void UndertakerParticle();
 	void DestroyParticlesColliders();
+	void Draw();
+	void ImGuiParticlesEffect();
+
+	TESSERACT_ENGINE_API void Play();
+	TESSERACT_ENGINE_API void Restart();
+	TESSERACT_ENGINE_API void Stop();
+	TESSERACT_ENGINE_API void PlayChildParticles();
+	TESSERACT_ENGINE_API void RestartChildParticles();
+	TESSERACT_ENGINE_API void StopChildParticles();
 
 	//Getters
 
@@ -154,9 +161,6 @@ public:
 
 	// Color over Lifetime
 	TESSERACT_ENGINE_API bool GetColorOverLifetime() const;
-	TESSERACT_ENGINE_API ImGradient* GetGradient() const;
-	TESSERACT_ENGINE_API ImGradientMark* GetDraggingGradient() const;
-	TESSERACT_ENGINE_API ImGradientMark* GetSelectedGradient() const;
 
 	// Texture Sheet Animation
 	TESSERACT_ENGINE_API unsigned GetXtiles() const;
@@ -179,59 +183,56 @@ public:
 	//Setters
 
 	// Particle System
-	TESSERACT_ENGINE_API float SetDuration(float _duration);
-	TESSERACT_ENGINE_API bool SetIsLooping(bool _isLooping);
-	TESSERACT_ENGINE_API float2 SetLife(float2 _life);
-	TESSERACT_ENGINE_API float2 SetSpeed(float2 _speed);
-	TESSERACT_ENGINE_API float2 SetRotation(float2 _rotation);
-	TESSERACT_ENGINE_API float2 SetScale(float2 _scale);
-	TESSERACT_ENGINE_API bool SetIsReverseEffect(bool _isReverse);
-	TESSERACT_ENGINE_API float2 SetReserseDistance(float2 _reverseDistance);
-	TESSERACT_ENGINE_API unsigned SetMaxParticles(unsigned _maxParticle);
+	TESSERACT_ENGINE_API void SetDuration(float _duration);
+	TESSERACT_ENGINE_API void SetIsLooping(bool _isLooping);
+	TESSERACT_ENGINE_API void SetLife(float2 _life);
+	TESSERACT_ENGINE_API void SetSpeed(float2 _speed);
+	TESSERACT_ENGINE_API void SetRotation(float2 _rotation);
+	TESSERACT_ENGINE_API void SetScale(float2 _scale);
+	TESSERACT_ENGINE_API void SetIsReverseEffect(bool _isReverse);
+	TESSERACT_ENGINE_API void SetReserseDistance(float2 _reverseDistance);
+	TESSERACT_ENGINE_API void SetMaxParticles(unsigned _maxParticle);
 
 	// Emision
-	TESSERACT_ENGINE_API bool SetIsAttachEmmitter(bool _isAttachEmmiter);
+	TESSERACT_ENGINE_API void SetIsAttachEmmitter(bool _isAttachEmmiter);
 
 	// Shape
-	TESSERACT_ENGINE_API ParticleEmitterType SetEmmitterType(ParticleEmitterType _emmitterType);
+	TESSERACT_ENGINE_API void SetEmmitterType(ParticleEmitterType _emmitterType);
 
 	// -- Cone
-	TESSERACT_ENGINE_API float SetConeRadiusUp(float _coneRadiusUp);
-	TESSERACT_ENGINE_API float SetConeRadiusDown(float _coneRadiusUp);
-	TESSERACT_ENGINE_API bool SetRandomConeRadiusDown(bool _randomConeRadiusDown);
-	TESSERACT_ENGINE_API bool SetRandomConeRadiusUp(bool _randomConeRadiusUp);
+	TESSERACT_ENGINE_API void SetConeRadiusUp(float _coneRadiusUp);
+	TESSERACT_ENGINE_API void SetConeRadiusDown(float _coneRadiusUp);
+	TESSERACT_ENGINE_API void SetRandomConeRadiusDown(bool _randomConeRadiusDown);
+	TESSERACT_ENGINE_API void SetRandomConeRadiusUp(bool _randomConeRadiusUp);
 
 	// Rotation over Lifetime
-	TESSERACT_ENGINE_API bool SetRotationOverLifetime(bool _rotationOverLifeTime);
-	TESSERACT_ENGINE_API float2 SetRotationFactor(float2 _rotationFactor);
+	TESSERACT_ENGINE_API void SetRotationOverLifetime(bool _rotationOverLifeTime);
+	TESSERACT_ENGINE_API void SetRotationFactor(float2 _rotationFactor);
 
 	// Size over Lifetime
-	TESSERACT_ENGINE_API bool SetSizeOverLifetime(bool _sizeOverLifeTime);
-	TESSERACT_ENGINE_API float2 SetScaleFactor(float2 _scaleFactor);
+	TESSERACT_ENGINE_API void SetSizeOverLifetime(bool _sizeOverLifeTime);
+	TESSERACT_ENGINE_API void SetScaleFactor(float2 _scaleFactor);
 
 	// Color over Lifetime
-	TESSERACT_ENGINE_API bool SetColorOverLifetime(bool _colorOverLifeTime);
-	TESSERACT_ENGINE_API ImGradient* SetGradient(ImGradient _gradient);
-	TESSERACT_ENGINE_API ImGradientMark* SetDraggingGradient(ImGradientMark _draggingGradient);
-	TESSERACT_ENGINE_API ImGradientMark* SetSelectedGradient(ImGradientMark _selectGradient);
+	TESSERACT_ENGINE_API void SetColorOverLifetime(bool _colorOverLifeTime);
 
 	// Texture Sheet Animation
-	TESSERACT_ENGINE_API unsigned SetXtiles(unsigned _Xtiles);
-	TESSERACT_ENGINE_API unsigned SetYtiles(unsigned _Ytiles);
-	TESSERACT_ENGINE_API float SetAnimationSpeed(float _animationSpeed);
-	TESSERACT_ENGINE_API bool SetIsRandomFrame(bool _randomFrame);
-	TESSERACT_ENGINE_API bool SetIsLoopAnimation(bool _loopAnimation);
-	TESSERACT_ENGINE_API float SetNCycles(float _nCycles);
+	TESSERACT_ENGINE_API void SetXtiles(unsigned _Xtiles);
+	TESSERACT_ENGINE_API void SetYtiles(unsigned _Ytiles);
+	TESSERACT_ENGINE_API void SetAnimationSpeed(float _animationSpeed);
+	TESSERACT_ENGINE_API void SetIsRandomFrame(bool _randomFrame);
+	TESSERACT_ENGINE_API void SetIsLoopAnimation(bool _loopAnimation);
+	TESSERACT_ENGINE_API void SetNCycles(float _nCycles);
 
 	// Render
-	TESSERACT_ENGINE_API BillboardType SetBillboardType(BillboardType _bilboardType);
-	TESSERACT_ENGINE_API ParticleRenderMode SetRenderMode(ParticleRenderMode _renderMode);
-	TESSERACT_ENGINE_API ParticleRenderAlignment SetRenderAlignment(ParticleRenderAlignment _renderAligment);
-	TESSERACT_ENGINE_API bool SetFlipXTexture(bool _flipX);
-	TESSERACT_ENGINE_API bool SetFlipYTexture(bool _flipY);
+	TESSERACT_ENGINE_API void SetBillboardType(BillboardType _bilboardType);
+	TESSERACT_ENGINE_API void SetRenderMode(ParticleRenderMode _renderMode);
+	TESSERACT_ENGINE_API void SetRenderAlignment(ParticleRenderAlignment _renderAligment);
+	TESSERACT_ENGINE_API void SetFlipXTexture(bool _flipX);
+	TESSERACT_ENGINE_API void SetFlipYTexture(bool _flipY);
 
 	// Collision
-	TESSERACT_ENGINE_API bool SetCollision(bool _collision);
+	TESSERACT_ENGINE_API void SetCollision(bool _collision);
 
 public:
 	WorldLayers layer;
@@ -241,23 +242,23 @@ public:
 private:
 	Pool<Particle> particles;
 	std::vector<Particle*> deadParticles;
-	bool executer = false;
 	unsigned particleSpawned = 0;
+	bool executer = false;
+	bool isPlaying = false;
 
 	float3 cameraDir = {0.f, 0.f, 0.f};
 	float emitterTime = 0.0f;
+	float restDelayTime = 0.f;
+	float restParticlesPerSecond = 0.0f;
 
 	// Gizmo
 	bool drawGizmo = true;
 
-	// Control
-	bool isPlaying = false;
-	float startDelay = 0.f;
-	float restDelayTime = 0.f;
-
 	// Particle System
 	float duration = 5.0f; // Emitter duration
 	bool looping = false;
+	RandomMode startDelayRM = RandomMode::CONST;
+	float2 startDelay = {0.0f, 0.0f}; // Start Delay
 	RandomMode lifeRM = RandomMode::CONST;
 	float2 life = {5.0f, 5.0f}; // Start life
 	RandomMode speedRM = RandomMode::CONST;
@@ -270,9 +271,16 @@ private:
 	RandomMode reverseDistanceRM = RandomMode::CONST;
 	float2 reverseDistance = {5.0f, 5.0f};
 	unsigned maxParticles = 100;
-
+	float particlesCurrentFrame = 0;
 	// Emision
 	bool attachEmitter = true;
+	RandomMode particlesPerSecondRM = RandomMode::CONST;
+	float2 particlesPerSecond = {10.0f, 10.0f};
+
+	// Gravity
+	bool gravityEffect = false;
+	RandomMode gravityFactorRM = RandomMode::CONST;
+	float2 gravityFactor = {0.0f, 0.0f};
 
 	// Shape
 	ParticleEmitterType emitterType = ParticleEmitterType::CONE;
