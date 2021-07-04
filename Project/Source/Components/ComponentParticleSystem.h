@@ -119,6 +119,120 @@ public:
 	void UndertakerParticle();
 	void DestroyParticlesColliders();
 
+	//Getters
+
+	// Particle System
+	float GetDuration() const;
+	bool GetIsLooping() const;
+	float2 GetLife() const;
+	float2 GetSpeed() const;
+	float2 GetRotation() const;
+	float2 GetScale() const;
+	bool GetIsReverseEffect() const;
+	float2 GetReserseDistance() const;
+	unsigned GetMaxParticles() const;
+
+	// Emision
+	bool GetIsAttachEmmitter() const;
+
+	// Shape
+	ParticleEmitterType GetEmmitterType() const;
+
+	// -- Cone
+	float GetConeRadiusUp() const;
+	float GetConeRadiusDown() const;
+	bool GetRandomConeRadiusDown() const;
+	bool GetRandomConeRadiusUp() const;
+
+	// Rotation over Lifetime
+	bool GetRotationOverLifetime() const;
+	float2 GetRotationFactor() const;
+
+	// Size over Lifetime
+	bool GetSizeOverLifetime() const;
+	float2 GetScaleFactor() const;
+
+	// Color over Lifetime
+	bool GetColorOverLifetime() const;
+	ImGradient* GetGradient() const;
+	ImGradientMark* GetDraggingGradient() const;
+	ImGradientMark* GetSelectedGradient() const;
+
+	// Texture Sheet Animation
+	unsigned GetXtiles() const;
+	unsigned GetYtiles() const;
+	float GetAnimationSpeed() const;
+	bool GetIsRandomFrame() const;
+	bool GetIsLoopAnimation() const;
+	float GetNCycles() const;
+
+	// Render
+	BillboardType GetBillboardType() const;
+	ParticleRenderMode GetRenderMode() const;
+	ParticleRenderAlignment GetRenderAlignment() const;
+	bool GetFlipXTexture() const;
+	bool GetFlipYTexture() const;
+
+	// Collision
+	bool GetCollision() const;
+
+	//Setters
+
+	// Particle System
+	float SetDuration(float _duration);
+	bool SetIsLooping(bool _isLooping);
+	float2 SetLife(float2 _life);
+	float2 SetSpeed(float2 _speed);
+	float2 SetRotation(float2 _rotation);
+	float2 SetScale(float2 _scale);
+	bool SetIsReverseEffect(bool _isReverse);
+	float2 SetReserseDistance(float2 _reverseDistance);
+	unsigned SetMaxParticles(unsigned _maxParticle);
+
+	// Emision
+	bool SetIsAttachEmmitter(bool _isAttachEmmiter);
+
+	// Shape
+	ParticleEmitterType SetEmmitterType(ParticleEmitterType _emmitterType);
+
+	// -- Cone
+	float SetConeRadiusUp(float _coneRadiusUp);
+	float SetConeRadiusDown(float _coneRadiusUp);
+	bool SetRandomConeRadiusDown(bool _randomConeRadiusDown);
+	bool SetRandomConeRadiusUp(bool _randomConeRadiusUp);
+
+	// Rotation over Lifetime
+	bool SetRotationOverLifetime(bool _rotationOverLifeTime);
+	float2 SetRotationFactor(float2 _rotationFactor);
+
+	// Size over Lifetime
+	bool SetSizeOverLifetime(bool _sizeOverLifeTime);
+	float2 SetScaleFactor(float2 _scaleFactor);
+
+	// Color over Lifetime
+	bool SetColorOverLifetime(bool _colorOverLifeTime);
+	ImGradient* SetGradient(ImGradient _gradient);
+	ImGradientMark* SetDraggingGradient(ImGradientMark _draggingGradient);
+	ImGradientMark* SetSelectedGradient(ImGradientMark _selectGradient);
+
+	// Texture Sheet Animation
+	unsigned SetXtiles(unsigned _Xtiles);
+	unsigned SetYtiles(unsigned _Ytiles);
+	float SetAnimationSpeed(float _animationSpeed);
+	bool SetIsRandomFrame(bool _randomFrame);
+	bool SetIsLoopAnimation(bool _loopAnimation);
+	float SetNCycles(float _nCycles);
+
+	// Render
+	BillboardType SetBillboardType(BillboardType _bilboardType);
+	ParticleRenderMode SetRenderMode(ParticleRenderMode _renderMode);
+	ParticleRenderAlignment SetRenderAlignment(ParticleRenderAlignment _renderAligment);
+	bool SetFlipXTexture(bool _flipX);
+	bool SetFlipYTexture(bool _flipY);
+
+	// Collision
+	bool SetCollision(bool _collision);
+
 public:
 	WorldLayers layer;
 	int layerIndex = 5;
@@ -162,6 +276,7 @@ private:
 
 	// Shape
 	ParticleEmitterType emitterType = ParticleEmitterType::CONE;
+
 	// -- Cone
 	float coneRadiusUp = 1.0f;
 	float coneRadiusDown = 0.5f;
@@ -194,7 +309,7 @@ private:
 
 	// Render
 	UID textureID = 0;
-	BillboardType billboardType = BillboardType::NORMAL;
+	BillboardType = BillboardType::NORMAL;
 	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
 	ParticleRenderAlignment renderAlignment = ParticleRenderAlignment::VIEW;
 	bool flipTexture[2] = {false, false};

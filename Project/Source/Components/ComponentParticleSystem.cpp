@@ -995,3 +995,239 @@ void ComponentParticleSystem::Stop() {
 	particleSpawned = maxParticles;
 	executer = true;
 }
+//Getters
+
+// Particle System
+float ComponentParticleSystem::GetDuration() const {
+	return duration;
+}
+bool ComponentParticleSystem::GetIsLooping() const {
+	return looping;
+}
+float2 ComponentParticleSystem::GetLife() const {
+	return life;
+}
+float2 ComponentParticleSystem::GetSpeed() const {
+	return speed;
+}
+float2 ComponentParticleSystem::GetRotation() const {
+	return rotation;
+}
+float2 ComponentParticleSystem::GetScale() const {
+	return scale;
+}
+bool ComponentParticleSystem::GetIsReverseEffect() const {
+	return reverseEffect;
+}
+float2 ComponentParticleSystem::GetReserseDistance() const {
+	return reverseDistance;
+}
+unsigned ComponentParticleSystem::GetMaxParticles() const {
+	return maxParticles;
+}
+
+// Emision
+bool ComponentParticleSystem::GetIsAttachEmmitter() const {
+	return attachEmitter;
+}
+
+// Shape
+ParticleEmitterType ComponentParticleSystem::GetEmmitterType() const {
+	return emitterType;
+}
+
+// -- Cone
+float ComponentParticleSystem::GetConeRadiusUp() const {
+	return coneRadiusUp;
+}
+float ComponentParticleSystem::GetConeRadiusDown() const {
+	return coneRadiusDown;
+}
+bool ComponentParticleSystem::GetRandomConeRadiusDown() const {
+	return randomConeRadiusDown;
+}
+bool ComponentParticleSystem::GetRandomConeRadiusUp() const {
+	return randomConeRadiusUp;
+}
+
+// Rotation over Lifetime
+bool ComponentParticleSystem::GetRotationOverLifetime() const {
+	return rotationOverLifetime;
+}
+float2 ComponentParticleSystem::GetRotationFactor() const {
+	return rotationFactor;
+}
+
+// Size over Lifetime
+bool ComponentParticleSystem::GetSizeOverLifetime() const {
+	return sizeOverLifetime;
+}
+float2 ComponentParticleSystem::GetScaleFactor() const {
+	return scaleFactor;
+}
+
+// Color over Lifetime
+bool ComponentParticleSystem::GetColorOverLifetime() const {
+	return colorOverLifetime;
+}
+
+// Texture Sheet Animation
+unsigned ComponentParticleSystem::GetXtiles() const {
+	return Xtiles;
+}
+unsigned ComponentParticleSystem::GetYtiles() const {
+	return Ytiles;
+}
+float ComponentParticleSystem::GetAnimationSpeed() const {
+	return animationSpeed;
+}
+bool ComponentParticleSystem::GetIsRandomFrame() const {
+	return isRandomFrame;
+}
+bool ComponentParticleSystem::GetIsLoopAnimation() const {
+	return loopAnimation;
+}
+float ComponentParticleSystem::GetNCycles() const {
+	return nCycles;
+}
+
+// Render
+BillboardType ComponentParticleSystem::GetBillboardType() const {
+	return billboardType;
+}
+ParticleRenderMode ComponentParticleSystem::GetRenderMode() const {
+	return renderMode;
+}
+ParticleRenderAlignment ComponentParticleSystem::GetRenderAlignment() const {
+	return renderAlignment;
+}
+bool ComponentParticleSystem::GetFlipXTexture() const {
+	return flipTexture[0];
+}
+bool ComponentParticleSystem::GetFlipYTexture() const {
+	return flipTexture[1];
+}
+
+// Collision
+bool ComponentParticleSystem::GetCollision() const {
+	return collision;
+}
+
+//Setters
+
+// Particle System
+float ComponentParticleSystem::SetDuration(float _duration) {
+	duration = _duration;
+}
+bool ComponentParticleSystem::SetIsLooping(bool _isLooping) {
+	looping = _isLooping;
+}
+float2 ComponentParticleSystem::SetLife(float2 _life) {
+	life = _life;
+}
+float2 ComponentParticleSystem::SetSpeed(float2 _speed) {
+	speed = _speed;
+}
+float2 ComponentParticleSystem::SetRotation(float2 _rotation) {
+	rotation = _rotation;
+}
+float2 ComponentParticleSystem::SetScale(float2 _scale) {
+	scale = _scale;
+}
+bool ComponentParticleSystem::SetIsReverseEffect(bool _isReverse) {
+	reverseEffect = _isReverse;
+}
+float2 ComponentParticleSystem::SetReserseDistance(float2 _reverseDistance) {
+	reverseDistance = _reverseDistance;
+}
+unsigned ComponentParticleSystem::SetMaxParticles(unsigned _maxParticle) {
+	maxParticles = _maxParticle;
+	CreateParticles();
+}
+
+// Emision
+bool ComponentParticleSystem::SetIsAttachEmmitter(bool _isAttachEmmiter) {
+	attachEmitter = _isAttachEmmiter;
+}
+
+// Shape
+ParticleEmitterType ComponentParticleSystem::SetEmmitterType(ParticleEmitterType _emmitterType) {
+	emitterType = _emmitterType;
+}
+
+// -- Cone
+float ComponentParticleSystem::SetConeRadiusUp(float _coneRadiusUp) {
+	coneRadiusUp = _coneRadiusUp;
+}
+float ComponentParticleSystem::SetConeRadiusDown(float _coneRadiusUp) {
+	coneRadiusDown = coneRadiusDown;
+}
+bool ComponentParticleSystem::SetRandomConeRadiusDown(bool _randomConeRadiusDown) {
+	randomConeRadiusDown = _randomConeRadiusDown;
+}
+bool ComponentParticleSystem::SetRandomConeRadiusUp(bool _randomConeRadiusUp) {
+	randomConeRadiusUp = _randomConeRadiusUp;
+}
+
+// Rotation over Lifetime
+bool ComponentParticleSystem::SetRotationOverLifetime(bool _rotationOverLifeTime) {
+	rotationOverLifetime = _rotationOverLifeTime;
+}
+float2 ComponentParticleSystem::SetRotationFactor(float2 _rotationFactor) {
+	rotationFactor = _rotationFactor;
+}
+
+// Size over Lifetime
+bool ComponentParticleSystem::SetSizeOverLifetime(bool _sizeOverLifeTime) {
+	sizeOverLifetime = _sizeOverLifeTime;
+}
+float2 ComponentParticleSystem::SetScaleFactor(float2 _scaleFactor) {
+	scaleFactor = _scaleFactor;
+}
+
+// Color over Lifetime
+bool ComponentParticleSystem::SetColorOverLifetime(bool _colorOverLifeTime) {
+	colorOverLifetime = _colorOverLifeTime;
+}
+
+// Texture Sheet Animation
+unsigned ComponentParticleSystem::SetXtiles(unsigned _Xtiles) {
+	Xtiles = _Xtiles;
+}
+unsigned ComponentParticleSystem::SetYtiles(unsigned _Ytiles) {
+	Ytiles = _Ytiles;
+}
+float ComponentParticleSystem::SetAnimationSpeed(float _animationSpeed) {
+	animationSpeed = _animationSpeed;
+}
+bool ComponentParticleSystem::SetIsRandomFrame(bool _randomFrame) {
+	isRandomFrame = _randomFrame;
+}
+bool ComponentParticleSystem::SetIsLoopAnimation(bool _loopAnimation) {
+	loopAnimation = _loopAnimation;
+}
+float ComponentParticleSystem::SetNCycles(float _nCycles) {
+	nCycles = _nCycles;
+}
+
+// Render
+BillboardType ComponentParticleSystem::SetBillboardType(BillboardType _bilboardType) {
+	billboardType = _bilboardType;
+}
+ParticleRenderMode ComponentParticleSystem::SetRenderMode(ParticleRenderMode _renderMode) {
+	renderMode = _renderMode;
+}
+ParticleRenderAlignment ComponentParticleSystem::SetRenderAlignment(ParticleRenderAlignment _renderAligment) {
+	renderAlignment = _renderAligment;
+}
+bool ComponentParticleSystem::SetFlipXTexture(bool _flipX) {
+	flipTexture[0] = _flipX;
+}
+bool ComponentParticleSystem::SetFlipYTexture(bool _flipY) {
+	flipTexture[1] = _flipY;
+}
+
+// Collision
+bool ComponentParticleSystem::SetCollision(bool _collision) {
+	collision = _collision;
+}
