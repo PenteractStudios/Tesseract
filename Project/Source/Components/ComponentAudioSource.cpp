@@ -162,11 +162,11 @@ void ComponentAudioSource::OnEditorUpdate() {
 	if (ImGui::DragFloat("Roll Off Factor", &rollOffFact, 1.f, 0.0f, inf)) {
 		alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFact);
 	}
-	if (ImGui::DragFloat("Reference Distance", &referenceDistance, 1.f, 0.0f, inf)){
-		alSourcef(sourceId, AL_REFERENCE_DISTANCE, rollOffFact);
+	if (ImGui::DragFloat("Reference Distance", &referenceDistance, 1.f, 0.0f, inf)) {
+		alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
 	}
 	if (ImGui::DragFloat("Max Distance", &maxDistance, 1.f, 0.0f, inf)) {
-		alSourcef(sourceId, AL_MAX_DISTANCE, rollOffFact);
+		alSourcef(sourceId, AL_MAX_DISTANCE, maxDistance);
 	}
 
 	ImGui::Separator();
@@ -217,8 +217,8 @@ void ComponentAudioSource::UpdateSourceParameters() {
 		alSourcef(sourceId, AL_GAIN, gain);
 	}
 	alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFact);
-	alSourcef(sourceId, AL_REFERENCE_DISTANCE, rollOffFact);
-	alSourcef(sourceId, AL_MAX_DISTANCE, rollOffFact);
+	alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
+	alSourcef(sourceId, AL_MAX_DISTANCE, maxDistance);
 }
 
 void ComponentAudioSource::Play() {
