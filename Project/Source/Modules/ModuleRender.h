@@ -15,7 +15,7 @@
 
 class GameObject;
 
-enum class MSAA_SAMPLES_TYPE {
+TESSERACT_ENGINE_API enum class MSAA_SAMPLES_TYPE {
 	MSAA_X2,
 	MSAA_X4,
 	MSAA_X8,

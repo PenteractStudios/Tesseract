@@ -598,7 +598,7 @@ UpdateStatus ModuleRender::Update() {
 		}
 	}
 
-	//Render UI
+	// Render UI
 	RenderUI();
 
 	// Apply MSAA and bloom threshold
@@ -620,8 +620,6 @@ UpdateStatus ModuleRender::Update() {
 		horizontal = !horizontal;
 		if (firstIteration) firstIteration = false;
 	}
-
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, hdrFramebuffer);
 
 	// Color correction
 	glBindFramebuffer(GL_FRAMEBUFFER, colorCorrectionBuffer);

@@ -10,10 +10,8 @@
 #include "Modules/ModuleInput.h"
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleCamera.h"
-#include "Modules/ModuleRender.h"
 #include "Modules/ModuleWindow.h"
 #include "Modules/ModuleEditor.h"
-#include "Modules/ModuleRender.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleAudio.h"
 #include "Modules/ModuleUserInterface.h"
@@ -373,6 +371,24 @@ float Screen::GetBrightness() {
 
 float2 Screen::GetResolution() {
 	return float2(static_cast<float>(App->window->GetWidth()), static_cast<float>(App->window->GetHeight()));
+}
+
+void Screen::SetMSAAActive(bool value) {
+	App->renderer->msaaActive = value;
+	App->renderer->UpdateFramebuffers();
+}
+
+void Screen::SetMSAAType(MSAA_SAMPLES_TYPE value) {
+	App->renderer->msaaSampleType = value;
+	App->renderer->UpdateFramebuffers();
+}
+
+bool Screen::IsMSAAActive() {
+	return App->renderer->msaaActive;
+}
+
+MSAA_SAMPLES_TYPE Screen::GetMSAAType() {
+	return App->renderer->msaaSampleType;
 }
 
 // --------- Camera --------- //
