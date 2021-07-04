@@ -39,20 +39,17 @@ out vec4 outColor;
 
 void main()
 {	
-	vec2 uvs = uv0;
-	u = uvs.x;
-	v = uvs.y;
+	u = uv0.x;
+	v = uv0.y;
 	
 	if (flipX) 
 	{
-		uvs.x = 1 - uv0.x;
-		u = uvs.x;
+		u = 1 - uv0.x;
 	}
 
 	if (flipY) 
 	{
-		uvs.y = 1 - uv0.y;
-		v = uvs.y;
+		v = 1 - uv0.y;
 	}
 
 	X = trunc(mod(currentFrame, Xtiles));
