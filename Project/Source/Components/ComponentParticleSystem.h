@@ -69,6 +69,7 @@ public:
 		float life = 0.0f;
 		float initialLife = 0.0f;
 		float currentFrame = 0.0f;
+		float gravityTime = 0.0f;
 
 		float3 emitterPosition = float3::zero;
 		float3 emitterDirection = float3::zero;
@@ -85,18 +86,12 @@ public:
 
 	~ComponentParticleSystem();
 
-	void Update() override;
 	void Init() override;
+	void Update() override;
 	void DrawGizmos() override;
 	void OnEditorUpdate() override;
 	void Load(JsonValue jComponent) override;
 	void Save(JsonValue jComponent) const override;
-
-	void Draw();
-	void ImguiRandomMenu(float2& values, RandomMode mode);
-
-	TESSERACT_ENGINE_API void Play();
-	TESSERACT_ENGINE_API void Stop();
 
 	void CreateParticles();
 	void SpawnParticles();
@@ -107,15 +102,28 @@ public:
 	void InitParticleScale(Particle* currentParticle);
 	void InitParticleSpeed(Particle* currentParticle);
 	void InitParticleLife(Particle* currentParticle);
+	void InitStartDelay();
+	void InitStartRate();
 
 	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
 	void UpdateRotation(Particle* currentParticle);
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
+	void UpdateGravityDirection(Particle* currentParticle);
 
 	TESSERACT_ENGINE_API void KillParticle(Particle* currentParticle);
 	void UndertakerParticle();
 	void DestroyParticlesColliders();
+
+	void Draw();
+	void ImGuiParticlesEffect();
+
+	TESSERACT_ENGINE_API void Play();
+	TESSERACT_ENGINE_API void Restart();
+	TESSERACT_ENGINE_API void Stop();
+	TESSERACT_ENGINE_API void PlayChildParticles();
+	TESSERACT_ENGINE_API void RestartChildParticles();
+	TESSERACT_ENGINE_API void StopChildParticles();
 
 public:
 	WorldLayers layer;
@@ -125,23 +133,23 @@ public:
 private:
 	Pool<Particle> particles;
 	std::vector<Particle*> deadParticles;
-	bool executer = false;
 	unsigned particleSpawned = 0;
+	bool executer = false;
+	bool isPlaying = false;
 
 	float3 cameraDir = {0.f, 0.f, 0.f};
 	float emitterTime = 0.0f;
+	float restDelayTime = 0.f;
+	float restParticlesPerSecond = 0.0f;
 
 	// Gizmo
 	bool drawGizmo = true;
 
-	// Control
-	bool isPlaying = false;
-	float startDelay = 0.f;
-	float restDelayTime = 0.f;
-
 	// Particle System
 	float duration = 5.0f; // Emitter duration
 	bool looping = false;
+	RandomMode startDelayRM = RandomMode::CONST;
+	float2 startDelay = {0.0f, 0.0f}; // Start Delay
 	RandomMode lifeRM = RandomMode::CONST;
 	float2 life = {5.0f, 5.0f}; // Start life
 	RandomMode speedRM = RandomMode::CONST;
@@ -157,6 +165,13 @@ private:
 
 	// Emision
 	bool attachEmitter = true;
+	RandomMode particlesPerSecondRM = RandomMode::CONST;
+	float2 particlesPerSecond = {10.0f, 10.0f};
+
+	// Gravity
+	bool gravityEffect = false;
+	RandomMode gravityFactorRM = RandomMode::CONST;
+	float2 gravityFactor = {0.0f, 0.0f};
 
 	// Shape
 	ParticleEmitterType emitterType = ParticleEmitterType::CONE;
