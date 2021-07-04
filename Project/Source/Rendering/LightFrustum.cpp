@@ -67,33 +67,35 @@ void LightFrustum::ReconstructFrustum() {
 	ComponentTransform* transform = light->GetComponent<ComponentTransform>();
 	assert(transform);
 
-	float4x4 lightOrientation = transform->GetGlobalMatrix();
-	lightOrientation.SetTranslatePart(float3::zero);
+	for (unsigned int i = 0; i < NUM_CASCADE_FRUSTUM; i++) {
+		float4x4 lightOrientation = transform->GetGlobalMatrix();
+		lightOrientation.SetTranslatePart(float3::zero);
 
-	AABB lightAABB;
-	lightAABB.SetNegativeInfinity();
+		AABB lightAABB;
+		lightAABB.SetNegativeInfinity();
 
-	for (GameObject& go : App->scene->scene->gameObjects) {
-		Mask mask = go.GetMask();
-		if ((mask.bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0 && go.HasComponent<ComponentMeshRenderer>()) {
-			ComponentBoundingBox* componentBBox = go.GetComponent<ComponentBoundingBox>();
-			if (componentBBox) {
-				AABB boundingBox = componentBBox->GetWorldAABB();
-				OBB orientedBoundingBox = boundingBox.Transform(lightOrientation.Inverted());
-				lightAABB.Enclose(orientedBoundingBox.MinimalEnclosingAABB());
+		for (GameObject* go : App->scene->scene->GetCulledMeshes(subFrustums[0].planes)) {
+			Mask mask = go->GetMask();
+			if ((mask.bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0 && go->HasComponent<ComponentMeshRenderer>()) {
+				ComponentBoundingBox* componentBBox = go->GetComponent<ComponentBoundingBox>();
+				if (componentBBox) {
+					AABB boundingBox = componentBBox->GetWorldAABB();
+					OBB orientedBoundingBox = boundingBox.Transform(lightOrientation.Inverted());
+					lightAABB.Enclose(orientedBoundingBox.MinimalEnclosingAABB());
+				}
 			}
 		}
+
+		float3 minPoint = lightAABB.minPoint;
+		float3 maxPoint = lightAABB.maxPoint;
+		float3 position = lightOrientation.RotatePart() * float3((maxPoint.x + minPoint.x) * 0.5f, ((maxPoint.y + minPoint.y) * 0.5f), minPoint.z);
+
+		subFrustums[0].orthographicFrustum.SetOrthographic((maxPoint.x - minPoint.x), (maxPoint.y - minPoint.y));
+		subFrustums[0].orthographicFrustum.SetUp(transform->GetUp());
+		subFrustums[0].orthographicFrustum.SetFront(transform->GetFront());
+		subFrustums[0].orthographicFrustum.SetPos(position);
+		subFrustums[0].orthographicFrustum.SetViewPlaneDistances(0.0f, (maxPoint.z - minPoint.z));
 	}
-
-	float3 minPoint = lightAABB.minPoint;
-	float3 maxPoint = lightAABB.maxPoint;
-	float3 position = lightOrientation.RotatePart() * float3((maxPoint.x + minPoint.x) * 0.5f, ((maxPoint.y + minPoint.y) * 0.5f), minPoint.z);
-
-	subFrustums[0].orthographicFrustum.SetOrthographic((maxPoint.x - minPoint.x), (maxPoint.y - minPoint.y));
-	subFrustums[0].orthographicFrustum.SetUp(transform->GetUp());
-	subFrustums[0].orthographicFrustum.SetFront(transform->GetFront());
-	subFrustums[0].orthographicFrustum.SetPos(position);
-	subFrustums[0].orthographicFrustum.SetViewPlaneDistances(0.0f, (maxPoint.z - minPoint.z));
 
 	dirty = true;
 }

@@ -3,6 +3,7 @@
 #include "Utils/PoolMap.h"
 #include "Utils/Quadtree.h"
 #include "Utils/UID.h"
+#include "Rendering/FrustumPlanes.h"
 #include "Components/ComponentTransform.h"
 #include "Components/ComponentMeshRenderer.h"
 #include "Components/ComponentBoundingBox.h"
@@ -33,8 +34,6 @@
 #include "Components/ComponentAgent.h"
 #include "Components/ComponentObstacle.h"
 
-#include "Geometry/Frustum.h"
-
 class GameObject;
 
 class Scene {
@@ -63,7 +62,7 @@ public:
 	std::vector<int> GetTriangles();  // Gets all the triangles from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
 	std::vector<float> GetNormals();
 
-	std::vector<GameObject*> GetCulledMeshes(const Frustum& frustum); // Gets all the game objects inside in the given frustum
+	std::vector<GameObject*> GetCulledMeshes(const FrustumPlanes& planes); // Gets all the game objects inside in the given frustum
 
 	void SetNavMesh(UID navMesh);
 	UID GetNavMesh();
