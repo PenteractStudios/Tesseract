@@ -478,10 +478,14 @@ namespace Screen {
 	TESSERACT_ENGINE_API int GetHeight();
 	TESSERACT_ENGINE_API float GetBrightness();
 	TESSERACT_ENGINE_API float2 GetResolution();
+
 	TESSERACT_ENGINE_API void SetMSAAActive(bool value);
 	TESSERACT_ENGINE_API void SetMSAAType(MSAA_SAMPLES_TYPE value);
-	TESSERACT_ENGINE_API bool IsMSAAActive();
-	TESSERACT_ENGINE_API MSAA_SAMPLES_TYPE GetMSAAType();
+	TESSERACT_ENGINE_API const bool IsMSAAActive();
+	TESSERACT_ENGINE_API const MSAA_SAMPLES_TYPE GetMSAAType();
+
+	TESSERACT_ENGINE_API const float GetBloomThreshold();
+	TESSERACT_ENGINE_API void SetBloomThreshold(float value);
 
 }; // namespace Screen
 

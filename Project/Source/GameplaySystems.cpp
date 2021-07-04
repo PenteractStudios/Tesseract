@@ -383,12 +383,20 @@ void Screen::SetMSAAType(MSAA_SAMPLES_TYPE value) {
 	App->renderer->UpdateFramebuffers();
 }
 
-bool Screen::IsMSAAActive() {
+const bool Screen::IsMSAAActive() {
 	return App->renderer->msaaActive;
 }
 
-MSAA_SAMPLES_TYPE Screen::GetMSAAType() {
+const MSAA_SAMPLES_TYPE Screen::GetMSAAType() {
 	return App->renderer->msaaSampleType;
+}
+
+const float Screen::GetBloomThreshold() {
+	return App->renderer->bloomThreshold;
+}
+
+void Screen::SetBloomThreshold(float value) {
+	App->renderer->bloomThreshold = value;
 }
 
 // --------- Camera --------- //

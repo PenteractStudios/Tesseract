@@ -23,6 +23,9 @@ void TestMSAA::Update() {
     std::string logMSG2 = "SAMPLING " + std::to_string(static_cast<int>(Screen::GetMSAAType()));
     Debug::Log(logMSG2.c_str());
 
+    std::string logMSG3 = "BLOOM THRESHOLD " + std::to_string(static_cast<int>(Screen::GetBloomThreshold()));
+    Debug::Log(logMSG3.c_str());
+
     if (Input::GetKeyCodeUp(Input::KEYCODE::KEY_1)) {
         Screen::SetMSAAType(MSAA_SAMPLES_TYPE::MSAA_X2);
     }
@@ -34,5 +37,13 @@ void TestMSAA::Update() {
     }
     if (Input::GetKeyCodeUp(Input::KEYCODE::KEY_Y)) {
         Screen::SetMSAAActive(!Screen::IsMSAAActive());
+    }
+
+    if (Input::GetKeyCodeUp(Input::KEYCODE::KEY_O)) {
+        Screen::SetBloomThreshold(.5f);
+    }
+
+    if (Input::GetKeyCodeUp(Input::KEYCODE::KEY_P)) {
+        Screen::SetBloomThreshold(1.0f);
     }
 }
