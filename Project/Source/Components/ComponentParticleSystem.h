@@ -114,7 +114,7 @@ public:
 	void UpdateGravityDirection(Particle* currentParticle);
 
 	TESSERACT_ENGINE_API void KillParticle(Particle* currentParticle);
-	void UndertakerParticle();
+	void UndertakerParticle(bool force = false);
 	void DestroyParticlesColliders();
 	void Draw();
 	void ImGuiParticlesEffect();
@@ -125,8 +125,9 @@ public:
 	TESSERACT_ENGINE_API void PlayChildParticles();
 	TESSERACT_ENGINE_API void RestartChildParticles();
 	TESSERACT_ENGINE_API void StopChildParticles();
+	float2 ChildParticlesInfo();
 
-	//Getters
+	//--- GETTERS ---
 
 	// Particle System
 	TESSERACT_ENGINE_API float GetDuration() const;
@@ -142,9 +143,9 @@ public:
 	// Emision
 	TESSERACT_ENGINE_API bool GetIsAttachEmmitter() const;
 	TESSERACT_ENGINE_API float2 GetParticlesPerSecond() const;
+
 	// Shape
 	TESSERACT_ENGINE_API ParticleEmitterType GetEmmitterType() const;
-
 	// -- Cone
 	TESSERACT_ENGINE_API float GetConeRadiusUp() const;
 	TESSERACT_ENGINE_API float GetConeRadiusDown() const;
@@ -180,7 +181,7 @@ public:
 	// Collision
 	TESSERACT_ENGINE_API bool GetCollision() const;
 
-	//Setters
+	//--- SETTERS ---
 
 	// Particle System
 	TESSERACT_ENGINE_API void SetDuration(float _duration);
@@ -196,9 +197,9 @@ public:
 	// Emision
 	TESSERACT_ENGINE_API void SetIsAttachEmmitter(bool _isAttachEmmiter);
 	TESSERACT_ENGINE_API void SetParticlesPerSecond(float2 _particlesPerSecond);
+
 	// Shape
 	TESSERACT_ENGINE_API void SetEmmitterType(ParticleEmitterType _emmitterType);
-
 	// -- Cone
 	TESSERACT_ENGINE_API void SetConeRadiusUp(float _coneRadiusUp);
 	TESSERACT_ENGINE_API void SetConeRadiusDown(float _coneRadiusUp);
@@ -243,7 +244,6 @@ private:
 	Pool<Particle> particles;
 	std::vector<Particle*> deadParticles;
 	unsigned particleSpawned = 0;
-	bool executer = false;
 	bool isPlaying = false;
 
 	float3 cameraDir = {0.f, 0.f, 0.f};

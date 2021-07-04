@@ -628,7 +628,7 @@ void ComponentParticleSystem::CreateParticles() {
 }
 
 void ComponentParticleSystem::SpawnParticles() {
-	if (isPlaying && particleSpawned < maxParticles) {
+	if (isPlaying && (particleSpawned < maxParticles) && emitterTime < duration) {
 		if (emitterTime < duration || looping) {
 			if (restParticlesPerSecond <= 0) {
 				for (int i = 0; i < particlesCurrentFrame; i++) {
@@ -796,12 +796,7 @@ void ComponentParticleSystem::Update() {
 				}
 			}
 		}
-		if (executer) {
-			for (Particle& currentParticle : particles) {
-				deadParticles.push_back(&currentParticle);
-			}
-			executer = false;
-		}
+
 		UndertakerParticle();
 		SpawnParticles();
 	} else {
@@ -885,7 +880,12 @@ void ComponentParticleSystem::KillParticle(Particle* currentParticle) {
 	RELEASE(currentParticle->motionState);
 }
 
-void ComponentParticleSystem::UndertakerParticle() {
+void ComponentParticleSystem::UndertakerParticle(bool force) {
+	if (force) {
+		for (Particle& currentParticle : particles) {
+			deadParticles.push_back(&currentParticle);
+		}
+	}
 	for (Particle* currentParticle : deadParticles) {
 		App->physics->RemoveParticleRigidbody(currentParticle);
 		RELEASE(currentParticle->motionState);
@@ -1028,6 +1028,21 @@ void ComponentParticleSystem::ImGuiParticlesEffect() {
 	ImGui::Text("GameObject: ");
 	ImGui::SameLine();
 	ImGui::TextColored(App->editor->textColor, GetOwner().name.c_str());
+
+	float2 particlesData = ChildParticlesInfo();
+
+	char particlesSpawned[10];
+	sprintf_s(particlesSpawned, 10, "%.1f", particlesData.y);
+	ImGui::Text("Particles Spawned: ");
+	ImGui::SameLine();
+	ImGui::TextColored(App->editor->textColor, particlesSpawned);
+
+	char particlesAlive[10];
+	sprintf_s(particlesAlive, 10, "%.1f", particlesData.x);
+	ImGui::Text("Particles Alive: ");
+	ImGui::SameLine();
+	ImGui::TextColored(App->editor->textColor, particlesAlive);
+
 	ImGui::Separator();
 
 	if (ImGui::Button("Play")) {
@@ -1059,7 +1074,7 @@ void ComponentParticleSystem::Restart() {
 }
 
 void ComponentParticleSystem::Stop() {
-	executer = true;
+	UndertakerParticle(true);
 	isPlaying = false;
 }
 
@@ -1089,6 +1104,19 @@ void ComponentParticleSystem::StopChildParticles() {
 		}
 	}
 }
+
+float2 ComponentParticleSystem::ChildParticlesInfo() {
+	float2 particlesInfo;
+	particlesInfo.x = particles.Count();
+	particlesInfo.y = particleSpawned;
+	for (GameObject* currentChild : GetOwner().GetChildren()) {
+		if (currentChild->GetComponent<ComponentParticleSystem>()) {
+			particlesInfo += currentChild->GetComponent<ComponentParticleSystem>()->ChildParticlesInfo();
+		}
+	}
+	return particlesInfo;
+}
+
 //Getters
 
 // Particle System
