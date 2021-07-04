@@ -109,6 +109,7 @@ public:
 	float ssaoBias = 0.0f;
 	float ssaoPower = 1.0f;
 	float bloomThreshold = 1.0f;
+	bool msaaActive = true;
 
 	LightFrustum lightFrustum;
 

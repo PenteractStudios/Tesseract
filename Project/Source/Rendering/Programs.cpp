@@ -274,4 +274,5 @@ ProgramPostprocess::ProgramPostprocess(unsigned program_)
 	: Program(program_) {
 	textureSceneLocation = glGetUniformLocation(program, "sceneTexture");
 	bloomThresholdLocation = glGetUniformLocation(program, "bloomThreshold");
+	msaaActiveLocation = glGetUniformLocation(program, "msaaActive");
 }

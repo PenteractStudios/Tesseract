@@ -232,7 +232,10 @@ void PanelConfiguration::Update() {
 			ImGui::Separator();
 			ImGui::TextColored(App->editor->titleColor, "Bloom Settings");
 			ImGui::SliderFloat("Bloom Threshold", &App->renderer->bloomThreshold, 0.001f, 10.0f);
-
+			ImGui::Separator();
+			if (ImGui::Checkbox("Activate MSAA", &App->renderer->msaaActive)) {
+				App->renderer->UpdateFramebuffers();
+			}
 			ImGui::Separator();
 			ImGui::ResourceSlot<ResourceNavMesh>("Nav Mesh", &scene->navMeshId);
 		}

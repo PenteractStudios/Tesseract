@@ -7,12 +7,19 @@ layout(location = 1) out vec4 bloom;
 
 uniform sampler2DMS sceneTexture;
 uniform float bloomThreshold;
+uniform bool msaaActive;
 
 vec3 GetTexel(in vec2 uv)
 {
+	
 	ivec2 vp = textureSize(sceneTexture);
 	vp = ivec2(vec2(vp) * uv);
 	vec4 sample1 = texelFetch(sceneTexture, vp, 0);
+
+	if (!msaaActive) {
+		return sample1.rgb;
+	}
+
 	vec4 sample2 = texelFetch(sceneTexture, vp, 1);
 	vec4 sample3 = texelFetch(sceneTexture, vp, 2);
 	vec4 sample4 = texelFetch(sceneTexture, vp, 3);
