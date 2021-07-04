@@ -610,7 +610,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// Bloom blur
 	bool horizontal = true, firstIteration = true;
-	int amount = 6;
+	unsigned int amount = 6;
 	for (unsigned int i = 0; i < amount; i++) {
 		glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[horizontal]);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
