@@ -805,7 +805,7 @@ void ComponentParticleSystem::UpdateLife(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::KillParticle(Particle* currentParticle) {
-	currentParticle->life = 0;
+	currentParticle->life = -1;
 	App->physics->RemoveParticleRigidbody(currentParticle);
 	RELEASE(currentParticle->motionState);
 }
