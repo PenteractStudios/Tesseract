@@ -96,7 +96,7 @@ void ModulePrograms::LoadShaders() {
 	skybox = new ProgramSkybox(CreateProgram(filePath, "vertCube", "gammaCorrection fragSkybox"));
 
 	// Unlit Shader
-	//unlit = new ProgramUnlit(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragUnlit"));
+	unlit = new ProgramUnlit(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragUnlit"));
 
 	// General shaders
 	phongNotNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarSpecular fragMainPhong"));
