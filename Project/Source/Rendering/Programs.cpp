@@ -214,7 +214,8 @@ ProgramSSAOBlur::ProgramSSAOBlur(unsigned program_)
 
 ProgramColorCorrection::ProgramColorCorrection(unsigned program_)
 	: Program(program_) {
-	inputTextureLocation = glGetUniformLocation(program, "inputTexture");
+	textureSceneLocation = glGetUniformLocation(program, "scene");
+	textureBloomBlurLocation = glGetUniformLocation(program, "bloomBlur");
 }
 
 ProgramDrawTexture::ProgramDrawTexture(unsigned program_)
@@ -267,4 +268,11 @@ ProgramTrail::ProgramTrail(unsigned program_)
 	inputColorLocation = glGetUniformLocation(program, "inputColor");
 	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
 	diffuseMap = glGetUniformLocation(program, "diffuseMap");
+}
+
+ProgramPostprocess::ProgramPostprocess(unsigned program_)
+	: Program(program_) {
+	textureSceneLocation = glGetUniformLocation(program, "sceneTexture");
+	bloomThresholdLocation = glGetUniformLocation(program, "bloomThreshold");
+	samplesNumberLocation = glGetUniformLocation(program, "samplesNumber");
 }

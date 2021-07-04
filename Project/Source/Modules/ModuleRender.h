@@ -15,6 +15,13 @@
 
 class GameObject;
 
+enum class TESSERACT_ENGINE_API MSAA_SAMPLES_TYPE {
+	MSAA_X2,
+	MSAA_X4,
+	MSAA_X8,
+	COUNT
+};
+
 class ModuleRender : public Module {
 public:
 	// ------- Core Functions ------ //
@@ -68,6 +75,8 @@ public:
 	unsigned depthMapTexture = 0;
 	unsigned ssaoTexture = 0;
 	unsigned auxBlurTexture = 0;
+	unsigned colorTextures[2] = { 0, 0 }; // position 0: scene render texture; position 1: bloom texture to be blurred
+	unsigned bloomBlurTextures[2] = { 0, 0 }; // ping-pong buffers to blur bloom horizontally and vertically, alternatively stores the bloom texture
 
 	unsigned depthBuffer = 0;
 
@@ -78,6 +87,8 @@ public:
 	unsigned ssaoBlurTextureBufferH = 0;
 	unsigned ssaoBlurTextureBufferV = 0;
 	unsigned colorCorrectionBuffer = 0;
+	unsigned hdrFramebuffer = 0;
+	unsigned bloomBlurFramebuffers[2] = { 0, 0 };
 
 	// ------- Viewport Updated ------- //
 	bool viewportUpdated = true;
@@ -98,12 +109,19 @@ public:
 	int culledTriangles = 0;
 
 	float3 ambientColor = {0.25f, 0.25f, 0.25f}; // Color of ambient Light
-	float3 clearColor = {0.1f, 0.1f, 0.1f};		 // Color of the viewport between frames
+	float3 clearColor = {0.002f, 0.002f, 0.002f};		 // Color of the viewport between frames
 
+	// SSAO
 	bool ssaoActive = true;
 	float ssaoRange = 1.0f;
 	float ssaoBias = 0.0f;
 	float ssaoPower = 1.0f;
+	float bloomThreshold = 1.0f;
+
+	bool msaaActive = true;
+	MSAA_SAMPLES_TYPE msaaSampleType = MSAA_SAMPLES_TYPE::MSAA_X4;
+	int msaaSamplesNumber[static_cast<int>(MSAA_SAMPLES_TYPE::COUNT)] = {2, 4, 8};
+	int msaaSampleSingle = 1;
 
 	LightFrustum lightFrustum;
 
@@ -122,10 +140,12 @@ private:
 
 	void ComputeSSAOTexture();
 	void BlurSSAOTexture(bool horizontal);
+	void BlurBloomTexture(bool horizontal, bool firstTime);
 
-	void ExecuteColorCorrection();
+	void ExecuteColorCorrection(bool horizontal);
 
 	void DrawTexture(unsigned texture);
+	void DrawScene();
 
 private:
 	// ------- Viewport Size ------- //

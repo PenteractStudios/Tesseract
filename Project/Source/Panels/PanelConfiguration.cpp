@@ -229,7 +229,33 @@ void PanelConfiguration::Update() {
 				ImGui::DragFloat("Bias", &App->renderer->ssaoBias, 0.0001f, 0.0f, 10.0f, "%.5f");
 				ImGui::DragFloat("Power", &App->renderer->ssaoPower, 0.01f, 0.01f, 100.0f);
 			}
+			ImGui::Separator();
+			ImGui::TextColored(App->editor->titleColor, "Bloom Settings");
+			ImGui::SliderFloat("Bloom Threshold", &App->renderer->bloomThreshold, 0.001f, 10.0f);
+			ImGui::Separator();
+			ImGui::TextColored(App->editor->titleColor, "MSAA Settings");
+			if (ImGui::Checkbox("Activate MSAA", &App->renderer->msaaActive)) {
+				App->renderer->UpdateFramebuffers();
+			}
 
+
+			const char* items[] = {"x2", "x4", "x8"};
+			const char* itemCurrent = items[static_cast<int>(App->renderer->msaaSampleType)];
+			if (ImGui::BeginCombo("Samples Number", itemCurrent)) {
+				for (int n = 0; n < IM_ARRAYSIZE(items); ++n) {
+					bool isSelected = (itemCurrent == items[n]);
+					if (ImGui::Selectable(items[n], isSelected)) {
+						App->renderer->msaaSampleType = static_cast<MSAA_SAMPLES_TYPE>(n);
+						App->renderer->UpdateFramebuffers();
+					}
+					if (isSelected) {
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+				ImGui::EndCombo();
+			}
+			
+			ImGui::Separator();
 			ImGui::ResourceSlot<ResourceNavMesh>("Nav Mesh", &scene->navMeshId);
 		}
 	}

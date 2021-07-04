@@ -114,6 +114,7 @@ void ModulePrograms::LoadShaders() {
 	ssaoBlur = new ProgramSSAOBlur(CreateProgram(filePath, "vertScreen", "fragGaussianBlur"));
 
 	// Post-processing Shaders
+	postprocess = new ProgramPostprocess(CreateProgram(filePath, "vertScreen", "fragPostprocess"));
 	colorCorrection = new ProgramColorCorrection(CreateProgram(filePath, "vertScreen", "gammaCorrection fragColorCorrection"));
 
 	// Shadow Shaders
@@ -156,6 +157,8 @@ void ModulePrograms::UnloadShaders() {
 	RELEASE(ssaoBlur);
 
 	RELEASE(colorCorrection);
+
+	RELEASE(postprocess);
 
 	glDeleteProgram(shadowMap);
 
