@@ -24,6 +24,9 @@ public:
 	ProgramEnvironmentBRDF* environmentBRDF = nullptr;
 	ProgramSkybox* skybox = nullptr;
 
+	// Unlit Shader
+	ProgramUnlit* unlit = nullptr;
+
 	// Ilumination Shaders
 	ProgramStandardPhong* phongNormal = nullptr;
 	ProgramStandardPhong* phongNotNormal = nullptr;
@@ -44,6 +47,9 @@ public:
 
 	// Shadow Shaders
 	unsigned shadowMap = 0;
+
+	// Postprocesses Shaders
+	ProgramPostprocess* postprocess = nullptr;
 
 	// Engine Shaders
 	ProgramDrawTexture* drawTexture = nullptr;

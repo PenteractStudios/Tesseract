@@ -22,10 +22,6 @@ void ResourceNavMesh::Load() {
 	Buffer<char> buffer = App->files->Load(filePath.c_str());
 	App->navigation->GetNavMesh().Load(buffer);
 
-	for (ComponentAgent& agent : App->scene->scene->agentComponents) {
-		agent.AddAgentToCrowd();
-	}
-
 	unsigned timeMs = timer.Stop();
 	LOG("Mesh loaded in %ums", timeMs);
 }

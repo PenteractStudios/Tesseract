@@ -43,6 +43,7 @@ Scene::Scene(unsigned numGameObjects) {
 	boxColliderComponents.Allocate(numGameObjects);
 	capsuleColliderComponents.Allocate(numGameObjects);
 	agentComponents.Allocate(numGameObjects);
+	obstacleComponents.Allocate(numGameObjects);
 }
 
 void Scene::ClearScene() {
@@ -171,6 +172,8 @@ Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 		return capsuleColliderComponents.Find(componentId);
 	case ComponentType::AGENT:
 		return agentComponents.Find(componentId);
+	case ComponentType::OBSTACLE:
+		return obstacleComponents.Find(componentId);
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::GetComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -238,6 +241,8 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 		return capsuleColliderComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::AGENT:
 		return agentComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::OBSTACLE:
+		return obstacleComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::CreateComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -340,6 +345,9 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 	case ComponentType::AGENT:
 		agentComponents.Release(componentId);
 		break;
+	case ComponentType::OBSTACLE:
+		obstacleComponents.Release(componentId);
+		break;
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::RemoveComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -405,6 +413,25 @@ std::vector<int> Scene::GetTriangles() {
 				currentGlobalTri += 3;
 			}
 			i++;
+		}
+	}
+
+	return result;
+}
+
+std::vector<float> Scene::GetNormals() {
+	std::vector<float> result;
+
+	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
+		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
+		ComponentTransform* transform = meshRenderer.GetOwner().GetComponent<ComponentTransform>();
+		if (mesh != nullptr && transform->GetOwner().IsStatic()) {
+			for (size_t i = 0; i < mesh->meshNormals.size(); i += 3) {
+				float4 transformedVertex = transform->GetGlobalMatrix() * float4(mesh->meshNormals[i], mesh->meshNormals[i + 1], mesh->meshNormals[i + 2], 1);
+				result.push_back(transformedVertex.x);
+				result.push_back(transformedVertex.y);
+				result.push_back(transformedVertex.z);
+			}
 		}
 	}
 

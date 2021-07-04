@@ -76,6 +76,27 @@ struct ProgramSkybox : Program {
 	int cubemapLocation = -1;
 };
 
+struct ProgramUnlit : public Program {
+	ProgramUnlit(unsigned program);
+
+	int modelLocation = -1;
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int paletteLocation = -1;
+	int hasBonesLocation = -1;
+
+	int diffuseMapLocation = -1;
+	int diffuseColorLocation = -1;
+	int hasDiffuseMapLocation = -1;
+
+	int emissiveMapLocation = -1;
+	int hasEmissiveMapLocation = -1;
+
+	int tilingLocation = -1;
+	int offsetLocation = -1;
+};
+
 struct ProgramStandard : public Program {
 	ProgramStandard(unsigned program);
 
@@ -203,7 +224,16 @@ struct ProgramSSAOBlur : Program {
 struct ProgramColorCorrection : Program {
 	ProgramColorCorrection(unsigned program);
 
-	int inputTextureLocation = -1;
+	int textureSceneLocation = -1;
+	int textureBloomBlurLocation = -1;
+};
+
+struct ProgramPostprocess : Program {
+	ProgramPostprocess(unsigned program);
+
+	int textureSceneLocation = -1;
+	int bloomThresholdLocation = -1;
+	int samplesNumberLocation = -1;
 };
 
 struct ProgramDrawTexture : Program {

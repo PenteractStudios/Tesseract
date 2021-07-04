@@ -70,6 +70,27 @@ ProgramSkybox::ProgramSkybox(unsigned program_)
 	cubemapLocation = glGetUniformLocation(program, "cubemap");
 }
 
+
+ProgramUnlit::ProgramUnlit(unsigned program_)
+	: Program(program_) {
+	modelLocation = glGetUniformLocation(program, "model");
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
+	paletteLocation = glGetUniformLocation(program, "palette");
+	hasBonesLocation = glGetUniformLocation(program, "hasBones");
+
+	diffuseMapLocation = glGetUniformLocation(program, "diffuseMap");
+	diffuseColorLocation = glGetUniformLocation(program, "diffuseColor");
+	hasDiffuseMapLocation = glGetUniformLocation(program, "hasDiffuseMap");
+
+	emissiveMapLocation = glGetUniformLocation(program, "emissiveMap");
+	hasEmissiveMapLocation = glGetUniformLocation(program, "hasEmissiveMap");
+
+	tilingLocation = glGetUniformLocation(program, "tiling");
+	offsetLocation = glGetUniformLocation(program, "offset");
+}
+
 ProgramStandard::ProgramStandard(unsigned program_)
 	: Program(program_) {
 	modelLocation = glGetUniformLocation(program, "model");
@@ -193,7 +214,8 @@ ProgramSSAOBlur::ProgramSSAOBlur(unsigned program_)
 
 ProgramColorCorrection::ProgramColorCorrection(unsigned program_)
 	: Program(program_) {
-	inputTextureLocation = glGetUniformLocation(program, "inputTexture");
+	textureSceneLocation = glGetUniformLocation(program, "scene");
+	textureBloomBlurLocation = glGetUniformLocation(program, "bloomBlur");
 }
 
 ProgramDrawTexture::ProgramDrawTexture(unsigned program_)
@@ -246,4 +268,11 @@ ProgramTrail::ProgramTrail(unsigned program_)
 	inputColorLocation = glGetUniformLocation(program, "inputColor");
 	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
 	diffuseMap = glGetUniformLocation(program, "diffuseMap");
+}
+
+ProgramPostprocess::ProgramPostprocess(unsigned program_)
+	: Program(program_) {
+	textureSceneLocation = glGetUniformLocation(program, "sceneTexture");
+	bloomThresholdLocation = glGetUniformLocation(program, "bloomThreshold");
+	samplesNumberLocation = glGetUniformLocation(program, "samplesNumber");
 }

@@ -7,6 +7,9 @@
 # ImGui configuration
 /Game/imgui.ini
 
+# Temp scene
+/Game/_scene_autosave.temp
+
 # Build results
 /Build/
 
