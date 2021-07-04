@@ -103,7 +103,7 @@ public:
 	void InitParticleScale(Particle* currentParticle);
 	void InitParticleSpeed(Particle* currentParticle);
 	void InitParticleLife(Particle* currentParticle);
-	void InitParticleAnimationSpeed(Particle* currentParticle);
+	void InitParticleAnimationTexture(Particle* currentParticle);
 	void InitStartDelay();
 	void InitStartRate();
 
@@ -125,7 +125,7 @@ public:
 	TESSERACT_ENGINE_API void PlayChildParticles();
 	TESSERACT_ENGINE_API void RestartChildParticles();
 	TESSERACT_ENGINE_API void StopChildParticles();
-	float2 ChildParticlesInfo();
+	float ChildParticlesInfo();
 
 	//--- GETTERS ---
 
@@ -243,7 +243,6 @@ public:
 private:
 	Pool<Particle> particles;
 	std::vector<Particle*> deadParticles;
-	unsigned particleSpawned = 0;
 	bool isPlaying = false;
 
 	float3 cameraDir = {0.f, 0.f, 0.f};

@@ -397,7 +397,13 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	ImGui::Unindent();
 }
 
-void ComponentParticleSystem::InitParticleAnimationSpeed(Particle* currentParticle) {
+void ComponentParticleSystem::InitParticleAnimationTexture(Particle* currentParticle) {
+	if (isRandomFrame) {
+		currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
+	} else {
+		currentParticle->currentFrame = 0;
+	}
+
 	if (loopAnimation) {
 		currentParticle->animationSpeed = animationSpeed;
 	} else {
@@ -512,7 +518,6 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	layerIndex = jComponent[JSON_TAG_LAYER_INDEX];
 	layer = WorldLayers(1 << layerIndex);
 
-	particleSpawned = 0;
 	CreateParticles();
 }
 
@@ -628,16 +633,14 @@ void ComponentParticleSystem::CreateParticles() {
 }
 
 void ComponentParticleSystem::SpawnParticles() {
-	if (isPlaying && (particleSpawned < maxParticles) && emitterTime < duration) {
-		if (emitterTime < duration || looping) {
-			if (restParticlesPerSecond <= 0) {
-				for (int i = 0; i < particlesCurrentFrame; i++) {
-					if ((maxParticles > particleSpawned) || looping) SpawnParticleUnit();
-				}
-				InitStartRate();
-			} else {
-				restParticlesPerSecond -= App->time->GetDeltaTimeOrRealDeltaTime();
+	if (isPlaying && ((emitterTime < duration) || looping)) {
+		if (restParticlesPerSecond <= 0) {
+			for (int i = 0; i < particlesCurrentFrame; i++) {
+				if (maxParticles > particles.Count()) SpawnParticleUnit();
 			}
+			InitStartRate();
+		} else {
+			restParticlesPerSecond -= App->time->GetDeltaTimeOrRealDeltaTime();
 		}
 	} else if (particles.Count() == 0) {
 		isPlaying = false;
@@ -646,20 +649,14 @@ void ComponentParticleSystem::SpawnParticles() {
 
 void ComponentParticleSystem::SpawnParticleUnit() {
 	Particle* currentParticle = particles.Obtain();
-	if (!looping) {
-		particleSpawned++;
-	}
+
 	if (currentParticle) {
-		if (isRandomFrame) {
-			currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
-		} else {
-			currentParticle->currentFrame = 0;
-		}
 		InitParticlePosAndDir(currentParticle);
 		InitParticleRotation(currentParticle);
 		InitParticleScale(currentParticle);
 		InitParticleSpeed(currentParticle);
 		InitParticleLife(currentParticle);
+		InitParticleAnimationTexture(currentParticle);
 		currentParticle->emitterPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		currentParticle->emitterDirection = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation() * float3::unitY;
 
@@ -760,8 +757,7 @@ void ComponentParticleSystem::InitStartRate() {
 	} else {
 		restParticlesPerSecond = 1 / newParticlesPerSecond;
 	}
-	float aux = App->time->GetDeltaTimeOrRealDeltaTime();
-	float aux2 = restParticlesPerSecond;
+
 	particlesCurrentFrame = (App->time->GetDeltaTimeOrRealDeltaTime() / restParticlesPerSecond);
 }
 
@@ -1029,19 +1025,13 @@ void ComponentParticleSystem::ImGuiParticlesEffect() {
 	ImGui::SameLine();
 	ImGui::TextColored(App->editor->textColor, GetOwner().name.c_str());
 
-	float2 particlesData = ChildParticlesInfo();
+	float particlesData = ChildParticlesInfo();
 
 	char particlesSpawned[10];
-	sprintf_s(particlesSpawned, 10, "%.1f", particlesData.y);
-	ImGui::Text("Particles Spawned: ");
+	sprintf_s(particlesSpawned, 10, "%.1f", particlesData);
+	ImGui::Text("Particles: ");
 	ImGui::SameLine();
 	ImGui::TextColored(App->editor->textColor, particlesSpawned);
-
-	char particlesAlive[10];
-	sprintf_s(particlesAlive, 10, "%.1f", particlesData.x);
-	ImGui::Text("Particles Alive: ");
-	ImGui::SameLine();
-	ImGui::TextColored(App->editor->textColor, particlesAlive);
 
 	ImGui::Separator();
 
@@ -1062,7 +1052,6 @@ void ComponentParticleSystem::ImGuiParticlesEffect() {
 void ComponentParticleSystem::Play() {
 	if (!isPlaying) {
 		isPlaying = true;
-		particleSpawned = 0;
 		InitStartDelay();
 		emitterTime = 0.0f;
 	}
@@ -1105,10 +1094,8 @@ void ComponentParticleSystem::StopChildParticles() {
 	}
 }
 
-float2 ComponentParticleSystem::ChildParticlesInfo() {
-	float2 particlesInfo;
-	particlesInfo.x = particles.Count();
-	particlesInfo.y = particleSpawned;
+float ComponentParticleSystem::ChildParticlesInfo() {
+	float particlesInfo = particles.Count();
 	for (GameObject* currentChild : GetOwner().GetChildren()) {
 		if (currentChild->GetComponent<ComponentParticleSystem>()) {
 			particlesInfo += currentChild->GetComponent<ComponentParticleSystem>()->ChildParticlesInfo();
