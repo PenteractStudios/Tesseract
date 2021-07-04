@@ -195,11 +195,6 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		}
 		if (ImGui::DragScalar("Max Particles", ImGuiDataType_U32, &maxParticles)) {
 			CreateParticles();
-			/*if (maxParticles <= 2000) {
-				CreateParticles();
-			} else {
-				LOG("Warning: Max particles: 2000")
-			}*/
 		}
 	}
 

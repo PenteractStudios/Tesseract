@@ -249,6 +249,7 @@ private:
 	float emitterTime = 0.0f;
 	float restDelayTime = 0.f;
 	float restParticlesPerSecond = 0.0f;
+	float particlesCurrentFrame = 0;
 
 	// Gizmo
 	bool drawGizmo = true;
@@ -270,7 +271,7 @@ private:
 	RandomMode reverseDistanceRM = RandomMode::CONST;
 	float2 reverseDistance = {5.0f, 5.0f};
 	unsigned maxParticles = 100;
-	float particlesCurrentFrame = 0;
+
 	// Emision
 	bool attachEmitter = true;
 	RandomMode particlesPerSecondRM = RandomMode::CONST;
