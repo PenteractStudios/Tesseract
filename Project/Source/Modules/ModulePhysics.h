@@ -56,27 +56,27 @@ public:
 	bool CleanUp();
 
 	// -- Add/Remove Sphere Body --- //
-	void CreateSphereRigidbody(ComponentSphereCollider* sphereCollider);
-	btRigidBody* AddSphereBody(MotionState* myMotionState, float radius, float mass);
-	void RemoveSphereRigidbody(ComponentSphereCollider* sphereCollider);
-	void UpdateSphereRigidbody(ComponentSphereCollider* sphereCollider);
+	TESSERACT_ENGINE_API void CreateSphereRigidbody(ComponentSphereCollider* sphereCollider);
+	TESSERACT_ENGINE_API btRigidBody* AddSphereBody(MotionState* myMotionState, float radius, float mass);
+	TESSERACT_ENGINE_API void RemoveSphereRigidbody(ComponentSphereCollider* sphereCollider);
+	TESSERACT_ENGINE_API void UpdateSphereRigidbody(ComponentSphereCollider* sphereCollider);
 	// ---- Add/Remove Box Body ---- //
-	void CreateBoxRigidbody(ComponentBoxCollider* boxCollider);
-	btRigidBody* AddBoxBody(MotionState* myMotionState, float3 size, float mass);
-	void RemoveBoxRigidbody(ComponentBoxCollider* boxCollider);
-	void UpdateBoxRigidbody(ComponentBoxCollider* boxCollider);
+	TESSERACT_ENGINE_API void CreateBoxRigidbody(ComponentBoxCollider* boxCollider);
+	TESSERACT_ENGINE_API btRigidBody* AddBoxBody(MotionState* myMotionState, float3 size, float mass);
+	TESSERACT_ENGINE_API void RemoveBoxRigidbody(ComponentBoxCollider* boxCollider);
+	TESSERACT_ENGINE_API void UpdateBoxRigidbody(ComponentBoxCollider* boxCollider);
 	// -- Add/Remove Capsule Body -- //
-	void CreateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider);
-	btRigidBody* AddCapsuleBody(MotionState* myMotionState, float radius, float height, CapsuleType type, float mass);
-	void RemoveCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider);
-	void UpdateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider);
+	TESSERACT_ENGINE_API void CreateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider);
+	TESSERACT_ENGINE_API btRigidBody* AddCapsuleBody(MotionState* myMotionState, float radius, float height, CapsuleType type, float mass);
+	TESSERACT_ENGINE_API void RemoveCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider);
+	TESSERACT_ENGINE_API void UpdateCapsuleRigidbody(ComponentCapsuleCollider* capsuleCollider);
 
 	void AddBodyToWorld(btRigidBody* rigidbody, ColliderType colliderType, WorldLayers layer);
 
 	// -- Add/Remove Particle Body -- //
-	void CreateParticleRigidbody(ComponentParticleSystem::Particle* particle);
-	void RemoveParticleRigidbody(ComponentParticleSystem::Particle* particle);
-	void UpdateParticleRigidbody(ComponentParticleSystem::Particle* particle);
+	TESSERACT_ENGINE_API void CreateParticleRigidbody(ComponentParticleSystem::Particle* particle);
+	TESSERACT_ENGINE_API void RemoveParticleRigidbody(ComponentParticleSystem::Particle* particle);
+	TESSERACT_ENGINE_API void UpdateParticleRigidbody(ComponentParticleSystem::Particle* particle);
 
 	void InitializeRigidBodies(); // Called on Play(), this function adds all the collision objects to the physics world.
 	void ClearPhysicBodies();	  // Called on Stop(), this function removes all the collision objects from the physics world.

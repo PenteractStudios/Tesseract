@@ -30,6 +30,6 @@ void main()
 {
 	color = vec4(GetTexel(uv), 1.0);
 	float bright = dot(color.rgb, vec3(0.3, 0.6, 0.2));
-	if (bright > bloomThreshold) bloom = color;
+	if (bright > bloomThreshold) bloom = color * smoothstep(0.0, 1.0, bright - bloomThreshold);
 	else bloom = vec4(0.0, 0.0, 0.0, 1.0);
 }
