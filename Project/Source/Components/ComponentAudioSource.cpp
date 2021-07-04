@@ -26,6 +26,9 @@
 #define JSON_TAG_INNER_ANGLE "InnerAngle"
 #define JSON_TAG_OUTER_ANGLE "OuterAngle"
 #define JSON_TAG_OUTER_GAIN "OuterGain"
+#define JSON_TAG_ROLLOFF_FACTOR "RolloffFactor"
+#define JSON_TAG_REFERENCE_DISTANCE "ReferenceDistance"
+#define JSON_TAG_MAX_DISTANCE "MaxDistance"
 
 ComponentAudioSource::~ComponentAudioSource() {
 	Stop();
@@ -156,6 +159,18 @@ void ComponentAudioSource::OnEditorUpdate() {
 
 	ImGui::Separator();
 
+	if (ImGui::DragFloat("Roll Off Factor", &rollOffFact, 1.f, 0.0f, inf)) {
+		alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFact);
+	}
+	if (ImGui::DragFloat("Reference Distance", &referenceDistance, 1.f, 0.0f, inf)) {
+		alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
+	}
+	if (ImGui::DragFloat("Max Distance", &maxDistance, 1.f, 0.0f, inf)) {
+		alSourcef(sourceId, AL_MAX_DISTANCE, maxDistance);
+	}
+
+	ImGui::Separator();
+
 	if (ImGui::Button("Play")) {
 		Play();
 	}
@@ -201,6 +216,9 @@ void ComponentAudioSource::UpdateSourceParameters() {
 	} else {
 		alSourcef(sourceId, AL_GAIN, gain);
 	}
+	alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFact);
+	alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
+	alSourcef(sourceId, AL_MAX_DISTANCE, maxDistance);
 }
 
 void ComponentAudioSource::Play() {
@@ -253,6 +271,9 @@ void ComponentAudioSource::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_INNER_ANGLE] = innerAngle;
 	jComponent[JSON_TAG_OUTER_ANGLE] = outerAngle;
 	jComponent[JSON_TAG_OUTER_GAIN] = outerGain;
+	jComponent[JSON_TAG_ROLLOFF_FACTOR] = rollOffFact;
+	jComponent[JSON_TAG_REFERENCE_DISTANCE] = referenceDistance;
+	jComponent[JSON_TAG_MAX_DISTANCE] = maxDistance;
 }
 
 void ComponentAudioSource::Load(JsonValue jComponent) {
@@ -266,6 +287,9 @@ void ComponentAudioSource::Load(JsonValue jComponent) {
 	innerAngle = jComponent[JSON_TAG_INNER_ANGLE];
 	outerAngle = jComponent[JSON_TAG_OUTER_ANGLE];
 	outerGain = jComponent[JSON_TAG_OUTER_GAIN];
+	rollOffFact = jComponent[JSON_TAG_ROLLOFF_FACTOR];
+	referenceDistance = jComponent[JSON_TAG_REFERENCE_DISTANCE];
+	maxDistance = jComponent[JSON_TAG_MAX_DISTANCE];
 
 	if (audioClipId) {
 		App->resources->IncreaseReferenceCount(audioClipId);

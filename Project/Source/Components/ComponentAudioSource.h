@@ -42,4 +42,7 @@ private:
 	float innerAngle = 90.f;  // Inner angle from directional source where gain parameter will be "gain"
 	float outerAngle = 180.f; // Outer angle from directional source where gain parameter will be "outerGain"
 	float outerGain = 0.f;	  // Gain applied outside outerAngle. Between inner and outer, OpenAL do an interpolation
+	float rollOffFact = 1.0f;
+	float referenceDistance = 6.0f;
+	float maxDistance = 15.0f;
 };

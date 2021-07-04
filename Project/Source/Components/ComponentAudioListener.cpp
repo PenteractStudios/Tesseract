@@ -9,6 +9,9 @@
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_GAIN "Gain"
+#define JSON_TAG_MODEL_INDEX "ModelIndex"
+#define JSON_TAG_CLAMPED "Clamped"
+#define JSON_TAG_DISTANCE_MODEL "DistanceModel"
 
 void ComponentAudioListener::Init() {
 	alListenerf(AL_GAIN, gain);
@@ -30,14 +33,32 @@ void ComponentAudioListener::OnEditorUpdate() {
 		}
 	}
 	ImGui::Separator();
+
+	if (ImGui::Combo("Distance Model", &model, distanceModels, IM_ARRAYSIZE(distanceModels))){
+		UpdateDistanceModel();
+	}
+
+	if (ImGui::Checkbox("Clamped", &clamped)) {
+		UpdateDistanceModel();
+	}
+
+	ImGui::Separator();
 }
 
 void ComponentAudioListener::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_GAIN] = gain;
+	jComponent[JSON_TAG_MODEL_INDEX] = model;
+	JsonValue jDistanceModel = jComponent[JSON_TAG_DISTANCE_MODEL];
+	jDistanceModel = (int) distanceModel;
+	jComponent[JSON_TAG_CLAMPED] = clamped;
 }
 
 void ComponentAudioListener::Load(JsonValue jComponent) {
 	gain = jComponent[JSON_TAG_GAIN];
+	JsonValue jDistanceModel = jComponent[JSON_TAG_DISTANCE_MODEL];
+	distanceModel = (DistanceModel)(int) jDistanceModel;
+	model = (int) distanceModel;
+	clamped = jComponent[JSON_TAG_CLAMPED];
 }
 
 void ComponentAudioListener::OnEnable() {
@@ -71,7 +92,34 @@ void ComponentAudioListener::UpdateAudioListener() {
 		up[2],
 	};
 	alListenerfv(AL_POSITION, position.ptr());
-	alListenerfv(AL_ORIENTATION, orientation);
+	alListenerfv(AL_ORIENTATION, orientation);	
+}
+
+void ComponentAudioListener::UpdateDistanceModel() {
+	distanceModel = static_cast<DistanceModel>(model);
+	switch (distanceModel) {
+	case DistanceModel::EXPONENT:
+		if (clamped) {
+			alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
+		} else {
+			alDistanceModel(AL_EXPONENT_DISTANCE);
+		}
+		break;
+	case DistanceModel::INVERSE:
+		if (clamped) {
+			alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
+		} else {
+			alDistanceModel(AL_INVERSE_DISTANCE);
+		}
+		break;
+	case DistanceModel::LINEAR:
+		if (clamped) {
+			alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
+		} else {
+			alDistanceModel(AL_EXPONENT_DISTANCE);
+		}
+		break;
+	}
 }
 
 float ComponentAudioListener::GetAudioVolume() const {
