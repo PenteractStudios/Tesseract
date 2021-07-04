@@ -37,6 +37,7 @@
 #define JSON_TAG_TRAIL_QUADS "TrailQuads"
 #define JSON_TAG_TEXTURE_REPEATS "TextureRepeats"
 #define JSON_TAG_QUAD_LIFE "QuadLife"
+#define JSON_TAG_IS_RENDERING "IsRendering"
 
 #define JSON_TAG_HAS_COLOR_OVER_TRAIL "HasColorOverTrail"
 #define JSON_TAG_GRADIENT_COLOR "GradientColor"
@@ -53,6 +54,7 @@ void ComponentTrail::Init() {
 }
 
 void ComponentTrail::Update() {
+	if (!isRendering) return;
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 	float3 vectorUp = (transform->GetGlobalRotation() * float3::unitY).Normalized();
 
@@ -125,6 +127,11 @@ void ComponentTrail::UpdateLife(Quad* currentQuad) {
 }
 
 void ComponentTrail::OnEditorUpdate() {
+	if (ImGui::Button("Play")) Play();
+	if (ImGui::Button("Stop")) Stop();
+	if (ImGui::Checkbox("Render", &isRendering)) {
+		isStarted = false;
+	}
 	ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
 	if (ImGui::DragInt("Trail Quads", &trailQuads, 1.0f, 1, 50, "%d", ImGuiSliderFlags_AlwaysClamp)) {
 		if (nTextures > trailQuads) nTextures = trailQuads;
@@ -176,6 +183,7 @@ void ComponentTrail::Load(JsonValue jComponent) {
 	maxVertices = jComponent[JSON_TAG_MAXVERTICES];
 	trailQuads = jComponent[JSON_TAG_TRAIL_QUADS];
 	quadLife = jComponent[JSON_TAG_QUAD_LIFE];
+	isRendering = jComponent[JSON_TAG_IS_RENDERING];
 	width = jComponent[JSON_TAG_WIDTH];
 	nTextures = jComponent[JSON_TAG_TEXTURE_REPEATS];
 
@@ -198,6 +206,7 @@ void ComponentTrail::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_WIDTH] = width;
 	jComponent[JSON_TAG_TEXTURE_REPEATS] = nTextures;
 	jComponent[JSON_TAG_QUAD_LIFE] = quadLife;
+	jComponent[JSON_TAG_IS_RENDERING] = isRendering;
 	// Color
 	jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL] = colorOverTrail;
 	int color = 0;
@@ -347,4 +356,18 @@ void ComponentTrail::EditTextureCoords() {
 
 		nLine++;
 	}
+}
+
+TESSERACT_ENGINE_API void ComponentTrail::Play() {
+	isRendering = true;
+}
+
+TESSERACT_ENGINE_API void ComponentTrail::Stop() {
+	isRendering = false;
+	isStarted = false;
+	DeleteQuads();
+}
+
+TESSERACT_ENGINE_API void ComponentTrail::SetWidth(float w) {
+	width = w;
 }

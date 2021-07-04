@@ -89,6 +89,8 @@
 #define JSON_TAG_XTILES "Xtiles"
 #define JSON_TAG_ANIMATION_SPEED "AnimationSpeed"
 #define JSON_TAG_IS_RANDOM_FRAME "IsRandomFrame"
+#define JSON_TAG_lOOP_ANIMATION "LoopAnimation"
+#define JSON_TAG_N_CYCLES "NCycles"
 
 // Render
 #define JSON_TAG_TEXTURE_TEXTURE_ID "TextureId"
@@ -192,11 +194,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			ImGui::Unindent();
 		}
 		if (ImGui::DragScalar("Max Particles", ImGuiDataType_U32, &maxParticles)) {
-			if (maxParticles <= 2000) {
-				CreateParticles();
-			} else {
-				LOG("Warning: Max particles: 2000")
-			}
+			CreateParticles();
 		}
 	}
 
@@ -280,7 +278,12 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	if (ImGui::CollapsingHeader("Texture Sheet Animation")) {
 		ImGui::DragScalar("X Tiles", ImGuiDataType_U32, &Xtiles);
 		ImGui::DragScalar("Y Tiles", ImGuiDataType_U32, &Ytiles);
-		ImGui::DragFloat("Animation Speed", &animationSpeed, App->editor->dragSpeed2f, -inf, inf);
+		ImGui::Checkbox("Loop Animation", &loopAnimation);
+		if (loopAnimation) {
+			ImGui::DragFloat("Animation Speed", &animationSpeed, App->editor->dragSpeed2f, -inf, inf);
+		} else {
+			ImGui::DragFloat("Cycles", &nCycles, App->editor->dragSpeed2f, 1, inf);
+		}
 		ImGui::Checkbox("Random Frame", &isRandomFrame);
 	}
 
@@ -389,6 +392,22 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	ImGui::Unindent();
 }
 
+void ComponentParticleSystem::InitParticleAnimationTexture(Particle* currentParticle) {
+	if (isRandomFrame) {
+		currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
+	} else {
+		currentParticle->currentFrame = 0;
+	}
+
+	if (loopAnimation) {
+		currentParticle->animationSpeed = animationSpeed;
+	} else {
+		float timePerCycle = currentParticle->initialLife / nCycles;
+		float timePerFrame = (Ytiles * Xtiles) / timePerCycle;
+		currentParticle->animationSpeed = timePerFrame;
+	}
+}
+
 void ComponentParticleSystem::Load(JsonValue jComponent) {
 	// Gizmo
 	drawGizmo = jComponent[JSON_TAG_DRAW_GIZMO];
@@ -474,6 +493,8 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	Xtiles = jComponent[JSON_TAG_XTILES];
 	animationSpeed = jComponent[JSON_TAG_ANIMATION_SPEED];
 	isRandomFrame = jComponent[JSON_TAG_IS_RANDOM_FRAME];
+	loopAnimation = jComponent[JSON_TAG_lOOP_ANIMATION];
+	nCycles = jComponent[JSON_TAG_N_CYCLES];
 
 	// Render
 	textureID = jComponent[JSON_TAG_TEXTURE_TEXTURE_ID];
@@ -492,7 +513,6 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	layerIndex = jComponent[JSON_TAG_LAYER_INDEX];
 	layer = WorldLayers(1 << layerIndex);
 
-	particleSpawned = 0;
 	CreateParticles();
 }
 
@@ -586,6 +606,8 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_XTILES] = Xtiles;
 	jComponent[JSON_TAG_ANIMATION_SPEED] = animationSpeed;
 	jComponent[JSON_TAG_IS_RANDOM_FRAME] = isRandomFrame;
+	jComponent[JSON_TAG_lOOP_ANIMATION] = loopAnimation;
+	jComponent[JSON_TAG_N_CYCLES] = nCycles;
 
 	// Render
 	jComponent[JSON_TAG_TEXTURE_TEXTURE_ID] = textureID;
@@ -606,36 +628,30 @@ void ComponentParticleSystem::CreateParticles() {
 }
 
 void ComponentParticleSystem::SpawnParticles() {
-	if (isPlaying && particleSpawned < maxParticles) {
-		if (emitterTime < duration || looping) {
-			if (restParticlesPerSecond <= 0) {
-				InitStartRate();
-				SpawnParticleUnit();
-			} else {
-				restParticlesPerSecond -= App->time->GetDeltaTimeOrRealDeltaTime();
+	if (isPlaying && ((emitterTime < duration) || looping)) {
+		if (restParticlesPerSecond <= 0) {
+			for (int i = 0; i < particlesCurrentFrame; i++) {
+				if (maxParticles > particles.Count()) SpawnParticleUnit();
 			}
-		} else if (particles.Count() == 0) {
-			isPlaying = false;
+			InitStartRate();
+		} else {
+			restParticlesPerSecond -= App->time->GetDeltaTimeOrRealDeltaTime();
 		}
+	} else if (particles.Count() == 0) {
+		isPlaying = false;
 	}
 }
 
 void ComponentParticleSystem::SpawnParticleUnit() {
 	Particle* currentParticle = particles.Obtain();
-	if (!looping) {
-		particleSpawned++;
-	}
+
 	if (currentParticle) {
-		if (isRandomFrame) {
-			currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
-		} else {
-			currentParticle->currentFrame = 0;
-		}
 		InitParticlePosAndDir(currentParticle);
 		InitParticleRotation(currentParticle);
 		InitParticleScale(currentParticle);
 		InitParticleSpeed(currentParticle);
 		InitParticleLife(currentParticle);
+		InitParticleAnimationTexture(currentParticle);
 		currentParticle->emitterPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		currentParticle->emitterDirection = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation() * float3::unitY;
 
@@ -731,12 +747,13 @@ void ComponentParticleSystem::InitStartDelay() {
 
 void ComponentParticleSystem::InitStartRate() {
 	float newParticlesPerSecond = ObtainRandomValueFloat(particlesPerSecond, particlesPerSecondRM);
-
 	if (newParticlesPerSecond == 0) {
 		restParticlesPerSecond = inf;
 	} else {
 		restParticlesPerSecond = 1 / newParticlesPerSecond;
 	}
+
+	particlesCurrentFrame = (App->time->GetDeltaTimeOrRealDeltaTime() / restParticlesPerSecond);
 }
 
 void ComponentParticleSystem::Update() {
@@ -762,7 +779,7 @@ void ComponentParticleSystem::Update() {
 				}
 
 				if (!isRandomFrame) {
-					currentParticle.currentFrame += animationSpeed * App->time->GetDeltaTimeOrRealDeltaTime();
+					currentParticle.currentFrame += currentParticle.animationSpeed * App->time->GetDeltaTimeOrRealDeltaTime();
 				}
 
 				if (currentParticle.life < 0) {
@@ -770,12 +787,7 @@ void ComponentParticleSystem::Update() {
 				}
 			}
 		}
-		if (executer) {
-			for (Particle& currentParticle : particles) {
-				deadParticles.push_back(&currentParticle);
-			}
-			executer = false;
-		}
+
 		UndertakerParticle();
 		SpawnParticles();
 	} else {
@@ -854,12 +866,17 @@ void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) 
 }
 
 void ComponentParticleSystem::KillParticle(Particle* currentParticle) {
-	currentParticle->life = 0;
+	currentParticle->life = -1;
 	App->physics->RemoveParticleRigidbody(currentParticle);
 	RELEASE(currentParticle->motionState);
 }
 
-void ComponentParticleSystem::UndertakerParticle() {
+void ComponentParticleSystem::UndertakerParticle(bool force) {
+	if (force) {
+		for (Particle& currentParticle : particles) {
+			deadParticles.push_back(&currentParticle);
+		}
+	}
 	for (Particle* currentParticle : deadParticles) {
 		App->physics->RemoveParticleRigidbody(currentParticle);
 		RELEASE(currentParticle->motionState);
@@ -919,23 +936,18 @@ void ComponentParticleSystem::Draw() {
 				if (renderAlignment == ParticleRenderAlignment::VIEW) {
 					Frustum* frustum = App->camera->GetActiveCamera()->GetFrustum();
 					newModelMatrix = float4x4::LookAt(float3::unitZ, -frustum->Front(), float3::unitY, float3::unitY);
-
 				} else if (renderAlignment == ParticleRenderAlignment::WORLD) {
 					newModelMatrix = float3x3::identity;
 					newModelMatrix[1][1] = -1; // Invert z axis
-
 				} else if (renderAlignment == ParticleRenderAlignment::LOCAL) {
 					ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 					newModelMatrix = float4x4::LookAt(float3::unitZ, -(transform->GetGlobalRotation() * float3::unitY), float3::unitY, float3::unitY);
-
 				} else if (renderAlignment == ParticleRenderAlignment::FACING) {
 					float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
 					newModelMatrix = float4x4::LookAt(float3::unitZ, cameraPos - currentParticle.position, float3::unitY, float3::unitY);
-
 				} else { // Velocity
 					newModelMatrix = float4x4::LookAt(float3::unitZ, -currentParticle.direction, float3::unitY, float3::unitY);
 				}
-
 			} else if (billboardType == BillboardType::STRETCH) {
 				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
 				float3 cameraDir = (cameraPos - currentParticle.position).Normalized();
@@ -948,10 +960,8 @@ void ComponentParticleSystem::Draw() {
 				newRotation.SetCol(2, newCameraDir);
 
 				newModelMatrix = float4x4::identity * newRotation;
-
 			} else if (billboardType == BillboardType::HORIZONTAL) {
 				newModelMatrix = float4x4::LookAt(float3::unitZ, float3::unitY, float3::unitY, float3::unitY);
-
 			} else if (billboardType == BillboardType::VERTICAL) {
 				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
 				float3 cameraDir = (float3(cameraPos.x, currentParticle.position.y, cameraPos.z) - currentParticle.position).Normalized();
@@ -1009,6 +1019,15 @@ void ComponentParticleSystem::ImGuiParticlesEffect() {
 	ImGui::Text("GameObject: ");
 	ImGui::SameLine();
 	ImGui::TextColored(App->editor->textColor, GetOwner().name.c_str());
+
+	float particlesData = ChildParticlesInfo();
+
+	char particlesSpawned[10];
+	sprintf_s(particlesSpawned, 10, "%.1f", particlesData);
+	ImGui::Text("Particles: ");
+	ImGui::SameLine();
+	ImGui::TextColored(App->editor->textColor, particlesSpawned);
+
 	ImGui::Separator();
 
 	if (ImGui::Button("Play")) {
@@ -1028,7 +1047,6 @@ void ComponentParticleSystem::ImGuiParticlesEffect() {
 void ComponentParticleSystem::Play() {
 	if (!isPlaying) {
 		isPlaying = true;
-		particleSpawned = 0;
 		InitStartDelay();
 		emitterTime = 0.0f;
 	}
@@ -1040,7 +1058,7 @@ void ComponentParticleSystem::Restart() {
 }
 
 void ComponentParticleSystem::Stop() {
-	executer = true;
+	UndertakerParticle(true);
 	isPlaying = false;
 }
 
@@ -1069,4 +1087,256 @@ void ComponentParticleSystem::StopChildParticles() {
 			currentChild->GetComponent<ComponentParticleSystem>()->StopChildParticles();
 		}
 	}
+}
+
+float ComponentParticleSystem::ChildParticlesInfo() {
+	float particlesInfo = particles.Count();
+	for (GameObject* currentChild : GetOwner().GetChildren()) {
+		if (currentChild->GetComponent<ComponentParticleSystem>()) {
+			particlesInfo += currentChild->GetComponent<ComponentParticleSystem>()->ChildParticlesInfo();
+		}
+	}
+	return particlesInfo;
+}
+
+//Getters
+
+// Particle System
+float ComponentParticleSystem::GetDuration() const {
+	return duration;
+}
+bool ComponentParticleSystem::GetIsLooping() const {
+	return looping;
+}
+float2 ComponentParticleSystem::GetLife() const {
+	return life;
+}
+float2 ComponentParticleSystem::GetSpeed() const {
+	return speed;
+}
+float2 ComponentParticleSystem::GetRotation() const {
+	return rotation;
+}
+float2 ComponentParticleSystem::GetScale() const {
+	return scale;
+}
+bool ComponentParticleSystem::GetIsReverseEffect() const {
+	return reverseEffect;
+}
+float2 ComponentParticleSystem::GetReserseDistance() const {
+	return reverseDistance;
+}
+unsigned ComponentParticleSystem::GetMaxParticles() const {
+	return maxParticles;
+}
+
+// Emision
+bool ComponentParticleSystem::GetIsAttachEmmitter() const {
+	return attachEmitter;
+}
+float2 ComponentParticleSystem::GetParticlesPerSecond() const {
+	return particlesPerSecond;
+}
+
+// Shape
+ParticleEmitterType ComponentParticleSystem::GetEmmitterType() const {
+	return emitterType;
+}
+
+// -- Cone
+float ComponentParticleSystem::GetConeRadiusUp() const {
+	return coneRadiusUp;
+}
+float ComponentParticleSystem::GetConeRadiusDown() const {
+	return coneRadiusDown;
+}
+bool ComponentParticleSystem::GetRandomConeRadiusDown() const {
+	return randomConeRadiusDown;
+}
+bool ComponentParticleSystem::GetRandomConeRadiusUp() const {
+	return randomConeRadiusUp;
+}
+
+// Rotation over Lifetime
+bool ComponentParticleSystem::GetRotationOverLifetime() const {
+	return rotationOverLifetime;
+}
+float2 ComponentParticleSystem::GetRotationFactor() const {
+	return rotationFactor;
+}
+
+// Size over Lifetime
+bool ComponentParticleSystem::GetSizeOverLifetime() const {
+	return sizeOverLifetime;
+}
+float2 ComponentParticleSystem::GetScaleFactor() const {
+	return scaleFactor;
+}
+
+// Color over Lifetime
+bool ComponentParticleSystem::GetColorOverLifetime() const {
+	return colorOverLifetime;
+}
+
+// Texture Sheet Animation
+unsigned ComponentParticleSystem::GetXtiles() const {
+	return Xtiles;
+}
+unsigned ComponentParticleSystem::GetYtiles() const {
+	return Ytiles;
+}
+float ComponentParticleSystem::GetAnimationSpeed() const {
+	return animationSpeed;
+}
+bool ComponentParticleSystem::GetIsRandomFrame() const {
+	return isRandomFrame;
+}
+bool ComponentParticleSystem::GetIsLoopAnimation() const {
+	return loopAnimation;
+}
+float ComponentParticleSystem::GetNCycles() const {
+	return nCycles;
+}
+
+// Render
+BillboardType ComponentParticleSystem::GetBillboardType() const {
+	return billboardType;
+}
+ParticleRenderMode ComponentParticleSystem::GetRenderMode() const {
+	return renderMode;
+}
+ParticleRenderAlignment ComponentParticleSystem::GetRenderAlignment() const {
+	return renderAlignment;
+}
+bool ComponentParticleSystem::GetFlipXTexture() const {
+	return flipTexture[0];
+}
+bool ComponentParticleSystem::GetFlipYTexture() const {
+	return flipTexture[1];
+}
+
+// Collision
+bool ComponentParticleSystem::GetCollision() const {
+	return collision;
+}
+
+//Setters
+
+// Particle System
+void ComponentParticleSystem::SetDuration(float _duration) {
+	duration = _duration;
+}
+void ComponentParticleSystem::SetIsLooping(bool _isLooping) {
+	looping = _isLooping;
+}
+void ComponentParticleSystem::SetLife(float2 _life) {
+	life = _life;
+}
+void ComponentParticleSystem::SetSpeed(float2 _speed) {
+	speed = _speed;
+}
+void ComponentParticleSystem::SetRotation(float2 _rotation) {
+	rotation = _rotation;
+}
+void ComponentParticleSystem::SetScale(float2 _scale) {
+	scale = _scale;
+}
+void ComponentParticleSystem::SetIsReverseEffect(bool _isReverse) {
+	reverseEffect = _isReverse;
+}
+void ComponentParticleSystem::SetReserseDistance(float2 _reverseDistance) {
+	reverseDistance = _reverseDistance;
+}
+void ComponentParticleSystem::SetMaxParticles(unsigned _maxParticle) {
+	maxParticles = _maxParticle;
+	CreateParticles();
+}
+
+// Emision
+void ComponentParticleSystem::SetIsAttachEmmitter(bool _isAttachEmmiter) {
+	attachEmitter = _isAttachEmmiter;
+}
+void ComponentParticleSystem::SetParticlesPerSecond(float2 _particlesPerSecond) {
+	particlesPerSecond = _particlesPerSecond;
+}
+// Shape
+void ComponentParticleSystem::SetEmmitterType(ParticleEmitterType _emmitterType) {
+	emitterType = _emmitterType;
+}
+
+// -- Cone
+void ComponentParticleSystem::SetConeRadiusUp(float _coneRadiusUp) {
+	coneRadiusUp = _coneRadiusUp;
+}
+void ComponentParticleSystem::SetConeRadiusDown(float _coneRadiusUp) {
+	coneRadiusDown = coneRadiusDown;
+}
+void ComponentParticleSystem::SetRandomConeRadiusDown(bool _randomConeRadiusDown) {
+	randomConeRadiusDown = _randomConeRadiusDown;
+}
+void ComponentParticleSystem::SetRandomConeRadiusUp(bool _randomConeRadiusUp) {
+	randomConeRadiusUp = _randomConeRadiusUp;
+}
+
+// Rotation over Lifetime
+void ComponentParticleSystem::SetRotationOverLifetime(bool _rotationOverLifeTime) {
+	rotationOverLifetime = _rotationOverLifeTime;
+}
+void ComponentParticleSystem::SetRotationFactor(float2 _rotationFactor) {
+	rotationFactor = _rotationFactor;
+}
+
+// Size over Lifetime
+void ComponentParticleSystem::SetSizeOverLifetime(bool _sizeOverLifeTime) {
+	sizeOverLifetime = _sizeOverLifeTime;
+}
+void ComponentParticleSystem::SetScaleFactor(float2 _scaleFactor) {
+	scaleFactor = _scaleFactor;
+}
+
+// Color over Lifetime
+void ComponentParticleSystem::SetColorOverLifetime(bool _colorOverLifeTime) {
+	colorOverLifetime = _colorOverLifeTime;
+}
+
+// Texture Sheet Animation
+void ComponentParticleSystem::SetXtiles(unsigned _Xtiles) {
+	Xtiles = _Xtiles;
+}
+void ComponentParticleSystem::SetYtiles(unsigned _Ytiles) {
+	Ytiles = _Ytiles;
+}
+void ComponentParticleSystem::SetAnimationSpeed(float _animationSpeed) {
+	animationSpeed = _animationSpeed;
+}
+void ComponentParticleSystem::SetIsRandomFrame(bool _randomFrame) {
+	isRandomFrame = _randomFrame;
+}
+void ComponentParticleSystem::SetIsLoopAnimation(bool _loopAnimation) {
+	loopAnimation = _loopAnimation;
+}
+void ComponentParticleSystem::SetNCycles(float _nCycles) {
+	nCycles = _nCycles;
+}
+
+// Render
+void ComponentParticleSystem::SetBillboardType(BillboardType _bilboardType) {
+	billboardType = _bilboardType;
+}
+void ComponentParticleSystem::SetRenderMode(ParticleRenderMode _renderMode) {
+	renderMode = _renderMode;
+}
+void ComponentParticleSystem::SetRenderAlignment(ParticleRenderAlignment _renderAligment) {
+	renderAlignment = _renderAligment;
+}
+void ComponentParticleSystem::SetFlipXTexture(bool _flipX) {
+	flipTexture[0] = _flipX;
+}
+void ComponentParticleSystem::SetFlipYTexture(bool _flipY) {
+	flipTexture[1] = _flipY;
+}
+
+// Collision
+void ComponentParticleSystem::SetCollision(bool _collision) {
+	collision = _collision;
 }
