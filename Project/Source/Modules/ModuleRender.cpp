@@ -395,7 +395,7 @@ void ModuleRender::DrawScene() {
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, renderTexture);
 	glUniform1i(drawScene->textureSceneLocation, 0);
 	glUniform1f(drawScene->bloomThresholdLocation, bloomThreshold);
-	glUniform1i(drawScene->msaaActiveLocation, msaaActive);
+	glUniform1i(drawScene->samplesNumberLocation, msaaActive ? msaaSamplesNumber[static_cast<int>(msaaSampleType)] : msaaSampleSingle);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
@@ -704,7 +704,7 @@ void ModuleRender::ReceiveEvent(TesseractEvent& ev) {
 void ModuleRender::UpdateFramebuffers() {
 	// Depth buffer
 	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-	glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaActive ? 4 : 1, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaActive ? msaaSamplesNumber[static_cast<int>(msaaSampleType)] : msaaSampleSingle, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// Depth prepass buffer
@@ -782,7 +782,7 @@ void ModuleRender::UpdateFramebuffers() {
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, renderTexture);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaActive ? 4 : 1, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaActive ? msaaSamplesNumber[static_cast<int>(msaaSampleType)] : msaaSampleSingle, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, renderTexture, 0);
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);

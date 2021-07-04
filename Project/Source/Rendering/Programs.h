@@ -233,7 +233,7 @@ struct ProgramPostprocess : Program {
 
 	int textureSceneLocation = -1;
 	int bloomThresholdLocation = -1;
-	int msaaActiveLocation = -1;
+	int samplesNumberLocation = -1;
 };
 
 struct ProgramDrawTexture : Program {

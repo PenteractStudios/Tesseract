@@ -15,6 +15,13 @@
 
 class GameObject;
 
+enum class MSAA_SAMPLES_TYPE {
+	MSAA_X2,
+	MSAA_X4,
+	MSAA_X8,
+	COUNT
+};
+
 class ModuleRender : public Module {
 public:
 	// ------- Core Functions ------ //
@@ -29,6 +36,7 @@ public:
 
 	void ViewportResized(int width, int height); // Updates the viewport aspect ratio with the new one given by parameters. It will set 'viewportUpdated' to true, to regenerate the framebuffer to its new size using UpdateFramebuffers().
 	void UpdateFramebuffers();					 // Generates the rendering framebuffer on Init(). If 'viewportUpdated' was set to true, it will be also called at PostUpdate().
+	//void UpdateMSAABuffers();
 
 	void SetVSync(bool vsync);
 
@@ -104,12 +112,17 @@ public:
 	float3 ambientColor = {0.25f, 0.25f, 0.25f}; // Color of ambient Light
 	float3 clearColor = {0.002f, 0.002f, 0.002f};		 // Color of the viewport between frames
 
+	// SSAO
 	bool ssaoActive = true;
 	float ssaoRange = 1.0f;
 	float ssaoBias = 0.0f;
 	float ssaoPower = 1.0f;
 	float bloomThreshold = 1.0f;
+
 	bool msaaActive = true;
+	MSAA_SAMPLES_TYPE msaaSampleType = MSAA_SAMPLES_TYPE::MSAA_X4;
+	int msaaSamplesNumber[static_cast<int>(MSAA_SAMPLES_TYPE::COUNT)] = {2, 4, 8};
+	int msaaSampleSingle = 1;
 
 	LightFrustum lightFrustum;
 
