@@ -95,6 +95,9 @@ void ModulePrograms::LoadShaders() {
 	environmentBRDF = new ProgramEnvironmentBRDF(CreateProgram(filePath, "vertScreen", "fragFunctionIBL fragEnvironmentBRDF"));
 	skybox = new ProgramSkybox(CreateProgram(filePath, "vertCube", "gammaCorrection fragSkybox"));
 
+	// Unlit Shader
+	unlit = new ProgramUnlit(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragUnlit"));
+
 	// General shaders
 	phongNotNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarSpecular fragMainPhong"));
 	phongNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarSpecular fragMainPhong"));
@@ -138,6 +141,8 @@ void ModulePrograms::UnloadShaders() {
 	RELEASE(environmentBRDF);
 	RELEASE(skybox);
 
+	RELEASE(unlit);
+
 	RELEASE(phongNormal);
 	RELEASE(phongNotNormal);
 	RELEASE(standardNormal);
@@ -149,6 +154,8 @@ void ModulePrograms::UnloadShaders() {
 
 	RELEASE(ssao);
 	RELEASE(ssaoBlur);
+
+	RELEASE(colorCorrection);
 
 	glDeleteProgram(shadowMap);
 

@@ -24,6 +24,9 @@ public:
 	ProgramEnvironmentBRDF* environmentBRDF = nullptr;
 	ProgramSkybox* skybox = nullptr;
 
+	// Unlit Shader
+	ProgramUnlit* unlit = nullptr;
+
 	// Ilumination Shaders
 	ProgramStandardPhong* phongNormal = nullptr;
 	ProgramStandardPhong* phongNotNormal = nullptr;

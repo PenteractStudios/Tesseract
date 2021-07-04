@@ -2,9 +2,12 @@
 
 #include "Recast/SampleInterfaces.h"
 #include "Utils/Buffer.h"
+#include <vector>
 
 class dtCrowd;
 class dtNavMeshQuery;
+class dtNavMesh;
+class dtTileCache;
 
 class NavMesh {
 public:
@@ -15,31 +18,29 @@ public:
 	void DrawGizmos();		// Drawas the Bounding Box and the NavMesh
 	void Load(Buffer<char>& buffer);	// Loads NavMesh from buffer and Inits data
 	void CleanUp();						// Releases memory
+	Buffer<char> Save();
 
 	bool IsGenerated();					// Returns true if navMesh is valid
 	dtCrowd* GetCrowd();				// Returns crowd
 	dtNavMeshQuery* GetNavMeshQuery();	// Returns navQuery
+	dtNavMesh* GetNavMesh();			// Returns navMesh
+	dtTileCache* GetTileCache();		// Returns tileCache
+
+	void CleanCrowd();
+	void RescanCrowd();
+	void CleanObstacles();
+	void RescanObstacles();
 
 public:
-
 	enum DrawMode {
 		DRAWMODE_NAVMESH,
 		DRAWMODE_NAVMESH_TRANS,
 		DRAWMODE_NAVMESH_BVTREE,
 		DRAWMODE_NAVMESH_NODES,
+		DRAWMODE_NAVMESH_PORTALS,
 		DRAWMODE_NAVMESH_INVIS,
 		DRAWMODE_MESH,
-		DRAWMODE_VOXELS,
-		DRAWMODE_VOXELS_WALKABLE,
-		DRAWMODE_COMPACT,
-		DRAWMODE_COMPACT_DISTANCE,
-		DRAWMODE_COMPACT_REGIONS,
-		DRAWMODE_REGION_CONNECTIONS,
-		DRAWMODE_RAW_CONTOURS,
-		DRAWMODE_BOTH_CONTOURS,
-		DRAWMODE_CONTOURS,
-		DRAWMODE_POLYMESH,
-		DRAWMODE_POLYMESH_DETAIL,
+		DRAWMODE_CACHE_BOUNDS,
 		MAX_DRAWMODE
 	};
 
@@ -74,17 +75,16 @@ public:
 	bool keepInterResults = false;
 
 	// TILING
-	int tileSize = 56;
+	int tileSize = 48;
+	int maxTiles = 0;
+	int maxPolysPerTile = 0;
 
 	// DRAW MODE
 	DrawMode drawMode = DRAWMODE_NAVMESH;
 
-	// NAV DATA TO SAVE
-	unsigned char* navData =  nullptr;
-	int navDataSize = 0;
-
 private:
 	void InitCrowd();			// Inits crowd with MAX_AGENTS
+
 
 private:
 	BuildContext* ctx = nullptr;
@@ -93,13 +93,19 @@ private:
 	class dtNavMeshQuery* navQuery = nullptr;
 	class dtCrowd* crowd = nullptr;
 
-	rcHeightfield* solid = nullptr;
-	unsigned char* triareas = nullptr;
+	class dtTileCache* tileCache = nullptr;
 
-	rcCompactHeightfield* chf = nullptr;
-	rcContourSet* cset = nullptr;
-	rcPolyMesh* pmesh = nullptr;
-	rcPolyMeshDetail* dmesh = nullptr;
+	struct LinearAllocator* talloc = nullptr;
+	struct FastLZCompressor* tcomp = nullptr;
+	struct MeshProcess* tmproc = nullptr;
 
 	unsigned char navMeshDrawFlags = 0;
+
+	// SCENE DATA
+	std::vector<float> verts;
+	std::vector<int> tris;
+	std::vector<float> normals;
+
+	int nverts = 0;
+	int ntris = 0;
 };

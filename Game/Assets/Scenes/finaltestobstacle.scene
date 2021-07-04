@@ -1,0 +1,424 @@
+{
+    "QuadtreeBounds": [
+        -1000.0,
+        -1000.0,
+        1000.0,
+        1000.0
+    ],
+    "QuadtreeMaxDepth": 4,
+    "QuadtreeElementsPerNode": 200,
+    "GameCamera": 12906540093966595090,
+    "AmbientLight": [
+        0.25,
+        0.25,
+        0.25
+    ],
+    "NavMesh": 137449771151568656,
+    "Root": {
+        "Id": 7151413126721546849,
+        "Name": "Scene",
+        "Active": true,
+        "Static": false,
+        "ActiveHierarchy": true,
+        "RootBoneId": 0,
+        "Mask": 0,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Id": 13150208708294984285,
+                "Active": true,
+                "Position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "LocalEulerAngles": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        ],
+        "Children": [
+            {
+                "Id": 11171423911996143102,
+                "Name": "Directional Light",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 12130974588379788893,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            300.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.7071068286895752,
+                            0.0,
+                            0.0,
+                            0.7071068286895752
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            90.00000762939453,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "Light",
+                        "Id": 8088984141622655558,
+                        "Active": true,
+                        "LightType": 0,
+                        "Color": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Intensity": 1.0,
+                        "Kl": 0.04500000178813934,
+                        "Kq": 0.007499999832361937,
+                        "InnerAngle": 0.2617993950843811,
+                        "OuterAngle": 0.5235987901687622
+                    }
+                ],
+                "Children": null
+            },
+            {
+                "Id": 9579732208241360324,
+                "Name": "Game Camera",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 9730505093709925984,
+                        "Active": true,
+                        "Position": [
+                            2.0,
+                            3.0,
+                            -5.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "Camera",
+                        "Id": 18136028509168642955,
+                        "Active": true,
+                        "Frustum": {
+                            "Pos": [
+                                2.0,
+                                3.0,
+                                -5.0
+                            ],
+                            "Up": [
+                                0.0,
+                                1.0,
+                                0.0
+                            ],
+                            "Front": [
+                                0.0,
+                                0.0,
+                                1.0
+                            ],
+                            "NearPlaneDistance": 0.10000000149011612,
+                            "FarPlaneDistance": 2000.0,
+                            "HorizontalFov": 1.996100902557373,
+                            "VerticalFov": 1.3113912343978882
+                        }
+                    },
+                    {
+                        "Type": "Skybox",
+                        "Id": 10695972689528432434,
+                        "Active": true,
+                        "Shader": 0,
+                        "Skybox": 0
+                    },
+                    {
+                        "Type": "AudioListener",
+                        "Id": 3230799132020886769,
+                        "Active": true,
+                        "Gain": 1.0
+                    }
+                ],
+                "Children": null
+            },
+            {
+                "Id": 7545611480751579770,
+                "Name": "RootNode",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 10704336806113458179,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Id": 2334223294214010281,
+                        "Name": "dungeon.001",
+                        "Active": true,
+                        "Static": true,
+                        "ActiveHierarchy": true,
+                        "RootBoneId": 0,
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Id": 13550897375751353258,
+                                "Active": true,
+                                "Position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "MeshRenderer",
+                                "Id": 16726968133692615179,
+                                "Active": true,
+                                "MeshID": 253735797921089963,
+                                "MaterialID": 18408133030470724341
+                            },
+                            {
+                                "Type": "BoundingBox",
+                                "Id": 15079057680294739256,
+                                "Active": true,
+                                "LocalBoundingBox": [
+                                    -25.015216827392579,
+                                    -0.0027058611158281566,
+                                    -90.04127502441406,
+                                    49.305145263671878,
+                                    40.17658615112305,
+                                    8.891200065612793
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    }
+                ]
+            },
+            {
+                "Id": 10945428116783719335,
+                "Name": "Zombunny",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 5371149740932182426,
+                        "Active": true,
+                        "Position": [
+                            -0.7113680839538574,
+                            10.077997207641602,
+                            -25.85434341430664
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            0.029999999329447748,
+                            0.029999999329447748,
+                            0.029999999329447748
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "MeshRenderer",
+                        "Id": 9059730197208566943,
+                        "Active": true,
+                        "MeshID": 9218848821787111831,
+                        "MaterialID": 9964757237344865990
+                    },
+                    {
+                        "Type": "MeshRenderer",
+                        "Id": 18016116453070140251,
+                        "Active": true,
+                        "MeshID": 9027867366580633265,
+                        "MaterialID": 8079755573114365741
+                    },
+                    {
+                        "Type": "BoundingBox",
+                        "Id": 6984781428270184961,
+                        "Active": true,
+                        "LocalBoundingBox": [
+                            -76.11719512939453,
+                            -0.33393901586532595,
+                            -35.7611083984375,
+                            76.11719512939453,
+                            148.1706085205078,
+                            37.818817138671878
+                        ]
+                    },
+                    {
+                        "Type": "Agent",
+                        "Id": 5265445748313210567,
+                        "Active": true,
+                        "MaxSpeed": 5.0,
+                        "MaxAcceleration": 8.0,
+                        "AvoidingObstacle": true
+                    },
+                    {
+                        "Type": "Script",
+                        "Id": 2700208771940242442,
+                        "Active": true,
+                        "Script": 8510101239232326426,
+                        "Values": [
+                            {
+                                "Name": "targetPosition",
+                                "Type": "Float3",
+                                "Value": [
+                                    -0.7110000252723694,
+                                    10.07800006866455,
+                                    -5.0
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "Children": null
+            },
+            {
+                "Id": 14434944712786465414,
+                "Name": "Game Object",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 16602646802347879345,
+                        "Active": true,
+                        "Position": [
+                            -0.5753768682479858,
+                            9.597386360168457,
+                            -14.427614212036133
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "Obstacle",
+                        "Id": 16772355763829039661,
+                        "Active": true,
+                        "Size": [
+                            9.75,
+                            2.0999999046325685,
+                            1.0
+                        ],
+                        "ObstacleType": 2,
+                        "DrawGizmo": true
+                    }
+                ],
+                "Children": null
+            }
+        ]
+    }
+}

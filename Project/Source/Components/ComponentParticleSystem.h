@@ -4,6 +4,8 @@
 #include "Utils/Pool.h"
 #include "Utils/UID.h"
 #include "Utils/Collider.h"
+
+#include "Math/float2.h"
 #include "Math/float3.h"
 #include "Math/float4.h"
 #include "Math/float4x4.h"
@@ -41,24 +43,35 @@ enum class BillboardType {
 	VERTICAL
 };
 
+enum class ParticleRenderAlignment {
+	VIEW,
+	WORLD,
+	LOCAL,
+	FACING,
+	VELOCITY
+};
+
+enum class RandomMode {
+	CONST,
+	CONST_MULT
+};
+
 class ComponentParticleSystem : public Component {
 public:
 	struct Particle {
-		float4x4 model = float4x4::identity;
-		float4x4 modelStretch = float4x4::identity;
-
 		float3 initialPosition = float3(0.0f, 0.0f, 0.0f);
 		float3 position = float3(0.0f, 0.0f, 0.0f);
-		float3 direction = float3(0.0f, 0.0f, 0.0f);
-		float3 scale = float3(0.1f, 0.1f, 0.1f);
-
 		Quat rotation = Quat(0.0f, 0.0f, 0.0f, 0.0f);
+		float3 scale = float3(0.1f, 0.1f, 0.1f);
+		float3 direction = float3(0.0f, 0.0f, 0.0f);
 
-		float velocity = 0.0f;
+		float speed = 0.0f;
 		float life = 0.0f;
+		float initialLife = 0.0f;
 		float currentFrame = 0.0f;
 
-		float3 emitterPosition = float3(0.0f, 0.0f, 0.0f);
+		float3 emitterPosition = float3::zero;
+		float3 emitterDirection = float3::zero;
 
 		// Collider
 		ParticleMotionState* motionState = nullptr;
@@ -80,6 +93,7 @@ public:
 	void Save(JsonValue jComponent) const override;
 
 	void Draw();
+	void ImguiRandomMenu(float2& values, RandomMode mode);
 
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Stop();
@@ -89,11 +103,13 @@ public:
 	void SpawnParticleUnit();
 
 	void InitParticlePosAndDir(Particle* currentParticle);
+	void InitParticleRotation(Particle* currentParticle);
 	void InitParticleScale(Particle* currentParticle);
-	void InitParticleVelocity(Particle* currentParticle);
-	void InitParticleLifetime(Particle* currentParticle);
+	void InitParticleSpeed(Particle* currentParticle);
+	void InitParticleLife(Particle* currentParticle);
 
 	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
+	void UpdateRotation(Particle* currentParticle);
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
 
@@ -126,27 +142,39 @@ private:
 	// Particle System
 	float duration = 5.0f; // Emitter duration
 	bool looping = false;
-	float life = 5.0f;	   // Start life
-	float velocity = 1.3f; // Start speed
-	float scale = 1.0f;	   // Start size
+	RandomMode lifeRM = RandomMode::CONST;
+	float2 life = {5.0f, 5.0f}; // Start life
+	RandomMode speedRM = RandomMode::CONST;
+	float2 speed = {1.3f, 1.3f}; // Start speed
+	RandomMode rotationRM = RandomMode::CONST;
+	float2 rotation = {0.0f, 0.0f}; // Start rotation
+	RandomMode scaleRM = RandomMode::CONST;
+	float2 scale = {1.0f, 1.0f}; // Start scale
 	bool reverseEffect = false;
-	float reverseDistance = 5.0f;
+	RandomMode reverseDistanceRM = RandomMode::CONST;
+	float2 reverseDistance = {5.0f, 5.0f};
 	unsigned maxParticles = 100;
 
 	// Emision
-	bool attachEmitter = false;
+	bool attachEmitter = true;
 
 	// Shape
 	ParticleEmitterType emitterType = ParticleEmitterType::CONE;
 	// -- Cone
-	float coneRadiusUp = 1.f;
+	float coneRadiusUp = 1.0f;
 	float coneRadiusDown = 0.5f;
 	bool randomConeRadiusDown = false;
 	bool randomConeRadiusUp = false;
 
+	// Rotation over Lifetime
+	bool rotationOverLifetime = false;
+	RandomMode rotationFactorRM = RandomMode::CONST;
+	float2 rotationFactor = {0.0f, 0.0f};
+
 	// Size over Lifetime
 	bool sizeOverLifetime = false;
-	float scaleFactor = 0.f;
+	RandomMode scaleFactorRM = RandomMode::CONST;
+	float2 scaleFactor = {0.0f, 0.0f};
 
 	// Color over Lifetime
 	bool colorOverLifetime = false;
@@ -164,6 +192,7 @@ private:
 	UID textureID = 0;
 	BillboardType billboardType = BillboardType::NORMAL;
 	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
+	ParticleRenderAlignment renderAlignment = ParticleRenderAlignment::VIEW;
 	bool flipTexture[2] = {false, false};
 
 	// Collision

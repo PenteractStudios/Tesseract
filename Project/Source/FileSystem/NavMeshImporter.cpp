@@ -26,7 +26,7 @@ bool NavMeshImporter::ImportNavMesh(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
-	// Create material resource
+	// Create NavMesh resource
 	unsigned resourceIndex = 0;
 	std::unique_ptr<ResourceNavMesh> navMesh = ImporterCommon::CreateResource<ResourceNavMesh>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
@@ -59,7 +59,8 @@ bool NavMeshImporter::ExportNavMesh(NavMesh& navMesh, const char* filePath) {
 	timer.Start();
 
 	// Save to file
-	bool saved = App->files->Save(filePath, reinterpret_cast<char*>(navMesh.navData), (unsigned int) navMesh.navDataSize);
+	Buffer<char> buffer = navMesh.Save();
+	bool saved = App->files->Save(filePath, buffer);
 	if (!saved) {
 		LOG("Failed to save NavMesh.");
 		return false;

@@ -319,6 +319,8 @@ void ComponentTrail::DeleteQuads() {
 }
 
 void ComponentTrail::EditTextureCoords() {
+	if (nTextures == 0) return;
+
 	int nLine = 0;
 	float factor = nTextures / (float) trailQuads;
 	nRepeats = (trailQuads / nTextures) * 12;
