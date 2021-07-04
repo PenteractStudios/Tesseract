@@ -20,7 +20,7 @@
 void ResourceAudioClip::Load() {
 	MSTimer timer;
 	timer.Start();
-	std::string filePath = GetResourceFilePath();
+	std::string filePath = GetAssetFilePath();
 	LOG("Loading audio from path: \"%s\".", filePath.c_str());
 
 	ALenum err, format;
