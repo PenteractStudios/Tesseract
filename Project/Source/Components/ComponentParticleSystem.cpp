@@ -203,7 +203,9 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	// Emission
 	if (ImGui::CollapsingHeader("Emission")) {
 		ImGui::Checkbox("Attach to Emitter", &attachEmitter);
-		ImGuiRandomMenu("Rate over Time", particlesPerSecond, particlesPerSecondRM, 1, 0, inf);
+		if (ImGuiRandomMenu("Rate over Time", particlesPerSecond, particlesPerSecondRM, 1, 0, inf)) {
+			InitStartRate();
+		}
 	}
 
 	// Gravity
@@ -728,7 +730,13 @@ void ComponentParticleSystem::InitStartDelay() {
 }
 
 void ComponentParticleSystem::InitStartRate() {
-	restParticlesPerSecond = 1 / ObtainRandomValueFloat(particlesPerSecond, particlesPerSecondRM);
+	float newParticlesPerSecond = ObtainRandomValueFloat(particlesPerSecond, particlesPerSecondRM);
+
+	if (newParticlesPerSecond == 0) {
+		restParticlesPerSecond = inf;
+	} else {
+		restParticlesPerSecond = 1 / newParticlesPerSecond;
+	}
 }
 
 void ComponentParticleSystem::Update() {
