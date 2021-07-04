@@ -134,7 +134,6 @@ void ComponentAnimation::OnUpdate() {
 		if (!currentClip) {
 			return;
 		}
-		LOG("Name: %s GetDeltaTime = %f, currentClip->speed = %f total = %f, duration= %f", currentClip->name.c_str(), App->time->GetDeltaTime(), currentClip->speed, currentTimeStatesSecondary[currentStateSecondary.id] + (App->time->GetDeltaTime() * currentClip->speed), currentClip->duration);
 		currentTimeStatesSecondary[currentStateSecondary.id] += (App->time->GetDeltaTime() * currentClip->speed);
 	}
 }

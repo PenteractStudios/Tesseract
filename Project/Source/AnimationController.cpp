@@ -22,7 +22,7 @@ int AnimationController::GetCurrentSample(const ResourceClip& clip, float& curre
 	return intPart;
 }
 
-bool AnimationController::GetTransform(const ResourceClip& clip, float& currentTime, const char* name, float3& pos, Quat& quat) {
+bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, const char* name, float3& pos, Quat& quat) {
 	if (clip.animationUID == 0) {
 		return false;
 	}
@@ -31,6 +31,12 @@ bool AnimationController::GetTransform(const ResourceClip& clip, float& currentT
 	if (resourceAnimation == nullptr && resourceAnimation->keyFrames.size() != 0) return false;
 
 	if (clip.loop) {
+		//Resetting the events since it has been a loop
+		if (currentTime >= clip.duration) {
+			for (auto& element : clip.keyEventClips) {
+				element.second.sent = false;
+			}
+		}
 		while (currentTime >= clip.duration) {
 			currentTime -= clip.duration;
 		}

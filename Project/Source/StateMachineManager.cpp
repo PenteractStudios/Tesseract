@@ -148,13 +148,6 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 
 		//Sending event on keyframe
 		if (!clip->keyEventClips.empty()) { //Only call this once
-			//Resetting the events since it has been a loop
-			if (clip->currentEventKeyFrame > currentSample) {
-				for (auto& element : clip->keyEventClips) {
-					element.second.sent = false;
-				}
-			}
-
 			// Send key Frame event
 			for (int difference = currentSample - clip->currentEventKeyFrame; difference <= currentSample; difference++) {
 				if (clip->keyEventClips.find(difference) != clip->keyEventClips.end() && !clip->keyEventClips[difference].sent) {
