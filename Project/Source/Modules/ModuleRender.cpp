@@ -182,6 +182,7 @@ bool ModuleRender::Init() {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	glEnable(GL_MULTISAMPLE);
 	glFrontFace(GL_CCW);
 
 #if _DEBUG
@@ -488,7 +489,7 @@ UpdateStatus ModuleRender::Update() {
 	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
 	glClearColor(gammaClearColor.x, gammaClearColor.y, gammaClearColor.z, 1.0f);
 	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
+	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -515,7 +516,6 @@ UpdateStatus ModuleRender::Update() {
 	glDepthFunc(GL_LEQUAL);
 
 	// Draw Transparent
-	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	for (std::map<float, GameObject*>::reverse_iterator it = transparentGameObjects.rbegin(); it != transparentGameObjects.rend(); ++it) {
