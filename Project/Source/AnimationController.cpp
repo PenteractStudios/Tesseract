@@ -22,7 +22,7 @@ int AnimationController::GetCurrentSample(const ResourceClip& clip, float& curre
 	return intPart;
 }
 
-bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, const char* name, float3& pos, Quat& quat) {
+bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, const char* name, float3& pos, Quat& quat, bool firstBone) {
 	if (clip.animationUID == 0) {
 		return false;
 	}
@@ -31,8 +31,8 @@ bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, c
 	if (resourceAnimation == nullptr && resourceAnimation->keyFrames.size() != 0) return false;
 
 	if (clip.loop) {
-		//Resetting the events since it has been a loop
-		if (currentTime >= clip.duration) {
+		//Resetting the events since it has been a loop only for one bone
+		if (firstBone && currentTime >= clip.duration) {
 			for (auto& element : clip.keyEventClips) {
 				element.second.sent = false;
 			}
@@ -69,7 +69,7 @@ bool AnimationController::InterpolateTransitions(const std::list<AnimationInterp
 	if (!clip) {
 		return false;
 	}
-	bool result = GetTransform(*clip, (*it).currentTime, gameObject.name.c_str(), pos, quat);
+	bool result = GetTransform(*clip, (*it).currentTime, gameObject.name.c_str(), pos, quat, &rootBone == &gameObject);
 	bool resultInner = true; 
 	if (&(*it) != &(*std::prev(animationInterpolations.end())) && result) {
 		float3 position;

@@ -9,6 +9,14 @@
 #include <Utils/Logging.h>
 #include "GameObject.h"
 
+
+bool StateMachineManager::Contains(std::list<AnimationInterpolation>& animationInterpolations, const UID& id) {
+	for (const auto element : animationInterpolations) {
+		if (element.state->id == id) return true;
+	}
+	return false;
+}
+
 void StateMachineManager::SendTrigger(const std::string& trigger, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State& currentState, State& currentStateSecondary, std::unordered_map<UID, float>& currentTimeStatesPrincipal, StateMachineEnum stateMachineEnum, std::list<AnimationInterpolation>& animationInterpolationsSecondary) {
 	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
 	if (!resourceStateMachine) {
@@ -19,12 +27,19 @@ void StateMachineManager::SendTrigger(const std::string& trigger, std::unordered
 		if (transition->source.id == currentState.id) {
 			currentTimeStates[transition->target.id] = 0;
 
+			float fade = 0;
+			//If animation interpolation has repeated states, then calculate fade and deleteing repeated state. For evade current time isue.
+			if (animationInterpolations.size() >0 && Contains(animationInterpolations, transition->target.id)) {
+				fade = transition->interpolationDuration - animationInterpolations.front().fadeTime;
+				animationInterpolations.pop_back();
+			}
+
 			if (animationInterpolations.size() == 0) {
 				animationInterpolations.push_front(AnimationInterpolation(&transition->source, currentTimeStates[currentState.id], 0, transition->interpolationDuration));
 			}
 			//Set the currentTime of AnimationInterpolation equals to currentTimeStatesPrincipal (instead of 0) to avoid the gap between the times between the interpolation of state secondary to state principal.
 			// given to this : we are not allowed to have the states in the principal same as the secondary state machine
-			animationInterpolations.push_front(AnimationInterpolation(&transition->target, currentTimeStatesPrincipal[transition->target.id], 0, transition->interpolationDuration));
+			animationInterpolations.push_front(AnimationInterpolation(&transition->target, currentTimeStatesPrincipal[transition->target.id], fade, transition->interpolationDuration));
 			
 
 			//Check for fixing gap if the principal state machine changes and the secondary is doing the interpolation to another state 
@@ -117,7 +132,11 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 				resetSecondaryStatemachine = true;
 			}
 			
-			result = AnimationController::GetTransform(*clip, currentTimeStates[currentState->id], gameObject->name.c_str(), position, rotation);
+			result = AnimationController::GetTransform(*clip, currentTimeStates[currentState->id], gameObject->name.c_str(), position, rotation, gameObject->name == (*resourceStateMachine->bones.begin()));
+			if (gameObject->name == (*resourceStateMachine->bones.begin())) {
+				
+			}
+
 		}
 	}
 
@@ -126,8 +145,8 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 		//Sending Event on Finished
 		if (!clip->loop) {
 			// Checking if the current sample is the last keyframe in order to send the event
-			if (currentTimeStates[currentState->id] >= clip->duration) {
-				//if (currentSample == clip->endIndex) {
+			//if (currentTimeStates[currentState->id] >= clip->duration) {
+			if (currentSample == clip->endIndex) {
 				for (ComponentScript& script : owner.GetComponents<ComponentScript>()) {
 					if (script.IsActive()) {
 						Script* scriptInstance = script.GetScriptInstance();

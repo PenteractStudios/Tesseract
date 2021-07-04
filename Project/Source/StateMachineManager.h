@@ -12,6 +12,7 @@
 class GameObject;
 //Class dedicated to manage the decision between the interpolation of the two state machines
 namespace StateMachineManager {
+	bool Contains(std::list<AnimationInterpolation>& animationInterpolations, const UID& id);
 
 	void SendTrigger(const std::string& trigger, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State& currentState, State& currentStateSecondary, std::unordered_map<UID, float>& currentTimeStatesPrincipal, StateMachineEnum stateMachineEnum, std::list<AnimationInterpolation>& animationInterpolationsSecondary);
 
