@@ -141,7 +141,7 @@ public:
 
 	// Emision
 	TESSERACT_ENGINE_API bool GetIsAttachEmmitter() const;
-
+	TESSERACT_ENGINE_API float2 GetParticlesPerSecond() const;
 	// Shape
 	TESSERACT_ENGINE_API ParticleEmitterType GetEmmitterType() const;
 
@@ -195,7 +195,7 @@ public:
 
 	// Emision
 	TESSERACT_ENGINE_API void SetIsAttachEmmitter(bool _isAttachEmmiter);
-
+	TESSERACT_ENGINE_API void SetParticlesPerSecond(float2 _particlesPerSecond);
 	// Shape
 	TESSERACT_ENGINE_API void SetEmmitterType(ParticleEmitterType _emmitterType);
 

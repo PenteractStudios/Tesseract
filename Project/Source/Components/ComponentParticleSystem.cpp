@@ -194,11 +194,12 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			ImGui::Unindent();
 		}
 		if (ImGui::DragScalar("Max Particles", ImGuiDataType_U32, &maxParticles)) {
-			if (maxParticles <= 2000) {
+			CreateParticles();
+			/*if (maxParticles <= 2000) {
 				CreateParticles();
 			} else {
 				LOG("Warning: Max particles: 2000")
-			}
+			}*/
 		}
 	}
 
@@ -631,15 +632,15 @@ void ComponentParticleSystem::SpawnParticles() {
 		if (emitterTime < duration || looping) {
 			if (restParticlesPerSecond <= 0) {
 				for (int i = 0; i < particlesCurrentFrame; i++) {
-					SpawnParticleUnit();
+					if ((maxParticles > particleSpawned) || looping) SpawnParticleUnit();
 				}
 				InitStartRate();
 			} else {
 				restParticlesPerSecond -= App->time->GetDeltaTimeOrRealDeltaTime();
 			}
-		} else if (particles.Count() == 0) {
-			isPlaying = false;
 		}
+	} else if (particles.Count() == 0) {
+		isPlaying = false;
 	}
 }
 
@@ -761,7 +762,7 @@ void ComponentParticleSystem::InitStartRate() {
 	}
 	float aux = App->time->GetDeltaTimeOrRealDeltaTime();
 	float aux2 = restParticlesPerSecond;
-	particlesCurrentFrame = (App->time->GetDeltaTimeOrRealDeltaTime() / restParticlesPerSecond) + 1;
+	particlesCurrentFrame = (App->time->GetDeltaTimeOrRealDeltaTime() / restParticlesPerSecond);
 }
 
 void ComponentParticleSystem::Update() {
@@ -1123,6 +1124,9 @@ unsigned ComponentParticleSystem::GetMaxParticles() const {
 bool ComponentParticleSystem::GetIsAttachEmmitter() const {
 	return attachEmitter;
 }
+float2 ComponentParticleSystem::GetParticlesPerSecond() const {
+	return particlesPerSecond;
+}
 
 // Shape
 ParticleEmitterType ComponentParticleSystem::GetEmmitterType() const {
@@ -1242,7 +1246,9 @@ void ComponentParticleSystem::SetMaxParticles(unsigned _maxParticle) {
 void ComponentParticleSystem::SetIsAttachEmmitter(bool _isAttachEmmiter) {
 	attachEmitter = _isAttachEmmiter;
 }
-
+void ComponentParticleSystem::SetParticlesPerSecond(float2 _particlesPerSecond) {
+	particlesPerSecond = _particlesPerSecond;
+}
 // Shape
 void ComponentParticleSystem::SetEmmitterType(ParticleEmitterType _emmitterType) {
 	emitterType = _emmitterType;
