@@ -189,7 +189,7 @@ void ResourceMaterial::OnEditorUpdate() {
 
 	// Shader types
 	ImGui::TextColored(App->editor->titleColor, "Shader");
-	const char* shaderTypes[] = {"[Legacy] Phong", "Standard (specular settings)", "Standard"};
+	const char* shaderTypes[] = {"[Legacy] Phong", "Standard (specular settings)", "Standard", "Unlit"};
 	const char* shaderTypesCurrent = shaderTypes[(int) shaderType];
 	if (ImGui::BeginCombo("Shader Type", shaderTypesCurrent)) {
 		for (int n = 0; n < IM_ARRAYSIZE(shaderTypes); ++n) {
@@ -283,7 +283,7 @@ void ResourceMaterial::OnEditorUpdate() {
 		ImGui::EndColumns();
 		ImGui::NewLine();
 
-	} else {
+	} else if (shaderType != MaterialShader::UNLIT) {
 		const char* smoothnessItems[] = {"Diffuse Alpha", "Specular Alpha"};
 
 		if (shaderType == MaterialShader::STANDARD_SPECULAR) {
@@ -345,25 +345,27 @@ void ResourceMaterial::OnEditorUpdate() {
 		ImGui::NewLine();
 	}
 
-	// Normal Options
-	ImGui::BeginColumns("##normal_material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-	{
-		ImGui::ResourceSlot<ResourceTexture>("Normal Map", &normalMapId);
-	}
-	ImGui::NextColumn();
-	{
-		ImGui::NewLine();
-		if (normalMapId != 0) {
-			ImGui::SliderFloat("##strength", &normalStrength, 0.0, 10.0);
+	if (shaderType != MaterialShader::UNLIT) {
+		// Normal Options
+		ImGui::BeginColumns("##normal_material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		{
+			ImGui::ResourceSlot<ResourceTexture>("Normal Map", &normalMapId);
 		}
+		ImGui::NextColumn();
+		{
+			ImGui::NewLine();
+			if (normalMapId != 0) {
+				ImGui::SliderFloat("##strength", &normalStrength, 0.0, 10.0);
+			}
+		}
+		ImGui::EndColumns();
+		ImGui::NewLine();
+
+		// Ambient Occlusion Options
+		ImGui::ResourceSlot<ResourceTexture>("Occlusion Map", &ambientOcclusionMapId);
+
+		ImGui::NewLine();
 	}
-	ImGui::EndColumns();
-	ImGui::NewLine();
-
-	// Ambient Occlusion Options
-	ImGui::ResourceSlot<ResourceTexture>("Occlusion Map", &ambientOcclusionMapId);
-
-	ImGui::NewLine();
 
 	// Emissive Options
 	ImGui::ResourceSlot<ResourceTexture>("Emissive Map", &emissiveMapId);
