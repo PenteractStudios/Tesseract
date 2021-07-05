@@ -37,12 +37,12 @@ private:
 	float3 direction = {0.f, 0.f, 0.f};
 	bool loopSound = false;
 	UID audioClipId = 0;
-	int spatialBlend = 0;	  // 2D = 0; 3D = 1;
+	int spatialBlend = 1;	  // 2D = 0; 3D = 1;
 	int sourceType = 0;		  // Omnidirectional = 0; Directional = 1;
 	float innerAngle = 90.f;  // Inner angle from directional source where gain parameter will be "gain"
 	float outerAngle = 180.f; // Outer angle from directional source where gain parameter will be "outerGain"
 	float outerGain = 0.f;	  // Gain applied outside outerAngle. Between inner and outer, OpenAL do an interpolation
 	float rollOffFact = 1.0f;
-	float referenceDistance = 6.0f;
-	float maxDistance = 15.0f;
+	float referenceDistance = 10.0f;
+	float maxDistance = 30.0f;
 };
