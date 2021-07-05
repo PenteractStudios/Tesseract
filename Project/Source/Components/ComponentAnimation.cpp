@@ -32,7 +32,7 @@
 
 
 void ComponentAnimation::Update() {
-	if(!App->time->IsGameRunning()) {
+	if (!App->time->IsGameRunning() || !IsActive()) {
 		return;
 	}
 	if (!loadedResourceStateMachine) { //Checking if there is no state machine
@@ -121,33 +121,35 @@ void ComponentAnimation::OnUpdate() {
 
 	UpdateAnimations(rootBone);
 
-	if (loadedResourceStateMachine) {
+	
+	if (loadedResourceStateMachine && animationInterpolationsPrincipal.empty()) {
 		ResourceClip* currentClip = App->resources->GetResource<ResourceClip>(currentStatePrincipal.clipUid);
 		if (!currentClip) {
 			return;
 		}
 		currentTimeStatesPrincipal[currentStatePrincipal.id] += App->time->GetDeltaTime() * currentClip->speed;
 	}
-	if (loadedResourceStateMachineSecondary && currentStateSecondary.id != 0) {
+	if (loadedResourceStateMachineSecondary && currentStateSecondary.id != 0 && animationInterpolationsSecondary.empty()) {
 		ResourceClip* currentClip = App->resources->GetResource<ResourceClip>(currentStateSecondary.clipUid);
 		if (!currentClip) {
 			return;
 		}
-		currentTimeStatesSecondary[currentStateSecondary.id] += App->time->GetDeltaTime() * currentClip->speed;
+		currentTimeStatesSecondary[currentStateSecondary.id] += (App->time->GetDeltaTime() * currentClip->speed);
 	}
 }
 
 void ComponentAnimation::SendTrigger(const std::string& trigger) {
-	StateMachineManager::SendTrigger(trigger, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal, currentStatePrincipal, currentTimeStatesPrincipal);
+	StateMachineManager::SendTrigger(trigger, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal, currentStatePrincipal, currentStateSecondary, currentTimeStatesPrincipal,StateMachineEnum::PRINCIPAL,animationInterpolationsSecondary);
 }
 void ComponentAnimation::SendTriggerSecondary(const std::string& trigger) {
 	if (loadedResourceStateMachine && currentStateSecondary.id == 0) {
 		//For doing the interpolation between states correctly it is necessary to set the current state of the principal state machine to be the same as the second state machine current state
 		currentStateSecondary = currentStatePrincipal;
 		//Updating current time to the currentTimeStatesSecondary to sync the times between the current state machine of the first one and the second one
-		currentTimeStatesSecondary[currentStateSecondary.id] = currentTimeStatesPrincipal[currentStatePrincipal.id];
+		currentTimeStatesSecondary[currentStateSecondary.id] = currentTimeStatesPrincipal[currentStatePrincipal.id];		
 	}
-	StateMachineManager::SendTrigger(trigger, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary, currentStateSecondary, currentTimeStatesPrincipal);
+
+	StateMachineManager::SendTrigger(trigger, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary, currentStateSecondary,currentStateSecondary, currentTimeStatesPrincipal,StateMachineEnum::SECONDARY,animationInterpolationsSecondary);
 }
 
 void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
@@ -183,8 +185,9 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 			return;
 		}
 		std::unordered_map<UID, State>::iterator it = resourceStateMachine->states.find(0); // Get "empty" state
-		assert(it != resourceStateMachine->states.end());
-		currentStateSecondary = (*it).second;
+		if (it != resourceStateMachine->states.end()) {
+			currentStateSecondary = (*it).second;
+		}
 	}
 
 	ComponentTransform* componentTransform = gameObject->GetComponent<ComponentTransform>();
