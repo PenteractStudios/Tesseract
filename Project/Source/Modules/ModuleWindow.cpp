@@ -47,6 +47,9 @@ bool ModuleWindow::Init() {
 		SDL_DisplayMode displayMode;
 		SDL_GetDisplayMode(SDL_GetWindowDisplayIndex(window), i, &displayMode);
 		displayModes.push_back(displayMode);
+		if (desktopDisplayMode.w == displayMode.w && desktopDisplayMode.h == displayMode.h && desktopDisplayMode.refresh_rate == displayMode.refresh_rate) {
+			currentDisplayMode = i;
+		}
 	}
 
 #if GAME
