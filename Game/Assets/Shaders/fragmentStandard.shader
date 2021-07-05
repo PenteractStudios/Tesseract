@@ -33,6 +33,7 @@ uniform float normalStrength;
 uniform float smoothness;
 uniform sampler2D emissiveMap;
 uniform int hasEmissiveMap;
+uniform float emissiveIntensity;
 uniform sampler2D ambientOcclusionMap;
 uniform int hasAmbientOcclusionMap;
 uniform int hasSmoothnessAlpha; // Generic used for Specular and Metallic
@@ -100,7 +101,7 @@ float Pow2(float a)
 
 vec2 GetTiledUVs()
 {
-    return uv * tiling + offset; 
+    return uv * tiling + offset;
 }
 
 vec4 GetDiffuse(vec2 tiledUV)
@@ -110,7 +111,7 @@ vec4 GetDiffuse(vec2 tiledUV)
 
 vec4 GetEmissive(vec2 tiledUV)
 {
-    return hasEmissiveMap * SRGBA(texture(emissiveMap, tiledUV));
+    return hasEmissiveMap * SRGBA(texture(emissiveMap, tiledUV)) * emissiveIntensity;
 }
 
 vec3 GetAmbientLight(in vec3 R, in vec3 normal, in vec3 viewDir, in vec3 Cd, in vec3 F0, float roughness)
@@ -161,8 +162,8 @@ float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMa
     float currentDepth = projCoords.z;
 	float bias = max(0.05 * (1 - dot(normal, lightDirection)), 0.005);
 
-	float shadow = 0.0;  
-	
+	float shadow = 0.0;
+
 	vec2 texelSize = 1.0/textureSize(shadowMap, 0);
 	for(int x = -1; x <= 1; ++x){
 		for(int y = -1; y <= 1; ++y){
@@ -283,9 +284,9 @@ vec3 ProcessSpotLight(SpotLight spot, vec3 fragNormal, vec3 viewDir, vec3 Cd, ve
 --- fragMainMetallic
 
 void main()
-{    
+{
     vec3 viewDir = normalize(viewPos - fragPos);
-    vec2 tiledUV = GetTiledUVs(); 
+    vec2 tiledUV = GetTiledUVs();
     vec3 normal = fragNormal;
 
     if (hasNormalMap)
@@ -336,21 +337,21 @@ void main()
 --- fragMainSpecular
 
 void main()
-{    
+{
     vec3 viewDir = normalize(viewPos - fragPos);
-    vec2 tiledUV = GetTiledUVs(); 
+    vec2 tiledUV = GetTiledUVs();
     vec3 normal = fragNormal;
 
     if (hasNormalMap)
     {
 	    normal = GetNormal(tiledUV);
     }
-	
+
     vec4 colorDiffuse = GetDiffuse(tiledUV);
     vec4 colorSpecular = hasSpecularMap * SRGBA(texture(specularMap, tiledUV)) + (1 - hasSpecularMap) * vec4(SRGB(specularColor), 1.0);
 
     float roughness = Pow2(1 - smoothness * (hasSmoothnessAlpha * colorSpecular.a + (1 - hasSmoothnessAlpha) * colorDiffuse.a)) + EPSILON;
-    
+
     // Ambient Light
     vec3 R = reflect(-viewDir, normal);
     vec3 colorAccumulative = GetOccludedAmbientLight(R, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness, tiledUV);

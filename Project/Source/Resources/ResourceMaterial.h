@@ -55,6 +55,7 @@ public:
 
 	// Emissive
 	UID emissiveMapId = 0;
+	float emissiveIntensity = 1.f;
 
 	// Ambien occlusion
 	UID ambientOcclusionMapId = 0;

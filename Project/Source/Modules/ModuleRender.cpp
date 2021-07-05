@@ -42,8 +42,42 @@
 #include <string>
 
 #define GAUSS_KERNEL_SIZE 3
+#define GAUSS_KERNEL2_SIZE 11
+#define GAUSS_KERNEL3_SIZE 19
 
-static float gaussKernel[GAUSS_KERNEL_SIZE] = {0.38774f, 0.24477f, 0.06136f};
+static float smallGaussKernel[GAUSS_KERNEL_SIZE] = {0.38774f, 0.24477f, 0.06136f};
+static float mediumGaussKernel[GAUSS_KERNEL2_SIZE] = {
+  0.19741257145444083f,
+  0.17466647146354097f,
+  0.12097746070390959f,
+  0.06559073722230267f,
+  0.027834685329492057f,
+  0.009244616587506386f,
+  0.0024027325605485827f,
+  0.0004886419989245074f,
+  0.0000777489201475167f,
+  0.000009677359081674635f,
+  9.421273256292181e-7f };
+static float largeGaussKernel[GAUSS_KERNEL3_SIZE] = {
+0.1135970549719514f,
+0.10908388615096154f,
+0.09659242667151088f,
+0.07886993868875804f,
+0.05938380596548307f,
+0.04122989526428024f,
+0.026396223756986845f,
+0.015583128235014598f,
+0.008483010575939092f,
+0.004258225538238774f,
+0.001971026952683784f,
+0.0008412873900501253f,
+0.00033112120106173294f,
+0.00012017748135727222f,
+0.00004022119455886654f,
+0.000012413213489207052f,
+0.0000035327410171720715f,
+9.271241156238208e-7f,
+2.2436851738444238e-7f };
 
 // clang-format off
 static const float cubeVertices[108] = {
@@ -326,7 +360,7 @@ void ModuleRender::ComputeSSAOTexture() {
 }
 
 void ModuleRender::BlurSSAOTexture(bool horizontal) {
-	ProgramSSAOBlur* ssaoBlurProgram = App->programs->ssaoBlur;
+	ProgramBlur* ssaoBlurProgram = App->programs->blur;
 	if (ssaoBlurProgram == nullptr) return;
 
 	glUseProgram(ssaoBlurProgram->program);
@@ -335,7 +369,8 @@ void ModuleRender::BlurSSAOTexture(bool horizontal) {
 	glBindTexture(GL_TEXTURE_2D, horizontal ? ssaoTexture : auxBlurTexture);
 	glUniform1i(ssaoBlurProgram->inputTextureLocation, 0);
 
-	glUniform1fv(ssaoBlurProgram->kernelLocation, GAUSS_KERNEL_SIZE, gaussKernel);
+	glUniform1fv(ssaoBlurProgram->smallKernelLocation, GAUSS_KERNEL_SIZE, smallGaussKernel);
+	glUniform1f(ssaoBlurProgram->smallWeightLocation, 1.0f);
 	glUniform1i(ssaoBlurProgram->horizontalLocation, horizontal ? 1 : 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -354,11 +389,13 @@ void ModuleRender::ExecuteColorCorrection(bool horizontal) {
 	glBindTexture(GL_TEXTURE_2D, bloomBlurTextures[!horizontal]);
 	glUniform1i(colorCorrectionProgram->textureBloomBlurLocation, 1);
 
+	glUniform1f(colorCorrectionProgram->bloomIntensityLocation, bloomIntensity);
+
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 void ModuleRender::BlurBloomTexture(bool horizontal, bool firstTime) {
-	ProgramSSAOBlur* bloomBlurProgram = App->programs->ssaoBlur;
+	ProgramBlur* bloomBlurProgram = App->programs->blur;
 	if (bloomBlurProgram == nullptr) return;
 
 	glUseProgram(bloomBlurProgram->program);
@@ -367,7 +404,13 @@ void ModuleRender::BlurBloomTexture(bool horizontal, bool firstTime) {
 	glBindTexture(GL_TEXTURE_2D, firstTime ? colorTextures[1] : bloomBlurTextures[!horizontal]);
 	glUniform1i(bloomBlurProgram->inputTextureLocation, 0);
 
-	glUniform1fv(bloomBlurProgram->kernelLocation, GAUSS_KERNEL_SIZE, gaussKernel);
+	glUniform1fv(bloomBlurProgram->smallKernelLocation, GAUSS_KERNEL_SIZE, smallGaussKernel);
+	glUniform1f(bloomBlurProgram->smallWeightLocation, bloomSmallWeight);
+	glUniform1fv(bloomBlurProgram->mediumKernelLocation, GAUSS_KERNEL2_SIZE, mediumGaussKernel);
+	glUniform1f(bloomBlurProgram->mediumWeightLocation, bloomMediumWeight);
+	glUniform1fv(bloomBlurProgram->largeKernelLocation, GAUSS_KERNEL3_SIZE, largeGaussKernel);
+	glUniform1f(bloomBlurProgram->largeWeightLocation, bloomLargeWeight);
+
 	glUniform1i(bloomBlurProgram->horizontalLocation, horizontal ? 1 : 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -535,7 +578,7 @@ UpdateStatus ModuleRender::Update() {
 		if (trail.IsActive()) trail.Draw();
 	}
 
-	
+
 	// Draw Gizmos
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
@@ -610,8 +653,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// Bloom blur
 	bool horizontal = true, firstIteration = true;
-	unsigned int amount = 6;
-	for (unsigned int i = 0; i < amount; i++) {
+	for (unsigned int i = 0; i < 2 * bloomQuality; i++) {
 		glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[horizontal]);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glDisable(GL_DEPTH_TEST);

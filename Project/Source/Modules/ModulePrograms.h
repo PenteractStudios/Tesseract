@@ -40,7 +40,7 @@ public:
 
 	// SSAO Shaders
 	ProgramSSAO* ssao = nullptr;
-	ProgramSSAOBlur* ssaoBlur = nullptr;
+	ProgramBlur* blur = nullptr;
 
 	// Post-processing Shaders
 	ProgramColorCorrection* colorCorrection = nullptr;

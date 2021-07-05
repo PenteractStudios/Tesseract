@@ -86,6 +86,7 @@ ProgramUnlit::ProgramUnlit(unsigned program_)
 
 	emissiveMapLocation = glGetUniformLocation(program, "emissiveMap");
 	hasEmissiveMapLocation = glGetUniformLocation(program, "hasEmissiveMap");
+	emissiveIntensityLocation = glGetUniformLocation(program, "emissiveIntensity");
 
 	tilingLocation = glGetUniformLocation(program, "tiling");
 	offsetLocation = glGetUniformLocation(program, "offset");
@@ -117,6 +118,7 @@ ProgramStandard::ProgramStandard(unsigned program_)
 
 	emissiveMapLocation = glGetUniformLocation(program, "emissiveMap");
 	hasEmissiveMapLocation = glGetUniformLocation(program, "hasEmissiveMap");
+	emissiveIntensityLocation = glGetUniformLocation(program, "emissiveIntensity");
 
 	ambientOcclusionMapLocation = glGetUniformLocation(program, "ambientOcclusion");
 	hasAmbientOcclusionMapLocation = glGetUniformLocation(program, "hasAmbientOcclusion");
@@ -204,11 +206,17 @@ ProgramSSAO::ProgramSSAO(unsigned program_)
 	powerLocation = glGetUniformLocation(program, "power");
 }
 
-ProgramSSAOBlur::ProgramSSAOBlur(unsigned program_)
+ProgramBlur::ProgramBlur(unsigned program_)
 	: Program(program_) {
 	inputTextureLocation = glGetUniformLocation(program, "inputTexture");
 
-	kernelLocation = glGetUniformLocation(program, "kernel");
+	smallKernelLocation = glGetUniformLocation(program, "smallKernel");
+	mediumKernelLocation = glGetUniformLocation(program, "mediumKernel");
+	largeKernelLocation = glGetUniformLocation(program, "largeKernel");
+	smallWeightLocation = glGetUniformLocation(program, "smallWeight");
+	mediumWeightLocation = glGetUniformLocation(program, "mediumWeight");
+	largeWeightLocation = glGetUniformLocation(program, "largeWeight");
+
 	horizontalLocation = glGetUniformLocation(program, "horizontal");
 }
 
@@ -216,6 +224,7 @@ ProgramColorCorrection::ProgramColorCorrection(unsigned program_)
 	: Program(program_) {
 	textureSceneLocation = glGetUniformLocation(program, "scene");
 	textureBloomBlurLocation = glGetUniformLocation(program, "bloomBlur");
+	bloomIntensityLocation = glGetUniformLocation(program, "bloomIntensity");
 }
 
 ProgramDrawTexture::ProgramDrawTexture(unsigned program_)

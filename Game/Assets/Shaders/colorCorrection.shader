@@ -18,6 +18,7 @@ out vec4 outColor;
 
 uniform sampler2D scene;
 uniform sampler2D bloomBlur;
+uniform float bloomIntensity;
 
 vec3 ACESFilm(in vec3 x) {
 	float a = 2.51f;
@@ -31,7 +32,7 @@ vec3 ACESFilm(in vec3 x) {
 void main()
 {
 	vec4 hdrColor = texture(scene, uv);
-	vec3 bloomColor = texture(bloomBlur, uv).rgb;
+	vec3 bloomColor = texture(bloomBlur, uv).rgb * bloomIntensity;
 	hdrColor.rgb += bloomColor; // additive blending
 
 	// ACES Tonemapping

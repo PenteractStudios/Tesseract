@@ -116,7 +116,14 @@ public:
 	float ssaoRange = 1.0f;
 	float ssaoBias = 0.0f;
 	float ssaoPower = 1.0f;
+
+	// Bloom
+	int bloomQuality = 3;
+	float bloomIntensity = 1.0f;
 	float bloomThreshold = 1.0f;
+	float bloomSmallWeight = 0.6f;
+	float bloomMediumWeight = 0.2f;
+	float bloomLargeWeight = 0.2f;
 
 	bool msaaActive = true;
 	MSAA_SAMPLES_TYPE msaaSampleType = MSAA_SAMPLES_TYPE::MSAA_X4;

@@ -229,15 +229,22 @@ void PanelConfiguration::Update() {
 				ImGui::DragFloat("Bias", &App->renderer->ssaoBias, 0.0001f, 0.0f, 10.0f, "%.5f");
 				ImGui::DragFloat("Power", &App->renderer->ssaoPower, 0.01f, 0.01f, 100.0f);
 			}
+
 			ImGui::Separator();
 			ImGui::TextColored(App->editor->titleColor, "Bloom Settings");
+			ImGui::SliderInt("Quality", &App->renderer->bloomQuality, 1, 7);
 			ImGui::SliderFloat("Bloom Threshold", &App->renderer->bloomThreshold, 0.001f, 10.0f);
+			ImGui::SliderFloat("Intensity", &App->renderer->bloomIntensity, 0.0f, 10.0f);
+			ImGui::Text("Shape");
+			ImGui::SliderFloat("Small weight", &App->renderer->bloomSmallWeight, 0.0f, 2.0f, "%.2f");
+			ImGui::SliderFloat("Medium weight", &App->renderer->bloomMediumWeight, 0.0f, 2.0f, "%.2f");
+			ImGui::SliderFloat("Large weight", &App->renderer->bloomLargeWeight, 0.0f, 2.0f, "%.2f");
+
 			ImGui::Separator();
 			ImGui::TextColored(App->editor->titleColor, "MSAA Settings");
 			if (ImGui::Checkbox("Activate MSAA", &App->renderer->msaaActive)) {
 				App->renderer->UpdateFramebuffers();
 			}
-
 
 			const char* items[] = {"x2", "x4", "x8"};
 			const char* itemCurrent = items[static_cast<int>(App->renderer->msaaSampleType)];
@@ -254,7 +261,7 @@ void PanelConfiguration::Update() {
 				}
 				ImGui::EndCombo();
 			}
-			
+
 			ImGui::Separator();
 			ImGui::ResourceSlot<ResourceNavMesh>("Nav Mesh", &scene->navMeshId);
 		}

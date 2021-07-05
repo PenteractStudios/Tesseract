@@ -13,7 +13,7 @@ vec3 GetTexel(in vec2 uv)
 {
 	ivec2 vp = textureSize(sceneTexture);
 	vp = ivec2(vec2(vp) * uv);
-	
+
 	vec3 accumulatedSample = vec3(0.0f);
 	for (int i = 0; i < samplesNumber; ++i) {
 		accumulatedSample += texelFetch(sceneTexture, vp, i).rgb;
@@ -25,7 +25,7 @@ vec3 GetTexel(in vec2 uv)
 void main()
 {
 	color = vec4(GetTexel(uv), 1.0);
-	float bright = dot(color.rgb, vec3(0.3, 0.6, 0.2));
+	float bright = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
 	if (bright > bloomThreshold) bloom = color * smoothstep(0.0, 1.0, bright - bloomThreshold);
 	else bloom = vec4(0.0, 0.0, 0.0, 1.0);
 }
