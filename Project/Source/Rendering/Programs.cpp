@@ -118,8 +118,8 @@ ProgramStandard::ProgramStandard(unsigned program_)
 	emissiveMapLocation = glGetUniformLocation(program, "emissiveMap");
 	hasEmissiveMapLocation = glGetUniformLocation(program, "hasEmissiveMap");
 
-	ambientOcclusionMapLocation = glGetUniformLocation(program, "ambientOcclusion");
-	hasAmbientOcclusionMapLocation = glGetUniformLocation(program, "hasAmbientOcclusion");
+	ambientOcclusionMapLocation = glGetUniformLocation(program, "ambientOcclusionMap");
+	hasAmbientOcclusionMapLocation = glGetUniformLocation(program, "hasAmbientOcclusionMap");
 
 	depthMapTextureLocation = glGetUniformLocation(program, "depthMapTexture");
 
