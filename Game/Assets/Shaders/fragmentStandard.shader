@@ -193,7 +193,7 @@ uniform int hasSpecularMap;
 
 float GGXNormalDistribution(float NH, float roughness)
 {
-	return roughness * roughness / (PI * Pow2(NH * NH * (roughness * roughness - 1) + 1));
+	return roughness * roughness / max(PI * Pow2(NH * NH * (roughness * roughness - 1) + 1), EPSILON);
 }
 
 vec3 SchlickFresnel(vec3 F0, float cosTheta)
