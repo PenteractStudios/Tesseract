@@ -104,7 +104,6 @@ UpdateStatus ModuleTime::ExitGame() {
 
 void ModuleTime::SetVSync(bool value) {
 	vsync = value;
-	limitFramerate = value;
 	App->renderer->SetVSync(value);
 }
 

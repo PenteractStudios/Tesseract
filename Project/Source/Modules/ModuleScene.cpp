@@ -102,6 +102,7 @@ bool ModuleScene::Start() {
 	}
 
 	App->time->SetVSync(true);
+	App->time->limitFramerate = false;
 #else
 	CreateEmptyScene();
 #endif
