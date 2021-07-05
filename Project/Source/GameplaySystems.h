@@ -478,6 +478,8 @@ namespace Screen {
 	TESSERACT_ENGINE_API int GetHeight();
 	TESSERACT_ENGINE_API float GetBrightness();
 	TESSERACT_ENGINE_API float2 GetResolution();
+	TESSERACT_ENGINE_API const bool IsVSyncActive();
+	TESSERACT_ENGINE_API void SetVSync(bool value);
 
 	TESSERACT_ENGINE_API void SetMSAAActive(bool value);
 	TESSERACT_ENGINE_API void SetMSAAType(MSAA_SAMPLES_TYPE value);

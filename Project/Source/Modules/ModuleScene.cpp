@@ -100,7 +100,8 @@ bool ModuleScene::Start() {
 	if (App->scene->scene->root == nullptr) {
 		App->scene->CreateEmptyScene();
 	}
-	App->renderer->SetVSync(false);
+
+	App->time->SetVSync(true);
 	App->time->limitFramerate = false;
 #else
 	CreateEmptyScene();

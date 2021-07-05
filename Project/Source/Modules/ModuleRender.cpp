@@ -642,12 +642,10 @@ UpdateStatus ModuleRender::Update() {
 UpdateStatus ModuleRender::PostUpdate() {
 	BROFILER_CATEGORY("ModuleRender - PostUpdate", Profiler::Color::Green)
 
-#if !GAME
 	if (viewportUpdated) {
 		UpdateFramebuffers();
 		viewportUpdated = false;
 	}
-#endif
 
 	SDL_GL_SwapWindow(App->window->window);
 
