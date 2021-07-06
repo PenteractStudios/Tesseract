@@ -201,6 +201,8 @@ struct ProgramSSAO : Program {
 
 	int projLocation = -1;
 
+	int samplesNumberLocation = -1;
+
 	int positionsLocation = -1;
 	int normalsLocation = -1;
 
