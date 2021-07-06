@@ -559,6 +559,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform1i(standardProgram->ssaoTextureLocation, 6);
 	glActiveTexture(GL_TEXTURE6);
 	glBindTexture(GL_TEXTURE_2D, glSSAOTexture);
+	glUniform1f(standardProgram->ssaoDirectLightingStrengthLocation, App->renderer->ssaoDirectLightingStrength);
 
 	// Tilling settings
 	glUniform2fv(standardProgram->tilingLocation, 1, material->tiling.ptr());

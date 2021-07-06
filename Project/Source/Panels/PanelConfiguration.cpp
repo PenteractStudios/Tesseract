@@ -228,6 +228,7 @@ void PanelConfiguration::Update() {
 				ImGui::DragFloat("Range", &App->renderer->ssaoRange, 0.01f, 0.01f, 100.0f);
 				ImGui::DragFloat("Bias", &App->renderer->ssaoBias, 0.0001f, 0.0f, 10.0f, "%.5f");
 				ImGui::DragFloat("Power", &App->renderer->ssaoPower, 0.01f, 0.01f, 100.0f);
+				ImGui::DragFloat("Direct Lighting Strength", &App->renderer->ssaoDirectLightingStrength, 0.0f, 0.01f, 1.0f);
 			}
 			ImGui::Separator();
 			ImGui::TextColored(App->editor->titleColor, "Bloom Settings");

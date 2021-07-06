@@ -124,6 +124,7 @@ ProgramStandard::ProgramStandard(unsigned program_)
 	depthMapTextureLocation = glGetUniformLocation(program, "depthMapTexture");
 
 	ssaoTextureLocation = glGetUniformLocation(program, "ssaoTexture");
+	ssaoDirectLightingStrengthLocation = glGetUniformLocation(program, "ssaoDirectLightingStrength");
 
 	tilingLocation = glGetUniformLocation(program, "tiling");
 	offsetLocation = glGetUniformLocation(program, "offset");

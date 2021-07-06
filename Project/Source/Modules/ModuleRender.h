@@ -115,7 +115,8 @@ public:
 	bool ssaoActive = true;
 	float ssaoRange = 1.0f;
 	float ssaoBias = 0.0f;
-	float ssaoPower = 1.0f;
+	float ssaoPower = 3.0f;
+	float ssaoDirectLightingStrength = 0.5f;
 	float bloomThreshold = 1.0f;
 
 	bool msaaActive = true;

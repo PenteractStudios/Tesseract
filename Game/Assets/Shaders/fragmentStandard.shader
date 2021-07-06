@@ -17,6 +17,7 @@ uniform sampler2D depthMapTexture;
 
 // SSAO texture
 uniform sampler2D ssaoTexture;
+uniform float ssaoDirectLightingStrength;
 
 uniform mat4 proj;
 uniform mat4 view;
@@ -105,7 +106,10 @@ vec2 GetTiledUVs()
 
 vec4 GetDiffuse(vec2 tiledUV)
 {
-    return hasDiffuseMap * SRGBA(texture(diffuseMap, tiledUV)) * diffuseColor + (1 - hasDiffuseMap) * SRGBA(diffuseColor);
+	vec4 projectedPos = proj * view * vec4(fragPos, 1.0);
+	vec2 occlusionUV = (projectedPos.xy / projectedPos.w) * 0.5 + 0.5;
+	float occlusionFactor = 1.0 - ((1.0 - texture(ssaoTexture, occlusionUV).r) * ssaoDirectLightingStrength);
+    return (hasDiffuseMap * SRGBA(texture(diffuseMap, tiledUV)) + (1 - hasDiffuseMap)) * SRGBA(diffuseColor) * vec4(vec3(occlusionFactor), 1.0);
 }
 
 vec4 GetEmissive(vec2 tiledUV)
@@ -129,7 +133,7 @@ vec3 GetOccludedAmbientLight(in vec3 R, in vec3 normal, in vec3 viewDir, in vec3
 	vec2 occlusionUV = (projectedPos.xy / projectedPos.w) * 0.5 + 0.5;
 	float occlusionFactor = texture(ssaoTexture, occlusionUV).r;
 	vec3 ambientLight = GetAmbientLight(R, normal, viewDir, Cd, F0, roughness) * occlusionFactor;
-    return hasAmbientOcclusionMap * ambientLight.rgb * texture(ambientOcclusionMap, tiledUV).rgb + (1 - hasAmbientOcclusionMap) * ambientLight.rgb;
+    return (hasAmbientOcclusionMap * texture(ambientOcclusionMap, tiledUV).rgb + (1 - hasAmbientOcclusionMap)) * ambientLight.rgb;
 }
 
 vec3 GetNormal(vec2 tiledUV)
