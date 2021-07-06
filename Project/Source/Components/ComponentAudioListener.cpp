@@ -16,6 +16,7 @@
 void ComponentAudioListener::Init() {
 	alListenerf(AL_GAIN, gain);
 	UpdateAudioListener();
+	UpdateDistanceModel();
 }
 
 void ComponentAudioListener::Update() {
@@ -34,7 +35,7 @@ void ComponentAudioListener::OnEditorUpdate() {
 	}
 	ImGui::Separator();
 
-	if (ImGui::Combo("Distance Model", &model, distanceModels, IM_ARRAYSIZE(distanceModels))){
+	if (ImGui::Combo("Distance Model", &model, distanceModels, IM_ARRAYSIZE(distanceModels))) {
 		UpdateDistanceModel();
 	}
 
@@ -92,7 +93,7 @@ void ComponentAudioListener::UpdateAudioListener() {
 		up[2],
 	};
 	alListenerfv(AL_POSITION, position.ptr());
-	alListenerfv(AL_ORIENTATION, orientation);	
+	alListenerfv(AL_ORIENTATION, orientation);
 }
 
 void ComponentAudioListener::UpdateDistanceModel() {

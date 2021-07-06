@@ -131,12 +131,18 @@ void ResourceClip::OnEditorUpdate() {
 
 	ImGui::ResourceSlot<ResourceAnimation>("Animaton", &animationUID);
 
+	int maxFrames = 0;
+	ResourceAnimation* resourceAnimation = GetResourceAnimation();	
+	if (resourceAnimation != nullptr && resourceAnimation->keyFrames.size() != 0) {
+		maxFrames = resourceAnimation->keyFrames.size();
+	}
+
 	ImGui::Checkbox("Loop", &loop);
 
-	ImGui::DragScalar("Begin Index", ImGuiDataType_U32, &beginIndex);
+	ImGui::DragScalar("Begin Index", ImGuiDataType_U32, &beginIndex, 1, 0, &endIndex);
 	SetBeginIndex(beginIndex);
 
-	ImGui::DragScalar("End Index", ImGuiDataType_U32, &endIndex);
+	ImGui::DragScalar("End Index", ImGuiDataType_U32, &endIndex, 1, &beginIndex, &maxFrames);
 	SetEndIndex(endIndex);
 
 	ImGui::DragFloat("Speed", &speed, 0.001f);

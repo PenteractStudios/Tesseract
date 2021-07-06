@@ -1258,6 +1258,7 @@ void ComponentParticleSystem::SetIsAttachEmmitter(bool _isAttachEmmiter) {
 }
 void ComponentParticleSystem::SetParticlesPerSecond(float2 _particlesPerSecond) {
 	particlesPerSecond = _particlesPerSecond;
+	InitStartRate();
 }
 // Shape
 void ComponentParticleSystem::SetEmmitterType(ParticleEmitterType _emmitterType) {

@@ -30,10 +30,10 @@ public:
 
 private:
 	float gain = 1.0f;
-	int model = 0;
-	bool clamped = false;
+	int model = 2;
+	bool clamped = true;
 
-	DistanceModel distanceModel = DistanceModel::EXPONENT;
+	DistanceModel distanceModel = DistanceModel::LINEAR;
 
 	inline static const char* distanceModels[] {"Exponent", "Inverse", "Linear"};
 };

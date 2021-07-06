@@ -9,7 +9,15 @@
 #include <Utils/Logging.h>
 #include "GameObject.h"
 
-void StateMachineManager::SendTrigger(const std::string& trigger, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State& currentState, std::unordered_map<UID, float>& currentTimeStatesPrincipal) {
+
+bool StateMachineManager::Contains(std::list<AnimationInterpolation>& animationInterpolations, const UID& id) {
+	for (const auto element : animationInterpolations) {
+		if (element.state->id == id) return true;
+	}
+	return false;
+}
+
+void StateMachineManager::SendTrigger(const std::string& trigger, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State& currentState, State& currentStateSecondary, std::unordered_map<UID, float>& currentTimeStatesPrincipal, StateMachineEnum stateMachineEnum, std::list<AnimationInterpolation>& animationInterpolationsSecondary) {
 	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
 	if (!resourceStateMachine) {
 		return;
@@ -17,15 +25,36 @@ void StateMachineManager::SendTrigger(const std::string& trigger, std::unordered
 	Transition* transition = resourceStateMachine->FindTransitionGivenName(trigger);
 	if (transition != nullptr) {
 		if (transition->source.id == currentState.id) {
+			currentTimeStates[transition->target.id] = 0;
+
+			float fade = 0;
+			//If animation interpolation has repeated states, then calculate fade and deleteing repeated state. For evade current time isue.
+			if (animationInterpolations.size() >0 && Contains(animationInterpolations, transition->target.id)) {
+				fade = transition->interpolationDuration - animationInterpolations.front().fadeTime;
+				animationInterpolations.pop_back();
+			}
+
 			if (animationInterpolations.size() == 0) {
 				animationInterpolations.push_front(AnimationInterpolation(&transition->source, currentTimeStates[currentState.id], 0, transition->interpolationDuration));
 			}
 			//Set the currentTime of AnimationInterpolation equals to currentTimeStatesPrincipal (instead of 0) to avoid the gap between the times between the interpolation of state secondary to state principal.
 			// given to this : we are not allowed to have the states in the principal same as the secondary state machine
-			animationInterpolations.push_front(AnimationInterpolation(&transition->target, currentTimeStatesPrincipal[transition->target.id], 0, transition->interpolationDuration));
+			animationInterpolations.push_front(AnimationInterpolation(&transition->target, currentTimeStatesPrincipal[transition->target.id], fade, transition->interpolationDuration));
+			
+
+			//Check for fixing gap if the principal state machine changes and the secondary is doing the interpolation to another state 
+			// different than the previous one
+			if (stateMachineEnum == StateMachineEnum::PRINCIPAL && currentStateSecondary.id == currentState.id && animationInterpolationsSecondary.size() > 0) {
+				// change the animation interpolation in order to go to the new transition
+				currentStateSecondary = transition->target;
+				animationInterpolationsSecondary.pop_front();
+				animationInterpolationsSecondary.push_front(AnimationInterpolation(&transition->target, currentTimeStatesPrincipal[transition->target.id], 0, transition->interpolationDuration));
+			}
+			
 			currentState = transition->target;
 		} else {
-			LOG("Warning: transition target from %s to %s, and current state is %s ", transition->source.name.c_str(), transition->target.name.c_str(), currentState.name.c_str());
+			std::string name = StateMachineEnum::PRINCIPAL ? "principal" : "secondary";
+			LOG("Warning:%s transition target from %s to %s, and current state is %s ", name.c_str(), transition->source.name.c_str(), transition->target.name.c_str(), currentState.name.c_str());
 		}
 	}
 }
@@ -70,7 +99,7 @@ bool StateMachineManager::SecondaryEqualsToAnyPrincipal(const State& currentStat
 	return false;
 }
 
-bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameObject& owner, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State* currentState, float3& position, Quat& rotation, bool& resetSecondaryStatemachine, StateMachineEnum stateMachineEnum, bool principalEqualSecondary) {
+bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameObject& owner, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State* currentState, float3& position, Quat& rotation, bool& resetSecondaryStatemachine,const StateMachineEnum stateMachineEnum, bool principalEqualSecondary) {
 	bool result = false;
 
 	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
@@ -103,60 +132,60 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 				resetSecondaryStatemachine = true;
 			}
 			
-			result = AnimationController::GetTransform(*clip, currentTimeStates[currentState->id], gameObject->name.c_str(), position, rotation);
+			result = AnimationController::GetTransform(*clip, currentTimeStates[currentState->id], gameObject->name.c_str(), position, rotation, gameObject->name == (*resourceStateMachine->bones.begin()));
+			if (gameObject->name == (*resourceStateMachine->bones.begin())) {
+				
+			}
 
-			if (gameObject->name == (*resourceStateMachine->bones.begin())) { //Only call this once
-				if (!clip->loop) {
-					// Checking if the current sample is the last keyframe in order to send the event
-					if (currentSample == clip->endIndex) {
-						for (ComponentScript& script : owner.GetComponents<ComponentScript>()) {
-							if (script.IsActive()) {
-								Script* scriptInstance = script.GetScriptInstance();
-								if (scriptInstance != nullptr) {
-									switch (stateMachineEnum) {
-									case StateMachineEnum::PRINCIPAL:
-										scriptInstance->OnAnimationFinished();
-										break;
-									case StateMachineEnum::SECONDARY:
-										scriptInstance->OnAnimationSecondaryFinished();
-										break;
-									}
-								}
+		}
+	}
+
+
+	if (gameObject->name == (*resourceStateMachine->bones.begin())) {
+		//Sending Event on Finished
+		if (!clip->loop) {
+			// Checking if the current sample is the last keyframe in order to send the event
+			//if (currentTimeStates[currentState->id] >= clip->duration) {
+			if (currentSample == clip->endIndex) {
+				for (ComponentScript& script : owner.GetComponents<ComponentScript>()) {
+					if (script.IsActive()) {
+						Script* scriptInstance = script.GetScriptInstance();
+						if (scriptInstance != nullptr) {
+							switch (stateMachineEnum) {
+							case StateMachineEnum::PRINCIPAL:
+								scriptInstance->OnAnimationFinished();
+								break;
+							case StateMachineEnum::SECONDARY:
+								scriptInstance->OnAnimationSecondaryFinished();
+								break;
 							}
 						}
 					}
 				}
 			}
 		}
-	}
 
+		//Sending event on keyframe
+		if (!clip->keyEventClips.empty()) { //Only call this once
+			// Send key Frame event
+			for (int difference = currentSample - clip->currentEventKeyFrame; difference <= currentSample; difference++) {
+				if (clip->keyEventClips.find(difference) != clip->keyEventClips.end() && !clip->keyEventClips[difference].sent) {
+					for (ComponentScript& script : owner.GetComponents<ComponentScript>()) {
+						if (script.IsActive()) {
+							Script* scriptInstance = script.GetScriptInstance();
 
-	//Sending event on keyframe
-	if (gameObject->name == (*resourceStateMachine->bones.begin()) && !clip->keyEventClips.empty() ) { //Only call this once
-		//Resetting the events since it has been a loop
-		if (clip->currentEventKeyFrame > currentSample) {
-			for (auto& element : clip->keyEventClips) {
-				element.second.sent = false;
-			}
-		}
-
-		// Send key Frame event
-		for (int difference = currentSample - clip->currentEventKeyFrame; difference <= currentSample; difference++) {
-			if (clip->keyEventClips.find(difference) != clip->keyEventClips.end() && !clip->keyEventClips[difference].sent) {
-				for (ComponentScript& script : owner.GetComponents<ComponentScript>()) {
-					if (script.IsActive()) {
-						Script* scriptInstance = script.GetScriptInstance();
-
-						if (scriptInstance != nullptr) {
-							scriptInstance->OnAnimationEvent(stateMachineEnum, clip->keyEventClips[difference].name.c_str());
-							clip->keyEventClips[difference].sent = true;
+							if (scriptInstance != nullptr) {
+								scriptInstance->OnAnimationEvent(stateMachineEnum, clip->keyEventClips[difference].name.c_str());
+								clip->keyEventClips[difference].sent = true;
+							}
 						}
 					}
 				}
 			}
-		}
 
-		clip->currentEventKeyFrame = currentSample;
+			clip->currentEventKeyFrame = currentSample;
+		}
 	}
+	
 	return result;
 }

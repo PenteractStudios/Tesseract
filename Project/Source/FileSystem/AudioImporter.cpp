@@ -13,8 +13,6 @@
 
 #include "Utils/Leaks.h"
 
-
-
 bool AudioImporter::ImportAudio(const char* filePath, JsonValue jMeta) {
 	LOG("Importing audio from path: \"%s\".", filePath);
 
@@ -22,18 +20,19 @@ bool AudioImporter::ImportAudio(const char* filePath, JsonValue jMeta) {
 	MSTimer timer;
 	timer.Start();
 
-	//Convert Wavs to Ogg's
-	std::string extension = FileDialog::GetFileExtension(filePath);
+	// TODO: Fix Converter
+	////Convert Wavs to Ogg's
+	//std::string extension = FileDialog::GetFileExtension(filePath);
 
-	if (extension == WAV_AUDIO_EXTENSION) {
-		std::string fileIn(filePath);
-		std::string fileOut = fileIn.replace(fileIn.end() - 4, fileIn.end(), ".ogg");
+	//if (extension == WAV_AUDIO_EXTENSION) {
+	//	std::string fileIn(filePath);
+	//	std::string fileOut = fileIn.replace(fileIn.end() - 4, fileIn.end(), ".ogg");
 
-		char* filePathOgg;
-		filePathOgg = &fileOut[0];
+	//	char* filePathOgg;
+	//	filePathOgg = &fileOut[0];
 
-		EncondeWavToOgg(filePath, filePathOgg);
-	}
+	//	EncondeWavToOgg(filePath, filePathOgg);
+	//}
 
 	// Read from file
 	Buffer<char> buffer = App->files->Load(filePath);
@@ -94,7 +93,7 @@ void AudioImporter::EncondeWavToOgg(const char* infilename, const char* outfilen
 		puts(sf_strerror(NULL));
 		exit(1);
 	};
-	
+
 	while ((readCount = sf_read_double(inFile, data, BUFFER_LEN))) {
 		sf_write_double(outFile, data, readCount);
 	}

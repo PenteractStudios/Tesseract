@@ -120,8 +120,8 @@ ProgramStandard::ProgramStandard(unsigned program_)
 	hasEmissiveMapLocation = glGetUniformLocation(program, "hasEmissiveMap");
 	emissiveIntensityLocation = glGetUniformLocation(program, "emissiveIntensity");
 
-	ambientOcclusionMapLocation = glGetUniformLocation(program, "ambientOcclusion");
-	hasAmbientOcclusionMapLocation = glGetUniformLocation(program, "hasAmbientOcclusion");
+	ambientOcclusionMapLocation = glGetUniformLocation(program, "ambientOcclusionMap");
+	hasAmbientOcclusionMapLocation = glGetUniformLocation(program, "hasAmbientOcclusionMap");
 
 	depthMapTextureLocation = glGetUniformLocation(program, "depthMapTexture");
 
@@ -194,6 +194,8 @@ ProgramDepthPrepass::ProgramDepthPrepass(unsigned program_)
 ProgramSSAO::ProgramSSAO(unsigned program_)
 	: Program(program_) {
 	projLocation = glGetUniformLocation(program, "proj");
+
+	samplesNumberLocation = glGetUniformLocation(program, "samplesNumber");
 
 	positionsLocation = glGetUniformLocation(program, "positions");
 	normalsLocation = glGetUniformLocation(program, "normals");

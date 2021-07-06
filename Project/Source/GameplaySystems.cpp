@@ -424,6 +424,14 @@ float2 Screen::GetResolution() {
 	return float2(static_cast<float>(App->window->GetWidth()), static_cast<float>(App->window->GetHeight()));
 }
 
+const bool Screen::IsVSyncActive() {
+	return App->time->vsync;
+}
+
+void Screen::SetVSync(bool value) {
+	App->time->SetVSync(value);
+}
+
 void Screen::SetMSAAActive(bool value) {
 	App->renderer->msaaActive = value;
 	App->renderer->UpdateFramebuffers();

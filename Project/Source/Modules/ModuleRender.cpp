@@ -368,12 +368,14 @@ void ModuleRender::ComputeSSAOTexture() {
 
 	glUniformMatrix4fv(ssaoProgram->projLocation, 1, GL_TRUE, projMatrix.ptr());
 
+	glUniform1i(ssaoProgram->samplesNumberLocation, msaaActive ? msaaSamplesNumber[static_cast<int>(msaaSampleType)] : msaaSampleSingle);
+
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, positionsTexture);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, positionsTexture);
 	glUniform1i(ssaoProgram->positionsLocation, 0);
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, normalsTexture);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, normalsTexture);
 	glUniform1i(ssaoProgram->normalsLocation, 1);
 
 	glUniform3fv(ssaoProgram->kernelSamplesLocation, SSAO_KERNEL_SIZE, ssaoKernel[0].ptr());
@@ -723,12 +725,10 @@ UpdateStatus ModuleRender::Update() {
 UpdateStatus ModuleRender::PostUpdate() {
 	BROFILER_CATEGORY("ModuleRender - PostUpdate", Profiler::Color::Green)
 
-#if !GAME
 	if (viewportUpdated) {
 		UpdateFramebuffers();
 		viewportUpdated = false;
 	}
-#endif
 
 	SDL_GL_SwapWindow(App->window->window);
 
@@ -782,30 +782,24 @@ void ModuleRender::ReceiveEvent(TesseractEvent& ev) {
 }
 
 void ModuleRender::UpdateFramebuffers() {
+	unsigned msaaSamples = msaaActive ? msaaSamplesNumber[static_cast<int>(msaaSampleType)] : msaaSampleSingle;
+
 	// Depth buffer
 	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-	glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaActive ? msaaSamplesNumber[static_cast<int>(msaaSampleType)] : msaaSampleSingle, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSamples, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// Depth prepass buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureBuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
-	glBindTexture(GL_TEXTURE_2D, positionsTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, positionsTexture, 0);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, positionsTexture);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, positionsTexture, 0);
 
-	glBindTexture(GL_TEXTURE_2D, normalsTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalsTexture, 0);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, normalsTexture);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D_MULTISAMPLE, normalsTexture, 0);
 
 	GLuint drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
 	glDrawBuffers(2, drawBuffers);
@@ -862,17 +856,15 @@ void ModuleRender::UpdateFramebuffers() {
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, renderTexture);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaActive ? msaaSamplesNumber[static_cast<int>(msaaSampleType)] : msaaSampleSingle, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, renderTexture, 0);
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
 	// HDR and bloom buffers
 	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
-	for (unsigned int i = 0; i < 2; i++)
-	{
+	for (unsigned int i = 0; i < 2; i++) {
 		glBindTexture(GL_TEXTURE_2D, colorTextures[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -886,8 +878,7 @@ void ModuleRender::UpdateFramebuffers() {
 	unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 	glDrawBuffers(2, attachments);
 
-	for (unsigned int i = 0; i < 2; i++)
-	{
+	for (unsigned int i = 0; i < 2; i++) {
 		glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[i]);
 		glBindTexture(GL_TEXTURE_2D, bloomBlurTextures[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
