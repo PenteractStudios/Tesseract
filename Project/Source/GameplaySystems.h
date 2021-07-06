@@ -496,6 +496,10 @@ namespace SceneManager {
 
 namespace Physics {
 	TESSERACT_ENGINE_API GameObject* Raycast(const float3& start, const float3& end, const int mask);
+	TESSERACT_ENGINE_API void CreateRigidbody(Component* collider);
+	TESSERACT_ENGINE_API void UpdateRigidbody(Component* collider);
+	TESSERACT_ENGINE_API void RemoveRigidbody(Component* collider);
+
 }
 
 namespace Colors {

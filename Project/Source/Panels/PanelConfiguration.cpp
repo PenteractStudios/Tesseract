@@ -232,6 +232,7 @@ void PanelConfiguration::Update() {
 
 			ImGui::Separator();
 			ImGui::TextColored(App->editor->titleColor, "Bloom Settings");
+			ImGui::Checkbox("Activate Bloom", &App->renderer->bloomActive);
 			ImGui::SliderInt("Quality", &App->renderer->bloomQuality, 1, 7);
 			ImGui::SliderFloat("Bloom Threshold", &App->renderer->bloomThreshold, 0.001f, 10.0f);
 			ImGui::SliderFloat("Intensity", &App->renderer->bloomIntensity, 0.0f, 10.0f);

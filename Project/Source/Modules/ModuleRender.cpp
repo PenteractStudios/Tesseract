@@ -43,10 +43,6 @@
 #include <math.h>
 #include <vector>
 
-#define GAUSS_KERNEL_RADIUS 2
-#define GAUSS_KERNEL2_RADIUS 24
-#define GAUSS_KERNEL3_RADIUS 54
-
 static std::vector<float> smallGaussKernel;
 static std::vector<float> mediumGaussKernel;
 static std::vector<float> largeGaussKernel;
@@ -71,7 +67,7 @@ float defIntGaussian(const float x, const float mu, const float sigma) {
 	return 0.5 * erf((x - mu) / (sqrt(2) * sigma));
 }
 
-void gaussianKernel(const int kernelSize, const float sigma, const float mu, const int step, std::vector<float>& coeff) {
+void gaussianKernel(const int kernelSize, const float sigma, const float mu, const float step, std::vector<float>& coeff) {
 	const float end = 0.5*kernelSize;
 	const float start = -end;
 	float sum = 0;
@@ -311,9 +307,18 @@ bool ModuleRender::Init() {
 
 
 	// Compute Gaussian kernels
-	gaussianKernel(2*GAUSS_KERNEL_RADIUS+1 -1, 2.f, 0.f, 1, smallGaussKernel);
-	gaussianKernel(2*GAUSS_KERNEL2_RADIUS+1, 5.f, 0.f, 1, mediumGaussKernel);
-	gaussianKernel(2*GAUSS_KERNEL3_RADIUS+1, 12.f, 0.f, 1, largeGaussKernel);
+	gaussSmallKernelRadius = roundf(viewportSize.x * 0.001f);
+	gaussMediumKernelRadius = roundf(viewportSize.x * 0.005f);
+	gaussLargeKernelRadius = roundf(viewportSize.x * 0.01f);
+	float term = Ln(1e7/sqrt(2*pi));
+	float sigma1 = 2;
+	float sigma2 = gaussMediumKernelRadius * gaussMediumKernelRadius / 2;
+	float sigma3 = gaussLargeKernelRadius * gaussLargeKernelRadius / 2;
+	sigma2 = sqrt(sigma2 / (term - Ln(sigma2)));
+	sigma3 = sqrt(sigma3 / (term - Ln(sigma3)));
+	gaussianKernel(2 * gaussSmallKernelRadius + 1, sigma1, 0.f, 1.f, smallGaussKernel);
+	gaussianKernel(2 * gaussMediumKernelRadius + 1, sigma2, 0.f, 1.f, mediumGaussKernel);
+	gaussianKernel(2 * gaussLargeKernelRadius + 1, sigma3, 0.f, 1.f, largeGaussKernel);
 
 	return true;
 }
@@ -391,8 +396,9 @@ void ModuleRender::BlurSSAOTexture(bool horizontal) {
 	glBindTexture(GL_TEXTURE_2D, horizontal ? ssaoTexture : auxBlurTexture);
 	glUniform1i(ssaoBlurProgram->inputTextureLocation, 0);
 
-	glUniform1fv(ssaoBlurProgram->smallKernelLocation, GAUSS_KERNEL_RADIUS+1, &smallGaussKernel[0]);
+	glUniform1fv(ssaoBlurProgram->smallKernelLocation, gaussSmallKernelRadius+1, &smallGaussKernel[0]);
 	glUniform1f(ssaoBlurProgram->smallWeightLocation, 1.0f);
+	glUniform1i(ssaoBlurProgram->smallRadiusLocation, gaussSmallKernelRadius);
 	glUniform1i(ssaoBlurProgram->horizontalLocation, horizontal ? 1 : 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -408,7 +414,12 @@ void ModuleRender::ExecuteColorCorrection(bool horizontal) {
 	glBindTexture(GL_TEXTURE_2D, colorTextures[0]);
 	glUniform1i(colorCorrectionProgram->textureSceneLocation, 0);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, bloomBlurTextures[!horizontal]);
+	if (bloomActive) {
+		glBindTexture(GL_TEXTURE_2D, bloomBlurTextures[!horizontal]);
+	}
+	else {
+		glBindTexture(GL_TEXTURE_2D, colorTextures[1]);
+	}
 	glUniform1i(colorCorrectionProgram->textureBloomBlurLocation, 1);
 
 	glUniform1f(colorCorrectionProgram->bloomIntensityLocation, bloomIntensity);
@@ -426,12 +437,15 @@ void ModuleRender::BlurBloomTexture(bool horizontal, bool firstTime) {
 	glBindTexture(GL_TEXTURE_2D, firstTime ? colorTextures[1] : bloomBlurTextures[!horizontal]);
 	glUniform1i(bloomBlurProgram->inputTextureLocation, 0);
 
-	glUniform1fv(bloomBlurProgram->smallKernelLocation, GAUSS_KERNEL_RADIUS+1, &smallGaussKernel[0]);
+	glUniform1fv(bloomBlurProgram->smallKernelLocation, gaussSmallKernelRadius +1, &smallGaussKernel[0]);
 	glUniform1f(bloomBlurProgram->smallWeightLocation, bloomSmallWeight);
-	glUniform1fv(bloomBlurProgram->mediumKernelLocation, GAUSS_KERNEL2_RADIUS+1, &mediumGaussKernel[0]);
+	glUniform1i(bloomBlurProgram->smallRadiusLocation, gaussSmallKernelRadius);
+	glUniform1fv(bloomBlurProgram->mediumKernelLocation, gaussMediumKernelRadius +1, &mediumGaussKernel[0]);
 	glUniform1f(bloomBlurProgram->mediumWeightLocation, bloomMediumWeight);
-	glUniform1fv(bloomBlurProgram->largeKernelLocation, GAUSS_KERNEL3_RADIUS+1, &largeGaussKernel[0]);
+	glUniform1i(bloomBlurProgram->mediumRadiusLocation, gaussMediumKernelRadius);
+	glUniform1fv(bloomBlurProgram->largeKernelLocation, gaussLargeKernelRadius +1, &largeGaussKernel[0]);
 	glUniform1f(bloomBlurProgram->largeWeightLocation, bloomLargeWeight);
+	glUniform1i(bloomBlurProgram->largeRadiusLocation, gaussLargeKernelRadius);
 
 	glUniform1i(bloomBlurProgram->horizontalLocation, horizontal ? 1 : 0);
 
@@ -461,6 +475,7 @@ void ModuleRender::DrawScene() {
 	glUniform1i(drawScene->textureSceneLocation, 0);
 	glUniform1f(drawScene->bloomThresholdLocation, bloomThreshold);
 	glUniform1i(drawScene->samplesNumberLocation, msaaActive ? msaaSamplesNumber[static_cast<int>(msaaSampleType)] : msaaSampleSingle);
+	glUniform1i(drawScene->bloomActiveLocation, bloomActive);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
@@ -675,14 +690,16 @@ UpdateStatus ModuleRender::Update() {
 
 	// Bloom blur
 	bool horizontal = true, firstIteration = true;
-	for (unsigned int i = 0; i < 2 * bloomQuality; i++) {
-		glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[horizontal]);
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glDisable(GL_DEPTH_TEST);
-		glClear(GL_COLOR_BUFFER_BIT);
-		BlurBloomTexture(horizontal, firstIteration);
-		horizontal = !horizontal;
-		if (firstIteration) firstIteration = false;
+	if (bloomActive) {
+		for (unsigned int i = 0; i < 2 * bloomQuality; i++) {
+			glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[horizontal]);
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			glDisable(GL_DEPTH_TEST);
+			glClear(GL_COLOR_BUFFER_BIT);
+			BlurBloomTexture(horizontal, firstIteration);
+			horizontal = !horizontal;
+			if (firstIteration) firstIteration = false;
+		}
 	}
 
 	// Color correction
@@ -858,6 +875,7 @@ void ModuleRender::UpdateFramebuffers() {
 	{
 		glBindTexture(GL_TEXTURE_2D, colorTextures[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
+		glGenerateMipmap(GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -873,6 +891,7 @@ void ModuleRender::UpdateFramebuffers() {
 		glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[i]);
 		glBindTexture(GL_TEXTURE_2D, bloomBlurTextures[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
+		glGenerateMipmap(GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

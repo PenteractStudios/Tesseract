@@ -118,6 +118,11 @@ public:
 	float ssaoPower = 1.0f;
 
 	// Bloom
+	bool bloomActive = true;
+	int gaussSmallKernelRadius = 0;
+	int gaussMediumKernelRadius = 0;
+	int gaussLargeKernelRadius = 0;
+
 	int bloomQuality = 3;
 	float bloomIntensity = 1.0f;
 	float bloomThreshold = 1.0f;

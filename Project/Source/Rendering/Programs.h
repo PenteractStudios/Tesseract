@@ -226,6 +226,9 @@ struct ProgramBlur : Program {
 	int mediumWeightLocation = -1;
 	int largeWeightLocation = -1;
 	int horizontalLocation = -1;
+	int smallRadiusLocation = -1;
+	int mediumRadiusLocation = -1;
+	int largeRadiusLocation = -1;
 };
 
 struct ProgramColorCorrection : Program {
@@ -242,6 +245,7 @@ struct ProgramPostprocess : Program {
 	int textureSceneLocation = -1;
 	int bloomThresholdLocation = -1;
 	int samplesNumberLocation = -1;
+	int bloomActiveLocation = -1;
 };
 
 struct ProgramDrawTexture : Program {

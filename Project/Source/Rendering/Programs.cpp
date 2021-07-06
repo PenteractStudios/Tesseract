@@ -216,6 +216,9 @@ ProgramBlur::ProgramBlur(unsigned program_)
 	smallWeightLocation = glGetUniformLocation(program, "smallWeight");
 	mediumWeightLocation = glGetUniformLocation(program, "mediumWeight");
 	largeWeightLocation = glGetUniformLocation(program, "largeWeight");
+	smallRadiusLocation = glGetUniformLocation(program, "smallRadius");
+	mediumRadiusLocation = glGetUniformLocation(program, "mediumRadius");
+	largeRadiusLocation = glGetUniformLocation(program, "largeRadius");
 
 	horizontalLocation = glGetUniformLocation(program, "horizontal");
 }
@@ -284,4 +287,5 @@ ProgramPostprocess::ProgramPostprocess(unsigned program_)
 	textureSceneLocation = glGetUniformLocation(program, "sceneTexture");
 	bloomThresholdLocation = glGetUniformLocation(program, "bloomThreshold");
 	samplesNumberLocation = glGetUniformLocation(program, "samplesNumber");
+	bloomActiveLocation = glGetUniformLocation(program, "bloomActive");
 }

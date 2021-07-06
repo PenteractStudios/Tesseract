@@ -299,6 +299,57 @@ GameObject* Physics::Raycast(const float3& start, const float3& end, const int m
 	return closestGo;
 }
 
+void Physics::CreateRigidbody(Component* collider)
+{
+	switch (collider->GetType()) {
+	case ComponentType::BOX_COLLIDER:
+		App->physics->CreateBoxRigidbody((ComponentBoxCollider*)collider);
+		break;
+	case ComponentType::SPHERE_COLLIDER:
+		App->physics->CreateSphereRigidbody((ComponentSphereCollider*)collider);
+		break;
+	case ComponentType::CAPSULE_COLLIDER:
+		App->physics->CreateCapsuleRigidbody((ComponentCapsuleCollider*)collider);
+		break;
+	default:
+		break;
+	}
+}
+
+void Physics::UpdateRigidbody(Component* collider)
+{
+	switch (collider->GetType()) {
+	case ComponentType::BOX_COLLIDER:
+		App->physics->UpdateBoxRigidbody((ComponentBoxCollider*)collider);
+		break;
+	case ComponentType::SPHERE_COLLIDER:
+		App->physics->UpdateSphereRigidbody((ComponentSphereCollider*)collider);
+		break;
+	case ComponentType::CAPSULE_COLLIDER:
+		App->physics->UpdateCapsuleRigidbody((ComponentCapsuleCollider*)collider);
+		break;
+	default:
+		break;
+	}
+}
+
+void Physics::RemoveRigidbody(Component* collider)
+{
+	switch (collider->GetType()) {
+	case ComponentType::BOX_COLLIDER:
+		App->physics->RemoveBoxRigidbody((ComponentBoxCollider*)collider);
+		break;
+	case ComponentType::SPHERE_COLLIDER:
+		App->physics->RemoveSphereRigidbody((ComponentSphereCollider*)collider);
+		break;
+	case ComponentType::CAPSULE_COLLIDER:
+		App->physics->RemoveCapsuleRigidbody((ComponentCapsuleCollider*)collider);
+		break;
+	default:
+		break;
+	}
+}
+
 float3 Colors::Red() {
 	return dd::colors::Red;
 }
