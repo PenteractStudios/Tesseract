@@ -90,6 +90,9 @@ GameObject* Scene::CreateGameObject(GameObject* parent, UID id, const char* name
 void Scene::DestroyGameObject(GameObject* gameObject) {
 	if (gameObject == nullptr) return;
 
+	// If the removed GameObject is the directionalLight of the scene, set it to nullptr
+	if (gameObject == directionalLight) directionalLight = nullptr;
+
 	// We need a copy because we are invalidating the iterator by removing GameObjects
 	std::vector<GameObject*> children = gameObject->GetChildren();
 	for (GameObject* child : children) {
@@ -99,7 +102,7 @@ void Scene::DestroyGameObject(GameObject* gameObject) {
 	if (gameObject->isInQuadtree) {
 		quadtree.Remove(gameObject);
 	}
-
+	
 	bool selected = App->editor->selectedGameObject == gameObject;
 	if (selected) App->editor->selectedGameObject = nullptr;
 

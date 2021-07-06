@@ -7,6 +7,7 @@
 #include "Components/ComponentTransform.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleEditor.h"
+#include "Modules/ModuleScene.h"
 
 #include "debugdraw.h"
 #include "Math/float3x3.h"
@@ -21,6 +22,12 @@
 #define JSON_TAG_KQ "Kq"
 #define JSON_TAG_INNER_ANGLE "InnerAngle"
 #define JSON_TAG_OUTER_ANGLE "OuterAngle"
+
+void ComponentLight::Init() {
+	if (App->scene->scene->directionalLight == nullptr) {
+		App->scene->scene->directionalLight = &this->GetOwner();
+	}
+}
 
 void ComponentLight::Update() {
 	UpdateLight();
@@ -67,6 +74,15 @@ void ComponentLight::OnEditorUpdate() {
 			bool isSelected = (lightTypeComboCurrent == lightTypeCombo[n]);
 			if (ImGui::Selectable(lightTypeCombo[n], isSelected)) {
 				lightType = (LightType) n;
+				if (lightType == LightType::DIRECTIONAL) {
+					if (App->scene->scene->directionalLight == nullptr) {
+						App->scene->scene->directionalLight = &this->GetOwner();
+					}
+				} else {
+					if (App->scene->scene->directionalLight == &this->GetOwner()) {
+						App->scene->scene->directionalLight = nullptr;
+					}
+				}
 			}
 			if (isSelected) {
 				ImGui::SetItemDefaultFocus();
