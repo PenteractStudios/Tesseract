@@ -193,6 +193,8 @@ ProgramSSAO::ProgramSSAO(unsigned program_)
 	: Program(program_) {
 	projLocation = glGetUniformLocation(program, "proj");
 
+	samplesNumberLocation = glGetUniformLocation(program, "samplesNumber");
+
 	positionsLocation = glGetUniformLocation(program, "positions");
 	normalsLocation = glGetUniformLocation(program, "normals");
 
