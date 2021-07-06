@@ -40,44 +40,60 @@
 
 #include "Utils/Leaks.h"
 #include <string>
+#include <math.h>
+#include <vector>
 
-#define GAUSS_KERNEL_SIZE 3
-#define GAUSS_KERNEL2_SIZE 11
-#define GAUSS_KERNEL3_SIZE 19
+#define GAUSS_KERNEL_RADIUS 2
+#define GAUSS_KERNEL2_RADIUS 24
+#define GAUSS_KERNEL3_RADIUS 54
 
-static float smallGaussKernel[GAUSS_KERNEL_SIZE] = {0.38774f, 0.24477f, 0.06136f};
-static float mediumGaussKernel[GAUSS_KERNEL2_SIZE] = {
-  0.19741257145444083f,
-  0.17466647146354097f,
-  0.12097746070390959f,
-  0.06559073722230267f,
-  0.027834685329492057f,
-  0.009244616587506386f,
-  0.0024027325605485827f,
-  0.0004886419989245074f,
-  0.0000777489201475167f,
-  0.000009677359081674635f,
-  9.421273256292181e-7f };
-static float largeGaussKernel[GAUSS_KERNEL3_SIZE] = {
-0.1135970549719514f,
-0.10908388615096154f,
-0.09659242667151088f,
-0.07886993868875804f,
-0.05938380596548307f,
-0.04122989526428024f,
-0.026396223756986845f,
-0.015583128235014598f,
-0.008483010575939092f,
-0.004258225538238774f,
-0.001971026952683784f,
-0.0008412873900501253f,
-0.00033112120106173294f,
-0.00012017748135727222f,
-0.00004022119455886654f,
-0.000012413213489207052f,
-0.0000035327410171720715f,
-9.271241156238208e-7f,
-2.2436851738444238e-7f };
+static std::vector<float> smallGaussKernel;
+static std::vector<float> mediumGaussKernel;
+static std::vector<float> largeGaussKernel;
+
+float Erf(const float x) {
+	// constants
+	const float a1 = 0.254829592f;
+	const float a2 = -0.284496736f;
+	const float a3 = 1.421413741f;
+	const float a4 = -1.453152027f;
+	const float a5 = 1.061405429f;
+	const float p = 0.3275911f;
+
+	// A&S formula 7.1.26
+	const float t = 1.0 / (1.0 + p * abs(x));
+	const float y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * exp(-x * x);
+
+	return x < 0 ? -1 * y : y;
+}
+
+float defIntGaussian(const float x, const float mu, const float sigma) {
+	return 0.5 * erf((x - mu) / (sqrt(2) * sigma));
+}
+
+void gaussianKernel(const int kernelSize, const float sigma, const float mu, const int step, std::vector<float>& coeff) {
+	const float end = 0.5*kernelSize;
+	const float start = -end;
+	float sum = 0;
+	float x = start;
+	float lastInt = defIntGaussian(x, mu, sigma);
+	float acc = 0;
+	while (x < end) {
+		x += step;
+		float newInt = defIntGaussian(x, mu, sigma);
+		float c = newInt - lastInt;
+		if (x >= 0) coeff.push_back(c);
+		sum += c;
+		lastInt = newInt;
+	}
+
+	//normalize
+	sum = 1 / sum;
+	for (int i = 0; i < coeff.size(); ++i) {
+		coeff[i] *= sum;
+	}
+
+}
 
 // clang-format off
 static const float cubeVertices[108] = {
@@ -293,6 +309,12 @@ bool ModuleRender::Init() {
 		randomTangents[i] = tangent;
 	}
 
+
+	// Compute Gaussian kernels
+	gaussianKernel(2*GAUSS_KERNEL_RADIUS+1 -1, 2.f, 0.f, 1, smallGaussKernel);
+	gaussianKernel(2*GAUSS_KERNEL2_RADIUS+1, 5.f, 0.f, 1, mediumGaussKernel);
+	gaussianKernel(2*GAUSS_KERNEL3_RADIUS+1, 12.f, 0.f, 1, largeGaussKernel);
+
 	return true;
 }
 
@@ -369,7 +391,7 @@ void ModuleRender::BlurSSAOTexture(bool horizontal) {
 	glBindTexture(GL_TEXTURE_2D, horizontal ? ssaoTexture : auxBlurTexture);
 	glUniform1i(ssaoBlurProgram->inputTextureLocation, 0);
 
-	glUniform1fv(ssaoBlurProgram->smallKernelLocation, GAUSS_KERNEL_SIZE, smallGaussKernel);
+	glUniform1fv(ssaoBlurProgram->smallKernelLocation, GAUSS_KERNEL_RADIUS+1, &smallGaussKernel[0]);
 	glUniform1f(ssaoBlurProgram->smallWeightLocation, 1.0f);
 	glUniform1i(ssaoBlurProgram->horizontalLocation, horizontal ? 1 : 0);
 
@@ -404,11 +426,11 @@ void ModuleRender::BlurBloomTexture(bool horizontal, bool firstTime) {
 	glBindTexture(GL_TEXTURE_2D, firstTime ? colorTextures[1] : bloomBlurTextures[!horizontal]);
 	glUniform1i(bloomBlurProgram->inputTextureLocation, 0);
 
-	glUniform1fv(bloomBlurProgram->smallKernelLocation, GAUSS_KERNEL_SIZE, smallGaussKernel);
+	glUniform1fv(bloomBlurProgram->smallKernelLocation, GAUSS_KERNEL_RADIUS+1, &smallGaussKernel[0]);
 	glUniform1f(bloomBlurProgram->smallWeightLocation, bloomSmallWeight);
-	glUniform1fv(bloomBlurProgram->mediumKernelLocation, GAUSS_KERNEL2_SIZE, mediumGaussKernel);
+	glUniform1fv(bloomBlurProgram->mediumKernelLocation, GAUSS_KERNEL2_RADIUS+1, &mediumGaussKernel[0]);
 	glUniform1f(bloomBlurProgram->mediumWeightLocation, bloomMediumWeight);
-	glUniform1fv(bloomBlurProgram->largeKernelLocation, GAUSS_KERNEL3_SIZE, largeGaussKernel);
+	glUniform1fv(bloomBlurProgram->largeKernelLocation, GAUSS_KERNEL3_RADIUS+1, &largeGaussKernel[0]);
 	glUniform1f(bloomBlurProgram->largeWeightLocation, bloomLargeWeight);
 
 	glUniform1i(bloomBlurProgram->horizontalLocation, horizontal ? 1 : 0);

@@ -7,8 +7,8 @@ out vec4 color;
 uniform sampler2D inputTexture;
 
 uniform float smallKernel[3];
-uniform float mediumKernel[11];
-uniform float largeKernel[19];
+uniform float mediumKernel[25];
+uniform float largeKernel[55];
 uniform float smallWeight;
 uniform float mediumWeight;
 uniform float largeWeight;
@@ -27,7 +27,7 @@ void main() {
 
 	if (mediumWeight > 0) {
 		vec4 resultColor2 = texture(inputTexture, uv) * mediumKernel[0];
-		for (int i = 1; i < 11; ++i) {
+		for (int i = 1; i < 25; ++i) {
 			float kernelVal = mediumKernel[i];
 			vec2 offsetUV = vec2(horizontal * i, (1.0 - horizontal) * i) / textureSize(inputTexture, 0);
 			resultColor2 += texture(inputTexture, uv + offsetUV) * kernelVal;
@@ -38,7 +38,7 @@ void main() {
 
 	if (largeWeight > 0) {
 		vec4 resultColor3 = texture(inputTexture, uv) * largeKernel[0];
-		for (int i = 1; i < 19; ++i) {
+		for (int i = 1; i < 55; ++i) {
 			float kernelVal = largeKernel[i];
 			vec2 offsetUV = vec2(horizontal * i, (1.0 - horizontal) * i) / textureSize(inputTexture, 0);
 			resultColor3 += texture(inputTexture, uv + offsetUV) * kernelVal;
