@@ -31,7 +31,7 @@ void main() {
 	resultColor *= smallWeight;
 
 	if (mediumWeight > 0) {
-		vec4 resultColor2 = textureLod(inputTexture, uv, 1) * mediumKernel[0];
+		vec4 resultColor2 = textureLod(inputTexture, uv, 2) * mediumKernel[0];
 		for (int i = 1; i < mediumRadius; ++i) {
 			float kernelVal = mediumKernel[i];
 			vec2 offsetUV = vec2(horizontal * i, (1.0 - horizontal) * i) / textureSize(inputTexture, 0);
@@ -42,7 +42,7 @@ void main() {
 	}
 
 	if (largeWeight > 0) {
-		vec4 resultColor3 = textureLod(inputTexture, uv, 2) * largeKernel[0];
+		vec4 resultColor3 = textureLod(inputTexture, uv, 3) * largeKernel[0];
 		for (int i = 1; i < largeRadius; ++i) {
 			float kernelVal = largeKernel[i];
 			vec2 offsetUV = vec2(horizontal * i, (1.0 - horizontal) * i) / textureSize(inputTexture, 0);

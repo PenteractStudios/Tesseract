@@ -308,8 +308,8 @@ bool ModuleRender::Init() {
 
 	// Compute Gaussian kernels
 	gaussSmallKernelRadius = roundf(viewportSize.x * 0.001f);
-	gaussMediumKernelRadius = roundf(viewportSize.x * 0.005f);
-	gaussLargeKernelRadius = roundf(viewportSize.x * 0.01f);
+	gaussMediumKernelRadius = roundf(viewportSize.x * 0.003f);
+	gaussLargeKernelRadius = roundf(viewportSize.x * 0.006f);
 	float term = Ln(1e7/sqrt(2*pi));
 	float sigma1 = 2;
 	float sigma2 = gaussMediumKernelRadius * gaussMediumKernelRadius / 2;
