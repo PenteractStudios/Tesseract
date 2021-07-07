@@ -212,25 +212,31 @@ ProgramSSAO::ProgramSSAO(unsigned program_)
 ProgramBlur::ProgramBlur(unsigned program_)
 	: Program(program_) {
 	inputTextureLocation = glGetUniformLocation(program, "inputTexture");
+	textureLevelLocation = glGetUniformLocation(program, "textureLevel");
 
-	smallKernelLocation = glGetUniformLocation(program, "smallKernel");
-	mediumKernelLocation = glGetUniformLocation(program, "mediumKernel");
-	largeKernelLocation = glGetUniformLocation(program, "largeKernel");
-	smallWeightLocation = glGetUniformLocation(program, "smallWeight");
-	mediumWeightLocation = glGetUniformLocation(program, "mediumWeight");
-	largeWeightLocation = glGetUniformLocation(program, "largeWeight");
-	smallRadiusLocation = glGetUniformLocation(program, "smallRadius");
-	mediumRadiusLocation = glGetUniformLocation(program, "mediumRadius");
-	largeRadiusLocation = glGetUniformLocation(program, "largeRadius");
-
+	kernelLocation = glGetUniformLocation(program, "kernel");
+	kernelRadiusLocation = glGetUniformLocation(program, "kernelRadius");
 	horizontalLocation = glGetUniformLocation(program, "horizontal");
+}
+
+ProgramPostprocess::ProgramPostprocess(unsigned program_)
+	: Program(program_) {
+	textureSceneLocation = glGetUniformLocation(program, "sceneTexture");
+	bloomThresholdLocation = glGetUniformLocation(program, "bloomThreshold");
+	samplesNumberLocation = glGetUniformLocation(program, "samplesNumber");
+	bloomActiveLocation = glGetUniformLocation(program, "bloomActive");
 }
 
 ProgramColorCorrection::ProgramColorCorrection(unsigned program_)
 	: Program(program_) {
 	textureSceneLocation = glGetUniformLocation(program, "scene");
-	textureBloomBlurLocation = glGetUniformLocation(program, "bloomBlur");
+	bloomBlurLocation = glGetUniformLocation(program, "bloomBlur");
+	hasBloomBlurLocation = glGetUniformLocation(program, "hasBloomBlur");
 	bloomIntensityLocation = glGetUniformLocation(program, "bloomIntensity");
+
+	smallWeightLocation = glGetUniformLocation(program, "smallWeight");
+	mediumWeightLocation = glGetUniformLocation(program, "mediumWeight");
+	largeWeightLocation = glGetUniformLocation(program, "largeWeight");
 }
 
 ProgramDrawTexture::ProgramDrawTexture(unsigned program_)
@@ -274,6 +280,7 @@ ProgramBillboard::ProgramBillboard(unsigned program_)
 	xFlipLocation = glGetUniformLocation(program, "flipX");
 	yFlipLocation = glGetUniformLocation(program, "flipY");
 }
+
 ProgramTrail::ProgramTrail(unsigned program_)
 	: Program(program_) {
 	//modelLocation = glGetUniformLocation(program, "model");
@@ -283,12 +290,4 @@ ProgramTrail::ProgramTrail(unsigned program_)
 	inputColorLocation = glGetUniformLocation(program, "inputColor");
 	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
 	diffuseMap = glGetUniformLocation(program, "diffuseMap");
-}
-
-ProgramPostprocess::ProgramPostprocess(unsigned program_)
-	: Program(program_) {
-	textureSceneLocation = glGetUniformLocation(program, "sceneTexture");
-	bloomThresholdLocation = glGetUniformLocation(program, "bloomThreshold");
-	samplesNumberLocation = glGetUniformLocation(program, "samplesNumber");
-	bloomActiveLocation = glGetUniformLocation(program, "bloomActive");
 }

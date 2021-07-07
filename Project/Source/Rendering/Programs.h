@@ -221,25 +221,11 @@ struct ProgramBlur : Program {
 	ProgramBlur(unsigned program);
 
 	int inputTextureLocation = -1;
+	int textureLevelLocation = -1;
 
-	int smallKernelLocation = -1;
-	int mediumKernelLocation = -1;
-	int largeKernelLocation = -1;
-	int smallWeightLocation = -1;
-	int mediumWeightLocation = -1;
-	int largeWeightLocation = -1;
+	int kernelLocation = -1;
+	int kernelRadiusLocation = -1;
 	int horizontalLocation = -1;
-	int smallRadiusLocation = -1;
-	int mediumRadiusLocation = -1;
-	int largeRadiusLocation = -1;
-};
-
-struct ProgramColorCorrection : Program {
-	ProgramColorCorrection(unsigned program);
-
-	int textureSceneLocation = -1;
-	int textureBloomBlurLocation = -1;
-	int bloomIntensityLocation = -1;
 };
 
 struct ProgramPostprocess : Program {
@@ -249,6 +235,19 @@ struct ProgramPostprocess : Program {
 	int bloomThresholdLocation = -1;
 	int samplesNumberLocation = -1;
 	int bloomActiveLocation = -1;
+};
+
+struct ProgramColorCorrection : Program {
+	ProgramColorCorrection(unsigned program);
+
+	int textureSceneLocation = -1;
+	int bloomBlurLocation = -1;
+	int hasBloomBlurLocation = -1;
+	int bloomIntensityLocation = -1;
+
+	int smallWeightLocation = -1;
+	int mediumWeightLocation = -1;
+	int largeWeightLocation = -1;
 };
 
 struct ProgramDrawTexture : Program {

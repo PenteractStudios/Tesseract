@@ -18,7 +18,12 @@ out vec4 outColor;
 
 uniform sampler2D scene;
 uniform sampler2D bloomBlur;
+uniform int hasBloomBlur;
 uniform float bloomIntensity;
+
+uniform float smallWeight;
+uniform float mediumWeight;
+uniform float largeWeight;
 
 vec3 ACESFilm(in vec3 x) {
 	float a = 2.51f;
@@ -32,8 +37,15 @@ vec3 ACESFilm(in vec3 x) {
 void main()
 {
 	vec4 hdrColor = texture(scene, uv);
-	vec3 bloomColor = texture(bloomBlur, uv).rgb * bloomIntensity;
-	hdrColor.rgb += bloomColor; // additive blending
+	
+	// Apply bloom
+	if (hasBloomBlur == 1) {
+		vec3 bloomColor1 = textureLod(bloomBlur, uv, 2).rgb;
+		vec3 bloomColor2 = textureLod(bloomBlur, uv, 3).rgb;
+		vec3 bloomColor3 = textureLod(bloomBlur, uv, 4).rgb;
+		vec3 bloomColor = (bloomColor1 * smallWeight) + (bloomColor2 * mediumWeight) + (bloomColor3 * largeWeight);
+		hdrColor.rgb += bloomColor * bloomIntensity; // additive blending
+	}
 
 	// ACES Tonemapping
 	vec3 ldr = ACESFilm(hdrColor.rgb);

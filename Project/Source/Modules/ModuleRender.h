@@ -75,8 +75,8 @@ public:
 	unsigned depthMapTexture = 0;
 	unsigned ssaoTexture = 0;
 	unsigned auxBlurTexture = 0;
-	unsigned colorTextures[2] = { 0, 0 }; // position 0: scene render texture; position 1: bloom texture to be blurred
-	unsigned bloomBlurTextures[2] = { 0, 0 }; // ping-pong buffers to blur bloom horizontally and vertically, alternatively stores the bloom texture
+	unsigned colorTextures[2] = {0, 0}; // position 0: scene render texture; position 1: bloom texture to be blurred
+	unsigned bloomBlurTextures[2] = {0, 0};
 
 	unsigned depthBuffer = 0;
 
@@ -88,7 +88,7 @@ public:
 	unsigned ssaoBlurTextureBufferV = 0;
 	unsigned colorCorrectionBuffer = 0;
 	unsigned hdrFramebuffer = 0;
-	unsigned bloomBlurFramebuffers[2] = { 0, 0 };
+	unsigned bloomBlurFramebuffers[6] = {0, 0, 0, 0, 0, 0}; // Ping-pong buffers to blur bloom horizontally and vertically
 
 	// ------- Viewport Updated ------- //
 	bool viewportUpdated = true;
@@ -108,8 +108,8 @@ public:
 	bool drawColliders = false;
 	int culledTriangles = 0;
 
-	float3 ambientColor = {0.25f, 0.25f, 0.25f}; // Color of ambient Light
-	float3 clearColor = {0.002f, 0.002f, 0.002f};		 // Color of the viewport between frames
+	float3 ambientColor = {0.25f, 0.25f, 0.25f};  // Color of ambient Light
+	float3 clearColor = {0.002f, 0.002f, 0.002f}; // Color of the viewport between frames
 
 	// SSAO
 	bool ssaoActive = true;
@@ -124,12 +124,16 @@ public:
 	int gaussMediumKernelRadius = 0;
 	int gaussLargeKernelRadius = 0;
 
-	int bloomQuality = 3;
+	int gaussSmallMipLevel = 2;
+	int gaussMediumMipLevel = 3;
+	int gaussLargeMipLevel = 4;
+
+	int bloomQuality = 1;
 	float bloomIntensity = 1.0f;
 	float bloomThreshold = 1.0f;
-	float bloomSmallWeight = 0.6f;
-	float bloomMediumWeight = 0.2f;
-	float bloomLargeWeight = 0.2f;
+	float bloomSmallWeight = 1.0f;
+	float bloomMediumWeight = 1.0f;
+	float bloomLargeWeight = 1.0f;
 
 	bool msaaActive = true;
 	MSAA_SAMPLES_TYPE msaaSampleType = MSAA_SAMPLES_TYPE::MSAA_X4;
@@ -153,7 +157,8 @@ private:
 
 	void ComputeSSAOTexture();
 	void BlurSSAOTexture(bool horizontal);
-	void BlurBloomTexture(bool horizontal, bool firstTime);
+	void BlurBloomTexture(bool horizontal, bool firstTime, const std::vector<float>& kernel, int kernelRadius, int textureLevel);
+	void CombineBlooms();
 
 	void ExecuteColorCorrection(bool horizontal);
 

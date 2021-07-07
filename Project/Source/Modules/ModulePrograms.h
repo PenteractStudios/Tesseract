@@ -43,13 +43,11 @@ public:
 	ProgramBlur* blur = nullptr;
 
 	// Post-processing Shaders
+	ProgramPostprocess* postprocess = nullptr;
 	ProgramColorCorrection* colorCorrection = nullptr;
 
 	// Shadow Shaders
 	unsigned shadowMap = 0;
-
-	// Postprocesses Shaders
-	ProgramPostprocess* postprocess = nullptr;
 
 	// Engine Shaders
 	ProgramDrawTexture* drawTexture = nullptr;

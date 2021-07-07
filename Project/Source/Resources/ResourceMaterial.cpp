@@ -380,7 +380,7 @@ void ResourceMaterial::OnEditorUpdate() {
 	{
 		ImGui::NewLine();
 		if (emissiveMapId != 0) {
-			ImGui::SliderFloat("##emissiveStrength", &emissiveIntensity, 0.0, 10.0);
+			ImGui::SliderFloat("##emissiveStrength", &emissiveIntensity, 0.0, 100.0);
 		}
 	}
 	ImGui::EndColumns();
