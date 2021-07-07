@@ -101,7 +101,7 @@
 
 // Collision
 #define JSON_TAG_HAS_COLLISION "HasCollision"
-#define JSON_TAG_COLIISION_RADIUS "CollRadius"
+#define JSON_TAG_COLLISION_RADIUS "CollRadius"
 #define JSON_TAG_LAYER_INDEX "LayerIndex"
 
 static bool ImGuiRandomMenu(const char* name, float2& values, RandomMode& mode, float speed = 0.01f, float min = 0, float max = inf) {
@@ -511,7 +511,7 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 
 	// Collision
 	collision = jComponent[JSON_TAG_HAS_COLLISION];
-	radius = jComponent[JSON_TAG_COLIISION_RADIUS];
+	radius = jComponent[JSON_TAG_COLLISION_RADIUS];
 	layerIndex = jComponent[JSON_TAG_LAYER_INDEX];
 	layer = WorldLayers(1 << layerIndex);
 
@@ -623,7 +623,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	// Collision
 	jComponent[JSON_TAG_HAS_COLLISION] = collision;
 	jComponent[JSON_TAG_LAYER_INDEX] = layerIndex;
-	jComponent[JSON_TAG_COLIISION_RADIUS] = radius;
+	jComponent[JSON_TAG_COLLISION_RADIUS] = radius;
 }
 
 void ComponentParticleSystem::CreateParticles() {
