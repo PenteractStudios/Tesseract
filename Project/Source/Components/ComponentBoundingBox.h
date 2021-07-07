@@ -27,6 +27,7 @@ public:
 	// ---------- Getters ---------- //
 	TESSERACT_ENGINE_API const OBB& GetWorldOBB();
 	TESSERACT_ENGINE_API const AABB& GetWorldAABB();
+	const AABB& GetLocalAABB();
 
 private:
 	AABB localAABB = {{0, 0, 0}, {0, 0, 0}}; // Axis Aligned Bounding Box, local to the GameObject

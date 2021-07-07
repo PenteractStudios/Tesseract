@@ -22,8 +22,8 @@ void ComponentBoxCollider::Init() {
 	if (!centerOffset.IsFinite()) {
 		ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();
 		if (boundingBox) {
-			size = boundingBox->GetWorldOBB().Size();
-			centerOffset = boundingBox->GetWorldOBB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+			size = boundingBox->GetLocalAABB().Size();
+			centerOffset = boundingBox->GetLocalAABB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		} else {
 			centerOffset = float3::zero;
 		}
