@@ -192,11 +192,17 @@ ProgramDepthPrepass::ProgramDepthPrepass(unsigned program_)
 	offsetLocation = glGetUniformLocation(program, "offset");
 }
 
+ProgramDepthPrepassConvertTextures::ProgramDepthPrepassConvertTextures(unsigned program_)
+	: Program(program_) {
+	samplesNumberLocation = glGetUniformLocation(program, "samplesNumber");
+
+	positionsLocation = glGetUniformLocation(program, "positions");
+	normalsLocation = glGetUniformLocation(program, "normals");
+}
+
 ProgramSSAO::ProgramSSAO(unsigned program_)
 	: Program(program_) {
 	projLocation = glGetUniformLocation(program, "proj");
-
-	samplesNumberLocation = glGetUniformLocation(program, "samplesNumber");
 
 	positionsLocation = glGetUniformLocation(program, "positions");
 	normalsLocation = glGetUniformLocation(program, "normals");
