@@ -330,6 +330,9 @@ void ModulePhysics::AddBodyToWorld(btRigidBody* rigidbody, ColliderType collider
 	case PLAYER:
 		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::BULLET_ENEMY | WorldLayers::EVERYTHING;
 		break;
+	case SKILLS:
+		collisionMask = WorldLayers::BULLET_ENEMY | WorldLayers::ENEMY | WorldLayers::EVERYTHING;
+		break;
 	case EVERYTHING:
 		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::ENEMY | WorldLayers::BULLET | WorldLayers::BULLET_ENEMY | WorldLayers::EVERYTHING;
 		break;

@@ -333,7 +333,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		ResourceTexture* diffuse = App->resources->GetResource<ResourceTexture>(material->diffuseMapId);
 		glTextureDiffuse = diffuse ? diffuse->glTexture : 0;
 		int hasDiffuseMap = diffuse ? 1 : 0;
-		
+
 		glUniform1i(unlitProgram->diffuseMapLocation, 0);
 		glUniform4fv(unlitProgram->diffuseColorLocation, 1, material->diffuseColor.ptr());
 		glUniform1i(unlitProgram->hasDiffuseMapLocation, hasDiffuseMap);
@@ -348,6 +348,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 		glUniform1i(unlitProgram->emissiveMapLocation, 1);
 		glUniform1i(unlitProgram->hasEmissiveMapLocation, hasEmissiveMap);
+		glUniform1f(unlitProgram->emissiveIntensityLocation, material->emissiveIntensity);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, glTextureEmissive);
 
@@ -541,6 +542,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	// Emissive Map
 	glUniform1i(standardProgram->emissiveMapLocation, 3);
 	glUniform1i(standardProgram->hasEmissiveMapLocation, hasEmissiveMap);
+	glUniform1f(standardProgram->emissiveIntensityLocation, material->emissiveIntensity);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, glTextureEmissive);
 
