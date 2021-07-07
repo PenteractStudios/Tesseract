@@ -168,15 +168,17 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 		//Sending event on keyframe
 		if (!clip->keyEventClips.empty()) { //Only call this once
 			// Send key Frame event
-			for (int difference = currentSample - clip->currentEventKeyFrame; difference <= currentSample; difference++) {
-				if (clip->keyEventClips.find(difference) != clip->keyEventClips.end() && !clip->keyEventClips[difference].sent) {
+			int difference = currentSample - clip->currentEventKeyFrame;
+			int i = 0;
+			for (int i = 0; i <= difference; i++) {
+				if (clip->keyEventClips.find(clip->currentEventKeyFrame + i) != clip->keyEventClips.end() && !clip->keyEventClips[clip->currentEventKeyFrame + i].sent) {
 					for (ComponentScript& script : owner.GetComponents<ComponentScript>()) {
 						if (script.IsActive()) {
 							Script* scriptInstance = script.GetScriptInstance();
 
 							if (scriptInstance != nullptr) {
-								scriptInstance->OnAnimationEvent(stateMachineEnum, clip->keyEventClips[difference].name.c_str());
-								clip->keyEventClips[difference].sent = true;
+								scriptInstance->OnAnimationEvent(stateMachineEnum, clip->keyEventClips[clip->currentEventKeyFrame + i].name.c_str());
+								clip->keyEventClips[clip->currentEventKeyFrame + i].sent = true;
 							}
 						}
 					}

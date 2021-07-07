@@ -1,0 +1,1596 @@
+{
+    "Root": {
+        "Name": "Enemies",
+        "Active": true,
+        "RootBoneName": "",
+        "Mask": 0,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    3.9039998054504396,
+                    11.0,
+                    0.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "LocalEulerAngles": [
+                    -0.0,
+                    0.0,
+                    -0.0
+                ]
+            }
+        ],
+        "Children": [
+            {
+                "Name": "SpawnPoints_Plaza",
+                "Active": true,
+                "RootBoneName": "",
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Active": true,
+                        "Position": [
+                            -146.5648651123047,
+                            0.0,
+                            -12.474858283996582
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "BoxCollider",
+                        "Active": true,
+                        "colliderType": 1,
+                        "layerType": 3,
+                        "mass": 1.0,
+                        "size": [
+                            6.875,
+                            14.0,
+                            1.0
+                        ],
+                        "centerOffset": [
+                            0.0,
+                            -0.800000011920929,
+                            0.0
+                        ],
+                        "freezeRotation": false
+                    },
+                    {
+                        "Type": "Script",
+                        "Active": true,
+                        "Script": 2391995556111871437,
+                        "Values": [
+                            {
+                                "Name": "meleeEnemyPrefabUID",
+                                "Type": "PrefabResourceUID",
+                                "Value": 6161494011548713161
+                            },
+                            {
+                                "Name": "rangeEnemyPrefabUID",
+                                "Type": "PrefabResourceUID",
+                                "Value": 12995336514148150898
+                            }
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Name": "Spawn_Plaza1",
+                        "Active": false,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    8.313995361328125,
+                                    0.0,
+                                    10.263448715209961
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.9957431554794312,
+                                    0.0,
+                                    -0.09217234700918198
+                                ],
+                                "Scale": [
+                                    1.0000001192092896,
+                                    1.0,
+                                    1.0000001192092896
+                                ],
+                                "LocalEulerAngles": [
+                                    -180.0,
+                                    -10.577187538146973,
+                                    -180.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 1
+                                    },
+                                    {
+                                        "Name": "secondWaveMeleeAmount",
+                                        "Type": "Int",
+                                        "Value": 3
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 0
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "firstWaveMeleeAmount",
+                                        "Type": "Int",
+                                        "Value": 3
+                                    },
+                                    {
+                                        "Name": "thirdWaveMeleeAmount",
+                                        "Type": "Int",
+                                        "Value": 3
+                                    },
+                                    {
+                                        "Name": "thirdWaveRangeAmount",
+                                        "Type": "Int",
+                                        "Value": 1
+                                    },
+                                    {
+                                        "Name": "fourthWaveMeleeAmount",
+                                        "Type": "Int",
+                                        "Value": 3
+                                    },
+                                    {
+                                        "Name": "fourthWaveRangeAmount",
+                                        "Type": "Int",
+                                        "Value": 2
+                                    },
+                                    {
+                                        "Name": "fifthWaveMeleeAmount",
+                                        "Type": "Int",
+                                        "Value": 3
+                                    },
+                                    {
+                                        "Name": "fifthWaveRangeAmount",
+                                        "Type": "Int",
+                                        "Value": 3
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    }
+                ]
+            },
+            {
+                "Name": "SpawnPoints_Caffeteria",
+                "Active": false,
+                "RootBoneName": "",
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Active": false,
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Name": "Spawn_Caffeteria1",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    -92.50126647949219,
+                                    -0.00014209747314453125,
+                                    -1.2571815252304078
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    -0.7063521146774292,
+                                    0.0,
+                                    0.7078606486320496
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    0.0,
+                                    -89.87805938720703,
+                                    0.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "relatedSpawn3UID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 17431264478654342066
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 2
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 4
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "relatedSpawn4UID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 4418791074677225861
+                                    },
+                                    {
+                                        "Name": "relatedSpawn2UID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 7884049968460637492
+                                    },
+                                    {
+                                        "Name": "relatedSpawn1UID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 705111579037475081
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Name": "Spawn_Caffeteria2",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    -55.01927185058594,
+                                    0.0,
+                                    -7.16111421585083
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 1
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 0
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 6479210302796718475
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Name": "Spawn_Caffeteria3",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    -54.49345397949219,
+                                    0.0,
+                                    3.63405704498291
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 1
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 0
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Name": "Spawn_Caffeteria4",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    -16.985088348388673,
+                                    0.0,
+                                    -3.1030030250549318
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    -0.6939507126808167,
+                                    0.0,
+                                    0.7200224995613098
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    0.0,
+                                    -87.88733673095703,
+                                    0.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 3
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 4
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 6479210302796718475
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Name": "Spawn_Plaza2",
+                        "Active": false,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    12.780502319335938,
+                                    0.0,
+                                    21.78499984741211
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.9999556541442871,
+                                    0.0,
+                                    -0.009416725486516953
+                                ],
+                                "Scale": [
+                                    0.9999999403953552,
+                                    1.0,
+                                    0.9999999403953552
+                                ],
+                                "LocalEulerAngles": [
+                                    -180.0,
+                                    -1.0790932178497315,
+                                    -180.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 1
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 0
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Name": "Spawn_Plaza3",
+                        "Active": false,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    20.37401580810547,
+                                    0.0001220703125,
+                                    12.053000450134278
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    -0.6964871287345886,
+                                    0.0,
+                                    0.7175692915916443
+                                ],
+                                "Scale": [
+                                    1.0000001192092896,
+                                    1.0,
+                                    1.0000001192092896
+                                ],
+                                "LocalEulerAngles": [
+                                    0.0,
+                                    -88.29165649414063,
+                                    0.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 2
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 4
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    }
+                ]
+            },
+            {
+                "Name": "SpawnPoints_Transport",
+                "Active": false,
+                "RootBoneName": "",
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Active": false,
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Name": "Spawn_Transport1",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    19.68257713317871,
+                                    0.00009441375732421875,
+                                    29.896608352661134
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.971889078617096,
+                                    0.0,
+                                    -0.23543952405452729
+                                ],
+                                "Scale": [
+                                    1.0000001192092896,
+                                    1.0,
+                                    1.0000001192092896
+                                ],
+                                "LocalEulerAngles": [
+                                    -180.0,
+                                    -27.23506736755371,
+                                    -180.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 1
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 0
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "relatedSpawn2UID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 904134789810449305
+                                    },
+                                    {
+                                        "Name": "relatedSpawn1UID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 4403160662723615112
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Name": "Spawn_Transport2",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    48.75520324707031,
+                                    0.0,
+                                    41.36843490600586
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 1
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 0
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Name": "Spawn_Transport3",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    56.82011413574219,
+                                    0.0,
+                                    7.785966873168945
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 3
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 4
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Name": "Spawn_Transport4",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    43.69657516479492,
+                                    0.0,
+                                    -9.958602905273438
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 2
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 3
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Name": "Spawn_Transport5",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    62.57447814941406,
+                                    0.0,
+                                    -38.89754104614258
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 2
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 4
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 6479210302796718475
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Name": "Spawn_Transport6",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    46.8608283996582,
+                                    0.09348583221435547,
+                                    11.274106979370118
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 1
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 0
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    }
+                ]
+            },
+            {
+                "Name": "SpawnPoints_PreSec",
+                "Active": false,
+                "RootBoneName": "",
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Active": false,
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Name": "Spawn_PreSec1",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    117.27887725830078,
+                                    -0.0001239776611328125,
+                                    0.9996232986450195
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "relatedSpawn3UID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 13799258698709286522
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 4
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 5
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "relatedSpawn2UID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 4950004055084385555
+                                    },
+                                    {
+                                        "Name": "relatedSpawn1UID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 1104775674941054406
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Name": "Spawn_PreSec2",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    131.67718505859376,
+                                    -0.00012302398681640625,
+                                    -0.9813776016235352
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    -0.7113975286483765,
+                                    0.0,
+                                    0.702789843082428
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    180.0,
+                                    -89.30254364013672,
+                                    180.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 2
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 4
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 6479210302796718475
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    }
+                ]
+            },
+            {
+                "Name": "SpawnPoints_Security",
+                "Active": false,
+                "RootBoneName": "",
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Active": false,
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    }
+                ],
+                "Children": [
+                    {
+                        "Name": "Spawn_Security1",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    178.4366455078125,
+                                    -0.00012302398681640625,
+                                    -5.259879112243652
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 3
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 2
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 6479210302796718475
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "relatedSpawn1UID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 864699215236130321
+                                    },
+                                    {
+                                        "Name": "relatedSpawn2UID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 12068921557180262785
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Name": "Spawn_Security2",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    176.3446807861328,
+                                    -0.0001277923583984375,
+                                    6.301783561706543
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 2
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 3
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Name": "Spawn_Security3",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    198.1116180419922,
+                                    -0.0001220703125,
+                                    -3.951002597808838
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 3
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 4
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 6479210302796718475
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    },
+                    {
+                        "Name": "Spawn_Security4",
+                        "Active": true,
+                        "RootBoneName": "",
+                        "Mask": 0,
+                        "Components": [
+                            {
+                                "Type": "Transform",
+                                "Active": false,
+                                "Position": [
+                                    196.73109436035157,
+                                    0.00013065338134765625,
+                                    8.221014022827149
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "LocalEulerAngles": [
+                                    -0.0,
+                                    0.0,
+                                    -0.0
+                                ]
+                            },
+                            {
+                                "Type": "Script",
+                                "Active": false,
+                                "Script": 14237604830987124740,
+                                "Values": [
+                                    {
+                                        "Name": "prefabId",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    },
+                                    {
+                                        "Name": "amountOfEnemies",
+                                        "Type": "Int",
+                                        "Value": 3
+                                    },
+                                    {
+                                        "Name": "offset",
+                                        "Type": "Int",
+                                        "Value": 4
+                                    },
+                                    {
+                                        "Name": "winUID",
+                                        "Type": "GameObjectUID",
+                                        "Value": 16579210181260590797
+                                    },
+                                    {
+                                        "Name": "prefabUID",
+                                        "Type": "PrefabResourceUID",
+                                        "Value": 9998956702901793097
+                                    }
+                                ]
+                            }
+                        ],
+                        "Children": null
+                    }
+                ]
+            }
+        ]
+    }
+}

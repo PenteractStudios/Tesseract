@@ -30,19 +30,21 @@ bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, c
 	ResourceAnimation* resourceAnimation = clip.GetResourceAnimation();
 	if (resourceAnimation == nullptr && resourceAnimation->keyFrames.size() != 0) return false;
 
-	if (clip.loop) {
-		//Resetting the events since it has been a loop only for one bone
-		if (firstBone && currentTime >= clip.duration) {
-			for (auto& element : clip.keyEventClips) {
-				element.second.sent = false;
-			}
+	//Resetting the events since it has been a loop only for one bone
+	if (firstBone && currentTime >= clip.duration) {
+		for (auto& element : clip.keyEventClips) {
+			element.second.sent = false;
 		}
+		clip.currentEventKeyFrame = 0;
+	}
+
+	if (clip.loop) {		
 		while (currentTime >= clip.duration) {
 			currentTime -= clip.duration;
 		}
 	} else {
 		currentTime = currentTime >= clip.duration ? clip.duration : currentTime;
-	}
+	}	
 
 	float currentSample = (currentTime * (clip.keyFramesSize)) / clip.duration;
 	currentSample += clip.beginIndex;

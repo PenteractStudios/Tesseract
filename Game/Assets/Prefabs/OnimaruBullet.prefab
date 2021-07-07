@@ -1,0 +1,92 @@
+{
+    "Root": {
+        "Name": "OnimaruBullet",
+        "Active": true,
+        "RootBoneName": "",
+        "Mask": 0,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "Scale": [
+                    2.0,
+                    2.0,
+                    2.0
+                ],
+                "LocalEulerAngles": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            },
+            {
+                "Type": "Billboard",
+                "Active": true,
+                "BillboardType": 1,
+                "TextureId": 6651627206207097854,
+                "Ytiles": 1,
+                "Xtiles": 1,
+                "AnimationSpeed": 0.0,
+                "InitColor": [
+                    9.999999974752428e-7,
+                    9.999899930335233e-7,
+                    9.999899930335233e-7
+                ],
+                "FinalColor": [
+                    0.9999997019767761,
+                    1.0,
+                    0.9999899864196777
+                ],
+                "StartTransition": 0.05000000074505806,
+                "EndTransition": 0.05000000074505806,
+                "FlipTexture": [
+                    true,
+                    false
+                ]
+            },
+            {
+                "Type": "Script",
+                "Active": true,
+                "Script": 6758366606889375335,
+                "Values": [
+                    {
+                        "Name": "life",
+                        "Type": "Float",
+                        "Value": 5.0
+                    },
+                    {
+                        "Name": "speed",
+                        "Type": "Int",
+                        "Value": 100
+                    }
+                ]
+            },
+            {
+                "Type": "SphereCollider",
+                "Active": true,
+                "colliderType": 2,
+                "layerType": 5,
+                "mass": 1.0,
+                "radius": 0.25,
+                "centerOffset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "freezeRotation": false
+            }
+        ],
+        "Children": null
+    }
+}

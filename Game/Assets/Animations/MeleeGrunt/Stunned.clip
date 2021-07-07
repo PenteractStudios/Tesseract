@@ -1,0 +1,10 @@
+{
+    "Name": "Stunned",
+    "AnimationUID": 15800391176329352559,
+    "BeginIndex": 330,
+    "EndIndex": 350,
+    "Loop": true,
+    "Speed": 1.0,
+    "FrameRate": 0.0332355797290802,
+    "KeyEventClip": null
+}
