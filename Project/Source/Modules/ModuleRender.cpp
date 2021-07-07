@@ -480,13 +480,10 @@ UpdateStatus ModuleRender::PreUpdate() {
 
 	lightFrustum.ReconstructFrustum();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
-#if !GAME
-	glViewport(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
-#else
+#if GAME
 	App->camera->ViewportResized(App->window->GetWidth(), App->window->GetHeight());
-	glViewport(0, 0, App->window->GetWidth(), App->window->GetHeight());
 #endif
+	glViewport(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
 
 	return UpdateStatus::CONTINUE;
 }
@@ -575,10 +572,20 @@ UpdateStatus ModuleRender::Update() {
 	// Debug textures
 	if (drawSSAOTexture) {
 		DrawTexture(ssaoTexture);
+
+		// Render to screen
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, renderPassBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, colorCorrectionBuffer);
+		glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		return UpdateStatus::CONTINUE;
 	}
 	if (drawDepthMapTexture) {
 		DrawTexture(depthMapTexture);
+
+		// Render to screen
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, renderPassBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, colorCorrectionBuffer);
+		glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		return UpdateStatus::CONTINUE;
 	}
 
@@ -723,12 +730,7 @@ UpdateStatus ModuleRender::Update() {
 			if (firstIteration) firstIteration = false;
 		}
 
-#if !GAME
 		glViewport(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
-#else
-		App->camera->ViewportResized(App->window->GetWidth(), App->window->GetHeight());
-		glViewport(0, 0, App->window->GetWidth(), App->window->GetHeight());
-#endif
 	}
 
 	// Color correction
