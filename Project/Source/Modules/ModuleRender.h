@@ -123,6 +123,7 @@ public:
 
 	// Bloom
 	bool bloomActive = true;
+	int gaussSSAOKernelRadius = 0;
 	int gaussSmallKernelRadius = 0;
 	int gaussMediumKernelRadius = 0;
 	int gaussLargeKernelRadius = 0;

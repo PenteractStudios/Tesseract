@@ -43,6 +43,8 @@
 #include <math.h>
 #include <vector>
 
+static std::vector<float> ssaoGaussKernel;
+
 static std::vector<float> smallGaussKernel;
 static std::vector<float> mediumGaussKernel;
 static std::vector<float> largeGaussKernel;
@@ -261,6 +263,11 @@ bool ModuleRender::Init() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
 	glBindVertexArray(0);
 
+	// Create SSAO blur kernel
+	gaussSSAOKernelRadius = 2;
+	ssaoGaussKernel.clear();
+	gaussianKernel(2 * gaussSSAOKernelRadius + 1, 1.0f, 0.f, 1.f, ssaoGaussKernel);
+
 	// Calculate SSAO kernel
 	for (unsigned i = 0; i < SSAO_KERNEL_SIZE; ++i) {
 		float3 position;
@@ -388,8 +395,8 @@ void ModuleRender::BlurSSAOTexture(bool horizontal) {
 	glUniform1i(ssaoBlurProgram->inputTextureLocation, 0);
 	glUniform1i(ssaoBlurProgram->textureLevelLocation, 0);
 
-	glUniform1fv(ssaoBlurProgram->kernelLocation, gaussSmallKernelRadius+1, &smallGaussKernel[0]);
-	glUniform1i(ssaoBlurProgram->kernelRadiusLocation, gaussSmallKernelRadius + 1);
+	glUniform1fv(ssaoBlurProgram->kernelLocation, gaussSSAOKernelRadius + 1, &ssaoGaussKernel[0]);
+	glUniform1i(ssaoBlurProgram->kernelRadiusLocation, gaussSSAOKernelRadius + 1);
 	glUniform1i(ssaoBlurProgram->horizontalLocation, horizontal ? 1 : 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
