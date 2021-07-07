@@ -149,6 +149,7 @@ ComponentParticleSystem::~ComponentParticleSystem() {
 
 void ComponentParticleSystem::Init() {
 	if (!gradient) gradient = new ImGradient();
+	layer = WorldLayers(1 << layerIndex);
 	CreateParticles();
 }
 
@@ -354,7 +355,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			ImGui::Indent();
 
 			// World Layers combo box
-			const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Enemy", "Bullet", "Bullet Enemy", "Everything"};
+			const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Enemy", "Bullet", "Bullet Enemy", "Skills", "Everything"};
 			const char* layerCurrent = layerTypeItems[layerIndex];
 			if (ImGui::BeginCombo("Layer", layerCurrent)) {
 				for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {

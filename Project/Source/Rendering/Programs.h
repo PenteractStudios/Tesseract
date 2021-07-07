@@ -92,6 +92,7 @@ struct ProgramUnlit : public Program {
 
 	int emissiveMapLocation = -1;
 	int hasEmissiveMapLocation = -1;
+	int emissiveIntensityLocation = -1;
 
 	int tilingLocation = -1;
 	int offsetLocation = -1;
@@ -124,6 +125,7 @@ struct ProgramStandard : public Program {
 
 	int emissiveMapLocation = -1;
 	int hasEmissiveMapLocation = -1;
+	int emissiveIntensityLocation = -1;
 
 	int ambientOcclusionMapLocation = -1;
 	int hasAmbientOcclusionMapLocation = -1;
@@ -215,20 +217,15 @@ struct ProgramSSAO : Program {
 	int powerLocation = -1;
 };
 
-struct ProgramSSAOBlur : Program {
-	ProgramSSAOBlur(unsigned program);
+struct ProgramBlur : Program {
+	ProgramBlur(unsigned program);
 
 	int inputTextureLocation = -1;
+	int textureLevelLocation = -1;
 
 	int kernelLocation = -1;
+	int kernelRadiusLocation = -1;
 	int horizontalLocation = -1;
-};
-
-struct ProgramColorCorrection : Program {
-	ProgramColorCorrection(unsigned program);
-
-	int textureSceneLocation = -1;
-	int textureBloomBlurLocation = -1;
 };
 
 struct ProgramPostprocess : Program {
@@ -237,6 +234,24 @@ struct ProgramPostprocess : Program {
 	int textureSceneLocation = -1;
 	int bloomThresholdLocation = -1;
 	int samplesNumberLocation = -1;
+	int bloomActiveLocation = -1;
+};
+
+struct ProgramColorCorrection : Program {
+	ProgramColorCorrection(unsigned program);
+
+	int textureSceneLocation = -1;
+	int bloomBlurLocation = -1;
+	int hasBloomBlurLocation = -1;
+	int bloomIntensityLocation = -1;
+
+	int smallWeightLocation = -1;
+	int mediumWeightLocation = -1;
+	int largeWeightLocation = -1;
+
+	int smallMipLevelLocation = -1;
+	int mediumMipLevelLocation = -1;
+	int largeMipLevelLocation = -1;
 };
 
 struct ProgramDrawTexture : Program {
