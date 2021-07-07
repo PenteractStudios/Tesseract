@@ -32,3 +32,33 @@ void main() {
     position = view * vec4(fragPos, 1.0);
     normal = vec4(mat3(view) * normalize(fragNormal), 1.0);
 }
+
+
+--- fragDepthPrepassConvertTextures
+
+layout(location = 0) out vec4 position;
+layout(location = 1) out vec4 normal;
+
+in vec2 uv;
+
+uniform int samplesNumber;
+
+uniform sampler2DMS positions;
+uniform sampler2DMS normals;
+
+void main()
+{
+    ivec2 positionsSize = textureSize(positions);
+    ivec2 vp = ivec2(vec2(positionsSize) * uv);
+    int minIndex = 0;
+    float minDepth = texelFetch(positions, vp, 0).z;
+    for (int i = 1; i < samplesNumber; ++i) {
+        float depth = texelFetch(positions, vp, i).z;
+        if (depth < minDepth) {
+            minIndex = i;
+            minDepth = depth;
+        }
+    }
+    position = texelFetch(positions, vp, minIndex);
+    normal = texelFetch(normals, vp, minIndex);
+}

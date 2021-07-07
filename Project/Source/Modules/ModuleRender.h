@@ -70,6 +70,8 @@ public:
 
 	unsigned renderTexture = 0;
 	unsigned outputTexture = 0;
+	unsigned positionsMSTexture = 0;
+	unsigned normalsMSTexture = 0;
 	unsigned positionsTexture = 0;
 	unsigned normalsTexture = 0;
 	unsigned depthMapTexture = 0;
@@ -81,7 +83,8 @@ public:
 	unsigned depthBuffer = 0;
 
 	unsigned renderPassBuffer = 0;
-	unsigned depthPrepassTextureBuffer = 0;
+	unsigned depthPrepassBuffer = 0;
+	unsigned depthPrepassTextureConversionBuffer = 0;
 	unsigned depthMapTextureBuffer = 0;
 	unsigned ssaoTextureBuffer = 0;
 	unsigned ssaoBlurTextureBufferH = 0;
@@ -139,6 +142,7 @@ private:
 	void SetOrtographicRender();
 	void SetPerspectiveRender();
 
+	void ConvertDepthPrepassTextures();
 	void ComputeSSAOTexture();
 	void BlurSSAOTexture(bool horizontal);
 	void BlurBloomTexture(bool horizontal, bool firstTime);

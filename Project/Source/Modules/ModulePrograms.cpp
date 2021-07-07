@@ -108,6 +108,7 @@ void ModulePrograms::LoadShaders() {
 
 	// Depth Prepass Shaders
 	depthPrepass = new ProgramDepthPrepass(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragDepthPrepass"));
+	depthPrepassConvertTextures = new ProgramDepthPrepassConvertTextures(CreateProgram(filePath, "vertScreen", "fragDepthPrepassConvertTextures"));
 
 	// SSAO Shaders
 	ssao = new ProgramSSAO(CreateProgram(filePath, "vertScreen", "fragSSAO"));

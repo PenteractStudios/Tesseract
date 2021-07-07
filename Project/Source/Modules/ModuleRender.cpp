@@ -194,6 +194,8 @@ bool ModuleRender::Init() {
 
 	glGenTextures(1, &renderTexture);
 	glGenTextures(1, &outputTexture);
+	glGenTextures(1, &positionsMSTexture);
+	glGenTextures(1, &normalsMSTexture);
 	glGenTextures(1, &positionsTexture);
 	glGenTextures(1, &normalsTexture);
 	glGenTextures(1, &depthMapTexture);
@@ -205,7 +207,8 @@ bool ModuleRender::Init() {
 	glGenRenderbuffers(1, &depthBuffer);
 
 	glGenFramebuffers(1, &renderPassBuffer);
-	glGenFramebuffers(1, &depthPrepassTextureBuffer);
+	glGenFramebuffers(1, &depthPrepassBuffer);
+	glGenFramebuffers(1, &depthPrepassTextureConversionBuffer);
 	glGenFramebuffers(1, &depthMapTextureBuffer);
 	glGenFramebuffers(1, &ssaoTextureBuffer);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferH);
@@ -296,6 +299,25 @@ void ModuleRender::ClassifyGameObjects() {
 	}
 }
 
+void ModuleRender::ConvertDepthPrepassTextures() {
+	ProgramDepthPrepassConvertTextures* convertProgram = App->programs->depthPrepassConvertTextures;
+	if (convertProgram == nullptr) return;
+
+	glUseProgram(convertProgram->program);
+
+	glUniform1i(convertProgram->samplesNumberLocation, msaaActive ? msaaSamplesNumber[static_cast<int>(msaaSampleType)] : msaaSampleSingle);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, positionsMSTexture);
+	glUniform1i(convertProgram->positionsLocation, 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, normalsMSTexture);
+	glUniform1i(convertProgram->normalsLocation, 1);
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
 void ModuleRender::ComputeSSAOTexture() {
 	ProgramSSAO* ssaoProgram = App->programs->ssao;
 	if (ssaoProgram == nullptr) return;
@@ -307,14 +329,12 @@ void ModuleRender::ComputeSSAOTexture() {
 
 	glUniformMatrix4fv(ssaoProgram->projLocation, 1, GL_TRUE, projMatrix.ptr());
 
-	glUniform1i(ssaoProgram->samplesNumberLocation, msaaActive ? msaaSamplesNumber[static_cast<int>(msaaSampleType)] : msaaSampleSingle);
-
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, positionsTexture);
+	glBindTexture(GL_TEXTURE_2D, positionsTexture);
 	glUniform1i(ssaoProgram->positionsLocation, 0);
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, normalsTexture);
+	glBindTexture(GL_TEXTURE_2D, normalsTexture);
 	glUniform1i(ssaoProgram->normalsLocation, 1);
 
 	glUniform3fv(ssaoProgram->kernelSamplesLocation, SSAO_KERNEL_SIZE, ssaoKernel[0].ptr());
@@ -445,7 +465,7 @@ UpdateStatus ModuleRender::Update() {
 	}
 
 	// Depth Prepass
-	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassBuffer);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
@@ -455,6 +475,14 @@ UpdateStatus ModuleRender::Update() {
 	for (GameObject* gameObject : opaqueGameObjects) {
 		DrawGameObjectDepthPrepass(gameObject);
 	}
+
+	// Depth Prepass texture conversion
+	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureConversionBuffer);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glDisable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	ConvertDepthPrepassTextures();
 
 	// SSAO pass
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoTextureBuffer);
@@ -660,6 +688,8 @@ bool ModuleRender::CleanUp() {
 
 	glDeleteTextures(1, &renderTexture);
 	glDeleteTextures(1, &outputTexture);
+	glDeleteTextures(1, &positionsMSTexture);
+	glDeleteTextures(1, &normalsMSTexture);
 	glDeleteTextures(1, &positionsTexture);
 	glDeleteTextures(1, &normalsTexture);
 	glDeleteTextures(1, &depthMapTexture);
@@ -671,7 +701,8 @@ bool ModuleRender::CleanUp() {
 	glDeleteRenderbuffers(1, &depthBuffer);
 
 	glDeleteFramebuffers(1, &renderPassBuffer);
-	glDeleteFramebuffers(1, &depthPrepassTextureBuffer);
+	glDeleteFramebuffers(1, &depthPrepassBuffer);
+	glDeleteFramebuffers(1, &depthPrepassTextureConversionBuffer);
 	glDeleteFramebuffers(1, &depthMapTextureBuffer);
 	glDeleteFramebuffers(1, &ssaoTextureBuffer);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferH);
@@ -709,18 +740,39 @@ void ModuleRender::UpdateFramebuffers() {
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// Depth prepass buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassBuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, positionsTexture);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, positionsMSTexture);
 	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, positionsTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, positionsMSTexture, 0);
 
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, normalsTexture);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, normalsMSTexture);
 	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D_MULTISAMPLE, normalsTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D_MULTISAMPLE, normalsMSTexture, 0);
 
 	GLuint drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+	glDrawBuffers(2, drawBuffers);
+
+	// Depth prepass texture conversion buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureConversionBuffer);
+
+	glBindTexture(GL_TEXTURE_2D, positionsTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, positionsTexture, 0);
+
+	glBindTexture(GL_TEXTURE_2D, normalsTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalsTexture, 0);
+
 	glDrawBuffers(2, drawBuffers);
 
 	// Shadow buffer

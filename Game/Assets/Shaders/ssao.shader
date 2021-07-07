@@ -6,9 +6,8 @@
 
 uniform mat4 proj;
 
-uniform int samplesNumber;
-uniform sampler2DMS positions;
-uniform sampler2DMS normals;
+uniform sampler2D positions;
+uniform sampler2D normals;
 uniform vec3 kernelSamples[KERNEL_SIZE];
 uniform vec3 randomTangents[RANDOM_TANGENTS_ROWS * RANDOM_TANGENTS_COLS];
 uniform vec2 screenSize;
@@ -19,16 +18,6 @@ uniform float power;
 in vec2 uv;
 
 layout(location = 0) out vec4 result;
-
-vec3 InterpolateTexel(in sampler2DMS image, in vec2 uv) {
-    ivec2 vp = textureSize(image);
-    vp = ivec2(vec2(vp) * uv);
-	vec3 accumulatedSample = vec3(0.0f);
-	for (int i = 0; i < samplesNumber; ++i) {
-		accumulatedSample += texelFetch(image, vp, i).rgb;
-	}
-	return accumulatedSample / samplesNumber;
-}
 
 vec3 GetRandomTangent() {
     vec2 screenPos = uv * screenSize;
@@ -45,12 +34,12 @@ mat3 CreateTangentSpace(const vec3 normal, const vec3 randomTangent) {
 float GetSceneDepthAtSamplePos(const vec3 samplePos) {
     vec4 clippingSpace = proj * vec4(samplePos, 1.0);
     vec2 sampleUV = (clippingSpace.xy / clippingSpace.w) * 0.5 + 0.5;
-    return InterpolateTexel(positions, sampleUV).z;
+    return texture(positions, sampleUV).z;
 }
 
 void main() {
-    vec3 position = InterpolateTexel(positions, uv).xyz;
-    vec3 normal = normalize(InterpolateTexel(normals, uv).xyz);
+    vec3 position = texture(positions, uv).xyz;
+    vec3 normal = normalize(texture(normals, uv).xyz);
     mat3 tangentSpace = CreateTangentSpace(normal, GetRandomTangent());
     float occlusion = 0;
     for (int i = 0; i < KERNEL_SIZE; ++i) {

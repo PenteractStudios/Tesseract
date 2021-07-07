@@ -197,12 +197,19 @@ struct ProgramDepthPrepass : Program {
 	int offsetLocation = -1;
 };
 
+struct ProgramDepthPrepassConvertTextures : Program {
+	ProgramDepthPrepassConvertTextures(unsigned program);
+
+	int samplesNumberLocation = -1;
+
+	int positionsLocation = -1;
+	int normalsLocation = -1;
+};
+
 struct ProgramSSAO : Program {
 	ProgramSSAO(unsigned program);
 
 	int projLocation = -1;
-
-	int samplesNumberLocation = -1;
 
 	int positionsLocation = -1;
 	int normalsLocation = -1;
