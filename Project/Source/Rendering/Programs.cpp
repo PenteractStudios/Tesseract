@@ -237,6 +237,10 @@ ProgramColorCorrection::ProgramColorCorrection(unsigned program_)
 	smallWeightLocation = glGetUniformLocation(program, "smallWeight");
 	mediumWeightLocation = glGetUniformLocation(program, "mediumWeight");
 	largeWeightLocation = glGetUniformLocation(program, "largeWeight");
+
+	smallMipLevelLocation = glGetUniformLocation(program, "smallMipLevel");
+	mediumMipLevelLocation = glGetUniformLocation(program, "mediumMipLevel");
+	largeMipLevelLocation = glGetUniformLocation(program, "largeMipLevel");
 }
 
 ProgramDrawTexture::ProgramDrawTexture(unsigned program_)

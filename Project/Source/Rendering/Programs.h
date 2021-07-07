@@ -248,6 +248,10 @@ struct ProgramColorCorrection : Program {
 	int smallWeightLocation = -1;
 	int mediumWeightLocation = -1;
 	int largeWeightLocation = -1;
+
+	int smallMipLevelLocation = -1;
+	int mediumMipLevelLocation = -1;
+	int largeMipLevelLocation = -1;
 };
 
 struct ProgramDrawTexture : Program {

@@ -25,6 +25,10 @@ uniform float smallWeight;
 uniform float mediumWeight;
 uniform float largeWeight;
 
+uniform int smallMipLevel;
+uniform int mediumMipLevel;
+uniform int largeMipLevel;
+
 vec3 ACESFilm(in vec3 x) {
 	float a = 2.51f;
 	float b = 0.03f;
@@ -37,12 +41,12 @@ vec3 ACESFilm(in vec3 x) {
 void main()
 {
 	vec4 hdrColor = texture(scene, uv);
-	
+
 	// Apply bloom
 	if (hasBloomBlur == 1) {
-		vec3 bloomColor1 = textureLod(bloomBlur, uv, 2).rgb;
-		vec3 bloomColor2 = textureLod(bloomBlur, uv, 3).rgb;
-		vec3 bloomColor3 = textureLod(bloomBlur, uv, 4).rgb;
+		vec3 bloomColor1 = textureLod(bloomBlur, uv, smallMipLevel).rgb;
+		vec3 bloomColor2 = textureLod(bloomBlur, uv, mediumMipLevel).rgb;
+		vec3 bloomColor3 = textureLod(bloomBlur, uv, largeMipLevel).rgb;
 		vec3 bloomColor = (bloomColor1 * smallWeight) + (bloomColor2 * mediumWeight) + (bloomColor3 * largeWeight);
 		hdrColor.rgb += bloomColor * bloomIntensity; // additive blending
 	}

@@ -128,7 +128,7 @@ public:
 	int gaussMediumMipLevel = 3;
 	int gaussLargeMipLevel = 4;
 
-	int bloomQuality = 1;
+	int bloomQuality = 2;
 	float bloomIntensity = 1.0f;
 	float bloomThreshold = 1.0f;
 	float bloomSmallWeight = 1.0f;
