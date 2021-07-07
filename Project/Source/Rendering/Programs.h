@@ -131,6 +131,7 @@ struct ProgramStandard : public Program {
 	int depthMapTextureLocation = -1;
 
 	int ssaoTextureLocation = -1;
+	int ssaoDirectLightingStrengthLocation = -1;
 
 	int tilingLocation = -1;
 	int offsetLocation = -1;
