@@ -47,22 +47,6 @@ static std::vector<float> smallGaussKernel;
 static std::vector<float> mediumGaussKernel;
 static std::vector<float> largeGaussKernel;
 
-float Erf(const float x) {
-	// constants
-	const float a1 = 0.254829592f;
-	const float a2 = -0.284496736f;
-	const float a3 = 1.421413741f;
-	const float a4 = -1.453152027f;
-	const float a5 = 1.061405429f;
-	const float p = 0.3275911f;
-
-	// A&S formula 7.1.26
-	const float t = 1.0 / (1.0 + p * abs(x));
-	const float y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * exp(-x * x);
-
-	return x < 0 ? -1 * y : y;
-}
-
 float defIntGaussian(const float x, const float mu, const float sigma) {
 	return 0.5 * erf((x - mu) / (sqrt(2) * sigma));
 }
@@ -938,6 +922,9 @@ void ModuleRender::UpdateFramebuffers() {
 	sigma1 = sqrt(sigma1 / (term - Ln(sigma1)));
 	sigma2 = sqrt(sigma2 / (term - Ln(sigma2)));
 	sigma3 = sqrt(sigma3 / (term - Ln(sigma3)));
+	smallGaussKernel.clear();
+	mediumGaussKernel.clear();
+	largeGaussKernel.clear();
 	gaussianKernel(2 * gaussSmallKernelRadius + 1, sigma1, 0.f, 1.f, smallGaussKernel);
 	gaussianKernel(2 * gaussMediumKernelRadius + 1, sigma2, 0.f, 1.f, mediumGaussKernel);
 	gaussianKernel(2 * gaussLargeKernelRadius + 1, sigma3, 0.f, 1.f, largeGaussKernel);
