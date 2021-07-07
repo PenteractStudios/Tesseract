@@ -44,6 +44,7 @@ enum WorldLayers {
 	ENEMY = 1 << 4,
 	BULLET = 1 << 5,
 	BULLET_ENEMY = 1 << 6,
+	SKILLS = 1 << 7,
 	EVERYTHING = 1 << 30
 };
 
