@@ -58,6 +58,7 @@ bool ModuleWindow::Init() {
 
 #if GAME
 	SetWindowMode(WindowMode::FULLSCREEN);
+	SetCursor(true);
 #else
 	SetWindowMode(WindowMode::WINDOWED);
 #endif
@@ -144,7 +145,7 @@ void ModuleWindow::SetCursor(bool isPlaying) {
 		loadedImage = IMG_Load("./Assets/Textures/UI/cursor30x30.png"); // TO TESTING
 		// loadedImage = IMG_Load("./Assets/Textures/UI/cursor.png");
 		if (loadedImage) {
-			cursor = SDL_CreateColorCursor(loadedImage, 8, 8);
+			cursor = SDL_CreateColorCursor(loadedImage, 15, 15);
 		} else {
 			LOG(IMG_GetError());
 			cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
