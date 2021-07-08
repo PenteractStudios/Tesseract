@@ -269,7 +269,7 @@ void PanelConfiguration::Update() {
 			ImGui::ResourceSlot<ResourceNavMesh>("Nav Mesh", &scene->navMeshId);
 
 			ImGui::Separator();
-			ImGui::ResourceSlot<ResourceNavMesh>("Cursor Texture", &scene->cursorId);
+			ImGui::ResourceSlot<ResourceTexture>("Cursor Texture", &scene->cursorId);
 		}
 	}
 	ImGui::End();
