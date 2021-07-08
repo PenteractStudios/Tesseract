@@ -10,6 +10,7 @@
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleProject.h"
 #include "Modules/ModulePrograms.h"
+#include "Modules/ModuleWindow.h"
 
 #include "imgui_internal.h"
 #include "IconsFontAwesome5.h"
@@ -100,15 +101,18 @@ void PanelControlEditor::Update() {
 			// Play / Pause / Step buttons
 			if (App->time->HasGameStarted()) {
 				if (ImGui::Button(stop.c_str())) {
+					App->window->SetCursor(false);
 					App->events->AddEvent(TesseractEvent(TesseractEventType::PRESSED_STOP));
 				}
 				ImGui::SameLine();
 				if (App->time->IsGameRunning()) {
 					if (ImGui::Button(pause.c_str())) {
+						App->window->SetCursor(false);
 						App->events->AddEvent(TesseractEvent(TesseractEventType::PRESSED_PAUSE));
 					}
 				} else {
 					if (ImGui::Button(play.c_str())) {
+						App->window->SetCursor(true);
 						App->events->AddEvent(TesseractEvent(TesseractEventType::PRESSED_RESUME));
 					}
 				}
@@ -121,6 +125,7 @@ void PanelControlEditor::Update() {
 						App->project->CompileProject(Configuration::RELEASE_EDITOR);
 #endif // _DEBUG
 					}
+					App->window->SetCursor(true);
 					App->events->AddEvent(TesseractEvent(TesseractEventType::PRESSED_PLAY));
 				}
 			}

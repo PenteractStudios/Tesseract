@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 
+struct SDL_Cursor;
 struct SDL_Surface;
 
 enum class WindowMode {
@@ -29,6 +30,7 @@ public:
 	void ResetToDefaultSize();
 	void SetBrightness(float brightness);
 	void SetTitle(const char* title);
+	void SetCursor(bool isPlaying);
 
 	// ---------- Getters ---------- //
 	WindowMode GetWindowMode() const;
@@ -43,10 +45,12 @@ public:
 	int GetPositionY() const;
 	float GetBrightness() const;
 	const char* GetTitle() const;
+	SDL_Cursor* GetCursor() const;
 
 public:
 	SDL_Window* window = nullptr;
 	SDL_Surface* surface = nullptr;
+	SDL_Cursor* cursor = nullptr;
 
 private:
 	WindowMode windowMode = WindowMode::WINDOWED;

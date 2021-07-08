@@ -468,6 +468,7 @@ namespace Screen {
 	TESSERACT_ENGINE_API void SetCurrentDisplayMode(unsigned index);
 	TESSERACT_ENGINE_API void SetSize(int width, int height);
 	TESSERACT_ENGINE_API void SetBrightness(float brightness);
+	TESSERACT_ENGINE_API void SetCursor(bool isPlaying);
 
 	TESSERACT_ENGINE_API WindowMode GetWindowMode();
 	TESSERACT_ENGINE_API bool GetMaximized();

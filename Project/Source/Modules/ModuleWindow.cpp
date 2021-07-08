@@ -4,8 +4,11 @@
 #include "Application.h"
 #include "Utils/Logging.h"
 #include "Modules/ModuleEvents.h"
+#include "Modules/ModuleScene.h"
+#include "Resources/ResourceTexture.h"
 
 #include "SDL.h"
+#include "Scene.h"
 
 #include "Utils/Leaks.h"
 
@@ -66,6 +69,10 @@ bool ModuleWindow::CleanUp() {
 
 	if (window != NULL) {
 		SDL_DestroyWindow(window);
+	}
+
+	if (cursor != nullptr) {
+		SDL_FreeCursor(cursor);
 	}
 
 	SDL_Quit();
@@ -129,6 +136,17 @@ void ModuleWindow::SetTitle(const char* title) {
 	SDL_SetWindowTitle(window, title);
 }
 
+void ModuleWindow::SetCursor(bool isPlaying) {
+	if (isPlaying) {
+		cursor = (App->scene->scene->GetCursor() != 0) ? 
+			SDL_CreateColorCursor(nullptr, 8, 8)
+			: SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
+	} else {
+		cursor = SDL_GetDefaultCursor();
+	}
+	SDL_SetCursor(cursor);
+}
+
 WindowMode ModuleWindow::GetWindowMode() const {
 	return windowMode;
 }
@@ -184,4 +202,8 @@ float ModuleWindow::GetBrightness() const {
 
 const char* ModuleWindow::GetTitle() const {
 	return SDL_GetWindowTitle(window);
+}
+
+SDL_Cursor* ModuleWindow::GetCursor() const {
+	return cursor;
 }

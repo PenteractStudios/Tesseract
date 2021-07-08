@@ -12,6 +12,7 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModulePhysics.h"
 #include "Resources/ResourceNavMesh.h"
+#include "Resources/ResourceTexture.h"
 #include "Scene.h"
 #include "Utils/ImGuiUtils.h"
 
@@ -266,6 +267,9 @@ void PanelConfiguration::Update() {
 
 			ImGui::Separator();
 			ImGui::ResourceSlot<ResourceNavMesh>("Nav Mesh", &scene->navMeshId);
+
+			ImGui::Separator();
+			ImGui::ResourceSlot<ResourceNavMesh>("Cursor Texture", &scene->cursorId);
 		}
 	}
 	ImGui::End();

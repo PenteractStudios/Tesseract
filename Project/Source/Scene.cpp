@@ -51,6 +51,7 @@ void Scene::ClearScene() {
 	root = nullptr;
 	quadtree.Clear();
 	SetNavMesh(0);
+	SetCursor(0);
 
 	assert(gameObjects.Count() == 0); // There should be no GameObjects outside the scene hierarchy
 	gameObjects.Clear();			  // This looks redundant, but it resets the free list so that GameObject order is mantained when saving/loading
@@ -455,4 +456,12 @@ void Scene::SetNavMesh(UID navMesh) {
 
 UID Scene::GetNavMesh() {
 	return navMeshId;
+}
+
+void Scene::SetCursor(UID cursor) {
+	// TODO: Set Creating Cursor
+}
+
+UID Scene::GetCursor() {
+	return cursorId;
 }

@@ -121,6 +121,7 @@ bool ModuleEditor::Init() {
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
 
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
