@@ -8,6 +8,7 @@
 #include "Resources/ResourceTexture.h"
 
 #include "SDL.h"
+#include "SDL_image.h"
 #include "Scene.h"
 
 #include "Utils/Leaks.h"
@@ -138,9 +139,19 @@ void ModuleWindow::SetTitle(const char* title) {
 
 void ModuleWindow::SetCursor(bool isPlaying) {
 	if (isPlaying) {
-		cursor = (App->scene->scene->GetCursor() != 0) ? 
-			SDL_CreateColorCursor(nullptr, 8, 8)
-			: SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
+		SDL_Surface* loadedImage = nullptr;
+		//Load the image using SDL_image
+		loadedImage = IMG_Load("./Assets/Textures/UI/cursor30x30.png"); // TO TESTING
+		// loadedImage = IMG_Load("./Assets/Textures/UI/cursor.png");
+		if (loadedImage) {
+			cursor = SDL_CreateColorCursor(loadedImage, 8, 8);
+		} else {
+			LOG(IMG_GetError());
+			cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
+		}
+		/* cursor = (App->scene->scene->GetCursor() != 0) ? 
+			SDL_CreateColorCursor(IMG_Load("Assets/Textures/UI/cursor.png"), 0, 0)
+			: SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);*/
 	} else {
 		cursor = SDL_GetDefaultCursor();
 	}
