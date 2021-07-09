@@ -250,6 +250,12 @@ float Input::GetControllerAxisValue(SDL_GameControllerAxis axis, int playerID) {
 	return player ? player->gameControllerAxises[axis] / JOYSTICK_MAX_VALUE : 0.0f;
 }
 
+void Input::StartControllerVibration(int playerID, float strength, float duration) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+	if (player == nullptr) return;
+	player->StartSimpleControllerVibration(strength, duration);
+}
+
 bool Input::IsGamepadConnected(int index) {
 	return App->input->GetPlayerController(index) != nullptr;
 }

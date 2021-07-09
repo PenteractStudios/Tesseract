@@ -5,6 +5,7 @@
 #include "Math/float2.h"
 #include "SDL_scancode.h"
 #include "SDL_gamecontroller.h"
+#include "SDL_haptic.h"
 
 #define NUM_MOUSE_BUTTONS 5
 #define MAX_PLAYERS 2
@@ -28,13 +29,31 @@ public:
 		controller = SDL_GameControllerOpen(index_);
 		SDL_Joystick* j = SDL_GameControllerGetJoystick(controller);
 		joystickIndex = SDL_JoystickInstanceID(j);
+		haptic = SDL_HapticOpenFromJoystick(j);
+		if (haptic == NULL)
+			return;
 	}
 
 	~PlayerController() {
+		if (haptic != NULL) {
+			SDL_HapticClose(haptic);
+			haptic = NULL;
+		}
 		if (controller != NULL) {
 			SDL_GameControllerClose(controller);
 			controller = NULL;
 		}
+	}
+
+	//Strength is a normalized value, from 0 strength to full strength (1) duration in millis
+	void StartSimpleControllerVibration(float strength, float duration) {
+		if (haptic == NULL) return;
+
+		if (SDL_HapticRumbleInit(haptic) != 0)
+			return;
+
+		if (SDL_HapticRumblePlay(haptic, strength, duration) != 0)
+			return;
 	}
 
 	float GetAxisRaw(int axisIndex) { //Returns RAW Game controller value, from 0 to 32767.0f
@@ -55,11 +74,12 @@ public:
 	float gameControllerAxises[SDL_CONTROLLER_AXIS_MAX] = {0.0f};		   // Axis values, deadzone is 8000, max value is
 	KeyState gameControllerButtons[SDL_CONTROLLER_BUTTON_MAX] = {KS_IDLE}; // Same keystate, but for the controller buttons
 	SDL_GameController* controller = nullptr;
+	SDL_Haptic* haptic = nullptr;
 };
 
 class ModuleInput : public Module {
 public:
-	const float JOYSTICK_DEAD_ZONE = 10000.0f;  //Hardcoded value considered Game controller "Dead zone"
+	const float JOYSTICK_DEAD_ZONE = 10000.0f; //Hardcoded value considered Game controller "Dead zone"
 	const float JOYSTICK_MAX_VALUE = 32767.0f; //MAXIUM RAW DATA obtainable through axis
 
 public:
