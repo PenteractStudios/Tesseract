@@ -35,7 +35,8 @@ bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, c
 		for (auto& element : clip.keyEventClips) {
 			element.second.sent = false;
 		}
-		clip.currentEventKeyFrame = 0;
+		//clip.currentEventKeyFrame = 0;
+		//LOG("Clear %d", clip.keyEventClips.size());
 	}
 
 	if (clip.loop) {		

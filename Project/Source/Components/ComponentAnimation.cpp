@@ -175,7 +175,8 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 		GetCurrentStateSecondary(),
 		position,
 		rotation,
-		resetSecondaryStatemachine);
+		resetSecondaryStatemachine,
+		listClipsKeyEvents);
 
 	//If finishedTransition and currentStateSecondary equals to currentStatePrincipal we must reset the currentStateSecondary to "empty" state
 	//See line 84 of StateMachineManager.cpp
@@ -232,6 +233,12 @@ void ComponentAnimation::InitCurrentTimeStates(UID stateMachineResourceUid, Stat
 		case StateMachineEnum::SECONDARY:
 			for (const auto& element : resourceStateMachine->states) {
 				currentTimeStatesSecondary.insert({element.first, 0.0f});
+
+				//Filling the key events given that the secondary state machine has all of the states
+				ResourceClip* clip = App->resources->GetResource<ResourceClip>(element.second.clipUid);
+				if (clip) {
+					listClipsKeyEvents.insert({element.second.clipUid, clip->keyEventClips});
+				}
 			}
 			break;
 		}

@@ -12,6 +12,7 @@
 #include "Onimaru.h"
 
 #include <math.h>
+#include <string>
 
 EXPOSE_MEMBERS(AIMeleeGrunt) {
 	MEMBER(MemberType::GAME_OBJECT_UID, playerUID),
@@ -257,22 +258,24 @@ void AIMeleeGrunt::OnAnimationEvent(StateMachineEnum stateMachineEnum, const cha
 			Debug::Log("EnablePunch");
 			float3 aux = ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation().Transform(float3(0, 0, 1)) * 2.5f + float3(0, 2, 0);
 			if (meleePunch) {
-				punch = GameplaySystems::Instantiate(meleePunch, aux, ownerTransform->GetGlobalRotation());
+				/*punch = GameplaySystems::Instantiate(meleePunch, aux, ownerTransform->GetGlobalRotation());
 				if (punch->IsActive())
 				{
 					Debug::Log("Active");
 				}
 				else {
-					punch->Enable();
+					//punch->Enable();
 					Debug::Log("Desactive");
-				}
-				Debug::Log("Punch");
+				}*/
+				std::string s = "Punch" + std::to_string(GetOwner().id);
+				Debug::Log(s.c_str());
 			}
 		}
 		if (std::strcmp(eventName, "DisablePunch") == 0) {
 			/*GameplaySystems::DestroyGameObject(punch);
 			punch = nullptr;*/
-			Debug::Log("DisablePunch");
+			std::string s = "DisablePunch" + std::to_string(GetOwner().id);
+			Debug::Log(s.c_str());
 		}
 		break;
 	default:

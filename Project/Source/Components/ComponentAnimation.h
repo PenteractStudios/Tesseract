@@ -7,6 +7,7 @@
 #include "State.h"
 #include "Modules/ModuleResources.h"
 #include "Resources/ResourceStateMachine.h"
+#include "Resources/ResourceClip.h"
 #include "Utils/UID.h"
 #include <string>
 #include "StateMachineEnum.h"
@@ -65,4 +66,6 @@ private:
 	std::list<AnimationInterpolation> animationInterpolationsSecondary; //List of the current interpolations between states
 	std::unordered_map<UID, float> currentTimeStatesPrincipal;
 	std::unordered_map<UID, float> currentTimeStatesSecondary;
+
+	std::unordered_map<UID, std::unordered_map<unsigned int, EventClip>> listClipsKeyEvents;
 };
