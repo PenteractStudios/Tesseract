@@ -416,11 +416,8 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 			}
 		}
-		// MenuItem("TextLabel")
-		// MenuItem("ProgressBar")
-		// ...
 
-		// Selectables
+		// ----- Selectables
 
 		if (ImGui::MenuItem("Button")) {
 			ComponentButton* component = selected->GetComponent<ComponentButton>();
@@ -444,9 +441,16 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 			}
 		}
 
-		// MenuItem("InputText")
-		// MenuItem("ScrollBar")
-		// ...
+		if (ImGui::MenuItem("ProgressBar")) {
+			ComponentProgressBar* component = selected->GetComponent<ComponentProgressBar>();
+			if (component == nullptr) {
+				typeToCreate = ComponentType::PROGRESS_BAR;
+				newUIComponentCreated = true;
+				newUISelectableCreated = true;
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+			}
+		}
 
 		if (newUIComponentCreated) {
 			// Create new Transform2D

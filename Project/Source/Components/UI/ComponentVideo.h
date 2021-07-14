@@ -16,4 +16,7 @@ public:
 	void Load(JsonValue jComponent) override;		// Deserializes object
 
 	void Draw(ComponentTransform2D* transform) const; // Draws the image ortographically using the active camera, and the transform passed as model. It will apply AlphaTransparency if true, and will get Button's additional color to apply if needed
+
+private:
+	UID videoID = 0; // ID of the video
 };

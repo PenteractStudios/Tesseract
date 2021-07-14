@@ -10,9 +10,7 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleUserInterface.h"
-#include "Panels/PanelScene.h"
 #include "Resources/ResourceTexture.h"
-#include "FileSystem/TextureImporter.h"
 #include "FileSystem/JsonValue.h"
 
 #include "Utils/ImGuiUtils.h"
