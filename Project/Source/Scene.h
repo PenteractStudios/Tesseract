@@ -103,6 +103,7 @@ public:
 	PoolMap<UID, ComponentCapsuleCollider> capsuleColliderComponents;
 	PoolMap<UID, ComponentAgent> agentComponents;
 	PoolMap<UID, ComponentObstacle> obstacleComponents;
+	PoolMap<UID, ComponentObstacle> videoComponents;
 
 	// ---- Quadtree Parameters ---- //
 	Quadtree<GameObject> quadtree;

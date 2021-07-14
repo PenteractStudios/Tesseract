@@ -7,8 +7,7 @@
 *    4. Create a new PoolMap for the new component in Scene.h
 *    5. Initialize the PoolMap in Scene.cpp's Init()
 *    6. Add the new component to the functions in Scene.cpp
-*    7. Implement DuplicateComponent for the new component
-*    8. Add the "Add Component" functionality in PanelInspector.cpp (ln. 62)
+*    7. Add the "Add Component" functionality in PanelInspector.cpp (ln. 62)
 */
 
 // REGISTER_COMPONENT builds the data structures common to all Components.
@@ -49,7 +48,8 @@ enum class ComponentType {
 	BOX_COLLIDER,
 	CAPSULE_COLLIDER,
 	AGENT,
-	OBSTACLE
+	OBSTACLE,
+	VIDEO
 };
 
 const char* GetComponentTypeName(ComponentType type);

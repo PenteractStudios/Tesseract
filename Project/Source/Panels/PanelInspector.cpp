@@ -24,6 +24,7 @@
 #include "Components/UI/ComponentSelectable.h"
 #include "Components/UI/ComponentTransform2D.h"
 #include "Components/UI/ComponentCanvasRenderer.h"
+#include "Components/UI/ComponentVideo.h"
 #include "Components/Physics/ComponentSphereCollider.h"
 #include "Components/Physics/ComponentBoxCollider.h"
 #include "Modules/ModuleScene.h"
@@ -396,6 +397,16 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 			}
 		}
 
+		if (ImGui::MenuItem("Video")) {
+			ComponentVideo* component = selected->GetComponent<ComponentVideo>();
+			if (component == nullptr) {
+				newUIComponentCreated = true;
+				typeToCreate = ComponentType::VIDEO;
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+			}
+		}
+
 		if (ImGui::MenuItem("Text")) {
 			ComponentText* component = selected->GetComponent<ComponentText>();
 			if (component == nullptr) {
@@ -483,6 +494,11 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 		}
 		case ComponentType::IMAGE: {
 			ComponentImage* component = selected->CreateComponent<ComponentImage>();
+			component->Init();
+			break;
+		}
+		case ComponentType::VIDEO: {
+			ComponentVideo* component = selected->CreateComponent<ComponentVideo>();
 			component->Init();
 			break;
 		}
