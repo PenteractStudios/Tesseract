@@ -55,6 +55,10 @@ public:
 	State currentStateSecondary;
 	std::unordered_map<UID, std::unordered_map<unsigned int, EventClip>> listClipsKeyEvents;
 	std::unordered_map<UID, unsigned int> listClipsCurrentEventKeyFrames;
+	std::list<AnimationInterpolation> animationInterpolationsPrincipal; //List of the current interpolations between states
+	std::list<AnimationInterpolation> animationInterpolationsSecondary; //List of the current interpolations between states
+	std::unordered_map<UID, float> currentTimeStatesPrincipal;
+	std::unordered_map<UID, float> currentTimeStatesSecondary;
 
 private:
 	void UpdateAnimations(GameObject* gameObject);
@@ -62,12 +66,5 @@ private:
 	void InitCurrentTimeStates(UID stateMachineResourceUid, StateMachineEnum stateMachineEnum);
 	bool loadedResourceStateMachine = false;
 	bool loadedResourceStateMachineSecondary = false;
-
-private:
-	std::list<AnimationInterpolation> animationInterpolationsPrincipal; //List of the current interpolations between states
-	std::list<AnimationInterpolation> animationInterpolationsSecondary; //List of the current interpolations between states
-	std::unordered_map<UID, float> currentTimeStatesPrincipal;
-	std::unordered_map<UID, float> currentTimeStatesSecondary;
-
 
 };
