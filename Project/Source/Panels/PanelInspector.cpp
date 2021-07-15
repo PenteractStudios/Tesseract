@@ -531,6 +531,26 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 			}
 			break;
 		}
+		case ComponentType::PROGRESS_BAR: {
+			ComponentProgressBar* component = selected->CreateComponent<ComponentProgressBar>();
+			component->Init();
+			if (!selected->GetComponent<ComponentImage>()) {
+				ComponentImage* image = selected->CreateComponent<ComponentImage>();
+				image->Init();
+			}
+			GameObject* background = App->scene->scene->CreateGameObject(selected, GenerateUID(), "Background");
+			ComponentTransform2D* transform2D = background->CreateComponent<ComponentTransform2D>();
+			ComponentCanvasRenderer* canvasRenderer = background->CreateComponent<ComponentCanvasRenderer>();
+			ComponentImage* image = background->CreateComponent<ComponentImage>();
+			background->GetComponent<ComponentTransform2D>()->SetSize(float2(700, 80));
+
+			GameObject* fill = App->scene->scene->CreateGameObject(selected, GenerateUID(), "Fill");
+			ComponentTransform2D* transform2Dfill = fill->CreateComponent<ComponentTransform2D>();
+			ComponentCanvasRenderer* canvasRendererfill = fill->CreateComponent<ComponentCanvasRenderer>();
+			ComponentImage* imagefill = fill->CreateComponent<ComponentImage>();
+			background->GetComponent<ComponentTransform2D>()->SetSize(float2(700, 80));
+			fill->GetComponent<ComponentImage>()->SetColor(float4(255.0f, 0, 0, 255.0f));
+		}
 		}
 
 		ImGui::EndMenu();
