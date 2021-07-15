@@ -12,7 +12,6 @@
 #include "Math/float3.h"
 
 #include "Utils/Leaks.h"
-#include <Utils/Logging.h>
 
 
 int AnimationController::GetCurrentSample(const ResourceClip& clip, float& currentTime) {
@@ -36,8 +35,6 @@ bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, c
 		for (auto& element : componentAnimation.listClipsKeyEvents[clip.GetId()]) {
 			element.second.sent = false;
 		}
-		//clip.currentEventKeyFrame = 0;
-		//LOG("Clear %d", clip.keyEventClips.size());
 	}
 
 	if (clip.loop) {		
