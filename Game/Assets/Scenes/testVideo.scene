@@ -7,7 +7,7 @@
     ],
     "QuadtreeMaxDepth": 4,
     "QuadtreeElementsPerNode": 200,
-    "GameCamera": 3036481065375584811,
+    "GameCamera": 7812874656526628735,
     "AmbientLight": [
         0.25,
         0.25,
@@ -313,50 +313,6 @@
                         "Children": null
                     }
                 ]
-            },
-            {
-                "Id": 9681284345862695993,
-                "Name": "Event System",
-                "Active": true,
-                "Static": false,
-                "ActiveHierarchy": true,
-                "RootBoneId": 0,
-                "Mask": 0,
-                "Components": [
-                    {
-                        "Type": "Transform",
-                        "Id": 5288800636646155611,
-                        "Active": true,
-                        "Position": [
-                            0.0,
-                            0.0,
-                            0.0
-                        ],
-                        "Rotation": [
-                            0.0,
-                            0.0,
-                            0.0,
-                            1.0
-                        ],
-                        "Scale": [
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "LocalEulerAngles": [
-                            0.0,
-                            0.0,
-                            0.0
-                        ]
-                    },
-                    {
-                        "Type": "EventSystem",
-                        "Id": 9769274992439307330,
-                        "Active": true,
-                        "FirstSelectedId": 0
-                    }
-                ],
-                "Children": null
             }
         ]
     }

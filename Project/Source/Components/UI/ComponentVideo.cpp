@@ -7,6 +7,7 @@
 #include "Modules/ModuleRender.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Components/UI/ComponentTransform2D.h"
+#include "Utils/Logging.h"
 
 #include "imgui.h"
 #include "Utils/ImGuiUtils.h"
@@ -19,25 +20,22 @@
 
 extern "C" {
 	#include "libavformat/avformat.h"
-	#include "libavutil/dict.h"
 }
+char av_error[AV_ERROR_MAX_STRING_SIZE] = {0};
+#define av_err2str(errnum) av_make_error_string(av_error, AV_ERROR_MAX_STRING_SIZE, errnum)
+
 
 ComponentVideo::~ComponentVideo() {
 }
 
 void ComponentVideo::Init() {
-	AVFormatContext* fmt_ctx = NULL;
-	AVDictionaryEntry* tag = NULL;
-	int ret;
-	const char* filename = "./2021-04-21 16-56-15.mp4";
-	if ((ret = avformat_open_input(&fmt_ctx, filename, NULL, NULL)))
+	// Allocate format context
+	formatCtx = avformat_alloc_context();
+	if (!formatCtx) {
+		LOG("Couldn't allocate AVFormatContext");
 		return;
-
-	while ((tag = av_dict_get(fmt_ctx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
-		LOG("%s=%s\n", tag->key, tag->value);
-
-	avformat_close_input(&fmt_ctx);
-	// Initialise libav with the video
+	}
+	LoadVideoFile("./2021-04-21 16-56-15.mp4", nullptr, nullptr, nullptr);
 }
 
 void ComponentVideo::Update() {
@@ -141,4 +139,108 @@ void ComponentVideo::Draw(ComponentTransform2D* transform) const {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glDisable(GL_BLEND);
+}
+
+void ComponentVideo::LoadVideoFile(const char* filename, int* widthOut, int* heightOut, unsigned char** dataOut) {
+	AVCodecParameters* codecParams;
+	AVCodec* avCodec;
+
+	// Open video file
+	if (avformat_open_input(&formatCtx, filename, NULL, NULL) != 0) {
+		LOG("Couldn't open video file");
+		return;
+	}
+	
+	// Find the first valid video stream in the file
+	int videoStreamIndex = -1;
+	for (int i = 0; i < formatCtx->nb_streams; ++i) {
+		auto stream = formatCtx->streams[i];
+		codecParams = formatCtx->streams[i]->codecpar;
+		avCodec = avcodec_find_decoder(codecParams->codec_id);
+		if (!avCodec) continue;
+
+		if (codecParams->codec_type == AVMEDIA_TYPE_VIDEO) {
+			videoStreamIndex = i;
+			break;
+		}
+		// TODO: decode audio the same way AVMEDIA_TYPE_AUDIO
+	}
+
+	if (videoStreamIndex == -1) {
+		LOG("Couldn't find valid video stream inside file");
+		return;
+	}
+
+	// Set up a codec context for the decoder
+	AVCodecContext* codecCtx = avcodec_alloc_context3(avCodec);
+	if (!codecCtx) {
+		LOG("Couldn't allocate AVCodecContext");
+		return;
+	}
+
+	if (avcodec_parameters_to_context(codecCtx, codecParams) < 0) {
+		LOG("Couldn't initialise AVCodecContext");
+		return;
+	}
+
+	if (avcodec_open2(codecCtx, avCodec, NULL) < 0) {
+		LOG("Couldn't open video codec");
+		return;
+	}
+
+	// Read Frame
+	AVPacket* avPacket = av_packet_alloc();
+	AVFrame* avFrame = av_frame_alloc();
+	if (!avPacket) {
+		LOG("Couldn't allocate AVPacket");
+		return;
+	}
+	if (!avFrame) {
+		LOG("Couldn't allocate AVFrame");
+		return;
+	}
+
+	int response;
+	while (av_read_frame(formatCtx, avPacket) >= 0) {
+		if (avPacket->stream_index != videoStreamIndex) continue;
+
+		response = avcodec_send_packet(codecCtx, avPacket);
+		if (response < 0) {
+			LOG("Failed to decode packet: %s", av_err2str(response));
+			return;
+		}
+
+		response = avcodec_receive_frame(codecCtx, avFrame);
+		if (response == AVERROR(EAGAIN) || response == AVERROR(EOF)) {
+			continue;
+		}
+		if (response < 0) {
+			LOG("Failed to decode frame: %s", av_err2str(response));
+			return;
+		}
+
+		av_packet_unref(avPacket);
+	}
+	
+	unsigned char* data = new unsigned char[avFrame->width * avFrame->height * 3];
+	for (int x = 0; x < avFrame->width; ++x) {
+		for (int y = 0; y < avFrame->height; ++y) {
+			data[y * avFrame->width * 3 + x * 3] = avFrame->data[0][y * avFrame->linesize[0] + x];		// R
+			data[y * avFrame->width * 3 + x * 3 + 1] = avFrame->data[0][y * avFrame->linesize[0] + x];	// G
+			data[y * avFrame->width * 3 + x * 3 + 2] = avFrame->data[0][y * avFrame->linesize[0] + x];	// B
+		}
+	}
+
+	*widthOut = avFrame->width;
+	*heightOut = avFrame->height;
+	*dataOut = data;
+
+	// TODO: this should go on a destructor
+	avformat_close_input(&formatCtx);
+	avformat_free_context(formatCtx);
+	av_frame_free(&avFrame);
+	av_packet_free(&avPacket);
+	avcodec_free_context(&codecCtx);
+
+	LOG("SO WE GOT HERE");
 }

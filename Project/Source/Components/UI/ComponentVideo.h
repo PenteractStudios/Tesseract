@@ -2,6 +2,7 @@
 #include "Components/Component.h"
 
 class ComponentTransform2D;
+struct AVFormatContext;
 
 class ComponentVideo : public Component {
 public:
@@ -11,12 +12,17 @@ public:
 
 	void Init() override;							// Inits the component
 	void Update() override;							// Update
-	void OnEditorUpdate() override;					// Works as input of the AlphaTransparency, color and Texture and Shader used
+	void OnEditorUpdate() override;					//
 	void Save(JsonValue jComponent) const override; // Serializes object
 	void Load(JsonValue jComponent) override;		// Deserializes object
 
-	void Draw(ComponentTransform2D* transform) const; // Draws the image ortographically using the active camera, and the transform passed as model. It will apply AlphaTransparency if true, and will get Button's additional color to apply if needed
+	void Draw(ComponentTransform2D* transform) const; // Draws the current frame of the loaded video as a texture in a framebuffer
+
+	void LoadVideoFile(const char* filename, int* widthOut, int* heightOut, unsigned char** dataOut);
+	void ReadVideoFrame();
 
 private:
 	UID videoID = 0; // ID of the video
+
+	AVFormatContext* formatCtx;
 };
