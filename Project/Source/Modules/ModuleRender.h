@@ -70,25 +70,28 @@ public:
 
 	unsigned renderTexture = 0;
 	unsigned outputTexture = 0;
+	unsigned positionsMSTexture = 0;
+	unsigned normalsMSTexture = 0;
 	unsigned positionsTexture = 0;
 	unsigned normalsTexture = 0;
 	unsigned depthMapTexture = 0;
 	unsigned ssaoTexture = 0;
 	unsigned auxBlurTexture = 0;
-	unsigned colorTextures[2] = { 0, 0 }; // position 0: scene render texture; position 1: bloom texture to be blurred
-	unsigned bloomBlurTextures[2] = { 0, 0 }; // ping-pong buffers to blur bloom horizontally and vertically, alternatively stores the bloom texture
+	unsigned colorTextures[2] = {0, 0}; // position 0: scene render texture; position 1: bloom texture to be blurred
+	unsigned bloomBlurTextures[2] = {0, 0};
 
 	unsigned depthBuffer = 0;
 
 	unsigned renderPassBuffer = 0;
-	unsigned depthPrepassTextureBuffer = 0;
+	unsigned depthPrepassBuffer = 0;
+	unsigned depthPrepassTextureConversionBuffer = 0;
 	unsigned depthMapTextureBuffer = 0;
 	unsigned ssaoTextureBuffer = 0;
 	unsigned ssaoBlurTextureBufferH = 0;
 	unsigned ssaoBlurTextureBufferV = 0;
 	unsigned colorCorrectionBuffer = 0;
 	unsigned hdrFramebuffer = 0;
-	unsigned bloomBlurFramebuffers[2] = { 0, 0 };
+	unsigned bloomBlurFramebuffers[6] = {0, 0, 0, 0, 0, 0}; // Ping-pong buffers to blur bloom horizontally and vertically
 
 	// ------- Viewport Updated ------- //
 	bool viewportUpdated = true;
@@ -108,8 +111,8 @@ public:
 	bool drawColliders = false;
 	int culledTriangles = 0;
 
-	float3 ambientColor = {0.25f, 0.25f, 0.25f}; // Color of ambient Light
-	float3 clearColor = {0.002f, 0.002f, 0.002f};		 // Color of the viewport between frames
+	float3 ambientColor = {0.25f, 0.25f, 0.25f};  // Color of ambient Light
+	float3 clearColor = {0.002f, 0.002f, 0.002f}; // Color of the viewport between frames
 
 	// SSAO
 	bool ssaoActive = true;
@@ -117,7 +120,24 @@ public:
 	float ssaoBias = 0.0f;
 	float ssaoPower = 3.0f;
 	float ssaoDirectLightingStrength = 0.5f;
+
+	// Bloom
+	bool bloomActive = true;
+	int gaussSSAOKernelRadius = 0;
+	int gaussSmallKernelRadius = 0;
+	int gaussMediumKernelRadius = 0;
+	int gaussLargeKernelRadius = 0;
+
+	int gaussSmallMipLevel = 2;
+	int gaussMediumMipLevel = 3;
+	int gaussLargeMipLevel = 4;
+
+	int bloomQuality = 2;
+	float bloomIntensity = 1.0f;
 	float bloomThreshold = 1.0f;
+	float bloomSmallWeight = 1.0f;
+	float bloomMediumWeight = 1.0f;
+	float bloomLargeWeight = 1.0f;
 
 	bool msaaActive = true;
 	MSAA_SAMPLES_TYPE msaaSampleType = MSAA_SAMPLES_TYPE::MSAA_X4;
@@ -139,9 +159,11 @@ private:
 	void SetOrtographicRender();
 	void SetPerspectiveRender();
 
+	void ConvertDepthPrepassTextures();
 	void ComputeSSAOTexture();
 	void BlurSSAOTexture(bool horizontal);
-	void BlurBloomTexture(bool horizontal, bool firstTime);
+	void BlurBloomTexture(bool horizontal, bool firstTime, const std::vector<float>& kernel, int kernelRadius, int textureLevel);
+	void CombineBlooms();
 
 	void ExecuteColorCorrection(bool horizontal);
 

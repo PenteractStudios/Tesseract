@@ -35,6 +35,7 @@
 #define JSON_TAG_NORMAL_MAP "NormalMap"
 #define JSON_TAG_NORMAL_STRENGTH "NormalStrength"
 #define JSON_TAG_EMISSIVE_MAP "EmissiveMap"
+#define JSON_TAG_EMISSIVE_INTENSITY "Emissive"
 #define JSON_TAG_AMBIENT_OCCLUSION_MAP "AmbientOcclusionMap"
 #define JSON_TAG_SMOOTHNESS "Smoothness"
 #define JSON_TAG_HAS_SMOOTHNESS_IN_ALPHA_CHANNEL "HasSmoothnessInAlphaChannel"
@@ -81,6 +82,8 @@ void ResourceMaterial::Load() {
 
 	emissiveMapId = jMaterial[JSON_TAG_EMISSIVE_MAP];
 	App->resources->IncreaseReferenceCount(emissiveMapId);
+
+	emissiveIntensity = jMaterial[JSON_TAG_EMISSIVE_INTENSITY];
 
 	ambientOcclusionMapId = jMaterial[JSON_TAG_AMBIENT_OCCLUSION_MAP];
 	App->resources->IncreaseReferenceCount(ambientOcclusionMapId);
@@ -138,6 +141,7 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	jMaterial[JSON_TAG_NORMAL_MAP] = normalMapId;
 	jMaterial[JSON_TAG_NORMAL_STRENGTH] = normalStrength;
 	jMaterial[JSON_TAG_EMISSIVE_MAP] = emissiveMapId;
+	jMaterial[JSON_TAG_EMISSIVE_INTENSITY] = emissiveIntensity;
 	jMaterial[JSON_TAG_AMBIENT_OCCLUSION_MAP] = ambientOcclusionMapId;
 
 	jMaterial[JSON_TAG_SMOOTHNESS] = smoothness;
@@ -368,7 +372,18 @@ void ResourceMaterial::OnEditorUpdate() {
 	}
 
 	// Emissive Options
-	ImGui::ResourceSlot<ResourceTexture>("Emissive Map", &emissiveMapId);
+	ImGui::BeginColumns("##emissive_map", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+	{
+		ImGui::ResourceSlot<ResourceTexture>("Emissive Map", &emissiveMapId);
+	}
+	ImGui::NextColumn();
+	{
+		ImGui::NewLine();
+		if (emissiveMapId != 0) {
+			ImGui::SliderFloat("##emissiveStrength", &emissiveIntensity, 0.0, 100.0);
+		}
+	}
+	ImGui::EndColumns();
 
 	ImGui::NewLine();
 	ImGui::NewLine();

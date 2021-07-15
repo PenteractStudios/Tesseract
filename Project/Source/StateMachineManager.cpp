@@ -129,7 +129,11 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 		return result;
 	}
 
-	ResourceClip* clip = App->resources->GetResource<ResourceClip>(currentState.clipUid);
+	if (resourceStateMachine->bones.size() == 0) {
+		return result;
+	}
+
+	ResourceClip* clip = App->resources->GetResource<ResourceClip>(currentState->clipUid);	
 	if (!clip) {
 		return result;
 	}
