@@ -60,6 +60,10 @@ void ResourceClip::Load() {
 	loop = jStateMachine[JSON_TAG_LOOP];
 	speed = jStateMachine[JSON_TAG_SPEED];
 	frameRate = jStateMachine[JSON_TAG_FRAMERATE];
+	if (frameRate <= FLT_MIN) {
+		frameRate = 1;
+		LOG("WARNING frameRate missing");
+	}
 
 	JsonValue keyEventClipsJson = jStateMachine[JSON_TAG_KEY_EVENT_CLIP];
 	for (unsigned int i = 0; i < keyEventClipsJson.Size(); ++i) {
