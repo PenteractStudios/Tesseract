@@ -199,6 +199,9 @@ void PanelInspector::Update() {
 				case ComponentType::OBSTACLE:
 					cName = "Obstacle";
 					break;
+				case ComponentType::VIDEO:
+					cName = "Video";
+					break;
 				default:
 					cName = "";
 					break;

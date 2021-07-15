@@ -15,11 +15,28 @@
 #define JSON_TAG_VIDEOID "VideoId"
 
 #include "Resources/ResourceTexture.h"
+#include "Utils/Logging.h"
+
+extern "C" {
+	#include "libavformat/avformat.h"
+	#include "libavutil/dict.h"
+}
 
 ComponentVideo::~ComponentVideo() {
 }
 
 void ComponentVideo::Init() {
+	AVFormatContext* fmt_ctx = NULL;
+	AVDictionaryEntry* tag = NULL;
+	int ret;
+	const char* filename = "./2021-04-21 16-56-15.mp4";
+	if ((ret = avformat_open_input(&fmt_ctx, filename, NULL, NULL)))
+		return;
+
+	while ((tag = av_dict_get(fmt_ctx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
+		LOG("%s=%s\n", tag->key, tag->value);
+
+	avformat_close_input(&fmt_ctx);
 	// Initialise libav with the video
 }
 
@@ -40,9 +57,9 @@ void ComponentVideo::OnEditorUpdate() {
 	ImGui::Separator();
 
 	UID oldID = /*textureID*/ 0;
-	ImGui::ResourceSlot<ResourceTexture>("texture", /*&textureID*/ 0);
+	/* ImGui::ResourceSlot<ResourceTexture>("texture", /*&textureID 0);
 
-	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(/*textureID*/ 0);
+	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(/*textureID 0);
 
 	if (textureResource != nullptr) {
 		int width;
@@ -50,7 +67,7 @@ void ComponentVideo::OnEditorUpdate() {
 		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
 		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
 
-		if (oldID != /*textureID*/ 0) {
+		if (oldID != /*textureID 0) {
 			ComponentTransform2D* transform2D = GetOwner().GetComponent<ComponentTransform2D>();
 			if (transform2D != nullptr) {
 				transform2D->SetSize(float2((float) width, (float) height));
@@ -58,7 +75,7 @@ void ComponentVideo::OnEditorUpdate() {
 		}
 
 		ImGui::TextWrapped("Size: %d x %d", width, height);
-	}
+	}*/
 }
 
 void ComponentVideo::Save(JsonValue jComponent) const {
