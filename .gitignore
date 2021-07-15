@@ -10,6 +10,9 @@
 # Temp scene
 /Game/_scene_autosave.temp
 
+# Config file
+/Game/config.json
+
 # Build results
 /Build/
 
