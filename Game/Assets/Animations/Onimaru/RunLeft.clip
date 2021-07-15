@@ -1,9 +1,0 @@
-{
-    "Name": "RunLeft",
-    "AnimationUID": 9448883503469494203,
-    "BeginIndex": 176,
-    "EndIndex": 216,
-    "Loop": true,
-    "Speed": 1.0,
-    "FrameRate": 0.041609667241573337
-}
