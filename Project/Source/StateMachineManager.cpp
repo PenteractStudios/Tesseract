@@ -7,7 +7,7 @@
 #include <Utils/UID.h>
 #include <Utils/Logging.h>
 #include "GameObject.h"
-
+#include "Components/ComponentAnimation.h"
 
 bool StateMachineManager::Contains(std::list<AnimationInterpolation>& animationInterpolations, const UID& id) {
 	for (const auto element : animationInterpolations) {
@@ -58,7 +58,7 @@ void StateMachineManager::SendTrigger(const std::string& trigger, std::unordered
 	}
 }
 
-bool StateMachineManager::UpdateAnimations(GameObject* gameObject, const GameObject& owner, std::unordered_map<UID, float>& currentTimeStatesPrincipal, std::list<AnimationInterpolation>& animationInterpolationsPrincipal, const UID& stateMachineResourceUIDPrincipal, State* currentStatePrincipal, std::unordered_map<UID, float>& currentTimeStatesSecondary, std::list<AnimationInterpolation>& animationInterpolationsSecondary, const UID& stateMachineResourceUIDSecondary, State* currentStateSecondary, float3& position, Quat& rotation, bool& resetSecondaryStatemachine, std::unordered_map<UID, std::unordered_map<unsigned int, EventClip>> listClipsKeyEvents) {
+bool StateMachineManager::UpdateAnimations(GameObject* gameObject, const GameObject& owner, std::unordered_map<UID, float>& currentTimeStatesPrincipal, std::list<AnimationInterpolation>& animationInterpolationsPrincipal, const UID& stateMachineResourceUIDPrincipal, State* currentStatePrincipal, std::unordered_map<UID, float>& currentTimeStatesSecondary, std::list<AnimationInterpolation>& animationInterpolationsSecondary, const UID& stateMachineResourceUIDSecondary, State* currentStateSecondary, float3& position, Quat& rotation, bool& resetSecondaryStatemachine, std::unordered_map<UID, std::unordered_map<unsigned int, EventClip>> listClipsKeyEvents, ComponentAnimation &componentAnimation) {
 	bool result = true;
 	StateMachineEnum stateMachineSelected = StateMachineEnum::PRINCIPAL;
 	//The currentStateSecondary could be an empty State object with the id of zero in case for the second state machine
@@ -76,7 +76,7 @@ bool StateMachineManager::UpdateAnimations(GameObject* gameObject, const GameObj
 	//Selecting which state machine is going to be used
 	switch (stateMachineSelected) {
 	case StateMachineEnum::PRINCIPAL:
-		result = StateMachineManager::CalculateAnimation(gameObject, owner, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal, currentStatePrincipal, position, rotation, resetSecondaryStatemachine, StateMachineEnum::PRINCIPAL,listClipsKeyEvents);
+		result = StateMachineManager::CalculateAnimation(gameObject, owner, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal, currentStatePrincipal, position, rotation, resetSecondaryStatemachine, StateMachineEnum::PRINCIPAL,listClipsKeyEvents,componentAnimation);
 		break;
 	case StateMachineEnum::SECONDARY:
 		ResourceStateMachine* resourceStateMachinePrincipal = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUIDPrincipal);
@@ -84,7 +84,7 @@ bool StateMachineManager::UpdateAnimations(GameObject* gameObject, const GameObj
 		if (resourceStateMachinePrincipal){
 			secondaryToAnyPrincipal = StateMachineManager::SecondaryEqualsToAnyPrincipal(*currentStateSecondary,resourceStateMachinePrincipal->states);
 		}
-		result = StateMachineManager::CalculateAnimation(gameObject, owner, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary, currentStateSecondary, position, rotation, resetSecondaryStatemachine, StateMachineEnum::SECONDARY, listClipsKeyEvents,secondaryToAnyPrincipal );
+		result = StateMachineManager::CalculateAnimation(gameObject, owner, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary, currentStateSecondary, position, rotation, resetSecondaryStatemachine, StateMachineEnum::SECONDARY, listClipsKeyEvents, componentAnimation, secondaryToAnyPrincipal );
 		break;
 	}
 
@@ -98,7 +98,7 @@ bool StateMachineManager::SecondaryEqualsToAnyPrincipal(const State& currentStat
 	return false;
 }
 
-bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameObject& owner, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State* currentState, float3& position, Quat& rotation, bool& resetSecondaryStatemachine,const StateMachineEnum stateMachineEnum, std::unordered_map<UID, std::unordered_map<unsigned int, EventClip>> listClipsKeyEvents, bool principalEqualSecondary) {
+bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameObject& owner, std::unordered_map<UID, float>& currentTimeStates, std::list<AnimationInterpolation>& animationInterpolations, const UID& stateMachineResourceUID, State* currentState, float3& position, Quat& rotation, bool& resetSecondaryStatemachine,const StateMachineEnum stateMachineEnum, std::unordered_map<UID, std::unordered_map<unsigned int, EventClip>> listClipsKeyEvents, ComponentAnimation &componentAnimation, bool principalEqualSecondary) {
 	bool result = false;
 
 	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
@@ -114,7 +114,7 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 
 	//Checking for transition between states
 	if (animationInterpolations.size() > 1) {
-		result = AnimationController::InterpolateTransitions(animationInterpolations.begin(), animationInterpolations, *owner.GetRootBone(), *gameObject, position, rotation);
+		result = AnimationController::InterpolateTransitions(animationInterpolations.begin(), animationInterpolations, *owner.GetRootBone(), *gameObject, position, rotation, componentAnimation);
 
 		//Updating times
 		if (gameObject->name == (*resourceStateMachine->bones.begin())) { // Only udate currentTime for the rootBone
@@ -131,7 +131,7 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 				resetSecondaryStatemachine = true;
 			}
 			
-			result = AnimationController::GetTransform(*clip, currentTimeStates[currentState->id], gameObject->name.c_str(), position, rotation, gameObject->name == (*resourceStateMachine->bones.begin()));
+			result = AnimationController::GetTransform(*clip, currentTimeStates[currentState->id], gameObject->name.c_str(), position, rotation, gameObject->name == (*resourceStateMachine->bones.begin()), componentAnimation);
 			if (gameObject->name == (*resourceStateMachine->bones.begin())) {
 				
 			}
@@ -165,29 +165,32 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 		}
 
 		//Sending event on keyframe
-		std::unordered_map<unsigned int, EventClip> keyEventClips = listClipsKeyEvents[currentState->clipUid];
-		if (!keyEventClips.empty()) { //Only call this once
+		unsigned int currentEventKeyFrame = componentAnimation.listClipsCurrentEventKeyFrames[currentState->clipUid];
+		if (!componentAnimation.listClipsKeyEvents[currentState->clipUid].empty()) { //Only call this once
 			// Send key Frame event
-			int difference = currentSample - clip->currentEventKeyFrame;
+			int difference = currentSample - currentEventKeyFrame;
 			int i = 0;
+			if (currentEventKeyFrame == 178) {
+				int a = 0;
+			}
 			for (int i = 0; i <= difference; i++) {
-				if (keyEventClips.find(clip->currentEventKeyFrame + i) != keyEventClips.end() && !keyEventClips[clip->currentEventKeyFrame + i].sent) {
+				if ( componentAnimation.listClipsKeyEvents[currentState->clipUid].find(currentEventKeyFrame + i) !=  componentAnimation.listClipsKeyEvents[currentState->clipUid].end() && !componentAnimation.listClipsKeyEvents[currentState->clipUid][currentEventKeyFrame + i].sent) {
 					for (ComponentScript& script : owner.GetComponents<ComponentScript>()) {
 						if (script.IsActive()) {
 							Script* scriptInstance = script.GetScriptInstance();
 
 							if (scriptInstance != nullptr) {
-								//LOG("current: %d, CEF: %d", currentSample, clip->currentEventKeyFrame);
-								scriptInstance->OnAnimationEvent(stateMachineEnum, keyEventClips[clip->currentEventKeyFrame + i].name.c_str());
-								keyEventClips[clip->currentEventKeyFrame + i].sent = true;
+								//LOG("current: %d, CEF: %d", currentSample, currentEventKeyFrame);
+								scriptInstance->OnAnimationEvent(stateMachineEnum, componentAnimation.listClipsKeyEvents[currentState->clipUid][currentEventKeyFrame + i].name.c_str());
+								componentAnimation.listClipsKeyEvents[currentState->clipUid][currentEventKeyFrame + i].sent = true;
 							}
 						}
 					}
 				}
 			}
 
-			clip->currentEventKeyFrame = currentSample;
-			//LOG("Reset currentEventKeyFrame %s %d, dif: %d, %d", std::to_string(owner.id).c_str(), currentSample, difference, clip->currentEventKeyFrame);
+			componentAnimation.listClipsCurrentEventKeyFrames[currentState->clipUid] = currentSample;
+			//LOG("Reset currentEventKeyFrame %s %d, dif: %d, %d", std::to_string(owner.id).c_str(), currentSample, difference, currentEventKeyFrame);
 		}
 	}
 	

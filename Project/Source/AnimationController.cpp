@@ -7,6 +7,7 @@
 #include "Resources/ResourceAnimation.h"
 #include "AnimationInterpolation.h"
 #include "Resources/ResourceClip.h"
+#include "Components/ComponentAnimation.h"
 
 #include "Math/float3.h"
 
@@ -22,7 +23,7 @@ int AnimationController::GetCurrentSample(const ResourceClip& clip, float& curre
 	return intPart;
 }
 
-bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, const char* name, float3& pos, Quat& quat, bool firstBone) {
+bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, const char* name, float3& pos, Quat& quat, bool firstBone,ComponentAnimation &componentAnimation) {
 	if (clip.animationUID == 0) {
 		return false;
 	}
@@ -32,7 +33,7 @@ bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, c
 
 	//Resetting the events since it has been a loop only for one bone
 	if (firstBone && currentTime >= clip.duration) {
-		for (auto& element : clip.keyEventClips) {
+		for (auto& element : componentAnimation.listClipsKeyEvents[clip.GetId()]) {
 			element.second.sent = false;
 		}
 		//clip.currentEventKeyFrame = 0;
@@ -67,17 +68,17 @@ bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, c
 	return true;
 }
 
-bool AnimationController::InterpolateTransitions(const std::list<AnimationInterpolation>::iterator& it, const std::list<AnimationInterpolation>& animationInterpolations, const GameObject& rootBone, const GameObject& gameObject, float3& pos, Quat& quat) {
+bool AnimationController::InterpolateTransitions(const std::list<AnimationInterpolation>::iterator& it, const std::list<AnimationInterpolation>& animationInterpolations, const GameObject& rootBone, const GameObject& gameObject, float3& pos, Quat& quat, ComponentAnimation &componentAnimation) {
 	ResourceClip* clip = App->resources->GetResource<ResourceClip>((*it).state->clipUid);
 	if (!clip) {
 		return false;
 	}
-	bool result = GetTransform(*clip, (*it).currentTime, gameObject.name.c_str(), pos, quat, &rootBone == &gameObject);
+	bool result = GetTransform(*clip, (*it).currentTime, gameObject.name.c_str(), pos, quat, &rootBone == &gameObject, componentAnimation);
 	bool resultInner = true; 
 	if (&(*it) != &(*std::prev(animationInterpolations.end())) && result) {
 		float3 position;
 		Quat rotation;
-		resultInner = AnimationController::InterpolateTransitions(std::next(it), animationInterpolations, rootBone, gameObject, position, rotation);
+		resultInner = AnimationController::InterpolateTransitions(std::next(it), animationInterpolations, rootBone, gameObject, position, rotation, componentAnimation);
 		if (resultInner) {
 			float weight = (*it).fadeTime / (*it).transitionTime;
 			pos = float3::Lerp(position,pos, weight);

@@ -53,6 +53,8 @@ public:
 	UID stateMachineResourceUIDSecondary = 0;
 	State currentStatePrincipal;
 	State currentStateSecondary;
+	std::unordered_map<UID, std::unordered_map<unsigned int, EventClip>> listClipsKeyEvents;
+	std::unordered_map<UID, unsigned int> listClipsCurrentEventKeyFrames;
 
 private:
 	void UpdateAnimations(GameObject* gameObject);
@@ -67,5 +69,5 @@ private:
 	std::unordered_map<UID, float> currentTimeStatesPrincipal;
 	std::unordered_map<UID, float> currentTimeStatesSecondary;
 
-	std::unordered_map<UID, std::unordered_map<unsigned int, EventClip>> listClipsKeyEvents;
+
 };
