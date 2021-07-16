@@ -17,17 +17,11 @@ bool StateMachineManager::Contains(std::list<AnimationInterpolation>& animationI
 }
 
 void StateMachineManager::SendTrigger(const std::string& trigger, StateMachineEnum stateMachineSelected, ComponentAnimation& componentAnimation) {
-	UID stateMachineResourceUID = componentAnimation.stateMachineResourceUIDPrincipal;
-	State* currentState = &componentAnimation.currentStatePrincipal;
-	std::unordered_map<UID, float>* currentTimeStates = &componentAnimation.currentTimeStatesPrincipal;
-	std::list<AnimationInterpolation>* animationInterpolations = &componentAnimation.animationInterpolationsPrincipal;
-
-	if (stateMachineSelected == StateMachineEnum::SECONDARY) {
-		stateMachineResourceUID = componentAnimation.stateMachineResourceUIDSecondary;
-		currentState = &componentAnimation.currentStateSecondary;
-		currentTimeStates = &componentAnimation.currentTimeStatesSecondary;
-		animationInterpolations = &componentAnimation.animationInterpolationsSecondary;
-	}
+	bool isPrincipal = stateMachineSelected == StateMachineEnum::PRINCIPAL;
+	UID stateMachineResourceUID = isPrincipal ? componentAnimation.stateMachineResourceUIDPrincipal : componentAnimation.stateMachineResourceUIDSecondary;
+	State* currentState = isPrincipal ? &componentAnimation.currentStatePrincipal : &componentAnimation.currentStateSecondary;
+	std::unordered_map<UID, float>* currentTimeStates = isPrincipal ? &componentAnimation.currentTimeStatesPrincipal : &componentAnimation.currentTimeStatesSecondary;
+	std::list<AnimationInterpolation>* animationInterpolations = isPrincipal ? &componentAnimation.animationInterpolationsPrincipal : &componentAnimation.animationInterpolationsSecondary;
 
 	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
 	if (!resourceStateMachine) {
@@ -108,21 +102,14 @@ bool StateMachineManager::SecondaryEqualsToAnyPrincipal(const State& currentStat
 	}
 	return false;
 }
-
 bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameObject& owner, StateMachineEnum stateMachineSelected, ComponentAnimation& componentAnimation, float3& position, Quat& rotation, bool& resetSecondaryStatemachine, bool principalEqualSecondary) {
 	bool result = false;
 
-	UID stateMachineResourceUID = componentAnimation.stateMachineResourceUIDPrincipal;
-	State currentState = componentAnimation.currentStatePrincipal;
-	std::unordered_map<UID, float>* currentTimeStates = &componentAnimation.currentTimeStatesPrincipal;
-	std::list<AnimationInterpolation>* animationInterpolations = &componentAnimation.animationInterpolationsPrincipal;
-
-	if (stateMachineSelected == StateMachineEnum::SECONDARY) {
-		stateMachineResourceUID = componentAnimation.stateMachineResourceUIDSecondary;
-		currentState = componentAnimation.currentStateSecondary;
-		currentTimeStates = &componentAnimation.currentTimeStatesSecondary;
-		animationInterpolations = &componentAnimation.animationInterpolationsSecondary;
-	}
+	bool isPrincipal = stateMachineSelected == StateMachineEnum::PRINCIPAL;
+	UID stateMachineResourceUID = isPrincipal ? componentAnimation.stateMachineResourceUIDPrincipal : componentAnimation.stateMachineResourceUIDSecondary;
+	State currentState = isPrincipal ? componentAnimation.currentStatePrincipal : componentAnimation.currentStateSecondary;
+	std::unordered_map<UID, float>* currentTimeStates = isPrincipal ? &componentAnimation.currentTimeStatesPrincipal : &componentAnimation.currentTimeStatesSecondary;
+	std::list<AnimationInterpolation>* animationInterpolations = isPrincipal ? &componentAnimation.animationInterpolationsPrincipal : &componentAnimation.animationInterpolationsSecondary;
 
 	ResourceStateMachine* resourceStateMachine = App->resources->GetResource<ResourceStateMachine>(stateMachineResourceUID);
 	if (!resourceStateMachine) {
@@ -133,7 +120,7 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 		return result;
 	}
 
-	ResourceClip* clip = App->resources->GetResource<ResourceClip>(currentState->clipUid);	
+	ResourceClip* clip = App->resources->GetResource<ResourceClip>(currentState.clipUid);	
 	if (!clip) {
 		return result;
 	}
@@ -168,7 +155,6 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 		//Sending Event on Finished
 		if (!clip->loop) {
 			// Checking if the current sample is the last keyframe in order to send the event
-			//if (currentTimeStates[currentState->id] >= clip->duration) {
 			if (currentSample == clip->endIndex) {
 				for (ComponentScript& script : owner.GetComponents<ComponentScript>()) {
 					if (script.IsActive()) {
@@ -194,9 +180,6 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 			// Send key Frame event
 			int difference = currentSample - currentEventKeyFrame;
 			int i = 0;
-			if (currentEventKeyFrame == 178) {
-				int a = 0;
-			}
 			for (int i = 0; i <= difference; i++) {
 				if (componentAnimation.listClipsKeyEvents[currentState.clipUid].find(currentEventKeyFrame + i) != componentAnimation.listClipsKeyEvents[currentState.clipUid].end() && !componentAnimation.listClipsKeyEvents[currentState.clipUid][currentEventKeyFrame + i].sent) {
 					for (ComponentScript& script : owner.GetComponents<ComponentScript>()) {

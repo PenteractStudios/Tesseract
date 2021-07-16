@@ -44,7 +44,6 @@ public:
 	float frameRate = 1.0f;
 	unsigned int keyFramesSize = 0;
 
-	//unsigned int currentEventKeyFrame = 0;
 	std::unordered_map<unsigned int, EventClip> keyEventClips;
 
 private:
