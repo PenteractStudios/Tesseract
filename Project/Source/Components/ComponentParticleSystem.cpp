@@ -19,6 +19,7 @@
 #include "FileSystem/JsonValue.h"
 #include "Utils/Logging.h"
 #include "Utils/ImGuiUtils.h"
+#include "Utils/ParticleMotionState.h"
 
 #include "Math/float3x3.h"
 #include "Math/TransformOps.h"
