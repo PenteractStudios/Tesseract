@@ -18,7 +18,7 @@ class ParticleModule;
 class btRigidBody;
 class ParticleMotionState;
 class ImGradient;
-class ImGradientMark;
+struct ImGradientMark;
 
 enum WorldLayers;
 
