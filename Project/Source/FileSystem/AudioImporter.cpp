@@ -71,7 +71,7 @@ void AudioImporter::EncondeWavToOgg(const char* infilename, const char* outfilen
 	static double data[BUFFER_LEN];
 
 	SNDFILE *inFile, *outFile;
-	SF_INFO sfInfo, convertTest;
+	SF_INFO sfInfo;
 	int readCount;
 
 	if (!(inFile = sf_open(infilename, SFM_READ, &sfInfo))) {
@@ -94,7 +94,7 @@ void AudioImporter::EncondeWavToOgg(const char* infilename, const char* outfilen
 		exit(1);
 	};
 
-	while ((readCount = sf_read_double(inFile, data, BUFFER_LEN))) {
+	while ((readCount = (int) sf_read_double(inFile, data, BUFFER_LEN))) {
 		sf_write_double(outFile, data, readCount);
 	}
 

@@ -1094,7 +1094,7 @@ void ComponentParticleSystem::StopChildParticles() {
 }
 
 float ComponentParticleSystem::ChildParticlesInfo() {
-	float particlesInfo = particles.Count();
+	float particlesInfo = (float) particles.Count();
 	for (GameObject* currentChild : GetOwner().GetChildren()) {
 		if (currentChild->GetComponent<ComponentParticleSystem>()) {
 			particlesInfo += currentChild->GetComponent<ComponentParticleSystem>()->ChildParticlesInfo();

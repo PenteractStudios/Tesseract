@@ -310,7 +310,7 @@ void ModulePhysics::AddBodyToWorld(btRigidBody* rigidbody, ColliderType collider
 		break;
 	}
 
-	short collisionMask = 0;
+	int collisionMask = 0;
 	switch (layer) {
 	case EVENT_TRIGGERS:
 		collisionMask = WorldLayers::PLAYER | WorldLayers::EVERYTHING;

@@ -343,7 +343,7 @@ GameObject* PanelHierarchy::CreateUIProgressBar(GameObject* gameObject) {
 	background->name = "Background";
 
 	GameObject* fill = CreateUIImage(progressBar);
-	fill->GetComponent<ComponentImage>()->SetColor(float4(255.0f, 0, 0, 255.0f));
+	fill->GetComponent<ComponentImage>()->SetColor(float4(1.f, 0, 0, 1.f));
 	fill->name = "Fill";
 
 	return progressBar;
