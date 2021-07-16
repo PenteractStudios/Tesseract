@@ -16,7 +16,6 @@
 #define JSON_TAG_VIDEOID "VideoId"
 
 #include "Resources/ResourceTexture.h"
-#include "Utils/Logging.h"
 
 extern "C" {
 	#include "libavformat/avformat.h"
@@ -26,20 +25,37 @@ char av_error[AV_ERROR_MAX_STRING_SIZE] = {0};
 
 
 ComponentVideo::~ComponentVideo() {
+	glDeleteTextures(1, &frameTexture);
+	avformat_close_input(&formatCtx);
+	avformat_free_context(formatCtx);
+	avcodec_free_context(&codecCtx);
 }
 
 void ComponentVideo::Init() {
+	// Load shader
+	imageUIProgram = App->programs->imageUI;
+
 	// Allocate format context
 	formatCtx = avformat_alloc_context();
 	if (!formatCtx) {
 		LOG("Couldn't allocate AVFormatContext");
 		return;
 	}
-	LoadVideoFile("./2021-04-21 16-56-15.mp4", nullptr, nullptr, nullptr);
+	LoadVideoFile("./2021-04-21 16-56-15.mp4");
+
+	glGenTextures(1, &frameTexture);
+	glBindTexture(GL_TEXTURE_2D, frameTexture);
+
+	// set necessary texture parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 void ComponentVideo::Update() {
 	// Change Frame
+	
 }
 
 void ComponentVideo::OnEditorUpdate() {
@@ -84,19 +100,11 @@ void ComponentVideo::Load(JsonValue jComponent) {
 	videoID = jComponent[JSON_TAG_VIDEOID];
 }
 
-void ComponentVideo::Draw(ComponentTransform2D* transform) const {
-	ProgramImageUI* imageUIProgram = App->programs->imageUI;
+void ComponentVideo::Draw(ComponentTransform2D* transform) {
 	if (imageUIProgram == nullptr) return;
 
-	/* if (alphaTransparency) {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
-	if (isFill) {
-		glBindBuffer(GL_ARRAY_BUFFER, fillQuadVBO);
-	} else {
-		glBindBuffer(GL_ARRAY_BUFFER, App->userInterface->GetQuadVBO());
-	}*/
+	
+	glBindBuffer(GL_ARRAY_BUFFER, App->userInterface->GetQuadVBO());
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
@@ -124,15 +132,12 @@ void ComponentVideo::Draw(ComponentTransform2D* transform) const {
 
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(imageUIProgram->diffuseLocation, 0);
-	glUniform4fv(imageUIProgram->inputColorLocation, 1, (0,0,0)/*GetMainColor().ptr()*/);
+	glUniform4fv(imageUIProgram->inputColorLocation, 1, float4(1.f,1.f,1.f,1.f).ptr());
 
-	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(/*textureID*/0);
-	if (textureResource != nullptr) {
-		glBindTexture(GL_TEXTURE_2D, textureResource->glTexture);
-		glUniform1i(imageUIProgram->hasDiffuseLocation, 1);
-	} else {
-		glUniform1i(imageUIProgram->hasDiffuseLocation, 0);
-	}
+	// allocate memory and set texture data
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, frameWidth, frameHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, frameData);
+
+	glUniform1i(imageUIProgram->hasDiffuseLocation, 1);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -141,7 +146,7 @@ void ComponentVideo::Draw(ComponentTransform2D* transform) const {
 	glDisable(GL_BLEND);
 }
 
-void ComponentVideo::LoadVideoFile(const char* filename, int* widthOut, int* heightOut, unsigned char** dataOut) {
+void ComponentVideo::LoadVideoFile(const char* filename) {
 	AVCodecParameters* codecParams;
 	AVCodec* avCodec;
 
@@ -152,7 +157,6 @@ void ComponentVideo::LoadVideoFile(const char* filename, int* widthOut, int* hei
 	}
 	
 	// Find the first valid video stream in the file
-	int videoStreamIndex = -1;
 	for (int i = 0; i < formatCtx->nb_streams; ++i) {
 		auto stream = formatCtx->streams[i];
 		codecParams = formatCtx->streams[i]->codecpar;
@@ -172,7 +176,7 @@ void ComponentVideo::LoadVideoFile(const char* filename, int* widthOut, int* hei
 	}
 
 	// Set up a codec context for the decoder
-	AVCodecContext* codecCtx = avcodec_alloc_context3(avCodec);
+	codecCtx = avcodec_alloc_context3(avCodec);
 	if (!codecCtx) {
 		LOG("Couldn't allocate AVCodecContext");
 		return;
@@ -188,6 +192,10 @@ void ComponentVideo::LoadVideoFile(const char* filename, int* widthOut, int* hei
 		return;
 	}
 
+	ReadVideoFrame();
+}
+
+void ComponentVideo::ReadVideoFrame() {
 	// Read Frame
 	AVPacket* avPacket = av_packet_alloc();
 	AVFrame* avFrame = av_frame_alloc();
@@ -221,26 +229,20 @@ void ComponentVideo::LoadVideoFile(const char* filename, int* widthOut, int* hei
 
 		av_packet_unref(avPacket);
 	}
-	
+
 	unsigned char* data = new unsigned char[avFrame->width * avFrame->height * 3];
 	for (int x = 0; x < avFrame->width; ++x) {
 		for (int y = 0; y < avFrame->height; ++y) {
-			data[y * avFrame->width * 3 + x * 3] = avFrame->data[0][y * avFrame->linesize[0] + x];		// R
-			data[y * avFrame->width * 3 + x * 3 + 1] = avFrame->data[0][y * avFrame->linesize[0] + x];	// G
-			data[y * avFrame->width * 3 + x * 3 + 2] = avFrame->data[0][y * avFrame->linesize[0] + x];	// B
+			data[y * avFrame->width * 3 + x * 3] = avFrame->data[0][y * avFrame->linesize[0] + x];	   // R
+			data[y * avFrame->width * 3 + x * 3 + 1] = avFrame->data[0][y * avFrame->linesize[0] + x]; // G
+			data[y * avFrame->width * 3 + x * 3 + 2] = avFrame->data[0][y * avFrame->linesize[0] + x]; // B
 		}
 	}
 
-	*widthOut = avFrame->width;
-	*heightOut = avFrame->height;
-	*dataOut = data;
+	frameWidth = avFrame->width;
+	frameHeight = avFrame->height;
+	frameData = data;
 
-	// TODO: this should go on a destructor
-	avformat_close_input(&formatCtx);
-	avformat_free_context(formatCtx);
 	av_frame_free(&avFrame);
 	av_packet_free(&avPacket);
-	avcodec_free_context(&codecCtx);
-
-	LOG("SO WE GOT HERE");
 }
