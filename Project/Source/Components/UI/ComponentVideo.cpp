@@ -52,7 +52,7 @@ void ComponentVideo::Init() {
 
 void ComponentVideo::Update() {
 	elapsedVideoTime += App->time->GetDeltaTime();
-	if (elapsedVideoTime > frameTime) {
+	if (elapsedVideoTime > frameTime || frameTime == 0) {
 		ReadVideoFrame();
 	}
 }
@@ -89,6 +89,9 @@ void ComponentVideo::OnEditorUpdate() {
 
 		ImGui::TextWrapped("Size: %d x %d", width, height);
 	}*/
+
+
+	ImGui::Checkbox("Flip Vertically", &verticalFlip);
 }
 
 void ComponentVideo::Save(JsonValue jComponent) const {
@@ -257,10 +260,18 @@ void ComponentVideo::ReadVideoFrame() {
 	// -------------------------------------------
 
 	// Transform pixel format to RGB
-	// TODO: rotate the image
+	if (!verticalFlip) {	// We flip the image by default. To have an inverted image, don't do the flipping 
+		avFrame->data[0] += avFrame->linesize[0] * (codecCtx->height - 1);
+		avFrame->linesize[0] *= -1;
+		avFrame->data[1] += avFrame->linesize[1] * (codecCtx->height / 2 - 1);
+		avFrame->linesize[1] *= -1;
+		avFrame->data[2] += avFrame->linesize[2] * (codecCtx->height / 2 - 1);
+		avFrame->linesize[2] *= -1;
+	}
 	uint8_t* dest[4] = {frameData, NULL, NULL, NULL};
 	int linSize[4] = {frameWidth * 4, 0, 0, 0};
 	sws_scale(scalerCtx, avFrame->data, avFrame->linesize, 0, frameHeight, dest, linSize);
+
 
 }
 

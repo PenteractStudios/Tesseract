@@ -37,6 +37,9 @@ private:
 	unsigned int frameTexture = 0;			  // GL texture frame ID
 	float elapsedVideoTime = 0;
 
+	// Video Options
+	bool verticalFlip = false;
+
 	// Video frame data
 	int frameWidth = 0;
 	int frameHeight = 0;
