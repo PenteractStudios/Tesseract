@@ -16,8 +16,14 @@
 LightFrustum::LightFrustum() {
 	for (unsigned i = 0; i < NUM_CASCADE_FRUSTUM; i++) {
 		subFrustums[i].orthographicFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
-		subFrustums[i].color = float3(Random(), Random(), Random());
+		subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
 	}
+
+	subFrustums[0].color = float3(1, 0, 0);
+	subFrustums[1].color = float3(0, 1, 0);
+	subFrustums[2].color = float3(0, 0, 1);
+	subFrustums[3].color = float3(1, 0, 1);
+
 }
 
 void LightFrustum::UpdateFrustums() {
@@ -31,13 +37,13 @@ void LightFrustum::UpdateFrustums() {
 
 	if (mode == CascadeMode::FitToScene) {
 		
-		for (unsigned int i = 0; i < NUM_CASCADE_FRUSTUM; i++, farDistance *= 3.f) {
+		for (unsigned int i = 0; i < NUM_CASCADE_FRUSTUM; i++, farDistance *= 2.f) {
 			subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
 			subFrustums[i].perspectiveFrustum.SetHorizontalFovAndAspectRatio(gameFrustum->HorizontalFov(), gameFrustum->AspectRatio());
 			subFrustums[i].perspectiveFrustum.SetPos(gameFrustum->Pos());
 			subFrustums[i].perspectiveFrustum.SetUp(gameFrustum->Up());
 			subFrustums[i].perspectiveFrustum.SetFront(gameFrustum->Front());
-			subFrustums[i].perspectiveFrustum.SetViewPlaneDistances(0, farDistance);
+			subFrustums[i].perspectiveFrustum.SetViewPlaneDistances(0.001f, farDistance);
 			subFrustums[i].planes.CalculateFrustumPlanes(subFrustums[i].perspectiveFrustum);
 		}
 
@@ -70,19 +76,16 @@ void LightFrustum::ReconstructFrustum() {
 	for (unsigned int i = 0; i < NUM_CASCADE_FRUSTUM; i++) {
 		float4x4 lightOrientation = transform->GetGlobalMatrix();
 		lightOrientation.SetTranslatePart(float3::zero);
-
+		
 		AABB lightAABB;
 		lightAABB.SetNegativeInfinity();
 
-		for (GameObject* go : App->scene->scene->GetCulledMeshes(subFrustums[0].planes)) {
-			Mask mask = go->GetMask();
-			if ((mask.bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0 && go->HasComponent<ComponentMeshRenderer>()) {
-				ComponentBoundingBox* componentBBox = go->GetComponent<ComponentBoundingBox>();
-				if (componentBBox) {
-					AABB boundingBox = componentBBox->GetWorldAABB();
-					OBB orientedBoundingBox = boundingBox.Transform(lightOrientation.Inverted());
-					lightAABB.Enclose(orientedBoundingBox.MinimalEnclosingAABB());
-				}
+		for (GameObject* go : App->scene->scene->GetCulledMeshes(subFrustums[i].planes, static_cast<int>(MaskType::CAST_SHADOWS))) {
+			ComponentBoundingBox* componentBBox = go->GetComponent<ComponentBoundingBox>();
+			if (componentBBox) {
+				AABB boundingBox = componentBBox->GetWorldAABB();
+				OBB orientedBoundingBox = boundingBox.Transform(lightOrientation.Inverted());
+				lightAABB.Enclose(orientedBoundingBox.MinimalEnclosingAABB());
 			}
 		}
 
@@ -90,19 +93,20 @@ void LightFrustum::ReconstructFrustum() {
 		float3 maxPoint = lightAABB.maxPoint;
 		float3 position = lightOrientation.RotatePart() * float3((maxPoint.x + minPoint.x) * 0.5f, ((maxPoint.y + minPoint.y) * 0.5f), minPoint.z);
 
-		subFrustums[0].orthographicFrustum.SetOrthographic((maxPoint.x - minPoint.x), (maxPoint.y - minPoint.y));
-		subFrustums[0].orthographicFrustum.SetUp(transform->GetUp());
-		subFrustums[0].orthographicFrustum.SetFront(transform->GetFront());
-		subFrustums[0].orthographicFrustum.SetPos(position);
-		subFrustums[0].orthographicFrustum.SetViewPlaneDistances(0.0f, (maxPoint.z - minPoint.z));
+		subFrustums[i].orthographicFrustum.SetOrthographic((maxPoint.x - minPoint.x), (maxPoint.y - minPoint.y));
+		subFrustums[i].orthographicFrustum.SetUp(transform->GetUp());
+		subFrustums[i].orthographicFrustum.SetFront(transform->GetFront());
+		subFrustums[i].orthographicFrustum.SetPos(position);
+		subFrustums[i].orthographicFrustum.SetViewPlaneDistances(0.0f, (maxPoint.z - minPoint.z));
 	}
 
-	dirty = true;
+	dirty = false;
 }
 
 void LightFrustum::DrawGizmos() {
 	for (unsigned i = 0; i < NUM_CASCADE_FRUSTUM; i++) {
-		dd::frustum(subFrustums[i].perspectiveFrustum.ViewProjMatrix().Inverted(), dd::colors::Green);
+		dd::frustum(subFrustums[i].orthographicFrustum.ViewProjMatrix().Inverted(), subFrustums[i].color);
+		dd::frustum(subFrustums[i].perspectiveFrustum.ViewProjMatrix().Inverted(), subFrustums[i].color);
 	}
 }
 

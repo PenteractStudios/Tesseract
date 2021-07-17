@@ -62,7 +62,7 @@ public:
 	std::vector<int> GetTriangles();  // Gets all the triangles from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
 	std::vector<float> GetNormals();
 
-	std::vector<GameObject*> GetCulledMeshes(const FrustumPlanes& planes); // Gets all the game objects inside in the given frustum
+	std::vector<GameObject*> GetCulledMeshes(const FrustumPlanes& planes, const int mask); // Gets all the game objects inside in the given frustum
 
 	void SetNavMesh(UID navMesh);
 	UID GetNavMesh();

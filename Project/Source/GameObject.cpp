@@ -328,7 +328,11 @@ void GameObject::Load(JsonValue jGameObject) {
 			if (light && light->lightType == LightType::DIRECTIONAL) {
 				scene->directionalLight = this;
 			}
-		}
+		} 
+		//else if (type == ComponentType::CAMERA) {
+		//	ComponentCamera* camera = static_cast<ComponentCamera*>(component);
+		//	if (camera && camera->main)
+		//}
 	}
 	Init();
 

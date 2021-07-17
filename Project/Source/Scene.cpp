@@ -438,16 +438,21 @@ std::vector<float> Scene::GetNormals() {
 	return result;
 }
 
-std::vector<GameObject*> Scene::GetCulledMeshes(const FrustumPlanes& planes) {
+std::vector<GameObject*> Scene::GetCulledMeshes(const FrustumPlanes& planes, const int mask) {
 	std::vector<GameObject*> meshes;
 
 	for (ComponentMeshRenderer componentMR : meshRendererComponents) {
+
 		GameObject *go = &componentMR.GetOwner();
 
-		ComponentBoundingBox *boundingBox = go->GetComponent<ComponentBoundingBox>();
-		if (boundingBox) {
-			if (planes.CheckIfInsideFrustumPlanes(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB())) {
-				meshes.push_back(go);
+		Mask& maskGo = go->GetMask();
+
+		if ((maskGo.bitMask & mask) != 0) {
+			ComponentBoundingBox* boundingBox = go->GetComponent<ComponentBoundingBox>();
+			if (boundingBox) {
+				if (planes.CheckIfInsideFrustumPlanes(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB())) {
+					meshes.push_back(go);
+				}
 			}
 		}
 

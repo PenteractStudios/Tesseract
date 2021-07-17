@@ -3,7 +3,7 @@
 #include "FrustumPlanes.h"
 
 constexpr unsigned int NUM_CASCADE_FRUSTUM = 4;
-constexpr float MINIMUM_FAR_DISTANE = 150.f;
+constexpr float MINIMUM_FAR_DISTANE = 50.f;
 
 
 enum class CascadeMode {

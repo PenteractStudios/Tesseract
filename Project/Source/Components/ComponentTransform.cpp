@@ -82,6 +82,9 @@ void ComponentTransform::InvalidateHierarchy() {
 		if (boundingBox) boundingBox->Invalidate();
 
 		for (GameObject* child : GetOwner().GetChildren()) {
+			if ((child->GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0) {
+				App->renderer->lightFrustum.Invalidate();
+			}
 			ComponentTransform* childTransform = child->GetComponent<ComponentTransform>();
 			if (childTransform != nullptr) {
 				childTransform->InvalidateHierarchy();
