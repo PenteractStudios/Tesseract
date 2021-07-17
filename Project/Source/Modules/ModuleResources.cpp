@@ -17,6 +17,7 @@
 #include "Resources/ResourceStateMachine.h"
 #include "Resources/ResourceClip.h"
 #include "Resources/ResourceAudioClip.h"
+#include "Resources/ResourceVideo.h"
 #include "Resources/ResourceNavMesh.h"
 #include "FileSystem/JsonValue.h"
 #include "FileSystem/SceneImporter.h"
@@ -522,6 +523,9 @@ Resource* ModuleResources::CreateResourceByType(ResourceType type, const char* r
 		break;
 	case ResourceType::AUDIO:
 		resource = new ResourceAudioClip(id, resourceName, assetFilePath, resourceFilePath.c_str());
+		break;
+	case ResourceType::VIDEO:
+		resource = new ResourceVideo(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::NAVMESH:
 		resource = new ResourceNavMesh(id, resourceName, assetFilePath, resourceFilePath.c_str());

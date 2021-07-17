@@ -319,7 +319,7 @@ void ComponentVideo::ReadVideoFrame() {
 					// TODO: stuff with audio
 					
 					av_packet_unref(avPacket);
-					break;
+					continue;
 					//
 				} else if (response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
 					// If frame is already read OR there are no more frames for this stream, try another packet
