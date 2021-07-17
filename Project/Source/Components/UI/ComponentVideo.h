@@ -5,6 +5,7 @@ extern "C" {
 	#include "libavutil/rational.h"
 }
 class ModuleTime;
+class ComponentAudioSource;
 class ComponentTransform2D;
 struct ProgramImageUI;
 struct AVFormatContext;
@@ -36,6 +37,7 @@ private:
 	ProgramImageUI* imageUIProgram = nullptr; // Shader program
 	unsigned int frameTexture = 0;			  // GL texture frame ID
 	float elapsedVideoTime = 0;
+	ComponentAudioSource* audioPlayer = nullptr;
 
 	// Video Options
 	bool verticalFlip = false;
@@ -47,11 +49,15 @@ private:
 
 	// LibAV internal state
 	int videoStreamIndex = -1;
+	int audioStreamIndex = -1;
 	AVFormatContext* formatCtx = nullptr;
-	AVCodecContext* codecCtx = nullptr;
-	SwsContext* scalerCtx = nullptr;
+	AVCodecContext* videoCodecCtx = nullptr;
+	AVCodecContext* audioCodecCtx = nullptr;
 	AVPacket* avPacket = nullptr;
 	AVFrame* avFrame = nullptr;
+	SwsContext* scalerCtx = nullptr;
 	AVRational timeBase = {0, 0};
 	float frameTime = 0;
+
+	// Audio Frame data
 };
