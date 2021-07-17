@@ -2,10 +2,11 @@
 
 #include "Application.h"
 #include "GameObject.h"
+#include "Modules/ModuleUserInterface.h"
 #include "Modules/ModulePrograms.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleRender.h"
-#include "Modules/ModuleUserInterface.h"
+#include "Modules/ModuleTime.h"
 #include "Components/UI/ComponentTransform2D.h"
 #include "Utils/Logging.h"
 
@@ -13,49 +14,47 @@
 #include "Utils/ImGuiUtils.h"
 #include "Math/TransformOps.h"
 
-#define JSON_TAG_VIDEOID "VideoId"
-
-#include "Resources/ResourceTexture.h"
-
 extern "C" {
 	#include "libavformat/avformat.h"
+	#include "libswscale/swscale.h"
 }
+
+#include "Utils/Leaks.h"
+
+
+#define JSON_TAG_VIDEOID "VideoId"
+
 char av_error[AV_ERROR_MAX_STRING_SIZE] = {0};
 #define av_err2str(errnum) av_make_error_string(av_error, AV_ERROR_MAX_STRING_SIZE, errnum)
 
 
 ComponentVideo::~ComponentVideo() {
+	VideoReaderClose();
+
+	// Release GL texture
 	glDeleteTextures(1, &frameTexture);
-	avformat_close_input(&formatCtx);
-	avformat_free_context(formatCtx);
-	avcodec_free_context(&codecCtx);
 }
 
 void ComponentVideo::Init() {
 	// Load shader
 	imageUIProgram = App->programs->imageUI;
 
-	// Allocate format context
-	formatCtx = avformat_alloc_context();
-	if (!formatCtx) {
-		LOG("Couldn't allocate AVFormatContext");
-		return;
-	}
-	LoadVideoFile("./2021-04-21 16-56-15.mp4");
-
+	// Set GL texture buffer
 	glGenTextures(1, &frameTexture);
 	glBindTexture(GL_TEXTURE_2D, frameTexture);
-
-	// set necessary texture parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	VideoReaderOpen("./2021-03-18 17-39-25.mp4");
 }
 
 void ComponentVideo::Update() {
-	// Change Frame
-	
+	elapsedVideoTime += App->time->GetDeltaTime();
+	if (elapsedVideoTime > frameTime) {
+		ReadVideoFrame();
+	}
 }
 
 void ComponentVideo::OnEditorUpdate() {
@@ -135,7 +134,7 @@ void ComponentVideo::Draw(ComponentTransform2D* transform) {
 	glUniform4fv(imageUIProgram->inputColorLocation, 1, float4(1.f,1.f,1.f,1.f).ptr());
 
 	// allocate memory and set texture data
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, frameWidth, frameHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, frameData);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, frameWidth, frameHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, frameData);
 
 	glUniform1i(imageUIProgram->hasDiffuseLocation, 1);
 
@@ -146,30 +145,36 @@ void ComponentVideo::Draw(ComponentTransform2D* transform) {
 	glDisable(GL_BLEND);
 }
 
-void ComponentVideo::LoadVideoFile(const char* filename) {
-	AVCodecParameters* codecParams;
-	AVCodec* avCodec;
-
+void ComponentVideo::VideoReaderOpen(const char* filename) {
 	// Open video file
+	formatCtx = avformat_alloc_context();
+	if (!formatCtx) {
+		LOG("Couldn't allocate AVFormatContext");
+		return;
+	}
 	if (avformat_open_input(&formatCtx, filename, NULL, NULL) != 0) {
 		LOG("Couldn't open video file");
 		return;
 	}
 	
-	// Find the first valid video stream in the file
-	for (int i = 0; i < formatCtx->nb_streams; ++i) {
-		auto stream = formatCtx->streams[i];
+	// Find a valid video stream in the file
+	AVCodecParameters* codecParams;
+	AVCodec* avCodec;
+	videoStreamIndex = -1;
+	for (unsigned int i = 0u; i < formatCtx->nb_streams; ++i) {
 		codecParams = formatCtx->streams[i]->codecpar;
 		avCodec = avcodec_find_decoder(codecParams->codec_id);
 		if (!avCodec) continue;
 
 		if (codecParams->codec_type == AVMEDIA_TYPE_VIDEO) {
 			videoStreamIndex = i;
+			frameWidth = codecParams->width;
+			frameHeight = codecParams->height;
+			timeBase = formatCtx->streams[i]->time_base;
 			break;
 		}
 		// TODO: decode audio the same way AVMEDIA_TYPE_AUDIO
 	}
-
 	if (videoStreamIndex == -1) {
 		LOG("Couldn't find valid video stream inside file");
 		return;
@@ -181,36 +186,39 @@ void ComponentVideo::LoadVideoFile(const char* filename) {
 		LOG("Couldn't allocate AVCodecContext");
 		return;
 	}
-
 	if (avcodec_parameters_to_context(codecCtx, codecParams) < 0) {
 		LOG("Couldn't initialise AVCodecContext");
 		return;
 	}
-
 	if (avcodec_open2(codecCtx, avCodec, NULL) < 0) {
 		LOG("Couldn't open video codec");
 		return;
 	}
-
-	ReadVideoFrame();
-}
-
-void ComponentVideo::ReadVideoFrame() {
-	// Read Frame
-	AVPacket* avPacket = av_packet_alloc();
-	AVFrame* avFrame = av_frame_alloc();
+	
+	// Allocate memory for packets and frames
+	avPacket = av_packet_alloc();
 	if (!avPacket) {
 		LOG("Couldn't allocate AVPacket");
 		return;
 	}
+	avFrame = av_frame_alloc();
 	if (!avFrame) {
 		LOG("Couldn't allocate AVFrame");
 		return;
 	}
 
+	// Allocate frame buffer
+	frameData = new uint8_t[frameWidth * frameHeight * 4];
+}
+
+void ComponentVideo::ReadVideoFrame() {
+	
 	int response;
 	while (av_read_frame(formatCtx, avPacket) >= 0) {
-		if (avPacket->stream_index != videoStreamIndex) continue;
+		if (avPacket->stream_index != videoStreamIndex) {
+			av_packet_unref(avPacket);
+			continue;
+		}
 
 		response = avcodec_send_packet(codecCtx, avPacket);
 		if (response < 0) {
@@ -219,7 +227,8 @@ void ComponentVideo::ReadVideoFrame() {
 		}
 
 		response = avcodec_receive_frame(codecCtx, avFrame);
-		if (response == AVERROR(EAGAIN) || response == AVERROR(EOF)) {
+		if (response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
+			av_packet_unref(avPacket);
 			continue;
 		}
 		if (response < 0) {
@@ -228,21 +237,43 @@ void ComponentVideo::ReadVideoFrame() {
 		}
 
 		av_packet_unref(avPacket);
+		break;
 	}
 
-	unsigned char* data = new unsigned char[avFrame->width * avFrame->height * 3];
-	for (int x = 0; x < avFrame->width; ++x) {
-		for (int y = 0; y < avFrame->height; ++y) {
-			data[y * avFrame->width * 3 + x * 3] = avFrame->data[0][y * avFrame->linesize[0] + x];	   // R
-			data[y * avFrame->width * 3 + x * 3 + 1] = avFrame->data[0][y * avFrame->linesize[0] + x]; // G
-			data[y * avFrame->width * 3 + x * 3 + 2] = avFrame->data[0][y * avFrame->linesize[0] + x]; // B
+	frameTime = avFrame->pts * timeBase.num / (float)timeBase.den;
+	// ------------------------------- TODO: can we read frames directly in RGB?
+
+	if (!scalerCtx) {
+		// Set SwScaler - Scale frame size + Pixel converter to RGB
+		// TODO: Set destination size
+		scalerCtx = sws_getContext(frameWidth, frameHeight, codecCtx->pix_fmt, /**/ avFrame->width, /**/ avFrame->height, AV_PIX_FMT_RGB0, SWS_FAST_BILINEAR, NULL, NULL, NULL);
+
+		if (!scalerCtx) {
+			LOG("Couldn't initialise SwScaler.");
+			return;
 		}
 	}
 
-	frameWidth = avFrame->width;
-	frameHeight = avFrame->height;
-	frameData = data;
+	// -------------------------------------------
 
+	// Transform pixel format to RGB
+	// TODO: rotate the image
+	uint8_t* dest[4] = {frameData, NULL, NULL, NULL};
+	int linSize[4] = {frameWidth * 4, 0, 0, 0};
+	sws_scale(scalerCtx, avFrame->data, avFrame->linesize, 0, frameHeight, dest, linSize);
+
+}
+
+void ComponentVideo::VideoReaderClose() {
+	// Close libAV context -  free allocated memory
+	sws_freeContext(scalerCtx);
+	scalerCtx = nullptr;
+	avformat_close_input(&formatCtx);
+	avformat_free_context(formatCtx);
+	avcodec_free_context(&codecCtx);
 	av_frame_free(&avFrame);
 	av_packet_free(&avPacket);
+
+	// Release frame data buffer
+	RELEASE(frameData);
 }
