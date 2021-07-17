@@ -34,6 +34,14 @@ bool ModulePhysics::Init() {
 }
 
 UpdateStatus ModulePhysics::PreUpdate() {
+	for (btRigidBody* rigidBody : rigidBodiesToRemove) {
+		world->removeCollisionObject(rigidBody);
+		btCollisionShape* shape = rigidBody->getCollisionShape();
+		RELEASE(shape);
+		delete rigidBody;
+	}
+	rigidBodiesToRemove.clear();
+
 	if (App->time->HasGameStarted()) {
 		world->stepSimulation(App->time->GetDeltaTime(), 15);
 
@@ -56,45 +64,42 @@ UpdateStatus ModulePhysics::PreUpdate() {
 					float3 collisionNormal = float3(contactManifold->getContactPoint(0).m_normalWorldOnB);
 
 					if (bodyA->tid == typeid(Component)) {
-						Component* pbodyA = (Component*)bodyA->collider;
+						Component* pbodyA = (Component*) bodyA->collider;
 						switch (pbodyA->GetType()) {
 						case ComponentType::SPHERE_COLLIDER: {
-							ComponentSphereCollider* sphereCol = (ComponentSphereCollider*)pbodyA;
+							ComponentSphereCollider* sphereCol = (ComponentSphereCollider*) pbodyA;
 
 							// Different casts whether it is a Component collider or a particle
 							if (bodyB->tid == typeid(Component)) {
-								Component* pbodyB = (Component*)bodyB->collider;
+								Component* pbodyB = (Component*) bodyB->collider;
 								sphereCol->OnCollision(pbodyB->GetOwner(), collisionNormal, diff);
-							}
-							else {
-								ComponentParticleSystem::Particle* pbodyB = (ComponentParticleSystem::Particle*)bodyB->collider;
+							} else {
+								ComponentParticleSystem::Particle* pbodyB = (ComponentParticleSystem::Particle*) bodyB->collider;
 								sphereCol->OnCollision(pbodyB->emitter->GetOwner(), collisionNormal, diff, pbodyB);
 							}
 							break;
 						}
 						case ComponentType::BOX_COLLIDER: {
-							ComponentBoxCollider* boxCol = (ComponentBoxCollider*)pbodyA;
+							ComponentBoxCollider* boxCol = (ComponentBoxCollider*) pbodyA;
 
 							if (bodyB->tid == typeid(Component)) {
-								Component* pbodyB = (Component*)bodyB->collider;
+								Component* pbodyB = (Component*) bodyB->collider;
 								boxCol->OnCollision(pbodyB->GetOwner(), collisionNormal, diff);
-							}
-							else {
-								ComponentParticleSystem::Particle* pbodyB = (ComponentParticleSystem::Particle*)bodyB->collider;
+							} else {
+								ComponentParticleSystem::Particle* pbodyB = (ComponentParticleSystem::Particle*) bodyB->collider;
 								boxCol->OnCollision(pbodyB->emitter->GetOwner(), collisionNormal, diff, pbodyB);
 							}
 
 							break;
 						}
 						case ComponentType::CAPSULE_COLLIDER: {
-							ComponentCapsuleCollider* capsuleCol = (ComponentCapsuleCollider*)pbodyA;
+							ComponentCapsuleCollider* capsuleCol = (ComponentCapsuleCollider*) pbodyA;
 
 							if (bodyB->tid == typeid(Component)) {
-								Component* pbodyB = (Component*)bodyB->collider;
+								Component* pbodyB = (Component*) bodyB->collider;
 								capsuleCol->OnCollision(pbodyB->GetOwner(), collisionNormal, diff);
-							}
-							else {
-								ComponentParticleSystem::Particle* pbodyB = (ComponentParticleSystem::Particle*)bodyB->collider;
+							} else {
+								ComponentParticleSystem::Particle* pbodyB = (ComponentParticleSystem::Particle*) bodyB->collider;
 								capsuleCol->OnCollision(pbodyB->emitter->GetOwner(), collisionNormal, diff, pbodyB);
 							}
 							break;
@@ -105,43 +110,40 @@ UpdateStatus ModulePhysics::PreUpdate() {
 					}
 
 					if (bodyB->tid == typeid(Component)) {
-						Component* pbodyB = (Component*)bodyB->collider;
+						Component* pbodyB = (Component*) bodyB->collider;
 						switch (pbodyB->GetType()) {
 						case ComponentType::SPHERE_COLLIDER: {
-							ComponentSphereCollider* sphereCol = (ComponentSphereCollider*)pbodyB;
+							ComponentSphereCollider* sphereCol = (ComponentSphereCollider*) pbodyB;
 
 							if (bodyA->tid == typeid(Component)) {
-								Component* pbodyA = (Component*)bodyA->collider;
+								Component* pbodyA = (Component*) bodyA->collider;
 								sphereCol->OnCollision(pbodyA->GetOwner(), -collisionNormal, -diff);
-							}
-							else {
-								ComponentParticleSystem::Particle* pbodyA = (ComponentParticleSystem::Particle*)bodyA->collider;
+							} else {
+								ComponentParticleSystem::Particle* pbodyA = (ComponentParticleSystem::Particle*) bodyA->collider;
 								sphereCol->OnCollision(pbodyA->emitter->GetOwner(), -collisionNormal, -diff, pbodyA);
 							}
 							break;
 						}
 						case ComponentType::BOX_COLLIDER: {
-							ComponentBoxCollider* boxCol = (ComponentBoxCollider*)pbodyB;
+							ComponentBoxCollider* boxCol = (ComponentBoxCollider*) pbodyB;
 
 							if (bodyA->tid == typeid(Component)) {
-								Component* pbodyA = (Component*)bodyA->collider;
+								Component* pbodyA = (Component*) bodyA->collider;
 								boxCol->OnCollision(pbodyA->GetOwner(), -collisionNormal, -diff);
-							}
-							else {
-								ComponentParticleSystem::Particle* pbodyA = (ComponentParticleSystem::Particle*)bodyA->collider;
+							} else {
+								ComponentParticleSystem::Particle* pbodyA = (ComponentParticleSystem::Particle*) bodyA->collider;
 								boxCol->OnCollision(pbodyA->emitter->GetOwner(), -collisionNormal, -diff, pbodyA);
 							}
 							break;
 						}
 						case ComponentType::CAPSULE_COLLIDER: {
-							ComponentCapsuleCollider* capsuleCol = (ComponentCapsuleCollider*)pbodyB;
+							ComponentCapsuleCollider* capsuleCol = (ComponentCapsuleCollider*) pbodyB;
 
 							if (bodyA->tid == typeid(Component)) {
-								Component* pbodyA = (Component*)bodyA->collider;
+								Component* pbodyA = (Component*) bodyA->collider;
 								capsuleCol->OnCollision(pbodyA->GetOwner(), -collisionNormal, -diff);
-							}
-							else {
-								ComponentParticleSystem::Particle* pbodyA = (ComponentParticleSystem::Particle*)bodyA->collider;
+							} else {
+								ComponentParticleSystem::Particle* pbodyA = (ComponentParticleSystem::Particle*) bodyA->collider;
 								capsuleCol->OnCollision(pbodyA->emitter->GetOwner(), -collisionNormal, -diff, pbodyA);
 							}
 							break;
@@ -158,15 +160,7 @@ UpdateStatus ModulePhysics::PreUpdate() {
 }
 
 UpdateStatus ModulePhysics::Update() {
-	for (btRigidBody* rigidBody : rigidBodiesToRemove) {
-		world->removeCollisionObject(rigidBody);
-		btCollisionShape* shape = rigidBody->getCollisionShape();
-		RELEASE(shape);
-		delete rigidBody;
-	}
-	rigidBodiesToRemove.clear();
-
-    // BULLET DEBUG: Uncomment to activate it
+	// BULLET DEBUG: Uncomment to activate it
 	/*if (debug == true) {
 		world->debugDrawWorld();
 	}*/
@@ -322,13 +316,13 @@ void ModulePhysics::AddBodyToWorld(btRigidBody* rigidbody, ColliderType collider
 		collisionMask = WorldLayers::PLAYER | WorldLayers::EVERYTHING;
 		break;
 	case ENEMY:
-		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::BULLET | WorldLayers::EVERYTHING;
+		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::BULLET | WorldLayers::SKILLS | WorldLayers::EVERYTHING;
 		break;
 	case BULLET:
 		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::ENEMY | WorldLayers::EVERYTHING;
 		break;
 	case BULLET_ENEMY:
-		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::EVERYTHING;
+		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::SKILLS | WorldLayers::EVERYTHING;
 		break;
 	case WORLD_ELEMENTS:
 		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::ENEMY | WorldLayers::BULLET | WorldLayers::BULLET_ENEMY | WorldLayers::EVERYTHING;
@@ -336,8 +330,11 @@ void ModulePhysics::AddBodyToWorld(btRigidBody* rigidbody, ColliderType collider
 	case PLAYER:
 		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::BULLET_ENEMY | WorldLayers::EVERYTHING;
 		break;
+	case SKILLS:
+		collisionMask = WorldLayers::BULLET_ENEMY | WorldLayers::ENEMY | WorldLayers::EVERYTHING;
+		break;
 	case EVERYTHING:
-		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::ENEMY | WorldLayers::BULLET | WorldLayers::BULLET_ENEMY | WorldLayers::EVERYTHING;
+		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::ENEMY | WorldLayers::BULLET | WorldLayers::BULLET_ENEMY | WorldLayers::SKILLS | WorldLayers::EVERYTHING;
 		break;
 	default: //NO_COLLISION
 		collisionMask = 0;

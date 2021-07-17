@@ -42,6 +42,10 @@ public:
 	void DeleteQuads();
 	void EditTextureCoords();
 
+	TESSERACT_ENGINE_API void Play();
+	TESSERACT_ENGINE_API void Stop();
+	TESSERACT_ENGINE_API void SetWidth(float w);
+
 private:
 	unsigned int quadVBO;
 	UID textureID = 0; // ID of the image
@@ -69,6 +73,7 @@ private:
 	float textureCords[600] = {0.0f};
 	float quadLife = 10.0f;
 
+	bool isRendering = true;
 	// Color Settings
 	ImGradient* gradient = nullptr;
 	ImGradientMark* draggingGradient = nullptr;

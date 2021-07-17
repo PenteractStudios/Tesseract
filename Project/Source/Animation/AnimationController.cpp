@@ -7,10 +7,12 @@
 #include "Resources/ResourceAnimation.h"
 #include "AnimationInterpolation.h"
 #include "Resources/ResourceClip.h"
+#include "Components/ComponentAnimation.h"
 
 #include "Math/float3.h"
 
 #include "Utils/Leaks.h"
+
 
 int AnimationController::GetCurrentSample(const ResourceClip& clip, float& currentTime) {
 	float currentSample = (currentTime * (clip.keyFramesSize)) / clip.duration;
@@ -20,19 +22,28 @@ int AnimationController::GetCurrentSample(const ResourceClip& clip, float& curre
 	return intPart;
 }
 
-bool AnimationController::GetTransform(const ResourceClip& clip, float& currentTime, const char* name, float3& pos, Quat& quat) {
-	assert(clip.animationUID != 0);
+bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, const char* name, float3& pos, Quat& quat, bool firstBone,ComponentAnimation &componentAnimation) {
+	if (clip.animationUID == 0) {
+		return false;
+	}
 
 	ResourceAnimation* resourceAnimation = clip.GetResourceAnimation();
-	if (resourceAnimation == nullptr) return false;
+	if (resourceAnimation == nullptr && resourceAnimation->keyFrames.size() != 0) return false;
 
-	if (clip.loop) {
+	//Resetting the events since it has been a loop only for one bone
+	if (firstBone && currentTime >= clip.duration) {
+		for (auto& element : componentAnimation.listClipsKeyEvents[clip.GetId()]) {
+			element.second.sent = false;
+		}
+	}
+
+	if (clip.loop) {		
 		while (currentTime >= clip.duration) {
 			currentTime -= clip.duration;
 		}
 	} else {
 		currentTime = currentTime >= clip.duration ? clip.duration : currentTime;
-	}
+	}	
 
 	float currentSample = (currentTime * (clip.keyFramesSize)) / clip.duration;
 	currentSample += clip.beginIndex;
@@ -54,23 +65,26 @@ bool AnimationController::GetTransform(const ResourceClip& clip, float& currentT
 	return true;
 }
 
-bool AnimationController::InterpolateTransitions(const std::list<AnimationInterpolation>::iterator& it, const std::list<AnimationInterpolation>& animationInterpolations, const GameObject& rootBone, const GameObject& gameObject, float3& pos, Quat& quat) {
+bool AnimationController::InterpolateTransitions(const std::list<AnimationInterpolation>::iterator& it, const std::list<AnimationInterpolation>& animationInterpolations, const GameObject& rootBone, const GameObject& gameObject, float3& pos, Quat& quat, ComponentAnimation &componentAnimation) {
 	ResourceClip* clip = App->resources->GetResource<ResourceClip>((*it).state->clipUid);
 	if (!clip) {
 		return false;
 	}
-	bool result = GetTransform(*clip, (*it).currentTime, gameObject.name.c_str(), pos, quat);
-
-	if (&(*it) != &(*std::prev(animationInterpolations.end()))) {
+	bool result = GetTransform(*clip, (*it).currentTime, gameObject.name.c_str(), pos, quat, &rootBone == &gameObject, componentAnimation);
+	bool resultInner = true; 
+	if (&(*it) != &(*std::prev(animationInterpolations.end())) && result) {
 		float3 position;
 		Quat rotation;
-		AnimationController::InterpolateTransitions(std::next(it), animationInterpolations, rootBone, gameObject, position, rotation);
-		float weight = (*it).fadeTime / (*it).transitionTime;
-		pos = float3::Lerp(position, pos, weight);
-		quat = AnimationController::Interpolate(rotation, quat, weight);
-	}
+		resultInner = AnimationController::InterpolateTransitions(std::next(it), animationInterpolations, rootBone, gameObject, position, rotation, componentAnimation);
+		if (resultInner) {
+			float weight = (*it).fadeTime / (*it).transitionTime;
+			pos = float3::Lerp(position,pos, weight);
+			quat = AnimationController::Interpolate(rotation, quat, weight);
+		}
 
-	return result;
+	} 
+
+	return result && resultInner;
 }
 
 struct CheckFinishInterpolation {
@@ -81,9 +95,18 @@ struct CheckFinishInterpolation {
 
 bool AnimationController::UpdateTransitions(std::list<AnimationInterpolation>& animationInterpolations, std::unordered_map<UID, float>& currentTimeStates, const float time) {
 	bool finished = false;
-	for (auto& interpolation = animationInterpolations.rbegin(); interpolation != animationInterpolations.rend(); ++interpolation) {
-		(*interpolation).currentTime += time;
-		(*interpolation).fadeTime += time;
+	for (auto& interpolation = animationInterpolations.begin(); interpolation != animationInterpolations.end(); ++interpolation) {
+		ResourceClip* clip = App->resources->GetResource<ResourceClip>((*interpolation).state->clipUid);
+		if (!clip) {
+			return false;
+		}
+		(*interpolation).currentTime += time * clip->speed;
+
+		bool isLastOne = interpolation == std::prev(animationInterpolations.end());//ignore given it is the last one
+		
+		if (!isLastOne) {
+			(*interpolation).fadeTime += time;
+		}
 
 		if (finished) {
 			(*interpolation).fadeTime = (*interpolation).transitionTime;

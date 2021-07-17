@@ -22,8 +22,8 @@ void ComponentBoxCollider::Init() {
 	if (!centerOffset.IsFinite()) {
 		ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();
 		if (boundingBox) {
-			size = boundingBox->GetWorldOBB().Size();
-			centerOffset = boundingBox->GetWorldOBB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+			size = boundingBox->GetLocalAABB().Size();
+			centerOffset = boundingBox->GetLocalAABB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		} else {
 			centerOffset = float3::zero;
 		}
@@ -72,7 +72,7 @@ void ComponentBoxCollider::OnEditorUpdate() {
 	ImGui::Checkbox("Draw Shape", &drawGizmo);
 
 	// World Layers combo box
-	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Enemy", "Bullet", "Bullet Enemy", "Everything"};
+	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Enemy", "Bullet", "Bullet Enemy", "Skills", "Everything"};
 	const char* layerCurrent = layerTypeItems[layerIndex];
 	if (ImGui::BeginCombo("Layer", layerCurrent)) {
 		for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {

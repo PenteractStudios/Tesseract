@@ -416,7 +416,7 @@ static void parsb__list_free(parsb__list* list) {
 #ifndef PARSB_NO_STDIO
 
 void parsb_add_blocks_from_file(parsb_context* context, const char* filename) {
-	FILE* f = fopen(filename, "r");
+	FILE* f = fopen(filename, "rb");
 	if (!f) {
 		fprintf(stderr, "Unable to open %s\n", filename);
 		return;

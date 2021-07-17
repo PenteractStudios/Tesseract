@@ -40,10 +40,42 @@
 
 #include "Utils/Leaks.h"
 #include <string>
+#include <math.h>
+#include <vector>
 
-#define GAUSS_KERNEL_SIZE 3
+static std::vector<float> ssaoGaussKernel;
 
-static float gaussKernel[GAUSS_KERNEL_SIZE] = {0.38774f, 0.24477f, 0.06136f};
+static std::vector<float> smallGaussKernel;
+static std::vector<float> mediumGaussKernel;
+static std::vector<float> largeGaussKernel;
+
+float defIntGaussian(const float x, const float mu, const float sigma) {
+	return 0.5 * erf((x - mu) / (sqrt(2) * sigma));
+}
+
+void gaussianKernel(const int kernelSize, const float sigma, const float mu, const float step, std::vector<float>& coeff) {
+	const float end = 0.5*kernelSize;
+	const float start = -end;
+	float sum = 0;
+	float x = start;
+	float lastInt = defIntGaussian(x, mu, sigma);
+	float acc = 0;
+	while (x < end) {
+		x += step;
+		float newInt = defIntGaussian(x, mu, sigma);
+		float c = newInt - lastInt;
+		if (x >= 0) coeff.push_back(c);
+		sum += c;
+		lastInt = newInt;
+	}
+
+	//normalize
+	sum = 1 / sum;
+	for (int i = 0; i < coeff.size(); ++i) {
+		coeff[i] *= sum;
+	}
+
+}
 
 // clang-format off
 static const float cubeVertices[108] = {
@@ -62,7 +94,7 @@ static const float cubeVertices[108] = {
 	-1.0f,  1.0f, -1.0f,
 	-1.0f,  1.0f,  1.0f,
 	-1.0f, -1.0f,  1.0f,
-	
+
 	// Right (x, y, z)
 	1.0f, -1.0f, -1.0f,
 	1.0f, -1.0f,  1.0f,
@@ -70,7 +102,7 @@ static const float cubeVertices[108] = {
 	1.0f,  1.0f,  1.0f,
 	1.0f,  1.0f, -1.0f,
 	1.0f, -1.0f, -1.0f,
-	
+
 	// Back (x, y, z)
 	-1.0f, -1.0f,  1.0f,
 	-1.0f,  1.0f,  1.0f,
@@ -78,7 +110,7 @@ static const float cubeVertices[108] = {
 	1.0f,  1.0f,  1.0f,
 	1.0f, -1.0f,  1.0f,
 	-1.0f, -1.0f,  1.0f,
-	
+
 	// Top (x, y, z)
 	-1.0f,  1.0f, -1.0f,
 	1.0f,  1.0f, -1.0f,
@@ -86,7 +118,7 @@ static const float cubeVertices[108] = {
 	1.0f,  1.0f,  1.0f,
 	-1.0f,  1.0f,  1.0f,
 	-1.0f,  1.0f, -1.0f,
-	
+
 	// Bottom (x, y, z)
 	-1.0f, -1.0f, -1.0f,
 	-1.0f, -1.0f,  1.0f,
@@ -182,6 +214,7 @@ bool ModuleRender::Init() {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	glEnable(GL_MULTISAMPLE);
 	glFrontFace(GL_CCW);
 
 #if _DEBUG
@@ -193,6 +226,8 @@ bool ModuleRender::Init() {
 
 	glGenTextures(1, &renderTexture);
 	glGenTextures(1, &outputTexture);
+	glGenTextures(1, &positionsMSTexture);
+	glGenTextures(1, &normalsMSTexture);
 	glGenTextures(1, &positionsTexture);
 	glGenTextures(1, &normalsTexture);
 	for (unsigned i = 0; i < NUM_CASCADE_FRUSTUM; i++) {
@@ -200,20 +235,25 @@ bool ModuleRender::Init() {
 	}
 	glGenTextures(1, &ssaoTexture);
 	glGenTextures(1, &auxBlurTexture);
+	glGenTextures(2, colorTextures);
+	glGenTextures(2, bloomBlurTextures);
 
 	glGenRenderbuffers(1, &depthBuffer);
 
 	glGenFramebuffers(1, &renderPassBuffer);
-	glGenFramebuffers(1, &depthPrepassTextureBuffer);
+	glGenFramebuffers(1, &depthPrepassBuffer);
+	glGenFramebuffers(1, &depthPrepassTextureConversionBuffer);
 	glGenFramebuffers(1, &depthMapTextureBuffer);
 	glGenFramebuffers(1, &ssaoTextureBuffer);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferH);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferV);
 	glGenFramebuffers(1, &colorCorrectionBuffer);
+	glGenFramebuffers(1, &hdrFramebuffer);
+	glGenFramebuffers(6, bloomBlurFramebuffers);
 
 	ViewportResized(App->window->GetWidth(), App->window->GetHeight());
 	UpdateFramebuffers();
-	
+
 	// Create Unit Cube VAO
 	glGenVertexArrays(1, &cubeVAO);
 	glGenBuffers(1, &cubeVBO);
@@ -224,6 +264,11 @@ bool ModuleRender::Init() {
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
 	glBindVertexArray(0);
+
+	// Create SSAO blur kernel
+	gaussSSAOKernelRadius = 2;
+	ssaoGaussKernel.clear();
+	gaussianKernel(2 * gaussSSAOKernelRadius + 1, 1.0f, 0.f, 1.f, ssaoGaussKernel);
 
 	// Calculate SSAO kernel
 	for (unsigned i = 0; i < SSAO_KERNEL_SIZE; ++i) {
@@ -293,6 +338,25 @@ void ModuleRender::ClassifyGameObjects() {
 	}
 }
 
+void ModuleRender::ConvertDepthPrepassTextures() {
+	ProgramDepthPrepassConvertTextures* convertProgram = App->programs->depthPrepassConvertTextures;
+	if (convertProgram == nullptr) return;
+
+	glUseProgram(convertProgram->program);
+
+	glUniform1i(convertProgram->samplesNumberLocation, msaaActive ? msaaSamplesNumber[static_cast<int>(msaaSampleType)] : msaaSampleSingle);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, positionsMSTexture);
+	glUniform1i(convertProgram->positionsLocation, 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, normalsMSTexture);
+	glUniform1i(convertProgram->normalsLocation, 1);
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
 void ModuleRender::ComputeSSAOTexture() {
 	ProgramSSAO* ssaoProgram = App->programs->ssao;
 	if (ssaoProgram == nullptr) return;
@@ -323,7 +387,7 @@ void ModuleRender::ComputeSSAOTexture() {
 }
 
 void ModuleRender::BlurSSAOTexture(bool horizontal) {
-	ProgramSSAOBlur* ssaoBlurProgram = App->programs->ssaoBlur;
+	ProgramBlur* ssaoBlurProgram = App->programs->blur;
 	if (ssaoBlurProgram == nullptr) return;
 
 	glUseProgram(ssaoBlurProgram->program);
@@ -331,22 +395,58 @@ void ModuleRender::BlurSSAOTexture(bool horizontal) {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, horizontal ? ssaoTexture : auxBlurTexture);
 	glUniform1i(ssaoBlurProgram->inputTextureLocation, 0);
+	glUniform1i(ssaoBlurProgram->textureLevelLocation, 0);
 
-	glUniform1fv(ssaoBlurProgram->kernelLocation, GAUSS_KERNEL_SIZE, gaussKernel);
+	glUniform1fv(ssaoBlurProgram->kernelLocation, gaussSSAOKernelRadius + 1, &ssaoGaussKernel[0]);
+	glUniform1i(ssaoBlurProgram->kernelRadiusLocation, gaussSSAOKernelRadius + 1);
 	glUniform1i(ssaoBlurProgram->horizontalLocation, horizontal ? 1 : 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
-void ModuleRender::ExecuteColorCorrection() {
+void ModuleRender::ExecuteColorCorrection(bool horizontal) {
 	ProgramColorCorrection* colorCorrectionProgram = App->programs->colorCorrection;
 	if (colorCorrectionProgram == nullptr) return;
 
 	glUseProgram(colorCorrectionProgram->program);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, renderTexture);
-	glUniform1i(colorCorrectionProgram->inputTextureLocation, 0);
+	glBindTexture(GL_TEXTURE_2D, colorTextures[0]);
+	glUniform1i(colorCorrectionProgram->textureSceneLocation, 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, bloomBlurTextures[!horizontal]);
+	glUniform1i(colorCorrectionProgram->bloomBlurLocation, 1);
+	glUniform1i(colorCorrectionProgram->hasBloomBlurLocation, bloomActive ? 1 : 0);
+
+	glUniform1f(colorCorrectionProgram->bloomIntensityLocation, bloomIntensity);
+
+	float totalWeight = std::max(bloomSmallWeight + bloomMediumWeight + bloomLargeWeight, FLT_EPSILON);
+	glUniform1f(colorCorrectionProgram->smallWeightLocation, bloomSmallWeight / totalWeight);
+	glUniform1f(colorCorrectionProgram->mediumWeightLocation, bloomMediumWeight / totalWeight);
+	glUniform1f(colorCorrectionProgram->largeWeightLocation, bloomLargeWeight / totalWeight);
+
+	glUniform1i(colorCorrectionProgram->smallMipLevelLocation, gaussSmallMipLevel);
+	glUniform1i(colorCorrectionProgram->mediumMipLevelLocation, gaussMediumMipLevel);
+	glUniform1i(colorCorrectionProgram->largeMipLevelLocation, gaussLargeMipLevel);
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
+void ModuleRender::BlurBloomTexture(bool horizontal, bool firstTime, const std::vector<float>& kernel, int kernelRadius, int textureLevel) {
+	ProgramBlur* bloomBlurProgram = App->programs->blur;
+	if (bloomBlurProgram == nullptr) return;
+
+	glUseProgram(bloomBlurProgram->program);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, firstTime ? colorTextures[1] : bloomBlurTextures[!horizontal]);
+	glUniform1i(bloomBlurProgram->inputTextureLocation, 0);
+	glUniform1i(bloomBlurProgram->textureLevelLocation, textureLevel);
+
+	glUniform1fv(bloomBlurProgram->kernelLocation, kernelRadius + 1, &kernel[0]);
+	glUniform1i(bloomBlurProgram->kernelRadiusLocation, kernelRadius + 1);
+	glUniform1i(bloomBlurProgram->horizontalLocation, horizontal ? 1 : 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
@@ -364,6 +464,21 @@ void ModuleRender::DrawTexture(unsigned texture) {
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
+void ModuleRender::DrawScene() {
+	ProgramPostprocess* drawScene = App->programs->postprocess;
+	if (drawScene == nullptr) return;
+
+	glUseProgram(drawScene->program);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, renderTexture);
+	glUniform1i(drawScene->textureSceneLocation, 0);
+	glUniform1f(drawScene->bloomThresholdLocation, bloomThreshold);
+	glUniform1i(drawScene->samplesNumberLocation, msaaActive ? msaaSamplesNumber[static_cast<int>(msaaSampleType)] : msaaSampleSingle);
+	glUniform1i(drawScene->bloomActiveLocation, bloomActive);
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
 bool ModuleRender::Start() {
 	App->events->AddObserverToEvent(TesseractEventType::SCREEN_RESIZED, this);
 	return true;
@@ -374,13 +489,10 @@ UpdateStatus ModuleRender::PreUpdate() {
 
 	lightFrustum.ReconstructFrustum();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
-#if !GAME
-	glViewport(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
-#else
+#if GAME
 	App->camera->ViewportResized(App->window->GetWidth(), App->window->GetHeight());
-	glViewport(0, 0, App->window->GetWidth(), App->window->GetHeight());
 #endif
+	glViewport(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
 
 	return UpdateStatus::CONTINUE;
 }
@@ -409,7 +521,7 @@ UpdateStatus ModuleRender::Update() {
 	}
 
 	// Depth Prepass
-	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassBuffer);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
@@ -419,6 +531,14 @@ UpdateStatus ModuleRender::Update() {
 	for (GameObject* gameObject : opaqueGameObjects) {
 		DrawGameObjectDepthPrepass(gameObject);
 	}
+
+	// Depth Prepass texture conversion
+	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureConversionBuffer);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glDisable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	ConvertDepthPrepassTextures();
 
 	// SSAO pass
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoTextureBuffer);
@@ -463,10 +583,20 @@ UpdateStatus ModuleRender::Update() {
 	// Debug textures
 	if (drawSSAOTexture) {
 		DrawTexture(ssaoTexture);
+
+		// Render to screen
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, renderPassBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, colorCorrectionBuffer);
+		glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		return UpdateStatus::CONTINUE;
 	}
 	if (drawDepthMapTexture) {
-		DrawTexture(depthMapTextures[0]);
+		DrawTexture(depthMapTexture);
+
+		// Render to screen
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, renderPassBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, colorCorrectionBuffer);
+		glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		return UpdateStatus::CONTINUE;
 	}
 
@@ -500,6 +630,7 @@ UpdateStatus ModuleRender::Update() {
 	for (ComponentTrail& trail : scene->trailComponents) {
 		if (trail.IsActive()) trail.Draw();
 	}
+
 
 	// Draw Gizmos
 	glEnable(GL_DEPTH_TEST);
@@ -563,8 +694,55 @@ UpdateStatus ModuleRender::Update() {
 		}
 	}
 
-	//Render UI
+	// Render UI
 	RenderUI();
+
+	// Apply MSAA and bloom threshold
+	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);
+	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
+	glDisable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT);
+	DrawScene();
+
+	// Bloom blur
+	bool horizontal = true, firstIteration = true;
+	if (bloomActive) {
+		glBindTexture(GL_TEXTURE_2D, colorTextures[1]);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		for (unsigned int i = 0; i < 2 * bloomQuality; i++) {
+			int width = static_cast<int>(viewportSize.x);
+			int height = static_cast<int>(viewportSize.y);
+			glViewport(0, 0, width / (1 << gaussSmallMipLevel), height / (1 << gaussSmallMipLevel));
+
+			glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[horizontal]);
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			glDisable(GL_DEPTH_TEST);
+			glClear(GL_COLOR_BUFFER_BIT);
+			BlurBloomTexture(horizontal, firstIteration, smallGaussKernel, gaussSmallKernelRadius, gaussSmallMipLevel);
+
+			glViewport(0, 0, width / (1<< gaussMediumMipLevel), height / (1<< gaussMediumMipLevel));
+
+			glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[2 + horizontal]);
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			glDisable(GL_DEPTH_TEST);
+			glClear(GL_COLOR_BUFFER_BIT);
+			BlurBloomTexture(horizontal, firstIteration, mediumGaussKernel, gaussMediumKernelRadius, gaussMediumMipLevel);
+
+			glViewport(0, 0, width / (1 << gaussLargeMipLevel), height / (1 << gaussLargeMipLevel));
+
+			glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[4 + horizontal]);
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			glDisable(GL_DEPTH_TEST);
+			glClear(GL_COLOR_BUFFER_BIT);
+			BlurBloomTexture(horizontal, firstIteration, largeGaussKernel, gaussLargeKernelRadius, gaussLargeMipLevel);
+
+			horizontal = !horizontal;
+			if (firstIteration) firstIteration = false;
+		}
+
+		glViewport(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
+	}
 
 	// Color correction
 	glBindFramebuffer(GL_FRAMEBUFFER, colorCorrectionBuffer);
@@ -572,16 +750,12 @@ UpdateStatus ModuleRender::Update() {
 	glDisable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	ExecuteColorCorrection();
+	ExecuteColorCorrection(horizontal);
 
 	// Render to screen
 #if GAME
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, colorCorrectionBuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
-#else
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, colorCorrectionBuffer);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderPassBuffer);
 	glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 #endif
 
@@ -591,12 +765,10 @@ UpdateStatus ModuleRender::Update() {
 UpdateStatus ModuleRender::PostUpdate() {
 	BROFILER_CATEGORY("ModuleRender - PostUpdate", Profiler::Color::Green)
 
-#if !GAME
 	if (viewportUpdated) {
 		UpdateFramebuffers();
 		viewportUpdated = false;
 	}
-#endif
 
 	SDL_GL_SwapWindow(App->window->window);
 
@@ -609,6 +781,8 @@ bool ModuleRender::CleanUp() {
 
 	glDeleteTextures(1, &renderTexture);
 	glDeleteTextures(1, &outputTexture);
+	glDeleteTextures(1, &positionsMSTexture);
+	glDeleteTextures(1, &normalsMSTexture);
 	glDeleteTextures(1, &positionsTexture);
 	glDeleteTextures(1, &normalsTexture);
 	for (unsigned i = 0; i < NUM_CASCADE_FRUSTUM; i++) {
@@ -616,16 +790,21 @@ bool ModuleRender::CleanUp() {
 	}
 	glDeleteTextures(1, &ssaoTexture);
 	glDeleteTextures(1, &auxBlurTexture);
+	glDeleteTextures(2, colorTextures);
+	glDeleteTextures(2, bloomBlurTextures);
 
 	glDeleteRenderbuffers(1, &depthBuffer);
 
 	glDeleteFramebuffers(1, &renderPassBuffer);
-	glDeleteFramebuffers(1, &depthPrepassTextureBuffer);
+	glDeleteFramebuffers(1, &depthPrepassBuffer);
+	glDeleteFramebuffers(1, &depthPrepassTextureConversionBuffer);
 	glDeleteFramebuffers(1, &depthMapTextureBuffer);
 	glDeleteFramebuffers(1, &ssaoTextureBuffer);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferH);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferV);
 	glDeleteFramebuffers(1, &colorCorrectionBuffer);
+	glDeleteFramebuffers(1, &hdrFramebuffer);
+	glDeleteFramebuffers(6, bloomBlurFramebuffers);
 
 	return true;
 }
@@ -648,14 +827,30 @@ void ModuleRender::ReceiveEvent(TesseractEvent& ev) {
 }
 
 void ModuleRender::UpdateFramebuffers() {
+	unsigned msaaSamples = msaaActive ? msaaSamplesNumber[static_cast<int>(msaaSampleType)] : msaaSampleSingle;
+
 	// Depth buffer
 	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSamples, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// Depth prepass buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassBuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, positionsMSTexture);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, positionsMSTexture, 0);
+
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, normalsMSTexture);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D_MULTISAMPLE, normalsMSTexture, 0);
+
+	GLuint drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+	glDrawBuffers(2, drawBuffers);
+
+	// Depth prepass texture conversion buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureConversionBuffer);
 
 	glBindTexture(GL_TEXTURE_2D, positionsTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
@@ -673,7 +868,6 @@ void ModuleRender::UpdateFramebuffers() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalsTexture, 0);
 
-	GLuint drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
 	glDrawBuffers(2, drawBuffers);
 
 	// Shadow buffer
@@ -727,19 +921,83 @@ void ModuleRender::UpdateFramebuffers() {
 	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
-	glBindTexture(GL_TEXTURE_2D, renderTexture);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, renderTexture);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, renderTexture, 0);
+
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+	// HDR buffers
+	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);
+
+	glBindTexture(GL_TEXTURE_2D, colorTextures[0]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTextures[0], 0);
 
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glBindTexture(GL_TEXTURE_2D, colorTextures[1]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, colorTextures[1], 0);
+
+	unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, attachments);
+
+	// Bloom buffers
+	for (unsigned int i = 0; i < 2; i++) {
+		glBindTexture(GL_TEXTURE_2D, bloomBlurTextures[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+
+	for (unsigned int i = 0; i < 2; i++) {
+		glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[i]);
+		glBindTexture(GL_TEXTURE_2D, bloomBlurTextures[i]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloomBlurTextures[i], gaussSmallMipLevel);
+	}
+
+	for (unsigned int i = 0; i < 2; i++) {
+		glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[2 + i]);
+		glBindTexture(GL_TEXTURE_2D, bloomBlurTextures[i]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloomBlurTextures[i], gaussMediumMipLevel);
+	}
+
+	for (unsigned int i = 0; i < 2; i++) {
+		glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[4 + i]);
+		glBindTexture(GL_TEXTURE_2D, bloomBlurTextures[i]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloomBlurTextures[i], gaussLargeMipLevel);
+	}
+
+	// Compute Gaussian kernels
+	gaussSmallKernelRadius = roundf(viewportSize.y * 0.002f);
+	gaussMediumKernelRadius = roundf(viewportSize.y * 0.004f);
+	gaussLargeKernelRadius = roundf(viewportSize.y * 0.008f);
+	float term = Ln(1e5 / sqrt(2 * pi));
+	float sigma1 = gaussSmallKernelRadius * gaussSmallKernelRadius / 2.0f;
+	float sigma2 = gaussMediumKernelRadius * gaussMediumKernelRadius / 2.0f;
+	float sigma3 = gaussLargeKernelRadius * gaussLargeKernelRadius / 2.0f;
+	sigma1 = sqrt(sigma1 / (term - Ln(sigma1)));
+	sigma2 = sqrt(sigma2 / (term - Ln(sigma2)));
+	sigma3 = sqrt(sigma3 / (term - Ln(sigma3)));
+	smallGaussKernel.clear();
+	mediumGaussKernel.clear();
+	largeGaussKernel.clear();
+	gaussianKernel(2 * gaussSmallKernelRadius + 1, sigma1, 0.f, 1.f, smallGaussKernel);
+	gaussianKernel(2 * gaussMediumKernelRadius + 1, sigma2, 0.f, 1.f, mediumGaussKernel);
+	gaussianKernel(2 * gaussLargeKernelRadius + 1, sigma3, 0.f, 1.f, largeGaussKernel);
 
 	// Color correction buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, colorCorrectionBuffer);
-
 	glBindTexture(GL_TEXTURE_2D, outputTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

@@ -5,6 +5,7 @@
 #include "Application.h"
 #include "Modules/ModuleAudio.h"
 #include "Modules/ModuleEditor.h"
+#include "Modules/ModuleTime.h"
 #include "Resources/ResourceAudioClip.h"
 #include "Utils/Logging.h"
 #include "Utils/ImGuiUtils.h"
@@ -20,22 +21,32 @@
 #define JSON_TAG_GAIN "Gain"
 #define JSON_TAG_MUTE "Mute"
 #define JSON_TAG_LOOPING "Looping"
+#define JSON_TAG_PLAY_ON_AWAKE "PlayOnAwake"
 #define JSON_TAG_AUDIO_CLIP_ID "AudioClipId"
 #define JSON_TAG_SPATIAL_BLEND "SpatialBlend"
 #define JSON_TAG_SOURCE_TYPE "SourceType"
 #define JSON_TAG_INNER_ANGLE "InnerAngle"
 #define JSON_TAG_OUTER_ANGLE "OuterAngle"
 #define JSON_TAG_OUTER_GAIN "OuterGain"
+#define JSON_TAG_ROLLOFF_FACTOR "RolloffFactor"
+#define JSON_TAG_REFERENCE_DISTANCE "ReferenceDistance"
+#define JSON_TAG_MAX_DISTANCE "MaxDistance"
 
 ComponentAudioSource::~ComponentAudioSource() {
 	Stop();
 }
 
 void ComponentAudioSource::Init() {
+	isStarted = false;
 	UpdateAudioSource();
 }
 
 void ComponentAudioSource::Update() {
+	if (!isStarted && App->time->HasGameStarted() && playOnAwake) {
+		Play();
+		isStarted = true;
+	}
+
 	UpdateAudioSource();
 	if (sourceId != 0 && IsStopped()) {
 		Stop();
@@ -96,8 +107,8 @@ void ComponentAudioSource::OnEditorUpdate() {
 		}
 	}
 
-	if (ImGui::Checkbox("Loop", &loopSound)) {
-		alSourcef(sourceId, AL_LOOPING, loopSound);
+	if (ImGui::Checkbox("Loop", &loop)) {
+		alSourcef(sourceId, AL_LOOPING, loop);
 	}
 	if (ImGui::DragFloat("Gain", &gain, App->editor->dragSpeed3f, 0, 1)) {
 		alSourcef(sourceId, AL_GAIN, gain);
@@ -105,7 +116,9 @@ void ComponentAudioSource::OnEditorUpdate() {
 	if (ImGui::DragFloat("Pitch", &pitch, App->editor->dragSpeed3f, 0.5, 2)) {
 		alSourcef(sourceId, AL_PITCH, pitch);
 	}
+	ImGui::Checkbox("Play On Awake", &playOnAwake);
 	ImGui::Separator();
+
 	ImGui::TextColored(App->editor->titleColor, "Position Settings");
 	ImGui::Text("Spatial Blend");
 	ImGui::SameLine();
@@ -142,6 +155,7 @@ void ComponentAudioSource::OnEditorUpdate() {
 		}
 
 		if (sourceType) { // Directional
+			ImGui::Indent();
 			if (ImGui::DragFloat("Inner Angle", &innerAngle, 1.f, 0.0f, outerAngle)) {
 				alSourcef(sourceId, AL_CONE_INNER_ANGLE, innerAngle);
 			}
@@ -151,6 +165,17 @@ void ComponentAudioSource::OnEditorUpdate() {
 			if (ImGui::DragFloat("Outer Gain", &outerGain, App->editor->dragSpeed2f, 0.f, 1.f)) {
 				alSourcef(sourceId, AL_CONE_OUTER_GAIN, outerGain);
 			}
+			ImGui::Unindent();
+		}
+
+		if (ImGui::DragFloat("Roll Off Factor", &rollOffFactor, 1.f, 0.0f, inf)) {
+			alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFactor);
+		}
+		if (ImGui::DragFloat("Reference Distance", &referenceDistance, 1.f, 0.0f, inf)) {
+			alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
+		}
+		if (ImGui::DragFloat("Max Distance", &maxDistance, 1.f, 0.0f, inf)) {
+			alSourcef(sourceId, AL_MAX_DISTANCE, maxDistance);
 		}
 	}
 
@@ -174,7 +199,7 @@ void ComponentAudioSource::UpdateSourceParameters() {
 	if (audioResource == nullptr) return;
 
 	alSourcef(sourceId, AL_PITCH, pitch);
-	alSourcei(sourceId, AL_LOOPING, loopSound);
+	alSourcei(sourceId, AL_LOOPING, loop);
 	alSourcei(sourceId, AL_BUFFER, audioResource->ALbuffer);
 	audioResource->AddSource(this);
 
@@ -201,6 +226,9 @@ void ComponentAudioSource::UpdateSourceParameters() {
 	} else {
 		alSourcef(sourceId, AL_GAIN, gain);
 	}
+	alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFactor);
+	alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
+	alSourcef(sourceId, AL_MAX_DISTANCE, maxDistance);
 }
 
 void ComponentAudioSource::Play() {
@@ -246,28 +274,144 @@ void ComponentAudioSource::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_PITCH] = pitch;
 	jComponent[JSON_TAG_GAIN] = gain;
 	jComponent[JSON_TAG_MUTE] = mute;
-	jComponent[JSON_TAG_LOOPING] = loopSound;
+	jComponent[JSON_TAG_LOOPING] = loop;
+	jComponent[JSON_TAG_PLAY_ON_AWAKE] = playOnAwake;
 	jComponent[JSON_TAG_AUDIO_CLIP_ID] = audioClipId;
 	jComponent[JSON_TAG_SPATIAL_BLEND] = spatialBlend;
 	jComponent[JSON_TAG_SOURCE_TYPE] = sourceType;
 	jComponent[JSON_TAG_INNER_ANGLE] = innerAngle;
 	jComponent[JSON_TAG_OUTER_ANGLE] = outerAngle;
 	jComponent[JSON_TAG_OUTER_GAIN] = outerGain;
+	jComponent[JSON_TAG_ROLLOFF_FACTOR] = rollOffFactor;
+	jComponent[JSON_TAG_REFERENCE_DISTANCE] = referenceDistance;
+	jComponent[JSON_TAG_MAX_DISTANCE] = maxDistance;
 }
 
 void ComponentAudioSource::Load(JsonValue jComponent) {
 	pitch = jComponent[JSON_TAG_PITCH];
 	gain = jComponent[JSON_TAG_GAIN];
 	mute = jComponent[JSON_TAG_MUTE];
-	loopSound = jComponent[JSON_TAG_LOOPING];
+	loop = jComponent[JSON_TAG_LOOPING];
+	playOnAwake = jComponent[JSON_TAG_PLAY_ON_AWAKE];
 	audioClipId = jComponent[JSON_TAG_AUDIO_CLIP_ID];
 	spatialBlend = jComponent[JSON_TAG_SPATIAL_BLEND];
 	sourceType = jComponent[JSON_TAG_SOURCE_TYPE];
 	innerAngle = jComponent[JSON_TAG_INNER_ANGLE];
 	outerAngle = jComponent[JSON_TAG_OUTER_ANGLE];
 	outerGain = jComponent[JSON_TAG_OUTER_GAIN];
+	rollOffFactor = jComponent[JSON_TAG_ROLLOFF_FACTOR];
+	referenceDistance = jComponent[JSON_TAG_REFERENCE_DISTANCE];
+	maxDistance = jComponent[JSON_TAG_MAX_DISTANCE];
 
 	if (audioClipId) {
 		App->resources->IncreaseReferenceCount(audioClipId);
 	}
+}
+
+// --- GETTERS ---
+
+bool ComponentAudioSource::GetMute() const {
+	return mute;
+}
+
+bool ComponentAudioSource::GetLoop() const {
+	return loop;
+}
+
+float ComponentAudioSource::GetGain() const {
+	return gain;
+}
+
+float ComponentAudioSource::GetPitch() const {
+	return pitch;
+}
+
+bool ComponentAudioSource::GetPlayOnAwake() const {
+	return playOnAwake;
+}
+
+int ComponentAudioSource::GetSpatialBlend() const {
+	return spatialBlend;
+}
+
+int ComponentAudioSource::GetSourceType() const {
+	return sourceType;
+}
+
+float ComponentAudioSource::GetInnerAngle() const {
+	return innerAngle;
+}
+
+float ComponentAudioSource::GetOuterAngle() const {
+	return outerAngle;
+}
+
+float ComponentAudioSource::GetOuterGain() const {
+	return outerGain;
+}
+
+float ComponentAudioSource::GetRollOffFactor() const {
+	return rollOffFactor;
+}
+
+float ComponentAudioSource::GetReferenceDistance() const {
+	return referenceDistance;
+}
+
+float ComponentAudioSource::GetMaxDistance() const {
+	return maxDistance;
+}
+
+// --- SETTERS ---
+
+void ComponentAudioSource::SetMute(bool _mute) {
+	mute = _mute;
+}
+
+void ComponentAudioSource::SetLoop(bool _loop) {
+	loop = _loop;
+}
+
+void ComponentAudioSource::SetGain(float _gain) {
+	gain = _gain;
+}
+
+void ComponentAudioSource::SetPitch(float _pitch) {
+	pitch = _pitch;
+}
+
+void ComponentAudioSource::SetPlayOnAwake(bool _playOnAwake) {
+	playOnAwake = _playOnAwake;
+}
+
+void ComponentAudioSource::SetSpatialBlend(int _spatialBlend) {
+	spatialBlend = _spatialBlend;
+}
+
+void ComponentAudioSource::SetSourceType(int _sourceType) {
+	sourceType = _sourceType;
+}
+
+void ComponentAudioSource::SetInnerAngle(float _innerAngle) {
+	innerAngle = _innerAngle;
+}
+
+void ComponentAudioSource::SetOuterAngle(float _outerAngle) {
+	outerAngle = _outerAngle;
+}
+
+void ComponentAudioSource::SetOuterGain(float _outerGain) {
+	outerGain = _outerGain;
+}
+
+void ComponentAudioSource::SetRollOffFactor(float _rollOffFactor) {
+	rollOffFactor = _rollOffFactor;
+}
+
+void ComponentAudioSource::SetReferenceDistance(float _referenceDistance) {
+	referenceDistance = _referenceDistance;
+}
+
+void ComponentAudioSource::SetMaxDistance(float _maxDistance) {
+	maxDistance = _maxDistance;
 }

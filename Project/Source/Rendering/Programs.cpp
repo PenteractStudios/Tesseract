@@ -86,6 +86,7 @@ ProgramUnlit::ProgramUnlit(unsigned program_)
 
 	emissiveMapLocation = glGetUniformLocation(program, "emissiveMap");
 	hasEmissiveMapLocation = glGetUniformLocation(program, "hasEmissiveMap");
+	emissiveIntensityLocation = glGetUniformLocation(program, "emissiveIntensity");
 
 	tilingLocation = glGetUniformLocation(program, "tiling");
 	offsetLocation = glGetUniformLocation(program, "offset");
@@ -117,13 +118,15 @@ ProgramStandard::ProgramStandard(unsigned program_)
 
 	emissiveMapLocation = glGetUniformLocation(program, "emissiveMap");
 	hasEmissiveMapLocation = glGetUniformLocation(program, "hasEmissiveMap");
+	emissiveIntensityLocation = glGetUniformLocation(program, "emissiveIntensity");
 
-	ambientOcclusionMapLocation = glGetUniformLocation(program, "ambientOcclusion");
-	hasAmbientOcclusionMapLocation = glGetUniformLocation(program, "hasAmbientOcclusion");
+	ambientOcclusionMapLocation = glGetUniformLocation(program, "ambientOcclusionMap");
+	hasAmbientOcclusionMapLocation = glGetUniformLocation(program, "hasAmbientOcclusionMap");
 
 	depthMapTextureLocation = glGetUniformLocation(program, "depthMapTexture");
 
 	ssaoTextureLocation = glGetUniformLocation(program, "ssaoTexture");
+	ssaoDirectLightingStrengthLocation = glGetUniformLocation(program, "ssaoDirectLightingStrength");
 
 	tilingLocation = glGetUniformLocation(program, "tiling");
 	offsetLocation = glGetUniformLocation(program, "offset");
@@ -189,6 +192,14 @@ ProgramDepthPrepass::ProgramDepthPrepass(unsigned program_)
 	offsetLocation = glGetUniformLocation(program, "offset");
 }
 
+ProgramDepthPrepassConvertTextures::ProgramDepthPrepassConvertTextures(unsigned program_)
+	: Program(program_) {
+	samplesNumberLocation = glGetUniformLocation(program, "samplesNumber");
+
+	positionsLocation = glGetUniformLocation(program, "positions");
+	normalsLocation = glGetUniformLocation(program, "normals");
+}
+
 ProgramSSAO::ProgramSSAO(unsigned program_)
 	: Program(program_) {
 	projLocation = glGetUniformLocation(program, "proj");
@@ -204,17 +215,38 @@ ProgramSSAO::ProgramSSAO(unsigned program_)
 	powerLocation = glGetUniformLocation(program, "power");
 }
 
-ProgramSSAOBlur::ProgramSSAOBlur(unsigned program_)
+ProgramBlur::ProgramBlur(unsigned program_)
 	: Program(program_) {
 	inputTextureLocation = glGetUniformLocation(program, "inputTexture");
+	textureLevelLocation = glGetUniformLocation(program, "textureLevel");
 
 	kernelLocation = glGetUniformLocation(program, "kernel");
+	kernelRadiusLocation = glGetUniformLocation(program, "kernelRadius");
 	horizontalLocation = glGetUniformLocation(program, "horizontal");
+}
+
+ProgramPostprocess::ProgramPostprocess(unsigned program_)
+	: Program(program_) {
+	textureSceneLocation = glGetUniformLocation(program, "sceneTexture");
+	bloomThresholdLocation = glGetUniformLocation(program, "bloomThreshold");
+	samplesNumberLocation = glGetUniformLocation(program, "samplesNumber");
+	bloomActiveLocation = glGetUniformLocation(program, "bloomActive");
 }
 
 ProgramColorCorrection::ProgramColorCorrection(unsigned program_)
 	: Program(program_) {
-	inputTextureLocation = glGetUniformLocation(program, "inputTexture");
+	textureSceneLocation = glGetUniformLocation(program, "scene");
+	bloomBlurLocation = glGetUniformLocation(program, "bloomBlur");
+	hasBloomBlurLocation = glGetUniformLocation(program, "hasBloomBlur");
+	bloomIntensityLocation = glGetUniformLocation(program, "bloomIntensity");
+
+	smallWeightLocation = glGetUniformLocation(program, "smallWeight");
+	mediumWeightLocation = glGetUniformLocation(program, "mediumWeight");
+	largeWeightLocation = glGetUniformLocation(program, "largeWeight");
+
+	smallMipLevelLocation = glGetUniformLocation(program, "smallMipLevel");
+	mediumMipLevelLocation = glGetUniformLocation(program, "mediumMipLevel");
+	largeMipLevelLocation = glGetUniformLocation(program, "largeMipLevel");
 }
 
 ProgramDrawTexture::ProgramDrawTexture(unsigned program_)
@@ -258,6 +290,7 @@ ProgramBillboard::ProgramBillboard(unsigned program_)
 	xFlipLocation = glGetUniformLocation(program, "flipX");
 	yFlipLocation = glGetUniformLocation(program, "flipY");
 }
+
 ProgramTrail::ProgramTrail(unsigned program_)
 	: Program(program_) {
 	//modelLocation = glGetUniformLocation(program, "model");

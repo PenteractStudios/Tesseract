@@ -31,9 +31,6 @@ public:
 	void SetBeginIndex(unsigned int index);
 	void SetEndIndex(unsigned int index);
 
-	void SetSpeed(float mSpeed) {
-		speed = mSpeed;
-	}
 	ResourceAnimation* GetResourceAnimation() const;
 
 public:
@@ -47,7 +44,6 @@ public:
 	float frameRate = 1.0f;
 	unsigned int keyFramesSize = 0;
 
-	unsigned int currentEventKeyFrame = 0;
 	std::unordered_map<unsigned int, EventClip> keyEventClips;
 
 private:

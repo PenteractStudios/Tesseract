@@ -39,22 +39,25 @@ out vec4 outColor;
 
 void main()
 {	
-	vec2 uvs = uv0;
+	u = uv0.x;
+	v = uv0.y;
+	
 	if (flipX) 
 	{
-		uvs.x = 1 - uv0.x;
+		u = 1 - uv0.x;
 	}
 
 	if (flipY) 
 	{
-		uvs.y = 1 - uv0.y;
+		v = 1 - uv0.y;
 	}
 
-	X = trunc(mod(currentFrame,Xtiles));
-	Y = trunc(currentFrame/Ytiles);
-
-	X = mix(X,X+1, uvs.x);
-	Y = mix(Y,Y+1, uvs.y);
+	X = trunc(mod(currentFrame, Xtiles));
+	Y = trunc(currentFrame/Xtiles);
+	Y = (Ytiles - 1) - Y ;
+	X = mix(X,X+1,u);
+	Y = mix(Y,Y+1,v);
+	
 	u = X/Xtiles;
 	v = Y/Ytiles;
 	

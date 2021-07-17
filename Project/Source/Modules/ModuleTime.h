@@ -42,6 +42,7 @@ public:
 	TESSERACT_ENGINE_API void ResumeGame();
 	void StepGame();
 	UpdateStatus ExitGame();
+	void SetVSync(bool value);
 
 public:
 	int maxFps = 60;			// Maximum FPS when the framerate is limited.

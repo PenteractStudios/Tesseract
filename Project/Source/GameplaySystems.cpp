@@ -10,15 +10,14 @@
 #include "Modules/ModuleInput.h"
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleCamera.h"
-#include "Modules/ModuleRender.h"
 #include "Modules/ModuleWindow.h"
 #include "Modules/ModuleEditor.h"
-#include "Modules/ModuleRender.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleAudio.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Resources/ResourcePrefab.h"
 #include "Resources/ResourceMaterial.h"
+#include "Resources/ResourceClip.h"
 #include "FileSystem/SceneImporter.h"
 #include "Utils/Logging.h"
 #include "TesseractEvent.h"
@@ -57,6 +56,7 @@ T* GameplaySystems::GetResource(UID id) {
 
 template TESSERACT_ENGINE_API ResourcePrefab* GameplaySystems::GetResource<ResourcePrefab>(UID id);
 template TESSERACT_ENGINE_API ResourceMaterial* GameplaySystems::GetResource<ResourceMaterial>(UID id);
+template TESSERACT_ENGINE_API ResourceClip* GameplaySystems::GetResource<ResourceClip>(UID id);
 
 void GameplaySystems::SetRenderCamera(ComponentCamera* camera) {
 	App->camera->ChangeActiveCamera(camera, true);
@@ -301,6 +301,57 @@ GameObject* Physics::Raycast(const float3& start, const float3& end, const int m
 	return closestGo;
 }
 
+void Physics::CreateRigidbody(Component* collider)
+{
+	switch (collider->GetType()) {
+	case ComponentType::BOX_COLLIDER:
+		App->physics->CreateBoxRigidbody((ComponentBoxCollider*)collider);
+		break;
+	case ComponentType::SPHERE_COLLIDER:
+		App->physics->CreateSphereRigidbody((ComponentSphereCollider*)collider);
+		break;
+	case ComponentType::CAPSULE_COLLIDER:
+		App->physics->CreateCapsuleRigidbody((ComponentCapsuleCollider*)collider);
+		break;
+	default:
+		break;
+	}
+}
+
+void Physics::UpdateRigidbody(Component* collider)
+{
+	switch (collider->GetType()) {
+	case ComponentType::BOX_COLLIDER:
+		App->physics->UpdateBoxRigidbody((ComponentBoxCollider*)collider);
+		break;
+	case ComponentType::SPHERE_COLLIDER:
+		App->physics->UpdateSphereRigidbody((ComponentSphereCollider*)collider);
+		break;
+	case ComponentType::CAPSULE_COLLIDER:
+		App->physics->UpdateCapsuleRigidbody((ComponentCapsuleCollider*)collider);
+		break;
+	default:
+		break;
+	}
+}
+
+void Physics::RemoveRigidbody(Component* collider)
+{
+	switch (collider->GetType()) {
+	case ComponentType::BOX_COLLIDER:
+		App->physics->RemoveBoxRigidbody((ComponentBoxCollider*)collider);
+		break;
+	case ComponentType::SPHERE_COLLIDER:
+		App->physics->RemoveSphereRigidbody((ComponentSphereCollider*)collider);
+		break;
+	case ComponentType::CAPSULE_COLLIDER:
+		App->physics->RemoveCapsuleRigidbody((ComponentCapsuleCollider*)collider);
+		break;
+	default:
+		break;
+	}
+}
+
 float3 Colors::Red() {
 	return dd::colors::Red;
 }
@@ -373,6 +424,40 @@ float Screen::GetBrightness() {
 
 float2 Screen::GetResolution() {
 	return float2(static_cast<float>(App->window->GetWidth()), static_cast<float>(App->window->GetHeight()));
+}
+
+const bool Screen::IsVSyncActive() {
+	return App->time->vsync;
+}
+
+void Screen::SetVSync(bool value) {
+	App->time->SetVSync(value);
+}
+
+void Screen::SetMSAAActive(bool value) {
+	App->renderer->msaaActive = value;
+	App->renderer->UpdateFramebuffers();
+}
+
+void Screen::SetMSAAType(MSAA_SAMPLES_TYPE value) {
+	App->renderer->msaaSampleType = value;
+	App->renderer->UpdateFramebuffers();
+}
+
+const bool Screen::IsMSAAActive() {
+	return App->renderer->msaaActive;
+}
+
+const MSAA_SAMPLES_TYPE Screen::GetMSAAType() {
+	return App->renderer->msaaSampleType;
+}
+
+const float Screen::GetBloomThreshold() {
+	return App->renderer->bloomThreshold;
+}
+
+void Screen::SetBloomThreshold(float value) {
+	App->renderer->bloomThreshold = value;
 }
 
 // --------- Camera --------- //

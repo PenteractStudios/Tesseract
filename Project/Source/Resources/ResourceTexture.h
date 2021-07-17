@@ -38,8 +38,8 @@ public:
 	unsigned int glTexture = 0;
 
 	TextureWrap wrap = TextureWrap::REPEAT;
-	TextureMinFilter minFilter = TextureMinFilter::NEAREST;
-	TextureMagFilter magFilter = TextureMagFilter::NEAREST;
+	TextureMinFilter minFilter = TextureMinFilter::LINEAR_MIPMAP_LINEAR;
+	TextureMagFilter magFilter = TextureMagFilter::LINEAR;
 
 private:
 	void UpdateMinFilter(TextureMinFilter filter);

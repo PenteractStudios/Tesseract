@@ -30,9 +30,8 @@
 #define JSON_TAG_STATE_MACHINE_SECONDARY_ID "StateMachineSecondaryId"
 #define JSON_TAG_CLIP "Clip"
 
-
 void ComponentAnimation::Update() {
-	if(!App->time->IsGameRunning()) {
+	if (!App->time->IsGameRunning() || !IsActive()) {
 		return;
 	}
 	if (!loadedResourceStateMachine) { //Checking if there is no state machine
@@ -121,24 +120,24 @@ void ComponentAnimation::OnUpdate() {
 
 	UpdateAnimations(rootBone);
 
-	if (loadedResourceStateMachine) {
+	if (loadedResourceStateMachine && animationInterpolationsPrincipal.empty()) {
 		ResourceClip* currentClip = App->resources->GetResource<ResourceClip>(currentStatePrincipal.clipUid);
 		if (!currentClip) {
 			return;
 		}
 		currentTimeStatesPrincipal[currentStatePrincipal.id] += App->time->GetDeltaTime() * currentClip->speed;
 	}
-	if (loadedResourceStateMachineSecondary && currentStateSecondary.id != 0) {
+	if (loadedResourceStateMachineSecondary && currentStateSecondary.id != 0 && animationInterpolationsSecondary.empty()) {
 		ResourceClip* currentClip = App->resources->GetResource<ResourceClip>(currentStateSecondary.clipUid);
 		if (!currentClip) {
 			return;
 		}
-		currentTimeStatesSecondary[currentStateSecondary.id] += App->time->GetDeltaTime() * currentClip->speed;
+		currentTimeStatesSecondary[currentStateSecondary.id] += (App->time->GetDeltaTime() * currentClip->speed);
 	}
 }
 
 void ComponentAnimation::SendTrigger(const std::string& trigger) {
-	StateMachineManager::SendTrigger(trigger, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal, currentStatePrincipal, currentTimeStatesPrincipal);
+	StateMachineManager::SendTrigger(trigger, StateMachineEnum::PRINCIPAL, *this);
 }
 void ComponentAnimation::SendTriggerSecondary(const std::string& trigger) {
 	if (loadedResourceStateMachine && currentStateSecondary.id == 0) {
@@ -147,7 +146,8 @@ void ComponentAnimation::SendTriggerSecondary(const std::string& trigger) {
 		//Updating current time to the currentTimeStatesSecondary to sync the times between the current state machine of the first one and the second one
 		currentTimeStatesSecondary[currentStateSecondary.id] = currentTimeStatesPrincipal[currentStatePrincipal.id];
 	}
-	StateMachineManager::SendTrigger(trigger, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary, currentStateSecondary, currentTimeStatesPrincipal);
+
+	StateMachineManager::SendTrigger(trigger, StateMachineEnum::SECONDARY, *this);
 }
 
 void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
@@ -163,14 +163,7 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 	bool result = StateMachineManager::UpdateAnimations(
 		gameObject,
 		GetOwner(),
-		currentTimeStatesPrincipal,
-		animationInterpolationsPrincipal,
-		stateMachineResourceUIDPrincipal,
-		GetCurrentState(),
-		currentTimeStatesSecondary,
-		animationInterpolationsSecondary,
-		stateMachineResourceUIDSecondary,
-		GetCurrentStateSecondary(),
+		*this,
 		position,
 		rotation,
 		resetSecondaryStatemachine);
@@ -183,8 +176,9 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 			return;
 		}
 		std::unordered_map<UID, State>::iterator it = resourceStateMachine->states.find(0); // Get "empty" state
-		assert(it != resourceStateMachine->states.end());
-		currentStateSecondary = (*it).second;
+		if (it != resourceStateMachine->states.end()) {
+			currentStateSecondary = (*it).second;
+		}
 	}
 
 	ComponentTransform* componentTransform = gameObject->GetComponent<ComponentTransform>();
@@ -229,6 +223,13 @@ void ComponentAnimation::InitCurrentTimeStates(UID stateMachineResourceUid, Stat
 		case StateMachineEnum::SECONDARY:
 			for (const auto& element : resourceStateMachine->states) {
 				currentTimeStatesSecondary.insert({element.first, 0.0f});
+
+				//Filling the key events given that the secondary state machine has all of the states
+				ResourceClip* clip = App->resources->GetResource<ResourceClip>(element.second.clipUid);
+				if (clip) {
+					listClipsKeyEvents.insert({element.second.clipUid, clip->keyEventClips});
+					listClipsCurrentEventKeyFrames.insert({element.second.clipUid, 0});
+				}
 			}
 			break;
 		}

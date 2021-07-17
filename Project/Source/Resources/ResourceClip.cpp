@@ -60,6 +60,10 @@ void ResourceClip::Load() {
 	loop = jStateMachine[JSON_TAG_LOOP];
 	speed = jStateMachine[JSON_TAG_SPEED];
 	frameRate = jStateMachine[JSON_TAG_FRAMERATE];
+	if (frameRate <= FLT_MIN) {
+		frameRate = 1;
+		LOG("WARNING frameRate missing");
+	}
 
 	JsonValue keyEventClipsJson = jStateMachine[JSON_TAG_KEY_EVENT_CLIP];
 	for (unsigned int i = 0; i < keyEventClipsJson.Size(); ++i) {
@@ -106,7 +110,6 @@ void ResourceClip::GetInfoJson() {
 		std::string name = keyEventClipsJson[i][JSON_TAG_NAME];
 		keyEventClips.insert(std::make_pair(keyframe, EventClip {false, name}));
 	}
-	
 
 	unsigned timeMs = timer.Stop();
 	LOG("Clip info received in %ums", timeMs);
@@ -125,18 +128,24 @@ void ResourceClip::OnEditorUpdate() {
 
 	char nameClip[100];
 	sprintf_s(nameClip, 100, "%s", name.c_str());
-	if (ImGui::InputText("##clip_name", nameClip, 100)) {
+	if (ImGui::InputText("Clip Name##clip_name", nameClip, 100)) {
 		name = nameClip;
 	}
 
 	ImGui::ResourceSlot<ResourceAnimation>("Animaton", &animationUID);
 
+	int maxFrames = 0;
+	ResourceAnimation* resourceAnimation = GetResourceAnimation();
+	if (resourceAnimation != nullptr && resourceAnimation->keyFrames.size() != 0) {
+		maxFrames = resourceAnimation->keyFrames.size();
+	}
+
 	ImGui::Checkbox("Loop", &loop);
 
-	ImGui::DragScalar("Begin Index", ImGuiDataType_U32, &beginIndex);
+	ImGui::DragScalar("Begin Index", ImGuiDataType_U32, &beginIndex, 1, 0, &endIndex);
 	SetBeginIndex(beginIndex);
 
-	ImGui::DragScalar("End Index", ImGuiDataType_U32, &endIndex);
+	ImGui::DragScalar("End Index", ImGuiDataType_U32, &endIndex, 1, &beginIndex, &maxFrames);
 	SetEndIndex(endIndex);
 
 	ImGui::DragFloat("Speed", &speed, 0.001f);
@@ -157,20 +166,24 @@ void ResourceClip::OnEditorUpdate() {
 		newNameEditor = "NewName";
 	}
 
-	for (auto& element : keyEventClips) {		
+	for (auto& element : keyEventClips) {
 		ImGui::TextColored(App->editor->textColor, "KeyFrame %d", element.first);
 
 		char nameEvent[100];
 		sprintf_s(nameEvent, 100, "%s", element.second.name.c_str());
-		if (ImGui::InputText("##eventClip_name", nameEvent, 100)) {
+
+		char label[100];
+		std::string labelString = "##eventClip_name" + std::to_string(element.first);
+		sprintf_s(label, 100, "%s", labelString.c_str());
+
+		if (ImGui::InputText(label, nameEvent, 100)) {
 			element.second.name = nameEvent;
 		}
 
-		std::string buttonDelete = "Delete key frame: " + std::to_string(element.first);		
+		std::string buttonDelete = "Delete key frame: " + std::to_string(element.first);
 		if (ImGui::Button(buttonDelete.c_str())) {
 			keyToDelete = element.first;
 		}
-
 	}
 	if (keyToDelete != -1) {
 		keyEventClips.erase(keyToDelete);
@@ -192,7 +205,6 @@ bool ResourceClip::SaveToFile(const char* filePath) {
 	// Create document
 	rapidjson::Document document;
 	JsonValue jStateMachine(document, document);
-	
 
 	jStateMachine[JSON_TAG_NAME] = name.c_str();
 	jStateMachine[JSON_TAG_ANIMATION_UID] = animationUID;

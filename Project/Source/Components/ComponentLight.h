@@ -15,6 +15,7 @@ public:
 	REGISTER_COMPONENT(ComponentLight, ComponentType::LIGHT, false); // Refer to ComponentType for the Constructor
 
 	// ------- Core Functions ------ //
+	void Init() override;
 	void Update() override;
 	void DrawGizmos() override;
 	void OnEditorUpdate() override;
