@@ -30,6 +30,7 @@ public:
 
 	void VideoReaderOpen(const char* filename);
 	void ReadVideoFrame();
+	void ReadAudioFrame();
 	void VideoReaderClose();
 
 private:
@@ -57,7 +58,8 @@ private:
 	AVFrame* avFrame = nullptr;
 	SwsContext* scalerCtx = nullptr;
 	AVRational timeBase = {0, 0};
-	float frameTime = 0;
+	float videoFrameTime = 0;
+	float audioFrameTime = 0;
 
 	// Audio Frame data
 };

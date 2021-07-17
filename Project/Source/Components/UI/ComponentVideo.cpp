@@ -51,10 +51,15 @@ void ComponentVideo::Init() {
 
 void ComponentVideo::Update() {
 	elapsedVideoTime += App->time->GetDeltaTime();
-	if (elapsedVideoTime > frameTime || frameTime == 0) {
+	LOG("Elapsed Time: %f", elapsedVideoTime);
+	if (elapsedVideoTime > videoFrameTime || videoFrameTime == 0) { // TODO: this will give an offset of 1 frame between video and audio!
 		ReadVideoFrame();
-		// audioPlayer.UpdateStreamData(audioFrameData, audioPlayer.checkFramesSync());
 	}
+	
+	if (elapsedVideoTime > audioFrameTime) {
+		ReadAudioFrame();
+	}
+	// audioPlayer.UpdateStreamData(audioFrameData, audioPlayer.checkFramesSync());
 }
 
 void ComponentVideo::OnEditorUpdate() {
@@ -92,7 +97,7 @@ void ComponentVideo::OnEditorUpdate() {
 
 	ImGui::Checkbox("Flip Vertically", &verticalFlip);
 
-	audioPlayer->OnEditorUpdate();
+	//audioPlayer->OnEditorUpdate();
 }
 
 void ComponentVideo::Save(JsonValue jComponent) const {
@@ -257,92 +262,6 @@ void ComponentVideo::VideoReaderOpen(const char* filename) {
 void ComponentVideo::ReadVideoFrame() {
 	int response;
 	while (av_read_frame(formatCtx, avPacket) >= 0) {
-		if (avPacket->stream_index == videoStreamIndex) {
-
-			if (avcodec_send_packet(videoCodecCtx, avPacket) >= 0) {
-
-				response = avcodec_receive_frame(videoCodecCtx, avFrame);
-				if (response >= 0) {
-					// If frame is correct, read the frame info and break loop
-					frameTime = avFrame->pts * timeBase.num / (float) timeBase.den;
-					// ------------------------------- TODO: can we read frames directly in RGB?
-
-					if (!scalerCtx) {
-						// Set SwScaler - Scale frame size + Pixel converter to RGB
-						// TODO: Set destination size
-						scalerCtx = sws_getContext(frameWidth, frameHeight, videoCodecCtx->pix_fmt, /**/ avFrame->width, /**/ avFrame->height, AV_PIX_FMT_RGB0, SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
-
-						if (!scalerCtx) {
-							LOG("Couldn't initialise SwScaler.");
-							return;
-						}
-					}
-
-					// -------------------------------------------
-
-					// Transform pixel format to RGB
-					if (!verticalFlip) { // We flip the image by default. To have an inverted image, don't do the flipping
-						avFrame->data[0] += avFrame->linesize[0] * (videoCodecCtx->height - 1);
-						avFrame->linesize[0] *= -1;
-						avFrame->data[1] += avFrame->linesize[1] * (videoCodecCtx->height / 2 - 1);
-						avFrame->linesize[1] *= -1;
-						avFrame->data[2] += avFrame->linesize[2] * (videoCodecCtx->height / 2 - 1);
-						avFrame->linesize[2] *= -1;
-					}
-					uint8_t* dest[4] = {frameData, nullptr, nullptr, nullptr};
-					int linSize[4] = {frameWidth * 4, 0, 0, 0};
-					sws_scale(scalerCtx, avFrame->data, avFrame->linesize, 0, frameHeight, dest, linSize);
-					av_packet_unref(avPacket);
-					break;
-					//
-				} else if (response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
-					// If frame is already read OR there are no more frames for this stream, try another packet
-					av_packet_unref(avPacket);
-					continue;
-				} else {
-					// Other errors, return function
-					LOG("Failed to decode video frame: %s.", av_err2str(response));
-					return;
-				}
-
-			} else {
-				LOG("Failed to video decode packet.");
-				av_packet_unref(avPacket);
-				continue;
-			}
-
-		} else if (avPacket->stream_index == audioStreamIndex) {
-			if (avcodec_send_packet(audioCodecCtx, avPacket) >= 0) {
-				response = avcodec_receive_frame(audioCodecCtx, avFrame);
-				if (response >= 0) {
-					// If frame is correct, read the audio frame info and break loop
-					// TODO: stuff with audio
-					
-					av_packet_unref(avPacket);
-					continue;
-					//
-				} else if (response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
-					// If frame is already read OR there are no more frames for this stream, try another packet
-					av_packet_unref(avPacket);
-					continue;
-				} else {
-					// Other errors, return function
-					LOG("Failed to decode audio frame: %s.", av_err2str(response));
-					return;
-				}
-
-			} else {
-				LOG("Failed to audio decode packet.");
-				av_packet_unref(avPacket);
-				continue;
-			}
-		} else {
-			av_packet_unref(avPacket);
-			continue;
-		}
-	}
-	/*int response;
-	while (av_read_frame(formatCtx, avPacket) >= 0) {
 		if (avPacket->stream_index != videoStreamIndex) {
 			av_packet_unref(avPacket);
 			continue;
@@ -368,7 +287,7 @@ void ComponentVideo::ReadVideoFrame() {
 		break;
 	}
 	
-	frameTime = avFrame->pts * timeBase.num / (float) timeBase.den;
+	videoFrameTime = avFrame->pts * timeBase.num / (float) timeBase.den;
 	// ------------------------------- TODO: can we read frames directly in RGB?
 
 	if (!scalerCtx) {
@@ -396,8 +315,39 @@ void ComponentVideo::ReadVideoFrame() {
 	uint8_t* dest[4] = {frameData, nullptr, nullptr, nullptr};
 	int linSize[4] = {frameWidth * 4, 0, 0, 0};
 	sws_scale(scalerCtx, avFrame->data, avFrame->linesize, 0, frameHeight, dest, linSize);
-	*/
-	
+
+}
+
+void ComponentVideo::ReadAudioFrame() {
+	int response;
+	while (av_read_frame(formatCtx, avPacket) >= 0) {
+		if (avPacket->stream_index != audioStreamIndex) {
+			av_packet_unref(avPacket);
+			continue;
+		}
+
+		response = avcodec_send_packet(audioCodecCtx, avPacket);
+		if (response < 0) {
+			LOG("Failed to decode packet: %s.", av_err2str(response));
+			return;
+		}
+
+		response = avcodec_receive_frame(audioCodecCtx, avFrame);
+		if (response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
+			av_packet_unref(avPacket);
+			continue;
+		}
+		if (response < 0) {
+			LOG("Failed to decode frame: %s.", av_err2str(response));
+			return;
+		}
+
+		av_packet_unref(avPacket);
+		break;
+	}
+
+	audioFrameTime = avFrame->pts * timeBase.num / (float) timeBase.den;
+	// Do stuff with audio
 }
 
 void ComponentVideo::VideoReaderClose() {
