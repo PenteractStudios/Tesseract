@@ -295,21 +295,18 @@ void ComponentVideo::ReadVideoFrame() {
 
 	videoFrameTime = avFrame->pts * timeBase.num / (float) timeBase.den;
 	// ------------------------------- TODO: can we read frames directly in RGB?
-
 	if (!scalerCtx) {
 		// Set SwScaler - Scale frame size + Pixel converter to RGB
-		// TODO: Set destination size
-		scalerCtx = sws_getContext(frameWidth, frameHeight, videoCodecCtx->pix_fmt, avFrame->width, avFrame->height, AV_PIX_FMT_RGB0, SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
+		scalerCtx = sws_getContext(frameWidth, frameHeight, videoCodecCtx->pix_fmt, frameWidth, frameHeight, AV_PIX_FMT_RGB0, SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
 
 		if (!scalerCtx) {
 			LOG("Couldn't initialise SwScaler.");
 			return;
 		}
 	}
-
 	// -------------------------------------------
 
-	// Transform pixel format to RGB
+	// Transform pixel format to RGB and send the data to the framebuffer
 	if (!verticalFlip) { // We flip the image by default. To have an inverted image, don't do the flipping
 		avFrame->data[0] += avFrame->linesize[0] * (videoCodecCtx->height - 1);
 		avFrame->linesize[0] *= -1;
@@ -352,7 +349,7 @@ void ComponentVideo::ReadAudioFrame() {
 	}
 
 	audioFrameTime = avFrame->pts * timeBase.num / (float) timeBase.den;
-	// Do stuff with audio
+	// TODO: Do stuff with audio
 }
 
 void ComponentVideo::CloseVideoReader() {
