@@ -31,7 +31,7 @@ char av_error[AV_ERROR_MAX_STRING_SIZE] = {0};
 #define av_err2str(errnum) av_make_error_string(av_error, AV_ERROR_MAX_STRING_SIZE, errnum)
 
 ComponentVideo::~ComponentVideo() {
-	VideoReaderClose();
+	CloseVideoReader();
 
 	// Release GL texture
 	glDeleteTextures(1, &frameTexture);
@@ -49,7 +49,7 @@ void ComponentVideo::Init() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	if (videoID) VideoReaderOpen(App->resources->GetResource<ResourceVideo>(videoID)->GetAssetFilePath().c_str());
+	if (videoID) OpenVideoReader(App->resources->GetResource<ResourceVideo>(videoID)->GetAssetFilePath().c_str());
 }
 
 void ComponentVideo::Update() {
@@ -79,19 +79,25 @@ void ComponentVideo::OnEditorUpdate() {
 	ImGui::Separator();
 
 	ImGui::ResourceSlot<ResourceVideo>(
-		"video",
+		"Video Resource",
 		&videoID,
-		[this]() { VideoReaderClose(); },
-		[this]() { VideoReaderOpen(App->resources->GetResource<ResourceVideo>(videoID)->GetAssetFilePath().c_str()); });
-	if (ImGui::Button("Remove##video")) {
+		[this]() { RemoveVideoResource(); },
+		[this]() { OpenVideoReader(App->resources->GetResource<ResourceVideo>(videoID)->GetAssetFilePath().c_str()); });
+
+	std::string removeButton = std::string(ICON_FA_TIMES "##") + "video";
+	if (ImGui::Button(removeButton.c_str())) {
 		if (videoID != 0) {
-			VideoReaderClose();
+			RemoveVideoResource();
 			App->resources->DecreaseReferenceCount(videoID);
 			videoID = 0;
 		}
 	}
+	ImGui::SameLine();
+	ImGui::TextUnformatted("Remove Video");
+
 	ResourceVideo* videoResource = App->resources->GetResource<ResourceVideo>(videoID);
 	if (videoResource != nullptr) {
+		ImGui::Separator();
 		ImGui::Checkbox("Flip Vertically", &verticalFlip);
 	}
 
@@ -153,7 +159,7 @@ void ComponentVideo::Draw(ComponentTransform2D* transform) {
 	glDisable(GL_BLEND);
 }
 
-void ComponentVideo::VideoReaderOpen(const char* filename) {
+void ComponentVideo::OpenVideoReader(const char* filename) {
 	MSTimer timer;
 	timer.Start();
 
@@ -349,7 +355,7 @@ void ComponentVideo::ReadAudioFrame() {
 	// Do stuff with audio
 }
 
-void ComponentVideo::VideoReaderClose() {
+void ComponentVideo::CloseVideoReader() {
 	// Close libAV context -  free allocated memory
 	sws_freeContext(scalerCtx);
 	scalerCtx = nullptr;
@@ -362,4 +368,18 @@ void ComponentVideo::VideoReaderClose() {
 
 	// Release frame data buffer
 	RELEASE(frameData);
+}
+
+void ComponentVideo::RemoveVideoResource() {
+	// Reset external members
+	videoStreamIndex = -1;
+	frameWidth = 0;
+	frameHeight = 0;
+	videoFrameTime = 0;
+
+	audioStreamIndex = -1;
+	audioFrameTime = 0;
+
+	// Clean libAV space
+	CloseVideoReader();
 }

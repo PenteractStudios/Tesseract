@@ -51,6 +51,6 @@ bool VideoImporter::ImportVideo(const char* filePath, JsonValue jMeta) {
 	App->resources->SendCreateResourceEvent(audioClip);
 
 	unsigned timeMs = timer.Stop();
-	LOG("Audio imported in %ums", timeMs);
+	LOG("Video imported in %ums", timeMs);
 	return true;
 }

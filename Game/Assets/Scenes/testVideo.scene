@@ -7,7 +7,7 @@
     ],
     "QuadtreeMaxDepth": 4,
     "QuadtreeElementsPerNode": 200,
-    "GameCamera": 8889752304547218235,
+    "GameCamera": 13646948318589304426,
     "AmbientLight": [
         0.25,
         0.25,
@@ -162,7 +162,7 @@
                             ],
                             "NearPlaneDistance": 0.10000000149011612,
                             "FarPlaneDistance": 2000.0,
-                            "HorizontalFov": 1.9645204544067383,
+                            "HorizontalFov": 1.819494605064392,
                             "VerticalFov": 1.3113912343978882
                         }
                     },
@@ -307,8 +307,8 @@
                                 "Type": "Video",
                                 "Id": 15664779201435072181,
                                 "Active": true,
-                                "VideoId": 13408930891290247355,
-                                "VerticalFlip": true
+                                "VideoId": 0,
+                                "VerticalFlip": false
                             }
                         ],
                         "Children": null

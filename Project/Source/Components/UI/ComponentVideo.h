@@ -28,10 +28,11 @@ public:
 
 	void Draw(ComponentTransform2D* transform); // Draws the current frame of the loaded video as a texture in a framebuffer, and plays the corresponding audio data through an internal audio source component.
 
-	void VideoReaderOpen(const char* filename); // opens a video file and allocates the neccessary memory to work with it.
+	void OpenVideoReader(const char* filename); // opens a video file and allocates the neccessary memory to work with it.
 	void ReadVideoFrame();						// Reads the next video frame of the allocated video
 	void ReadAudioFrame();						// Reads the next audio frame of the allocated video
-	void VideoReaderClose();					// Frees the memory of the allocated video.
+	void CloseVideoReader();					// Frees the memory of the allocated video.
+	void RemoveVideoResource();					// Reinitialises the video variables when changing the Video Resource loaded from inspector.
 
 private:
 	UID videoID = 0; // Video file resource ID
