@@ -2,7 +2,7 @@
 #include "Components/Component.h"
 
 extern "C" {
-	#include "libavutil/rational.h"
+#include "libavutil/rational.h"
 }
 class ModuleTime;
 class ComponentAudioSource;
@@ -22,44 +22,45 @@ public:
 
 	void Init() override;							// Inits the component
 	void Update() override;							// Update
-	void OnEditorUpdate() override;					//
+	void OnEditorUpdate() override;					// Show component info in inspector
 	void Save(JsonValue jComponent) const override; // Serializes object
 	void Load(JsonValue jComponent) override;		// Deserializes object
 
-	void Draw(ComponentTransform2D* transform); // Draws the current frame of the loaded video as a texture in a framebuffer
+	void Draw(ComponentTransform2D* transform); // Draws the current frame of the loaded video as a texture in a framebuffer, and plays the corresponding audio data through an internal audio source component.
 
-	void VideoReaderOpen(const char* filename);
-	void ReadVideoFrame();
-	void ReadAudioFrame();
-	void VideoReaderClose();
+	void VideoReaderOpen(const char* filename); // opens a video file and allocates the neccessary memory to work with it.
+	void ReadVideoFrame();						// Reads the next video frame of the allocated video
+	void ReadAudioFrame();						// Reads the next audio frame of the allocated video
+	void VideoReaderClose();					// Frees the memory of the allocated video.
 
 private:
-	UID videoID = 0;						  // Video file resource ID
-	ProgramImageUI* imageUIProgram = nullptr; // Shader program
-	unsigned int frameTexture = 0;			  // GL texture frame ID
-	float elapsedVideoTime = 0;
+	UID videoID = 0; // Video file resource ID
 	ComponentAudioSource* audioPlayer = nullptr;
 
 	// Video Options
 	bool verticalFlip = false;
 
-	// Video frame data
-	int frameWidth = 0;
-	int frameHeight = 0;
-	uint8_t* frameData = nullptr;
-
 	// LibAV internal state
-	int videoStreamIndex = -1;
-	int audioStreamIndex = -1;
-	AVFormatContext* formatCtx = nullptr;
-	AVCodecContext* videoCodecCtx = nullptr;
-	AVCodecContext* audioCodecCtx = nullptr;
-	AVPacket* avPacket = nullptr;
-	AVFrame* avFrame = nullptr;
-	SwsContext* scalerCtx = nullptr;
-	AVRational timeBase = {0, 0};
-	float videoFrameTime = 0;
-	float audioFrameTime = 0;
+	AVFormatContext* formatCtx = nullptr;	 // Video file context.
+	AVCodecContext* videoCodecCtx = nullptr; // Video Decoder context.
+	AVCodecContext* audioCodecCtx = nullptr; // Audio decoder context.
+	AVPacket* avPacket = nullptr;			 // Data packet. This is sent to de decoders to obtain a frame of any type (video or audio).
+	AVFrame* avFrame = nullptr;				 // Frame Data. This is what a decoder returns after decoding a packet.
+	SwsContext* scalerCtx = nullptr;		 // Used for converting the frame data to RGB format.
+	AVRational timeBase = {0, 0};			 // Used to obtain the FrameTime -> Used to sync video and audio.
 
-	// Audio Frame data
+	// LibAV external Video data
+	int videoStreamIndex = -1;			 // Video data stream inside file.
+	int frameWidth = 0, frameHeight = 0; // Size of video frame.
+	uint8_t* frameData = nullptr;		 // Buffer for the frame texture data.
+	float videoFrameTime = 0;			 // Time in seconds when the next audio frame must appear.
+
+	// LibAV external Audio data
+	int audioStreamIndex = -1; // Audio data stream inside file.
+	float audioFrameTime = 0;  // Time in seconds when the next audio frame must appear.
+
+	// Auxiliar members
+	ProgramImageUI* imageUIProgram = nullptr; // Shader program.
+	unsigned int frameTexture = 0;			  // GL texture frame ID.
+	float elapsedVideoTime = 0;				  // Elapsed time playing video. Used for framerate sync and video-audio sync.
 };

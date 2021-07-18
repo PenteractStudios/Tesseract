@@ -25,6 +25,7 @@ extern "C" {
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_VIDEOID "VideoId"
+#define JSON_TAG_IS_FLIPPED "VerticalFlip"
 
 char av_error[AV_ERROR_MAX_STRING_SIZE] = {0};
 #define av_err2str(errnum) av_make_error_string(av_error, AV_ERROR_MAX_STRING_SIZE, errnum)
@@ -48,7 +49,7 @@ void ComponentVideo::Init() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	//VideoReaderOpen("./Assets/2021-03-18 17-39-25.mp4");
+	if (videoID) VideoReaderOpen(App->resources->GetResource<ResourceVideo>(videoID)->GetAssetFilePath().c_str());
 }
 
 void ComponentVideo::Update() {
@@ -82,35 +83,29 @@ void ComponentVideo::OnEditorUpdate() {
 		&videoID,
 		[this]() { VideoReaderClose(); },
 		[this]() { VideoReaderOpen(App->resources->GetResource<ResourceVideo>(videoID)->GetAssetFilePath().c_str()); });
-	
+	if (ImGui::Button("Remove##video")) {
+		if (videoID != 0) {
+			VideoReaderClose();
+			App->resources->DecreaseReferenceCount(videoID);
+			videoID = 0;
+		}
+	}
 	ResourceVideo* videoResource = App->resources->GetResource<ResourceVideo>(videoID);
 	if (videoResource != nullptr) {
 		ImGui::Checkbox("Flip Vertically", &verticalFlip);
 	}
-		/*int width;
-		int height;
-		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
-		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
-
-		if (oldID != /*textureID 0) {
-			ComponentTransform2D* transform2D = GetOwner().GetComponent<ComponentTransform2D>();
-			if (transform2D != nullptr) {
-				transform2D->SetSize(float2((float) width, (float) height));
-			}
-		}
-
-		ImGui::TextWrapped("Size: %d x %d", width, height);
-	}*/
 
 	//audioPlayer->OnEditorUpdate();
 }
 
 void ComponentVideo::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_VIDEOID] = videoID;
+	jComponent[JSON_TAG_IS_FLIPPED] = verticalFlip;
 }
 
 void ComponentVideo::Load(JsonValue jComponent) {
 	videoID = jComponent[JSON_TAG_VIDEOID];
+	verticalFlip = jComponent[JSON_TAG_IS_FLIPPED];
 }
 
 void ComponentVideo::Draw(ComponentTransform2D* transform) {
@@ -291,14 +286,14 @@ void ComponentVideo::ReadVideoFrame() {
 		av_packet_unref(avPacket);
 		break;
 	}
-	
+
 	videoFrameTime = avFrame->pts * timeBase.num / (float) timeBase.den;
 	// ------------------------------- TODO: can we read frames directly in RGB?
 
 	if (!scalerCtx) {
 		// Set SwScaler - Scale frame size + Pixel converter to RGB
 		// TODO: Set destination size
-		scalerCtx = sws_getContext(frameWidth, frameHeight, videoCodecCtx->pix_fmt,  avFrame->width,  avFrame->height, AV_PIX_FMT_RGB0, SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
+		scalerCtx = sws_getContext(frameWidth, frameHeight, videoCodecCtx->pix_fmt, avFrame->width, avFrame->height, AV_PIX_FMT_RGB0, SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
 
 		if (!scalerCtx) {
 			LOG("Couldn't initialise SwScaler.");
@@ -320,7 +315,6 @@ void ComponentVideo::ReadVideoFrame() {
 	uint8_t* dest[4] = {frameData, nullptr, nullptr, nullptr};
 	int linSize[4] = {frameWidth * 4, 0, 0, 0};
 	sws_scale(scalerCtx, avFrame->data, avFrame->linesize, 0, frameHeight, dest, linSize);
-
 }
 
 void ComponentVideo::ReadAudioFrame() {
