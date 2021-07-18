@@ -9,6 +9,8 @@
 #include "Modules/ModuleTime.h"
 #include "Components/ComponentAudioSource.h"
 #include "Components/UI/ComponentTransform2D.h"
+#include "Resources/ResourceVideo.h"
+#include "Utils/ImGuiUtils.h"
 #include "Utils/Logging.h"
 
 #include "imgui.h"
@@ -46,20 +48,21 @@ void ComponentVideo::Init() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	VideoReaderOpen("./2021-03-18 17-39-25.mp4");
+	//VideoReaderOpen("./Assets/2021-03-18 17-39-25.mp4");
 }
 
 void ComponentVideo::Update() {
-	elapsedVideoTime += App->time->GetDeltaTime();
-	LOG("Elapsed Time: %f", elapsedVideoTime);
-	if (elapsedVideoTime > videoFrameTime || videoFrameTime == 0) { // TODO: this will give an offset of 1 frame between video and audio!
-		ReadVideoFrame();
+	if (videoID != 0) {
+		elapsedVideoTime += App->time->GetDeltaTime();
+		if (elapsedVideoTime > videoFrameTime || videoFrameTime == 0) { // TODO: this will give an offset of 1 frame between video and audio!
+			ReadVideoFrame();
+		}
+
+		if (elapsedVideoTime > audioFrameTime) {
+			ReadAudioFrame();
+		}
+		// audioPlayer.UpdateStreamData(audioFrameData, audioPlayer.checkFramesSync());
 	}
-	
-	if (elapsedVideoTime > audioFrameTime) {
-		ReadAudioFrame();
-	}
-	// audioPlayer.UpdateStreamData(audioFrameData, audioPlayer.checkFramesSync());
 }
 
 void ComponentVideo::OnEditorUpdate() {
@@ -74,13 +77,17 @@ void ComponentVideo::OnEditorUpdate() {
 	}
 	ImGui::Separator();
 
-	UID oldID = /*textureID*/ 0;
-	/* ImGui::ResourceSlot<ResourceTexture>("texture", /*&textureID 0);
-
-	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(/*textureID 0);
-
-	if (textureResource != nullptr) {
-		int width;
+	ImGui::ResourceSlot<ResourceVideo>(
+		"video",
+		&videoID,
+		[this]() { VideoReaderClose(); },
+		[this]() { VideoReaderOpen(App->resources->GetResource<ResourceVideo>(videoID)->GetAssetFilePath().c_str()); });
+	
+	ResourceVideo* videoResource = App->resources->GetResource<ResourceVideo>(videoID);
+	if (videoResource != nullptr) {
+		ImGui::Checkbox("Flip Vertically", &verticalFlip);
+	}
+		/*int width;
 		int height;
 		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
 		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
@@ -94,8 +101,6 @@ void ComponentVideo::OnEditorUpdate() {
 
 		ImGui::TextWrapped("Size: %d x %d", width, height);
 	}*/
-
-	ImGui::Checkbox("Flip Vertically", &verticalFlip);
 
 	//audioPlayer->OnEditorUpdate();
 }

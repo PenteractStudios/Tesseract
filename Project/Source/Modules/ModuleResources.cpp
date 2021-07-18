@@ -28,6 +28,7 @@
 #include "FileSystem/SkyboxImporter.h"
 #include "FileSystem/ShaderImporter.h"
 #include "FileSystem/AudioImporter.h"
+#include "FileSystem/VideoImporter.h"
 #include "FileSystem/StateMachineImporter.h"
 #include "FileSystem/ClipImporter.h"
 #include "FileSystem/FontImporter.h"
@@ -209,6 +210,9 @@ bool ModuleResources::ImportAssetByExtension(JsonValue jMeta, const char* filePa
 	} else if (extension == WAV_AUDIO_EXTENSION || extension == OGG_AUDIO_EXTENSION) {
 		// Audio files
 		AudioImporter::ImportAudio(filePath, jMeta);
+	} else if (extension == MP4_VIDEO_EXTENSION) {
+		// Video files
+		VideoImporter::ImportVideo(filePath, jMeta);
 	} else if (extension == PREFAB_EXTENSION) {
 		// Prefab files
 		PrefabImporter::ImportPrefab(filePath, jMeta);

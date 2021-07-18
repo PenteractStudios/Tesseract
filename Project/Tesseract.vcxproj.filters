@@ -376,6 +376,7 @@
     <ClCompile Include="Libs\imgui\imgui_color_gradient.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentVideo.cpp" />
     <ClCompile Include="Source\Resources\ResourceVideo.cpp" />
+    <ClCompile Include="Source\FileSystem\VideoImporter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\LightFrustum.h" />
@@ -730,6 +731,7 @@
     <ClInclude Include="Libs\imgui\imgui_color_gradient.h" />
     <ClInclude Include="Source\Components\UI\ComponentVideo.h" />
     <ClInclude Include="Source\Resources\ResourceVideo.h" />
+    <ClInclude Include="Source\FileSystem\VideoImporter.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />
