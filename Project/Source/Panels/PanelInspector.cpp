@@ -291,7 +291,7 @@ void PanelInspector::Update() {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
 				}
-				
+
 				// TRANSFORM is always there, cannot add a new one.
 				AddParticleComponentsOptions(selected);
 				AddAudioComponentsOptions(selected);
@@ -560,7 +560,7 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 			ComponentImage* image = background->CreateComponent<ComponentImage>();
 			background->Init();
 			transform2D->SetSize(float2(700, 80));
-			
+
 			GameObject* fill = App->scene->scene->CreateGameObject(selected, GenerateUID(), "Fill");
 			ComponentTransform2D* transform2DFill = fill->CreateComponent<ComponentTransform2D>();
 			ComponentCanvasRenderer* canvasRendererFill = fill->CreateComponent<ComponentCanvasRenderer>();
@@ -574,7 +574,7 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 			fill->Init();
 			break;
 		}
-		}
+		} // ens switch
 
 		ImGui::EndMenu();
 	}
