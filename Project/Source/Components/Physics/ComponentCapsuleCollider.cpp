@@ -74,13 +74,13 @@ void ComponentCapsuleCollider::OnEditorUpdate() {
 	ImGui::Checkbox("Draw Shape", &drawGizmo);
 
 	// World Layers combo box
-	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Enemy", "Bullet", "Bullet Enemy", "Skills", "Everything"};
+	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Enemy", "Bullet", "Bullet Enemy", "Skills", "Everything"};	// Increase if (n == X) when adding a new layer, a few lines down
 	const char* layerCurrent = layerTypeItems[layerIndex];
 	if (ImGui::BeginCombo("Layer", layerCurrent)) {
 		for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {
 			if (ImGui::Selectable(layerTypeItems[n])) {
 				layerIndex = n;
-				if (n == 7) {
+				if (n == 8) {
 					layer = WorldLayers::EVERYTHING;
 				} else {
 					layer = WorldLayers(1 << layerIndex);

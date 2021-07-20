@@ -20,7 +20,7 @@ class ParticleMotionState;
 class ImGradient;
 struct ImGradientMark;
 
-enum WorldLayers;
+enum class WorldLayers;
 
 enum class ParticleEmitterType {
 	CONE,
@@ -236,7 +236,7 @@ public:
 	TESSERACT_ENGINE_API void SetCollision(bool _collision);
 
 public:
-	WorldLayers layer;
+	WorldLayers layer = (WorldLayers)(1 << 20); // = WorldLayers::EVERYHTING
 	int layerIndex = 5;
 	float radius = .25f;
 
