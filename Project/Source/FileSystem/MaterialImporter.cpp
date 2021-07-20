@@ -1,20 +1,18 @@
 #include "MaterialImporter.h"
 
+#include "Application.h"
+#include "Modules/ModuleResources.h"
+#include "Modules/ModuleFiles.h"
+#include "Resources/ResourceMaterial.h"
 #include "Utils/Logging.h"
 #include "Utils/MSTimer.h"
 #include "Utils/Buffer.h"
 #include "Utils/FileDialog.h"
-#include "Application.h"
-#include "Modules/ModuleResources.h"
-#include "Resources/ResourceMaterial.h"
-#include "Modules/ModuleFiles.h"
-#include "Modules/ModuleTime.h"
 #include "ImporterCommon.h"
 
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
-#include "rapidjson/document.h"
 
 #include "Utils/Leaks.h"
 

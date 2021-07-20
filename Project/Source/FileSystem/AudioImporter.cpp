@@ -1,15 +1,17 @@
 #include "AudioImporter.h"
 
+#include "Globals.h"
 #include "Application.h"
-#include "Utils/Logging.h"
-#include "Utils/Buffer.h"
-#include "Utils/FileDialog.h"
-#include "Resources/ResourceAudioClip.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleTime.h"
-#include "Globals.h"
+#include "Resources/ResourceAudioClip.h"
+#include "Utils/Logging.h"
+#include "Utils/Buffer.h"
+#include "Utils/FileDialog.h"
 #include "ImporterCommon.h"
+
+#include <sndfile.h>
 
 #include "Utils/Leaks.h"
 

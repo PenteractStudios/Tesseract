@@ -1,13 +1,13 @@
 #include "ScriptImporter.h"
 
+#include "Globals.h"
 #include "Application.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleFiles.h"
-#include "Modules/ModuleTime.h"
 #include "Resources/ResourceScript.h"
-#include "Globals.h"
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
+#include "Utils/MSTimer.h"
 #include "Utils/FileDialog.h"
 #include "ImporterCommon.h"
 
