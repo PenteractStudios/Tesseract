@@ -2,11 +2,10 @@
 
 #include "Module.h"
 #include "Utils/Quadtree.h"
+#include "LightFrustum.h"
 
 #include "MathGeoLibFwd.h"
 #include "Math/float3.h"
-#include "LightFrustum.h"
-
 #include <map>
 
 #define SSAO_KERNEL_SIZE 64

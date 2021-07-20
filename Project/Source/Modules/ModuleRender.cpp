@@ -3,8 +3,6 @@
 #include "Globals.h"
 #include "Application.h"
 #include "GameObject.h"
-#include "Utils/Logging.h"
-#include "Utils/Random.h"
 #include "Components/ComponentMeshRenderer.h"
 #include "Components/ComponentBoundingBox.h"
 #include "Components/ComponentTransform.h"
@@ -15,7 +13,6 @@
 #include "Components/ComponentBillboard.h"
 #include "Components/ComponentSkyBox.h"
 #include "Components/ComponentLight.h"
-#include "Modules/ModuleInput.h"
 #include "Modules/ModuleWindow.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleDebugDraw.h"
@@ -25,9 +22,10 @@
 #include "Modules/ModulePrograms.h"
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleUserInterface.h"
-#include "Modules/ModuleTime.h"
 #include "Modules/ModuleNavigation.h"
 #include "Resources/ResourceMesh.h"
+#include "Utils/Logging.h"
+#include "Utils/Random.h"
 #include "TesseractEvent.h"
 
 #include "Geometry/AABB.h"
@@ -37,11 +35,11 @@
 #include "GL/glew.h"
 #include "SDL.h"
 #include "Brofiler.h"
-
-#include "Utils/Leaks.h"
 #include <string>
 #include <math.h>
 #include <vector>
+
+#include "Utils/Leaks.h"
 
 static std::vector<float> ssaoGaussKernel;
 

@@ -2,7 +2,6 @@
 
 #include "Module.h"
 #include "Utils/UID.h"
-#include "Math/float2.h"
 #include "Math/float4.h"
 
 #define SCENE_SCREEN_FACTOR 0.01f
@@ -10,8 +9,6 @@
 class GameObject;
 class ComponentEventSystem;
 class ComponentSelectable;
-class ResourceFont;
-
 struct Character;
 
 class ModuleUserInterface : public Module {

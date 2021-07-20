@@ -10,11 +10,13 @@
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleAudio.h"
 #include "Modules/ModuleRender.h"
-#include "Scene.h"
 #include "Modules/ModulePhysics.h"
+#include "Scene.h"
+
 #include "SDL_timer.h"
-#include "Brofiler.h"
 #include <ctime>
+
+#include "Brofiler.h"
 
 #include "Utils/Leaks.h"
 

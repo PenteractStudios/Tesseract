@@ -1,7 +1,6 @@
 #include "Module.h"
 
 #include "Globals.h"
-#include "Utils/Logging.h"
 #include "TesseractEvent.h"
 
 #include "Utils/Leaks.h"

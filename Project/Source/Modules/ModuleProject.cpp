@@ -7,11 +7,10 @@
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleTime.h"
+#include "Components/ComponentScript.h"
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
-#include "Utils/UID.h"
 #include "Utils/FileDialog.h"
-#include "Scripting/Script.h"
 #include "Scene.h"
 
 #include <Windows.h>
