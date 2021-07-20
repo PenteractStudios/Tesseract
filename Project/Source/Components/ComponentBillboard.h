@@ -3,10 +3,8 @@
 
 #include "ComponentParticleSystem.h"
 
-#include "Math/float4.h"
-#include "Math/float2.h"
+#include "Math/float3.h"
 #include "Math/float4x4.h"
-#include "Math/Quat.h"
 
 class ImGradient;
 struct ImGradientMark;

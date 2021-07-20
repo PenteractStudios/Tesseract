@@ -1,33 +1,22 @@
 #include "ComponentTrail.h"
 
-#include "GameObject.h"
-#include "Components/ComponentTransform.h"
-#include "Components/UI/ComponentButton.h"
 #include "Application.h"
+#include "GameObject.h"
 #include "Modules/ModulePrograms.h"
 #include "Modules/ModuleCamera.h"
-#include "Modules/ModuleRender.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleTime.h"
-#include "Modules/ModuleUserInterface.h"
-#include "Panels/PanelScene.h"
+#include "Components/ComponentTransform.h"
 #include "Resources/ResourceTexture.h"
 #include "Resources/ResourceShader.h"
-#include "FileSystem/TextureImporter.h"
 #include "FileSystem/JsonValue.h"
 #include "Utils/ImGuiUtils.h"
-#include "Utils/Logging.h"
 
-#include "Math/float3x3.h"
-#include "Math/TransformOps.h"
-#include "imgui.h"
 #include "GL/glew.h"
-#include "debugdraw.h"
-#include "rapidjson/rapidjson.h"
 #include "imgui_color_gradient.h"
-
 #include <string>
+
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_TEXTURE_TEXTUREID "TextureId"
