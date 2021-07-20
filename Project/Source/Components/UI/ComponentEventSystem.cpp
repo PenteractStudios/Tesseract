@@ -51,19 +51,19 @@ void ComponentEventSystem::Update() {
 	if (!App->userInterface->handlingSlider && navigationTimer == 0) {
 		float2 selectionDir = float2(0.f, 0.f);
 
-		if (App->input->GetKey(SDL_SCANCODE_UP) == KS_DOWN) {
+		if (App->input->GetKey(SDL_SCANCODE_UP) == KeyState::KS_DOWN) {
 			selectionDir = float2(0.f, 1.f);
 			keyPressed = true;
 		}
-		if (App->input->GetKey(SDL_SCANCODE_DOWN) == KS_DOWN) {
+		if (App->input->GetKey(SDL_SCANCODE_DOWN) == KeyState::KS_DOWN) {
 			selectionDir = float2(0.f, -1.f);
 			keyPressed = true;
 		}
-		if (App->input->GetKey(SDL_SCANCODE_LEFT) == KS_DOWN) {
+		if (App->input->GetKey(SDL_SCANCODE_LEFT) == KeyState::KS_DOWN) {
 			selectionDir = float2(-1.f, 0.f);
 			keyPressed = true;
 		}
-		if (App->input->GetKey(SDL_SCANCODE_RIGHT) == KS_DOWN) {
+		if (App->input->GetKey(SDL_SCANCODE_RIGHT) == KeyState::KS_DOWN) {
 			selectionDir = float2(1.f, 0.f);
 			keyPressed = true;
 		}
@@ -71,19 +71,19 @@ void ComponentEventSystem::Update() {
 		PlayerController* controller = App->input->GetPlayerController(0);
 		if (controller) {
 			if (selectionDir.x == 0 && selectionDir.y == 0) {
-				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_UP) == KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_UP) == KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTY) < -0.5f) {
+				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_UP) == KeyState::KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_UP) == KeyState::KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTY) < -0.5f) {
 					selectionDir = float2(0.f, 1.f);
 					keyPressed = true;
 				}
-				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_DOWN) == KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_DOWN) == KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTY) > 0.5f) {
+				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_DOWN) == KeyState::KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_DOWN) == KeyState::KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTY) > 0.5f) {
 					selectionDir = float2(0.f, -1.f);
 					keyPressed = true;
 				}
-				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_LEFT) == KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_LEFT) == KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTX) < -0.5f) {
+				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_LEFT) == KeyState::KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_LEFT) == KeyState::KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTX) < -0.5f) {
 					selectionDir = float2(-1.f, 0.f);
 					keyPressed = true;
 				}
-				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTX) > 0.5f) {
+				if (controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == KeyState::KS_REPEAT || controller->GetButtonState(SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == KeyState::KS_DOWN || controller->GetAxisNormalized(SDL_CONTROLLER_AXIS_LEFTX) > 0.5f) {
 					selectionDir = float2(1.f, 0.f);
 					keyPressed = true;
 				}

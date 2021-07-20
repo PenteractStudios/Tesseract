@@ -12,7 +12,7 @@
 #define D_JOYSTICK_MAX_VALUE 32767.0f
 #define D_JOYSTICK_DEADZONE 10000.0f
 
-enum KeyState {
+enum class KeyState : int {
 	KS_IDLE = 0,
 	KS_DOWN,
 	KS_REPEAT,
@@ -53,7 +53,7 @@ public:
 	//PlayerGamepad id is NOT the array position nor the device index, due to how SDL manages controllers it is the controller's joystick's index, use carefully
 	int joystickIndex = -1;
 	float gameControllerAxises[SDL_CONTROLLER_AXIS_MAX] = {0.0f};		   // Axis values, deadzone is 8000, max value is
-	KeyState gameControllerButtons[SDL_CONTROLLER_BUTTON_MAX] = {KS_IDLE}; // Same keystate, but for the controller buttons
+	KeyState gameControllerButtons[SDL_CONTROLLER_BUTTON_MAX] = {KeyState::KS_IDLE}; // Same keystate, but for the controller buttons
 	SDL_GameController* controller = nullptr;
 };
 
@@ -93,8 +93,8 @@ private:
 
 private:
 	char* droppedFilePath = nullptr;					  // SDL_DropEvent. Stores the path of a file when it is drag&dropped into the engine.
-	KeyState keyboard[SDL_NUM_SCANCODES] = {KS_IDLE};	  // Array that stores the 'KeyState' of every key in the keyboard. See KeyState for possible states.
-	KeyState mouseButtons[NUM_MOUSE_BUTTONS] = {KS_IDLE}; // Same keystate, but for the mouse buttons.
+	KeyState keyboard[SDL_NUM_SCANCODES] = {KeyState::KS_IDLE}; // Array that stores the 'KeyState' of every key in the keyboard. See KeyState for possible states.
+	KeyState mouseButtons[NUM_MOUSE_BUTTONS] = {KeyState::KS_IDLE}; // Same keystate, but for the mouse buttons.
 
 	float mouseWheelMotion = 0;	 // Stores the increment registered by the mouse wheel on a frame.
 	float2 mouseMotion = {0, 0}; // Stores de movement increment of the mouse position on a frame.

@@ -32,7 +32,7 @@ void ComponentSlider::Init() {
 
 void ComponentSlider::Update() {
 	if (clicked) {
-		if (!App->input->GetMouseButton(1)) {
+		if (App->input->GetMouseButton(1) == KeyState::KS_IDLE) {
 			clicked = false;
 		} else {
 			float2 mousePos = App->input->GetMousePosition(true);

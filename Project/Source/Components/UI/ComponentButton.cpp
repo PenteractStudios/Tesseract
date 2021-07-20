@@ -105,7 +105,7 @@ void ComponentButton::Update() {
 	bool gameControllerConnected = App->input->GetPlayerController(0);
 
 	if (clicked) {
-		if (!App->input->GetMouseButton(1) && !App->input->GetKey(SDL_SCANCODE_RETURN) && (!gameControllerConnected || gameControllerConnected && !App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A))) {
+		if (App->input->GetMouseButton(1) == KeyState::KS_IDLE && App->input->GetKey(SDL_SCANCODE_RETURN) == KeyState::KS_IDLE && (!gameControllerConnected || gameControllerConnected && App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A) == KeyState::KS_IDLE)) {
 			clicked = false;
 		}
 	}
