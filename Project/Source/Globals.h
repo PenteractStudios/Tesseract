@@ -61,6 +61,7 @@ enum class UpdateStatus {
 #define ANIMATION_CLIP_EXTENSION ".clip"
 
 #define TEMP_SCENE_FILE_NAME "_scene_autosave.temp"
+#define CONFIGURATION_FILE_NAME "config.json"
 
 // Configuration -----------
 #define GLSL_VERSION "#version 460"
