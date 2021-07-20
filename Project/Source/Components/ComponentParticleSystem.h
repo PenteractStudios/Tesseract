@@ -323,6 +323,7 @@ private:
 	ParticleRenderAlignment renderAlignment = ParticleRenderAlignment::VIEW;
 	bool flipTexture[2] = {false, false};
 	bool isSoft = false;
+	float softRange = 1.0f;
 
 	// Collision
 	bool collision = false;

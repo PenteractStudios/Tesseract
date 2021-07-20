@@ -300,6 +300,8 @@ struct ProgramBillboard : Program {
 	int nearLocation = -1;
 	int farLocation = -1;
 
+	int transparentLocation = -1;
+
 	int depthsLocation = -1;
 
 	int inputColorLocation = -1;
@@ -311,7 +313,9 @@ struct ProgramBillboard : Program {
 	int yTilesLocation = -1;
 	int xFlipLocation = -1;
 	int yFlipLocation = -1;
+
 	int isSoftLocation = -1;
+	int softRangeLocation = -1;
 };
 struct ProgramTrail : Program {
 	ProgramTrail(unsigned program);

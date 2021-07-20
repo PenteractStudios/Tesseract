@@ -28,6 +28,8 @@ uniform sampler2D diffuseMap;
 uniform int hasDiffuseMap;
 uniform vec4 inputColor;
 
+uniform int transparent;
+
 uniform float currentFrame;
 uniform int Xtiles;
 uniform int Ytiles;
@@ -36,6 +38,7 @@ uniform int flipX;
 uniform int flipY;
 
 uniform int isSoft;
+uniform float softRange;
 
 out vec4 outColor;
 
@@ -65,8 +68,8 @@ void main()
 		float sceneDepth = LinearizeDepth(texture2D(depths, screenUV).r);
 		float fragDepth = LinearizeDepth(gl_FragCoord.z);
 		float depthDelta = sceneDepth - fragDepth;
-		float opacity = smoothstep(0.0, 1.0, depthDelta);
-		outColor.a *= opacity;
+		float opacity = smoothstep(0.0, 1.0, depthDelta / softRange);
+		outColor *= vec4(vec3((1 - transparent) * opacity + transparent), transparent * opacity + (1 - transparent));
 	}
 }
 

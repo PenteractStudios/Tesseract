@@ -284,6 +284,8 @@ ProgramBillboard::ProgramBillboard(unsigned program_)
 	nearLocation = glGetUniformLocation(program, "near");
 	farLocation = glGetUniformLocation(program, "far");
 
+	transparentLocation = glGetUniformLocation(program, "transparent");
+
 	depthsLocation = glGetUniformLocation(program, "depths");
 
 	diffuseMapLocation = glGetUniformLocation(program, "diffuseMap");
@@ -295,7 +297,9 @@ ProgramBillboard::ProgramBillboard(unsigned program_)
 	yTilesLocation = glGetUniformLocation(program, "Ytiles");
 	xFlipLocation = glGetUniformLocation(program, "flipX");
 	yFlipLocation = glGetUniformLocation(program, "flipY");
+
 	isSoftLocation = glGetUniformLocation(program, "isSoft");
+	softRangeLocation = glGetUniformLocation(program, "softRange");
 }
 
 ProgramTrail::ProgramTrail(unsigned program_)

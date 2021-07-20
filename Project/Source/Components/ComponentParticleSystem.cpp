@@ -99,6 +99,7 @@
 #define JSON_TAG_PARTICLE_RENDER_ALIGNMENT "ParticleRenderAlignment"
 #define JSON_TAG_FLIP_TEXTURE "FlipTexture"
 #define JSON_TAG_IS_SOFT "IsSoft"
+#define JSON_TAG_SOFT_RANGE "SoftRange"
 
 // Collision
 #define JSON_TAG_HAS_COLLISION "HasCollision"
@@ -349,9 +350,10 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::Checkbox("Y", &flipTexture[1]);
 
 		ImGui::NewLine();
-		ImGui::Text("Spft: ");
+		ImGui::Text("Soft: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##soft", &isSoft);
+		ImGui::DragFloat("Softness Range", &softRange, App->editor->dragSpeed2f, 0.0f, inf);
 	}
 
 	// Collision
@@ -516,6 +518,7 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	flipTexture[0] = jFlip[0];
 	flipTexture[1] = jFlip[1];
 	isSoft = jComponent[JSON_TAG_IS_SOFT];
+	softRange = jComponent[JSON_TAG_SOFT_RANGE];
 
 	// Collision
 	collision = jComponent[JSON_TAG_HAS_COLLISION];
@@ -628,6 +631,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jFlip[0] = flipTexture[0];
 	jFlip[1] = flipTexture[1];
 	jComponent[JSON_TAG_IS_SOFT] = isSoft;
+	jComponent[JSON_TAG_SOFT_RANGE] = softRange;
 
 	// Collision
 	jComponent[JSON_TAG_HAS_COLLISION] = collision;
@@ -997,6 +1001,8 @@ void ComponentParticleSystem::Draw() {
 			glUniform1f(program->nearLocation, App->camera->GetNearPlane());
 			glUniform1f(program->farLocation, App->camera->GetFarPlane());
 
+			glUniform1i(program->transparentLocation, renderMode == ParticleRenderMode::TRANSPARENT ? 1 : 0);
+
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, App->renderer->depthsTexture);
 			glUniform1i(program->depthsLocation, 0);
@@ -1016,6 +1022,7 @@ void ComponentParticleSystem::Draw() {
 			glUniform1i(program->yFlipLocation, flipTexture[1] ? 1 : 0);
 
 			glUniform1i(program->isSoftLocation, isSoft ? 1 : 0);
+			glUniform1f(program->softRangeLocation, softRange);
 
 			//TODO: implement drawarrays
 			glDrawArrays(GL_TRIANGLES, 0, 6);
