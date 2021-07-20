@@ -6,7 +6,7 @@
 #include "Components/UI/ComponentEventSystem.h"
 #include "Components/UI/ComponentEventSystem.h"
 #include "Components/UI/ComponentCanvasRenderer.h"
-#include "Components/ComponentBoundingBox2D.h"
+#include "Components/UI/ComponentBoundingBox2D.h"
 #include "Application.h"
 #include "ModuleFiles.h"
 #include "ModuleEvents.h"

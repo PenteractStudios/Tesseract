@@ -5,7 +5,7 @@
 #include "GameObject.h"
 #include "FileSystem/PrefabImporter.h"
 #include "Components/ComponentTransform.h"
-#include "Components/ComponentBoundingBox2D.h"
+#include "Components/UI/ComponentBoundingBox2D.h"
 #include "Components/UI/ComponentTransform2D.h"
 #include "Components/UI/ComponentCanvas.h"
 #include "Components/UI/ComponentCanvasRenderer.h"

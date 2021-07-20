@@ -19,7 +19,7 @@
 #include "Components/UI/ComponentText.h"
 #include "Components/UI/ComponentSlider.h"
 #include "Components/UI/ComponentProgressBar.h"
-#include "Components/ComponentBoundingBox2D.h"
+#include "Components/UI/ComponentBoundingBox2D.h"
 #include "Components/ComponentSkybox.h"
 #include "Components/ComponentTrail.h"
 #include "Components/ComponentParticleSystem.h"

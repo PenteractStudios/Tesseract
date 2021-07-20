@@ -1,23 +1,20 @@
 #include "ComponentImage.h"
 
-#include "GameObject.h"
-#include "Components/UI/ComponentTransform2D.h"
 #include "Application.h"
+#include "GameObject.h"
 #include "Modules/ModulePrograms.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleRender.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleResources.h"
-#include "Modules/ModuleTime.h"
 #include "Modules/ModuleUserInterface.h"
+#include "Components/UI/ComponentTransform2D.h"
 #include "Resources/ResourceTexture.h"
 #include "FileSystem/JsonValue.h"
-
 #include "Utils/ImGuiUtils.h"
+
 #include "Math/TransformOps.h"
-#include "imgui.h"
 #include "GL/glew.h"
-#include "debugdraw.h"
 
 #include "Utils/Leaks.h"
 

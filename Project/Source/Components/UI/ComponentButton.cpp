@@ -1,17 +1,12 @@
 #include "ComponentButton.h"
 
 #include "Application.h"
-#include "imgui.h"
 #include "GameObject.h"
 #include "Modules/ModuleInput.h"
-#include "Modules/ModuleResources.h"
 #include "Modules/ModuleUserInterface.h"
+#include "Modules/ModuleEditor.h"
 #include "Components/ComponentScript.h"
-#include "Components/UI/ComponentSelectable.h"
 #include "Components/UI/ComponentEventSystem.h"
-#include "Resources/ResourceScript.h"
-#include "Utils/Logging.h"
-#include "Scripting/Script.h"
 
 #include "Utils/Leaks.h"
 
@@ -59,7 +54,6 @@ void ComponentButton::OnClicked() {
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
 		if (script != nullptr) {
-			LOG("ClickHappens");
 			script->OnButtonClick();
 		}
 	}
@@ -68,7 +62,6 @@ void ComponentButton::OnClicked() {
 void ComponentButton::OnClickedInternal() {
 	ComponentEventSystem* currEvSys = App->userInterface->GetCurrentEventSystem();
 	if (!currEvSys) return;
-	LOG("VisualClickHappens");
 	clicked = true;
 
 	currEvSys->SetSelected(GetOwner().GetComponent<ComponentSelectable>()->GetID());
