@@ -51,6 +51,7 @@
 #define JSON_TAG_REVERSE_DISTANCE_RM "ReverseDistanceRM"
 #define JSON_TAG_REVERSE_DISTANCE "ReverseDistance"
 #define JSON_TAG_MAX_PARTICLE "MaxParticle"
+#define JSON_TAG_PLAY_ON_AWAKE "PlayOnAwake"
 
 // Emision
 #define JSON_TAG_ATTACH_EMITTER "AttachEmitter"
@@ -153,6 +154,7 @@ void ComponentParticleSystem::Init() {
 	if (!gradient) gradient = new ImGradient();
 	layer = WorldLayers(1 << layerIndex);
 	CreateParticles();
+	isStarted = false;
 }
 
 void ComponentParticleSystem::OnEditorUpdate() {
@@ -200,6 +202,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		if (ImGui::DragScalar("Max Particles", ImGuiDataType_U32, &maxParticles)) {
 			CreateParticles();
 		}
+		ImGui::Checkbox("Play On Awake", &playOnAwake);
 	}
 
 	// Emission
@@ -451,6 +454,7 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	reverseDistance[0] = jReverseDistance[0];
 	reverseDistance[1] = jReverseDistance[1];
 	maxParticles = jComponent[JSON_TAG_MAX_PARTICLE];
+	playOnAwake = jComponent[JSON_TAG_PLAY_ON_AWAKE];
 
 	// Emision
 	attachEmitter = jComponent[JSON_TAG_ATTACH_EMITTER];
@@ -562,6 +566,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jReverseDistance[0] = reverseDistance[0];
 	jReverseDistance[1] = reverseDistance[1];
 	jComponent[JSON_TAG_MAX_PARTICLE] = maxParticles;
+	jComponent[JSON_TAG_PLAY_ON_AWAKE] = playOnAwake;
 
 	// Emision
 	jComponent[JSON_TAG_ATTACH_EMITTER] = attachEmitter;
@@ -773,6 +778,11 @@ void ComponentParticleSystem::InitStartRate() {
 }
 
 void ComponentParticleSystem::Update() {
+	if (!isStarted && App->time->HasGameStarted() && playOnAwake) {
+		Play();
+		isStarted = true;
+	}
+
 	if (App->editor->selectedGameObject == &GetOwner()) {
 		ImGuiParticlesEffect();
 	}
@@ -1126,7 +1136,7 @@ float ComponentParticleSystem::ChildParticlesInfo() {
 	return particlesInfo;
 }
 
-//Getters
+// ----- GETTERS -----
 
 // Particle System
 float ComponentParticleSystem::GetDuration() const {
@@ -1155,6 +1165,9 @@ float2 ComponentParticleSystem::GetReserseDistance() const {
 }
 unsigned ComponentParticleSystem::GetMaxParticles() const {
 	return maxParticles;
+}
+bool ComponentParticleSystem::GetPlayOnAwake() const {
+	return playOnAwake;
 }
 
 // Emision
@@ -1247,7 +1260,7 @@ bool ComponentParticleSystem::GetCollision() const {
 	return collision;
 }
 
-//Setters
+// ----- SETTERS -----
 
 // Particle System
 void ComponentParticleSystem::SetDuration(float _duration) {
@@ -1277,6 +1290,9 @@ void ComponentParticleSystem::SetReserseDistance(float2 _reverseDistance) {
 void ComponentParticleSystem::SetMaxParticles(unsigned _maxParticle) {
 	maxParticles = _maxParticle;
 	CreateParticles();
+}
+void ComponentParticleSystem::SetPlayOnAwake(bool _playOnAwake) {
+	playOnAwake = _playOnAwake;
 }
 
 // Emision

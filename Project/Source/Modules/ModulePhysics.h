@@ -45,7 +45,7 @@ enum WorldLayers {
 	BULLET = 1 << 5,
 	BULLET_ENEMY = 1 << 6,
 	SKILLS = 1 << 7,
-	EVERYTHING = 1 << 30
+	EVERYTHING = 1 << 20
 };
 
 class ModulePhysics : public Module {
