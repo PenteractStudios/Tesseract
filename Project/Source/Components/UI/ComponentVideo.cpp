@@ -13,8 +13,6 @@
 #include "Utils/ImGuiUtils.h"
 #include "Utils/Logging.h"
 
-#include "imgui.h"
-#include "Utils/ImGuiUtils.h"
 #include "Math/TransformOps.h"
 
 extern "C" {
@@ -266,7 +264,7 @@ void ComponentVideo::OpenVideoReader(const char* filename) {
 }
 
 void ComponentVideo::ReadVideoFrame() {
-	int response;
+	int response = -1;
 	while (av_read_frame(formatCtx, avPacket) >= 0) {
 		if (avPacket->stream_index != videoStreamIndex) {
 			av_packet_unref(avPacket);
@@ -321,7 +319,7 @@ void ComponentVideo::ReadVideoFrame() {
 }
 
 void ComponentVideo::ReadAudioFrame() {
-	int response;
+	int response = -1;
 	while (av_read_frame(formatCtx, avPacket) >= 0) {
 		if (avPacket->stream_index != audioStreamIndex) {
 			av_packet_unref(avPacket);

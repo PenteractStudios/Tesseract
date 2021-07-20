@@ -1,13 +1,13 @@
 #include "VideoImporter.h"
 
 #include "Application.h"
-#include "Utils/Logging.h"
-#include "Utils/Buffer.h"
-#include "Utils/FileDialog.h"
-#include "Resources/ResourceVideo.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleTime.h"
+#include "Resources/ResourceVideo.h"
+#include "Utils/Logging.h"
+#include "Utils/Buffer.h"
+#include "Utils/FileDialog.h"
 #include "ImporterCommon.h"
 
 bool VideoImporter::ImportVideo(const char* filePath, JsonValue jMeta) {
@@ -24,31 +24,31 @@ bool VideoImporter::ImportVideo(const char* filePath, JsonValue jMeta) {
 
 	// Create video resource
 	unsigned resourceIndex = 0;
-	std::unique_ptr<ResourceVideo> audioClip = ImporterCommon::CreateResource<ResourceVideo>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+	std::unique_ptr<ResourceVideo> video = ImporterCommon::CreateResource<ResourceVideo>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
 	// Save resource meta file
-	bool saved = ImporterCommon::SaveResourceMetaFile(audioClip.get());
+	bool saved = ImporterCommon::SaveResourceMetaFile(video.get());
 	if (!saved) {
 		LOG("Failed to save video resource meta file.");
 		return false;
 	}
 
 	// Save to file
-	saved = App->files->Save(audioClip->GetResourceFilePath().c_str(), buffer);
+	saved = App->files->Save(video->GetResourceFilePath().c_str(), buffer);
 	if (!saved) {
 		LOG("Failed to save video resource file.");
 		return false;
 	}
 
 	// Save to file
-	saved = App->files->Save(audioClip->GetResourceFilePath().c_str(), buffer);
+	saved = App->files->Save(video->GetResourceFilePath().c_str(), buffer);
 	if (!saved) {
 		LOG("Failed to save video resource file.");
 		return false;
 	}
 
 	// Send resource creation event
-	App->resources->SendCreateResourceEvent(audioClip);
+	App->resources->SendCreateResourceEvent(video);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Video imported in %ums", timeMs);
