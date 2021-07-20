@@ -8,8 +8,8 @@
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleWindow.h"
 #include "Modules/ModuleTime.h"
+#include "Components/ComponentScript.h"
 #include "Components/UI/ComponentTransform2D.h"
-#include "Scripting/Script.h"
 
 #include "Utils/Leaks.h"
 
