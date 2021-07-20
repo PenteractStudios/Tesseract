@@ -196,6 +196,7 @@ ProgramDepthPrepassConvertTextures::ProgramDepthPrepassConvertTextures(unsigned 
 	: Program(program_) {
 	samplesNumberLocation = glGetUniformLocation(program, "samplesNumber");
 
+	depthsLocation = glGetUniformLocation(program, "depths");
 	positionsLocation = glGetUniformLocation(program, "positions");
 	normalsLocation = glGetUniformLocation(program, "normals");
 }
@@ -280,6 +281,11 @@ ProgramBillboard::ProgramBillboard(unsigned program_)
 	viewLocation = glGetUniformLocation(program, "view");
 	projLocation = glGetUniformLocation(program, "proj");
 
+	nearLocation = glGetUniformLocation(program, "near");
+	farLocation = glGetUniformLocation(program, "far");
+
+	depthsLocation = glGetUniformLocation(program, "depths");
+
 	diffuseMapLocation = glGetUniformLocation(program, "diffuseMap");
 	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuseMap");
 	inputColorLocation = glGetUniformLocation(program, "inputColor");
@@ -289,6 +295,7 @@ ProgramBillboard::ProgramBillboard(unsigned program_)
 	yTilesLocation = glGetUniformLocation(program, "Ytiles");
 	xFlipLocation = glGetUniformLocation(program, "flipX");
 	yFlipLocation = glGetUniformLocation(program, "flipY");
+	isSoftLocation = glGetUniformLocation(program, "isSoft");
 }
 
 ProgramTrail::ProgramTrail(unsigned program_)
