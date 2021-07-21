@@ -70,8 +70,10 @@ public:
 
 	unsigned renderTexture = 0;
 	unsigned outputTexture = 0;
+	unsigned depthsMSTexture = 0;
 	unsigned positionsMSTexture = 0;
 	unsigned normalsMSTexture = 0;
+	unsigned depthsTexture = 0;
 	unsigned positionsTexture = 0;
 	unsigned normalsTexture = 0;
 	unsigned depthMapTexture = 0;
@@ -79,8 +81,6 @@ public:
 	unsigned auxBlurTexture = 0;
 	unsigned colorTextures[2] = {0, 0}; // position 0: scene render texture; position 1: bloom texture to be blurred
 	unsigned bloomBlurTextures[2] = {0, 0};
-
-	unsigned depthBuffer = 0;
 
 	unsigned renderPassBuffer = 0;
 	unsigned depthPrepassBuffer = 0;
