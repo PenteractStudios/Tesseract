@@ -42,10 +42,12 @@ uniform vec2 tiling;
 uniform vec2 offset;
 
 // IBL
+uniform int hasIBL;
 uniform samplerCube diffuseIBL;
 uniform samplerCube prefilteredIBL;
 uniform sampler2D environmentBRDF;
 uniform int prefilteredIBLNumLevels;
+uniform float strengthIBL;
 
 struct AmbientLight
 {
@@ -120,12 +122,20 @@ vec4 GetEmissive(vec2 tiledUV)
 
 vec3 GetAmbientLight(in vec3 R, in vec3 normal, in vec3 viewDir, in vec3 Cd, in vec3 F0, float roughness)
 {
-	float NV = max(dot(fragNormal, viewDir), 0.0) + EPSILON;
-	vec3 irradiance = texture(diffuseIBL, normal).rgb;
-	vec3 radiance = textureLod(prefilteredIBL, R, roughness * prefilteredIBLNumLevels).rgb;
-	vec2 fab = texture(environmentBRDF, vec2(NV, roughness)).rg;
-	vec3 diffuse = (Cd * (1 - F0));
-	return diffuse * irradiance + radiance * (F0 * fab.x + fab.y);
+	if (hasIBL == 1)
+	{
+		float NV = max(dot(fragNormal, viewDir), 0.0) + EPSILON;
+		vec3 irradiance = texture(diffuseIBL, normal).rgb;
+		vec3 radiance = textureLod(prefilteredIBL, R, roughness * prefilteredIBLNumLevels).rgb;
+		vec2 fab = texture(environmentBRDF, vec2(NV, roughness)).rg;
+		vec3 diffuse = (Cd * (1 - F0));
+		return (diffuse * irradiance + radiance * (F0 * fab.x + fab.y)) * strengthIBL;
+	}
+	else
+	{
+		vec3 diffuse = (Cd * (1 - F0));
+		return diffuse * light.ambient.color;
+	}
 }
 
 vec3 GetOccludedAmbientLight(in vec3 R, in vec3 normal, in vec3 viewDir, in vec3 Cd, in vec3 F0, float roughness, vec2 tiledUV)

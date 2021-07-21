@@ -138,10 +138,12 @@ struct ProgramStandard : public Program {
 	int tilingLocation = -1;
 	int offsetLocation = -1;
 
+	int hasIBLLocation = -1;
 	int diffuseIBLLocation = -1;
 	int prefilteredIBLLocation = -1;
 	int environmentBRDFLocation = -1;
 	int prefilteredIBLNumLevelsLocation = -1;
+	int strengthIBLLocation = -1;
 
 	int lightAmbientColorLocation = -1;
 

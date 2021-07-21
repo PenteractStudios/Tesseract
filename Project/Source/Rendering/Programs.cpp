@@ -131,10 +131,12 @@ ProgramStandard::ProgramStandard(unsigned program_)
 	tilingLocation = glGetUniformLocation(program, "tiling");
 	offsetLocation = glGetUniformLocation(program, "offset");
 
+	hasIBLLocation = glGetUniformLocation(program, "hasIBL");
 	diffuseIBLLocation = glGetUniformLocation(program, "diffuseIBL");
 	prefilteredIBLLocation = glGetUniformLocation(program, "prefilteredIBL");
 	environmentBRDFLocation = glGetUniformLocation(program, "environmentBRDF");
 	prefilteredIBLNumLevelsLocation = glGetUniformLocation(program, "prefilteredIBLNumLevels");
+	strengthIBLLocation = glGetUniformLocation(program, "strengthIBL");
 
 	lightAmbientColorLocation = glGetUniformLocation(program, "light.ambient.color");
 

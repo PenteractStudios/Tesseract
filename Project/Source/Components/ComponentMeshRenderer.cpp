@@ -568,12 +568,15 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform2fv(standardProgram->offsetLocation, 1, material->offset.ptr());
 
 	// IBL textures
-	auto it = scene->skyboxComponents.begin();
-	if (it != scene->skyboxComponents.end()) {
-		ComponentSkyBox& skyboxComponent = *it;
+	auto skyboxIt = scene->skyboxComponents.begin();
+	bool hasIBL = false;
+	if (skyboxIt != scene->skyboxComponents.end()) {
+		ComponentSkyBox& skyboxComponent = *skyboxIt;
 		ResourceSkybox* skyboxResource = App->resources->GetResource<ResourceSkybox>(skyboxComponent.GetSkyboxResourceID());
 
 		if (skyboxResource != nullptr) {
+			hasIBL = true;
+
 			glUniform1i(standardProgram->diffuseIBLLocation, 7);
 			glActiveTexture(GL_TEXTURE7);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxResource->GetGlIrradianceMap());
@@ -587,12 +590,15 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 			glBindTexture(GL_TEXTURE_2D, skyboxResource->GetGlEnvironmentBRDF());
 
 			glUniform1i(standardProgram->prefilteredIBLNumLevelsLocation, skyboxResource->GetPreFilteredMapNumLevels());
+
+			glUniform1f(standardProgram->strengthIBLLocation, skyboxComponent.strength);
 		}
 	}
+	glUniform1i(standardProgram->hasIBLLocation, hasIBL ? 1 : 0);
+
 	// Lights uniforms settings
 	glUniform3fv(standardProgram->lightAmbientColorLocation, 1, App->renderer->ambientColor.ptr());
 
-	// Lights uniforms settings
 	if (directionalLight != nullptr) {
 		glUniform3fv(standardProgram->lightDirectionalDirectionLocation, 1, directionalLight->direction.ptr());
 		glUniform3fv(standardProgram->lightDirectionalColorLocation, 1, directionalLight->color.ptr());
