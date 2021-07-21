@@ -50,7 +50,9 @@ void main()
     // Point Light
     for (int i = 0; i < light.numPoints; i++) {
         float pointDistance = length(light.points[i].pos - fragPos);
-        float distAttenuation = 1.0 / (light.points[i].kc + light.points[i].kl * pointDistance + light.points[i].kq * pointDistance * pointDistance);
+        float falloffExponent = light.points[i].useCustomFalloff * light.points[i].falloffExponent + (1 - light.points[i].useCustomFalloff) * 4.0;
+        float distAttenuation = clamp(1.0 - pow(pointDistance / light.points[i].radius, falloffExponent), 0.0, 1.0);
+        distAttenuation = light.points[i].useCustomFalloff * distAttenuation + (1 - light.points[i].useCustomFalloff) * distAttenuation * distAttenuation / (pointDistance * pointDistance + 1.0);
 
         vec3 pointDir = normalize(fragPos - light.points[i].pos);
         float NL = max(dot(normal, -pointDir), 0.0);
@@ -68,8 +70,10 @@ void main()
     // Spot Light
     for (int i = 0; i < light.numSpots; i++) {
         float spotDistance = length(light.spots[i].pos - fragPos);
-        float distAttenuation = 1.0 / (light.spots[i].kc + light.spots[i].kl * spotDistance + light.spots[i].kq * spotDistance * spotDistance);
-
+        float falloffExponent = light.spots[i].useCustomFalloff * light.spots[i].falloffExponent + (1 - light.spots[i].useCustomFalloff) * 4.0;
+        float distAttenuation = clamp(1.0 - pow(spotDistance / light.spots[i].radius, falloffExponent), 0.0, 1.0);
+        distAttenuation = light.spots[i].useCustomFalloff * distAttenuation + (1 - light.spots[i].useCustomFalloff) * distAttenuation * distAttenuation / (spotDistance * spotDistance + 1.0);
+        
         vec3 spotDir = normalize(fragPos - light.spots[i].pos);
 
         vec3 aimDir = normalize(light.spots[i].direction);
