@@ -604,9 +604,9 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform3fv(standardProgram->lightPoints[i].posLocation, 1, pointLightsArray[i]->pos.ptr());
 		glUniform3fv(standardProgram->lightPoints[i].colorLocation, 1, pointLightsArray[i]->color.ptr());
 		glUniform1f(standardProgram->lightPoints[i].intensityLocation, pointLightsArray[i]->intensity);
-		glUniform1f(standardProgram->lightPoints[i].kcLocation, pointLightsArray[i]->kc);
-		glUniform1f(standardProgram->lightPoints[i].klLocation, pointLightsArray[i]->kl);
-		glUniform1f(standardProgram->lightPoints[i].kqLocation, pointLightsArray[i]->kq);
+		glUniform1f(standardProgram->lightPoints[i].radiusLocation, pointLightsArray[i]->radius);
+		glUniform1i(standardProgram->lightPoints[i].useCustomFalloffLocation, pointLightsArray[i]->useCustomFalloff);
+		glUniform1f(standardProgram->lightPoints[i].falloffExponentLocation, pointLightsArray[i]->falloffExponent);
 	}
 	glUniform1i(standardProgram->lightNumPointsLocation, pointLightsArraySize);
 
@@ -615,9 +615,9 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform3fv(standardProgram->lightSpots[i].directionLocation, 1, spotLightsArray[i]->direction.ptr());
 		glUniform3fv(standardProgram->lightSpots[i].colorLocation, 1, spotLightsArray[i]->color.ptr());
 		glUniform1f(standardProgram->lightSpots[i].intensityLocation, spotLightsArray[i]->intensity);
-		glUniform1f(standardProgram->lightSpots[i].kcLocation, spotLightsArray[i]->kc);
-		glUniform1f(standardProgram->lightSpots[i].klLocation, spotLightsArray[i]->kl);
-		glUniform1f(standardProgram->lightSpots[i].kqLocation, spotLightsArray[i]->kq);
+		glUniform1f(standardProgram->lightSpots[i].radiusLocation, spotLightsArray[i]->radius);
+		glUniform1i(standardProgram->lightSpots[i].useCustomFalloffLocation, spotLightsArray[i]->useCustomFalloff);
+		glUniform1f(standardProgram->lightSpots[i].falloffExponentLocation, spotLightsArray[i]->falloffExponent);
 		glUniform1f(standardProgram->lightSpots[i].innerAngleLocation, spotLightsArray[i]->innerAngle);
 		glUniform1f(standardProgram->lightSpots[i].outerAngleLocation, spotLightsArray[i]->outerAngle);
 	}

@@ -9,9 +9,9 @@ struct PointLightUniforms {
 	int posLocation = -1;
 	int colorLocation = -1;
 	int intensityLocation = -1;
-	int kcLocation = -1;
-	int klLocation = -1;
-	int kqLocation = -1;
+	int radiusLocation = -1;
+	int useCustomFalloffLocation = -1;
+	int falloffExponentLocation = -1;
 };
 
 struct SpotLightUniforms {
@@ -22,9 +22,9 @@ struct SpotLightUniforms {
 	int directionLocation = -1;
 	int colorLocation = -1;
 	int intensityLocation = -1;
-	int kcLocation = -1;
-	int klLocation = -1;
-	int kqLocation = -1;
+	int radiusLocation = -1;
+	int useCustomFalloffLocation = -1;
+	int falloffExponentLocation = -1;
 	int innerAngleLocation = -1;
 	int outerAngleLocation = -1;
 };
