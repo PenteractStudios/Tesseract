@@ -226,8 +226,10 @@ bool ModuleRender::Init() {
 
 	glGenTextures(1, &renderTexture);
 	glGenTextures(1, &outputTexture);
+	glGenTextures(1, &depthsMSTexture);
 	glGenTextures(1, &positionsMSTexture);
 	glGenTextures(1, &normalsMSTexture);
+	glGenTextures(1, &depthsTexture);
 	glGenTextures(1, &positionsTexture);
 	glGenTextures(1, &normalsTexture);
 	for (unsigned i = 0; i < NUM_CASCADE_FRUSTUM; i++) {
@@ -237,8 +239,6 @@ bool ModuleRender::Init() {
 	glGenTextures(1, &auxBlurTexture);
 	glGenTextures(2, colorTextures);
 	glGenTextures(2, bloomBlurTextures);
-
-	glGenRenderbuffers(1, &depthBuffer);
 
 	glGenFramebuffers(1, &renderPassBuffer);
 	glGenFramebuffers(1, &depthPrepassBuffer);
@@ -347,12 +347,16 @@ void ModuleRender::ConvertDepthPrepassTextures() {
 	glUniform1i(convertProgram->samplesNumberLocation, msaaActive ? msaaSamplesNumber[static_cast<int>(msaaSampleType)] : msaaSampleSingle);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, positionsMSTexture);
-	glUniform1i(convertProgram->positionsLocation, 0);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, depthsMSTexture);
+	glUniform1i(convertProgram->depthsLocation, 0);
 
 	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, positionsMSTexture);
+	glUniform1i(convertProgram->positionsLocation, 1);
+
+	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, normalsMSTexture);
-	glUniform1i(convertProgram->normalsLocation, 1);
+	glUniform1i(convertProgram->normalsLocation, 2);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
@@ -535,8 +539,10 @@ UpdateStatus ModuleRender::Update() {
 	// Depth Prepass texture conversion
 	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureConversionBuffer);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glDisable(GL_DEPTH_TEST);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	glDepthFunc(GL_ALWAYS);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	ConvertDepthPrepassTextures();
 
@@ -781,8 +787,10 @@ bool ModuleRender::CleanUp() {
 
 	glDeleteTextures(1, &renderTexture);
 	glDeleteTextures(1, &outputTexture);
+	glDeleteTextures(1, &depthsMSTexture);
 	glDeleteTextures(1, &positionsMSTexture);
 	glDeleteTextures(1, &normalsMSTexture);
+	glDeleteTextures(1, &depthsTexture);
 	glDeleteTextures(1, &positionsTexture);
 	glDeleteTextures(1, &normalsTexture);
 	for (unsigned i = 0; i < NUM_CASCADE_FRUSTUM; i++) {
@@ -792,8 +800,6 @@ bool ModuleRender::CleanUp() {
 	glDeleteTextures(1, &auxBlurTexture);
 	glDeleteTextures(2, colorTextures);
 	glDeleteTextures(2, bloomBlurTextures);
-
-	glDeleteRenderbuffers(1, &depthBuffer);
 
 	glDeleteFramebuffers(1, &renderPassBuffer);
 	glDeleteFramebuffers(1, &depthPrepassBuffer);
@@ -829,14 +835,12 @@ void ModuleRender::ReceiveEvent(TesseractEvent& ev) {
 void ModuleRender::UpdateFramebuffers() {
 	unsigned msaaSamples = msaaActive ? msaaSamplesNumber[static_cast<int>(msaaSampleType)] : msaaSampleSingle;
 
-	// Depth buffer
-	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-	glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSamples, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
 	// Depth prepass buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassBuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, depthsMSTexture);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, depthsMSTexture, 0);
 
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, positionsMSTexture);
 	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
@@ -846,11 +850,19 @@ void ModuleRender::UpdateFramebuffers() {
 	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D_MULTISAMPLE, normalsMSTexture, 0);
 
-	GLuint drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-	glDrawBuffers(2, drawBuffers);
+	GLuint drawBuffers2[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+	glDrawBuffers(2, drawBuffers2);
 
 	// Depth prepass texture conversion buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureConversionBuffer);
+
+	glBindTexture(GL_TEXTURE_2D, depthsTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthsTexture, 0);
 
 	glBindTexture(GL_TEXTURE_2D, positionsTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_RGB, GL_FLOAT, NULL);
@@ -868,7 +880,7 @@ void ModuleRender::UpdateFramebuffers() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalsTexture, 0);
 
-	glDrawBuffers(2, drawBuffers);
+	glDrawBuffers(2, drawBuffers2);
 
 	// Shadow buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
@@ -922,7 +934,9 @@ void ModuleRender::UpdateFramebuffers() {
 
 	// Render buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, depthsMSTexture);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, depthsMSTexture, 0);
 
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, renderTexture);
 	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_RGB16F, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_TRUE);

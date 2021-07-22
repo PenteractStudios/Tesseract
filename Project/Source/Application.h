@@ -24,6 +24,7 @@ class ModuleProject;
 class ModuleEvents;
 class ModulePhysics;
 class ModuleNavigation;
+class ModuleConfiguration;
 
 struct Event;
 
@@ -59,6 +60,7 @@ public:
 	ModuleEvents* events = nullptr;
 	ModulePhysics* physics = nullptr;
 	ModuleNavigation* navigation = nullptr;
+	ModuleConfiguration* configuration = nullptr;
 
 	// - Application Configuration - //
 	char appName[20] = "Tesseract";

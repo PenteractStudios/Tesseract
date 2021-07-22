@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Rendering\FrustumPlanes.h" />
+    <ClInclude Include="Source\Modules\ModuleConfiguration.h" />
     <ClInclude Include="Source\Components\ComponentObstacle.h" />
     <ClInclude Include="Libs\imgui\imgui_color_gradient.h" />
     <ClInclude Include="Source\Panels\PanelAudioMixer.h" />
@@ -349,6 +350,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Rendering\FrustumPlanes.cpp" />
+    <ClCompile Include="Source\Modules\ModuleConfiguration.cpp" />
     <ClCompile Include="Source\Components\ComponentObstacle.cpp" />
     <ClCompile Include="Libs\imgui\imgui_color_gradient.cpp" />
     <ClCompile Include="Source\Panels\PanelAudioMixer.cpp" />

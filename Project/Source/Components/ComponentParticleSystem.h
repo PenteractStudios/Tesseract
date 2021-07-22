@@ -234,6 +234,7 @@ public:
 	TESSERACT_ENGINE_API void SetRenderAlignment(ParticleRenderAlignment _renderAligment);
 	TESSERACT_ENGINE_API void SetFlipXTexture(bool _flipX);
 	TESSERACT_ENGINE_API void SetFlipYTexture(bool _flipY);
+	TESSERACT_ENGINE_API void SetIsSoft(bool _isSoft);
 
 	// Collision
 	TESSERACT_ENGINE_API void SetCollision(bool _collision);
@@ -326,6 +327,8 @@ private:
 	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
 	ParticleRenderAlignment renderAlignment = ParticleRenderAlignment::VIEW;
 	bool flipTexture[2] = {false, false};
+	bool isSoft = false;
+	float softRange = 1.0f;
 
 	// Collision
 	bool collision = false;
