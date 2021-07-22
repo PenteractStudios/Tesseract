@@ -96,15 +96,20 @@ void ModulePrograms::LoadShaders() {
 	skybox = new ProgramSkybox(CreateProgram(filePath, "vertCube", "gammaCorrection fragSkybox"));
 
 	// Unlit Shader
-	unlit = new ProgramUnlit(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragUnlit"));
+	unlit = new ProgramUnlit(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragFunctionEmptyDissolve fragUnlit"));
 
 	// General shaders
 	phongNotNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarSpecular fragMainPhong"));
 	phongNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarSpecular fragMainPhong"));
-	standardNotNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic"));
-	standardNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic"));
+	standardNotNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragFunctionEmptyDissolve fragMainMetallic"));
+	standardNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragFunctionEmptyDissolve fragMainMetallic"));
 	specularNotNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
 	specularNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
+
+	// Dissolve shaders. Maybe another one for Normals
+	dissolveStandard = new ProgramStandardDissolve(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragFunctionDissolve fragMainMetallic"));
+	dissolveUnlit = new ProgramUnlitDissolve(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragFunctionDissolve fragUnlit"));
+
 
 	// Depth Prepass Shaders
 	depthPrepass = new ProgramDepthPrepass(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragDepthPrepass"));

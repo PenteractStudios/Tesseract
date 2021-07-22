@@ -335,7 +335,10 @@ void main()
     // Emission
     colorAccumulative += GetEmissive(tiledUV).rgb;
 
-    outColor = vec4(colorAccumulative, colorDiffuse.a);
+	vec4 finalColor = vec4(colorAccumulative, colorDiffuse.a);
+
+	// Add dissolve	effect
+	outColor = dissolve(finalColor, tiledUV);
 }
 
 --- fragMainSpecular

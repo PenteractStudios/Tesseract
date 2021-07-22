@@ -41,6 +41,7 @@
 #define JSON_TAG_HAS_SMOOTHNESS_IN_ALPHA_CHANNEL "HasSmoothnessInAlphaChannel"
 #define JSON_TAG_TILING "Tiling"
 #define JSON_TAG_OFFSET "Offset"
+#define JSON_TAG_DISSOLVE_SCALE "Scale"
 
 void ResourceMaterial::Load() {
 	// Timer to measure loading a material
@@ -93,6 +94,8 @@ void ResourceMaterial::Load() {
 
 	tiling = float2(jMaterial[JSON_TAG_TILING][0], jMaterial[JSON_TAG_TILING][1]);
 	offset = float2(jMaterial[JSON_TAG_OFFSET][0], jMaterial[JSON_TAG_OFFSET][1]);
+
+	dissolveScale = jMaterial[JSON_TAG_DISSOLVE_SCALE];
 
 	unsigned timeMs = timer.Stop();
 	LOG("Material loaded in %ums", timeMs);
@@ -154,6 +157,8 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	jOffset[0] = offset.x;
 	jOffset[1] = offset.y;
 
+	jMaterial[JSON_TAG_DISSOLVE_SCALE] = dissolveScale;
+
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
 	rapidjson::PrettyWriter<rapidjson::StringBuffer, rapidjson::UTF8<>, rapidjson::UTF8<>, rapidjson::CrtAllocator, rapidjson::kWriteNanAndInfFlag> writer(stringBuffer);
@@ -183,6 +188,12 @@ void ResourceMaterial::UpdateMask() {
 	}
 }
 
+void ResourceMaterial::PlayDissolveAnimation() {
+	dissolveAnimationFinished = false;
+	currentTime = 0.0f;
+	dissolveThreshold = 0.0f;
+}
+
 void ResourceMaterial::OnEditorUpdate() {
 	// Save Material
 	if (FileDialog::GetFileExtension(GetAssetFilePath().c_str()) == MATERIAL_EXTENSION) {
@@ -193,7 +204,7 @@ void ResourceMaterial::OnEditorUpdate() {
 
 	// Shader types
 	ImGui::TextColored(App->editor->titleColor, "Shader");
-	const char* shaderTypes[] = {"[Legacy] Phong", "Standard (specular settings)", "Standard", "Unlit"};
+	const char* shaderTypes[] = {"[Legacy] Phong", "Standard (specular settings)", "Standard", "Unlit", "Standard Dissolve", "Unlit Dissolve"};
 	const char* shaderTypesCurrent = shaderTypes[(int) shaderType];
 	if (ImGui::BeginCombo("Shader Type", shaderTypesCurrent)) {
 		for (int n = 0; n < IM_ARRAYSIZE(shaderTypes); ++n) {
@@ -287,7 +298,8 @@ void ResourceMaterial::OnEditorUpdate() {
 		ImGui::EndColumns();
 		ImGui::NewLine();
 
-	} else if (shaderType != MaterialShader::UNLIT) {
+	} 
+	else if (shaderType != MaterialShader::UNLIT) {
 		const char* smoothnessItems[] = {"Diffuse Alpha", "Specular Alpha"};
 
 		if (shaderType == MaterialShader::STANDARD_SPECULAR) {
@@ -305,7 +317,7 @@ void ResourceMaterial::OnEditorUpdate() {
 			}
 			ImGui::EndColumns();
 
-		} else if (shaderType == MaterialShader::STANDARD) {
+		} else if (shaderType == MaterialShader::STANDARD || shaderType == MaterialShader::STANDARD_DISSOLVE) {
 			// Metallic Options
 			ImGui::BeginColumns("##metallic_material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
 			{
@@ -391,4 +403,29 @@ void ResourceMaterial::OnEditorUpdate() {
 	// Tiling Options
 	ImGui::DragFloat2("Tiling", tiling.ptr(), App->editor->dragSpeed1f, 1, inf);
 	ImGui::DragFloat2("Offset", offset.ptr(), App->editor->dragSpeed3f, -inf, inf);
+
+	if (shaderType == MaterialShader::STANDARD_DISSOLVE || shaderType == MaterialShader::UNLIT_DISSOLVE) {
+		ImGui::NewLine();
+		ImGui::Text("Dissolve");
+		ImGui::DragFloat("Scale##dissolveScale", &dissolveScale, App->editor->dragSpeed2f, 0, inf);
+		ImGui::DragFloat("Duration##dissolveScale", &dissolveDuration, App->editor->dragSpeed2f, 0, inf);
+		if (ImGui::Button("Play Dissolve Animation")) {
+			PlayDissolveAnimation();
+		}
+		ImGui::Text("For debug only");
+		ImGui::Checkbox("Animation finished", &dissolveAnimationFinished);
+		ImGui::DragFloat("Threshold", &dissolveThreshold, App->editor->dragSpeed2f, 0, inf);
+	}
+}
+
+void ResourceMaterial::Update() {
+	if (!dissolveAnimationFinished && dissolveDuration > 0) {
+		currentTime += App->time->GetDeltaTime();
+		if (currentTime < dissolveDuration) {
+			dissolveThreshold = currentTime / dissolveDuration;
+		} else {
+			dissolveAnimationFinished = true;
+			dissolveThreshold = 1.0f;
+		}
+	}
 }

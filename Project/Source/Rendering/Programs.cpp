@@ -301,3 +301,17 @@ ProgramTrail::ProgramTrail(unsigned program_)
 	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
 	diffuseMap = glGetUniformLocation(program, "diffuseMap");
 }
+
+ProgramStandardDissolve::ProgramStandardDissolve(unsigned program) 
+	: ProgramStandardMetallic(program) {
+
+	int scaleLocation = glGetUniformLocation(program, "dissolveScale");
+	int thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
+}
+
+ProgramUnlitDissolve::ProgramUnlitDissolve(unsigned program)
+	: ProgramUnlit(program) {
+
+	int scaleLocation = glGetUniformLocation(program, "dissolveScale");
+	int thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
+}

@@ -306,6 +306,7 @@ struct ProgramBillboard : Program {
 	int xFlipLocation = -1;
 	int yFlipLocation = -1;
 };
+
 struct ProgramTrail : Program {
 	ProgramTrail(unsigned program);
 
@@ -315,4 +316,19 @@ struct ProgramTrail : Program {
 	int inputColorLocation = -1;
 	int hasDiffuseLocation = -1;
 	int diffuseMap = -1;
+};
+
+struct ProgramStandardDissolve : ProgramStandardMetallic {
+	ProgramStandardDissolve(unsigned program);
+
+	int scaleLocation = -1;
+	int thresholdLocation = -1;
+};
+
+
+struct ProgramUnlitDissolve : ProgramUnlit {
+	ProgramUnlitDissolve(unsigned program);
+
+	int scaleLocation = -1;
+	int thresholdLocation = -1;
 };
