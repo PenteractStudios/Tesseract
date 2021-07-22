@@ -114,6 +114,14 @@ Frustum LightFrustum::GetFrustum() const {
 	return subFrustums[0].orthographicFrustum;
 }
 
+LightFrustum::FrustumInformation& LightFrustum::operator[](int i) {
+	
+	assert(i < 0 || i > NUM_CASCADE_FRUSTUM && "Out of range");
+
+	return subFrustums[i];
+
+}
+
 void LightFrustum::Invalidate() {
 	dirty = true;
 }

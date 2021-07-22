@@ -31,6 +31,8 @@ public:
 
 	Frustum GetFrustum() const;
 
+	FrustumInformation& operator[](int i);
+
 	void Invalidate();
 
 private:
