@@ -155,9 +155,8 @@ void PanelControlEditor::Update() {
 			ImGui::PopItemWidth();
 			ImGui::EndMenuBar();
 		}
-
-		ImGui::End();
 	}
+	ImGui::End();
 }
 
 ImGuizmo::OPERATION PanelControlEditor::GetImGuizmoOperation() const {
