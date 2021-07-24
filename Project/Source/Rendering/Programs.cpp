@@ -305,13 +305,15 @@ ProgramTrail::ProgramTrail(unsigned program_)
 ProgramStandardDissolve::ProgramStandardDissolve(unsigned program) 
 	: ProgramStandardMetallic(program) {
 
-	int scaleLocation = glGetUniformLocation(program, "dissolveScale");
-	int thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
+	scaleLocation = glGetUniformLocation(program, "dissolveScale");
+	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
+	blendThresholdLocation = glGetUniformLocation(program, "blendThreshold");
 }
 
 ProgramUnlitDissolve::ProgramUnlitDissolve(unsigned program)
 	: ProgramUnlit(program) {
 
-	int scaleLocation = glGetUniformLocation(program, "dissolveScale");
-	int thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
+	scaleLocation = glGetUniformLocation(program, "dissolveScale");
+	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
+	blendThresholdLocation = glGetUniformLocation(program, "blendThreshold");
 }

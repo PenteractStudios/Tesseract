@@ -9,6 +9,7 @@ precision mediump float;
 //uniform float u_time;
 uniform float dissolveScale;
 uniform float dissolveThreshold;
+uniform float blendThreshold;
 
 // Some useful functions
 vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -87,19 +88,28 @@ float snoise(vec2 v) {
 vec4 dissolve(vec4 finalColor, vec2 tiledUV) {
     //vec2 st = gl_FragCoord.xy / u_resolution.xy;
     //st.x *= u_resolution.x / u_resolution.y;
-    vec2 st = tiledUV;
+    //vec2 st = tiledUV;
+    if (dissolveThreshold == 0) {
+        return finalColor;
+    }
 
-    vec3 color = vec3(0.0);
+    vec2 st = gl_FragCoord.xy / vec2(1920, 1080);
+    st.x *= 1920 / 1080;
 
     // Scale the space in order to see the function
     st *= dissolveScale;
 
-    color = vec3(snoise(st) * .5 + .5);
+    vec3 color = vec3(0.0);
 
-    if (color.x >= dissolveThreshold) {
-        //return vec4(color, 1.0);
+    color = vec3(snoise(st) * .5 + .5);
+    
+    if (color.x > dissolveThreshold) {
+        if (color.x > blendThreshold) {
+            color.x = 1;
+        }
         return vec4(finalColor.xyz, color.x);
     }
-    
-    return vec4(0.0f);
+
+    discard;
+    //return vec4(0.0f);
 }

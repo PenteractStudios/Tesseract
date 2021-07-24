@@ -193,6 +193,11 @@ void ComponentMeshRenderer::Update() {
 		}
 	}
 
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+	if (material != nullptr) {
+		material->Update();
+	}
+
 	if (App->time->GetDeltaTime() <= 0) return;
 
 	const GameObject* parent = GetOwner().GetParent();
@@ -208,10 +213,7 @@ void ComponentMeshRenderer::Update() {
 		}
 	}
 
-	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
-	if (material != nullptr) {
-		material->Update();
-	}
+	
 }
 
 void ComponentMeshRenderer::Save(JsonValue jComponent) const {
@@ -371,6 +373,11 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		ProgramUnlitDissolve* unlitProgram = App->programs->dissolveUnlit;
 		if (unlitProgram == nullptr) return;
 
+		//glDepthFunc(GL_LEQUAL);
+		glEnable(GL_BLEND);
+		//glBlendEquation(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 		glUseProgram(unlitProgram->program);
 
 		// Matrices
@@ -418,10 +425,14 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		// Dissolve settings
 		glUniform1f(unlitProgram->scaleLocation, material->dissolveScale);
 		glUniform1f(unlitProgram->thresholdLocation, material->dissolveThreshold);
-
+		glUniform1f(unlitProgram->blendThresholdLocation, material->blendThreshold);
+		
 		glBindVertexArray(mesh->vao);
 		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
 		glBindVertexArray(0);
+
+		glDisable(GL_BLEND);
+		//glDepthFunc(GL_EQUAL);
 
 		break;
 	}

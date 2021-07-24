@@ -323,6 +323,7 @@ struct ProgramStandardDissolve : ProgramStandardMetallic {
 
 	int scaleLocation = -1;
 	int thresholdLocation = -1;
+	int blendThresholdLocation = -1;
 };
 
 
@@ -331,4 +332,5 @@ struct ProgramUnlitDissolve : ProgramUnlit {
 
 	int scaleLocation = -1;
 	int thresholdLocation = -1;
+	int blendThresholdLocation = -1;
 };

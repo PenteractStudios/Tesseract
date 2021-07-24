@@ -47,17 +47,17 @@ UpdateStatus ModuleTime::PreUpdate() {
 		lastAutoSave = realTime;
 	}
 
-	//if (gameRunning) {
+	if (gameRunning) {
 		timeDeltaMs = lroundf(realTimeDeltaMs * timeScale);
 		timeLastMs += timeDeltaMs;
-	/*} else if (gameStepOnce) {
+	} else if (gameStepOnce) {
 		timeDeltaMs = stepDeltaTimeMs;
 		timeLastMs += timeDeltaMs;
 
 		gameStepOnce = false;
 	} else {
 		timeDeltaMs = 0;
-	}*/
+	}
 
 	logger->LogDeltaMS((float) realTimeDeltaMs);
 

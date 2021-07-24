@@ -41,7 +41,8 @@
 #define JSON_TAG_HAS_SMOOTHNESS_IN_ALPHA_CHANNEL "HasSmoothnessInAlphaChannel"
 #define JSON_TAG_TILING "Tiling"
 #define JSON_TAG_OFFSET "Offset"
-#define JSON_TAG_DISSOLVE_SCALE "Scale"
+#define JSON_TAG_DISSOLVE_SCALE "DissolveScale"
+#define JSON_TAG_DISSOLVE_BLEND_THRESHOLD "DissolveBlendThreshold"
 
 void ResourceMaterial::Load() {
 	// Timer to measure loading a material
@@ -409,6 +410,7 @@ void ResourceMaterial::OnEditorUpdate() {
 		ImGui::Text("Dissolve");
 		ImGui::DragFloat("Scale##dissolveScale", &dissolveScale, App->editor->dragSpeed2f, 0, inf);
 		ImGui::DragFloat("Duration##dissolveScale", &dissolveDuration, App->editor->dragSpeed2f, 0, inf);
+		ImGui::DragFloat("Blend Threshold##blendThreshold", &blendThreshold, App->editor->dragSpeed2f, 0, 1);
 		if (ImGui::Button("Play Dissolve Animation")) {
 			PlayDissolveAnimation();
 		}
@@ -420,7 +422,7 @@ void ResourceMaterial::OnEditorUpdate() {
 
 void ResourceMaterial::Update() {
 	if (!dissolveAnimationFinished && dissolveDuration > 0) {
-		currentTime += App->time->GetDeltaTime();
+		currentTime += App->time->GetDeltaTimeOrRealDeltaTime();
 		if (currentTime < dissolveDuration) {
 			dissolveThreshold = currentTime / dissolveDuration;
 		} else {

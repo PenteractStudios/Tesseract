@@ -74,9 +74,10 @@ public:
 	float2 offset = {0.f, 0.f};
 
 	// Dissolve Values. TODO: Should be converted into a map of properties and stored as is
-	float dissolveScale = 1.0f;
+	float dissolveScale = 10.0f;
 	float dissolveThreshold = 0.0f;
 	float dissolveDuration = 1.0f;
+	float blendThreshold = 0.85f;
 	float currentTime = 0.0f;
 	bool dissolveAnimationFinished = true;
 };
