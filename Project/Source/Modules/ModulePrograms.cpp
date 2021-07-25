@@ -110,7 +110,6 @@ void ModulePrograms::LoadShaders() {
 	dissolveStandard = new ProgramStandardDissolve(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragFunctionDissolve fragMainMetallic"));
 	dissolveUnlit = new ProgramUnlitDissolve(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragFunctionDissolve fragUnlit"));
 
-
 	// Depth Prepass Shaders
 	depthPrepass = new ProgramDepthPrepass(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragDepthPrepass"));
 	depthPrepassConvertTextures = new ProgramDepthPrepassConvertTextures(CreateProgram(filePath, "vertScreen", "fragDepthPrepassConvertTextures"));
@@ -159,6 +158,9 @@ void ModulePrograms::UnloadShaders() {
 
 	RELEASE(depthPrepass);
 	RELEASE(depthPrepassConvertTextures);
+
+	RELEASE(dissolveStandard);
+	RELEASE(dissolveUnlit);
 
 	RELEASE(ssao);
 	RELEASE(blur);

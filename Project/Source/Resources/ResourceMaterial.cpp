@@ -96,7 +96,10 @@ void ResourceMaterial::Load() {
 	tiling = float2(jMaterial[JSON_TAG_TILING][0], jMaterial[JSON_TAG_TILING][1]);
 	offset = float2(jMaterial[JSON_TAG_OFFSET][0], jMaterial[JSON_TAG_OFFSET][1]);
 
+	ResetDissolveValues();
+
 	dissolveScale = jMaterial[JSON_TAG_DISSOLVE_SCALE];
+	dissolveThreshold = jMaterial[JSON_TAG_DISSOLVE_BLEND_THRESHOLD];
 
 	unsigned timeMs = timer.Stop();
 	LOG("Material loaded in %ums", timeMs);
@@ -159,6 +162,7 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	jOffset[1] = offset.y;
 
 	jMaterial[JSON_TAG_DISSOLVE_SCALE] = dissolveScale;
+	jMaterial[JSON_TAG_DISSOLVE_BLEND_THRESHOLD] = dissolveThreshold;
 
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
@@ -193,6 +197,15 @@ void ResourceMaterial::PlayDissolveAnimation() {
 	dissolveAnimationFinished = false;
 	currentTime = 0.0f;
 	dissolveThreshold = 0.0f;
+}
+
+void ResourceMaterial::ResetDissolveValues() {
+	dissolveThreshold = 0.0f;
+	dissolveDuration = 1.0f;
+	blendThreshold = 0.85f;
+	currentTime = 0.0f;
+	dissolveAnimationFinished = true;
+	renderingMode = RenderingMode::TRANSPARENT;
 }
 
 void ResourceMaterial::OnEditorUpdate() {

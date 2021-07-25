@@ -34,6 +34,7 @@ public:
 	void UpdateMask();
 
 	TESSERACT_ENGINE_API void PlayDissolveAnimation();
+	TESSERACT_ENGINE_API void ResetDissolveValues();
 
 public:
 	// Material shader

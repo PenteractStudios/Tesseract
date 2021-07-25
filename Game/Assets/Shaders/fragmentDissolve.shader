@@ -12,9 +12,9 @@ uniform float dissolveThreshold;
 uniform float blendThreshold;
 
 // Some useful functions
-vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-vec3 permute(vec3 x) { return mod289(((x * 34.0) + 1.0) * x); }
+vec3 Mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec2 Mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec3 Permute(vec3 x) { return Mod289(((x * 34.0) + 1.0) * x); }
 
 //
 // Description : GLSL 2D simplex noise function
@@ -26,7 +26,7 @@ vec3 permute(vec3 x) { return mod289(((x * 34.0) + 1.0) * x); }
 //  Distributed under the MIT License. See LICENSE file.
 //  https://github.com/ashima/webgl-noise
 //
-float snoise(vec2 v) {
+float SimplexNoise(vec2 v) {
 
     // Precompute values for skewed triangular grid
     const vec4 C = vec4(0.211324865405187,
@@ -50,9 +50,9 @@ float snoise(vec2 v) {
 
     // Do some permutations to avoid
     // truncation effects in permutation
-    i = mod289(i);
-    vec3 p = permute(
-        permute(i.y + vec3(0.0, i1.y, 1.0))
+    i = Mod289(i);
+    vec3 p = Permute(
+        Permute(i.y + vec3(0.0, i1.y, 1.0))
         + i.x + vec3(0.0, i1.x, 1.0));
 
     vec3 m = max(0.5 - vec3(
@@ -85,7 +85,7 @@ float snoise(vec2 v) {
     return 130.0 * dot(m, g);
 }
 
-vec4 dissolve(vec4 finalColor, vec2 tiledUV) {
+vec4 Dissolve(vec4 finalColor, vec2 tiledUV) {
     //vec2 st = gl_FragCoord.xy / u_resolution.xy;
     //st.x *= u_resolution.x / u_resolution.y;
     //vec2 st = tiledUV;
@@ -101,7 +101,7 @@ vec4 dissolve(vec4 finalColor, vec2 tiledUV) {
 
     vec3 color = vec3(0.0);
 
-    color = vec3(snoise(st) * .5 + .5);
+    color = vec3(SimplexNoise(st) * .5 + .5);
     
     if (color.x > dissolveThreshold) {
         if (color.x > blendThreshold) {

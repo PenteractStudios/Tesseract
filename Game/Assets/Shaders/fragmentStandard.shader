@@ -338,7 +338,7 @@ void main()
 	vec4 finalColor = vec4(colorAccumulative, colorDiffuse.a);
 
 	// Add dissolve	effect
-	outColor = dissolve(finalColor, tiledUV);
+	outColor = Dissolve(finalColor, tiledUV);
 }
 
 --- fragMainSpecular

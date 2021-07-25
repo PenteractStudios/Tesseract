@@ -315,6 +315,36 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		standardProgram = metallicProgram;
 		break;
 	}
+	case MaterialShader::STANDARD_DISSOLVE: {
+		// Standard-specific uniform settings
+		ProgramStandardMetallic* metallicProgram = hasNormalMap ? App->programs->standardNormal : App->programs->standardNotNormal;
+		if (metallicProgram == nullptr) return;
+
+		ProgramStandardDissolve* dissolveProgram = App->programs->dissolveStandard;
+
+		glUseProgram(dissolveProgram->program);
+
+		// Standard-specific settings
+		unsigned glTextureMetallic = 0;
+		ResourceTexture* metallic = App->resources->GetResource<ResourceTexture>(material->metallicMapId);
+		glTextureMetallic = metallic ? metallic->glTexture : 0;
+		int hasMetallicMap = metallic ? 1 : 0;
+
+		glUniform1f(dissolveProgram->metalnessLocation, material->metallic);
+		glUniform1i(dissolveProgram->hasMetallicMapLocation, hasMetallicMap);
+
+		glUniform1i(dissolveProgram->metallicMapLocation, 1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, glTextureMetallic);
+
+		// Dissolve settings
+		glUniform1f(dissolveProgram->scaleLocation, material->dissolveScale);
+		glUniform1f(dissolveProgram->thresholdLocation, material->dissolveThreshold);
+		glUniform1f(dissolveProgram->blendThresholdLocation, material->blendThreshold);
+
+		standardProgram = dissolveProgram;
+		break;
+	}
 	case MaterialShader::UNLIT: {
 		ProgramUnlit* unlitProgram = App->programs->unlit;
 		if (unlitProgram == nullptr) return;
@@ -373,9 +403,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		ProgramUnlitDissolve* unlitProgram = App->programs->dissolveUnlit;
 		if (unlitProgram == nullptr) return;
 
-		//glDepthFunc(GL_LEQUAL);
 		glEnable(GL_BLEND);
-		//glBlendEquation(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glUseProgram(unlitProgram->program);
@@ -432,7 +460,6 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glBindVertexArray(0);
 
 		glDisable(GL_BLEND);
-		//glDepthFunc(GL_EQUAL);
 
 		break;
 	}
