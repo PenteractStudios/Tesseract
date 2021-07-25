@@ -78,7 +78,8 @@ public:
 	float dissolveScale = 10.0f;
 	float dissolveThreshold = 0.0f;
 	float dissolveDuration = 1.0f;
-	float blendThreshold = 0.85f;
+	float dissolveBlendThreshold = 0.85f;
 	float currentTime = 0.0f;
+	float2 dissolveOffset = float2::zero;
 	bool dissolveAnimationFinished = true;
 };

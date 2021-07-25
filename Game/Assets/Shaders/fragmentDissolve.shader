@@ -9,7 +9,8 @@ precision mediump float;
 //uniform float u_time;
 uniform float dissolveScale;
 uniform float dissolveThreshold;
-uniform float blendThreshold;
+uniform float dissolveBlendThreshold;
+uniform vec2 dissolveOffset;
 
 // Some useful functions
 vec3 Mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -98,13 +99,14 @@ vec4 Dissolve(vec4 finalColor, vec2 tiledUV) {
 
     // Scale the space in order to see the function
     st *= dissolveScale;
+    st += dissolveOffset;
 
     vec3 color = vec3(0.0);
 
     color = vec3(SimplexNoise(st) * .5 + .5);
     
     if (color.x > dissolveThreshold) {
-        if (color.x > blendThreshold) {
+        if (color.x > dissolveBlendThreshold) {
             color.x = 1;
         }
         return vec4(finalColor.xyz, color.x);

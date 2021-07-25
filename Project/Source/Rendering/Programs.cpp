@@ -308,6 +308,7 @@ ProgramStandardDissolve::ProgramStandardDissolve(unsigned program)
 	scaleLocation = glGetUniformLocation(program, "dissolveScale");
 	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
 	blendThresholdLocation = glGetUniformLocation(program, "blendThreshold");
+	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
 }
 
 ProgramUnlitDissolve::ProgramUnlitDissolve(unsigned program)
@@ -316,4 +317,5 @@ ProgramUnlitDissolve::ProgramUnlitDissolve(unsigned program)
 	scaleLocation = glGetUniformLocation(program, "dissolveScale");
 	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
 	blendThresholdLocation = glGetUniformLocation(program, "blendThreshold");
+	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
 }

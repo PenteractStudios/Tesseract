@@ -340,7 +340,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		// Dissolve settings
 		glUniform1f(dissolveProgram->scaleLocation, material->dissolveScale);
 		glUniform1f(dissolveProgram->thresholdLocation, material->dissolveThreshold);
-		glUniform1f(dissolveProgram->blendThresholdLocation, material->blendThreshold);
+		glUniform1f(dissolveProgram->blendThresholdLocation, material->dissolveBlendThreshold);
+		glUniform2fv(dissolveProgram->offsetLocation, 1, material->dissolveOffset.ptr());
 
 		standardProgram = dissolveProgram;
 		break;
@@ -453,7 +454,9 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		// Dissolve settings
 		glUniform1f(unlitProgram->scaleLocation, material->dissolveScale);
 		glUniform1f(unlitProgram->thresholdLocation, material->dissolveThreshold);
-		glUniform1f(unlitProgram->blendThresholdLocation, material->blendThreshold);
+		glUniform1f(unlitProgram->blendThresholdLocation, material->dissolveBlendThreshold);
+		glUniform2fv(unlitProgram->offsetLocation, 1, material->dissolveOffset.ptr());
+
 		
 		glBindVertexArray(mesh->vao);
 		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);

@@ -42,6 +42,7 @@
 #define JSON_TAG_TILING "Tiling"
 #define JSON_TAG_OFFSET "Offset"
 #define JSON_TAG_DISSOLVE_SCALE "DissolveScale"
+#define JSON_TAG_DISSOLVE_OFFSET "DissolveOffset"
 #define JSON_TAG_DISSOLVE_BLEND_THRESHOLD "DissolveBlendThreshold"
 
 void ResourceMaterial::Load() {
@@ -96,10 +97,10 @@ void ResourceMaterial::Load() {
 	tiling = float2(jMaterial[JSON_TAG_TILING][0], jMaterial[JSON_TAG_TILING][1]);
 	offset = float2(jMaterial[JSON_TAG_OFFSET][0], jMaterial[JSON_TAG_OFFSET][1]);
 
-	ResetDissolveValues();
-
+	//ResetDissolveValues();
 	dissolveScale = jMaterial[JSON_TAG_DISSOLVE_SCALE];
-	dissolveThreshold = jMaterial[JSON_TAG_DISSOLVE_BLEND_THRESHOLD];
+	dissolveBlendThreshold = jMaterial[JSON_TAG_DISSOLVE_BLEND_THRESHOLD];
+	dissolveOffset = float2(jMaterial[JSON_TAG_DISSOLVE_OFFSET][0], jMaterial[JSON_TAG_DISSOLVE_OFFSET][1]);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Material loaded in %ums", timeMs);
@@ -163,6 +164,9 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 
 	jMaterial[JSON_TAG_DISSOLVE_SCALE] = dissolveScale;
 	jMaterial[JSON_TAG_DISSOLVE_BLEND_THRESHOLD] = dissolveThreshold;
+	JsonValue jDissolveOffset = jMaterial[JSON_TAG_DISSOLVE_OFFSET];
+	jDissolveOffset[0] = dissolveOffset.x;
+	jDissolveOffset[1] = dissolveOffset.y;
 
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
@@ -202,9 +206,10 @@ void ResourceMaterial::PlayDissolveAnimation() {
 void ResourceMaterial::ResetDissolveValues() {
 	dissolveThreshold = 0.0f;
 	dissolveDuration = 1.0f;
-	blendThreshold = 0.85f;
+	dissolveBlendThreshold = 0.85f;
 	currentTime = 0.0f;
 	dissolveAnimationFinished = true;
+	dissolveOffset = float2::zero;
 	renderingMode = RenderingMode::TRANSPARENT;
 }
 
@@ -422,8 +427,9 @@ void ResourceMaterial::OnEditorUpdate() {
 		ImGui::NewLine();
 		ImGui::Text("Dissolve");
 		ImGui::DragFloat("Scale##dissolveScale", &dissolveScale, App->editor->dragSpeed2f, 0, inf);
+		ImGui::DragFloat2("Offset##dissolveOffset", dissolveOffset.ptr(), App->editor->dragSpeed2f, -inf, inf);
 		ImGui::DragFloat("Duration##dissolveScale", &dissolveDuration, App->editor->dragSpeed2f, 0, inf);
-		ImGui::DragFloat("Blend Threshold##blendThreshold", &blendThreshold, App->editor->dragSpeed2f, 0, 1);
+		ImGui::DragFloat("Blend Threshold##blendThreshold", &dissolveBlendThreshold, App->editor->dragSpeed2f, 0, 1);
 		if (ImGui::Button("Play Dissolve Animation")) {
 			PlayDissolveAnimation();
 		}
