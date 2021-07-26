@@ -109,6 +109,8 @@ ProgramVolumetricLight::ProgramVolumetricLight(unsigned program_)
 	depthsLocation = glGetUniformLocation(program, "depths");
 
 	lightColorLocation = glGetUniformLocation(program, "lightColor");
+	lightMapLocation = glGetUniformLocation(program, "lightMap");
+	hasLightMapLocation = glGetUniformLocation(program, "hasLightMap");
 	intensityLocation = glGetUniformLocation(program, "intensity");
 	attenuationExponentLocation = glGetUniformLocation(program, "attenuationExponent");
 

@@ -391,9 +391,19 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glBindTexture(GL_TEXTURE_2D, App->renderer->depthsTexture);
 		glUniform1i(volumetricLightProgram->depthsLocation, 0);
 
-		glUniform4fv(volumetricLightProgram->lightColorLocation, 1, material->volumetricLightColor.ptr());
+		// Light
+		unsigned glTextureLight = 0;
+		ResourceTexture* volumetricLightMap = App->resources->GetResource<ResourceTexture>(material->diffuseMapId);
+		glTextureLight = volumetricLightMap ? volumetricLightMap->glTexture : 0;
+		int hasLightMap = volumetricLightMap ? 1 : 0;
+
+		glUniform1i(volumetricLightProgram->lightMapLocation, 1);
+		glUniform4fv(volumetricLightProgram->lightColorLocation, 1, material->diffuseColor.ptr());
+		glUniform1i(volumetricLightProgram->hasLightMapLocation, hasLightMap ? 1 : 0);
 		glUniform1f(volumetricLightProgram->intensityLocation, material->volumetricLightInstensity);
 		glUniform1f(volumetricLightProgram->attenuationExponentLocation, material->volumetricLightAttenuationExponent);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, glTextureLight);
 
 		glUniform1i(volumetricLightProgram->isSoftLocation, material->isSoft ? 1 : 0);
 		glUniform1f(volumetricLightProgram->softRangeLocation, material->softRange);

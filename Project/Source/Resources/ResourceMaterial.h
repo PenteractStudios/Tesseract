@@ -70,7 +70,6 @@ public:
 	float2 offset = {0.f, 0.f};
 
 	// Volumetric Light
-	float4 volumetricLightColor = {1.0f, 1.0f, 1.0f, 1.0f};
 	float volumetricLightInstensity = 1.0f;
 	float volumetricLightAttenuationExponent = 1.0f;
 

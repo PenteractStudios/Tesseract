@@ -116,6 +116,8 @@ struct ProgramVolumetricLight : public Program {
 	int depthsLocation = -1;
 
 	int lightColorLocation = -1;
+	int lightMapLocation = -1;
+	int hasLightMapLocation = -1;
 	int intensityLocation = -1;
 	int attenuationExponentLocation = -1;
 

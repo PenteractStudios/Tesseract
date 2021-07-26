@@ -18,6 +18,7 @@ uniform bool hasBones;
 
 out vec3 fragPos;
 out vec3 fragNormal;
+out vec2 uv;
 
 void main()
 {
@@ -36,12 +37,14 @@ void main()
     gl_Position = proj * view * model * position;
     fragPos = vec3(model * position);
     fragNormal = normalize(transpose(inverse(mat3(model))) * normal.xyz);
+	uv = uvs;
 }
 
 --- fragVolumetricLight
 
 in vec3 fragPos;
 in vec3 fragNormal;
+in vec2 uv;
 
 uniform vec3 viewPos;
 
@@ -51,6 +54,8 @@ uniform float far;
 uniform sampler2D depths;
 
 uniform vec4 lightColor;
+uniform sampler2D lightMap;
+uniform int hasLightMap;
 uniform float intensity;
 uniform float attenuationExponent;
 
@@ -64,13 +69,21 @@ float LinearizeDepth(float depth)
     return (far * near) / (far - depth * (far - near));	
 }
 
+vec4 GetLight(vec2 uv)
+{
+    return (hasLightMap * SRGBA(texture(lightMap, uv)) + (1 - hasLightMap)) * SRGBA(lightColor) * vec4(vec3(intensity), 1.0);
+}
+
 void main()
 {
-    vec3 viewDir = normalize(viewPos - fragPos);
+	vec3 V = viewPos - fragPos;
+	float viewDist = length(V);
+    vec3 viewDir = normalize(V);
     float NV = dot(viewDir, fragNormal);
-	float fragAlpha = clamp(intensity * pow(NV, attenuationExponent), 0.0, 1.0);
+	float fragAlpha = clamp(intensity * pow(NV, attenuationExponent) * min(viewDist * 0.5 - 1.0, 1.0), 0.0, 1.0);
 
-	outColor = SRGBA(lightColor) * vec4(vec3(intensity), fragAlpha);
+	outColor = GetLight(uv);
+	outColor.a *= fragAlpha;
 	
 	if (isSoft == 1) {
 		vec2 screenUV = gl_FragCoord.xy / vec2(textureSize(depths, 0));
