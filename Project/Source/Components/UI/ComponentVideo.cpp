@@ -58,7 +58,7 @@ void ComponentVideo::Update() {
 		}
 
 		if (elapsedVideoTime > audioFrameTime) {
-			ReadAudioFrame();
+			ReadAudioFrame(); //each packet contains complete frames, or multiple frames in the case of audio.
 		}
 		// audioPlayer.UpdateStreamData(audioFrameData, audioPlayer.checkFramesSync());
 	}
@@ -258,6 +258,17 @@ void ComponentVideo::OpenVideoReader(const char* filename) {
 		LOG("Couldn't allocate AVFrame.");
 		return;
 	}
+
+	// Set audio parameters
+	/*
+	wanted_spec.freq = aCodecCtx->sample_rate;
+	wanted_spec.format = AUDIO_S16SYS;
+	wanted_spec.channels = aCodecCtx->channels;
+	wanted_spec.silence = 0;
+	wanted_spec.samples = SDL_AUDIO_BUFFER_SIZE;
+	wanted_spec.callback = audio_callback;
+	wanted_spec.userdata = aCodecCtx;
+	*/
 
 	unsigned timeMs = timer.Stop();
 	LOG("Video initialised in %ums", timeMs);
