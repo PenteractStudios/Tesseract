@@ -10,7 +10,8 @@ enum class MaterialShader {
 	PHONG,
 	STANDARD_SPECULAR,
 	STANDARD,
-	UNLIT
+	UNLIT,
+	VOLUMETRIC_LIGHT
 };
 
 enum class RenderingMode {
@@ -67,4 +68,13 @@ public:
 	// Tilling
 	float2 tiling = {1.f, 1.f};
 	float2 offset = {0.f, 0.f};
+
+	// Volumetric Light
+	float4 volumetricLightColor = {1.0f, 1.0f, 1.0f, 1.0f};
+	float volumetricLightInstensity = 1.0f;
+	float volumetricLightAttenuationExponent = 1.0f;
+
+	// Softness (transparency when near other meshes)
+	bool isSoft = false;
+	float softRange = 1.0f;
 };

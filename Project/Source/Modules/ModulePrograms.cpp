@@ -98,6 +98,9 @@ void ModulePrograms::LoadShaders() {
 	// Unlit Shader
 	unlit = new ProgramUnlit(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragUnlit"));
 
+	// Volumetric Light Shader
+	volumetricLight = new ProgramVolumetricLight(CreateProgram(filePath, "vertVolumetricLight", "gammaCorrection fragVolumetricLight"));
+
 	// General shaders
 	phongNotNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarSpecular fragMainPhong"));
 	phongNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarSpecular fragMainPhong"));
