@@ -374,6 +374,7 @@
     <ClCompile Include="Source\Rendering\Programs.cpp" />
     <ClCompile Include="Source\Utils\ParticleMotionState.cpp" />
     <ClCompile Include="Libs\imgui\imgui_color_gradient.cpp" />
+    <ClCompile Include="Source\Modules\ModuleConfiguration.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentVideo.cpp" />
     <ClCompile Include="Source\Resources\ResourceVideo.cpp" />
     <ClCompile Include="Source\FileSystem\VideoImporter.cpp" />
@@ -729,6 +730,7 @@
     <ClInclude Include="Source\Utils\ParticleMotionState.h" />
     <ClInclude Include="Source\Utils\Collider.h" />
     <ClInclude Include="Libs\imgui\imgui_color_gradient.h" />
+    <ClInclude Include="Source\Modules\ModuleConfiguration.h" />
     <ClInclude Include="Source\Components\UI\ComponentVideo.h" />
     <ClInclude Include="Source\Resources\ResourceVideo.h" />
     <ClInclude Include="Source\FileSystem\VideoImporter.h" />

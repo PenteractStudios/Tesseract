@@ -59,6 +59,14 @@ inline void ImGui::ResourceSlot(const char* label, UID* target, std::function<vo
 		std::string resourceNameLabel = std::string("Name: ") + resourceName;
 		ImGui::Text(resourceNameLabel.c_str());
 
+		std::string removeButton = std::string(ICON_FA_TIMES "##") + label;
+		if (ImGui::Button(removeButton.c_str())) {
+			if (*target != 0) {
+				App->resources->DecreaseReferenceCount(*target);
+				*target = 0;
+			}
+		}
+		ImGui::SameLine();
 		ImGui::TextUnformatted("Id:");
 		ImGui::SameLine();
 		ImGui::TextColored(App->editor->textColor, "%llu", *target);

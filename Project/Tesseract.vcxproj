@@ -15,6 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Modules\ModuleConfiguration.h" />
     <ClInclude Include="Source\Resources\ResourceVideo.h" />
     <ClInclude Include="Source\Components\UI\ComponentVideo.h" />
     <ClInclude Include="Source\Components\ComponentObstacle.h" />
@@ -350,6 +351,7 @@
     <ClInclude Include="Source\FileSystem\VideoImporter.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Modules\ModuleConfiguration.cpp" />
     <ClCompile Include="Source\Resources\ResourceVideo.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentVideo.cpp" />
     <ClCompile Include="Source\Components\ComponentObstacle.cpp" />

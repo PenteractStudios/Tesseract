@@ -32,6 +32,6 @@ void PanelAudioMixer::Update() {
 		if (ImGui::SliderFloat("##out_volume", &gain, 0.f, 1.f)) {
 			(*audioListener).SetAudioVolume(gain);
 		}
-		ImGui::End();
 	}
+	ImGui::End();
 }
