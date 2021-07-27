@@ -510,7 +510,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// Shadow Pass
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
@@ -522,7 +522,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// Depth Prepass
 	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassBuffer);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
@@ -534,7 +534,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// Depth Prepass texture conversion
 	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureConversionBuffer);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_ALWAYS);
@@ -544,7 +544,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// SSAO pass
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoTextureBuffer);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LESS);
@@ -556,7 +556,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// SSAO horitontal blur
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurTextureBufferH);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glDisable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -566,7 +566,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// SSAO vertical blur
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurTextureBufferV);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glDisable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -583,6 +583,24 @@ UpdateStatus ModuleRender::Update() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// Debug textures
+	if (drawNormalsTexture) {
+		DrawTexture(normalsTexture);
+
+		// Render to screen
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, renderPassBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, colorCorrectionBuffer);
+		glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		return UpdateStatus::CONTINUE;
+	}
+	if (drawPositionsTexture) {
+		DrawTexture(positionsTexture);
+
+		// Render to screen
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, renderPassBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, colorCorrectionBuffer);
+		glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		return UpdateStatus::CONTINUE;
+	}
 	if (drawSSAOTexture) {
 		DrawTexture(ssaoTexture);
 
@@ -1072,6 +1090,8 @@ void ModuleRender::ToggleDrawLightFrustumGizmo() {
 void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 	drawDepthMapTexture = false;
 	drawSSAOTexture = false;
+	drawNormalsTexture = false;
+	drawPositionsTexture = false;
 
 	if (strcmp(shadingMode, "Shaded") == 0) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -1081,6 +1101,10 @@ void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 		drawDepthMapTexture = true;
 	} else if (strcmp(shadingMode, "Ambient Occlusion") == 0) {
 		drawSSAOTexture = true;
+	} else if (strcmp(shadingMode, "Normals") == 0) {
+		drawNormalsTexture = true;
+	} else if (strcmp(shadingMode, "Positions") == 0) {
+		drawPositionsTexture = true;
 	}
 }
 

@@ -127,7 +127,7 @@ void ComponentCamera::UpdateFrustum() {
 Frustum ComponentCamera::BuildDefaultFrustum() const {
 	Frustum newFrustum;
 	newFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
-	newFrustum.SetViewPlaneDistances(0.1f, 2000.0f);
+	newFrustum.SetViewPlaneDistances(0.1f, 1000000.0f);
 	newFrustum.SetHorizontalFovAndAspectRatio(DEGTORAD * 90.0f, 1.3f);
 	newFrustum.SetFront(vec::unitZ);
 	newFrustum.SetUp(vec::unitY);

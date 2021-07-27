@@ -251,12 +251,18 @@ ProgramColorCorrection::ProgramColorCorrection(unsigned program_)
 
 ProgramHeightFog::ProgramHeightFog(unsigned program_)
 	: Program(program_) {
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
 	originalRenderLocation = glGetUniformLocation(program, "originalRender");
 	positionsLocation = glGetUniformLocation(program, "positions");
 
 	viewPosLocation = glGetUniformLocation(program, "viewPos");
 
+	densityLocation = glGetUniformLocation(program, "density");
 	falloffLocation = glGetUniformLocation(program, "falloff");
+	heightLocation = glGetUniformLocation(program, "height");
+	inscatteringColorLocation = glGetUniformLocation(program, "inscatteringColor");
 }
 
 ProgramDrawTexture::ProgramDrawTexture(unsigned program_)

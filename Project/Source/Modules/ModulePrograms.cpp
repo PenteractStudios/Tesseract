@@ -119,7 +119,7 @@ void ModulePrograms::LoadShaders() {
 	colorCorrection = new ProgramColorCorrection(CreateProgram(filePath, "vertScreen", "gammaCorrection fragColorCorrection"));
 
 	// Fog Shaders
-	heightFog = new ProgramHeightFog(CreateProgram(filePath, "vertScreen", "fragHeightFog"));
+	heightFog = new ProgramHeightFog(CreateProgram(filePath, "vertScreen", "gammaCorrection fragHeightFog"));
 
 	// Shadow Shaders
 	shadowMap = CreateProgram(filePath, "vertDepthMap", "fragDepthMap");
@@ -164,6 +164,8 @@ void ModulePrograms::UnloadShaders() {
 	RELEASE(colorCorrection);
 
 	RELEASE(postprocess);
+
+	RELEASE(heightFog);
 
 	glDeleteProgram(shadowMap);
 

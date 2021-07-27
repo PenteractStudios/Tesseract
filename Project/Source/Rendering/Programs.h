@@ -265,12 +265,18 @@ struct ProgramColorCorrection : Program {
 struct ProgramHeightFog : Program {
 	ProgramHeightFog(unsigned program);
 
+	int viewLocation = -1;
+	int projLocation = -1;
+
 	int originalRenderLocation = -1;
 	int positionsLocation = -1;
 
 	int viewPosLocation = -1;
 
+	int densityLocation = -1;
 	int falloffLocation = -1;
+	int heightLocation = -1;
+	int inscatteringColorLocation = -1;
 };
 
 struct ProgramDrawTexture : Program {
