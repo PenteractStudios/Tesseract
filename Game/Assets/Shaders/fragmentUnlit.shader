@@ -9,6 +9,7 @@ uniform sampler2D diffuseMap;
 uniform int hasDiffuseMap;
 uniform sampler2D emissiveMap;
 uniform int hasEmissiveMap;
+uniform vec4 emissiveColor;
 uniform float emissiveIntensity;
 
 uniform vec2 tiling;
@@ -26,12 +27,12 @@ vec4 GetDiffuse(vec2 tiledUV)
 
 vec4 GetEmissive(vec2 tiledUV)
 {
-    return hasEmissiveMap * SRGBA(texture(emissiveMap, tiledUV)) * emissiveIntensity;
+    return (hasEmissiveMap * SRGBA(texture(emissiveMap, tiledUV)) * emissiveColor + (1 - hasEmissiveMap) * SRGBA(emissiveColor)) * emissiveIntensity;
 }
 
 void main()
 {
     vec2 tiledUV = GetTiledUVs();
-    vec4 finalColor = GetDiffuse(tiledUV) + vec4(GetEmissive(tiledUV).rgb, 0);
-    outColor = Dissolve(finalColor, tiledUV);
+    vec4 finalColor = Dissolve(GetDiffuse(tiledUV), tiledUV, false) + Dissolve(vec4(GetEmissive(tiledUV).rgb, 0), tiledUV, true);
+    outColor = finalColor;
 }

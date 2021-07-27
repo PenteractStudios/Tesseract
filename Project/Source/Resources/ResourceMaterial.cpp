@@ -407,13 +407,13 @@ void ResourceMaterial::OnEditorUpdate() {
 	{
 		ImGui::ResourceSlot<ResourceTexture>("Emissive Map", &emissiveMapId);
 	}
+
 	ImGui::NextColumn();
 	{
-		ImGui::NewLine();
-		if (emissiveMapId != 0) {
-			ImGui::SliderFloat("##emissiveStrength", &emissiveIntensity, 0.0, 100.0);
-		}
+		ImGui::ColorEdit4("Color##color_e", emissiveColor.ptr(), ImGuiColorEditFlags_NoInputs);
+		ImGui::SliderFloat("##emissiveStrength", &emissiveIntensity, 0.0, 100.0);
 	}
+
 	ImGui::EndColumns();
 
 	ImGui::NewLine();
@@ -430,6 +430,8 @@ void ResourceMaterial::OnEditorUpdate() {
 		ImGui::DragFloat2("Offset##dissolveOffset", dissolveOffset.ptr(), App->editor->dragSpeed2f, -inf, inf);
 		ImGui::DragFloat("Duration##dissolveScale", &dissolveDuration, App->editor->dragSpeed2f, 0, inf);
 		ImGui::DragFloat("Blend Threshold##blendThreshold", &dissolveBlendThreshold, App->editor->dragSpeed2f, 0, 1);
+		ImGui::DragFloat("Edge Size", &edgeSize, App->editor->dragSpeed2f, 0, inf);
+
 		if (ImGui::Button("Play Dissolve Animation")) {
 			PlayDissolveAnimation();
 		}

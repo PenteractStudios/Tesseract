@@ -11,6 +11,7 @@ uniform float dissolveScale;
 uniform float dissolveThreshold;
 uniform float dissolveBlendThreshold;
 uniform vec2 dissolveOffset;
+uniform float edgeSize;
 
 // Some useful functions
 vec3 Mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -86,11 +87,12 @@ float SimplexNoise(vec2 v) {
     return 130.0 * dot(m, g);
 }
 
-vec4 Dissolve(vec4 finalColor, vec2 tiledUV) {
+vec4 Dissolve(vec4 finalColor, vec2 tiledUV, bool isEmissive) {
     //vec2 st = gl_FragCoord.xy / u_resolution.xy;
     //st.x *= u_resolution.x / u_resolution.y;
     //vec2 st = tiledUV;
     if (dissolveThreshold == 0) {
+        //if (isEmissive) return vec4(0);
         return finalColor;
     }
 
@@ -104,11 +106,14 @@ vec4 Dissolve(vec4 finalColor, vec2 tiledUV) {
     vec3 color = vec3(0.0);
 
     color = vec3(SimplexNoise(st) * .5 + .5);
-    
+    float stepValue = step(color.x, dissolveThreshold + edgeSize);
+    if (isEmissive) {
+        //return vec4(stepValue, stepValue, stepValue, 1.0);
+        return finalColor * stepValue;
+    }
+    //return vec4(color, 1.0);
     if (color.x > dissolveThreshold) {
-        if (color.x > dissolveBlendThreshold) {
-            color.x = 1;
-        }
+        //return vec4(color, 1.0);
         return vec4(finalColor.xyz, color.x);
     }
 

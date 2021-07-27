@@ -87,6 +87,7 @@ ProgramUnlit::ProgramUnlit(unsigned program_)
 	emissiveMapLocation = glGetUniformLocation(program, "emissiveMap");
 	hasEmissiveMapLocation = glGetUniformLocation(program, "hasEmissiveMap");
 	emissiveIntensityLocation = glGetUniformLocation(program, "emissiveIntensity");
+	emissiveColorLocation = glGetUniformLocation(program, "emissiveColor");
 
 	tilingLocation = glGetUniformLocation(program, "tiling");
 	offsetLocation = glGetUniformLocation(program, "offset");
@@ -309,6 +310,7 @@ ProgramStandardDissolve::ProgramStandardDissolve(unsigned program)
 	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
 	blendThresholdLocation = glGetUniformLocation(program, "blendThreshold");
 	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
+	edgeSizeLocation = glGetUniformLocation(program, "edgeSize");
 }
 
 ProgramUnlitDissolve::ProgramUnlitDissolve(unsigned program)
@@ -318,4 +320,5 @@ ProgramUnlitDissolve::ProgramUnlitDissolve(unsigned program)
 	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
 	blendThresholdLocation = glGetUniformLocation(program, "blendThreshold");
 	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
+	edgeSizeLocation = glGetUniformLocation(program, "edgeSize");
 }

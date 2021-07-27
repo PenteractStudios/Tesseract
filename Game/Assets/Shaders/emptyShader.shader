@@ -1,5 +1,5 @@
 --- fragFunctionEmptyDissolve
 
-vec4 Dissolve(vec4 finalColor, vec2 tiledUV){
+vec4 Dissolve(vec4 finalColor, vec2 tiledUV, bool isEmissive){
 	return finalColor;
 }

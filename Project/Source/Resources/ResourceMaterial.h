@@ -62,6 +62,7 @@ public:
 	// Emissive
 	UID emissiveMapId = 0;
 	float emissiveIntensity = 1.f;
+	float4 emissiveColor = float4::zero;
 
 	// Ambien occlusion
 	UID ambientOcclusionMapId = 0;
@@ -81,5 +82,6 @@ public:
 	float dissolveBlendThreshold = 0.85f;
 	float currentTime = 0.0f;
 	float2 dissolveOffset = float2::zero;
+	float edgeSize = 0.0f;
 	bool dissolveAnimationFinished = true;
 };
