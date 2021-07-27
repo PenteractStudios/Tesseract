@@ -36,5 +36,5 @@ void main()
     float rayIntegral = cameraToFragDist * density * exp2(-falloff * (viewPos.y - height)) * (1.0 - exp2(-rayFalloff)) / rayFalloff;
     float fogAmount = clamp(1.0 - exp2(-rayIntegral), 0.0, inscatteringColor.a);
     vec3 fogColor = SRGB(inscatteringColor.rgb);
-    result = vec4(mix(texelFetch(originalRender, vp, gl_SampleID).rgb, fogColor, fogAmount), 1.0);
+    result = vec4(fogColor, fogAmount);
 }

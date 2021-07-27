@@ -652,9 +652,12 @@ UpdateStatus ModuleRender::Update() {
 	}
 
 	// Draw Fog
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	for (ComponentFog& fog : scene->fogComponents) {
 		if (fog.IsActive()) fog.Draw();
 	}
+	glDisable(GL_BLEND);
 
 	// Draw Gizmos
 	glEnable(GL_DEPTH_TEST);
