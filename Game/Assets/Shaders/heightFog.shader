@@ -20,8 +20,8 @@ layout(location = 0) out vec4 result;
 
 void main()
 {
-	ivec2 vp = textureSize(positions);
-	vp = ivec2(vec2(vp) * uv);
+    ivec2 vp = textureSize(positions);
+    vp = ivec2(vec2(vp) * uv);
     vec4 position = texelFetch(positions, vp, gl_SampleID);
 
     // Skybox hack
@@ -32,7 +32,7 @@ void main()
     }
 
     vec3 cameraToFrag = vec3(inverse(view) * position) - viewPos;
-	float cameraToFragDist = length(cameraToFrag);
+    float cameraToFragDist = length(cameraToFrag);
     vec3 cameraToFragDir = normalize(cameraToFrag);
     
     float rayFalloff = max(-127.0, cameraToFrag.y * falloff);
