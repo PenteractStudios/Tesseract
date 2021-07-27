@@ -7,7 +7,7 @@
     ],
     "QuadtreeMaxDepth": 4,
     "QuadtreeElementsPerNode": 200,
-    "GameCamera": 13646948318589304426,
+    "GameCamera": 221337963901948202,
     "AmbientLight": [
         0.25,
         0.25,
@@ -307,7 +307,7 @@
                                 "Type": "Video",
                                 "Id": 15664779201435072181,
                                 "Active": true,
-                                "VideoId": 0,
+                                "VideoId": 10341351743313672719,
                                 "VerticalFlip": false
                             }
                         ],

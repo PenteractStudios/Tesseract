@@ -40,13 +40,6 @@ bool VideoImporter::ImportVideo(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
-	// Save to file
-	saved = App->files->Save(video->GetResourceFilePath().c_str(), buffer);
-	if (!saved) {
-		LOG("Failed to save video resource file.");
-		return false;
-	}
-
 	// Send resource creation event
 	App->resources->SendCreateResourceEvent(video);
 
