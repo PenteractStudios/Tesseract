@@ -262,6 +262,17 @@ struct ProgramColorCorrection : Program {
 	int largeMipLevelLocation = -1;
 };
 
+struct ProgramHeightFog : Program {
+	ProgramHeightFog(unsigned program);
+
+	int originalRenderLocation = -1;
+	int positionsLocation = -1;
+
+	int viewPosLocation = -1;
+
+	int falloffLocation = -1;
+};
+
 struct ProgramDrawTexture : Program {
 	ProgramDrawTexture(unsigned program);
 

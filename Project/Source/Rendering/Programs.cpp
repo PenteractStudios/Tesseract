@@ -70,7 +70,6 @@ ProgramSkybox::ProgramSkybox(unsigned program_)
 	cubemapLocation = glGetUniformLocation(program, "cubemap");
 }
 
-
 ProgramUnlit::ProgramUnlit(unsigned program_)
 	: Program(program_) {
 	modelLocation = glGetUniformLocation(program, "model");
@@ -248,6 +247,16 @@ ProgramColorCorrection::ProgramColorCorrection(unsigned program_)
 	smallMipLevelLocation = glGetUniformLocation(program, "smallMipLevel");
 	mediumMipLevelLocation = glGetUniformLocation(program, "mediumMipLevel");
 	largeMipLevelLocation = glGetUniformLocation(program, "largeMipLevel");
+}
+
+ProgramHeightFog::ProgramHeightFog(unsigned program_)
+	: Program(program_) {
+	originalRenderLocation = glGetUniformLocation(program, "originalRender");
+	positionsLocation = glGetUniformLocation(program, "positions");
+
+	viewPosLocation = glGetUniformLocation(program, "viewPos");
+
+	falloffLocation = glGetUniformLocation(program, "falloff");
 }
 
 ProgramDrawTexture::ProgramDrawTexture(unsigned program_)

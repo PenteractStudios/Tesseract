@@ -633,6 +633,10 @@ UpdateStatus ModuleRender::Update() {
 		if (trail.IsActive()) trail.Draw();
 	}
 
+	// Draw Fog
+	for (ComponentFog& fog : scene->fogComponents) {
+		if (fog.IsActive()) fog.Draw();
+	}
 
 	// Draw Gizmos
 	glEnable(GL_DEPTH_TEST);
