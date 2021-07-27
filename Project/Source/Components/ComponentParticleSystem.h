@@ -56,6 +56,12 @@ enum class RandomMode {
 	CONST_MULT
 };
 
+enum class SubEmitterType {
+	BIRTH,
+	COLLISION,
+	DEATH,
+};
+
 class ComponentParticleSystem : public Component {
 public:
 	struct Particle {
@@ -83,11 +89,19 @@ public:
 		float radius = 0;
 	};
 
+	struct SubEmitter {
+		UID gameObjectUID = 0;
+		ComponentParticleSystem* particleSystem = nullptr;
+		SubEmitterType subEmitterType = SubEmitterType::BIRTH;
+		float emitProbability = 1;
+	};
+
 	REGISTER_COMPONENT(ComponentParticleSystem, ComponentType::PARTICLE, false);
 
 	~ComponentParticleSystem();
 
 	void Init() override;
+	void Start() override;
 	void Update() override;
 	void DrawGizmos() override;
 	void OnEditorUpdate() override;
@@ -106,12 +120,14 @@ public:
 	void InitParticleAnimationTexture(Particle* currentParticle);
 	void InitStartDelay();
 	void InitStartRate();
+	void InitSubEmitter(Particle* currentParticle, SubEmitterType subEmitterType);
 
 	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
 	void UpdateRotation(Particle* currentParticle);
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
 	void UpdateGravityDirection(Particle* currentParticle);
+	void UpdateSubEmitters();
 
 	TESSERACT_ENGINE_API void KillParticle(Particle* currentParticle);
 	void UndertakerParticle(bool force = false);
@@ -143,11 +159,11 @@ public:
 	TESSERACT_ENGINE_API bool GetPlayOnAwake() const;
 
 	// Emision
-	TESSERACT_ENGINE_API bool GetIsAttachEmmitter() const;
+	TESSERACT_ENGINE_API bool GetIsAttachEmitter() const;
 	TESSERACT_ENGINE_API float2 GetParticlesPerSecond() const;
 
 	// Shape
-	TESSERACT_ENGINE_API ParticleEmitterType GetEmmitterType() const;
+	TESSERACT_ENGINE_API ParticleEmitterType GetEmitterType() const;
 	// -- Cone
 	TESSERACT_ENGINE_API float GetConeRadiusUp() const;
 	TESSERACT_ENGINE_API float GetConeRadiusDown() const;
@@ -182,6 +198,9 @@ public:
 
 	// Collision
 	TESSERACT_ENGINE_API bool GetCollision() const;
+
+	// Sub Emitter
+	TESSERACT_ENGINE_API bool GetIsSubEmitter();
 
 	// ----- SETTERS -----
 
@@ -239,12 +258,18 @@ public:
 	// Collision
 	TESSERACT_ENGINE_API void SetCollision(bool _collision);
 
+	// Sub Emitter
+	TESSERACT_ENGINE_API void SetIsSubEmitter(bool _isEmitter);
+
+
 public:
 	WorldLayers layer;
 	int layerIndex = 5;
 	float radius = .25f;
 
 private:
+
+	// Common
 	Pool<Particle> particles;
 	std::vector<Particle*> deadParticles;
 	bool isPlaying = false;
@@ -255,6 +280,7 @@ private:
 	float restDelayTime = 0.f;
 	float restParticlesPerSecond = 0.0f;
 	float particlesCurrentFrame = 0;
+	std::vector<GameObject*> subEmittersGO;
 
 	// Gizmo
 	bool drawGizmo = true;
@@ -332,4 +358,8 @@ private:
 
 	// Collision
 	bool collision = false;
+
+	// Sub Emitter
+	bool isSubEmitter = false;
+	std::vector<SubEmitter*> subEmitters;
 };
