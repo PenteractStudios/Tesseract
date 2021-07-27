@@ -1,9 +1,10 @@
 --- fragHeightFog
 
+#define EPSILON 1e-5
+
 uniform mat4 view;
 uniform mat4 proj;
 
-uniform sampler2DMS originalRender;
 uniform sampler2DMS positions;
 
 uniform vec3 viewPos;
@@ -19,12 +20,14 @@ layout(location = 0) out vec4 result;
 
 void main()
 {
-	ivec2 vp = textureSize(originalRender);
+	ivec2 vp = textureSize(positions);
 	vp = ivec2(vec2(vp) * uv);
     vec4 position = texelFetch(positions, vp, gl_SampleID);
-    if (position.z > -0.0001)
+
+    // Skybox hack
+    if (position.z > -EPSILON)
     {
-        position = inverse(proj) * normalize(vec4(uv * 2.0 - 1.0, 1.0, 1.0));
+        position = inverse(proj) * vec4(uv * 2.0 - 1.0, 1.0, 1.0);
         position /= position.w;
     }
 

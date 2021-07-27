@@ -63,12 +63,8 @@ void ComponentFog::Draw() {
 	glUniformMatrix4fv(heightFogProgram->projLocation, 1, GL_TRUE, projectionMatrix.ptr());
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, App->renderer->renderTexture);
-	glUniform1i(heightFogProgram->originalRenderLocation, 0);
-
-	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, App->renderer->positionsMSTexture);
-	glUniform1i(heightFogProgram->positionsLocation, 1);
+	glUniform1i(heightFogProgram->positionsLocation, 0);
 
 	glUniform3fv(heightFogProgram->viewPosLocation, 1, App->camera->GetPosition().ptr());
 

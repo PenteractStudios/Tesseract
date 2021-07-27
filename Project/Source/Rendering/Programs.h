@@ -268,7 +268,6 @@ struct ProgramHeightFog : Program {
 	int viewLocation = -1;
 	int projLocation = -1;
 
-	int originalRenderLocation = -1;
 	int positionsLocation = -1;
 
 	int viewPosLocation = -1;

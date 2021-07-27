@@ -254,7 +254,6 @@ ProgramHeightFog::ProgramHeightFog(unsigned program_)
 	viewLocation = glGetUniformLocation(program, "view");
 	projLocation = glGetUniformLocation(program, "proj");
 
-	originalRenderLocation = glGetUniformLocation(program, "originalRender");
 	positionsLocation = glGetUniformLocation(program, "positions");
 
 	viewPosLocation = glGetUniformLocation(program, "viewPos");
