@@ -65,15 +65,15 @@ public:
 
 	TESSERACT_ENGINE_API void SetPosition(float3 position); // Sets this position to value
 	TESSERACT_ENGINE_API void SetSize(float2 size);			// Sets this size to value
-	void SetRotation(Quat rotation);						// Sets this rotation to value and calculates Euler Angles rotation
-	void SetRotation(float3 rotation);						// Sets this eulerAngles to value and calculates Quat rotation
+	TESSERACT_ENGINE_API void SetRotation(Quat rotation);						// Sets this rotation to value and calculates Euler Angles rotation
+	TESSERACT_ENGINE_API void SetRotation(float3 rotation);						// Sets this eulerAngles to value and calculates Quat rotation
 	TESSERACT_ENGINE_API void SetScale(float3 scale);		// Sets this scale to value
 	void SetAnchorMin(float2 anchorMin);					// Sets this anchorMin to value
 	void SetAnchorMax(float2 anchorMax);					// Sets this anchorMax to value
 	void SetPivot(float2 pivotPosition);					// Sets this pivot to value
 	const float4x4 GetGlobalMatrix();						// Returns GlobalMatrix
 	const float4x4 GetGlobalScaledMatrix();					// Returns GlobalMatrix with the size of the item
-	float3x3 GetGlobalRotation();							// Returns the accumulated rotation of the parents and the current component
+	TESSERACT_ENGINE_API Quat GetGlobalRotation();  // Returns the accumulated rotation of the parents and the current component
 	float3 GetGlobalPosition();								// Returns the global position
 
 	TESSERACT_ENGINE_API float3 GetPosition() const; // Returns the position
