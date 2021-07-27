@@ -342,6 +342,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform1f(dissolveProgram->thresholdLocation, material->dissolveThreshold);
 		glUniform1f(dissolveProgram->blendThresholdLocation, material->dissolveBlendThreshold);
 		glUniform2fv(dissolveProgram->offsetLocation, 1, material->dissolveOffset.ptr());
+		glUniform1f(dissolveProgram->edgeSizeLocation, material->edgeSize);
 
 		standardProgram = dissolveProgram;
 		break;
@@ -387,6 +388,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform1i(unlitProgram->emissiveMapLocation, 1);
 		glUniform1i(unlitProgram->hasEmissiveMapLocation, hasEmissiveMap);
 		glUniform1f(unlitProgram->emissiveIntensityLocation, material->emissiveIntensity);
+		glUniform4fv(unlitProgram->emissiveColorLocation, 1, material->emissiveColor.ptr());
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, glTextureEmissive);
 
@@ -444,6 +446,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform1i(unlitProgram->emissiveMapLocation, 1);
 		glUniform1i(unlitProgram->hasEmissiveMapLocation, hasEmissiveMap);
 		glUniform1f(unlitProgram->emissiveIntensityLocation, material->emissiveIntensity);
+		glUniform4fv(unlitProgram->emissiveColorLocation, 1, material->emissiveColor.ptr());
+
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, glTextureEmissive);
 
@@ -456,7 +460,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform1f(unlitProgram->thresholdLocation, material->dissolveThreshold);
 		glUniform1f(unlitProgram->blendThresholdLocation, material->dissolveBlendThreshold);
 		glUniform2fv(unlitProgram->offsetLocation, 1, material->dissolveOffset.ptr());
-
+		glUniform1f(unlitProgram->edgeSizeLocation, material->edgeSize);
 		
 		glBindVertexArray(mesh->vao);
 		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
