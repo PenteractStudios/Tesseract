@@ -348,6 +348,58 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::Checkbox("Y", &flipTexture[1]);
 	}
 
+	// Trail
+	if (ImGui::CollapsingHeader("Trail")) {
+		if (ImGui::Checkbox("##Trail", &hasTrail)) {
+			if (isPlaying) {
+				Stop();
+				Play();
+			}
+		}
+		if (hasTrail) {
+			//if (ImGui::Button("Play")) Play();
+			//if (ImGui::Button("Stop")) Stop();
+			//if (ImGui::Checkbox("Render", &isRendering)) {
+			//	isStarted = false;
+			//}
+			ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
+
+			if (ImGui::DragInt("Trail Quads", &trailQuads, 1.0f, 1, 50, "%d", ImGuiSliderFlags_AlwaysClamp)) {
+				//if (nTextures > trailQuads) nTextures = trailQuads;
+			}
+			if (ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, trailQuads, "%d", ImGuiSliderFlags_AlwaysClamp)) {
+				//DeleteQuads();
+				//EditTextureCoords();
+			}
+
+			ImGui::DragFloat("Quad Life", &quadLife, App->editor->dragSpeed2f, 1, inf);
+
+			ImGui::Checkbox("Color Over Trail", &colorOverTrail);
+			if (colorOverTrail) {
+				ImGui::GradientEditor(gradient, draggingGradient, selectedGradient);
+			}
+
+			UID oldID = textureTrailID;
+			ImGui::ResourceSlot<ResourceTexture>("texture", &textureTrailID);
+			ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureTrailID);
+			if (textureResource != nullptr) {
+				int width;
+				int height;
+				glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
+				glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
+
+				ImGui::NewLine();
+				ImGui::Separator();
+				ImGui::TextColored(App->editor->titleColor, "Texture Preview");
+				ImGui::TextWrapped("Size:");
+				ImGui::SameLine();
+				ImGui::TextWrapped("%d x %d", width, height);
+				ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
+				ImGui::Separator();
+			}
+		}
+	}
+
 	// Collision
 	if (ImGui::CollapsingHeader("Collision")) {
 		ImGui::Checkbox("##collision", &collision);
@@ -408,6 +460,20 @@ void ComponentParticleSystem::InitParticleAnimationTexture(Particle* currentPart
 		float timePerFrame = (Ytiles * Xtiles) / timePerCycle;
 		currentParticle->animationSpeed = timePerFrame;
 	}
+}
+
+void ComponentParticleSystem::InitParticleTrail(Particle* currentParticle) {
+	currentParticle->trail = new Trail();
+	currentParticle->trail->width = width;
+	currentParticle->trail->trailQuads = trailQuads;
+	currentParticle->trail->nTextures = nTextures;
+	currentParticle->trail->quadLife = quadLife;
+	currentParticle->trail->gradient = gradient;
+	currentParticle->trail->draggingGradient = draggingGradient;
+	currentParticle->trail->selectedGradient = selectedGradient;
+	currentParticle->trail->colorOverTrail = colorOverTrail;
+	currentParticle->trail->Init();
+	currentParticle->trail->textureID = textureTrailID;
 }
 
 void ComponentParticleSystem::Load(JsonValue jComponent) {
@@ -656,6 +722,9 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 		InitParticleSpeed(currentParticle);
 		InitParticleLife(currentParticle);
 		InitParticleAnimationTexture(currentParticle);
+		if (hasTrail) {
+			InitParticleTrail(currentParticle);
+		}
 		currentParticle->emitterPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		currentParticle->emitterDirection = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation() * float3::unitY;
 
@@ -785,6 +854,9 @@ void ComponentParticleSystem::Update() {
 				if (!isRandomFrame) {
 					currentParticle.currentFrame += currentParticle.animationSpeed * App->time->GetDeltaTimeOrRealDeltaTime();
 				}
+				if (hasTrail) {
+					UpdateTrail(&currentParticle);
+				}
 
 				if (currentParticle.life < 0) {
 					deadParticles.push_back(&currentParticle);
@@ -869,8 +941,20 @@ void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) 
 	currentParticle->direction = float3(x, y, z);
 }
 
+void ComponentParticleSystem::UpdateTrail(Particle* currentParticle) {
+	currentParticle->trail->Update(currentParticle->position);
+}
+
+void ComponentParticleSystem::UpdateWitdhTrail() {
+	for (Particle& currentParticle : particles) {
+		currentParticle.trail->DeleteQuads();
+		currentParticle.trail->width = width;
+	}
+}
+
 void ComponentParticleSystem::KillParticle(Particle* currentParticle) {
 	currentParticle->life = -1;
+	RELEASE(currentParticle->trail);
 	App->physics->RemoveParticleRigidbody(currentParticle);
 	RELEASE(currentParticle->motionState);
 }
@@ -1009,6 +1093,9 @@ void ComponentParticleSystem::Draw() {
 			glDisable(GL_BLEND);
 			glDepthMask(GL_TRUE);
 
+			if (hasTrail) {
+				currentParticle.trail->Draw();
+			}
 			if (App->renderer->drawColliders) {
 				dd::sphere(currentParticle.position, dd::colors::LawnGreen, currentParticle.radius);
 			}
