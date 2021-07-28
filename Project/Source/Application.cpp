@@ -20,6 +20,7 @@
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModulePhysics.h"
 #include "Modules/ModuleNavigation.h"
+#include "Modules/ModuleConfiguration.h"
 
 #include "SDL_timer.h"
 #include <windows.h>
@@ -32,8 +33,9 @@ Application::Application() {
 	modules.push_back(events = new ModuleEvents());
 
 	modules.push_back(hardware = new ModuleHardwareInfo());
-	modules.push_back(window = new ModuleWindow());
 	modules.push_back(files = new ModuleFiles());
+	modules.push_back(configuration = new ModuleConfiguration());
+	modules.push_back(window = new ModuleWindow());
 	modules.push_back(project = new ModuleProject());
 	modules.push_back(resources = new ModuleResources());
 	modules.push_back(programs = new ModulePrograms());

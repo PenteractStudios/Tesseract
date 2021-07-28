@@ -129,9 +129,10 @@ public:
 	TESSERACT_ENGINE_API void PlayChildParticles();
 	TESSERACT_ENGINE_API void RestartChildParticles();
 	TESSERACT_ENGINE_API void StopChildParticles();
+
 	float ChildParticlesInfo();
 
-	//--- GETTERS ---
+	// ----- GETTERS -----
 
 	// Particle System
 	TESSERACT_ENGINE_API float GetDuration() const;
@@ -143,6 +144,7 @@ public:
 	TESSERACT_ENGINE_API bool GetIsReverseEffect() const;
 	TESSERACT_ENGINE_API float2 GetReserseDistance() const;
 	TESSERACT_ENGINE_API unsigned GetMaxParticles() const;
+	TESSERACT_ENGINE_API bool GetPlayOnAwake() const;
 
 	// Emision
 	TESSERACT_ENGINE_API bool GetIsAttachEmmitter() const;
@@ -185,7 +187,7 @@ public:
 	// Collision
 	TESSERACT_ENGINE_API bool GetCollision() const;
 
-	//--- SETTERS ---
+	// ----- SETTERS -----
 
 	// Particle System
 	TESSERACT_ENGINE_API void SetDuration(float _duration);
@@ -197,6 +199,7 @@ public:
 	TESSERACT_ENGINE_API void SetIsReverseEffect(bool _isReverse);
 	TESSERACT_ENGINE_API void SetReserseDistance(float2 _reverseDistance);
 	TESSERACT_ENGINE_API void SetMaxParticles(unsigned _maxParticle);
+	TESSERACT_ENGINE_API void SetPlayOnAwake(bool _playOnAwake);
 
 	// Emision
 	TESSERACT_ENGINE_API void SetIsAttachEmmitter(bool _isAttachEmmiter);
@@ -235,6 +238,7 @@ public:
 	TESSERACT_ENGINE_API void SetRenderAlignment(ParticleRenderAlignment _renderAligment);
 	TESSERACT_ENGINE_API void SetFlipXTexture(bool _flipX);
 	TESSERACT_ENGINE_API void SetFlipYTexture(bool _flipY);
+	TESSERACT_ENGINE_API void SetIsSoft(bool _isSoft);
 
 	// Collision
 	TESSERACT_ENGINE_API void SetCollision(bool _collision);
@@ -248,6 +252,7 @@ private:
 	Pool<Particle> particles;
 	std::vector<Particle*> deadParticles;
 	bool isPlaying = false;
+	bool isStarted = false;
 
 	float3 cameraDir = {0.f, 0.f, 0.f};
 	float emitterTime = 0.0f;
@@ -275,6 +280,7 @@ private:
 	RandomMode reverseDistanceRM = RandomMode::CONST;
 	float2 reverseDistance = {5.0f, 5.0f};
 	unsigned maxParticles = 100;
+	bool playOnAwake = false;
 
 	// Emision
 	bool attachEmitter = true;
@@ -351,6 +357,8 @@ private:
 	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
 	ParticleRenderAlignment renderAlignment = ParticleRenderAlignment::VIEW;
 	bool flipTexture[2] = {false, false};
+	bool isSoft = false;
+	float softRange = 1.0f;
 
 	// Collision
 	bool collision = false;

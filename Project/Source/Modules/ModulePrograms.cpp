@@ -153,6 +153,7 @@ void ModulePrograms::UnloadShaders() {
 	RELEASE(specularNotNormal);
 
 	RELEASE(depthPrepass);
+	RELEASE(depthPrepassConvertTextures);
 
 	RELEASE(ssao);
 	RELEASE(blur);
