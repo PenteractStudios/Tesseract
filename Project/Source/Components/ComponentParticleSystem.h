@@ -19,7 +19,7 @@ class ParticleModule;
 class btRigidBody;
 class ParticleMotionState;
 class ImGradient;
-class ImGradientMark;
+struct ImGradientMark;
 
 enum WorldLayers;
 
@@ -116,7 +116,7 @@ public:
 	void Load(JsonValue jComponent) override;
 	void Save(JsonValue jComponent) const override;
 
-	void CreateParticles();
+	void AllocateParticlesMemory();
 	void SpawnParticles();
 	void SpawnParticleUnit();
 
@@ -139,7 +139,6 @@ public:
 
 	TESSERACT_ENGINE_API void KillParticle(Particle* currentParticle);
 	void UndertakerParticle(bool force = false);
-	void DestroyParticlesColliders();
 	void Draw();
 	void ImGuiParticlesEffect();
 

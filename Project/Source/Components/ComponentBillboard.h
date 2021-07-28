@@ -9,7 +9,7 @@
 #include "Math/Quat.h"
 
 class ImGradient;
-class ImGradientMark;
+struct ImGradientMark;
 
 class ComponentBillboard : public Component {
 public:

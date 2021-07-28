@@ -20,6 +20,7 @@
 #include "FileSystem/JsonValue.h"
 #include "Utils/Logging.h"
 #include "Utils/ImGuiUtils.h"
+#include "Utils/ParticleMotionState.h"
 #include "Scene.h"
 
 #include "Math/float3x3.h"
@@ -161,6 +162,7 @@ static bool IsProbably(float probablility) {
 
 ComponentParticleSystem::~ComponentParticleSystem() {
 	RELEASE(gradient);
+	UndertakerParticle(true);
 	for (SubEmitter* subEmitter : subEmitters) {
 		RELEASE(subEmitter);
 	}
@@ -171,7 +173,7 @@ ComponentParticleSystem::~ComponentParticleSystem() {
 void ComponentParticleSystem::Init() {
 	if (!gradient) gradient = new ImGradient();
 	layer = WorldLayers(1 << layerIndex);
-	CreateParticles();
+	AllocateParticlesMemory();
 	isStarted = false;
 }
 
@@ -224,7 +226,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 		ImGuiRandomMenu("Start Life", life, lifeRM);
 		if (ImGuiRandomMenu("Start Speed", speed, speedRM)) {
-			CreateParticles();
+			AllocateParticlesMemory();
 		}
 		float2 rotDegree = -rotation * RADTODEG;
 		if (ImGuiRandomMenu("Start Rotation", rotDegree, rotationRM, App->editor->dragSpeed1f, -inf, inf)) {
@@ -238,7 +240,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			ImGui::Unindent();
 		}
 		if (ImGui::DragScalar("Max Particles", ImGuiDataType_U32, &maxParticles)) {
-			CreateParticles();
+			AllocateParticlesMemory();
 		}
 		ImGui::Checkbox("Play On Awake", &playOnAwake);
 	}
@@ -652,7 +654,7 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 		subEmitters.push_back(subEmitter);
 	}
 
-	CreateParticles();
+	AllocateParticlesMemory();
 }
 
 void ComponentParticleSystem::Save(JsonValue jComponent) const {
@@ -780,7 +782,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_SUB_EMITTERS_NUMBER] = num;
 }
 
-void ComponentParticleSystem::CreateParticles() {
+void ComponentParticleSystem::AllocateParticlesMemory() {
 	particles.Allocate(maxParticles);
 }
 
@@ -1098,18 +1100,13 @@ void ComponentParticleSystem::UndertakerParticle(bool force) {
 		}
 	}
 	for (Particle* currentParticle : deadParticles) {
-		App->physics->RemoveParticleRigidbody(currentParticle);
-		RELEASE(currentParticle->motionState);
+		if (App->time->IsGameRunning()) App->physics->RemoveParticleRigidbody(currentParticle);
+		if (currentParticle->motionState) {
+			RELEASE(currentParticle->motionState);
+		}
 		particles.Release(currentParticle);
 	}
 	deadParticles.clear();
-}
-
-void ComponentParticleSystem::DestroyParticlesColliders() {
-	for (Particle& currentParticle : particles) {
-		App->physics->RemoveParticleRigidbody(&currentParticle);
-		RELEASE(currentParticle.motionState);
-	}
 }
 
 void ComponentParticleSystem::DrawGizmos() {
@@ -1322,7 +1319,7 @@ void ComponentParticleSystem::StopChildParticles() {
 }
 
 float ComponentParticleSystem::ChildParticlesInfo() {
-	float particlesInfo = particles.Count();
+	float particlesInfo = (float) particles.Count();
 	for (GameObject* currentChild : GetOwner().GetChildren()) {
 		if (currentChild->GetComponent<ComponentParticleSystem>()) {
 			particlesInfo += currentChild->GetComponent<ComponentParticleSystem>()->ChildParticlesInfo();
@@ -1494,7 +1491,7 @@ void ComponentParticleSystem::SetReserseDistance(float2 _reverseDistance) {
 }
 void ComponentParticleSystem::SetMaxParticles(unsigned _maxParticle) {
 	maxParticles = _maxParticle;
-	CreateParticles();
+	AllocateParticlesMemory();
 }
 void ComponentParticleSystem::SetPlayOnAwake(bool _playOnAwake) {
 	playOnAwake = _playOnAwake;
