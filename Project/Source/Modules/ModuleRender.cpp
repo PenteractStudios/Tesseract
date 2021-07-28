@@ -43,18 +43,21 @@
 #include <math.h>
 #include <vector>
 
-static std::vector<float> ssaoGaussKernel;
+struct Kernel {
+	std::vector<float> ssaoGaussKernel;
+	std::vector<float> smallGaussKernel;
+	std::vector<float> mediumGaussKernel;
+	std::vector<float> largeGaussKernel;
+};
 
-static std::vector<float> smallGaussKernel;
-static std::vector<float> mediumGaussKernel;
-static std::vector<float> largeGaussKernel;
+static Kernel* kernelStruct = new Kernel();
 
 float defIntGaussian(const float x, const float mu, const float sigma) {
 	return 0.5 * erf((x - mu) / (sqrt(2) * sigma));
 }
 
 void gaussianKernel(const int kernelSize, const float sigma, const float mu, const float step, std::vector<float>& coeff) {
-	const float end = 0.5*kernelSize;
+	const float end = 0.5 * kernelSize;
 	const float start = -end;
 	float sum = 0;
 	float x = start;
@@ -74,7 +77,6 @@ void gaussianKernel(const int kernelSize, const float sigma, const float mu, con
 	for (int i = 0; i < coeff.size(); ++i) {
 		coeff[i] *= sum;
 	}
-
 }
 
 // clang-format off
@@ -265,8 +267,8 @@ bool ModuleRender::Init() {
 
 	// Create SSAO blur kernel
 	gaussSSAOKernelRadius = 2;
-	ssaoGaussKernel.clear();
-	gaussianKernel(2 * gaussSSAOKernelRadius + 1, 1.0f, 0.f, 1.f, ssaoGaussKernel);
+	kernelStruct->ssaoGaussKernel.clear();
+	gaussianKernel(2 * gaussSSAOKernelRadius + 1, 1.0f, 0.f, 1.f, kernelStruct->ssaoGaussKernel);
 
 	// Calculate SSAO kernel
 	for (unsigned i = 0; i < SSAO_KERNEL_SIZE; ++i) {
@@ -399,7 +401,7 @@ void ModuleRender::BlurSSAOTexture(bool horizontal) {
 	glUniform1i(ssaoBlurProgram->inputTextureLocation, 0);
 	glUniform1i(ssaoBlurProgram->textureLevelLocation, 0);
 
-	glUniform1fv(ssaoBlurProgram->kernelLocation, gaussSSAOKernelRadius + 1, &ssaoGaussKernel[0]);
+	glUniform1fv(ssaoBlurProgram->kernelLocation, gaussSSAOKernelRadius + 1, &kernelStruct->ssaoGaussKernel[0]);
 	glUniform1i(ssaoBlurProgram->kernelRadiusLocation, gaussSSAOKernelRadius + 1);
 	glUniform1i(ssaoBlurProgram->horizontalLocation, horizontal ? 1 : 0);
 
@@ -633,7 +635,6 @@ UpdateStatus ModuleRender::Update() {
 		if (trail.IsActive()) trail.Draw();
 	}
 
-
 	// Draw Gizmos
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
@@ -721,15 +722,15 @@ UpdateStatus ModuleRender::Update() {
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glDisable(GL_DEPTH_TEST);
 			glClear(GL_COLOR_BUFFER_BIT);
-			BlurBloomTexture(horizontal, firstIteration, smallGaussKernel, gaussSmallKernelRadius, gaussSmallMipLevel);
+			BlurBloomTexture(horizontal, firstIteration, kernelStruct->smallGaussKernel, gaussSmallKernelRadius, gaussSmallMipLevel);
 
-			glViewport(0, 0, width / (1<< gaussMediumMipLevel), height / (1<< gaussMediumMipLevel));
+			glViewport(0, 0, width / (1 << gaussMediumMipLevel), height / (1 << gaussMediumMipLevel));
 
 			glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[2 + horizontal]);
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glDisable(GL_DEPTH_TEST);
 			glClear(GL_COLOR_BUFFER_BIT);
-			BlurBloomTexture(horizontal, firstIteration, mediumGaussKernel, gaussMediumKernelRadius, gaussMediumMipLevel);
+			BlurBloomTexture(horizontal, firstIteration, kernelStruct->mediumGaussKernel, gaussMediumKernelRadius, gaussMediumMipLevel);
 
 			glViewport(0, 0, width / (1 << gaussLargeMipLevel), height / (1 << gaussLargeMipLevel));
 
@@ -737,7 +738,7 @@ UpdateStatus ModuleRender::Update() {
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glDisable(GL_DEPTH_TEST);
 			glClear(GL_COLOR_BUFFER_BIT);
-			BlurBloomTexture(horizontal, firstIteration, largeGaussKernel, gaussLargeKernelRadius, gaussLargeMipLevel);
+			BlurBloomTexture(horizontal, firstIteration, kernelStruct->largeGaussKernel, gaussLargeKernelRadius, gaussLargeMipLevel);
 
 			horizontal = !horizontal;
 			if (firstIteration) firstIteration = false;
@@ -778,6 +779,8 @@ UpdateStatus ModuleRender::PostUpdate() {
 }
 
 bool ModuleRender::CleanUp() {
+	RELEASE(kernelStruct);
+
 	glDeleteVertexArrays(1, &cubeVAO);
 	glDeleteBuffers(1, &cubeVBO);
 
@@ -954,7 +957,7 @@ void ModuleRender::UpdateFramebuffers() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, colorTextures[1], 0);
 
-	unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	unsigned int attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
 	glDrawBuffers(2, attachments);
 
 	// Bloom buffers
@@ -997,12 +1000,12 @@ void ModuleRender::UpdateFramebuffers() {
 	sigma1 = sqrt(sigma1 / (term - Ln(sigma1)));
 	sigma2 = sqrt(sigma2 / (term - Ln(sigma2)));
 	sigma3 = sqrt(sigma3 / (term - Ln(sigma3)));
-	smallGaussKernel.clear();
-	mediumGaussKernel.clear();
-	largeGaussKernel.clear();
-	gaussianKernel(2 * gaussSmallKernelRadius + 1, sigma1, 0.f, 1.f, smallGaussKernel);
-	gaussianKernel(2 * gaussMediumKernelRadius + 1, sigma2, 0.f, 1.f, mediumGaussKernel);
-	gaussianKernel(2 * gaussLargeKernelRadius + 1, sigma3, 0.f, 1.f, largeGaussKernel);
+	kernelStruct->smallGaussKernel.clear();
+	kernelStruct->mediumGaussKernel.clear();
+	kernelStruct->largeGaussKernel.clear();
+	gaussianKernel(2 * gaussSmallKernelRadius + 1, sigma1, 0.f, 1.f, kernelStruct->smallGaussKernel);
+	gaussianKernel(2 * gaussMediumKernelRadius + 1, sigma2, 0.f, 1.f, kernelStruct->mediumGaussKernel);
+	gaussianKernel(2 * gaussLargeKernelRadius + 1, sigma3, 0.f, 1.f, kernelStruct->largeGaussKernel);
 
 	// Color correction buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, colorCorrectionBuffer);
