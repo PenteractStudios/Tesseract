@@ -12,7 +12,6 @@
 #include "Math/Quat.h"
 
 #include <vector>
-#include <list>
 
 class ComponentTransform;
 class ParticleModule;
@@ -88,7 +87,7 @@ public:
 
 		// Collider
 		bool hasCollided = false;
-		std::list<GameObject*> collidedWith;
+		std::vector<GameObject*> collidedWith;
 
 		ParticleMotionState* motionState = nullptr;
 		btRigidBody* rigidBody = nullptr;

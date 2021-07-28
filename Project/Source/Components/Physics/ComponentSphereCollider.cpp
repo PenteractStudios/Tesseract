@@ -162,17 +162,19 @@ void ComponentSphereCollider::OnDisable() {
 }
 
 void ComponentSphereCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance, ComponentParticleSystem::Particle* p) {
-	bool alreadyCollided = false;
-	for (GameObject* collided : p->collidedWith) {
-		if (collided == &GetOwner()) {
-			alreadyCollided = true;
+	if (p != nullptr) {
+		bool alreadyCollided = false;
+		for (GameObject* collided : p->collidedWith) {
+			if (collided == &GetOwner()) {
+				alreadyCollided = true;
+			}
 		}
-	}
-	if (!alreadyCollided) {
-		p->collidedWith.push_back(&GetOwner());
-		p->hasCollided = true;
-	} else {
-		p->hasCollided = false;
+		if (!alreadyCollided) {
+			p->collidedWith.push_back(&GetOwner());
+			p->hasCollided = true;
+		} else {
+			p->hasCollided = false;
+		}
 	}
 
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
