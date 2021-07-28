@@ -34,6 +34,7 @@ uniform float normalStrength;
 uniform float smoothness;
 uniform sampler2D emissiveMap;
 uniform int hasEmissiveMap;
+uniform vec4 emissiveColor;
 uniform float emissiveIntensity;
 uniform sampler2D ambientOcclusionMap;
 uniform int hasAmbientOcclusionMap;
@@ -115,7 +116,8 @@ vec4 GetDiffuse(vec2 tiledUV)
 
 vec4 GetEmissive(vec2 tiledUV)
 {
-    return hasEmissiveMap * SRGBA(texture(emissiveMap, tiledUV)) * emissiveIntensity;
+    //return hasEmissiveMap * SRGBA(texture(emissiveMap, tiledUV)) * emissiveIntensity;
+	return (hasEmissiveMap * SRGBA(texture(emissiveMap, tiledUV)) * emissiveColor + (1 - hasEmissiveMap) * SRGBA(emissiveColor)) * emissiveIntensity;
 }
 
 vec3 GetAmbientLight(in vec3 R, in vec3 normal, in vec3 viewDir, in vec3 Cd, in vec3 F0, float roughness)
@@ -333,12 +335,12 @@ void main()
 	}
 
     // Emission
-    colorAccumulative += GetEmissive(tiledUV).rgb;
+	colorAccumulative = Dissolve(vec4(colorAccumulative, 1.0), tiledUV, false).rgb + Dissolve(GetEmissive(tiledUV), tiledUV, true).rgb;
 
 	vec4 finalColor = vec4(colorAccumulative, colorDiffuse.a);
 
 	// Add dissolve	effect
-	outColor = Dissolve(finalColor, tiledUV, true);
+	outColor = finalColor;
 }
 
 --- fragMainSpecular
