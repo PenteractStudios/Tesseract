@@ -651,6 +651,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform1i(standardProgram->emissiveMapLocation, 3);
 	glUniform1i(standardProgram->hasEmissiveMapLocation, hasEmissiveMap);
 	glUniform1f(standardProgram->emissiveIntensityLocation, material->emissiveIntensity);
+	glUniform4fv(standardProgram->emissiveColorLocation, 1, material->emissiveColor.ptr());
+
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, glTextureEmissive);
 
@@ -746,12 +748,29 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	if (material == nullptr) return;
 
 	ProgramDepthPrepass* depthPrepassProgram = App->programs->depthPrepass;
-	if (depthPrepassProgram == nullptr) return;
+	bool mustUseDissolveProgram = material->shaderType == MaterialShader::UNLIT_DISSOLVE || material->shaderType == MaterialShader::STANDARD_DISSOLVE;
+	
+	if (mustUseDissolveProgram) {
+		ProgramDepthPrepassDissolve* depthPrepassProgramDissolve = App->programs->depthPrepassDissolve;
+		if (depthPrepassProgramDissolve == nullptr) return;
+
+		depthPrepassProgram = depthPrepassProgramDissolve;
+		
+		glUseProgram(depthPrepassProgram->program);
+
+		glUniform1f(depthPrepassProgramDissolve->scaleLocation, material->dissolveScale);
+		glUniform1f(depthPrepassProgramDissolve->thresholdLocation, material->dissolveThreshold);
+		glUniform1f(depthPrepassProgramDissolve->blendThresholdLocation, material->dissolveBlendThreshold);
+		glUniform2fv(depthPrepassProgramDissolve->offsetLocation, 1, material->dissolveOffset.ptr());
+	}
+	else {
+		if (depthPrepassProgram == nullptr) return;
+		glUseProgram(depthPrepassProgram->program);
+	}
 
 	float4x4 viewMatrix = App->camera->GetViewMatrix();
 	float4x4 projMatrix = App->camera->GetProjectionMatrix();
 
-	glUseProgram(depthPrepassProgram->program);
 
 	// Common uniform settings
 	glUniformMatrix4fv(depthPrepassProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
@@ -781,6 +800,8 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	// Tiling settings
 	glUniform2fv(depthPrepassProgram->tilingLocation, 1, material->tiling.ptr());
 	glUniform2fv(depthPrepassProgram->offsetLocation, 1, material->offset.ptr());
+
+	glUniform1i(depthPrepassProgram->mustSkipLocation, material->shaderType == MaterialShader::UNLIT_DISSOLVE || material->shaderType == MaterialShader::STANDARD_DISSOLVE);
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);

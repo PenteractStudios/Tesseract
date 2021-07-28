@@ -1,8 +1,8 @@
---- fragFunctionDissolve
+--- fragFunctionDissolveCommon
 
-#ifdef GL_ES
-precision mediump float;
-#endif
+//#ifdef GL_ES
+//precision mediump float;
+//#endif
 
 //uniform vec2 u_resolution;
 //uniform vec2 u_mouse;
@@ -87,6 +87,8 @@ float SimplexNoise(vec2 v) {
     return 130.0 * dot(m, g);
 }
 
+--- fragFunctionDissolveFunction
+
 vec4 Dissolve(vec4 finalColor, vec2 tiledUV, bool isEmissive) {
     //vec2 st = gl_FragCoord.xy / u_resolution.xy;
     //st.x *= u_resolution.x / u_resolution.y;
@@ -119,4 +121,30 @@ vec4 Dissolve(vec4 finalColor, vec2 tiledUV, bool isEmissive) {
 
     discard;
     //return vec4(0.0f);
+}
+
+--- fragFunctionDepthDissolve
+
+bool MustDissolve() {
+    //vec2 st = gl_FragCoord.xy / u_resolution.xy;
+    //st.x *= u_resolution.x / u_resolution.y;
+    //vec2 st = tiledUV;
+    if (dissolveThreshold == 0) {
+        return false;
+    }
+
+    vec2 st = gl_FragCoord.xy / vec2(1920, 1080);
+    st.x *= 1920 / 1080;
+
+    // Scale the space in order to see the function
+    st *= dissolveScale;
+    st += dissolveOffset;
+
+    vec3 color = vec3(0.0);
+
+    color = vec3(SimplexNoise(st) * .5 + .5);
+    if (color.x > dissolveThreshold) {
+        return false;
+    }
+    return true;
 }

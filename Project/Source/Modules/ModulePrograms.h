@@ -42,6 +42,7 @@ public:
 	// Depth prepass Shaders
 	ProgramDepthPrepass* depthPrepass = nullptr;
 	ProgramDepthPrepassConvertTextures* depthPrepassConvertTextures = nullptr;
+	ProgramDepthPrepassDissolve* depthPrepassDissolve = nullptr;
 
 	// SSAO Shaders
 	ProgramSSAO* ssao = nullptr;

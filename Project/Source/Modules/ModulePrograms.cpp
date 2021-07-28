@@ -107,12 +107,13 @@ void ModulePrograms::LoadShaders() {
 	specularNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
 
 	// Dissolve shaders. Maybe another one for Normals
-	dissolveStandard = new ProgramStandardDissolve(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragFunctionDissolve fragMainMetallic"));
-	dissolveUnlit = new ProgramUnlitDissolve(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragFunctionDissolve fragUnlit"));
+	dissolveStandard = new ProgramStandardDissolve(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragFunctionDissolveCommon fragFunctionDissolveFunction fragMainMetallic"));
+	dissolveUnlit = new ProgramUnlitDissolve(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragFunctionDissolveCommon fragFunctionDissolveFunction fragUnlit"));
 
 	// Depth Prepass Shaders
-	depthPrepass = new ProgramDepthPrepass(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragDepthPrepass"));
+	depthPrepass = new ProgramDepthPrepass(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragFunctionEmptyDissolveDepth fragDepthPrepass"));
 	depthPrepassConvertTextures = new ProgramDepthPrepassConvertTextures(CreateProgram(filePath, "vertScreen", "fragDepthPrepassConvertTextures"));
+	depthPrepassDissolve = new ProgramDepthPrepassDissolve(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragFunctionDissolveCommon fragFunctionDepthDissolve fragDepthPrepass"));
 
 	// SSAO Shaders
 	ssao = new ProgramSSAO(CreateProgram(filePath, "vertScreen", "fragSSAO"));

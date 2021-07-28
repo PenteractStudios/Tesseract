@@ -14,6 +14,7 @@ uniform sampler2D diffuseMap;
 uniform int hasDiffuseMap;
 uniform vec2 tiling;
 uniform vec2 offset;
+uniform bool mustSkip;
 
 vec2 GetTiledUVs()
 {
@@ -28,7 +29,7 @@ vec4 GetDiffuse(vec2 tiledUV)
 void main() {
     vec2 tiledUV = GetTiledUVs(); 
     vec4 colorDiffuse = GetDiffuse(tiledUV);
-	if (colorDiffuse.a < 0.1) discard; // Alpha testing
+	if (MustDissolve() || colorDiffuse.a < .1) discard; // Alpha testing
     position = view * vec4(fragPos, 1.0);
     normal = vec4(mat3(view) * normalize(fragNormal), 1.0);
 }

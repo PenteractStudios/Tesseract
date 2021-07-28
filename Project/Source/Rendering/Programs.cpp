@@ -119,6 +119,7 @@ ProgramStandard::ProgramStandard(unsigned program_)
 
 	emissiveMapLocation = glGetUniformLocation(program, "emissiveMap");
 	hasEmissiveMapLocation = glGetUniformLocation(program, "hasEmissiveMap");
+	emissiveColorLocation = glGetUniformLocation(program, "emissiveColor");
 	emissiveIntensityLocation = glGetUniformLocation(program, "emissiveIntensity");
 
 	ambientOcclusionMapLocation = glGetUniformLocation(program, "ambientOcclusionMap");
@@ -191,6 +192,8 @@ ProgramDepthPrepass::ProgramDepthPrepass(unsigned program_)
 
 	tilingLocation = glGetUniformLocation(program, "tiling");
 	offsetLocation = glGetUniformLocation(program, "offset");
+
+	mustSkipLocation = glGetUniformLocation(program, "mustSkip");
 }
 
 ProgramDepthPrepassConvertTextures::ProgramDepthPrepassConvertTextures(unsigned program_)
@@ -321,4 +324,13 @@ ProgramUnlitDissolve::ProgramUnlitDissolve(unsigned program)
 	blendThresholdLocation = glGetUniformLocation(program, "blendThreshold");
 	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
 	edgeSizeLocation = glGetUniformLocation(program, "edgeSize");
+}
+
+ProgramDepthPrepassDissolve::ProgramDepthPrepassDissolve(unsigned program) 
+	: ProgramDepthPrepass(program) {
+
+	scaleLocation = glGetUniformLocation(program, "dissolveScale");
+	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
+	blendThresholdLocation = glGetUniformLocation(program, "blendThreshold");
+	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
 }
