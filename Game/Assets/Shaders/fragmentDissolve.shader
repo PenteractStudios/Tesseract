@@ -107,7 +107,11 @@ vec4 Dissolve(vec4 finalColor, vec2 tiledUV, bool isEmissive) {
 
     vec3 color = vec3(0.0);
 
-    color = vec3(SimplexNoise(st) * .5 + .5);
+    vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
+
+    //color = vec3(SimplexNoise(st) * .5 + .5);
+    color = vec3(SimplexNoise(transformedUV));
+
     float stepValue = step(color.x, dissolveThreshold + edgeSize);
     if (isEmissive) {
         //return vec4(stepValue, stepValue, stepValue, 1.0);
@@ -125,7 +129,7 @@ vec4 Dissolve(vec4 finalColor, vec2 tiledUV, bool isEmissive) {
 
 --- fragFunctionDepthDissolve
 
-bool MustDissolve() {
+bool MustDissolve(vec2 tiledUV) {
     //vec2 st = gl_FragCoord.xy / u_resolution.xy;
     //st.x *= u_resolution.x / u_resolution.y;
     //vec2 st = tiledUV;
@@ -142,7 +146,9 @@ bool MustDissolve() {
 
     vec3 color = vec3(0.0);
 
-    color = vec3(SimplexNoise(st) * .5 + .5);
+    vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
+
+    color = vec3(SimplexNoise(transformedUV));
     if (color.x > dissolveThreshold) {
         return false;
     }

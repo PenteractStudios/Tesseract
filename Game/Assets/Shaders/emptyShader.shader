@@ -6,6 +6,6 @@ vec4 Dissolve(vec4 finalColor, vec2 tiledUV, bool isEmissive){
 
 --- fragFunctionEmptyDissolveDepth
 
-bool MustDissolve() {
+bool MustDissolve(vec2 tiledUV) {
 	return false;
 }
