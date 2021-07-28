@@ -148,6 +148,8 @@ void ModulePrograms::UnloadShaders() {
 
 	RELEASE(unlit);
 
+	RELEASE(volumetricLight);
+
 	RELEASE(phongNormal);
 	RELEASE(phongNotNormal);
 	RELEASE(standardNormal);
