@@ -329,21 +329,13 @@ private:
 	bool hasTrail = false;
 	// Trail Info
 	int nTextures = 1;
-	int quadsCreated = 0;
 	int trailQuads = 50;
-	int maxVertices = 1500;
-	int textureCreated = 0;
-	const static int maxQuads = 100;
 
 	float nRepeats = 1;
 	float width = 0.1f;
-	float timePoint = 1.0f;
-	float textureCords[600] = {0.0f};
 	float quadLife = 10.0f;
 
-	bool isRendering = true;
 	bool colorOverTrail = false;
-	bool stop = false;
 	UID textureTrailID = 0;
 
 	// Color Settings

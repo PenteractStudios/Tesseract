@@ -107,6 +107,20 @@
 #define JSON_TAG_COLLISION_RADIUS "CollRadius"
 #define JSON_TAG_LAYER_INDEX "LayerIndex"
 
+// Trail
+#define JSON_TAG_TRAIL_TEXTURE_TEXTUREID "TextureTrailID"
+#define JSON_TAG_MAXVERTICES "MaxVertices"
+
+#define JSON_TAG_WIDTH "Width"
+#define JSON_TAG_TRAIL_QUADS "TrailQuads"
+#define JSON_TAG_TEXTURE_REPEATS "TextureRepeats"
+#define JSON_TAG_QUAD_LIFE "QuadLife"
+#define JSON_TAG_IS_RENDERING "IsRendering"
+
+#define JSON_TAG_HAS_COLOR_OVER_TRAIL "HasColorOverTrail"
+#define JSON_TAG_GRADIENT_COLOR "GradientColor"
+#define JSON_TAG_NUMBER_COLORS "NumColors"
+
 static bool ImGuiRandomMenu(const char* name, float2& values, RandomMode& mode, float speed = 0.01f, float min = 0, float max = inf) {
 	ImGui::PushID(name);
 	bool used = false;
@@ -596,6 +610,26 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	layerIndex = jComponent[JSON_TAG_LAYER_INDEX];
 	layer = WorldLayers(1 << layerIndex);
 
+	//Trail
+	textureTrailID = jComponent[JSON_TAG_TRAIL_TEXTURE_TEXTUREID];
+	if (textureTrailID != 0) {
+		App->resources->IncreaseReferenceCount(textureTrailID);
+	}
+
+	trailQuads = jComponent[JSON_TAG_TRAIL_QUADS];
+	quadLife = jComponent[JSON_TAG_QUAD_LIFE];
+	width = jComponent[JSON_TAG_WIDTH];
+	nTextures = jComponent[JSON_TAG_TEXTURE_REPEATS];
+
+	colorOverTrail = jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL];
+	int numberColors = jComponent[JSON_TAG_NUMBER_COLORS];
+	if (!gradient) gradient = new ImGradient();
+	gradient->clearList();
+	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLOR];
+	for (int i = 0; i < numberColors; ++i) {
+		JsonValue jMark = jColor[i];
+		gradient->addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
+	}
 	CreateParticles();
 }
 
@@ -708,6 +742,30 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_HAS_COLLISION] = collision;
 	jComponent[JSON_TAG_LAYER_INDEX] = layerIndex;
 	jComponent[JSON_TAG_COLLISION_RADIUS] = radius;
+
+	// Trail
+	jComponent[JSON_TAG_TRAIL_TEXTURE_TEXTUREID] = textureTrailID;
+	jComponent[JSON_TAG_TRAIL_QUADS] = trailQuads;
+
+	jComponent[JSON_TAG_WIDTH] = width;
+	jComponent[JSON_TAG_TEXTURE_REPEATS] = nTextures;
+	jComponent[JSON_TAG_QUAD_LIFE] = quadLife;
+
+	// Color
+	jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL] = colorOverTrail;
+	int color = 0;
+	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLOR];
+	for (ImGradientMark* mark : gradient->getMarks()) {
+		JsonValue jMask = jColor[color];
+		jMask[0] = mark->color[0];
+		jMask[1] = mark->color[1];
+		jMask[2] = mark->color[2];
+		jMask[3] = mark->color[3];
+		jMask[4] = mark->position;
+
+		color++;
+	}
+	jComponent[JSON_TAG_NUMBER_COLORS] = gradient->getMarks().size();
 }
 
 void ComponentParticleSystem::CreateParticles() {

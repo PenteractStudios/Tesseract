@@ -140,12 +140,6 @@ void Trail::OnEditorUpdate() {
 		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
 		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
 
-		//if (oldID != textureID) {
-		//	//	ComponentTransform2D* transform2D = GetOwner().GetComponent<ComponentTransform2D>();
-		//	if (transform2D != nullptr) {
-		//		transform2D->SetSize(float2((float) width, (float) height));
-		//	}
-		//}
 		ImGui::NewLine();
 		ImGui::Separator();
 		ImGui::TextColored(App->editor->titleColor, "Texture Preview");
