@@ -161,6 +161,11 @@ static bool IsProbably(float probablility) {
 
 ComponentParticleSystem::~ComponentParticleSystem() {
 	RELEASE(gradient);
+	for (SubEmitter* subEmitter : subEmitters) {
+		RELEASE(subEmitter);
+	}
+	subEmitters.clear();
+	subEmittersGO.clear();
 }
 
 void ComponentParticleSystem::Init() {
@@ -762,7 +767,6 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 
 	// Sub Emitters
 	int num = 0;
-
 	JsonValue jSubEmitters = jComponent[JSON_TAG_SUB_EMITTERS];
 	for (SubEmitter* subEmitter : subEmitters) {
 		if (subEmitter->gameObjectUID == 0) continue;
@@ -925,16 +929,10 @@ void ComponentParticleSystem::InitSubEmitter(Particle* currentParticle, SubEmitt
 			newGameObject->name = "SubEmitter (Temp)";
 			newGameObject->SetParent(&parent);
 			ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
-			float3 right = (Cross(float3::unitY, currentParticle->direction)).Normalized();
-			float3 up = (Cross(currentParticle->direction, right)).Normalized();
-			float3x3 rotationMatrix;
-			rotationMatrix.SetCol(0, right);
-			rotationMatrix.SetCol(1, up);
-			rotationMatrix.SetCol(2, currentParticle->direction);
-
-			transform->SetPosition(currentParticle->position);
-			transform->SetRotation(rotationMatrix.ToEulerXYZ());
-			transform->SetScale(currentParticle->scale);
+			float3x3 rotationMatrix = float3x3::RotateFromTo(float3::unitY, currentParticle->direction);
+			transform->SetGlobalPosition(currentParticle->position);
+			transform->SetGlobalRotation(rotationMatrix.ToEulerXYZ());
+			transform->SetGlobalScale(float3::one);
 			newGameObject->Init();
 
 			ComponentParticleSystem* newParticleSystem = newGameObject->CreateComponent<ComponentParticleSystem>();
@@ -942,6 +940,7 @@ void ComponentParticleSystem::InitSubEmitter(Particle* currentParticle, SubEmitt
 			JsonValue jResourceMeta(resourceMetaDocument, resourceMetaDocument);
 			subEmitter->particleSystem->Save(jResourceMeta);
 			newParticleSystem->Load(jResourceMeta);
+			newParticleSystem->Start();
 			newParticleSystem->SetIsSubEmitter(true);
 			newParticleSystem->Play();
 
@@ -983,6 +982,11 @@ void ComponentParticleSystem::Update() {
 
 				if (currentParticle.life < 0) {
 					deadParticles.push_back(&currentParticle);
+					InitSubEmitter(&currentParticle, SubEmitterType::DEATH);
+				}
+
+				if (currentParticle.hasCollided) {
+					InitSubEmitter(&currentParticle, SubEmitterType::COLLISION);
 				}
 			}
 		}
@@ -1068,19 +1072,18 @@ void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) 
 void ComponentParticleSystem::UpdateSubEmitters() {
 	int pos = 0;
 	for (GameObject* gameObject : subEmittersGO) {
-		//ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
-		//if (particleSystem) {
-		//	if (particleSystem->subEmittersGO.size() != 0) {
-		//		particleSystem->UpdateSubEmitters();
-		//	} else {
-		//		if (particleSystem->particles.Count() <= 0 && particleSystem->restDelayTime <= 0) {
-		//			subEmittersGO.erase(subEmittersGO.begin() + pos);
-		//			App->scene->scene->gameObjects.Release(gameObject->GetID());
-
-		//		}
-		//	}
-		//}
-		//pos += 1;
+		ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
+		if (particleSystem) {
+			if (particleSystem->subEmittersGO.size() == 0) {
+				if (!particleSystem->isPlaying) {
+					subEmittersGO.erase(subEmittersGO.begin() + pos);
+					pos -= 1;
+					if (App->editor->selectedGameObject == gameObject) App->editor->selectedGameObject = nullptr;
+					App->scene->DestroyGameObjectDeferred(gameObject);
+				}
+			}
+		}
+		pos += 1;
 	}
 }
 
@@ -1095,8 +1098,6 @@ void ComponentParticleSystem::UndertakerParticle(bool force) {
 		}
 	}
 	for (Particle* currentParticle : deadParticles) {
-		InitSubEmitter(currentParticle, SubEmitterType::DEATH);
-
 		App->physics->RemoveParticleRigidbody(currentParticle);
 		RELEASE(currentParticle->motionState);
 		particles.Release(currentParticle);

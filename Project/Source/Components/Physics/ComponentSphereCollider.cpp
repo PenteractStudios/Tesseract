@@ -45,8 +45,7 @@ void ComponentSphereCollider::OnEditorUpdate() {
 		if (GetOwner().IsActive()) {
 			if (active) {
 				Enable();
-			}
-			else {
+			} else {
 				Disable();
 			}
 		}
@@ -162,8 +161,20 @@ void ComponentSphereCollider::OnDisable() {
 	if (rigidBody && App->time->HasGameStarted()) App->physics->RemoveSphereRigidbody(this);
 }
 
-void ComponentSphereCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance,
-										  ComponentParticleSystem::Particle* p) {
+void ComponentSphereCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance, ComponentParticleSystem::Particle* p) {
+	bool alreadyCollided = false;
+	for (GameObject* collided : p->collidedWith) {
+		if (collided == &GetOwner()) {
+			alreadyCollided = true;
+		}
+	}
+	if (!alreadyCollided) {
+		p->collidedWith.push_back(&GetOwner());
+		p->hasCollided = true;
+	} else {
+		p->hasCollided = false;
+	}
+
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
 		if (script != nullptr) {

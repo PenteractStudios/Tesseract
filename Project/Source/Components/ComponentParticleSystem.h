@@ -12,6 +12,7 @@
 #include "Math/Quat.h"
 
 #include <vector>
+#include <list>
 
 class ComponentTransform;
 class ParticleModule;
@@ -65,6 +66,10 @@ enum class SubEmitterType {
 class ComponentParticleSystem : public Component {
 public:
 	struct Particle {
+		~Particle() {
+			collidedWith.clear();
+		}
+
 		float3 initialPosition = float3(0.0f, 0.0f, 0.0f);
 		float3 position = float3(0.0f, 0.0f, 0.0f);
 		Quat rotation = Quat(0.0f, 0.0f, 0.0f, 0.0f);
@@ -82,6 +87,9 @@ public:
 		float3 emitterDirection = float3::zero;
 
 		// Collider
+		bool hasCollided = false;
+		std::list<GameObject*> collidedWith;
+
 		ParticleMotionState* motionState = nullptr;
 		btRigidBody* rigidBody = nullptr;
 		ComponentParticleSystem* emitter = nullptr;
@@ -261,14 +269,12 @@ public:
 	// Sub Emitter
 	TESSERACT_ENGINE_API void SetIsSubEmitter(bool _isEmitter);
 
-
 public:
 	WorldLayers layer;
 	int layerIndex = 5;
 	float radius = .25f;
 
 private:
-
 	// Common
 	Pool<Particle> particles;
 	std::vector<Particle*> deadParticles;
