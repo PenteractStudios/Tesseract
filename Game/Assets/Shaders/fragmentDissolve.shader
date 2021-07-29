@@ -110,7 +110,7 @@ vec4 Dissolve(vec4 finalColor, vec2 tiledUV, bool isEmissive) {
     vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
 
     //color = vec3(SimplexNoise(st) * .5 + .5);
-    color = vec3(SimplexNoise(transformedUV));
+    color = vec3(SimplexNoise(transformedUV) * .5 + .5);
 
     float stepValue = step(color.x, dissolveThreshold + edgeSize);
     if (isEmissive) {
@@ -148,7 +148,7 @@ bool MustDissolve(vec2 tiledUV) {
 
     vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
 
-    color = vec3(SimplexNoise(transformedUV));
+    color = vec3(SimplexNoise(transformedUV) * .5 + .5);
     if (color.x > dissolveThreshold) {
         return false;
     }
