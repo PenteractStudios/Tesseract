@@ -70,7 +70,7 @@ public:
 	TESSERACT_ENGINE_API void SetScale(float3 scale);		// Sets this scale to value
 	void SetAnchorMin(float2 anchorMin);					// Sets this anchorMin to value
 	void SetAnchorMax(float2 anchorMax);					// Sets this anchorMax to value
-	void SetPivot(float2 pivotPosition);					// Sets this pivot to value
+	TESSERACT_ENGINE_API void SetPivot(float2 pivotPosition); // Sets this pivot to value
 	const float4x4 GetGlobalMatrix();						// Returns GlobalMatrix
 	const float4x4 GetGlobalScaledMatrix();					// Returns GlobalMatrix with the size of the item
 	TESSERACT_ENGINE_API Quat GetGlobalRotation();  // Returns the accumulated rotation of the parents and the current component
@@ -79,7 +79,7 @@ public:
 	TESSERACT_ENGINE_API float3 GetPosition() const; // Returns the position
 	TESSERACT_ENGINE_API float2 GetSize() const;	 // Returns the size
 	TESSERACT_ENGINE_API float3 GetScale() const;	// Returns the scale
-	float2 GetPivot() const;						 // Returns the pivot
+	TESSERACT_ENGINE_API float2 GetPivot() const;	 // Returns the pivot
 	float3 GetPositionRelativeToParent() const;		 // Returns the position of the object relative to its parent
 	float3 GetScreenPosition() const;				 // Returns the position of the object respect the screen
 
