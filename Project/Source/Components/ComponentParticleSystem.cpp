@@ -117,6 +117,8 @@
 #define JSON_TAG_SUB_EMMITERS_EMITTER_TYPE "EmitterType"
 #define JSON_TAG_SUB_EMITTERS_EMIT_PROB "EmitProbability"
 
+#define ITEM_SIZE 150
+
 static bool ImGuiRandomMenu(const char* name, float2& values, RandomMode& mode, float speed = 0.01f, float min = 0, float max = inf) {
 	ImGui::PushID(name);
 	bool used = false;
@@ -212,6 +214,8 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	ImGui::Separator();
 
 	ImGui::Indent();
+	ImGui::PushItemWidth(ITEM_SIZE);
+
 	// General Particle System
 	if (ImGui::CollapsingHeader("Particle System")) {
 		ImGui::DragFloat("Duration", &duration, App->editor->dragSpeed2f, 0, inf);
@@ -317,7 +321,11 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::Checkbox("##color_over_lifetime", &colorOverLifetime);
 		if (colorOverLifetime) {
 			ImGui::SameLine();
+			ImGui::PopItemWidth();
+			ImGui::PushItemWidth(200);
 			ImGui::GradientEditor(gradient, draggingGradient, selectedGradient);
+			ImGui::PopItemWidth();
+			ImGui::PushItemWidth(ITEM_SIZE);
 		}
 	}
 
@@ -336,6 +344,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 	// Render
 	if (ImGui::CollapsingHeader("Render")) {
+		ImGui::SetNextItemWidth(200);
 		const char* billboardTypeCombo[] = {"Billboard", "Stretched Billboard", "Horitzontal Billboard", "Vertical Billboard"};
 		const char* billboardTypeComboCurrent = billboardTypeCombo[(int) billboardType];
 		if (ImGui::BeginCombo("Bilboard Mode##", billboardTypeComboCurrent)) {
@@ -514,6 +523,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		}
 	}
 	ImGui::Unindent();
+	ImGui::PopItemWidth();
 }
 
 void ComponentParticleSystem::InitParticleAnimationTexture(Particle* currentParticle) {
