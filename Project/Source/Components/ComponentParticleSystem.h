@@ -115,7 +115,6 @@ public:
 	void UpdateLife(Particle* currentParticle);
 	void UpdateTrail(Particle* currentParticle);
 	void UpdateGravityDirection(Particle* currentParticle);
-	void UpdateWitdhTrail();
 
 	TESSERACT_ENGINE_API void KillParticle(Particle* currentParticle);
 	void UndertakerParticle(bool force = false);
@@ -327,7 +326,7 @@ private:
 
 	// Trail
 	bool hasTrail = false;
-	// Trail Info
+	// -- Trail Info
 	int nTextures = 1;
 	int trailQuads = 50;
 
@@ -338,7 +337,7 @@ private:
 	bool colorOverTrail = false;
 	UID textureTrailID = 0;
 
-	// Color Settings
+	// -- Color Settings
 	ImGradient* gradientTrail = nullptr;
 	ImGradientMark* draggingGradientTrail = nullptr;
 	ImGradientMark* selectedGradientTail = nullptr;

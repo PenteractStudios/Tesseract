@@ -12,7 +12,7 @@
 #define MAX_VERTICES 1500
 
 class ImGradient;
-class ImGradientMark;
+struct ImGradientMark;
 
 class Trail {
 public:

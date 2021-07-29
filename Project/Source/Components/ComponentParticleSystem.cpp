@@ -109,13 +109,11 @@
 
 // Trail
 #define JSON_TAG_TRAIL_TEXTURE_TEXTUREID "TextureTrailID"
-#define JSON_TAG_MAXVERTICES "MaxVertices"
 
 #define JSON_TAG_WIDTH "Width"
 #define JSON_TAG_TRAIL_QUADS "TrailQuads"
 #define JSON_TAG_TEXTURE_REPEATS "TextureRepeats"
 #define JSON_TAG_QUAD_LIFE "QuadLife"
-#define JSON_TAG_IS_RENDERING "IsRendering"
 
 #define JSON_TAG_HAS_COLOR_OVER_TRAIL "HasColorOverTrail"
 #define JSON_TAG_GRADIENT_COLOR "GradientColor"
@@ -485,20 +483,6 @@ void ComponentParticleSystem::InitParticleAnimationTexture(Particle* currentPart
 		float timePerFrame = (Ytiles * Xtiles) / timePerCycle;
 		currentParticle->animationSpeed = timePerFrame;
 	}
-}
-
-void ComponentParticleSystem::InitParticleTrail(Particle* currentParticle) {
-	currentParticle->trail = new Trail();
-	currentParticle->trail->width = width;
-	currentParticle->trail->trailQuads = trailQuads;
-	currentParticle->trail->nTextures = nTextures;
-	currentParticle->trail->quadLife = quadLife;
-	currentParticle->trail->gradient = gradient;
-	currentParticle->trail->draggingGradient = draggingGradient;
-	currentParticle->trail->selectedGradient = selectedGradient;
-	currentParticle->trail->colorOverTrail = colorOverTrail;
-	currentParticle->trail->Init();
-	currentParticle->trail->textureID = textureTrailID;
 }
 
 void ComponentParticleSystem::Load(JsonValue jComponent) {
@@ -889,6 +873,19 @@ void ComponentParticleSystem::InitParticleLife(Particle* currentParticle) {
 	currentParticle->life = currentParticle->initialLife;
 }
 
+void ComponentParticleSystem::InitParticleTrail(Particle* currentParticle) {
+	currentParticle->trail = new Trail();
+	currentParticle->trail->width = width;
+	currentParticle->trail->trailQuads = trailQuads;
+	currentParticle->trail->nTextures = nTextures;
+	currentParticle->trail->quadLife = quadLife;
+	currentParticle->trail->gradient = gradient;
+	currentParticle->trail->draggingGradient = draggingGradient;
+	currentParticle->trail->selectedGradient = selectedGradient;
+	currentParticle->trail->colorOverTrail = colorOverTrail;
+	currentParticle->trail->Init();
+	currentParticle->trail->textureID = textureTrailID;
+}
 void ComponentParticleSystem::InitStartDelay() {
 	restDelayTime = ObtainRandomValueFloat(startDelay, startDelayRM);
 }
@@ -1025,13 +1022,6 @@ void ComponentParticleSystem::UpdateTrail(Particle* currentParticle) {
 	currentParticle->trail->Update(currentParticle->position);
 }
 
-void ComponentParticleSystem::UpdateWitdhTrail() {
-	for (Particle& currentParticle : particles) {
-		currentParticle.trail->DeleteQuads();
-		currentParticle.trail->width = width;
-	}
-}
-
 void ComponentParticleSystem::KillParticle(Particle* currentParticle) {
 	currentParticle->life = -1;
 	RELEASE(currentParticle->trail);
@@ -1048,6 +1038,7 @@ void ComponentParticleSystem::UndertakerParticle(bool force) {
 	for (Particle* currentParticle : deadParticles) {
 		App->physics->RemoveParticleRigidbody(currentParticle);
 		RELEASE(currentParticle->motionState);
+		RELEASE(currentParticle->trail);
 		particles.Release(currentParticle);
 	}
 	deadParticles.clear();
