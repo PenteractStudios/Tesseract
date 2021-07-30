@@ -374,8 +374,8 @@
     <ClCompile Include="Source\Rendering\Programs.cpp" />
     <ClCompile Include="Source\Utils\ParticleMotionState.cpp" />
     <ClCompile Include="Libs\imgui\imgui_color_gradient.cpp" />
-    <ClCompile Include="Source\Components\Trail.cpp" />
     <ClCompile Include="Source\Modules\ModuleConfiguration.cpp" />
+    <ClCompile Include="Source\Utils\Trail.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\LightFrustum.h" />
@@ -728,8 +728,8 @@
     <ClInclude Include="Source\Utils\ParticleMotionState.h" />
     <ClInclude Include="Source\Utils\Collider.h" />
     <ClInclude Include="Libs\imgui\imgui_color_gradient.h" />
-    <ClInclude Include="Source\Components\Trail.h" />
     <ClInclude Include="Source\Modules\ModuleConfiguration.h" />
+    <ClInclude Include="Source\Utils\Trail.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />

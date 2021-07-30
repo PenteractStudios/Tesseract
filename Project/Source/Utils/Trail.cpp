@@ -197,7 +197,6 @@ void Trail::Draw() {
 		glUniform1i(trailProgram->hasDiffuseLocation, hasDiffuseMap);
 		glUniform4fv(trailProgram->inputColorLocation, 1, color.ptr());
 
-		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, glTexture);
 
 		glDrawArrays(GL_TRIANGLES, 0, currentQuad->index);

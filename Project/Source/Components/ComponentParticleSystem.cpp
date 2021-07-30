@@ -380,20 +380,11 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			}
 		}
 		if (hasTrail) {
-			//if (ImGui::Button("Play")) Play();
-			//if (ImGui::Button("Stop")) Stop();
-			//if (ImGui::Checkbox("Render", &isRendering)) {
-			//	isStarted = false;
-			//}
 			ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
 
-			if (ImGui::DragInt("Trail Quads", &trailQuads, 1.0f, 1, 50, "%d", ImGuiSliderFlags_AlwaysClamp)) {
-				//if (nTextures > trailQuads) nTextures = trailQuads;
-			}
-			if (ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, trailQuads, "%d", ImGuiSliderFlags_AlwaysClamp)) {
-				//DeleteQuads();
-				//EditTextureCoords();
-			}
+			ImGui::DragInt("Trail Quads", &trailQuads, 1.0f, 1, 50, "%d", ImGuiSliderFlags_AlwaysClamp);
+
+			ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, trailQuads, "%d", ImGuiSliderFlags_AlwaysClamp);
 
 			ImGui::DragFloat("Quad Life", &quadLife, App->editor->dragSpeed2f, 1, inf);
 
@@ -606,12 +597,12 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	nTextures = jComponent[JSON_TAG_TEXTURE_REPEATS];
 
 	colorOverTrail = jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL];
-	int numberColors = jComponent[JSON_TAG_NUMBER_COLORS];
+	int trailNumberColors = jComponent[JSON_TAG_NUMBER_COLORS];
 	if (!gradient) gradient = new ImGradient();
 	gradient->clearList();
-	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLOR];
-	for (int i = 0; i < numberColors; ++i) {
-		JsonValue jMark = jColor[i];
+	JsonValue trailJColor = jComponent[JSON_TAG_GRADIENT_COLOR];
+	for (int i = 0; i < trailNumberColors; ++i) {
+		JsonValue jMark = trailJColor[i];
 		gradient->addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
 	}
 	CreateParticles();
@@ -737,10 +728,10 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 
 	// Color
 	jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL] = colorOverTrail;
-	int color = 0;
-	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLOR];
+	int trailColor = 0;
+	JsonValue trailJColor = jComponent[JSON_TAG_GRADIENT_COLOR];
 	for (ImGradientMark* mark : gradient->getMarks()) {
-		JsonValue jMask = jColor[color];
+		JsonValue jMask = jColor[trailJColor];
 		jMask[0] = mark->color[0];
 		jMask[1] = mark->color[1];
 		jMask[2] = mark->color[2];

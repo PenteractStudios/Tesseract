@@ -1,6 +1,6 @@
 #pragma once
 #include "Component.h"
-#include "Trail.h"
+#include "Utils/Trail.h"
 #include "Utils/Pool.h"
 #include "Utils/UID.h"
 

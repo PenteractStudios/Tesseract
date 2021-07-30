@@ -1,5 +1,4 @@
 #pragma once
-#include "Component.h"
 
 #include "Utils/Pool.h"
 #include "Utils/UID.h"
@@ -26,8 +25,6 @@ public:
 	void Init();
 	void Update(float3 mPosition);
 	void OnEditorUpdate();
-	void Load(JsonValue jComponent);
-	void Save(JsonValue jComponent) const;
 
 	void Draw();
 	void InsertVertex(Quad* currentQuad, float3 vertex);
