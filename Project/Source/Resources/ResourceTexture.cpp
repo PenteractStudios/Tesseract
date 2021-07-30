@@ -39,17 +39,10 @@ void ResourceTexture::Load() {
 
 	// Load image
 	ilBindImage(image);
-	bool imageLoaded = ilLoad(IL_DDS, filePath.c_str());
+	bool imageLoaded = ilLoad(IL_RAW, filePath.c_str());
 	if (!imageLoaded) {
 		LOG("Failed to load image.");
 		return;
-	}
-
-	// Flip image if neccessary
-	ILinfo info;
-	iluGetImageInfo(&info);
-	if (info.Origin == IL_ORIGIN_UPPER_LEFT) {
-		iluFlipImage();
 	}
 
 	// Generate texture from image

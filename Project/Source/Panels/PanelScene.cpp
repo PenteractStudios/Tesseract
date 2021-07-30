@@ -287,9 +287,9 @@ void PanelScene::Update() {
 			}
 			ImGui::CaptureMouseFromApp(false);
 		}
-		ImGui::End();
-		ImGui::PopStyleVar();
 	}
+	ImGui::End();
+	ImGui::PopStyleVar();
 }
 
 const float2& PanelScene::GetWindowsPos() const {

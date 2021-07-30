@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Modules/Module.h"
+#include "Utils/UID.h"
 
 #include <string>
 
@@ -23,6 +24,8 @@ public:
 public:
 	std::string fileName = ""; // REVIEW. This can be removed? Is it even used for anything?
 	Scene* scene = nullptr;
+
+	UID startSceneId = 0; // First scene to be loaded when in GAME configuration
 
 	//Temporary hardcoded solution
 	bool godModeOn = false;

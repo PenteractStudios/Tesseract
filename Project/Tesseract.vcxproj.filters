@@ -374,6 +374,7 @@
     <ClCompile Include="Source\Utils\ParticleMotionState.cpp" />
     <ClCompile Include="Libs\imgui\imgui_color_gradient.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentBoundingBox2D.cpp" />
+    <ClCompile Include="Source\Modules\ModuleConfiguration.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\LightFrustum.h" />
@@ -726,6 +727,7 @@
     <ClInclude Include="Source\Utils\Collider.h" />
     <ClInclude Include="Libs\imgui\imgui_color_gradient.h" />
     <ClInclude Include="Source\Components\UI\ComponentBoundingBox2D.h" />
+    <ClInclude Include="Source\Modules\ModuleConfiguration.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />
