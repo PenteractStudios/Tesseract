@@ -7,9 +7,9 @@
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleRender.h"
 #include "Modules/ModuleEditor.h"
-#include "imgui.h"
 
 #include "debugdraw.h"
+
 #include "Utils/Leaks.h"
 
 void ComponentCanvas::Init() {

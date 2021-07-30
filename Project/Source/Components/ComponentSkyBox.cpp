@@ -2,16 +2,14 @@
 
 #include "Application.h"
 #include "GameObject.h"
-#include "Utils/ImGuiUtils.h"
-#include "Resources/ResourceSkybox.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleEditor.h"
-#include "ComponentSkyBox.h"
 #include "Modules/ModuleRender.h"
 #include "Modules/ModulePrograms.h"
+#include "Resources/ResourceSkybox.h"
+#include "Utils/ImGuiUtils.h"
 
 #include "GL/glew.h"
-#include "imgui.h"
 
 #define JSON_TAG_SHADER "Shader"
 #define JSON_TAG_SKYBOX "Skybox"

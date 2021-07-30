@@ -267,7 +267,7 @@ void PanelScene::Update() {
 
 		// Capture input
 		if (ImGui::IsWindowFocused()) {
-			if (App->input->GetMouseButton(SDL_BUTTON_RIGHT) || App->input->GetKey(SDL_SCANCODE_LALT)) {
+			if (App->input->GetMouseButton(SDL_BUTTON_RIGHT) != KeyState::KS_IDLE || App->input->GetKey(SDL_SCANCODE_LALT) != KeyState::KS_IDLE) {
 				ImGuizmo::Enable(false);
 			} else {
 				ImGuizmo::Enable(true);

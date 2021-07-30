@@ -3,8 +3,6 @@
 #include "Globals.h"
 #include "Application.h"
 #include "GameObject.h"
-#include "Utils/Logging.h"
-#include "Utils/Random.h"
 #include "Components/ComponentMeshRenderer.h"
 #include "Components/ComponentBoundingBox.h"
 #include "Components/ComponentTransform.h"
@@ -15,7 +13,6 @@
 #include "Components/ComponentBillboard.h"
 #include "Components/ComponentSkyBox.h"
 #include "Components/ComponentLight.h"
-#include "Modules/ModuleInput.h"
 #include "Modules/ModuleWindow.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleDebugDraw.h"
@@ -25,9 +22,10 @@
 #include "Modules/ModulePrograms.h"
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleUserInterface.h"
-#include "Modules/ModuleTime.h"
 #include "Modules/ModuleNavigation.h"
 #include "Resources/ResourceMesh.h"
+#include "Utils/Logging.h"
+#include "Utils/Random.h"
 #include "TesseractEvent.h"
 
 #include "Geometry/AABB.h"
@@ -37,11 +35,11 @@
 #include "GL/glew.h"
 #include "SDL.h"
 #include "Brofiler.h"
-
-#include "Utils/Leaks.h"
 #include <string>
 #include <math.h>
 #include <vector>
+
+#include "Utils/Leaks.h"
 
 static std::vector<float> ssaoGaussKernel;
 
@@ -50,11 +48,11 @@ static std::vector<float> mediumGaussKernel;
 static std::vector<float> largeGaussKernel;
 
 float defIntGaussian(const float x, const float mu, const float sigma) {
-	return 0.5 * erf((x - mu) / (sqrt(2) * sigma));
+	return (float) (0.5f * erf((x - mu) / (sqrt(2) * sigma)));
 }
 
 void gaussianKernel(const int kernelSize, const float sigma, const float mu, const float step, std::vector<float>& coeff) {
-	const float end = 0.5*kernelSize;
+	const float end = 0.5f*kernelSize;
 	const float start = -end;
 	float sum = 0;
 	float x = start;
@@ -71,7 +69,7 @@ void gaussianKernel(const int kernelSize, const float sigma, const float mu, con
 
 	//normalize
 	sum = 1 / sum;
-	for (int i = 0; i < coeff.size(); ++i) {
+	for (unsigned int i = 0u; i < coeff.size(); ++i) {
 		coeff[i] *= sum;
 	}
 
@@ -712,7 +710,7 @@ UpdateStatus ModuleRender::Update() {
 		glBindTexture(GL_TEXTURE_2D, colorTextures[1]);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
-		for (unsigned int i = 0; i < 2 * bloomQuality; i++) {
+		for (unsigned int i = 0u; i < 2u * bloomQuality; i++) {
 			int width = static_cast<int>(viewportSize.x);
 			int height = static_cast<int>(viewportSize.y);
 			glViewport(0, 0, width / (1 << gaussSmallMipLevel), height / (1 << gaussSmallMipLevel));
@@ -987,10 +985,10 @@ void ModuleRender::UpdateFramebuffers() {
 	}
 
 	// Compute Gaussian kernels
-	gaussSmallKernelRadius = roundf(viewportSize.y * 0.002f);
-	gaussMediumKernelRadius = roundf(viewportSize.y * 0.004f);
-	gaussLargeKernelRadius = roundf(viewportSize.y * 0.008f);
-	float term = Ln(1e5 / sqrt(2 * pi));
+	gaussSmallKernelRadius = (int) roundf(viewportSize.y * 0.002f);
+	gaussMediumKernelRadius = (int) roundf(viewportSize.y * 0.004f);
+	gaussLargeKernelRadius = (int) roundf(viewportSize.y * 0.008f);
+	float term = Ln(1e5f / sqrt(2 * pi));
 	float sigma1 = gaussSmallKernelRadius * gaussSmallKernelRadius / 2.0f;
 	float sigma2 = gaussMediumKernelRadius * gaussMediumKernelRadius / 2.0f;
 	float sigma3 = gaussLargeKernelRadius * gaussLargeKernelRadius / 2.0f;

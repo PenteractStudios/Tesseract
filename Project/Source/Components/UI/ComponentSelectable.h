@@ -4,12 +4,11 @@
 #include "UI/Interfaces/IPointerEnterHandler.h"
 #include "UI/Interfaces/IPointerExitHandler.h"
 
-#include "Math/float2.h"
 #include "Math/float4.h"
 
 class ComponentEventSystem;
 
-//TODO	DECIDE WETHER WE ARE GOING TO USE DIFFERENT TRANSITION_TYPES SUCH AS ANIMATIONS, AND IF SO, IMPLEMENT ANIMATIONS AS TRANSITION
+// TODO: DECIDE WETHER WE ARE GOING TO USE DIFFERENT TRANSITION_TYPES SUCH AS ANIMATIONS, AND IF SO, IMPLEMENT ANIMATIONS AS TRANSITION
 
 class ComponentSelectable : public Component
 	, IPointerEnterHandler

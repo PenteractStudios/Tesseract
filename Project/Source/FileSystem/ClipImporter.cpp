@@ -1,14 +1,13 @@
 #include "ClipImporter.h"
 
+#include "Application.h"
+#include "Modules/ModuleResources.h"
+#include "Modules/ModuleFiles.h"
+#include "Resources/Resourceclip.h"
 #include "Utils/Logging.h"
 #include "Utils/MSTimer.h"
 #include "Utils/Buffer.h"
 #include "Utils/FileDialog.h"
-#include "Application.h"
-#include "Modules/ModuleResources.h"
-#include "Modules/ModuleFiles.h"
-#include "Modules/ModuleTime.h"
-#include "Resources/Resourceclip.h"
 #include "ImporterCommon.h"
 
 #include "rapidjson/error/en.h"
