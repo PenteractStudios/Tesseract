@@ -44,6 +44,7 @@
 #define JSON_TAG_NUMBER_COLORS "NumColors"
 
 ComponentTrail::~ComponentTrail() {
+	RELEASE(trail);
 }
 
 void ComponentTrail::Init() {
