@@ -63,6 +63,7 @@ void ComponentTrail::OnEditorUpdate() {
 	if (ImGui::Button("Stop")) Stop();
 	if (ImGui::Checkbox("Render", &trail->isRendering)) {
 		trail->isStarted = false;
+		trail->DeleteQuads();
 	}
 	ImGui::DragFloat("Witdh", &trail->width, App->editor->dragSpeed2f, 0, inf);
 	if (ImGui::DragInt("Trail Quads", &trail->trailQuads, 1.0f, 1, trail->maxQuads, "%d", ImGuiSliderFlags_AlwaysClamp)) {
