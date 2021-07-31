@@ -159,6 +159,7 @@ void ModulePrograms::UnloadShaders() {
 
 	RELEASE(depthPrepass);
 	RELEASE(depthPrepassConvertTextures);
+	RELEASE(depthPrepassDissolve);
 
 	RELEASE(dissolveStandard);
 	RELEASE(dissolveUnlit);

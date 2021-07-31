@@ -34,6 +34,7 @@
 #define JSON_TAG_METALLIC "Metalness"
 #define JSON_TAG_NORMAL_MAP "NormalMap"
 #define JSON_TAG_NORMAL_STRENGTH "NormalStrength"
+#define JSON_TAG_EMISSIVE_COLOR "EmissiveColor"
 #define JSON_TAG_EMISSIVE_MAP "EmissiveMap"
 #define JSON_TAG_EMISSIVE_INTENSITY "Emissive"
 #define JSON_TAG_AMBIENT_OCCLUSION_MAP "AmbientOcclusionMap"
@@ -43,7 +44,9 @@
 #define JSON_TAG_OFFSET "Offset"
 #define JSON_TAG_DISSOLVE_SCALE "DissolveScale"
 #define JSON_TAG_DISSOLVE_OFFSET "DissolveOffset"
+#define JSON_TAG_DISSOLVE_DURATION "DissolveDuration"
 #define JSON_TAG_DISSOLVE_BLEND_THRESHOLD "DissolveBlendThreshold"
+#define JSON_TAG_DISSOLVE_EDGE_SIZE "DissolveEdgeSize"
 
 void ResourceMaterial::Load() {
 	// Timer to measure loading a material
@@ -83,6 +86,7 @@ void ResourceMaterial::Load() {
 	App->resources->IncreaseReferenceCount(normalMapId);
 	normalStrength = jMaterial[JSON_TAG_NORMAL_STRENGTH];
 
+	emissiveColor = float4(jMaterial[JSON_TAG_EMISSIVE_COLOR][0], jMaterial[JSON_TAG_EMISSIVE_COLOR][1], jMaterial[JSON_TAG_EMISSIVE_COLOR][2], jMaterial[JSON_TAG_EMISSIVE_COLOR][3]);
 	emissiveMapId = jMaterial[JSON_TAG_EMISSIVE_MAP];
 	App->resources->IncreaseReferenceCount(emissiveMapId);
 
@@ -97,10 +101,13 @@ void ResourceMaterial::Load() {
 	tiling = float2(jMaterial[JSON_TAG_TILING][0], jMaterial[JSON_TAG_TILING][1]);
 	offset = float2(jMaterial[JSON_TAG_OFFSET][0], jMaterial[JSON_TAG_OFFSET][1]);
 
-	//ResetDissolveValues();
+	// Dissolve values
 	dissolveScale = jMaterial[JSON_TAG_DISSOLVE_SCALE];
-	dissolveBlendThreshold = jMaterial[JSON_TAG_DISSOLVE_BLEND_THRESHOLD];
 	dissolveOffset = float2(jMaterial[JSON_TAG_DISSOLVE_OFFSET][0], jMaterial[JSON_TAG_DISSOLVE_OFFSET][1]);
+	dissolveDuration = jMaterial[JSON_TAG_DISSOLVE_DURATION];
+	dissolveBlendThreshold = jMaterial[JSON_TAG_DISSOLVE_BLEND_THRESHOLD];
+	dissolveEdgeSize = jMaterial[JSON_TAG_DISSOLVE_EDGE_SIZE];
+	ResetDissolveValues();
 
 	unsigned timeMs = timer.Stop();
 	LOG("Material loaded in %ums", timeMs);
@@ -148,6 +155,12 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	jMaterial[JSON_TAG_METALLIC_MAP] = metallicMapId;
 	jMaterial[JSON_TAG_NORMAL_MAP] = normalMapId;
 	jMaterial[JSON_TAG_NORMAL_STRENGTH] = normalStrength;
+
+	JsonValue jEmissiveColor = jMaterial[JSON_TAG_EMISSIVE_COLOR];
+	jEmissiveColor[0] = emissiveColor.x;
+	jEmissiveColor[1] = emissiveColor.y;
+	jEmissiveColor[2] = emissiveColor.z;
+	jEmissiveColor[3] = emissiveColor.w;
 	jMaterial[JSON_TAG_EMISSIVE_MAP] = emissiveMapId;
 	jMaterial[JSON_TAG_EMISSIVE_INTENSITY] = emissiveIntensity;
 	jMaterial[JSON_TAG_AMBIENT_OCCLUSION_MAP] = ambientOcclusionMapId;
@@ -162,11 +175,14 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	jOffset[0] = offset.x;
 	jOffset[1] = offset.y;
 
+	// Dissolve values
 	jMaterial[JSON_TAG_DISSOLVE_SCALE] = dissolveScale;
-	jMaterial[JSON_TAG_DISSOLVE_BLEND_THRESHOLD] = dissolveThreshold;
 	JsonValue jDissolveOffset = jMaterial[JSON_TAG_DISSOLVE_OFFSET];
 	jDissolveOffset[0] = dissolveOffset.x;
 	jDissolveOffset[1] = dissolveOffset.y;
+	jMaterial[JSON_TAG_DISSOLVE_DURATION] = dissolveDuration;
+	jMaterial[JSON_TAG_DISSOLVE_BLEND_THRESHOLD] = dissolveBlendThreshold;
+	jMaterial[JSON_TAG_DISSOLVE_EDGE_SIZE] = dissolveEdgeSize;
 
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
@@ -205,12 +221,8 @@ void ResourceMaterial::PlayDissolveAnimation() {
 
 void ResourceMaterial::ResetDissolveValues() {
 	dissolveThreshold = 0.0f;
-	dissolveDuration = 1.0f;
-	dissolveBlendThreshold = 0.85f;
 	currentTime = 0.0f;
 	dissolveAnimationFinished = true;
-	dissolveOffset = float2::zero;
-	renderingMode = RenderingMode::TRANSPARENT;
 }
 
 void ResourceMaterial::OnEditorUpdate() {
@@ -430,11 +442,15 @@ void ResourceMaterial::OnEditorUpdate() {
 		ImGui::DragFloat2("Offset##dissolveOffset", dissolveOffset.ptr(), App->editor->dragSpeed2f, -inf, inf);
 		ImGui::DragFloat("Duration##dissolveScale", &dissolveDuration, App->editor->dragSpeed2f, 0, inf);
 		ImGui::DragFloat("Blend Threshold##blendThreshold", &dissolveBlendThreshold, App->editor->dragSpeed2f, 0, 1);
-		ImGui::DragFloat("Edge Size", &edgeSize, App->editor->dragSpeed2f, 0, inf);
+		ImGui::DragFloat("Edge Size", &dissolveEdgeSize, App->editor->dragSpeed2f, 0, inf);
 
 		if (ImGui::Button("Play Dissolve Animation")) {
 			PlayDissolveAnimation();
 		}
+		if (ImGui::Button("Reset Dissolve Animation")) {
+			ResetDissolveValues();
+		}
+
 		ImGui::Text("For debug only");
 		ImGui::Checkbox("Animation finished", &dissolveAnimationFinished);
 		ImGui::DragFloat("Threshold", &dissolveThreshold, App->editor->dragSpeed2f, 0, inf);
