@@ -108,6 +108,7 @@
 #define JSON_TAG_LAYER_INDEX "LayerIndex"
 
 // Trail
+#define JSON_TAG_HASTRAIL "HasTrail"
 #define JSON_TAG_TRAIL_TEXTURE_TEXTUREID "TextureTrailID"
 
 #define JSON_TAG_WIDTH "Width"
@@ -586,6 +587,8 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	layer = WorldLayers(1 << layerIndex);
 
 	//Trail
+	hasTrail = jComponent[JSON_TAG_HASTRAIL];
+
 	textureTrailID = jComponent[JSON_TAG_TRAIL_TEXTURE_TEXTUREID];
 	if (textureTrailID != 0) {
 		App->resources->IncreaseReferenceCount(textureTrailID);
@@ -719,6 +722,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_COLLISION_RADIUS] = radius;
 
 	// Trail
+	jComponent[JSON_TAG_HASTRAIL] = hasTrail;
 	jComponent[JSON_TAG_TRAIL_TEXTURE_TEXTUREID] = textureTrailID;
 	jComponent[JSON_TAG_TRAIL_QUADS] = trailQuads;
 
