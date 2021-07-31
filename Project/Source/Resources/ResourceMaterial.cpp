@@ -45,7 +45,6 @@
 #define JSON_TAG_DISSOLVE_SCALE "DissolveScale"
 #define JSON_TAG_DISSOLVE_OFFSET "DissolveOffset"
 #define JSON_TAG_DISSOLVE_DURATION "DissolveDuration"
-#define JSON_TAG_DISSOLVE_BLEND_THRESHOLD "DissolveBlendThreshold"
 #define JSON_TAG_DISSOLVE_EDGE_SIZE "DissolveEdgeSize"
 
 void ResourceMaterial::Load() {
@@ -105,7 +104,6 @@ void ResourceMaterial::Load() {
 	dissolveScale = jMaterial[JSON_TAG_DISSOLVE_SCALE];
 	dissolveOffset = float2(jMaterial[JSON_TAG_DISSOLVE_OFFSET][0], jMaterial[JSON_TAG_DISSOLVE_OFFSET][1]);
 	dissolveDuration = jMaterial[JSON_TAG_DISSOLVE_DURATION];
-	dissolveBlendThreshold = jMaterial[JSON_TAG_DISSOLVE_BLEND_THRESHOLD];
 	dissolveEdgeSize = jMaterial[JSON_TAG_DISSOLVE_EDGE_SIZE];
 
 	unsigned timeMs = timer.Stop();
@@ -180,7 +178,6 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	jDissolveOffset[0] = dissolveOffset.x;
 	jDissolveOffset[1] = dissolveOffset.y;
 	jMaterial[JSON_TAG_DISSOLVE_DURATION] = dissolveDuration;
-	jMaterial[JSON_TAG_DISSOLVE_BLEND_THRESHOLD] = dissolveBlendThreshold;
 	jMaterial[JSON_TAG_DISSOLVE_EDGE_SIZE] = dissolveEdgeSize;
 
 	// Write document to buffer
@@ -428,7 +425,6 @@ void ResourceMaterial::OnEditorUpdate() {
 		ImGui::DragFloat("Scale##dissolveScale", &dissolveScale, App->editor->dragSpeed2f, 0, inf);
 		ImGui::DragFloat2("Offset##dissolveOffset", dissolveOffset.ptr(), App->editor->dragSpeed2f, -inf, inf);
 		ImGui::DragFloat("Duration##dissolveScale", &dissolveDuration, App->editor->dragSpeed2f, 0, inf);
-		ImGui::DragFloat("Blend Threshold##blendThreshold", &dissolveBlendThreshold, App->editor->dragSpeed2f, 0, 1);
 		ImGui::DragFloat("Edge Size", &dissolveEdgeSize, App->editor->dragSpeed2f, 0, inf);
 	}
 }

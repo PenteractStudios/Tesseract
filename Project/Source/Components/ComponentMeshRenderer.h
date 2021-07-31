@@ -24,7 +24,7 @@ public:
 	void AddRenderingModeMask();
 	void DeleteRenderingModeMask();
 
-	// DISSOLVE
+	// Dissolve
 	TESSERACT_ENGINE_API void PlayDissolveAnimation();
 	TESSERACT_ENGINE_API void ResetDissolveValues();
 

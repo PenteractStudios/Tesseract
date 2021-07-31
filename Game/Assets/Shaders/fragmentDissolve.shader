@@ -2,7 +2,6 @@
 
 uniform float dissolveScale;
 uniform float dissolveThreshold;
-uniform float dissolveBlendThreshold;
 uniform vec2 dissolveOffset;
 uniform float edgeSize;
 

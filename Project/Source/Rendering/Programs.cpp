@@ -322,7 +322,6 @@ ProgramStandardDissolve::ProgramStandardDissolve(unsigned program)
 
 	scaleLocation = glGetUniformLocation(program, "dissolveScale");
 	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
-	blendThresholdLocation = glGetUniformLocation(program, "blendThreshold");
 	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
 	edgeSizeLocation = glGetUniformLocation(program, "edgeSize");
 }
@@ -332,7 +331,6 @@ ProgramUnlitDissolve::ProgramUnlitDissolve(unsigned program)
 
 	scaleLocation = glGetUniformLocation(program, "dissolveScale");
 	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
-	blendThresholdLocation = glGetUniformLocation(program, "blendThreshold");
 	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
 	edgeSizeLocation = glGetUniformLocation(program, "edgeSize");
 }
@@ -342,6 +340,5 @@ ProgramDepthPrepassDissolve::ProgramDepthPrepassDissolve(unsigned program)
 
 	scaleLocation = glGetUniformLocation(program, "dissolveScale");
 	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
-	blendThresholdLocation = glGetUniformLocation(program, "blendThreshold");
 	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
 }

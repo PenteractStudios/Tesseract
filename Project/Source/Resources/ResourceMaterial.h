@@ -75,6 +75,5 @@ public:
 	float dissolveScale = 10.0f;
 	float2 dissolveOffset = float2::zero;
 	float dissolveDuration = 1.0f;
-	float dissolveBlendThreshold = 0.85f;		// In case this wants to be used in the future.
 	float dissolveEdgeSize = 0.0f;
 };

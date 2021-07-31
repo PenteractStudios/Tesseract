@@ -355,7 +355,6 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		// Dissolve settings
 		glUniform1f(dissolveProgram->scaleLocation, material->dissolveScale);
 		glUniform1f(dissolveProgram->thresholdLocation, dissolveThreshold);
-		glUniform1f(dissolveProgram->blendThresholdLocation, material->dissolveBlendThreshold);
 		glUniform2fv(dissolveProgram->offsetLocation, 1, material->dissolveOffset.ptr());
 		glUniform1f(dissolveProgram->edgeSizeLocation, material->dissolveEdgeSize);
 
@@ -473,7 +472,6 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		// Dissolve settings
 		glUniform1f(unlitProgram->scaleLocation, material->dissolveScale);
 		glUniform1f(unlitProgram->thresholdLocation, dissolveThreshold);
-		glUniform1f(unlitProgram->blendThresholdLocation, material->dissolveBlendThreshold);
 		glUniform2fv(unlitProgram->offsetLocation, 1, material->dissolveOffset.ptr());
 		glUniform1f(unlitProgram->edgeSizeLocation, material->dissolveEdgeSize);
 		
@@ -775,7 +773,6 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 
 		glUniform1f(depthPrepassProgramDissolve->scaleLocation, material->dissolveScale);
 		glUniform1f(depthPrepassProgramDissolve->thresholdLocation, dissolveThreshold);
-		glUniform1f(depthPrepassProgramDissolve->blendThresholdLocation, material->dissolveBlendThreshold);
 		glUniform2fv(depthPrepassProgramDissolve->offsetLocation, 1, material->dissolveOffset.ptr());
 	}
 	else {
