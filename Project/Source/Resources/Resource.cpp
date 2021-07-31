@@ -47,5 +47,3 @@ void Resource::LoadResourceMeta(JsonValue jResourceMeta) {}
 void Resource::SaveResourceMeta(JsonValue jResourceMeta) {}
 
 void Resource::OnEditorUpdate() {}
-
-void Resource::Update() {}

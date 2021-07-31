@@ -204,11 +204,6 @@ void ComponentMeshRenderer::Update() {
 		}
 	}
 
-	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
-	if (material != nullptr) {
-		material->Update();
-	}
-
 	UpdateDissolveAnimation();
 
 	if (App->time->GetDeltaTime() <= 0) return;
@@ -812,8 +807,6 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	// Tiling settings
 	glUniform2fv(depthPrepassProgram->tilingLocation, 1, material->tiling.ptr());
 	glUniform2fv(depthPrepassProgram->offsetLocation, 1, material->offset.ptr());
-
-	glUniform1i(depthPrepassProgram->mustSkipLocation, material->shaderType == MaterialShader::UNLIT_DISSOLVE || material->shaderType == MaterialShader::STANDARD_DISSOLVE);
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);

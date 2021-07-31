@@ -199,8 +199,6 @@ struct ProgramDepthPrepass : Program {
 
 	int tilingLocation = -1;
 	int offsetLocation = -1;
-	
-	int mustSkipLocation = -1;
 };
 
 struct ProgramDepthPrepassConvertTextures : Program {

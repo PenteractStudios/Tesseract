@@ -192,8 +192,6 @@ ProgramDepthPrepass::ProgramDepthPrepass(unsigned program_)
 
 	tilingLocation = glGetUniformLocation(program, "tiling");
 	offsetLocation = glGetUniformLocation(program, "offset");
-
-	mustSkipLocation = glGetUniformLocation(program, "mustSkip");
 }
 
 ProgramDepthPrepassConvertTextures::ProgramDepthPrepassConvertTextures(unsigned program_)

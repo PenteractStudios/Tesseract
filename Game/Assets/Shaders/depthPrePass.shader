@@ -14,7 +14,6 @@ uniform sampler2D diffuseMap;
 uniform int hasDiffuseMap;
 uniform vec2 tiling;
 uniform vec2 offset;
-uniform bool mustSkip;
 
 vec2 GetTiledUVs()
 {

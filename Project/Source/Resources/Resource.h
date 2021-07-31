@@ -26,7 +26,6 @@ public:
 	virtual void LoadResourceMeta(JsonValue jResourceMeta);
 	virtual void SaveResourceMeta(JsonValue jResourceMeta);
 	virtual void OnEditorUpdate();
-	virtual void Update();
 
 private:
 	ResourceType type = ResourceType::UNKNOWN;
