@@ -1,12 +1,5 @@
 --- fragFunctionDissolveCommon
 
-//#ifdef GL_ES
-//precision mediump float;
-//#endif
-
-//uniform vec2 u_resolution;
-//uniform vec2 u_mouse;
-//uniform float u_time;
 uniform float dissolveScale;
 uniform float dissolveThreshold;
 uniform float dissolveBlendThreshold;
@@ -40,7 +33,7 @@ float SimplexNoise(vec2 v) {
         0.024390243902439);
     // 1.0 / 41.0
 
-// First corner (x0)
+    // First corner (x0)
     vec2 i = floor(v + dot(v, C.yy));
     vec2 x0 = v - i + dot(i, C.xx);
 
@@ -90,65 +83,36 @@ float SimplexNoise(vec2 v) {
 --- fragFunctionDissolveFunction
 
 vec4 Dissolve(vec4 finalColor, vec2 tiledUV, bool isEmissive) {
-    //vec2 st = gl_FragCoord.xy / u_resolution.xy;
-    //st.x *= u_resolution.x / u_resolution.y;
-    //vec2 st = tiledUV;
     if (dissolveThreshold == 0) {
-        //if (isEmissive) return vec4(0);
         return finalColor;
     }
 
-    vec2 st = gl_FragCoord.xy / vec2(1920, 1080);
-    st.x *= 1920 / 1080;
-
-    // Scale the space in order to see the function
-    st *= dissolveScale;
-    st += dissolveOffset;
-
     vec3 color = vec3(0.0);
-
     vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
-
-    //color = vec3(SimplexNoise(st) * .5 + .5);
     color = vec3(SimplexNoise(transformedUV) * .5 + .5);
 
     float stepValue = step(color.x, dissolveThreshold + edgeSize);
     if (isEmissive) {
-        //return vec4(stepValue, stepValue, stepValue, 1.0);
         return finalColor * stepValue;
     }
-    //return vec4(color, 1.0);
     if (color.x > dissolveThreshold) {
-        //return vec4(color, 1.0);
         return vec4(finalColor.xyz, color.x);
     }
 
     discard;
-    //return vec4(0.0f);
 }
 
 --- fragFunctionDepthDissolve
 
 bool MustDissolve(vec2 tiledUV) {
-    //vec2 st = gl_FragCoord.xy / u_resolution.xy;
-    //st.x *= u_resolution.x / u_resolution.y;
-    //vec2 st = tiledUV;
     if (dissolveThreshold == 0) {
         return false;
     }
 
-    vec2 st = gl_FragCoord.xy / vec2(1920, 1080);
-    st.x *= 1920 / 1080;
-
-    // Scale the space in order to see the function
-    st *= dissolveScale;
-    st += dissolveOffset;
-
     vec3 color = vec3(0.0);
-
     vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
-
     color = vec3(SimplexNoise(transformedUV) * .5 + .5);
+
     if (color.x > dissolveThreshold) {
         return false;
     }
