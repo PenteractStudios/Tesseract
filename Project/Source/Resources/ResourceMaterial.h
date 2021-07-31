@@ -27,15 +27,10 @@ public:
 	void Load() override;
 	void Unload() override;
 	void OnEditorUpdate() override;
-	void Update() override;
 
 	void SaveToFile(const char* filePath);
 
 	void UpdateMask();
-
-	// DISSOLVE
-	TESSERACT_ENGINE_API void PlayDissolveAnimation();
-	TESSERACT_ENGINE_API void ResetDissolveValues();
 
 public:
 	// Material shader
@@ -79,10 +74,7 @@ public:
 	// Dissolve Values. TODO: All Material properties should be converted into a map of properties and stored as is
 	float dissolveScale = 10.0f;
 	float2 dissolveOffset = float2::zero;
-	float dissolveThreshold = 0.0f;
 	float dissolveDuration = 1.0f;
 	float dissolveBlendThreshold = 0.85f;		// In case this wants to be used in the future.
-	float currentTime = 0.0f;
 	float dissolveEdgeSize = 0.0f;
-	bool dissolveAnimationFinished = true;
 };

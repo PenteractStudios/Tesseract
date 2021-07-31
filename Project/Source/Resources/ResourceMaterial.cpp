@@ -107,7 +107,6 @@ void ResourceMaterial::Load() {
 	dissolveDuration = jMaterial[JSON_TAG_DISSOLVE_DURATION];
 	dissolveBlendThreshold = jMaterial[JSON_TAG_DISSOLVE_BLEND_THRESHOLD];
 	dissolveEdgeSize = jMaterial[JSON_TAG_DISSOLVE_EDGE_SIZE];
-	ResetDissolveValues();
 
 	unsigned timeMs = timer.Stop();
 	LOG("Material loaded in %ums", timeMs);
@@ -211,18 +210,6 @@ void ResourceMaterial::UpdateMask() {
 			}
 		}
 	}
-}
-
-void ResourceMaterial::PlayDissolveAnimation() {
-	dissolveAnimationFinished = false;
-	currentTime = 0.0f;
-	dissolveThreshold = 0.0f;
-}
-
-void ResourceMaterial::ResetDissolveValues() {
-	dissolveThreshold = 0.0f;
-	currentTime = 0.0f;
-	dissolveAnimationFinished = true;
 }
 
 void ResourceMaterial::OnEditorUpdate() {
@@ -443,28 +430,5 @@ void ResourceMaterial::OnEditorUpdate() {
 		ImGui::DragFloat("Duration##dissolveScale", &dissolveDuration, App->editor->dragSpeed2f, 0, inf);
 		ImGui::DragFloat("Blend Threshold##blendThreshold", &dissolveBlendThreshold, App->editor->dragSpeed2f, 0, 1);
 		ImGui::DragFloat("Edge Size", &dissolveEdgeSize, App->editor->dragSpeed2f, 0, inf);
-
-		if (ImGui::Button("Play Dissolve Animation")) {
-			PlayDissolveAnimation();
-		}
-		if (ImGui::Button("Reset Dissolve Animation")) {
-			ResetDissolveValues();
-		}
-
-		ImGui::Text("For debug only");
-		ImGui::Checkbox("Animation finished", &dissolveAnimationFinished);
-		ImGui::DragFloat("Threshold", &dissolveThreshold, App->editor->dragSpeed2f, 0, inf);
-	}
-}
-
-void ResourceMaterial::Update() {
-	if (!dissolveAnimationFinished && dissolveDuration > 0) {
-		currentTime += App->time->GetDeltaTimeOrRealDeltaTime();
-		if (currentTime < dissolveDuration) {
-			dissolveThreshold = currentTime / dissolveDuration;
-		} else {
-			dissolveAnimationFinished = true;
-			dissolveThreshold = 1.0f;
-		}
 	}
 }

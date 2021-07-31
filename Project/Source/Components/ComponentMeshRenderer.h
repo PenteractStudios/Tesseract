@@ -24,6 +24,10 @@ public:
 	void AddRenderingModeMask();
 	void DeleteRenderingModeMask();
 
+	// DISSOLVE
+	TESSERACT_ENGINE_API void PlayDissolveAnimation();
+	TESSERACT_ENGINE_API void ResetDissolveValues();
+
 public:
 	UID meshId = 0;
 	UID materialId = 0;
@@ -32,5 +36,13 @@ public:
 	std::unordered_map<std::string, GameObject*> goBones;
 
 private:
+	void UpdateDissolveAnimation();
+
+private:
 	bool bbActive = false;
+
+	// Dissolve variables
+	float currentTime = 0.0f;
+	float dissolveThreshold = 0.0f;
+	bool dissolveAnimationFinished = true;
 };

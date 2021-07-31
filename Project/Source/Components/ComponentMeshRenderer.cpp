@@ -164,7 +164,21 @@ void ComponentMeshRenderer::OnEditorUpdate() {
 		ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
 		if (material != nullptr) {
 			material->OnEditorUpdate();
+
+			if (material->shaderType == MaterialShader::UNLIT_DISSOLVE || material->shaderType == MaterialShader::STANDARD_DISSOLVE) {
+				if (ImGui::Button("Play Dissolve Animation")) {
+					PlayDissolveAnimation();
+				}
+				if (ImGui::Button("Reset Dissolve Animation")) {
+					ResetDissolveValues();
+				}
+
+				ImGui::Text("For debug only");
+				ImGui::Checkbox("Animation finished", &dissolveAnimationFinished);
+				ImGui::DragFloat("Threshold", &dissolveThreshold, App->editor->dragSpeed2f, 0, inf);
+			}
 		}
+
 		ImGui::TreePop();
 	}
 }
@@ -194,6 +208,8 @@ void ComponentMeshRenderer::Update() {
 	if (material != nullptr) {
 		material->Update();
 	}
+
+	UpdateDissolveAnimation();
 
 	if (App->time->GetDeltaTime() <= 0) return;
 
@@ -226,6 +242,8 @@ void ComponentMeshRenderer::Load(JsonValue jComponent) {
 		AddRenderingModeMask();
 		App->resources->IncreaseReferenceCount(materialId);
 	}
+
+	ResetDissolveValues();
 }
 
 void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
@@ -336,7 +354,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 		// Dissolve settings
 		glUniform1f(dissolveProgram->scaleLocation, material->dissolveScale);
-		glUniform1f(dissolveProgram->thresholdLocation, material->dissolveThreshold);
+		glUniform1f(dissolveProgram->thresholdLocation, dissolveThreshold);
 		glUniform1f(dissolveProgram->blendThresholdLocation, material->dissolveBlendThreshold);
 		glUniform2fv(dissolveProgram->offsetLocation, 1, material->dissolveOffset.ptr());
 		glUniform1f(dissolveProgram->edgeSizeLocation, material->dissolveEdgeSize);
@@ -454,7 +472,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 		// Dissolve settings
 		glUniform1f(unlitProgram->scaleLocation, material->dissolveScale);
-		glUniform1f(unlitProgram->thresholdLocation, material->dissolveThreshold);
+		glUniform1f(unlitProgram->thresholdLocation, dissolveThreshold);
 		glUniform1f(unlitProgram->blendThresholdLocation, material->dissolveBlendThreshold);
 		glUniform2fv(unlitProgram->offsetLocation, 1, material->dissolveOffset.ptr());
 		glUniform1f(unlitProgram->edgeSizeLocation, material->dissolveEdgeSize);
@@ -756,7 +774,7 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 		glUseProgram(depthPrepassProgram->program);
 
 		glUniform1f(depthPrepassProgramDissolve->scaleLocation, material->dissolveScale);
-		glUniform1f(depthPrepassProgramDissolve->thresholdLocation, material->dissolveThreshold);
+		glUniform1f(depthPrepassProgramDissolve->thresholdLocation, dissolveThreshold);
 		glUniform1f(depthPrepassProgramDissolve->blendThresholdLocation, material->dissolveBlendThreshold);
 		glUniform2fv(depthPrepassProgramDissolve->offsetLocation, 1, material->dissolveOffset.ptr());
 	}
@@ -863,5 +881,32 @@ void ComponentMeshRenderer::DeleteRenderingModeMask() {
 	if (material && material->renderingMode == RenderingMode::TRANSPARENT) {
 		GameObject& gameObject = GetOwner();
 		gameObject.DeleteMask(MaskType::TRANSPARENT);
+	}
+}
+
+void ComponentMeshRenderer::PlayDissolveAnimation() {
+	dissolveAnimationFinished = false;
+	currentTime = 0.0f;
+	dissolveThreshold = 0.0f;
+}
+
+void ComponentMeshRenderer::ResetDissolveValues() {
+	dissolveThreshold = 0.0f;
+	currentTime = 0.0f;
+	dissolveAnimationFinished = true;
+}
+
+void ComponentMeshRenderer::UpdateDissolveAnimation() {
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+	if (!material) return;
+
+	if (!dissolveAnimationFinished && material->dissolveDuration > 0) {
+		currentTime += App->time->GetDeltaTimeOrRealDeltaTime();
+		if (currentTime < material->dissolveDuration) {
+			dissolveThreshold = currentTime / material->dissolveDuration;
+		} else {
+			dissolveAnimationFinished = true;
+			dissolveThreshold = 1.0f;
+		}
 	}
 }
