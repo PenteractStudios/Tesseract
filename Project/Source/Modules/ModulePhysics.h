@@ -1,7 +1,6 @@
 #pragma once
 #include "Module.h"
 
-#include "Math/float4x4.h"
 #include "btBulletDynamicsCommon.h"
 #include "Components/ComponentParticleSystem.h"
 
@@ -22,7 +21,7 @@ enum class CapsuleType;
 *	TRIGGER = It is like static, but the collisions against it have no physical effect to the colliding object.
 *	Usage in our game: Kinematics for player, enemies and bullets. Static for any level prop inside the navmesh. Trigger for any game event callback.
 */
-enum class ColliderType {
+enum class ColliderType : int {
 	DYNAMIC,
 	STATIC,
 	KINEMATIC,
@@ -36,7 +35,7 @@ enum class ColliderType {
 *	PLAYER = The Player of the game, should only exist one of this type. Interaction with WORLD_ELEMENTS and EVENT_TRIGGERS. Doesnt itneract with itself.
 *	EVERYTHING = The default setting. Interaction with all other types except NO_COLLISION.
 */
-enum WorldLayers {
+enum class WorldLayers : int {
 	NO_COLLISION = 1,
 	EVENT_TRIGGERS = 1 << 1,
 	WORLD_ELEMENTS = 1 << 2,
@@ -45,7 +44,7 @@ enum WorldLayers {
 	BULLET = 1 << 5,
 	BULLET_ENEMY = 1 << 6,
 	SKILLS = 1 << 7,
-	EVERYTHING = 1 << 20
+	EVERYTHING = 1 << 14	// 14 shift is the limit, as WorldLayer will be converted to short for the Physics library
 };
 
 class ModulePhysics : public Module {

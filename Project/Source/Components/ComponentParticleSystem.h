@@ -7,8 +7,6 @@
 
 #include "Math/float2.h"
 #include "Math/float3.h"
-#include "Math/float4.h"
-#include "Math/float4x4.h"
 #include "Math/Quat.h"
 
 #include <vector>
@@ -18,9 +16,9 @@ class ParticleModule;
 class btRigidBody;
 class ParticleMotionState;
 class ImGradient;
-class ImGradientMark;
+struct ImGradientMark;
 
-enum WorldLayers;
+enum class WorldLayers;
 
 enum class ParticleEmitterType {
 	CONE,
@@ -234,12 +232,13 @@ public:
 	TESSERACT_ENGINE_API void SetRenderAlignment(ParticleRenderAlignment _renderAligment);
 	TESSERACT_ENGINE_API void SetFlipXTexture(bool _flipX);
 	TESSERACT_ENGINE_API void SetFlipYTexture(bool _flipY);
+	TESSERACT_ENGINE_API void SetIsSoft(bool _isSoft);
 
 	// Collision
 	TESSERACT_ENGINE_API void SetCollision(bool _collision);
 
 public:
-	WorldLayers layer;
+	WorldLayers layer = (WorldLayers)(1 << 20); // = WorldLayers::EVERYHTING
 	int layerIndex = 5;
 	float radius = .25f;
 
@@ -326,6 +325,8 @@ private:
 	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
 	ParticleRenderAlignment renderAlignment = ParticleRenderAlignment::VIEW;
 	bool flipTexture[2] = {false, false};
+	bool isSoft = false;
+	float softRange = 1.0f;
 
 	// Collision
 	bool collision = false;

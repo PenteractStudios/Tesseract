@@ -9,7 +9,6 @@ uniform mat4 model;
 
 out vec2 uv0;
 
-
 void main()
 {
 	gl_Position = proj*view*model*vec4(vertexPosition.xyz , 1.0);
@@ -20,47 +19,57 @@ void main()
 
 in vec2 uv0;
 
+uniform float near;
+uniform float far;
+
+uniform sampler2D depths;
+
 uniform sampler2D diffuseMap;
 uniform int hasDiffuseMap;
 uniform vec4 inputColor;
 
-uniform float currentFrame; 
+uniform int transparent;
+
+uniform float currentFrame;
 uniform int Xtiles;
 uniform int Ytiles;
 
-uniform bool flipX;
-uniform bool flipY;
+uniform int flipX;
+uniform int flipY;
 
-float X;
-float Y;
-float u;
-float v;
+uniform int isSoft;
+uniform float softRange;
+
 out vec4 outColor;
+
+float LinearizeDepth(float depth) 
+{
+    return (far * near) / (far - depth * (far - near));	
+}
 
 void main()
 {	
-	u = uv0.x;
-	v = uv0.y;
-	
-	if (flipX) 
-	{
-		u = 1 - uv0.x;
-	}
+	float u = flipX * (1 - uv0.x) + (1 - flipX) * uv0.x;
+	float v = flipY * (1 - uv0.y) + (1 - flipY) * uv0.y;
 
-	if (flipY) 
-	{
-		v = 1 - uv0.y;
-	}
-
-	X = trunc(mod(currentFrame, Xtiles));
-	Y = trunc(currentFrame/Xtiles);
-	Y = (Ytiles - 1) - Y ;
-	X = mix(X,X+1,u);
-	Y = mix(Y,Y+1,v);
+	float X = trunc(mod(currentFrame, Xtiles));
+	float Y = trunc(currentFrame / Xtiles);
+	Y = (Ytiles - 1) - Y;
+	X = mix(X, X + 1, u);
+	Y = mix(Y, Y + 1, v);
 	
-	u = X/Xtiles;
-	v = Y/Ytiles;
+	u = X / Xtiles;
+	v = Y / Ytiles;
 	
 	outColor = SRGBA(inputColor) * (hasDiffuseMap * SRGBA(texture2D(diffuseMap,  vec2(u, v))) + (1 - hasDiffuseMap));
+	
+	if (isSoft == 1) {
+		vec2 screenUV = gl_FragCoord.xy / vec2(textureSize(depths, 0));
+		float sceneDepth = LinearizeDepth(texture2D(depths, screenUV).r);
+		float fragDepth = LinearizeDepth(gl_FragCoord.z);
+		float depthDelta = sceneDepth - fragDepth;
+		float opacity = smoothstep(0.0, 1.0, depthDelta / softRange);
+		outColor *= vec4(vec3((1 - transparent) * opacity + transparent), transparent * opacity + (1 - transparent));
+	}
 }
 

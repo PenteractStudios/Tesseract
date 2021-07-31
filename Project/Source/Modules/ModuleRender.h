@@ -2,11 +2,10 @@
 
 #include "Module.h"
 #include "Utils/Quadtree.h"
+#include "LightFrustum.h"
 
 #include "MathGeoLibFwd.h"
 #include "Math/float3.h"
-#include "LightFrustum.h"
-
 #include <map>
 
 #define SSAO_KERNEL_SIZE 64
@@ -70,8 +69,10 @@ public:
 
 	unsigned renderTexture = 0;
 	unsigned outputTexture = 0;
+	unsigned depthsMSTexture = 0;
 	unsigned positionsMSTexture = 0;
 	unsigned normalsMSTexture = 0;
+	unsigned depthsTexture = 0;
 	unsigned positionsTexture = 0;
 	unsigned normalsTexture = 0;
 	unsigned depthMapTexture = 0;
@@ -79,8 +80,6 @@ public:
 	unsigned auxBlurTexture = 0;
 	unsigned colorTextures[2] = {0, 0}; // position 0: scene render texture; position 1: bloom texture to be blurred
 	unsigned bloomBlurTextures[2] = {0, 0};
-
-	unsigned depthBuffer = 0;
 
 	unsigned renderPassBuffer = 0;
 	unsigned depthPrepassBuffer = 0;
@@ -112,7 +111,7 @@ public:
 	int culledTriangles = 0;
 
 	float3 ambientColor = {0.25f, 0.25f, 0.25f};  // Color of ambient Light
-	float3 clearColor = {0.002f, 0.002f, 0.002f}; // Color of the viewport between frames
+	float3 clearColor = {0.1f, 0.1f, 0.1f}; // Color of the viewport between frames
 
 	// SSAO
 	bool ssaoActive = true;

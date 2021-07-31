@@ -1,18 +1,15 @@
 #include "ComponentTransform2D.h"
 
 #include "Globals.h"
-#include "GameObject.h"
-#include "Components/ComponentBoundingBox2D.h"
 #include "Application.h"
+#include "GameObject.h"
 #include "Modules/ModuleEditor.h"
-#include "Modules/ModuleDebugDraw.h"
 #include "Modules/ModuleTime.h"
-#include "Modules/ModuleRender.h"
 #include "Modules/ModuleUserInterface.h"
-#include "Panels/PanelControlEditor.h"
+#include "Components/UI/ComponentCanvasRenderer.h"
+#include "Components/UI/ComponentBoundingBox2D.h"
 
 #include "debugdraw.h"
-#include "imgui.h"
 #include "Math/TransformOps.h"
 
 #include "Utils/Leaks.h"

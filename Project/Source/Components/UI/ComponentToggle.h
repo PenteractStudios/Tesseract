@@ -2,6 +2,7 @@
 
 #include "Components/Component.h"
 #include "UI/Interfaces/IMouseClickHandler.h"
+
 #include "Math/float4.h"
 
 class ComponentImage;

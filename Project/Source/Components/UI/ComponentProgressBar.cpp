@@ -1,19 +1,11 @@
 #include "ComponentProgressBar.h"
 
-#include "GameObject.h"
 #include "Application.h"
-#include "Components/UI/ComponentTransform2D.h"
+#include "GameObject.h"
 #include "Modules/ModuleEditor.h"
-#include "FileSystem/JsonValue.h"
-#include "Modules/ModuleDebugDraw.h"
-#include "Modules/ModuleTime.h"
 #include "Modules/ModuleScene.h"
-
-#include "Math/TransformOps.h"
-#include "imgui.h"
-#include "Utils/ImGuiUtils.h"
-#include "GL/glew.h"
-#include "debugdraw.h"
+#include "Components/UI/ComponentTransform2D.h"
+#include "FileSystem/JsonValue.h"
 
 #include "Utils/Leaks.h"
 
@@ -148,16 +140,6 @@ void ComponentProgressBar::Load(JsonValue jComponent) {
 	JsonValue jSize = jComponent[JSON_TAG_BACKGROUND_SIZE];
 	backSize.Set(jSize[0], jSize[1]);
 }
-
-//void ComponentProgressBar::DuplicateComponent(GameObject& owner) {
-//	ComponentProgressBar* component = owner.CreateComponent<ComponentProgressBar>();
-//	component->SetValue(value);
-//	component->SetFillPos(fillXPos);
-//	component->SetMin(min);
-//	component->SetMax(max);
-//	component->dirIndex = dirIndex;
-//	component->dir = dir;
-//}
 
 void ComponentProgressBar::SetValue(float v) {
 	value = v;

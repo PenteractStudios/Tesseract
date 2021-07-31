@@ -208,6 +208,7 @@ struct ProgramDepthPrepassConvertTextures : Program {
 
 	int samplesNumberLocation = -1;
 
+	int depthsLocation = -1;
 	int positionsLocation = -1;
 	int normalsLocation = -1;
 };
@@ -300,6 +301,13 @@ struct ProgramBillboard : Program {
 	int viewLocation = -1;
 	int projLocation = -1;
 
+	int nearLocation = -1;
+	int farLocation = -1;
+
+	int transparentLocation = -1;
+
+	int depthsLocation = -1;
+
 	int inputColorLocation = -1;
 	int hasDiffuseLocation = -1;
 	int diffuseMapLocation = -1;
@@ -309,6 +317,9 @@ struct ProgramBillboard : Program {
 	int yTilesLocation = -1;
 	int xFlipLocation = -1;
 	int yFlipLocation = -1;
+
+	int isSoftLocation = -1;
+	int softRangeLocation = -1;
 };
 
 struct ProgramTrail : Program {

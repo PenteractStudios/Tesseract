@@ -44,6 +44,7 @@ in vec2 uv;
 
 uniform int samplesNumber;
 
+uniform sampler2DMS depths;
 uniform sampler2DMS positions;
 uniform sampler2DMS normals;
 
@@ -52,14 +53,15 @@ void main()
     ivec2 positionsSize = textureSize(positions);
     ivec2 vp = ivec2(vec2(positionsSize) * uv);
     int minIndex = 0;
-    float minDepth = texelFetch(positions, vp, 0).z;
+    float minDepth = texelFetch(depths, vp, 0).r;
     for (int i = 1; i < samplesNumber; ++i) {
-        float depth = texelFetch(positions, vp, i).z;
-        if (depth < minDepth) {
+        float sampleDepth = texelFetch(depths, vp, i).r;
+        if (sampleDepth < minDepth) {
             minIndex = i;
-            minDepth = depth;
+            minDepth = sampleDepth;
         }
     }
     position = texelFetch(positions, vp, minIndex);
     normal = texelFetch(normals, vp, minIndex);
+    gl_FragDepth = minDepth;
 }
