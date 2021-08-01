@@ -195,6 +195,13 @@ void ComponentScript::OnEditorUpdate() {
 				}
 				break;
 			}
+			case MemberType::SEPARATOR: {
+				ImGui::Text("");
+				ImGui::Separator();
+				ImGui::TextColored(App->editor->memberSeparatorTextColor, member.name.c_str());
+				ImGui::Text("");
+				break;
+			}
 			default:
 				LOG("Member of type %i hasn't been registered in ComponentScript's OnEditorUpdate function.", (unsigned) member.type);
 				assert(false); // ERROR: Member type not registered
