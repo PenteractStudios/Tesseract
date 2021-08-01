@@ -324,6 +324,18 @@ private:
 	bool loopAnimation = true;
 	float nCycles = 1.0f;
 
+	// Render
+	UID textureID = 0;
+	BillboardType billboardType = BillboardType::NORMAL;
+	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
+	ParticleRenderAlignment renderAlignment = ParticleRenderAlignment::VIEW;
+	bool flipTexture[2] = {false, false};
+	bool isSoft = false;
+	float softRange = 1.0f;
+
+	// Collision
+	bool collision = false;
+
 	// Trail
 	bool hasTrail = false;
 	// -- Trail Info
@@ -342,16 +354,4 @@ private:
 	ImGradient* gradientTrail = nullptr;
 	ImGradientMark* draggingGradientTrail = nullptr;
 	ImGradientMark* selectedGradientTail = nullptr;
-
-	// Render
-	UID textureID = 0;
-	BillboardType billboardType = BillboardType::NORMAL;
-	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
-	ParticleRenderAlignment renderAlignment = ParticleRenderAlignment::VIEW;
-	bool flipTexture[2] = {false, false};
-	bool isSoft = false;
-	float softRange = 1.0f;
-
-	// Collision
-	bool collision = false;
 };

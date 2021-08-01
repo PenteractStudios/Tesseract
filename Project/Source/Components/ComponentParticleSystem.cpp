@@ -395,7 +395,6 @@ void ComponentParticleSystem::OnEditorUpdate() {
 				ImGui::GradientEditor(gradient, draggingGradient, selectedGradient);
 			}
 
-			UID oldID = textureTrailID;
 			ImGui::ResourceSlot<ResourceTexture>("texture", &textureTrailID);
 			ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureTrailID);
 			if (textureResource != nullptr) {
@@ -460,22 +459,6 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		}
 	}
 	ImGui::Unindent();
-}
-
-void ComponentParticleSystem::InitParticleAnimationTexture(Particle* currentParticle) {
-	if (isRandomFrame) {
-		currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
-	} else {
-		currentParticle->currentFrame = 0;
-	}
-
-	if (loopAnimation) {
-		currentParticle->animationSpeed = animationSpeed;
-	} else {
-		float timePerCycle = currentParticle->initialLife / nCycles;
-		float timePerFrame = (Ytiles * Xtiles) / timePerCycle;
-		currentParticle->animationSpeed = timePerFrame;
-	}
 }
 
 void ComponentParticleSystem::Load(JsonValue jComponent) {
@@ -791,6 +774,22 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 	}
 }
 
+void ComponentParticleSystem::InitParticleAnimationTexture(Particle* currentParticle) {
+	if (isRandomFrame) {
+		currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
+	} else {
+		currentParticle->currentFrame = 0;
+	}
+
+	if (loopAnimation) {
+		currentParticle->animationSpeed = animationSpeed;
+	} else {
+		float timePerCycle = currentParticle->initialLife / nCycles;
+		float timePerFrame = (Ytiles * Xtiles) / timePerCycle;
+		currentParticle->animationSpeed = timePerFrame;
+	}
+}
+
 void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 	float x0 = 0, y0 = 0, z0 = 0, x1 = 0, y1 = 0, z1 = 0;
 	float3 localPos = float3::zero;
@@ -882,6 +881,7 @@ void ComponentParticleSystem::InitParticleTrail(Particle* currentParticle) {
 	currentParticle->trail->Init();
 	currentParticle->trail->textureID = textureTrailID;
 }
+
 void ComponentParticleSystem::InitStartDelay() {
 	restDelayTime = ObtainRandomValueFloat(startDelay, startDelayRM);
 }
@@ -1020,7 +1020,6 @@ void ComponentParticleSystem::UpdateTrail(Particle* currentParticle) {
 
 void ComponentParticleSystem::KillParticle(Particle* currentParticle) {
 	currentParticle->life = -1;
-	RELEASE(currentParticle->trail);
 	App->physics->RemoveParticleRigidbody(currentParticle);
 	RELEASE(currentParticle->motionState);
 }
