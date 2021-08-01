@@ -165,6 +165,7 @@ ComponentParticleSystem::~ComponentParticleSystem() {
 
 void ComponentParticleSystem::Init() {
 	if (!gradient) gradient = new ImGradient();
+	if (!gradientTrail) gradientTrail = new ImGradient();
 	layer = WorldLayers(1 << layerIndex);
 	CreateParticles();
 	isStarted = false;
@@ -601,12 +602,12 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 
 	colorOverTrail = jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL];
 	int trailNumberColors = jComponent[JSON_TAG_NUMBER_COLORS];
-	if (!gradient) gradient = new ImGradient();
-	gradient->clearList();
+	if (!gradientTrail) gradientTrail = new ImGradient();
+	gradientTrail->clearList();
 	JsonValue trailJColor = jComponent[JSON_TAG_GRADIENT_COLOR];
 	for (int i = 0; i < trailNumberColors; ++i) {
 		JsonValue jMark = trailJColor[i];
-		gradient->addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
+		gradientTrail->addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
 	}
 	CreateParticles();
 }
@@ -734,7 +735,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL] = colorOverTrail;
 	int trailColor = 0;
 	JsonValue trailJColor = jComponent[JSON_TAG_GRADIENT_COLOR];
-	for (ImGradientMark* mark : gradient->getMarks()) {
+	for (ImGradientMark* mark : gradientTrail->getMarks()) {
 		JsonValue jMask = jColor[trailJColor];
 		jMask[0] = mark->color[0];
 		jMask[1] = mark->color[1];
@@ -744,7 +745,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 
 		color++;
 	}
-	jComponent[JSON_TAG_NUMBER_COLORS] = gradient->getMarks().size();
+	jComponent[JSON_TAG_NUMBER_COLORS] = gradientTrail->getMarks().size();
 }
 
 void ComponentParticleSystem::CreateParticles() {

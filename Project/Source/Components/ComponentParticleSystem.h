@@ -338,6 +338,7 @@ private:
 	UID textureTrailID = 0;
 
 	// -- Color Settings
+
 	ImGradient* gradientTrail = nullptr;
 	ImGradientMark* draggingGradientTrail = nullptr;
 	ImGradientMark* selectedGradientTail = nullptr;
