@@ -91,6 +91,32 @@ ProgramUnlit::ProgramUnlit(unsigned program_)
 	offsetLocation = glGetUniformLocation(program, "offset");
 }
 
+ProgramVolumetricLight::ProgramVolumetricLight(unsigned program_)
+	: Program(program_) {
+	modelLocation = glGetUniformLocation(program, "model");
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
+	paletteLocation = glGetUniformLocation(program, "palette");
+	hasBonesLocation = glGetUniformLocation(program, "hasBones");
+
+	viewPosLocation = glGetUniformLocation(program, "viewPos");
+
+	nearLocation = glGetUniformLocation(program, "near");
+	farLocation = glGetUniformLocation(program, "far");
+
+	depthsLocation = glGetUniformLocation(program, "depths");
+
+	lightColorLocation = glGetUniformLocation(program, "lightColor");
+	lightMapLocation = glGetUniformLocation(program, "lightMap");
+	hasLightMapLocation = glGetUniformLocation(program, "hasLightMap");
+	intensityLocation = glGetUniformLocation(program, "intensity");
+	attenuationExponentLocation = glGetUniformLocation(program, "attenuationExponent");
+
+	isSoftLocation = glGetUniformLocation(program, "isSoft");
+	softRangeLocation = glGetUniformLocation(program, "softRange");
+}
+
 ProgramStandard::ProgramStandard(unsigned program_)
 	: Program(program_) {
 	modelLocation = glGetUniformLocation(program, "model");

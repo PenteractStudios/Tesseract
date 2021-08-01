@@ -359,10 +359,65 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 		break;
 	}
+	case MaterialShader::VOLUMETRIC_LIGHT: {
+		ProgramVolumetricLight* volumetricLightProgram = App->programs->volumetricLight;
+		if (volumetricLightProgram == nullptr) return;
+
+		glUseProgram(volumetricLightProgram->program);
+
+		// Matrices
+		float4x4 viewMatrix = App->camera->GetViewMatrix();
+		float4x4 projMatrix = App->camera->GetProjectionMatrix();
+
+		glUniformMatrix4fv(volumetricLightProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
+		glUniformMatrix4fv(volumetricLightProgram->viewLocation, 1, GL_TRUE, viewMatrix.ptr());
+		glUniformMatrix4fv(volumetricLightProgram->projLocation, 1, GL_TRUE, projMatrix.ptr());
+
+		if (palette.size() > 0) {
+			glUniformMatrix4fv(volumetricLightProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
+		}
+
+		glUniform1i(volumetricLightProgram->hasBonesLocation, goBones.size());
+
+		glUniform3fv(volumetricLightProgram->viewPosLocation, 1, App->camera->GetPosition().ptr());
+
+		glUniform1f(volumetricLightProgram->nearLocation, App->camera->GetNearPlane());
+		glUniform1f(volumetricLightProgram->farLocation, App->camera->GetFarPlane());
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, App->renderer->depthsTexture);
+		glUniform1i(volumetricLightProgram->depthsLocation, 0);
+
+		// Light
+		unsigned glTextureLight = 0;
+		ResourceTexture* volumetricLightMap = App->resources->GetResource<ResourceTexture>(material->diffuseMapId);
+		glTextureLight = volumetricLightMap ? volumetricLightMap->glTexture : 0;
+		int hasLightMap = volumetricLightMap ? 1 : 0;
+
+		glUniform1i(volumetricLightProgram->lightMapLocation, 1);
+		glUniform4fv(volumetricLightProgram->lightColorLocation, 1, material->diffuseColor.ptr());
+		glUniform1i(volumetricLightProgram->hasLightMapLocation, hasLightMap ? 1 : 0);
+		glUniform1f(volumetricLightProgram->intensityLocation, material->volumetricLightInstensity);
+		glUniform1f(volumetricLightProgram->attenuationExponentLocation, material->volumetricLightAttenuationExponent);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, glTextureLight);
+
+		glUniform1i(volumetricLightProgram->isSoftLocation, material->isSoft ? 1 : 0);
+		glUniform1f(volumetricLightProgram->softRangeLocation, material->softRange);
+
+		glBindVertexArray(mesh->vao);
+		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
+		glBindVertexArray(0);
+
+		break;
+	}
 	}
 
 	// Unlit material already set
 	if (material->shaderType == MaterialShader::UNLIT) return;
+
+	// Volumetric Light material already set
+	if (material->shaderType == MaterialShader::VOLUMETRIC_LIGHT) return;
 
 	// Common shader settings
 	if (standardProgram == nullptr) return;

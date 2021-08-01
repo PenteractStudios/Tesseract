@@ -39,6 +39,10 @@
 #define JSON_TAG_AMBIENT_OCCLUSION_MAP "AmbientOcclusionMap"
 #define JSON_TAG_SMOOTHNESS "Smoothness"
 #define JSON_TAG_HAS_SMOOTHNESS_IN_ALPHA_CHANNEL "HasSmoothnessInAlphaChannel"
+#define JSON_TAG_VOLUMETRIC_LIGHT_INTENSITY "VolumetricLightIntensity"
+#define JSON_TAG_VOLUMETRIC_LIGHT_ATTENUATION_EXPONENT "VolumetricLightAttenuationExponent"
+#define JSON_TAG_IS_SOFT "IsSoft"
+#define JSON_TAG_SOFT_RANGE "SoftRange"
 #define JSON_TAG_TILING "Tiling"
 #define JSON_TAG_OFFSET "Offset"
 
@@ -93,6 +97,12 @@ void ResourceMaterial::Load() {
 
 	tiling = float2(jMaterial[JSON_TAG_TILING][0], jMaterial[JSON_TAG_TILING][1]);
 	offset = float2(jMaterial[JSON_TAG_OFFSET][0], jMaterial[JSON_TAG_OFFSET][1]);
+
+	volumetricLightInstensity = jMaterial[JSON_TAG_VOLUMETRIC_LIGHT_INTENSITY];
+	volumetricLightAttenuationExponent = jMaterial[JSON_TAG_VOLUMETRIC_LIGHT_ATTENUATION_EXPONENT];
+
+	isSoft = jMaterial[JSON_TAG_IS_SOFT];
+	softRange = jMaterial[JSON_TAG_SOFT_RANGE];
 
 	unsigned timeMs = timer.Stop();
 	LOG("Material loaded in %ums", timeMs);
@@ -154,6 +164,12 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	jOffset[0] = offset.x;
 	jOffset[1] = offset.y;
 
+	jMaterial[JSON_TAG_VOLUMETRIC_LIGHT_INTENSITY] = volumetricLightInstensity;
+	jMaterial[JSON_TAG_VOLUMETRIC_LIGHT_ATTENUATION_EXPONENT] = volumetricLightAttenuationExponent;
+
+	jMaterial[JSON_TAG_IS_SOFT] = isSoft;
+	jMaterial[JSON_TAG_SOFT_RANGE] = softRange;
+
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;
 	rapidjson::PrettyWriter<rapidjson::StringBuffer, rapidjson::UTF8<>, rapidjson::UTF8<>, rapidjson::CrtAllocator, rapidjson::kWriteNanAndInfFlag> writer(stringBuffer);
@@ -193,7 +209,7 @@ void ResourceMaterial::OnEditorUpdate() {
 
 	// Shader types
 	ImGui::TextColored(App->editor->titleColor, "Shader");
-	const char* shaderTypes[] = {"[Legacy] Phong", "Standard (specular settings)", "Standard", "Unlit"};
+	const char* shaderTypes[] = {"[Legacy] Phong", "Standard (specular settings)", "Standard", "Unlit", "Volumetric Light"};
 	const char* shaderTypesCurrent = shaderTypes[(int) shaderType];
 	if (ImGui::BeginCombo("Shader Type", shaderTypesCurrent)) {
 		for (int n = 0; n < IM_ARRAYSIZE(shaderTypes); ++n) {
@@ -227,6 +243,30 @@ void ResourceMaterial::OnEditorUpdate() {
 		ImGui::EndCombo();
 	}
 	ImGui::NewLine();
+
+	if (shaderType == MaterialShader::VOLUMETRIC_LIGHT) {
+		ImGui::BeginColumns("##volumetric_light_map", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		{
+			ImGui::ResourceSlot<ResourceTexture>("Volumetric Light Map", &diffuseMapId);
+		}
+		ImGui::NextColumn();
+		{
+			ImGui::NewLine();
+			ImGui::ColorEdit4("Color##color_vl", diffuseColor.ptr(), ImGuiColorEditFlags_NoInputs);
+			ImGui::DragFloat("Intensity##intensity_vl", &volumetricLightInstensity, App->editor->dragSpeed3f, 0.0f, inf);
+		}
+		ImGui::EndColumns();
+
+		ImGui::DragFloat("Attenuation Exponent##att_exp_vl", &volumetricLightAttenuationExponent, App->editor->dragSpeed2f, 0.0f, inf);
+
+		ImGui::NewLine();
+
+		ImGui::Text("Soft: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##soft", &isSoft);
+		ImGui::DragFloat("Softness Range", &softRange, App->editor->dragSpeed2f, 0.0f, inf);
+		return;
+	}
 
 	//Diffuse
 	ImGui::BeginColumns("##diffuse_material", 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);

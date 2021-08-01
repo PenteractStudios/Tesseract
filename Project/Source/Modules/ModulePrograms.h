@@ -27,6 +27,9 @@ public:
 	// Unlit Shader
 	ProgramUnlit* unlit = nullptr;
 
+	// Volumetric light Shader
+	ProgramVolumetricLight* volumetricLight = nullptr;
+
 	// Ilumination Shaders
 	ProgramStandardPhong* phongNormal = nullptr;
 	ProgramStandardPhong* phongNotNormal = nullptr;

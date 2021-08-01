@@ -98,6 +98,33 @@ struct ProgramUnlit : public Program {
 	int offsetLocation = -1;
 };
 
+struct ProgramVolumetricLight : public Program {
+	ProgramVolumetricLight(unsigned program);
+
+	int modelLocation = -1;
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int paletteLocation = -1;
+	int hasBonesLocation = -1;
+
+	int viewPosLocation = -1;
+
+	int nearLocation = -1;
+	int farLocation = -1;
+
+	int depthsLocation = -1;
+
+	int lightColorLocation = -1;
+	int lightMapLocation = -1;
+	int hasLightMapLocation = -1;
+	int intensityLocation = -1;
+	int attenuationExponentLocation = -1;
+
+	int isSoftLocation = -1;
+	int softRangeLocation = -1;
+};
+
 struct ProgramStandard : public Program {
 	ProgramStandard(unsigned program);
 
