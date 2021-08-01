@@ -18,7 +18,7 @@ public:
 	
 	void DrawGizmos();				// Draws NavMesh Gizmos
 	NavMesh& GetNavMesh();			// Returns navMesh
-	void Raycast(float3 startPosition, float3 targetPosition, bool& hitResult, float3& hitPosition);
+	void Raycast(float3 startPosition, float3 targetPosition, bool& hitResult, float3& hitPosition);	// Shoots a raycast between startPosition and targetPosition and detects if there's a wall/obstacle between. Hitresult is set to true and hitPosition is the position where the wall has been detected
 
 private:
 	NavMesh navMesh;
