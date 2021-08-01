@@ -15,6 +15,7 @@
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleAudio.h"
 #include "Modules/ModuleUserInterface.h"
+#include "Modules/ModuleNavigation.h"
 #include "Resources/ResourcePrefab.h"
 #include "Resources/ResourceMaterial.h"
 #include "Resources/ResourceClip.h"
@@ -474,4 +475,10 @@ void Audio::StopAllSources() {
 
 ComponentEventSystem* UserInterface::GetCurrentEventSystem() {
 	return App->userInterface->GetCurrentEventSystem();
+}
+
+void Navigation::Raycast(float3 startPosition, float3 targetPosition, bool& hitResult, float3& hitPosition) {
+	if (App->navigation != nullptr) {
+		App->navigation->Raycast(startPosition, targetPosition, hitResult, hitPosition);
+	}
 }

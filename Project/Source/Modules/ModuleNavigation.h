@@ -6,6 +6,7 @@
 #include "Navigation/NavMesh.h"
 #include "Resources/ResourceNavMesh.h"
 #include "DetourCrowd/DetourCrowd.h"
+#include "Math/float3.h"
 
 class ModuleNavigation : public Module {
 public:
@@ -17,6 +18,7 @@ public:
 	
 	void DrawGizmos();				// Draws NavMesh Gizmos
 	NavMesh& GetNavMesh();			// Returns navMesh
+	void Raycast(float3 startPosition, float3 targetPosition, bool& hitResult, float3& hitPosition);
 
 private:
 	NavMesh navMesh;
