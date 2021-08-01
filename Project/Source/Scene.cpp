@@ -44,6 +44,7 @@ Scene::Scene(unsigned numGameObjects) {
 	capsuleColliderComponents.Allocate(numGameObjects);
 	agentComponents.Allocate(numGameObjects);
 	obstacleComponents.Allocate(numGameObjects);
+	fogComponents.Allocate(numGameObjects);
 }
 
 void Scene::ClearScene() {
@@ -177,6 +178,8 @@ Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 		return agentComponents.Find(componentId);
 	case ComponentType::OBSTACLE:
 		return obstacleComponents.Find(componentId);
+	case ComponentType::FOG:
+		return fogComponents.Find(componentId);
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::GetComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -246,6 +249,8 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 		return agentComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::OBSTACLE:
 		return obstacleComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::FOG:
+		return fogComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::CreateComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -350,6 +355,9 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		break;
 	case ComponentType::OBSTACLE:
 		obstacleComponents.Release(componentId);
+		break;
+	case ComponentType::FOG:
+		fogComponents.Release(componentId);
 		break;
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::RemoveComponentByTypeAndId.", (unsigned) type);

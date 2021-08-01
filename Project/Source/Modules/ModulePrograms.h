@@ -47,6 +47,9 @@ public:
 	ProgramPostprocess* postprocess = nullptr;
 	ProgramColorCorrection* colorCorrection = nullptr;
 
+	// Fog Shaders
+	ProgramHeightFog* heightFog = nullptr;
+
 	// Shadow Shaders
 	unsigned shadowMap = 0;
 

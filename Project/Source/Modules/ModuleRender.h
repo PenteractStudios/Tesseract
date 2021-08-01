@@ -174,6 +174,8 @@ private:
 	float2 viewportSize = float2::zero;
 	bool drawDepthMapTexture = false;
 	bool drawSSAOTexture = false;
+	bool drawNormalsTexture = false;
+	bool drawPositionsTexture = false;
 
 	std::vector<GameObject*> shadowGameObjects;			 // Vector of Shadow Casted GameObjects
 	std::vector<GameObject*> opaqueGameObjects;			 // Vector of Opaque GameObjects

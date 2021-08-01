@@ -49,7 +49,7 @@ void PanelScene::Update() {
 
 		if (ImGui::BeginMenuBar()) {
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
-			const char* shadingMode[4] = {"Shaded", "Wireframe", "Depth", "Ambient Occlusion"};
+			const char* shadingMode[6] = {"Shaded", "Wireframe", "Depth", "Ambient Occlusion", "Normals", "Positions"};
 			if (ImGui::Button(currentShadingMode)) {
 				ImGui::OpenPopup("DrawMode");
 			}
