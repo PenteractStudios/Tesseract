@@ -9,9 +9,9 @@ PointLightUniforms::PointLightUniforms(unsigned program, unsigned number) {
 	posLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].pos").c_str());
 	colorLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].color").c_str());
 	intensityLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].intensity").c_str());
-	kcLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].kc").c_str());
-	klLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].kl").c_str());
-	kqLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].kq").c_str());
+	radiusLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].radius").c_str());
+	useCustomFalloffLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].useCustomFalloff").c_str());
+	falloffExponentLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].falloffExponent").c_str());
 }
 
 SpotLightUniforms::SpotLightUniforms() {}
@@ -21,9 +21,9 @@ SpotLightUniforms::SpotLightUniforms(unsigned program, unsigned number) {
 	directionLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].direction").c_str());
 	colorLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].color").c_str());
 	intensityLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].intensity").c_str());
-	kcLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].kc").c_str());
-	klLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].kl").c_str());
-	kqLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].kq").c_str());
+	radiusLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].radius").c_str());
+	useCustomFalloffLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].useCustomFalloff").c_str());
+	falloffExponentLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].falloffExponent").c_str());
 	innerAngleLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].innerAngle").c_str());
 	outerAngleLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].outerAngle").c_str());
 }
@@ -131,10 +131,12 @@ ProgramStandard::ProgramStandard(unsigned program_)
 	tilingLocation = glGetUniformLocation(program, "tiling");
 	offsetLocation = glGetUniformLocation(program, "offset");
 
+	hasIBLLocation = glGetUniformLocation(program, "hasIBL");
 	diffuseIBLLocation = glGetUniformLocation(program, "diffuseIBL");
 	prefilteredIBLLocation = glGetUniformLocation(program, "prefilteredIBL");
 	environmentBRDFLocation = glGetUniformLocation(program, "environmentBRDF");
 	prefilteredIBLNumLevelsLocation = glGetUniformLocation(program, "prefilteredIBLNumLevels");
+	strengthIBLLocation = glGetUniformLocation(program, "strengthIBL");
 
 	lightAmbientColorLocation = glGetUniformLocation(program, "light.ambient.color");
 

@@ -565,12 +565,15 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform2fv(standardProgram->offsetLocation, 1, material->offset.ptr());
 
 	// IBL textures
-	auto it = scene->skyboxComponents.begin();
-	if (it != scene->skyboxComponents.end()) {
-		ComponentSkyBox& skyboxComponent = *it;
+	auto skyboxIt = scene->skyboxComponents.begin();
+	bool hasIBL = false;
+	if (skyboxIt != scene->skyboxComponents.end()) {
+		ComponentSkyBox& skyboxComponent = *skyboxIt;
 		ResourceSkybox* skyboxResource = App->resources->GetResource<ResourceSkybox>(skyboxComponent.GetSkyboxResourceID());
 
 		if (skyboxResource != nullptr) {
+			hasIBL = true;
+
 			glUniform1i(standardProgram->diffuseIBLLocation, 7);
 			glActiveTexture(GL_TEXTURE7);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxResource->GetGlIrradianceMap());
@@ -584,12 +587,15 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 			glBindTexture(GL_TEXTURE_2D, skyboxResource->GetGlEnvironmentBRDF());
 
 			glUniform1i(standardProgram->prefilteredIBLNumLevelsLocation, skyboxResource->GetPreFilteredMapNumLevels());
+
+			glUniform1f(standardProgram->strengthIBLLocation, skyboxComponent.strength);
 		}
 	}
+	glUniform1i(standardProgram->hasIBLLocation, hasIBL ? 1 : 0);
+
 	// Lights uniforms settings
 	glUniform3fv(standardProgram->lightAmbientColorLocation, 1, App->renderer->ambientColor.ptr());
 
-	// Lights uniforms settings
 	if (directionalLight != nullptr) {
 		glUniform3fv(standardProgram->lightDirectionalDirectionLocation, 1, directionalLight->direction.ptr());
 		glUniform3fv(standardProgram->lightDirectionalColorLocation, 1, directionalLight->color.ptr());
@@ -601,9 +607,9 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform3fv(standardProgram->lightPoints[i].posLocation, 1, pointLightsArray[i]->pos.ptr());
 		glUniform3fv(standardProgram->lightPoints[i].colorLocation, 1, pointLightsArray[i]->color.ptr());
 		glUniform1f(standardProgram->lightPoints[i].intensityLocation, pointLightsArray[i]->intensity);
-		glUniform1f(standardProgram->lightPoints[i].kcLocation, pointLightsArray[i]->kc);
-		glUniform1f(standardProgram->lightPoints[i].klLocation, pointLightsArray[i]->kl);
-		glUniform1f(standardProgram->lightPoints[i].kqLocation, pointLightsArray[i]->kq);
+		glUniform1f(standardProgram->lightPoints[i].radiusLocation, pointLightsArray[i]->radius);
+		glUniform1i(standardProgram->lightPoints[i].useCustomFalloffLocation, pointLightsArray[i]->useCustomFalloff);
+		glUniform1f(standardProgram->lightPoints[i].falloffExponentLocation, pointLightsArray[i]->falloffExponent);
 	}
 	glUniform1i(standardProgram->lightNumPointsLocation, pointLightsArraySize);
 
@@ -612,9 +618,9 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform3fv(standardProgram->lightSpots[i].directionLocation, 1, spotLightsArray[i]->direction.ptr());
 		glUniform3fv(standardProgram->lightSpots[i].colorLocation, 1, spotLightsArray[i]->color.ptr());
 		glUniform1f(standardProgram->lightSpots[i].intensityLocation, spotLightsArray[i]->intensity);
-		glUniform1f(standardProgram->lightSpots[i].kcLocation, spotLightsArray[i]->kc);
-		glUniform1f(standardProgram->lightSpots[i].klLocation, spotLightsArray[i]->kl);
-		glUniform1f(standardProgram->lightSpots[i].kqLocation, spotLightsArray[i]->kq);
+		glUniform1f(standardProgram->lightSpots[i].radiusLocation, spotLightsArray[i]->radius);
+		glUniform1i(standardProgram->lightSpots[i].useCustomFalloffLocation, spotLightsArray[i]->useCustomFalloff);
+		glUniform1f(standardProgram->lightSpots[i].falloffExponentLocation, spotLightsArray[i]->falloffExponent);
 		glUniform1f(standardProgram->lightSpots[i].innerAngleLocation, spotLightsArray[i]->innerAngle);
 		glUniform1f(standardProgram->lightSpots[i].outerAngleLocation, spotLightsArray[i]->outerAngle);
 	}
