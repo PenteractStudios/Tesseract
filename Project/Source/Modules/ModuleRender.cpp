@@ -3,8 +3,6 @@
 #include "Globals.h"
 #include "Application.h"
 #include "GameObject.h"
-#include "Utils/Logging.h"
-#include "Utils/Random.h"
 #include "Components/ComponentMeshRenderer.h"
 #include "Components/ComponentBoundingBox.h"
 #include "Components/ComponentTransform.h"
@@ -15,7 +13,6 @@
 #include "Components/ComponentBillboard.h"
 #include "Components/ComponentSkyBox.h"
 #include "Components/ComponentLight.h"
-#include "Modules/ModuleInput.h"
 #include "Modules/ModuleWindow.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleDebugDraw.h"
@@ -25,9 +22,10 @@
 #include "Modules/ModulePrograms.h"
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleUserInterface.h"
-#include "Modules/ModuleTime.h"
 #include "Modules/ModuleNavigation.h"
 #include "Resources/ResourceMesh.h"
+#include "Utils/Logging.h"
+#include "Utils/Random.h"
 #include "TesseractEvent.h"
 
 #include "Geometry/AABB.h"
@@ -37,11 +35,11 @@
 #include "GL/glew.h"
 #include "SDL.h"
 #include "Brofiler.h"
-
-#include "Utils/Leaks.h"
 #include <string>
 #include <math.h>
 #include <vector>
+
+#include "Utils/Leaks.h"
 
 static std::vector<float> ssaoGaussKernel;
 
@@ -50,11 +48,11 @@ static std::vector<float> mediumGaussKernel;
 static std::vector<float> largeGaussKernel;
 
 float defIntGaussian(const float x, const float mu, const float sigma) {
-	return 0.5 * erf((x - mu) / (sqrt(2) * sigma));
+	return (float) (0.5f * erf((x - mu) / (sqrt(2) * sigma)));
 }
 
 void gaussianKernel(const int kernelSize, const float sigma, const float mu, const float step, std::vector<float>& coeff) {
-	const float end = 0.5 * kernelSize;
+	const float end = 0.5f*kernelSize;
 	const float start = -end;
 	float sum = 0;
 	float x = start;
@@ -71,7 +69,7 @@ void gaussianKernel(const int kernelSize, const float sigma, const float mu, con
 
 	//normalize
 	sum = 1 / sum;
-	for (int i = 0; i < coeff.size(); ++i) {
+	for (unsigned int i = 0u; i < coeff.size(); ++i) {
 		coeff[i] *= sum;
 	}
 }
@@ -509,7 +507,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// Shadow Pass
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
@@ -521,7 +519,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// Depth Prepass
 	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassBuffer);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
@@ -533,7 +531,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// Depth Prepass texture conversion
 	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassTextureConversionBuffer);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_ALWAYS);
@@ -543,7 +541,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// SSAO pass
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoTextureBuffer);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LESS);
@@ -555,7 +553,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// SSAO horitontal blur
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurTextureBufferH);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glDisable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -565,7 +563,7 @@ UpdateStatus ModuleRender::Update() {
 
 	// SSAO vertical blur
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurTextureBufferV);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glDisable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -582,6 +580,24 @@ UpdateStatus ModuleRender::Update() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// Debug textures
+	if (drawNormalsTexture) {
+		DrawTexture(normalsTexture);
+
+		// Render to screen
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, renderPassBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, colorCorrectionBuffer);
+		glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		return UpdateStatus::CONTINUE;
+	}
+	if (drawPositionsTexture) {
+		DrawTexture(positionsTexture);
+
+		// Render to screen
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, renderPassBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, colorCorrectionBuffer);
+		glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		return UpdateStatus::CONTINUE;
+	}
 	if (drawSSAOTexture) {
 		DrawTexture(ssaoTexture);
 
@@ -612,6 +628,14 @@ UpdateStatus ModuleRender::Update() {
 		DrawGameObject(gameObject);
 	}
 	glDepthFunc(GL_LEQUAL);
+
+	// Draw Fog
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	for (ComponentFog& fog : scene->fogComponents) {
+		if (fog.IsActive()) fog.Draw();
+	}
+	glDisable(GL_BLEND);
 
 	// Draw Transparent
 	glEnable(GL_BLEND);
@@ -710,7 +734,7 @@ UpdateStatus ModuleRender::Update() {
 		glBindTexture(GL_TEXTURE_2D, colorTextures[1]);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
-		for (unsigned int i = 0; i < 2 * bloomQuality; i++) {
+		for (unsigned int i = 0u; i < 2u * bloomQuality; i++) {
 			int width = static_cast<int>(viewportSize.x);
 			int height = static_cast<int>(viewportSize.y);
 			glViewport(0, 0, width / (1 << gaussSmallMipLevel), height / (1 << gaussSmallMipLevel));
@@ -985,10 +1009,10 @@ void ModuleRender::UpdateFramebuffers() {
 	}
 
 	// Compute Gaussian kernels
-	gaussSmallKernelRadius = roundf(viewportSize.y * 0.002f);
-	gaussMediumKernelRadius = roundf(viewportSize.y * 0.004f);
-	gaussLargeKernelRadius = roundf(viewportSize.y * 0.008f);
-	float term = Ln(1e5 / sqrt(2 * pi));
+	gaussSmallKernelRadius = (int) roundf(viewportSize.y * 0.002f);
+	gaussMediumKernelRadius = (int) roundf(viewportSize.y * 0.004f);
+	gaussLargeKernelRadius = (int) roundf(viewportSize.y * 0.008f);
+	float term = Ln(1e5f / sqrt(2 * pi));
 	float sigma1 = gaussSmallKernelRadius * gaussSmallKernelRadius / 2.0f;
 	float sigma2 = gaussMediumKernelRadius * gaussMediumKernelRadius / 2.0f;
 	float sigma3 = gaussLargeKernelRadius * gaussLargeKernelRadius / 2.0f;
@@ -1066,6 +1090,8 @@ void ModuleRender::ToggleDrawLightFrustumGizmo() {
 void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 	drawDepthMapTexture = false;
 	drawSSAOTexture = false;
+	drawNormalsTexture = false;
+	drawPositionsTexture = false;
 
 	if (strcmp(shadingMode, "Shaded") == 0) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -1075,6 +1101,10 @@ void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 		drawDepthMapTexture = true;
 	} else if (strcmp(shadingMode, "Ambient Occlusion") == 0) {
 		drawSSAOTexture = true;
+	} else if (strcmp(shadingMode, "Normals") == 0) {
+		drawNormalsTexture = true;
+	} else if (strcmp(shadingMode, "Positions") == 0) {
+		drawPositionsTexture = true;
 	}
 }
 

@@ -7,8 +7,6 @@
 
 #include "Math/float2.h"
 #include "Math/float3.h"
-#include "Math/float4.h"
-#include "Math/float4x4.h"
 #include "Math/Quat.h"
 
 #include <vector>
@@ -18,9 +16,10 @@ class ParticleModule;
 class btRigidBody;
 class ParticleMotionState;
 class ImGradient;
-class ImGradientMark;
 class Trail;
-enum WorldLayers;
+struct ImGradientMark;
+
+enum class WorldLayers;
 
 enum class ParticleEmitterType {
 	CONE,
@@ -243,7 +242,7 @@ public:
 	TESSERACT_ENGINE_API void SetCollision(bool _collision);
 
 public:
-	WorldLayers layer;
+	WorldLayers layer = (WorldLayers)(1 << 20); // = WorldLayers::EVERYHTING
 	int layerIndex = 5;
 	float radius = .25f;
 

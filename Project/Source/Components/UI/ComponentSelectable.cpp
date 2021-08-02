@@ -1,18 +1,14 @@
 #include "ComponentSelectable.h"
 
-#include "Utils/Logging.h"
+#include "Application.h"
 #include "GameObject.h"
+#include "Modules/ModuleEditor.h"
+#include "Modules/ModuleUserInterface.h"
+#include "Components/UI/ComponentTransform2D.h"
 #include "Components/UI/ComponentEventSystem.h"
-#include "Components/UI/ComponentSelectable.h"
 #include "Components/UI/ComponentButton.h"
 #include "Components/UI/ComponentToggle.h"
-#include "Components/UI/ComponentTransform2D.h"
-#include "Application.h"
-#include "Modules/ModuleEditor.h"
-#include "Modules/ModuleInput.h"
-#include "Modules/ModuleUserInterface.h"
-
-#include "imgui.h"
+#include "Components/UI/ComponentSlider.h"
 
 #include "Utils/Leaks.h"
 

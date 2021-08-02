@@ -4,15 +4,13 @@
 #include "Utils/Pool.h"
 #include "Utils/UID.h"
 
-#include "Math/float4.h"
-#include "Math/float2.h"
-#include "Math/float4x4.h"
+#include "Math/float3.h"
 #include "Math/Quat.h"
 
 #define MAX_VERTICES 1500
 
 class ImGradient;
-class ImGradientMark;
+struct ImGradientMark;
 
 class ComponentTrail : public Component {
 public:

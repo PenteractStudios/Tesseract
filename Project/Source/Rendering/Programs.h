@@ -9,9 +9,9 @@ struct PointLightUniforms {
 	int posLocation = -1;
 	int colorLocation = -1;
 	int intensityLocation = -1;
-	int kcLocation = -1;
-	int klLocation = -1;
-	int kqLocation = -1;
+	int radiusLocation = -1;
+	int useCustomFalloffLocation = -1;
+	int falloffExponentLocation = -1;
 };
 
 struct SpotLightUniforms {
@@ -22,9 +22,9 @@ struct SpotLightUniforms {
 	int directionLocation = -1;
 	int colorLocation = -1;
 	int intensityLocation = -1;
-	int kcLocation = -1;
-	int klLocation = -1;
-	int kqLocation = -1;
+	int radiusLocation = -1;
+	int useCustomFalloffLocation = -1;
+	int falloffExponentLocation = -1;
 	int innerAngleLocation = -1;
 	int outerAngleLocation = -1;
 };
@@ -98,6 +98,33 @@ struct ProgramUnlit : public Program {
 	int offsetLocation = -1;
 };
 
+struct ProgramVolumetricLight : public Program {
+	ProgramVolumetricLight(unsigned program);
+
+	int modelLocation = -1;
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int paletteLocation = -1;
+	int hasBonesLocation = -1;
+
+	int viewPosLocation = -1;
+
+	int nearLocation = -1;
+	int farLocation = -1;
+
+	int depthsLocation = -1;
+
+	int lightColorLocation = -1;
+	int lightMapLocation = -1;
+	int hasLightMapLocation = -1;
+	int intensityLocation = -1;
+	int attenuationExponentLocation = -1;
+
+	int isSoftLocation = -1;
+	int softRangeLocation = -1;
+};
+
 struct ProgramStandard : public Program {
 	ProgramStandard(unsigned program);
 
@@ -138,10 +165,12 @@ struct ProgramStandard : public Program {
 	int tilingLocation = -1;
 	int offsetLocation = -1;
 
+	int hasIBLLocation = -1;
 	int diffuseIBLLocation = -1;
 	int prefilteredIBLLocation = -1;
 	int environmentBRDFLocation = -1;
 	int prefilteredIBLNumLevelsLocation = -1;
+	int strengthIBLLocation = -1;
 
 	int lightAmbientColorLocation = -1;
 
@@ -260,6 +289,22 @@ struct ProgramColorCorrection : Program {
 	int smallMipLevelLocation = -1;
 	int mediumMipLevelLocation = -1;
 	int largeMipLevelLocation = -1;
+};
+
+struct ProgramHeightFog : Program {
+	ProgramHeightFog(unsigned program);
+
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int positionsLocation = -1;
+
+	int viewPosLocation = -1;
+
+	int densityLocation = -1;
+	int falloffLocation = -1;
+	int heightLocation = -1;
+	int inscatteringColorLocation = -1;
 };
 
 struct ProgramDrawTexture : Program {

@@ -14,6 +14,9 @@ public:
 
 	UID GetSkyboxResourceID();
 
+public:
+	float strength = 1.0f;
+
 private:
 	UID shaderId = 0;
 	UID skyboxId = 0;

@@ -8,8 +8,6 @@
 #include "FileSystem/SceneImporter.h"
 #include "FileSystem/TextureImporter.h"
 #include "FileSystem/JsonValue.h"
-#include "Resources/ResourceTexture.h"
-#include "Resources/ResourceSkybox.h"
 #include "Components/Component.h"
 #include "Components/ComponentTransform.h"
 #include "Components/ComponentLight.h"
@@ -32,6 +30,8 @@
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleTime.h"
+#include "Resources/ResourceTexture.h"
+#include "Resources/ResourceSkybox.h"
 #include "Resources/ResourceScene.h"
 #include "Panels/PanelHierarchy.h"
 #include "Scripting/Script.h"
@@ -49,10 +49,10 @@
 #include "rapidjson/reader.h"
 #include "rapidjson/error/en.h"
 #include <string>
-#include "Brofiler.h"
-
 #include <Windows.h>
 #include <array>
+
+#include "Brofiler.h"
 
 #include "Utils/Leaks.h"
 

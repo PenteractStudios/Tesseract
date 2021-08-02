@@ -1,5 +1,6 @@
 #include "ModuleNavigation.h"
 
+#include "Globals.h"
 #include "Application.h"
 #include "GameObject.h"
 #include "Modules/ModuleFiles.h"
@@ -7,10 +8,8 @@
 #include "Modules/ModuleScene.h"
 #include "Components/ComponentAgent.h"
 #include "Scene.h"
-
-#include "Globals.h"
-#include "Utils/Buffer.h"
 #include "Utils/Logging.h"
+
 #include "Utils/Leaks.h"
 
 bool ModuleNavigation::Init() {

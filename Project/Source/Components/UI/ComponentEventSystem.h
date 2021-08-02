@@ -6,7 +6,6 @@
 
 class GameObject;
 class ComponentSelectable;
-class IPointerEnterHandler;
 
 class ComponentEventSystem : public Component {
 public:
