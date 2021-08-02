@@ -25,6 +25,8 @@
 
 #include "Math/float3x3.h"
 #include "Math/TransformOps.h"
+#include "Geometry/Plane.h"
+#include "Geometry/Line.h"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "imgui_color_gradient.h"
@@ -823,7 +825,7 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 		InitParticleLife(currentParticle);
 		InitParticleAnimationTexture(currentParticle);
 		currentParticle->emitterPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
-		currentParticle->emitterDirection = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation() * float3::unitY;
+		currentParticle->emitterRotation = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation();
 
 		if (collision) {
 			currentParticle->emitter = this;
@@ -1016,16 +1018,34 @@ void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
 	if (attachEmitter) {
 		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 		float3 position = transform->GetGlobalPosition();
-		float3 direction = transform->GetGlobalRotation() * float3::unitY;
+		Quat rotation = transform->GetGlobalRotation();
 
-		if (!currentParticle->emitterDirection.Equals(direction)) {
-			currentParticle->position = float3x3::RotateFromTo(currentParticle->emitterDirection, direction) * currentParticle->position;
-			currentParticle->direction = float3x3::RotateFromTo(currentParticle->emitterDirection, direction) * currentParticle->direction;
-			currentParticle->emitterDirection = direction;
+		if (!currentParticle->emitterRotation.Equals(rotation)) {
+			// Update Particle direction
+			float3 direction = (rotation * float3::unitY).Normalized();
+			float3 oldDirection = (currentParticle->emitterRotation * float3::unitY).Normalized();
+			float3 axisToRotate = Cross(oldDirection, direction).Normalized();
+			float angleToRotate = acos(Dot(oldDirection, direction));
+			float3x3 rotateMatrix = float3x3::RotateAxisAngle(axisToRotate, angleToRotate);
+			currentParticle->direction = rotateMatrix * currentParticle->direction;
+
+			// Update initialPoint using intersection between Plane that contains the point and axisToRotate
+			float dist = 0;
+			Plane planeInitPos = Plane(currentParticle->initialPosition, axisToRotate);
+			Line line = Line(currentParticle->emitterPosition, axisToRotate);
+			planeInitPos.Intersects(line, &dist);
+			float3 intersectPoint = line.GetPoint(dist);
+			float3 newInitialPosDirection = rotateMatrix * (currentParticle->initialPosition - intersectPoint).Normalized();
+			currentParticle->initialPosition = newInitialPosDirection * Length(currentParticle->initialPosition - intersectPoint) + intersectPoint;
+
+			currentParticle->position = currentParticle->direction * Length(currentParticle->position - currentParticle->initialPosition) + currentParticle->initialPosition;
+			currentParticle->emitterRotation = rotation;
 		}
 
 		if (!currentParticle->emitterPosition.Equals(position)) {
-			currentParticle->position = (position - currentParticle->emitterPosition).Normalized() * Length(position - currentParticle->emitterPosition) + currentParticle->position;
+			float3 directionLength = (position - currentParticle->emitterPosition).Normalized() * Length(position - currentParticle->emitterPosition);
+			currentParticle->initialPosition = directionLength + currentParticle->initialPosition;
+			currentParticle->position = directionLength + currentParticle->position;
 			currentParticle->emitterPosition = position;
 		}
 	}

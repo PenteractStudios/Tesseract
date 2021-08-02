@@ -83,7 +83,7 @@ public:
 		float gravityTime = 0.0f;
 
 		float3 emitterPosition = float3::zero;
-		float3 emitterDirection = float3::zero;
+		Quat emitterRotation = Quat::identity;
 
 		// Collider
 		bool hasCollided = false;
