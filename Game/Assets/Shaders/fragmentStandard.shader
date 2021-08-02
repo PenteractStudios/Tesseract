@@ -43,10 +43,12 @@ uniform vec2 tiling;
 uniform vec2 offset;
 
 // IBL
+uniform int hasIBL;
 uniform samplerCube diffuseIBL;
 uniform samplerCube prefilteredIBL;
 uniform sampler2D environmentBRDF;
 uniform int prefilteredIBLNumLevels;
+uniform float strengthIBL;
 
 struct AmbientLight
 {
@@ -66,9 +68,9 @@ struct PointLight
 	vec3 pos;
 	vec3 color;
 	float intensity;
-	float kc;
-	float kl;
-	float kq;
+	float radius;
+	int useCustomFalloff;
+	float falloffExponent;
 };
 
 struct SpotLight
@@ -77,9 +79,9 @@ struct SpotLight
 	vec3 direction;
 	vec3 color;
 	float intensity;
-	float kc;
-	float kl;
-	float kq;
+	float radius;
+	int useCustomFalloff;
+	float falloffExponent;
 	float innerAngle;
 	float outerAngle;
 };
@@ -122,12 +124,20 @@ vec4 GetEmissive(vec2 tiledUV)
 
 vec3 GetAmbientLight(in vec3 R, in vec3 normal, in vec3 viewDir, in vec3 Cd, in vec3 F0, float roughness)
 {
-	float NV = max(dot(fragNormal, viewDir), 0.0) + EPSILON;
-	vec3 irradiance = texture(diffuseIBL, normal).rgb;
-	vec3 radiance = textureLod(prefilteredIBL, R, roughness * prefilteredIBLNumLevels).rgb;
-	vec2 fab = texture(environmentBRDF, vec2(NV, roughness)).rg;
-	vec3 diffuse = (Cd * (1 - F0));
-	return diffuse * irradiance + radiance * (F0 * fab.x + fab.y);
+	if (hasIBL == 1)
+	{
+		float NV = max(dot(fragNormal, viewDir), 0.0) + EPSILON;
+		vec3 irradiance = texture(diffuseIBL, normal).rgb;
+		vec3 radiance = textureLod(prefilteredIBL, R, roughness * prefilteredIBLNumLevels).rgb;
+		vec2 fab = texture(environmentBRDF, vec2(NV, roughness)).rg;
+		vec3 diffuse = (Cd * (1 - F0));
+		return (diffuse * irradiance + radiance * (F0 * fab.x + fab.y)) * strengthIBL;
+	}
+	else
+	{
+		vec3 diffuse = (Cd * (1 - F0));
+		return diffuse * light.ambient.color;
+	}
 }
 
 vec3 GetOccludedAmbientLight(in vec3 R, in vec3 normal, in vec3 viewDir, in vec3 Cd, in vec3 F0, float roughness, vec2 tiledUV)
@@ -234,7 +244,9 @@ vec3 ProcessDirectionalLight(DirLight directional, vec3 fragNormal, vec3 viewDir
 vec3 ProcessPointLight(PointLight point, vec3 fragNormal, vec3 viewDir, vec3 Cd, vec3 F0, float roughness)
 {
 	float pointDistance = length(point.pos - fragPos);
-	float distAttenuation = 1.0 / (point.kc + point.kl * pointDistance + point.kq * pointDistance * pointDistance);
+	float falloffExponent = point.useCustomFalloff * point.falloffExponent + (1 - point.useCustomFalloff) * 4.0;
+	float distAttenuation = clamp(1.0 - pow(pointDistance / point.radius, falloffExponent), 0.0, 1.0);
+	distAttenuation = point.useCustomFalloff * distAttenuation + (1 - point.useCustomFalloff) * distAttenuation * distAttenuation / (pointDistance * pointDistance + 1.0);
 
 	vec3 pointDir = normalize(point.pos - fragPos);
 
@@ -255,7 +267,9 @@ vec3 ProcessPointLight(PointLight point, vec3 fragNormal, vec3 viewDir, vec3 Cd,
 vec3 ProcessSpotLight(SpotLight spot, vec3 fragNormal, vec3 viewDir, vec3 Cd, vec3 F0, float roughness)
 {
 	float spotDistance = length(spot.pos - fragPos);
-	float distAttenuation = 1.0 / (spot.kc + spot.kl * spotDistance + spot.kq * spotDistance * spotDistance);
+	float falloffExponent = spot.useCustomFalloff * spot.falloffExponent + (1 - spot.useCustomFalloff) * 4.0;
+	float distAttenuation = clamp(1.0 - pow(spotDistance / spot.radius, falloffExponent), 0.0, 1.0);
+	distAttenuation = spot.useCustomFalloff * distAttenuation + (1 - spot.useCustomFalloff) * distAttenuation * distAttenuation / (spotDistance * spotDistance + 1.0);
 
 	vec3 spotDir = normalize(spot.pos - fragPos);
 

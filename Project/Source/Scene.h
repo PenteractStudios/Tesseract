@@ -32,6 +32,7 @@
 #include "Components/Physics/ComponentCapsuleCollider.h"
 #include "Components/ComponentAgent.h"
 #include "Components/ComponentObstacle.h"
+#include "Components/ComponentFog.h"
 
 class GameObject;
 
@@ -103,6 +104,7 @@ public:
 	PoolMap<UID, ComponentCapsuleCollider> capsuleColliderComponents;
 	PoolMap<UID, ComponentAgent> agentComponents;
 	PoolMap<UID, ComponentObstacle> obstacleComponents;
+	PoolMap<UID, ComponentFog> fogComponents;
 
 	// ---- Quadtree Parameters ---- //
 	Quadtree<GameObject> quadtree;

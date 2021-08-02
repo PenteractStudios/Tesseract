@@ -12,7 +12,8 @@ enum class MaterialShader {
 	STANDARD,
 	UNLIT,
 	STANDARD_DISSOLVE,
-	UNLIT_DISSOLVE
+	UNLIT_DISSOLVE,
+	VOLUMETRIC_LIGHT
 };
 
 enum class RenderingMode {
@@ -76,4 +77,12 @@ public:
 	float2 dissolveOffset = float2::zero;
 	float dissolveDuration = 1.0f;
 	float dissolveEdgeSize = 0.0f;
+	
+	// Volumetric Light
+	float volumetricLightInstensity = 1.0f;
+	float volumetricLightAttenuationExponent = 1.0f;
+
+	// Softness (transparency when near other meshes)
+	bool isSoft = false;
+	float softRange = 1.0f;
 };

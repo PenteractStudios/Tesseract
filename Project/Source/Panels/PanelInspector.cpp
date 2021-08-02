@@ -199,6 +199,9 @@ void PanelInspector::Update() {
 				case ComponentType::OBSTACLE:
 					cName = "Obstacle";
 					break;
+				case ComponentType::FOG:
+					cName = "Fog";
+					break;
 				default:
 					cName = "";
 					break;
@@ -271,6 +274,14 @@ void PanelInspector::Update() {
 					ComponentSkyBox* skybox = selected->CreateComponent<ComponentSkyBox>();
 					if (skybox != nullptr) {
 						skybox->Init();
+					} else {
+						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+					}
+				}
+				if (ImGui::MenuItem("Fog")) {
+					ComponentFog* fog = selected->CreateComponent<ComponentFog>();
+					if (fog != nullptr) {
+						fog->Init();
 					} else {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}

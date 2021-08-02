@@ -13,10 +13,12 @@
 
 #define JSON_TAG_SHADER "Shader"
 #define JSON_TAG_SKYBOX "Skybox"
+#define JSON_TAG_STRENGTH "Strength"
 
 void ComponentSkyBox::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_SHADER] = shaderId;
 	jComponent[JSON_TAG_SKYBOX] = skyboxId;
+	jComponent[JSON_TAG_STRENGTH] = strength;
 }
 
 void ComponentSkyBox::Load(JsonValue jComponent) {
@@ -24,6 +26,7 @@ void ComponentSkyBox::Load(JsonValue jComponent) {
 	if (shaderId != 0) App->resources->IncreaseReferenceCount(shaderId);
 	skyboxId = jComponent[JSON_TAG_SKYBOX];
 	if (skyboxId != 0) App->resources->IncreaseReferenceCount(skyboxId);
+	strength = jComponent[JSON_TAG_STRENGTH];
 }
 
 void ComponentSkyBox::OnEditorUpdate() {
@@ -38,6 +41,7 @@ void ComponentSkyBox::OnEditorUpdate() {
 	}
 	ImGui::Separator();
 	ImGui::ResourceSlot<ResourceSkybox>("Skybox", &skyboxId);
+	ImGui::DragFloat("Strength", &strength, App->editor->dragSpeed2f, 0.0f, inf);
 }
 
 void ComponentSkyBox::Draw() {

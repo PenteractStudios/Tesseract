@@ -478,10 +478,65 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 		break;
 	}
+	case MaterialShader::VOLUMETRIC_LIGHT: {
+		ProgramVolumetricLight* volumetricLightProgram = App->programs->volumetricLight;
+		if (volumetricLightProgram == nullptr) return;
+
+		glUseProgram(volumetricLightProgram->program);
+
+		// Matrices
+		float4x4 viewMatrix = App->camera->GetViewMatrix();
+		float4x4 projMatrix = App->camera->GetProjectionMatrix();
+
+		glUniformMatrix4fv(volumetricLightProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
+		glUniformMatrix4fv(volumetricLightProgram->viewLocation, 1, GL_TRUE, viewMatrix.ptr());
+		glUniformMatrix4fv(volumetricLightProgram->projLocation, 1, GL_TRUE, projMatrix.ptr());
+
+		if (palette.size() > 0) {
+			glUniformMatrix4fv(volumetricLightProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
+		}
+
+		glUniform1i(volumetricLightProgram->hasBonesLocation, goBones.size());
+
+		glUniform3fv(volumetricLightProgram->viewPosLocation, 1, App->camera->GetPosition().ptr());
+
+		glUniform1f(volumetricLightProgram->nearLocation, App->camera->GetNearPlane());
+		glUniform1f(volumetricLightProgram->farLocation, App->camera->GetFarPlane());
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, App->renderer->depthsTexture);
+		glUniform1i(volumetricLightProgram->depthsLocation, 0);
+
+		// Light
+		unsigned glTextureLight = 0;
+		ResourceTexture* volumetricLightMap = App->resources->GetResource<ResourceTexture>(material->diffuseMapId);
+		glTextureLight = volumetricLightMap ? volumetricLightMap->glTexture : 0;
+		int hasLightMap = volumetricLightMap ? 1 : 0;
+
+		glUniform1i(volumetricLightProgram->lightMapLocation, 1);
+		glUniform4fv(volumetricLightProgram->lightColorLocation, 1, material->diffuseColor.ptr());
+		glUniform1i(volumetricLightProgram->hasLightMapLocation, hasLightMap ? 1 : 0);
+		glUniform1f(volumetricLightProgram->intensityLocation, material->volumetricLightInstensity);
+		glUniform1f(volumetricLightProgram->attenuationExponentLocation, material->volumetricLightAttenuationExponent);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, glTextureLight);
+
+		glUniform1i(volumetricLightProgram->isSoftLocation, material->isSoft ? 1 : 0);
+		glUniform1f(volumetricLightProgram->softRangeLocation, material->softRange);
+
+		glBindVertexArray(mesh->vao);
+		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
+		glBindVertexArray(0);
+
+		break;
+	}
 	}
 
 	// Unlit material already set
 	if (material->shaderType == MaterialShader::UNLIT || material->shaderType == MaterialShader::UNLIT_DISSOLVE) return;
+
+	// Volumetric Light material already set
+	if (material->shaderType == MaterialShader::VOLUMETRIC_LIGHT) return;
 
 	// Common shader settings
 	if (standardProgram == nullptr) return;
@@ -686,12 +741,15 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform2fv(standardProgram->offsetLocation, 1, material->offset.ptr());
 
 	// IBL textures
-	auto it = scene->skyboxComponents.begin();
-	if (it != scene->skyboxComponents.end()) {
-		ComponentSkyBox& skyboxComponent = *it;
+	auto skyboxIt = scene->skyboxComponents.begin();
+	bool hasIBL = false;
+	if (skyboxIt != scene->skyboxComponents.end()) {
+		ComponentSkyBox& skyboxComponent = *skyboxIt;
 		ResourceSkybox* skyboxResource = App->resources->GetResource<ResourceSkybox>(skyboxComponent.GetSkyboxResourceID());
 
 		if (skyboxResource != nullptr) {
+			hasIBL = true;
+
 			glUniform1i(standardProgram->diffuseIBLLocation, 7);
 			glActiveTexture(GL_TEXTURE7);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxResource->GetGlIrradianceMap());
@@ -705,12 +763,15 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 			glBindTexture(GL_TEXTURE_2D, skyboxResource->GetGlEnvironmentBRDF());
 
 			glUniform1i(standardProgram->prefilteredIBLNumLevelsLocation, skyboxResource->GetPreFilteredMapNumLevels());
+
+			glUniform1f(standardProgram->strengthIBLLocation, skyboxComponent.strength);
 		}
 	}
+	glUniform1i(standardProgram->hasIBLLocation, hasIBL ? 1 : 0);
+
 	// Lights uniforms settings
 	glUniform3fv(standardProgram->lightAmbientColorLocation, 1, App->renderer->ambientColor.ptr());
 
-	// Lights uniforms settings
 	if (directionalLight != nullptr) {
 		glUniform3fv(standardProgram->lightDirectionalDirectionLocation, 1, directionalLight->direction.ptr());
 		glUniform3fv(standardProgram->lightDirectionalColorLocation, 1, directionalLight->color.ptr());
@@ -722,9 +783,9 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform3fv(standardProgram->lightPoints[i].posLocation, 1, pointLightsArray[i]->pos.ptr());
 		glUniform3fv(standardProgram->lightPoints[i].colorLocation, 1, pointLightsArray[i]->color.ptr());
 		glUniform1f(standardProgram->lightPoints[i].intensityLocation, pointLightsArray[i]->intensity);
-		glUniform1f(standardProgram->lightPoints[i].kcLocation, pointLightsArray[i]->kc);
-		glUniform1f(standardProgram->lightPoints[i].klLocation, pointLightsArray[i]->kl);
-		glUniform1f(standardProgram->lightPoints[i].kqLocation, pointLightsArray[i]->kq);
+		glUniform1f(standardProgram->lightPoints[i].radiusLocation, pointLightsArray[i]->radius);
+		glUniform1i(standardProgram->lightPoints[i].useCustomFalloffLocation, pointLightsArray[i]->useCustomFalloff);
+		glUniform1f(standardProgram->lightPoints[i].falloffExponentLocation, pointLightsArray[i]->falloffExponent);
 	}
 	glUniform1i(standardProgram->lightNumPointsLocation, pointLightsArraySize);
 
@@ -733,9 +794,9 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform3fv(standardProgram->lightSpots[i].directionLocation, 1, spotLightsArray[i]->direction.ptr());
 		glUniform3fv(standardProgram->lightSpots[i].colorLocation, 1, spotLightsArray[i]->color.ptr());
 		glUniform1f(standardProgram->lightSpots[i].intensityLocation, spotLightsArray[i]->intensity);
-		glUniform1f(standardProgram->lightSpots[i].kcLocation, spotLightsArray[i]->kc);
-		glUniform1f(standardProgram->lightSpots[i].klLocation, spotLightsArray[i]->kl);
-		glUniform1f(standardProgram->lightSpots[i].kqLocation, spotLightsArray[i]->kq);
+		glUniform1f(standardProgram->lightSpots[i].radiusLocation, spotLightsArray[i]->radius);
+		glUniform1i(standardProgram->lightSpots[i].useCustomFalloffLocation, spotLightsArray[i]->useCustomFalloff);
+		glUniform1f(standardProgram->lightSpots[i].falloffExponentLocation, spotLightsArray[i]->falloffExponent);
 		glUniform1f(standardProgram->lightSpots[i].innerAngleLocation, spotLightsArray[i]->innerAngle);
 		glUniform1f(standardProgram->lightSpots[i].outerAngleLocation, spotLightsArray[i]->outerAngle);
 	}
