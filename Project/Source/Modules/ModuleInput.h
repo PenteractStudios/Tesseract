@@ -30,8 +30,7 @@ public:
 		SDL_Joystick* j = SDL_GameControllerGetJoystick(controller);
 		joystickIndex = SDL_JoystickInstanceID(j);
 		haptic = SDL_HapticOpenFromJoystick(j);
-		if (haptic == NULL)
-			return;
+		if (haptic == NULL) return;
 	}
 
 	~PlayerController() {
@@ -49,11 +48,9 @@ public:
 	void StartSimpleControllerVibration(float strength, float duration) {
 		if (haptic == NULL) return;
 
-		if (SDL_HapticRumbleInit(haptic) != 0)
-			return;
+		if (SDL_HapticRumbleInit(haptic) != 0) return;
 
-		if (SDL_HapticRumblePlay(haptic, strength, duration) != 0)
-			return;
+		if (SDL_HapticRumblePlay(haptic, strength, duration) != 0) return;
 	}
 
 	float GetAxisRaw(int axisIndex) { //Returns RAW Game controller value, from 0 to 32767.0f
