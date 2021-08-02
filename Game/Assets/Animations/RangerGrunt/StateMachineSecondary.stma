@@ -1,0 +1,714 @@
+{
+    "InitialState": 0,
+    "Clips": [
+        14891004260629648283,
+        258340922987399908,
+        1853249192696493574,
+        8526287924029517253,
+        9101728894046816373,
+        17075621920916559290,
+        11291111114874904854,
+        15428532210929269654,
+        14537612564741593075,
+        3473941503217167244
+    ],
+    "States": [
+        {
+            "Id": 8841745756666598125,
+            "Name": "Shoot",
+            "ClipId": 14891004260629648283
+        },
+        {
+            "Id": 5474146227919054388,
+            "Name": "Idle",
+            "ClipId": 258340922987399908
+        },
+        {
+            "Id": 752341288915017883,
+            "Name": "BeginStun",
+            "ClipId": 1853249192696493574
+        },
+        {
+            "Id": 14167487708263531866,
+            "Name": "Spawn",
+            "ClipId": 8526287924029517253
+        },
+        {
+            "Id": 3655394703135195890,
+            "Name": "Death",
+            "ClipId": 9101728894046816373
+        },
+        {
+            "Id": 15443750146433247319,
+            "Name": "EndStun",
+            "ClipId": 17075621920916559290
+        },
+        {
+            "Id": 6859787734241887417,
+            "Name": "RunBackward",
+            "ClipId": 11291111114874904854
+        },
+        {
+            "Id": 15780123803842790380,
+            "Name": "RunForward",
+            "ClipId": 15428532210929269654
+        },
+        {
+            "Id": 16528118457821472311,
+            "Name": "Start",
+            "ClipId": 14537612564741593075
+        },
+        {
+            "Id": 13206331660267538086,
+            "Name": "Stunned",
+            "ClipId": 3473941503217167244
+        }
+    ],
+    "Transitions": [
+        {
+            "Trigger": "RunForwardShoot",
+            "Id": 5137903174861183653,
+            "Source": 15780123803842790380,
+            "Target": 8841745756666598125,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunForwardEndStun",
+            "Id": 16983604490396892130,
+            "Source": 15780123803842790380,
+            "Target": 15443750146433247319,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunForwardIdle",
+            "Id": 5739286025815814080,
+            "Source": 15780123803842790380,
+            "Target": 5474146227919054388,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunForwardSpawn",
+            "Id": 16417021323865376007,
+            "Source": 15780123803842790380,
+            "Target": 14167487708263531866,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunForwardBeginStun",
+            "Id": 5764188507411453836,
+            "Source": 15780123803842790380,
+            "Target": 752341288915017883,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunForwardDeath",
+            "Id": 290051096963817608,
+            "Source": 15780123803842790380,
+            "Target": 3655394703135195890,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunForwardRunBackward",
+            "Id": 1726709704868096463,
+            "Source": 15780123803842790380,
+            "Target": 6859787734241887417,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunForwardStart",
+            "Id": 12305017067858048860,
+            "Source": 15780123803842790380,
+            "Target": 16528118457821472311,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunForwardStunned",
+            "Id": 685135602632037227,
+            "Source": 15780123803842790380,
+            "Target": 13206331660267538086,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "ShootRunForward",
+            "Id": 6934860221990073610,
+            "Source": 8841745756666598125,
+            "Target": 15780123803842790380,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "ShootEndStun",
+            "Id": 1680197004092691254,
+            "Source": 8841745756666598125,
+            "Target": 15443750146433247319,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "ShootIdle",
+            "Id": 2189274498583145748,
+            "Source": 8841745756666598125,
+            "Target": 5474146227919054388,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "ShootSpawn",
+            "Id": 9731607592471332805,
+            "Source": 8841745756666598125,
+            "Target": 14167487708263531866,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "ShootBeginStun",
+            "Id": 185922585616643442,
+            "Source": 8841745756666598125,
+            "Target": 752341288915017883,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "ShootDeath",
+            "Id": 11559691372947064881,
+            "Source": 8841745756666598125,
+            "Target": 3655394703135195890,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "ShootRunBackward",
+            "Id": 12404952346521724536,
+            "Source": 8841745756666598125,
+            "Target": 6859787734241887417,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "ShootStart",
+            "Id": 17340975661844518196,
+            "Source": 8841745756666598125,
+            "Target": 16528118457821472311,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "ShootStunned",
+            "Id": 17762474488021577490,
+            "Source": 8841745756666598125,
+            "Target": 13206331660267538086,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "EndStunRunForward",
+            "Id": 12363965742554351202,
+            "Source": 15443750146433247319,
+            "Target": 15780123803842790380,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "EndStunShoot",
+            "Id": 10009835298683354952,
+            "Source": 15443750146433247319,
+            "Target": 8841745756666598125,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "EndStunIdle",
+            "Id": 15806030097889101245,
+            "Source": 15443750146433247319,
+            "Target": 5474146227919054388,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "EndStunSpawn",
+            "Id": 10592352287793034737,
+            "Source": 15443750146433247319,
+            "Target": 14167487708263531866,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "EndStunBeginStun",
+            "Id": 16818499969926815488,
+            "Source": 15443750146433247319,
+            "Target": 752341288915017883,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "EndStunDeath",
+            "Id": 6815569539290456660,
+            "Source": 15443750146433247319,
+            "Target": 3655394703135195890,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "EndStunRunBackward",
+            "Id": 6793135526231207891,
+            "Source": 15443750146433247319,
+            "Target": 6859787734241887417,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "EndStunStart",
+            "Id": 10009817407077691224,
+            "Source": 15443750146433247319,
+            "Target": 16528118457821472311,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "EndStunStunned",
+            "Id": 7028512760057735008,
+            "Source": 15443750146433247319,
+            "Target": 13206331660267538086,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "IdleRunForward",
+            "Id": 573167459258876128,
+            "Source": 5474146227919054388,
+            "Target": 15780123803842790380,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "IdleShoot",
+            "Id": 18086935430595281578,
+            "Source": 5474146227919054388,
+            "Target": 8841745756666598125,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "IdleEndStun",
+            "Id": 17296741732505321896,
+            "Source": 5474146227919054388,
+            "Target": 15443750146433247319,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "IdleSpawn",
+            "Id": 14390834216059377358,
+            "Source": 5474146227919054388,
+            "Target": 14167487708263531866,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "IdleBeginStun",
+            "Id": 10695108075395292977,
+            "Source": 5474146227919054388,
+            "Target": 752341288915017883,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "IdleDeath",
+            "Id": 11588633542352702971,
+            "Source": 5474146227919054388,
+            "Target": 3655394703135195890,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "IdleRunBackward",
+            "Id": 8941251157908007475,
+            "Source": 5474146227919054388,
+            "Target": 6859787734241887417,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "IdleStart",
+            "Id": 9938154445077243230,
+            "Source": 5474146227919054388,
+            "Target": 16528118457821472311,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "IdleStunned",
+            "Id": 9513860994478058747,
+            "Source": 5474146227919054388,
+            "Target": 13206331660267538086,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "SpawnRunForward",
+            "Id": 13936963950938256255,
+            "Source": 14167487708263531866,
+            "Target": 15780123803842790380,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "SpawnShoot",
+            "Id": 4400405544971950242,
+            "Source": 14167487708263531866,
+            "Target": 8841745756666598125,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "SpawnEndStun",
+            "Id": 14585120312337824192,
+            "Source": 14167487708263531866,
+            "Target": 15443750146433247319,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "SpawnIdle",
+            "Id": 12940139798492883633,
+            "Source": 14167487708263531866,
+            "Target": 5474146227919054388,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "SpawnBeginStun",
+            "Id": 1994629755976275873,
+            "Source": 14167487708263531866,
+            "Target": 752341288915017883,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "SpawnDeath",
+            "Id": 16004805085347363136,
+            "Source": 14167487708263531866,
+            "Target": 3655394703135195890,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "SpawnRunBackward",
+            "Id": 16576833518045034508,
+            "Source": 14167487708263531866,
+            "Target": 6859787734241887417,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "SpawnStart",
+            "Id": 17694564481696903943,
+            "Source": 14167487708263531866,
+            "Target": 16528118457821472311,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "SpawnStunned",
+            "Id": 2792996468350891650,
+            "Source": 14167487708263531866,
+            "Target": 13206331660267538086,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "BeginStunRunForward",
+            "Id": 4011639199429708375,
+            "Source": 752341288915017883,
+            "Target": 15780123803842790380,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "BeginStunShoot",
+            "Id": 18437387965240747905,
+            "Source": 752341288915017883,
+            "Target": 8841745756666598125,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "BeginStunEndStun",
+            "Id": 5987978970600798637,
+            "Source": 752341288915017883,
+            "Target": 15443750146433247319,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "BeginStunIdle",
+            "Id": 9342476147101391266,
+            "Source": 752341288915017883,
+            "Target": 5474146227919054388,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "BeginStunSpawn",
+            "Id": 2078339574704957596,
+            "Source": 752341288915017883,
+            "Target": 14167487708263531866,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "BeginStunDeath",
+            "Id": 13261914860441198349,
+            "Source": 752341288915017883,
+            "Target": 3655394703135195890,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "BeginStunRunBackward",
+            "Id": 8366216861555713299,
+            "Source": 752341288915017883,
+            "Target": 6859787734241887417,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "BeginStunStart",
+            "Id": 957322768256714532,
+            "Source": 752341288915017883,
+            "Target": 16528118457821472311,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "BeginStunStunned",
+            "Id": 1603700953174485243,
+            "Source": 752341288915017883,
+            "Target": 13206331660267538086,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "DeathRunForward",
+            "Id": 12462578003548345668,
+            "Source": 3655394703135195890,
+            "Target": 15780123803842790380,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "DeathShoot",
+            "Id": 16114822424346870277,
+            "Source": 3655394703135195890,
+            "Target": 8841745756666598125,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "DeathEndStun",
+            "Id": 14081263041961903447,
+            "Source": 3655394703135195890,
+            "Target": 15443750146433247319,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "DeathIdle",
+            "Id": 2036761892468776567,
+            "Source": 3655394703135195890,
+            "Target": 5474146227919054388,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "DeathSpawn",
+            "Id": 2955944734921948430,
+            "Source": 3655394703135195890,
+            "Target": 14167487708263531866,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "DeathBeginStun",
+            "Id": 9398089320315421326,
+            "Source": 3655394703135195890,
+            "Target": 752341288915017883,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "DeathRunBackward",
+            "Id": 12930320836226644802,
+            "Source": 3655394703135195890,
+            "Target": 6859787734241887417,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "DeathStart",
+            "Id": 7301187416690501828,
+            "Source": 3655394703135195890,
+            "Target": 16528118457821472311,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "DeathStunned",
+            "Id": 16233068259543124183,
+            "Source": 3655394703135195890,
+            "Target": 13206331660267538086,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunBackwardRunForward",
+            "Id": 17449465050185630006,
+            "Source": 6859787734241887417,
+            "Target": 15780123803842790380,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunBackwardShoot",
+            "Id": 15531637386085135007,
+            "Source": 6859787734241887417,
+            "Target": 8841745756666598125,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunBackwardEndStun",
+            "Id": 397305806691890589,
+            "Source": 6859787734241887417,
+            "Target": 15443750146433247319,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunBackwardIdle",
+            "Id": 2257973355127985706,
+            "Source": 6859787734241887417,
+            "Target": 5474146227919054388,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunBackwardSpawn",
+            "Id": 1164255006596720526,
+            "Source": 6859787734241887417,
+            "Target": 14167487708263531866,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunBackwardBeginStun",
+            "Id": 16923557090728190459,
+            "Source": 6859787734241887417,
+            "Target": 752341288915017883,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunBackwardDeath",
+            "Id": 16011464034964554137,
+            "Source": 6859787734241887417,
+            "Target": 3655394703135195890,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunBackwardStart",
+            "Id": 10642603970350168866,
+            "Source": 6859787734241887417,
+            "Target": 16528118457821472311,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "RunBackwardStunned",
+            "Id": 12036536225348026720,
+            "Source": 6859787734241887417,
+            "Target": 13206331660267538086,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StartRunForward",
+            "Id": 13732269900349407331,
+            "Source": 16528118457821472311,
+            "Target": 15780123803842790380,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StartShoot",
+            "Id": 7053817082285129384,
+            "Source": 16528118457821472311,
+            "Target": 8841745756666598125,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StartEndStun",
+            "Id": 16187112391411263451,
+            "Source": 16528118457821472311,
+            "Target": 15443750146433247319,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StartIdle",
+            "Id": 5255719835232408572,
+            "Source": 16528118457821472311,
+            "Target": 5474146227919054388,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StartSpawn",
+            "Id": 120410245704072218,
+            "Source": 16528118457821472311,
+            "Target": 14167487708263531866,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StartBeginStun",
+            "Id": 8241078557123801699,
+            "Source": 16528118457821472311,
+            "Target": 752341288915017883,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StartDeath",
+            "Id": 7113769600927720546,
+            "Source": 16528118457821472311,
+            "Target": 3655394703135195890,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StartRunBackward",
+            "Id": 16932108781479728502,
+            "Source": 16528118457821472311,
+            "Target": 6859787734241887417,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StartStunned",
+            "Id": 9883408209752011238,
+            "Source": 16528118457821472311,
+            "Target": 13206331660267538086,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StunnedRunForward",
+            "Id": 5717072641082656752,
+            "Source": 13206331660267538086,
+            "Target": 15780123803842790380,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StunnedShoot",
+            "Id": 13440385584010175321,
+            "Source": 13206331660267538086,
+            "Target": 8841745756666598125,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StunnedEndStun",
+            "Id": 13868123741010738057,
+            "Source": 13206331660267538086,
+            "Target": 15443750146433247319,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StunnedIdle",
+            "Id": 7677324703600614431,
+            "Source": 13206331660267538086,
+            "Target": 5474146227919054388,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StunnedSpawn",
+            "Id": 12802639811616599571,
+            "Source": 13206331660267538086,
+            "Target": 14167487708263531866,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StunnedBeginStun",
+            "Id": 14100100159538799209,
+            "Source": 13206331660267538086,
+            "Target": 752341288915017883,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StunnedDeath",
+            "Id": 11095881076480373553,
+            "Source": 13206331660267538086,
+            "Target": 3655394703135195890,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StunnedRunBackward",
+            "Id": 4796051988059823989,
+            "Source": 13206331660267538086,
+            "Target": 6859787734241887417,
+            "Interpolation": 0.3
+        },
+        {
+            "Trigger": "StunnedStart",
+            "Id": 3690733870973499928,
+            "Source": 13206331660267538086,
+            "Target": 16528118457821472311,
+            "Interpolation": 0.3
+        }
+    ],
+    "Bones": [
+        "LeftShoulder",
+        "LeftElbow",
+        "LeftShoulderPiece",
+        "LeftBicepPiece",
+        "LeftHand",
+        "LeftForearmPiece",
+        "RightShoulder",
+        "RightElbow",
+        "RightShoulderPiece",
+        "RightBicepPiece",
+        "RightHand",
+        "RightForearmPiece",
+        "joint2"
+    ]
+}

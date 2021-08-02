@@ -1,0 +1,10 @@
+{
+    "Name": "Death1",
+    "AnimationUID": 15800391176329352559,
+    "BeginIndex": 202,
+    "EndIndex": 240,
+    "Loop": false,
+    "Speed": 1.0,
+    "FrameRate": 0.0332355797290802,
+    "KeyEventClip": null
+}

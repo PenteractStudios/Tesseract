@@ -1,0 +1,54 @@
+{
+    "Root": {
+        "Name": "Laser Generator A",
+        "Active": true,
+        "RootBoneName": "",
+        "Mask": 0,
+        "Components": [
+            {
+                "Type": "Transform",
+                "Active": true,
+                "Position": [
+                    17.994522094726564,
+                    4.87074613571167,
+                    -19.409608840942384
+                ],
+                "Rotation": [
+                    -0.7071068286895752,
+                    0.0,
+                    0.0,
+                    0.7071067094802856
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "LocalEulerAngles": [
+                    -90.00000762939453,
+                    0.0,
+                    0.0
+                ]
+            },
+            {
+                "Type": "MeshRenderer",
+                "Active": true,
+                "MeshID": 18111175365358792,
+                "MaterialID": 7398514980054782061
+            },
+            {
+                "Type": "BoundingBox",
+                "Active": true,
+                "LocalBoundingBox": [
+                    -2.1924781799316408,
+                    -2.1924726963043215,
+                    -2.1130714416503908,
+                    2.192466974258423,
+                    2.192472457885742,
+                    2.1130714416503908
+                ]
+            }
+        ],
+        "Children": null
+    }
+}

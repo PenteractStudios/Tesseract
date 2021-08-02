@@ -125,7 +125,10 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 		return result;
 	}
 	int currentSample = AnimationController::GetCurrentSample(*clip, (*currentTimeStates)[currentState.id]);
-
+	if (stateMachineSelected == StateMachineEnum::SECONDARY) {
+		LOG("%d", currentSample);
+	}
+	
 	//Checking for transition between states
 	if ((*animationInterpolations).size() > 1) {
 		result = AnimationController::InterpolateTransitions((*animationInterpolations).begin(), (*animationInterpolations), *owner.GetRootBone(), *gameObject, position, rotation, componentAnimation);
@@ -145,7 +148,7 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 				resetSecondaryStatemachine = true;
 			}
 
-			result = AnimationController::GetTransform(*clip, (*currentTimeStates)[currentState.id], gameObject->name.c_str(), position, rotation, gameObject->name == (*resourceStateMachine->bones.begin()), componentAnimation);
+			result = AnimationController::GetTransform(*clip, (*currentTimeStates)[currentState.id], gameObject->name.c_str(), position, rotation, gameObject == owner.GetRootBone(), componentAnimation);
 			if (gameObject->name == (*resourceStateMachine->bones.begin())) {
 			}
 		}
@@ -179,6 +182,7 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 		if (!componentAnimation.listClipsKeyEvents[currentState.clipUid].empty()) { //Only call this once
 			// Send key Frame event
 			int difference = currentSample - currentEventKeyFrame;
+			LOG("difference %d, actual %d , current key frame %d", difference, currentSample,currentEventKeyFrame);
 			int i = 0;
 			for (int i = 0; i <= difference; i++) {
 				if (componentAnimation.listClipsKeyEvents[currentState.clipUid].find(currentEventKeyFrame + i) != componentAnimation.listClipsKeyEvents[currentState.clipUid].end() && !componentAnimation.listClipsKeyEvents[currentState.clipUid][currentEventKeyFrame + i].sent) {
@@ -189,6 +193,8 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 							if (scriptInstance != nullptr) {
 								scriptInstance->OnAnimationEvent(stateMachineSelected, componentAnimation.listClipsKeyEvents[currentState.clipUid][currentEventKeyFrame + i].name.c_str());
 								componentAnimation.listClipsKeyEvents[currentState.clipUid][currentEventKeyFrame + i].sent = true;
+								LOG("sending event current key frame %d", currentEventKeyFrame);
+															
 							}
 						}
 					}

@@ -1,0 +1,9 @@
+{
+    "Name": "IdleAim",
+    "AnimationUID": 5614041873872763134,
+    "BeginIndex": 1,
+    "EndIndex": 60,
+    "Loop": true,
+    "Speed": 1.0,
+    "FrameRate": 0.03329545259475708
+}

@@ -12,6 +12,7 @@
 #include "Math/float3.h"
 
 #include "Utils/Leaks.h"
+#include <Utils/Logging.h>
 
 
 int AnimationController::GetCurrentSample(const ResourceClip& clip, float& currentTime) {
@@ -30,16 +31,20 @@ bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, c
 	ResourceAnimation* resourceAnimation = clip.GetResourceAnimation();
 	if (resourceAnimation == nullptr && resourceAnimation->keyFrames.size() != 0) return false;
 
+	
 	//Resetting the events since it has been a loop only for one bone
 	if (firstBone && currentTime >= clip.duration) {
 		for (auto& element : componentAnimation.listClipsKeyEvents[clip.GetId()]) {
 			element.second.sent = false;
 		}
+		componentAnimation.listClipsCurrentEventKeyFrames[clip.GetId()] = clip.beginIndex;
+		LOG("Reset clip");
 	}
 
 	if (clip.loop) {		
 		while (currentTime >= clip.duration) {
 			currentTime -= clip.duration;
+
 		}
 	} else {
 		currentTime = currentTime >= clip.duration ? clip.duration : currentTime;
