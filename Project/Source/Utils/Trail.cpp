@@ -32,7 +32,7 @@
 
 void Trail::Init() {
 	glGenBuffers(1, &quadVBO);
-	if (!gradient) gradient = new ImGradient();
+	//if (!gradient) gradient = new ImGradient();
 	EditTextureCoords();
 }
 

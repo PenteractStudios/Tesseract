@@ -353,5 +353,5 @@ private:
 
 	ImGradient* gradientTrail = nullptr;
 	ImGradientMark* draggingGradientTrail = nullptr;
-	ImGradientMark* selectedGradientTail = nullptr;
+	ImGradientMark* selectedGradientTrail = nullptr;
 };

@@ -48,7 +48,7 @@ ComponentTrail::~ComponentTrail() {
 }
 
 void ComponentTrail::Init() {
-	trail = new Trail();
+	if (!trail) trail = new Trail();
 	trail->Init();
 	trail->mainPosition = &GetOwner().GetComponent<ComponentTransform>()->GetPosition();
 }
@@ -109,6 +109,7 @@ void ComponentTrail::OnEditorUpdate() {
 }
 
 void ComponentTrail::Load(JsonValue jComponent) {
+	if (!trail) trail = new Trail();
 	trail->textureID = jComponent[JSON_TAG_TEXTURE_TEXTUREID];
 	if (trail->textureID != 0) {
 		App->resources->IncreaseReferenceCount(trail->textureID);

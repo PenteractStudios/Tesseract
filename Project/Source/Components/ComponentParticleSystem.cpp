@@ -392,7 +392,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 			ImGui::Checkbox("Color Over Trail", &colorOverTrail);
 			if (colorOverTrail) {
-				ImGui::GradientEditor(gradient, draggingGradient, selectedGradient);
+				ImGui::GradientEditor(gradientTrail, draggingGradientTrail, selectedGradientTrail);
 			}
 
 			ImGui::ResourceSlot<ResourceTexture>("texture", &textureTrailID);
@@ -870,15 +870,15 @@ void ComponentParticleSystem::InitParticleLife(Particle* currentParticle) {
 
 void ComponentParticleSystem::InitParticleTrail(Particle* currentParticle) {
 	currentParticle->trail = new Trail();
+	currentParticle->trail->Init();
 	currentParticle->trail->width = width;
 	currentParticle->trail->trailQuads = trailQuads;
 	currentParticle->trail->nTextures = nTextures;
 	currentParticle->trail->quadLife = quadLife;
-	currentParticle->trail->gradient = gradient;
-	currentParticle->trail->draggingGradient = draggingGradient;
-	currentParticle->trail->selectedGradient = selectedGradient;
+	currentParticle->trail->gradient = gradientTrail;
+	currentParticle->trail->draggingGradient = draggingGradientTrail;
+	currentParticle->trail->selectedGradient = selectedGradientTrail;
 	currentParticle->trail->colorOverTrail = colorOverTrail;
-	currentParticle->trail->Init();
 	currentParticle->trail->textureID = textureTrailID;
 }
 
