@@ -523,3 +523,7 @@ namespace Audio {
 namespace UserInterface {
 	TESSERACT_ENGINE_API ComponentEventSystem* GetCurrentEventSystem();
 }; // namespace UserInterface
+
+namespace Navigation {
+	TESSERACT_ENGINE_API void Raycast(float3 startPosition, float3 targetPosition, bool& hitResult, float3& hitPosition);
+}

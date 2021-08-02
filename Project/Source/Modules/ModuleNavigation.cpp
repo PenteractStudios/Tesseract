@@ -8,6 +8,7 @@
 #include "Modules/ModuleScene.h"
 #include "Components/ComponentAgent.h"
 #include "Scene.h"
+#include "Detour/DetourCommon.h"
 #include "Utils/Logging.h"
 
 #include "Utils/Leaks.h"
@@ -70,4 +71,49 @@ void ModuleNavigation::DrawGizmos() {
 
 NavMesh& ModuleNavigation::GetNavMesh() {
 	return navMesh;
+}
+
+void ModuleNavigation::Raycast(float3 startPosition, float3 targetPosition, bool& hitResult, float3& hitPosition) {
+	hitResult = false;
+	hitPosition = startPosition;
+
+	if (!navMesh.IsGenerated()) return;
+
+	dtNavMeshQuery* navQuery = navMesh.GetNavMeshQuery();
+	if (navQuery == nullptr) return;
+
+	float3 polyPickExt = float3(2, 4, 2);
+	dtQueryFilter filter;
+	filter.setIncludeFlags(0xffff ^ 0x10); // SAMPLE_POLYFLAGS_ALL ^ SAMPLE_POLYFLAGS_DISABLED
+	filter.setExcludeFlags(0);
+	filter.setAreaCost(0, 1.0f);	// SAMPLE_POLYAREA_GROUND
+	filter.setAreaCost(1, 10.0f);	// SAMPLE_POLYAREA_WATER
+	filter.setAreaCost(2, 1.0f);	// SAMPLE_POLYAREA_ROAD
+	filter.setAreaCost(3, 1.0f);	// SAMPLE_POLYAREA_DOOR
+	filter.setAreaCost(4, 2.0f);	// SAMPLE_POLYAREA_GRASS
+	filter.setAreaCost(5, 1.5f);	// SAMPLE_POLYAREA_JUMP
+
+	dtPolyRef startRef;
+	navQuery->findNearestPoly(startPosition.ptr(), polyPickExt.ptr(), &filter, &startRef, 0);
+
+	if (startRef) {
+		float t = 0;
+		int npolys = 0;
+		static const int MAX_POLYS = 256;
+
+		dtPolyRef polys[MAX_POLYS];
+
+		float3 hitNormal;
+
+		navQuery->raycast(startRef, startPosition.ptr(), targetPosition.ptr(), &filter, &t, hitNormal.ptr(), polys, &npolys, MAX_POLYS);
+		if (t > 1) {
+			// No hit
+			dtVcopy(hitPosition.ptr(), targetPosition.ptr());
+			hitResult = false;
+		} else {
+			// Hit
+			dtVlerp(hitPosition.ptr(), startPosition.ptr(), targetPosition.ptr(), t);
+			hitResult = true;
+		}
+	}
 }
