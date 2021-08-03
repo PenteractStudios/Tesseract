@@ -38,9 +38,14 @@ public:
 	ProgramStandardSpecular* specularNormal = nullptr;
 	ProgramStandardSpecular* specularNotNormal = nullptr;
 
+	// Dissolve Shaders
+	ProgramStandardDissolve* dissolveStandard = nullptr;
+	ProgramUnlitDissolve* dissolveUnlit = nullptr;
+
 	// Depth prepass Shaders
 	ProgramDepthPrepass* depthPrepass = nullptr;
 	ProgramDepthPrepassConvertTextures* depthPrepassConvertTextures = nullptr;
+	ProgramDepthPrepassDissolve* depthPrepassDissolve = nullptr;
 
 	// SSAO Shaders
 	ProgramSSAO* ssao = nullptr;

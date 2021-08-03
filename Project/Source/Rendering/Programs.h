@@ -93,6 +93,7 @@ struct ProgramUnlit : public Program {
 	int emissiveMapLocation = -1;
 	int hasEmissiveMapLocation = -1;
 	int emissiveIntensityLocation = -1;
+	int emissiveColorLocation = -1;
 
 	int tilingLocation = -1;
 	int offsetLocation = -1;
@@ -152,6 +153,7 @@ struct ProgramStandard : public Program {
 
 	int emissiveMapLocation = -1;
 	int hasEmissiveMapLocation = -1;
+	int emissiveColorLocation = -1;
 	int emissiveIntensityLocation = -1;
 
 	int ambientOcclusionMapLocation = -1;
@@ -362,6 +364,7 @@ struct ProgramBillboard : Program {
 	int isSoftLocation = -1;
 	int softRangeLocation = -1;
 };
+
 struct ProgramTrail : Program {
 	ProgramTrail(unsigned program);
 
@@ -371,4 +374,31 @@ struct ProgramTrail : Program {
 	int inputColorLocation = -1;
 	int hasDiffuseLocation = -1;
 	int diffuseMap = -1;
+};
+
+struct ProgramStandardDissolve : ProgramStandardMetallic {
+	ProgramStandardDissolve(unsigned program);
+
+	int scaleLocation = -1;
+	int thresholdLocation = -1;
+	int offsetLocation = -1;
+	int edgeSizeLocation = -1;
+};
+
+
+struct ProgramUnlitDissolve : ProgramUnlit {
+	ProgramUnlitDissolve(unsigned program);
+
+	int scaleLocation = -1;
+	int thresholdLocation = -1;
+	int offsetLocation = -1;
+	int edgeSizeLocation = -1;
+};
+
+struct ProgramDepthPrepassDissolve : ProgramDepthPrepass {
+	ProgramDepthPrepassDissolve(unsigned program);
+
+	int scaleLocation = -1;
+	int thresholdLocation = -1;
+	int offsetLocation = -1;
 };
