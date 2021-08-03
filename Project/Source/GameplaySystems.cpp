@@ -467,6 +467,22 @@ void Screen::SetBloomThreshold(float value) {
 	App->renderer->bloomThreshold = value;
 }
 
+const bool Screen::IsChromaticAberrationActive() {
+	return App->renderer->chromaticAberrationActive;
+}
+
+void Screen::SetChromaticAberration(bool value) {
+	App->renderer->chromaticAberrationActive = value;
+}
+
+const float Screen::GetChromaticAberrationStrength() {
+	return App->renderer->chromaticAberrationActive;
+}
+
+void Screen::SetChromaticAberrationStrength(float value) {
+	App->renderer->chromaticAberrationStrength = value;
+}
+
 // --------- Camera --------- //
 
 bool Camera::CheckObjectInsideFrustum(GameObject* gameObject) {

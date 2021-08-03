@@ -143,6 +143,9 @@ public:
 	int msaaSamplesNumber[static_cast<int>(MSAA_SAMPLES_TYPE::COUNT)] = {2, 4, 8};
 	int msaaSampleSingle = 1;
 
+	bool chromaticAberrationActive = false;
+	float chromaticAberrationStrength = 1.0f;
+
 	LightFrustum lightFrustum;
 
 private:

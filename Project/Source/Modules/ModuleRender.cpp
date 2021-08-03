@@ -429,6 +429,9 @@ void ModuleRender::ExecuteColorCorrection(bool horizontal) {
 	glUniform1i(colorCorrectionProgram->mediumMipLevelLocation, gaussMediumMipLevel);
 	glUniform1i(colorCorrectionProgram->largeMipLevelLocation, gaussLargeMipLevel);
 
+	glUniform1i(colorCorrectionProgram->hasChromaticAberrationLocation, chromaticAberrationActive ? 1 : 0);
+	glUniform1f(colorCorrectionProgram->chromaticAberrationStrengthLocation, chromaticAberrationStrength);
+
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
