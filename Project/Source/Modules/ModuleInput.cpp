@@ -19,7 +19,7 @@ bool ModuleInput::Init() {
 	bool ret = true;
 	SDL_Init(0);
 
-	if (SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) < 0) {
+	if (SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC) < 0) {
 		LOG("SDL_EVENTS could not initialize! SDL_Error: %s\n", SDL_GetError());
 		ret = false;
 	}
@@ -226,7 +226,7 @@ bool ModuleInput::CleanUp() {
 		RELEASE(playerControllers[i]);
 	}
 
-	SDL_QuitSubSystem(SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+	SDL_QuitSubSystem(SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC);
 	return true;
 }
 
@@ -289,9 +289,11 @@ void ModuleInput::OnControllerAdded(int index) {
 		if (playerControllers[0] == nullptr) {
 			LOG("New controller took player slot 0");
 			playerControllers[0] = new PlayerController(index);
+			playerControllers[0]->StartSimpleControllerVibration(0.5f, 400);
 		} else if (playerControllers[1] == nullptr) {
 			LOG("New controller took player slot 1");
 			playerControllers[1] = new PlayerController(index);
+			playerControllers[1]->StartSimpleControllerVibration(0.5f, 400);
 		} else {
 			LOG("No available slots found, Game Controller will be ignored");
 		}
