@@ -43,15 +43,6 @@
 #include <math.h>
 #include <vector>
 
-struct Kernel {
-	std::vector<float> ssaoGaussKernel;
-	std::vector<float> smallGaussKernel;
-	std::vector<float> mediumGaussKernel;
-	std::vector<float> largeGaussKernel;
-};
-
-static Kernel* kernelStruct = new Kernel();
-
 float defIntGaussian(const float x, const float mu, const float sigma) {
 	return 0.5 * erf((x - mu) / (sqrt(2) * sigma));
 }
@@ -267,8 +258,8 @@ bool ModuleRender::Init() {
 
 	// Create SSAO blur kernel
 	gaussSSAOKernelRadius = 2;
-	kernelStruct->ssaoGaussKernel.clear();
-	gaussianKernel(2 * gaussSSAOKernelRadius + 1, 1.0f, 0.f, 1.f, kernelStruct->ssaoGaussKernel);
+	ssaoGaussKernel.clear();
+	gaussianKernel(2 * gaussSSAOKernelRadius + 1, 1.0f, 0.f, 1.f, ssaoGaussKernel);
 
 	// Calculate SSAO kernel
 	for (unsigned i = 0; i < SSAO_KERNEL_SIZE; ++i) {
@@ -401,7 +392,7 @@ void ModuleRender::BlurSSAOTexture(bool horizontal) {
 	glUniform1i(ssaoBlurProgram->inputTextureLocation, 0);
 	glUniform1i(ssaoBlurProgram->textureLevelLocation, 0);
 
-	glUniform1fv(ssaoBlurProgram->kernelLocation, gaussSSAOKernelRadius + 1, &kernelStruct->ssaoGaussKernel[0]);
+	glUniform1fv(ssaoBlurProgram->kernelLocation, gaussSSAOKernelRadius + 1, &ssaoGaussKernel[0]);
 	glUniform1i(ssaoBlurProgram->kernelRadiusLocation, gaussSSAOKernelRadius + 1);
 	glUniform1i(ssaoBlurProgram->horizontalLocation, horizontal ? 1 : 0);
 
@@ -722,7 +713,7 @@ UpdateStatus ModuleRender::Update() {
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glDisable(GL_DEPTH_TEST);
 			glClear(GL_COLOR_BUFFER_BIT);
-			BlurBloomTexture(horizontal, firstIteration, kernelStruct->smallGaussKernel, gaussSmallKernelRadius, gaussSmallMipLevel);
+			BlurBloomTexture(horizontal, firstIteration, smallGaussKernel, gaussSmallKernelRadius, gaussSmallMipLevel);
 
 			glViewport(0, 0, width / (1 << gaussMediumMipLevel), height / (1 << gaussMediumMipLevel));
 
@@ -730,7 +721,7 @@ UpdateStatus ModuleRender::Update() {
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glDisable(GL_DEPTH_TEST);
 			glClear(GL_COLOR_BUFFER_BIT);
-			BlurBloomTexture(horizontal, firstIteration, kernelStruct->mediumGaussKernel, gaussMediumKernelRadius, gaussMediumMipLevel);
+			BlurBloomTexture(horizontal, firstIteration, mediumGaussKernel, gaussMediumKernelRadius, gaussMediumMipLevel);
 
 			glViewport(0, 0, width / (1 << gaussLargeMipLevel), height / (1 << gaussLargeMipLevel));
 
@@ -738,7 +729,7 @@ UpdateStatus ModuleRender::Update() {
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glDisable(GL_DEPTH_TEST);
 			glClear(GL_COLOR_BUFFER_BIT);
-			BlurBloomTexture(horizontal, firstIteration, kernelStruct->largeGaussKernel, gaussLargeKernelRadius, gaussLargeMipLevel);
+			BlurBloomTexture(horizontal, firstIteration, largeGaussKernel, gaussLargeKernelRadius, gaussLargeMipLevel);
 
 			horizontal = !horizontal;
 			if (firstIteration) firstIteration = false;
@@ -779,8 +770,6 @@ UpdateStatus ModuleRender::PostUpdate() {
 }
 
 bool ModuleRender::CleanUp() {
-	RELEASE(kernelStruct);
-
 	glDeleteVertexArrays(1, &cubeVAO);
 	glDeleteBuffers(1, &cubeVBO);
 
@@ -1000,12 +989,12 @@ void ModuleRender::UpdateFramebuffers() {
 	sigma1 = sqrt(sigma1 / (term - Ln(sigma1)));
 	sigma2 = sqrt(sigma2 / (term - Ln(sigma2)));
 	sigma3 = sqrt(sigma3 / (term - Ln(sigma3)));
-	kernelStruct->smallGaussKernel.clear();
-	kernelStruct->mediumGaussKernel.clear();
-	kernelStruct->largeGaussKernel.clear();
-	gaussianKernel(2 * gaussSmallKernelRadius + 1, sigma1, 0.f, 1.f, kernelStruct->smallGaussKernel);
-	gaussianKernel(2 * gaussMediumKernelRadius + 1, sigma2, 0.f, 1.f, kernelStruct->mediumGaussKernel);
-	gaussianKernel(2 * gaussLargeKernelRadius + 1, sigma3, 0.f, 1.f, kernelStruct->largeGaussKernel);
+	smallGaussKernel.clear();
+	mediumGaussKernel.clear();
+	largeGaussKernel.clear();
+	gaussianKernel(2 * gaussSmallKernelRadius + 1, sigma1, 0.f, 1.f, smallGaussKernel);
+	gaussianKernel(2 * gaussMediumKernelRadius + 1, sigma2, 0.f, 1.f, mediumGaussKernel);
+	gaussianKernel(2 * gaussLargeKernelRadius + 1, sigma3, 0.f, 1.f, largeGaussKernel);
 
 	// Color correction buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, colorCorrectionBuffer);
