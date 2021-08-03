@@ -12,7 +12,6 @@
 #include "Math/float3.h"
 
 #include "Utils/Leaks.h"
-#include <Utils/Logging.h>
 
 
 int AnimationController::GetCurrentSample(const ResourceClip& clip, float& currentTime) {
