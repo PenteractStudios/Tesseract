@@ -55,6 +55,8 @@ void StateMachineManager::SendTrigger(const std::string& trigger, StateMachineEn
 				componentAnimation.animationInterpolationsSecondary.push_front(AnimationInterpolation(&transition->target, componentAnimation.currentTimeStatesPrincipal[transition->target.id], 0, transition->interpolationDuration));
 			}
 
+			ResetKeyEvents(componentAnimation, transition->target);
+
 			(*currentState) = transition->target;
 		} else {
 			std::string name = StateMachineEnum::PRINCIPAL ? "principal" : "secondary";
@@ -125,7 +127,7 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 		return result;
 	}
 	int currentSample = AnimationController::GetCurrentSample(*clip, (*currentTimeStates)[currentState.id]);
-
+	
 	//Checking for transition between states
 	if ((*animationInterpolations).size() > 1) {
 		result = AnimationController::InterpolateTransitions((*animationInterpolations).begin(), (*animationInterpolations), *owner.GetRootBone(), *gameObject, position, rotation, componentAnimation);
@@ -145,9 +147,7 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 				resetSecondaryStatemachine = true;
 			}
 
-			result = AnimationController::GetTransform(*clip, (*currentTimeStates)[currentState.id], gameObject->name.c_str(), position, rotation, gameObject->name == (*resourceStateMachine->bones.begin()), componentAnimation);
-			if (gameObject->name == (*resourceStateMachine->bones.begin())) {
-			}
+			result = AnimationController::GetTransform(*clip, (*currentTimeStates)[currentState.id], gameObject->name.c_str(), position, rotation, componentAnimation);
 		}
 	}
 
@@ -200,4 +200,15 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 	}
 
 	return result;
+}
+
+void StateMachineManager::ResetKeyEvents(ComponentAnimation& componentAnimation, const State& state) {
+	//Resetting variables for keyevents
+	ResourceClip* clip = App->resources->GetResource<ResourceClip>(state.clipUid);
+	if (clip) {
+		for (auto& element : componentAnimation.listClipsKeyEvents[clip->GetId()]) {
+			element.second.sent = false;
+		}
+		componentAnimation.listClipsCurrentEventKeyFrames[clip->GetId()] = clip->beginIndex;
+	}
 }
