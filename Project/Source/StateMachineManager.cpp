@@ -55,6 +55,8 @@ void StateMachineManager::SendTrigger(const std::string& trigger, StateMachineEn
 				componentAnimation.animationInterpolationsSecondary.push_front(AnimationInterpolation(&transition->target, componentAnimation.currentTimeStatesPrincipal[transition->target.id], 0, transition->interpolationDuration));
 			}
 
+			ResetKeyEvents(componentAnimation, transition->target);
+
 			(*currentState) = transition->target;
 		} else {
 			std::string name = StateMachineEnum::PRINCIPAL ? "principal" : "secondary";
@@ -125,9 +127,6 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 		return result;
 	}
 	int currentSample = AnimationController::GetCurrentSample(*clip, (*currentTimeStates)[currentState.id]);
-	if (stateMachineSelected == StateMachineEnum::SECONDARY) {
-		LOG("%d", currentSample);
-	}
 	
 	//Checking for transition between states
 	if ((*animationInterpolations).size() > 1) {
@@ -148,9 +147,7 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 				resetSecondaryStatemachine = true;
 			}
 
-			result = AnimationController::GetTransform(*clip, (*currentTimeStates)[currentState.id], gameObject->name.c_str(), position, rotation, gameObject == owner.GetRootBone(), componentAnimation);
-			if (gameObject->name == (*resourceStateMachine->bones.begin())) {
-			}
+			result = AnimationController::GetTransform(*clip, (*currentTimeStates)[currentState.id], gameObject->name.c_str(), position, rotation, componentAnimation);
 		}
 	}
 
@@ -182,7 +179,6 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 		if (!componentAnimation.listClipsKeyEvents[currentState.clipUid].empty()) { //Only call this once
 			// Send key Frame event
 			int difference = currentSample - currentEventKeyFrame;
-			LOG("difference %d, actual %d , current key frame %d", difference, currentSample,currentEventKeyFrame);
 			int i = 0;
 			for (int i = 0; i <= difference; i++) {
 				if (componentAnimation.listClipsKeyEvents[currentState.clipUid].find(currentEventKeyFrame + i) != componentAnimation.listClipsKeyEvents[currentState.clipUid].end() && !componentAnimation.listClipsKeyEvents[currentState.clipUid][currentEventKeyFrame + i].sent) {
@@ -193,8 +189,6 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 							if (scriptInstance != nullptr) {
 								scriptInstance->OnAnimationEvent(stateMachineSelected, componentAnimation.listClipsKeyEvents[currentState.clipUid][currentEventKeyFrame + i].name.c_str());
 								componentAnimation.listClipsKeyEvents[currentState.clipUid][currentEventKeyFrame + i].sent = true;
-								LOG("sending event current key frame %d", currentEventKeyFrame);
-															
 							}
 						}
 					}
@@ -206,4 +200,15 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 	}
 
 	return result;
+}
+
+void StateMachineManager::ResetKeyEvents(ComponentAnimation& componentAnimation, const State& state) {
+	//Resetting variables for keyevents
+	ResourceClip* clip = App->resources->GetResource<ResourceClip>(state.clipUid);
+	if (clip) {
+		for (auto& element : componentAnimation.listClipsKeyEvents[clip->GetId()]) {
+			element.second.sent = false;
+		}
+		componentAnimation.listClipsCurrentEventKeyFrames[clip->GetId()] = clip->beginIndex;
+	}
 }
