@@ -86,6 +86,7 @@ ProgramUnlit::ProgramUnlit(unsigned program_)
 	emissiveMapLocation = glGetUniformLocation(program, "emissiveMap");
 	hasEmissiveMapLocation = glGetUniformLocation(program, "hasEmissiveMap");
 	emissiveIntensityLocation = glGetUniformLocation(program, "emissiveIntensity");
+	emissiveColorLocation = glGetUniformLocation(program, "emissiveColor");
 
 	tilingLocation = glGetUniformLocation(program, "tiling");
 	offsetLocation = glGetUniformLocation(program, "offset");
@@ -143,6 +144,7 @@ ProgramStandard::ProgramStandard(unsigned program_)
 
 	emissiveMapLocation = glGetUniformLocation(program, "emissiveMap");
 	hasEmissiveMapLocation = glGetUniformLocation(program, "hasEmissiveMap");
+	emissiveColorLocation = glGetUniformLocation(program, "emissiveColor");
 	emissiveIntensityLocation = glGetUniformLocation(program, "emissiveIntensity");
 
 	ambientOcclusionMapLocation = glGetUniformLocation(program, "ambientOcclusionMap");
@@ -353,4 +355,30 @@ ProgramTrail::ProgramTrail(unsigned program_)
 	inputColorLocation = glGetUniformLocation(program, "inputColor");
 	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
 	diffuseMap = glGetUniformLocation(program, "diffuseMap");
+}
+
+ProgramStandardDissolve::ProgramStandardDissolve(unsigned program) 
+	: ProgramStandardMetallic(program) {
+
+	scaleLocation = glGetUniformLocation(program, "dissolveScale");
+	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
+	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
+	edgeSizeLocation = glGetUniformLocation(program, "edgeSize");
+}
+
+ProgramUnlitDissolve::ProgramUnlitDissolve(unsigned program)
+	: ProgramUnlit(program) {
+
+	scaleLocation = glGetUniformLocation(program, "dissolveScale");
+	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
+	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
+	edgeSizeLocation = glGetUniformLocation(program, "edgeSize");
+}
+
+ProgramDepthPrepassDissolve::ProgramDepthPrepassDissolve(unsigned program) 
+	: ProgramDepthPrepass(program) {
+
+	scaleLocation = glGetUniformLocation(program, "dissolveScale");
+	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
+	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
 }

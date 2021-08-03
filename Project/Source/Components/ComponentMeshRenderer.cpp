@@ -164,7 +164,21 @@ void ComponentMeshRenderer::OnEditorUpdate() {
 		ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
 		if (material != nullptr) {
 			material->OnEditorUpdate();
+
+			if (material->shaderType == MaterialShader::UNLIT_DISSOLVE || material->shaderType == MaterialShader::STANDARD_DISSOLVE) {
+				if (ImGui::Button("Play Dissolve Animation")) {
+					PlayDissolveAnimation();
+				}
+				if (ImGui::Button("Reset Dissolve Animation")) {
+					ResetDissolveValues();
+				}
+
+				ImGui::Text("For debug only");
+				ImGui::Checkbox("Animation finished", &dissolveAnimationFinished);
+				ImGui::DragFloat("Threshold", &dissolveThreshold, App->editor->dragSpeed2f, 0, inf);
+			}
 		}
+
 		ImGui::TreePop();
 	}
 }
@@ -190,6 +204,8 @@ void ComponentMeshRenderer::Update() {
 		}
 	}
 
+	UpdateDissolveAnimation();
+
 	if (App->time->GetDeltaTime() <= 0) return;
 
 	const GameObject* parent = GetOwner().GetParent();
@@ -204,6 +220,8 @@ void ComponentMeshRenderer::Update() {
 			palette[i] = localMatrix * invertedRootBoneTransform * bone->GetComponent<ComponentTransform>()->GetGlobalMatrix() * mesh->bones[i].transform;
 		}
 	}
+
+	
 }
 
 void ComponentMeshRenderer::Save(JsonValue jComponent) const {
@@ -219,6 +237,8 @@ void ComponentMeshRenderer::Load(JsonValue jComponent) {
 		AddRenderingModeMask();
 		App->resources->IncreaseReferenceCount(materialId);
 	}
+
+	ResetDissolveValues();
 }
 
 void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
@@ -305,6 +325,37 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		standardProgram = metallicProgram;
 		break;
 	}
+	case MaterialShader::STANDARD_DISSOLVE: {
+		// Standard-specific uniform settings
+		ProgramStandardMetallic* metallicProgram = hasNormalMap ? App->programs->standardNormal : App->programs->standardNotNormal;
+		if (metallicProgram == nullptr) return;
+
+		ProgramStandardDissolve* dissolveProgram = App->programs->dissolveStandard;
+
+		glUseProgram(dissolveProgram->program);
+
+		// Standard-specific settings
+		unsigned glTextureMetallic = 0;
+		ResourceTexture* metallic = App->resources->GetResource<ResourceTexture>(material->metallicMapId);
+		glTextureMetallic = metallic ? metallic->glTexture : 0;
+		int hasMetallicMap = metallic ? 1 : 0;
+
+		glUniform1f(dissolveProgram->metalnessLocation, material->metallic);
+		glUniform1i(dissolveProgram->hasMetallicMapLocation, hasMetallicMap);
+
+		glUniform1i(dissolveProgram->metallicMapLocation, 1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, glTextureMetallic);
+
+		// Dissolve settings
+		glUniform1f(dissolveProgram->scaleLocation, material->dissolveScale);
+		glUniform1f(dissolveProgram->thresholdLocation, dissolveThreshold);
+		glUniform2fv(dissolveProgram->offsetLocation, 1, material->dissolveOffset.ptr());
+		glUniform1f(dissolveProgram->edgeSizeLocation, material->dissolveEdgeSize);
+
+		standardProgram = dissolveProgram;
+		break;
+	}
 	case MaterialShader::UNLIT: {
 		ProgramUnlit* unlitProgram = App->programs->unlit;
 		if (unlitProgram == nullptr) return;
@@ -346,6 +397,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform1i(unlitProgram->emissiveMapLocation, 1);
 		glUniform1i(unlitProgram->hasEmissiveMapLocation, hasEmissiveMap);
 		glUniform1f(unlitProgram->emissiveIntensityLocation, material->emissiveIntensity);
+		glUniform4fv(unlitProgram->emissiveColorLocation, 1, material->emissiveColor.ptr());
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, glTextureEmissive);
 
@@ -356,6 +408,73 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glBindVertexArray(mesh->vao);
 		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
 		glBindVertexArray(0);
+
+		break;
+	}
+	case MaterialShader::UNLIT_DISSOLVE: {
+		ProgramUnlitDissolve* unlitProgram = App->programs->dissolveUnlit;
+		if (unlitProgram == nullptr) return;
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glUseProgram(unlitProgram->program);
+
+		// Matrices
+		float4x4 viewMatrix = App->camera->GetViewMatrix();
+		float4x4 projMatrix = App->camera->GetProjectionMatrix();
+
+		glUniformMatrix4fv(unlitProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
+		glUniformMatrix4fv(unlitProgram->viewLocation, 1, GL_TRUE, viewMatrix.ptr());
+		glUniformMatrix4fv(unlitProgram->projLocation, 1, GL_TRUE, projMatrix.ptr());
+
+		if (palette.size() > 0) {
+			glUniformMatrix4fv(unlitProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
+		}
+
+		glUniform1i(unlitProgram->hasBonesLocation, goBones.size());
+
+		// Diffuse
+		unsigned glTextureDiffuse = 0;
+		ResourceTexture* diffuse = App->resources->GetResource<ResourceTexture>(material->diffuseMapId);
+		glTextureDiffuse = diffuse ? diffuse->glTexture : 0;
+		int hasDiffuseMap = diffuse ? 1 : 0;
+
+		glUniform1i(unlitProgram->diffuseMapLocation, 0);
+		glUniform4fv(unlitProgram->diffuseColorLocation, 1, material->diffuseColor.ptr());
+		glUniform1i(unlitProgram->hasDiffuseMapLocation, hasDiffuseMap);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, glTextureDiffuse);
+
+		// Emissive
+		unsigned glTextureEmissive = 0;
+		ResourceTexture* emissive = App->resources->GetResource<ResourceTexture>(material->emissiveMapId);
+		glTextureEmissive = emissive ? emissive->glTexture : 0;
+		int hasEmissiveMap = glTextureEmissive ? 1 : 0;
+
+		glUniform1i(unlitProgram->emissiveMapLocation, 1);
+		glUniform1i(unlitProgram->hasEmissiveMapLocation, hasEmissiveMap);
+		glUniform1f(unlitProgram->emissiveIntensityLocation, material->emissiveIntensity);
+		glUniform4fv(unlitProgram->emissiveColorLocation, 1, material->emissiveColor.ptr());
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, glTextureEmissive);
+
+		// Tilling settings
+		glUniform2fv(unlitProgram->tilingLocation, 1, material->tiling.ptr());
+		glUniform2fv(unlitProgram->offsetLocation, 1, material->offset.ptr());
+
+		// Dissolve settings
+		glUniform1f(unlitProgram->scaleLocation, material->dissolveScale);
+		glUniform1f(unlitProgram->thresholdLocation, dissolveThreshold);
+		glUniform2fv(unlitProgram->offsetLocation, 1, material->dissolveOffset.ptr());
+		glUniform1f(unlitProgram->edgeSizeLocation, material->dissolveEdgeSize);
+		
+		glBindVertexArray(mesh->vao);
+		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
+		glBindVertexArray(0);
+
+		glDisable(GL_BLEND);
 
 		break;
 	}
@@ -414,7 +533,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	}
 
 	// Unlit material already set
-	if (material->shaderType == MaterialShader::UNLIT) return;
+	if (material->shaderType == MaterialShader::UNLIT || material->shaderType == MaterialShader::UNLIT_DISSOLVE) return;
 
 	// Volumetric Light material already set
 	if (material->shaderType == MaterialShader::VOLUMETRIC_LIGHT) return;
@@ -595,6 +714,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform1i(standardProgram->emissiveMapLocation, 3);
 	glUniform1i(standardProgram->hasEmissiveMapLocation, hasEmissiveMap);
 	glUniform1f(standardProgram->emissiveIntensityLocation, material->emissiveIntensity);
+	glUniform4fv(standardProgram->emissiveColorLocation, 1, material->emissiveColor.ptr());
+
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, glTextureEmissive);
 
@@ -696,12 +817,28 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	if (material == nullptr) return;
 
 	ProgramDepthPrepass* depthPrepassProgram = App->programs->depthPrepass;
-	if (depthPrepassProgram == nullptr) return;
+	bool mustUseDissolveProgram = material->shaderType == MaterialShader::UNLIT_DISSOLVE || material->shaderType == MaterialShader::STANDARD_DISSOLVE;
+	
+	if (mustUseDissolveProgram) {
+		ProgramDepthPrepassDissolve* depthPrepassProgramDissolve = App->programs->depthPrepassDissolve;
+		if (depthPrepassProgramDissolve == nullptr) return;
+
+		depthPrepassProgram = depthPrepassProgramDissolve;
+		
+		glUseProgram(depthPrepassProgram->program);
+
+		glUniform1f(depthPrepassProgramDissolve->scaleLocation, material->dissolveScale);
+		glUniform1f(depthPrepassProgramDissolve->thresholdLocation, dissolveThreshold);
+		glUniform2fv(depthPrepassProgramDissolve->offsetLocation, 1, material->dissolveOffset.ptr());
+	}
+	else {
+		if (depthPrepassProgram == nullptr) return;
+		glUseProgram(depthPrepassProgram->program);
+	}
 
 	float4x4 viewMatrix = App->camera->GetViewMatrix();
 	float4x4 projMatrix = App->camera->GetProjectionMatrix();
 
-	glUseProgram(depthPrepassProgram->program);
 
 	// Common uniform settings
 	glUniformMatrix4fv(depthPrepassProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
@@ -795,5 +932,32 @@ void ComponentMeshRenderer::DeleteRenderingModeMask() {
 	if (material && material->renderingMode == RenderingMode::TRANSPARENT) {
 		GameObject& gameObject = GetOwner();
 		gameObject.DeleteMask(MaskType::TRANSPARENT);
+	}
+}
+
+void ComponentMeshRenderer::PlayDissolveAnimation() {
+	dissolveAnimationFinished = false;
+	currentTime = 0.0f;
+	dissolveThreshold = 0.0f;
+}
+
+void ComponentMeshRenderer::ResetDissolveValues() {
+	dissolveThreshold = 0.0f;
+	currentTime = 0.0f;
+	dissolveAnimationFinished = true;
+}
+
+void ComponentMeshRenderer::UpdateDissolveAnimation() {
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+	if (!material) return;
+
+	if (!dissolveAnimationFinished && material->dissolveDuration > 0) {
+		currentTime += App->time->GetDeltaTimeOrRealDeltaTime();
+		if (currentTime < material->dissolveDuration) {
+			dissolveThreshold = currentTime / material->dissolveDuration;
+		} else {
+			dissolveAnimationFinished = true;
+			dissolveThreshold = 1.0f;
+		}
 	}
 }
