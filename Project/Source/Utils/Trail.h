@@ -22,8 +22,11 @@ public:
 		float life = 0.0f;
 	};
 
+	~Trail();
+
 	void Init();
 	void Update(float3 mPosition);
+	void OnEditorUpdate();
 
 	void Draw();
 	void InsertVertex(Quad* currentQuad, float3 vertex);

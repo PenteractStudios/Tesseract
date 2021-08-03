@@ -33,7 +33,6 @@
 #define JSON_TAG_NUMBER_COLORS "NumColors"
 
 ComponentTrail::~ComponentTrail() {
-	RELEASE(gradient);
 	RELEASE(trail);
 }
 
@@ -49,46 +48,7 @@ void ComponentTrail::Update() {
 }
 
 void ComponentTrail::OnEditorUpdate() {
-	if (ImGui::Button("Play")) Play();
-	if (ImGui::Button("Stop")) Stop();
-	if (ImGui::Checkbox("Render", &trail->isRendering)) {
-		trail->isStarted = false;
-		trail->DeleteQuads();
-	}
-	ImGui::DragFloat("Witdh", &trail->width, App->editor->dragSpeed2f, 0, inf);
-	if (ImGui::DragInt("Trail Quads", &trail->trailQuads, 1.0f, 1, trail->maxQuads, "%d", ImGuiSliderFlags_AlwaysClamp)) {
-		if (trail->nTextures > trail->trailQuads) trail->nTextures = trail->trailQuads;
-		trail->DeleteQuads();
-	}
-	if (ImGui::DragInt("Texture Repeats", &trail->nTextures, 1.0f, 1, trail->trailQuads, "%d", ImGuiSliderFlags_AlwaysClamp)) {
-		trail->DeleteQuads();
-		trail->EditTextureCoords();
-	}
-
-	ImGui::DragFloat("Quad Life", &trail->quadLife, App->editor->dragSpeed2f, 1, inf);
-
-	ImGui::Checkbox("Color Over Trail", &trail->colorOverTrail);
-	if (trail->colorOverTrail) {
-		ImGui::GradientEditor(trail->gradient, trail->draggingGradient, trail->selectedGradient);
-	}
-
-	ImGui::ResourceSlot<ResourceTexture>("texture", &trail->textureID);
-	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(trail->textureID);
-	if (textureResource != nullptr) {
-		int width;
-		int height;
-		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
-		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
-
-		ImGui::NewLine();
-		ImGui::Separator();
-		ImGui::TextColored(App->editor->titleColor, "Texture Preview");
-		ImGui::TextWrapped("Size:");
-		ImGui::SameLine();
-		ImGui::TextWrapped("%d x %d", width, height);
-		ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
-		ImGui::Separator();
-	}
+	trail->OnEditorUpdate();
 }
 
 void ComponentTrail::Load(JsonValue jComponent) {
