@@ -118,8 +118,8 @@
 #define JSON_TAG_QUAD_LIFE "QuadLife"
 
 #define JSON_TAG_HAS_COLOR_OVER_TRAIL "HasColorOverTrail"
-#define JSON_TAG_GRADIENT_COLOR "GradientColor"
-#define JSON_TAG_NUMBER_COLORS "NumColors"
+#define JSON_TAG_NUMBER_COLORS_TRAIL "NumberColorsTrail"
+#define JSON_TAG_GRADIENT_COLORS_TRAIL "GradientColorsTrail"
 
 // Sub Emitter
 #define JSON_TAG_SUB_EMITTERS "SubEmitters"
@@ -175,6 +175,8 @@ static bool IsProbably(float probablility) {
 
 ComponentParticleSystem::~ComponentParticleSystem() {
 	RELEASE(gradient);
+	RELEASE(gradientTrail);
+
 	UndertakerParticle(true);
 	for (SubEmitter* subEmitter : subEmitters) {
 		RELEASE(subEmitter);
@@ -420,53 +422,6 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::DragFloat("Softness Range", &softRange, App->editor->dragSpeed2f, 0.0f, inf);
 	}
 
-	// Trail
-	if (ImGui::CollapsingHeader("Trail")) {
-		if (ImGui::Checkbox("##Trail", &hasTrail)) {
-			if (isPlaying) {
-				Stop();
-				Play();
-			}
-		}
-		if (hasTrail) {
-			ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
-
-			ImGui::DragInt("Trail Quads", &trailQuads, 1.0f, 1, 50, "%d", ImGuiSliderFlags_AlwaysClamp);
-
-			ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, trailQuads, "%d", ImGuiSliderFlags_AlwaysClamp);
-
-			ImGui::DragFloat("Quad Life", &quadLife, App->editor->dragSpeed2f, 1, inf);
-
-			ImGui::Checkbox("Color Over Trail", &colorOverTrail);
-			if (colorOverTrail) {
-				ImGui::SameLine();
-				ImGui::PopItemWidth();
-				ImGui::PushItemWidth(200);
-				ImGui::GradientEditor(gradientTrail, draggingGradientTrail, selectedGradientTrail);
-				ImGui::PopItemWidth();
-				ImGui::PushItemWidth(ITEM_SIZE);
-			}
-
-			ImGui::ResourceSlot<ResourceTexture>("texture", &textureTrailID);
-			ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureTrailID);
-			if (textureResource != nullptr) {
-				int width;
-				int height;
-				glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
-				glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
-
-				ImGui::NewLine();
-				ImGui::Separator();
-				ImGui::TextColored(App->editor->titleColor, "Texture Preview");
-				ImGui::TextWrapped("Size:");
-				ImGui::SameLine();
-				ImGui::TextWrapped("%d x %d", width, height);
-				ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
-				ImGui::Separator();
-			}
-		}
-	}
-
 	// Collision
 	if (ImGui::CollapsingHeader("Collision")) {
 		ImGui::Checkbox("##collision", &collision);
@@ -490,6 +445,40 @@ void ComponentParticleSystem::OnEditorUpdate() {
 				ImGui::EndCombo();
 			}
 			ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed2f, 0, inf);
+			ImGui::Unindent();
+		}
+	}
+
+	// Trail
+	if (ImGui::CollapsingHeader("Trail")) {
+		if (ImGui::Checkbox("##Trail", &hasTrail)) {
+			if (isPlaying) {
+				Stop();
+				Play();
+			}
+		}
+		if (hasTrail) {
+			ImGui::Indent();
+			ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
+
+			ImGui::DragInt("Trail Quads", &trailQuads, 1.0f, 1, 50, "%d", ImGuiSliderFlags_AlwaysClamp);
+
+			ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, trailQuads, "%d", ImGuiSliderFlags_AlwaysClamp);
+
+			ImGui::DragFloat("Quad Life", &quadLife, App->editor->dragSpeed2f, 1, inf);
+
+			ImGui::Checkbox("Color Over Trail", &colorOverTrail);
+			if (colorOverTrail) {
+				ImGui::PopItemWidth();
+				ImGui::PushItemWidth(200);
+				ImGui::GradientEditor(gradientTrail, draggingGradientTrail, selectedGradientTrail);
+				ImGui::PopItemWidth();
+				ImGui::PushItemWidth(ITEM_SIZE);
+			}
+
+			ImGui::NewLine();
+			ImGui::ResourceSlot<ResourceTexture>("texture", &textureTrailID);
+
 			ImGui::Unindent();
 		}
 	}
@@ -575,10 +564,27 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
 			glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
 
+			ImGui::TextColored(App->editor->titleColor, "Particle Texture");
 			ImGui::TextWrapped("Size:");
 			ImGui::SameLine();
 			ImGui::TextWrapped("%i x %i", width, height);
 			ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
+			ImGui::NewLine();
+		}
+
+		ResourceTexture* trailTextureResource = App->resources->GetResource<ResourceTexture>(textureTrailID);
+		if (trailTextureResource != nullptr) {
+			int width;
+			int height;
+			glGetTextureLevelParameteriv(trailTextureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
+			glGetTextureLevelParameteriv(trailTextureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
+
+			ImGui::TextColored(App->editor->titleColor, "Trail Texture");
+			ImGui::TextWrapped("Size:");
+			ImGui::SameLine();
+			ImGui::TextWrapped("%d x %d", width, height);
+			ImGui::Image((void*) trailTextureResource->glTexture, ImVec2(200, 200));
+			ImGui::NewLine();
 		}
 	}
 	ImGui::Unindent();
@@ -708,15 +714,15 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	nTextures = jComponent[JSON_TAG_TEXTURE_REPEATS];
 
 	colorOverTrail = jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL];
-	int trailNumberColors = jComponent[JSON_TAG_NUMBER_COLORS];
+	int trailNumberColors = jComponent[JSON_TAG_NUMBER_COLORS_TRAIL];
 	if (!gradientTrail) gradientTrail = new ImGradient();
 	gradientTrail->clearList();
-	JsonValue trailJColor = jComponent[JSON_TAG_GRADIENT_COLOR];
+	JsonValue trailJColor = jComponent[JSON_TAG_GRADIENT_COLORS_TRAIL];
 	for (int i = 0; i < trailNumberColors; ++i) {
 		JsonValue jMark = trailJColor[i];
 		gradientTrail->addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
 	}
-}
+
 	// Sub Emmiters
 	int numSubEmitters = jComponent[JSON_TAG_SUB_EMITTERS_NUMBER];
 	subEmitters.clear();
@@ -854,7 +860,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 
 	jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL] = colorOverTrail;
 	int trailColor = 0;
-	JsonValue trailJColor = jComponent[JSON_TAG_GRADIENT_COLOR];
+	JsonValue trailJColor = jComponent[JSON_TAG_GRADIENT_COLORS_TRAIL];
 	for (ImGradientMark* mark : gradientTrail->getMarks()) {
 		JsonValue jMask = jColor[trailJColor];
 		jMask[0] = mark->color[0];
@@ -865,8 +871,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 
 		color++;
 	}
-	jComponent[JSON_TAG_NUMBER_COLORS] = gradientTrail->getMarks().size();
-}
+	jComponent[JSON_TAG_NUMBER_COLORS_TRAIL] = gradientTrail->getMarks().size();
 
 	// Sub Emitters
 	int num = 0;
@@ -919,28 +924,12 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 		currentParticle->emitterPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		currentParticle->emitterRotation = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation();
 
-		if (collision) {
+		if (App->time->HasGameStarted() && collision) {
 			currentParticle->emitter = this;
 			currentParticle->radius = radius;
 			App->physics->CreateParticleRigidbody(currentParticle);
 		}
 		InitSubEmitter(currentParticle, SubEmitterType::BIRTH);
-	}
-}
-
-void ComponentParticleSystem::InitParticleAnimationTexture(Particle* currentParticle) {
-	if (isRandomFrame) {
-		currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
-	} else {
-		currentParticle->currentFrame = 0;
-	}
-
-	if (loopAnimation) {
-		currentParticle->animationSpeed = animationSpeed;
-	} else {
-		float timePerCycle = currentParticle->initialLife / nCycles;
-		float timePerFrame = (Ytiles * Xtiles) / timePerCycle;
-		currentParticle->animationSpeed = timePerFrame;
 	}
 }
 
@@ -1020,6 +1009,22 @@ void ComponentParticleSystem::InitParticleSpeed(Particle* currentParticle) {
 void ComponentParticleSystem::InitParticleLife(Particle* currentParticle) {
 	currentParticle->initialLife = ObtainRandomValueFloat(life, lifeRM);
 	currentParticle->life = currentParticle->initialLife;
+}
+
+void ComponentParticleSystem::InitParticleAnimationTexture(Particle* currentParticle) {
+	if (isRandomFrame) {
+		currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
+	} else {
+		currentParticle->currentFrame = 0;
+	}
+
+	if (loopAnimation) {
+		currentParticle->animationSpeed = animationSpeed;
+	} else {
+		float timePerCycle = currentParticle->initialLife / nCycles;
+		float timePerFrame = (Ytiles * Xtiles) / timePerCycle;
+		currentParticle->animationSpeed = timePerFrame;
+	}
 }
 
 void ComponentParticleSystem::InitParticleTrail(Particle* currentParticle) {
@@ -1217,6 +1222,10 @@ void ComponentParticleSystem::UpdateLife(Particle* currentParticle) {
 	currentParticle->life -= App->time->GetDeltaTimeOrRealDeltaTime();
 }
 
+void ComponentParticleSystem::UpdateTrail(Particle* currentParticle) {
+	currentParticle->trail->Update(currentParticle->position);
+}
+
 void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) {
 	float newGravityFactor = ObtainRandomValueFloat(gravityFactor, gravityFactorRM);
 	float x = currentParticle->direction.x;
@@ -1224,10 +1233,6 @@ void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) 
 	float z = currentParticle->direction.z;
 	currentParticle->gravityTime += 10 * App->time->GetDeltaTimeOrRealDeltaTime();
 	currentParticle->direction = float3(x, y, z);
-}
-
-void ComponentParticleSystem::UpdateTrail(Particle* currentParticle) {
-	currentParticle->trail->Update(currentParticle->position);
 }
 
 void ComponentParticleSystem::UpdateSubEmitters() {
@@ -1493,11 +1498,6 @@ float ComponentParticleSystem::ChildParticlesInfo() {
 
 // ----- GETTERS -----
 
-// Common
-bool ComponentParticleSystem::GetIsSubEmitter() {
-	return isSubEmitter;
-}
-
 // Particle System
 float ComponentParticleSystem::GetDuration() const {
 	return duration;
@@ -1620,12 +1620,12 @@ bool ComponentParticleSystem::GetCollision() const {
 	return collision;
 }
 
-// ----- SETTERS -----
-
-// Common
-void ComponentParticleSystem::SetIsSubEmitter(bool _isSubEmitter) {
-	isSubEmitter = _isSubEmitter;
+// Sub Emitter
+bool ComponentParticleSystem::GetIsSubEmitter() {
+	return isSubEmitter;
 }
+
+// ----- SETTERS -----
 
 // Particle System
 void ComponentParticleSystem::SetDuration(float _duration) {
@@ -1751,4 +1751,9 @@ void ComponentParticleSystem::SetIsSoft(bool _isSoft) {
 // Collision
 void ComponentParticleSystem::SetCollision(bool _collision) {
 	collision = _collision;
+}
+
+// Sub Emitter
+void ComponentParticleSystem::SetIsSubEmitter(bool _isSubEmitter) {
+	isSubEmitter = _isSubEmitter;
 }

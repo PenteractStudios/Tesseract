@@ -33,6 +33,7 @@
 #define JSON_TAG_NUMBER_COLORS "NumColors"
 
 ComponentTrail::~ComponentTrail() {
+	RELEASE(gradient);
 	RELEASE(trail);
 }
 
@@ -71,7 +72,6 @@ void ComponentTrail::OnEditorUpdate() {
 		ImGui::GradientEditor(trail->gradient, trail->draggingGradient, trail->selectedGradient);
 	}
 
-	UID oldID = trail->textureID;
 	ImGui::ResourceSlot<ResourceTexture>("texture", &trail->textureID);
 	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(trail->textureID);
 	if (textureResource != nullptr) {
@@ -80,12 +80,6 @@ void ComponentTrail::OnEditorUpdate() {
 		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
 		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
 
-		if (oldID != trail->textureID) {
-			ComponentTransform2D* transform2D = GetOwner().GetComponent<ComponentTransform2D>();
-			if (transform2D != nullptr) {
-				transform2D->SetSize(float2((float) width, (float) height));
-			}
-		}
 		ImGui::NewLine();
 		ImGui::Separator();
 		ImGui::TextColored(App->editor->titleColor, "Texture Preview");

@@ -32,7 +32,6 @@
 
 void Trail::Init() {
 	glGenBuffers(1, &quadVBO);
-	//if (!gradient) gradient = new ImGradient();
 	EditTextureCoords();
 }
 
@@ -105,49 +104,6 @@ void Trail::UpdateLife(Quad* currentQuad) {
 		currentQuad->life -= App->time->GetDeltaTime();
 	} else {
 		currentQuad->life -= App->time->GetRealTimeDeltaTime();
-	}
-}
-
-void Trail::OnEditorUpdate() {
-	if (ImGui::Button("Play")) Play();
-	if (ImGui::Button("Stop")) Stop();
-	if (ImGui::Checkbox("Render", &isRendering)) {
-		isStarted = false;
-	}
-	ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
-	if (ImGui::DragInt("Trail Quads", &trailQuads, 1.0f, 1, 50, "%d", ImGuiSliderFlags_AlwaysClamp)) {
-		if (nTextures > trailQuads) nTextures = trailQuads;
-		DeleteQuads();
-	}
-	if (ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, trailQuads, "%d", ImGuiSliderFlags_AlwaysClamp)) {
-		DeleteQuads();
-		EditTextureCoords();
-	}
-
-	ImGui::DragFloat("Quad Life", &quadLife, App->editor->dragSpeed2f, 1, inf);
-
-	ImGui::Checkbox("Color Over Trail", &colorOverTrail);
-	if (colorOverTrail) {
-		ImGui::GradientEditor(gradient, draggingGradient, selectedGradient);
-	}
-
-	UID oldID = textureID;
-	ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
-	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
-	if (textureResource != nullptr) {
-		int width;
-		int height;
-		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
-		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
-
-		ImGui::NewLine();
-		ImGui::Separator();
-		ImGui::TextColored(App->editor->titleColor, "Texture Preview");
-		ImGui::TextWrapped("Size:");
-		ImGui::SameLine();
-		ImGui::TextWrapped("%d x %d", width, height);
-		ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
-		ImGui::Separator();
 	}
 }
 
@@ -256,7 +212,7 @@ void Trail::EditTextureCoords() {
 
 	int nLine = 0;
 	float factor = nTextures / (float) trailQuads;
-	nRepeats = (trailQuads / nTextures) * 12;
+	nRepeats = (float) (trailQuads / nTextures) * 12;
 	for (int textureEdited = 0; textureEdited < nRepeats;) {
 		///vertice1
 		textureCords[textureEdited++] = nLine * factor;

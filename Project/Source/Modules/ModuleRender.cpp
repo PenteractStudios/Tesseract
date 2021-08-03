@@ -44,7 +44,7 @@ float defIntGaussian(const float x, const float mu, const float sigma) {
 }
 
 void gaussianKernel(const int kernelSize, const float sigma, const float mu, const float step, std::vector<float>& coeff) {
-	const float end = 0.5f*kernelSize;
+	const float end = 0.5f * kernelSize;
 	const float start = -end;
 	float sum = 0;
 	float x = start;

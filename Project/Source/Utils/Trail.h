@@ -24,7 +24,6 @@ public:
 
 	void Init();
 	void Update(float3 mPosition);
-	void OnEditorUpdate();
 
 	void Draw();
 	void InsertVertex(Quad* currentQuad, float3 vertex);
@@ -67,6 +66,7 @@ public:
 	float quadLife = 10.0f;
 
 	bool isRendering = true;
+
 	// Color Settings
 	ImGradient* gradient = nullptr;
 	ImGradientMark* draggingGradient = nullptr;
