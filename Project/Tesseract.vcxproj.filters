@@ -375,6 +375,7 @@
     <ClCompile Include="Libs\imgui\imgui_color_gradient.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentBoundingBox2D.cpp" />
     <ClCompile Include="Source\Modules\ModuleConfiguration.cpp" />
+    <ClCompile Include="Source\Utils\Trail.cpp" />
     <ClCompile Include="Source\Components\ComponentFog.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -729,6 +730,7 @@
     <ClInclude Include="Libs\imgui\imgui_color_gradient.h" />
     <ClInclude Include="Source\Components\UI\ComponentBoundingBox2D.h" />
     <ClInclude Include="Source\Modules\ModuleConfiguration.h" />
+    <ClInclude Include="Source\Utils\Trail.h" />
     <ClInclude Include="Source\Components\ComponentFog.h" />
   </ItemGroup>
   <ItemGroup>

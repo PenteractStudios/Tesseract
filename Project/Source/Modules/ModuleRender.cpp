@@ -72,7 +72,6 @@ void gaussianKernel(const int kernelSize, const float sigma, const float mu, con
 	for (unsigned int i = 0u; i < coeff.size(); ++i) {
 		coeff[i] *= sum;
 	}
-
 }
 
 // clang-format off
@@ -746,7 +745,7 @@ UpdateStatus ModuleRender::Update() {
 			glClear(GL_COLOR_BUFFER_BIT);
 			BlurBloomTexture(horizontal, firstIteration, smallGaussKernel, gaussSmallKernelRadius, gaussSmallMipLevel);
 
-			glViewport(0, 0, width / (1<< gaussMediumMipLevel), height / (1<< gaussMediumMipLevel));
+			glViewport(0, 0, width / (1 << gaussMediumMipLevel), height / (1 << gaussMediumMipLevel));
 
 			glBindFramebuffer(GL_FRAMEBUFFER, bloomBlurFramebuffers[2 + horizontal]);
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -977,7 +976,7 @@ void ModuleRender::UpdateFramebuffers() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, colorTextures[1], 0);
 
-	unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	unsigned int attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
 	glDrawBuffers(2, attachments);
 
 	// Bloom buffers

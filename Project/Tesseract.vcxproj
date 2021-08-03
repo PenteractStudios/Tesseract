@@ -347,6 +347,7 @@
     <ClInclude Include="Source\Utils\PoolMap.h" />
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
     <ClInclude Include="Source\StateMachineManager.h" />
+    <ClInclude Include="Source\Utils\Trail.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Components\ComponentFog.cpp" />
@@ -585,6 +586,7 @@
     <ClCompile Include="Libs\MathGeoLib\Math\TransformOps.cpp" />
     <ClCompile Include="Libs\MathGeoLib\Time\Clock.cpp" />
     <ClCompile Include="Source\StateMachineManager.cpp" />
+    <ClCompile Include="Source\Utils\Trail.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />
