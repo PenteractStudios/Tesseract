@@ -6,8 +6,6 @@
 #include "Modules/ModuleEditor.h"
 #include "Navigation/NavMesh.h"
 
-#include "imgui.h"
-
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_SIZE "Size"

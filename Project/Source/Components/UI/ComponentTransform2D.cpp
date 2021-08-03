@@ -1,18 +1,15 @@
 #include "ComponentTransform2D.h"
 
 #include "Globals.h"
-#include "GameObject.h"
-#include "Components/ComponentBoundingBox2D.h"
 #include "Application.h"
+#include "GameObject.h"
 #include "Modules/ModuleEditor.h"
-#include "Modules/ModuleDebugDraw.h"
 #include "Modules/ModuleTime.h"
-#include "Modules/ModuleRender.h"
 #include "Modules/ModuleUserInterface.h"
-#include "Panels/PanelControlEditor.h"
+#include "Components/UI/ComponentCanvasRenderer.h"
+#include "Components/UI/ComponentBoundingBox2D.h"
 
 #include "debugdraw.h"
-#include "imgui.h"
 #include "Math/TransformOps.h"
 
 #include "Utils/Leaks.h"
@@ -306,9 +303,12 @@ const float4x4 ComponentTransform2D::GetGlobalScaledMatrix() {
 	return globalMatrix * float4x4::Scale(size.x, size.y, 0);
 }
 
-float3x3 ComponentTransform2D::GetGlobalRotation() {
+Quat ComponentTransform2D::GetGlobalRotation() {
 	CalculateGlobalMatrix();
-	return globalMatrix.RotatePart();
+	float4x4 newTransform_ = globalMatrix;
+	newTransform_.Orthogonalize3();
+	newTransform_.Orthonormalize3();
+	return Quat(newTransform_.SubMatrix(3, 3));
 }
 
 float3 ComponentTransform2D::GetGlobalPosition() {

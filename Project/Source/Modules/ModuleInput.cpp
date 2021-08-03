@@ -3,11 +3,8 @@
 #include "Globals.h"
 #include "Application.h"
 #include "Modules/ModuleWindow.h"
-#include "Modules/ModuleRender.h"
-#include "Modules/ModuleCamera.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleEvents.h"
-#include "Modules/ModuleUserInterface.h"
 #include "Panels/PanelScene.h"
 #include "Utils/Logging.h"
 
@@ -41,34 +38,34 @@ UpdateStatus ModuleInput::PreUpdate() {
 	int windowId = SDL_GetWindowID(App->window->window);
 
 	for (int i = 0; i < SDL_NUM_SCANCODES; ++i) {
-		if (keyboard[i] == KS_DOWN) {
-			keyboard[i] = KS_REPEAT;
+		if (keyboard[i] == KeyState::KS_DOWN) {
+			keyboard[i] = KeyState::KS_REPEAT;
 		}
 
-		if (keyboard[i] == KS_UP) {
-			keyboard[i] = KS_IDLE;
+		if (keyboard[i] == KeyState::KS_UP) {
+			keyboard[i] = KeyState::KS_IDLE;
 		}
 	}
 
 	for (int i = 0; i < NUM_MOUSE_BUTTONS; ++i) {
-		if (mouseButtons[i] == KS_DOWN) {
-			mouseButtons[i] = KS_REPEAT;
+		if (mouseButtons[i] == KeyState::KS_DOWN) {
+			mouseButtons[i] = KeyState::KS_REPEAT;
 		}
 
-		if (mouseButtons[i] == KS_UP) {
-			mouseButtons[i] = KS_IDLE;
+		if (mouseButtons[i] == KeyState::KS_UP) {
+			mouseButtons[i] = KeyState::KS_IDLE;
 		}
 	}
 
 	for (int i = 0; i < MAX_PLAYERS; i++) {
 		if (playerControllers[i] == nullptr) continue;
 		for (int j = 0; j < SDL_CONTROLLER_BUTTON_MAX; ++j) {
-			if (playerControllers[i]->gameControllerButtons[j] == KS_DOWN) {
-				playerControllers[i]->gameControllerButtons[j] = KS_REPEAT;
+			if (playerControllers[i]->gameControllerButtons[j] == KeyState::KS_DOWN) {
+				playerControllers[i]->gameControllerButtons[j] = KeyState::KS_REPEAT;
 			}
 
-			if (playerControllers[i]->gameControllerButtons[j] == KS_UP) {
-				playerControllers[i]->gameControllerButtons[j] = KS_IDLE;
+			if (playerControllers[i]->gameControllerButtons[j] == KeyState::KS_UP) {
+				playerControllers[i]->gameControllerButtons[j] = KeyState::KS_IDLE;
 			}
 		}
 	}
@@ -119,13 +116,13 @@ UpdateStatus ModuleInput::PreUpdate() {
 		}
 		case SDL_CONTROLLERBUTTONDOWN: {
 			if (GetPlayerControllerWithJoystickIndex(event.cdevice.which)) {
-				GetPlayerControllerWithJoystickIndex(event.cdevice.which)->gameControllerButtons[event.cbutton.button] = KS_DOWN;
+				GetPlayerControllerWithJoystickIndex(event.cdevice.which)->gameControllerButtons[event.cbutton.button] = KeyState::KS_DOWN;
 			}
 			break;
 		}
 		case SDL_CONTROLLERBUTTONUP:
 			if (GetPlayerControllerWithJoystickIndex(event.cdevice.which)) {
-				GetPlayerControllerWithJoystickIndex(event.cdevice.which)->gameControllerButtons[event.cbutton.button] = KS_UP;
+				GetPlayerControllerWithJoystickIndex(event.cdevice.which)->gameControllerButtons[event.cbutton.button] = KeyState::KS_UP;
 			}
 			break;
 		case SDL_WINDOWEVENT:
@@ -159,7 +156,7 @@ UpdateStatus ModuleInput::PreUpdate() {
 			break;
 
 		case SDL_MOUSEBUTTONDOWN:
-			mouseButtons[event.button.button - 1] = KS_DOWN;
+			mouseButtons[event.button.button - 1] = KeyState::KS_DOWN;
 			if (event.button.button == SDL_BUTTON_LEFT) {
 #if !GAME
 				App->editor->OnMouseClicked();
@@ -170,7 +167,7 @@ UpdateStatus ModuleInput::PreUpdate() {
 			}
 			break;
 		case SDL_MOUSEBUTTONUP:
-			mouseButtons[event.button.button - 1] = KS_UP;
+			mouseButtons[event.button.button - 1] = KeyState::KS_UP;
 			if (event.button.button == SDL_BUTTON_LEFT) {
 #if !GAME
 				App->editor->OnMouseReleased();
@@ -181,18 +178,18 @@ UpdateStatus ModuleInput::PreUpdate() {
 			break;
 
 		case SDL_KEYDOWN:
-			keyboard[event.key.keysym.scancode] = KS_DOWN;
+			keyboard[event.key.keysym.scancode] = KeyState::KS_DOWN;
 			break;
 
 		case SDL_KEYUP:
-			keyboard[event.key.keysym.scancode] = KS_UP;
+			keyboard[event.key.keysym.scancode] = KeyState::KS_UP;
 			break;
 		}
 	}
 
 	if (io.WantCaptureKeyboard) {
 		for (int i = 0; i < SDL_NUM_SCANCODES; ++i) {
-			keyboard[i] = KS_IDLE;
+			keyboard[i] = KeyState::KS_IDLE;
 		}
 	}
 
@@ -202,7 +199,7 @@ UpdateStatus ModuleInput::PreUpdate() {
 		mouseMotion.y = 0;
 
 		for (int i = 0; i < NUM_MOUSE_BUTTONS; ++i) {
-			mouseButtons[i] = KS_IDLE;
+			mouseButtons[i] = KeyState::KS_IDLE;
 		}
 	} else {
 		int mouseX;

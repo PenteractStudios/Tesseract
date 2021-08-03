@@ -246,6 +246,8 @@ namespace ImGui {
 	bool GradientEditor(ImGradient* gradient, ImGradientMark*& draggingMark, ImGradientMark*& selectedMark) {
 		if (!gradient) return false;
 
+		ImGui::PushID(gradient);
+
 		bool modified = false;
 
 		ImVec2 bar_pos = ImGui::GetCursorScreenPos();
@@ -304,6 +306,7 @@ namespace ImGui {
 				gradient->refreshCache();
 			}
 		}
+		ImGui::PopID();
 
 		return modified;
 	}

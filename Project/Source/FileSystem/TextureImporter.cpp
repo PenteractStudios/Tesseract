@@ -2,17 +2,16 @@
 
 #include "Globals.h"
 #include "Application.h"
-#include "Utils/Logging.h"
-#include "Utils/Buffer.h"
-#include "Utils/FileDialog.h"
-#include "Resources/ResourceTexture.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleFiles.h"
-#include "Modules/ModuleTime.h"
 #include "Modules/ModuleEditor.h"
+#include "Resources/ResourceTexture.h"
+#include "Utils/Logging.h"
+#include "Utils/Buffer.h"
+#include "Utils/MSTimer.h"
+#include "Utils/FileDialog.h"
 #include "ImporterCommon.h"
 
-#include "imgui.h"
 #include "IL/il.h"
 #include "IL/ilu.h"
 #include "GL/glew.h"
@@ -129,20 +128,26 @@ bool TextureImporter::ImportTexture(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
+	// Flip image if neccessary
+	ILinfo info;
+	iluGetImageInfo(&info);
+	if (info.Origin == IL_ORIGIN_UPPER_LEFT) {
+		iluFlipImage();
+	}
+
 	// Flip if asked to
 	if (importOptions->flip) {
 		iluFlipImage();
 	}
 
 	// Save image
-	ilSetInteger(IL_DXTC_FORMAT, IL_DXT5);
-	size_t size = ilSaveL(IL_DDS, nullptr, 0);
+	size_t size = ilSaveL(IL_RAW, nullptr, 0);
 	if (size == 0) {
 		LOG("Failed to save image.");
 		return false;
 	}
 	Buffer<char> buffer = Buffer<char>(size);
-	size = ilSaveL(IL_DDS, buffer.Data(), size);
+	size = ilSaveL(IL_RAW, buffer.Data(), size);
 	if (size == 0) {
 		LOG("Failed to save image.");
 		return false;

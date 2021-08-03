@@ -1,19 +1,17 @@
 #include "ComponentAudioSource.h"
 
-#include "GameObject.h"
 #include "Globals.h"
 #include "Application.h"
+#include "GameObject.h"
 #include "Modules/ModuleAudio.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleTime.h"
 #include "Resources/ResourceAudioClip.h"
-#include "Utils/Logging.h"
 #include "Utils/ImGuiUtils.h"
 
 #include "AL/al.h"
 #include "debugdraw.h"
 #include "Math/float3.h"
-#include "imgui.h"
 
 #include "Utils/Leaks.h"
 

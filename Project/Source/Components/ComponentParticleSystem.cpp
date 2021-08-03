@@ -1,14 +1,12 @@
 #include "ComponentParticleSystem.h"
 
+#include "Application.h"
 #include "GameObject.h"
 #include "Components/ComponentTransform.h"
-#include "Components/UI/ComponentButton.h"
-#include "Application.h"
 #include "Modules/ModulePrograms.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleRender.h"
 #include "Modules/ModuleEditor.h"
-#include "Modules/ModuleResources.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModulePhysics.h"
@@ -16,9 +14,7 @@
 #include "Panels/PanelScene.h"
 #include "Resources/ResourceTexture.h"
 #include "Resources/ResourceShader.h"
-#include "FileSystem/TextureImporter.h"
 #include "FileSystem/JsonValue.h"
-#include "Utils/Logging.h"
 #include "Utils/ImGuiUtils.h"
 #include "Utils/ParticleMotionState.h"
 #include "Scene.h"
@@ -112,6 +108,19 @@
 #define JSON_TAG_COLLISION_RADIUS "CollRadius"
 #define JSON_TAG_LAYER_INDEX "LayerIndex"
 
+// Trail
+#define JSON_TAG_HASTRAIL "HasTrail"
+#define JSON_TAG_TRAIL_TEXTURE_TEXTUREID "TextureTrailID"
+
+#define JSON_TAG_WIDTH "Width"
+#define JSON_TAG_TRAIL_QUADS "TrailQuads"
+#define JSON_TAG_TEXTURE_REPEATS "TextureRepeats"
+#define JSON_TAG_QUAD_LIFE "QuadLife"
+
+#define JSON_TAG_HAS_COLOR_OVER_TRAIL "HasColorOverTrail"
+#define JSON_TAG_GRADIENT_COLOR "GradientColor"
+#define JSON_TAG_NUMBER_COLORS "NumColors"
+
 // Sub Emitter
 #define JSON_TAG_SUB_EMITTERS "SubEmitters"
 #define JSON_TAG_SUB_EMITTERS_NUMBER "SubEmittersNumber"
@@ -176,6 +185,7 @@ ComponentParticleSystem::~ComponentParticleSystem() {
 
 void ComponentParticleSystem::Init() {
 	if (!gradient) gradient = new ImGradient();
+	if (!gradientTrail) gradientTrail = new ImGradient();
 	layer = WorldLayers(1 << layerIndex);
 	AllocateParticlesMemory();
 	isStarted = false;
@@ -410,6 +420,53 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::DragFloat("Softness Range", &softRange, App->editor->dragSpeed2f, 0.0f, inf);
 	}
 
+	// Trail
+	if (ImGui::CollapsingHeader("Trail")) {
+		if (ImGui::Checkbox("##Trail", &hasTrail)) {
+			if (isPlaying) {
+				Stop();
+				Play();
+			}
+		}
+		if (hasTrail) {
+			ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
+
+			ImGui::DragInt("Trail Quads", &trailQuads, 1.0f, 1, 50, "%d", ImGuiSliderFlags_AlwaysClamp);
+
+			ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, trailQuads, "%d", ImGuiSliderFlags_AlwaysClamp);
+
+			ImGui::DragFloat("Quad Life", &quadLife, App->editor->dragSpeed2f, 1, inf);
+
+			ImGui::Checkbox("Color Over Trail", &colorOverTrail);
+			if (colorOverTrail) {
+				ImGui::SameLine();
+				ImGui::PopItemWidth();
+				ImGui::PushItemWidth(200);
+				ImGui::GradientEditor(gradientTrail, draggingGradientTrail, selectedGradientTrail);
+				ImGui::PopItemWidth();
+				ImGui::PushItemWidth(ITEM_SIZE);
+			}
+
+			ImGui::ResourceSlot<ResourceTexture>("texture", &textureTrailID);
+			ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureTrailID);
+			if (textureResource != nullptr) {
+				int width;
+				int height;
+				glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
+				glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
+
+				ImGui::NewLine();
+				ImGui::Separator();
+				ImGui::TextColored(App->editor->titleColor, "Texture Preview");
+				ImGui::TextWrapped("Size:");
+				ImGui::SameLine();
+				ImGui::TextWrapped("%d x %d", width, height);
+				ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
+				ImGui::Separator();
+			}
+		}
+	}
+
 	// Collision
 	if (ImGui::CollapsingHeader("Collision")) {
 		ImGui::Checkbox("##collision", &collision);
@@ -528,22 +585,6 @@ void ComponentParticleSystem::OnEditorUpdate() {
 	ImGui::PopItemWidth();
 }
 
-void ComponentParticleSystem::InitParticleAnimationTexture(Particle* currentParticle) {
-	if (isRandomFrame) {
-		currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
-	} else {
-		currentParticle->currentFrame = 0;
-	}
-
-	if (loopAnimation) {
-		currentParticle->animationSpeed = animationSpeed;
-	} else {
-		float timePerCycle = currentParticle->initialLife / nCycles;
-		float timePerFrame = (Ytiles * Xtiles) / timePerCycle;
-		currentParticle->animationSpeed = timePerFrame;
-	}
-}
-
 void ComponentParticleSystem::Load(JsonValue jComponent) {
 	// Gizmo
 	drawGizmo = jComponent[JSON_TAG_DRAW_GIZMO];
@@ -653,6 +694,29 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	layerIndex = jComponent[JSON_TAG_LAYER_INDEX];
 	layer = WorldLayers(1 << layerIndex);
 
+	//Trail
+	hasTrail = jComponent[JSON_TAG_HASTRAIL];
+
+	textureTrailID = jComponent[JSON_TAG_TRAIL_TEXTURE_TEXTUREID];
+	if (textureTrailID != 0) {
+		App->resources->IncreaseReferenceCount(textureTrailID);
+	}
+
+	trailQuads = jComponent[JSON_TAG_TRAIL_QUADS];
+	quadLife = jComponent[JSON_TAG_QUAD_LIFE];
+	width = jComponent[JSON_TAG_WIDTH];
+	nTextures = jComponent[JSON_TAG_TEXTURE_REPEATS];
+
+	colorOverTrail = jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL];
+	int trailNumberColors = jComponent[JSON_TAG_NUMBER_COLORS];
+	if (!gradientTrail) gradientTrail = new ImGradient();
+	gradientTrail->clearList();
+	JsonValue trailJColor = jComponent[JSON_TAG_GRADIENT_COLOR];
+	for (int i = 0; i < trailNumberColors; ++i) {
+		JsonValue jMark = trailJColor[i];
+		gradientTrail->addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
+	}
+}
 	// Sub Emmiters
 	int numSubEmitters = jComponent[JSON_TAG_SUB_EMITTERS_NUMBER];
 	subEmitters.clear();
@@ -779,6 +843,31 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_LAYER_INDEX] = layerIndex;
 	jComponent[JSON_TAG_COLLISION_RADIUS] = radius;
 
+	// Trail
+	jComponent[JSON_TAG_HASTRAIL] = hasTrail;
+	jComponent[JSON_TAG_TRAIL_TEXTURE_TEXTUREID] = textureTrailID;
+	jComponent[JSON_TAG_TRAIL_QUADS] = trailQuads;
+
+	jComponent[JSON_TAG_WIDTH] = width;
+	jComponent[JSON_TAG_TEXTURE_REPEATS] = nTextures;
+	jComponent[JSON_TAG_QUAD_LIFE] = quadLife;
+
+	jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL] = colorOverTrail;
+	int trailColor = 0;
+	JsonValue trailJColor = jComponent[JSON_TAG_GRADIENT_COLOR];
+	for (ImGradientMark* mark : gradientTrail->getMarks()) {
+		JsonValue jMask = jColor[trailJColor];
+		jMask[0] = mark->color[0];
+		jMask[1] = mark->color[1];
+		jMask[2] = mark->color[2];
+		jMask[3] = mark->color[3];
+		jMask[4] = mark->position;
+
+		color++;
+	}
+	jComponent[JSON_TAG_NUMBER_COLORS] = gradientTrail->getMarks().size();
+}
+
 	// Sub Emitters
 	int num = 0;
 	JsonValue jSubEmitters = jComponent[JSON_TAG_SUB_EMITTERS];
@@ -824,6 +913,9 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 		InitParticleSpeed(currentParticle);
 		InitParticleLife(currentParticle);
 		InitParticleAnimationTexture(currentParticle);
+		if (hasTrail) {
+			InitParticleTrail(currentParticle);
+		}
 		currentParticle->emitterPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		currentParticle->emitterRotation = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation();
 
@@ -833,6 +925,22 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 			App->physics->CreateParticleRigidbody(currentParticle);
 		}
 		InitSubEmitter(currentParticle, SubEmitterType::BIRTH);
+	}
+}
+
+void ComponentParticleSystem::InitParticleAnimationTexture(Particle* currentParticle) {
+	if (isRandomFrame) {
+		currentParticle->currentFrame = static_cast<float>(rand() % ((Xtiles * Ytiles) + 1));
+	} else {
+		currentParticle->currentFrame = 0;
+	}
+
+	if (loopAnimation) {
+		currentParticle->animationSpeed = animationSpeed;
+	} else {
+		float timePerCycle = currentParticle->initialLife / nCycles;
+		float timePerFrame = (Ytiles * Xtiles) / timePerCycle;
+		currentParticle->animationSpeed = timePerFrame;
 	}
 }
 
@@ -914,6 +1022,20 @@ void ComponentParticleSystem::InitParticleLife(Particle* currentParticle) {
 	currentParticle->life = currentParticle->initialLife;
 }
 
+void ComponentParticleSystem::InitParticleTrail(Particle* currentParticle) {
+	currentParticle->trail = new Trail();
+	currentParticle->trail->Init();
+	currentParticle->trail->width = width;
+	currentParticle->trail->trailQuads = trailQuads;
+	currentParticle->trail->nTextures = nTextures;
+	currentParticle->trail->quadLife = quadLife;
+	currentParticle->trail->gradient = gradientTrail;
+	currentParticle->trail->draggingGradient = draggingGradientTrail;
+	currentParticle->trail->selectedGradient = selectedGradientTrail;
+	currentParticle->trail->colorOverTrail = colorOverTrail;
+	currentParticle->trail->textureID = textureTrailID;
+}
+
 void ComponentParticleSystem::InitStartDelay() {
 	restDelayTime = ObtainRandomValueFloat(startDelay, startDelayRM);
 }
@@ -992,6 +1114,9 @@ void ComponentParticleSystem::Update() {
 
 				if (!isRandomFrame) {
 					currentParticle.currentFrame += currentParticle.animationSpeed * App->time->GetDeltaTimeOrRealDeltaTime();
+				}
+				if (hasTrail) {
+					UpdateTrail(&currentParticle);
 				}
 
 				if (currentParticle.life < 0) {
@@ -1101,6 +1226,10 @@ void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) 
 	currentParticle->direction = float3(x, y, z);
 }
 
+void ComponentParticleSystem::UpdateTrail(Particle* currentParticle) {
+	currentParticle->trail->Update(currentParticle->position);
+}
+
 void ComponentParticleSystem::UpdateSubEmitters() {
 	int pos = 0;
 	for (GameObject* gameObject : subEmittersGO) {
@@ -1134,6 +1263,7 @@ void ComponentParticleSystem::UndertakerParticle(bool force) {
 		if (currentParticle->motionState) {
 			RELEASE(currentParticle->motionState);
 		}
+		RELEASE(currentParticle->trail);
 		particles.Release(currentParticle);
 	}
 	deadParticles.clear();
@@ -1263,6 +1393,9 @@ void ComponentParticleSystem::Draw() {
 			glDisable(GL_BLEND);
 			glDepthMask(GL_TRUE);
 
+			if (hasTrail) {
+				currentParticle.trail->Draw();
+			}
 			if (App->renderer->drawColliders) {
 				dd::sphere(currentParticle.position, dd::colors::LawnGreen, currentParticle.radius);
 			}

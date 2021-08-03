@@ -14,6 +14,9 @@
 #define MEMBER(type, member) \
 	Member(type, #member, offsetof(ClassType, member))
 
+#define MEMBER_SEPARATOR(name) \
+	Member(MemberType::SEPARATOR, name, 0)
+
 #define GET_OFFSET_MEMBER(script, offset) \
 	(((char*) script) + offset)
 
@@ -45,7 +48,10 @@ enum class MemberType {
 
 	// Resources
 	PREFAB_RESOURCE_UID,
-	SCENE_RESOURCE_UID
+	SCENE_RESOURCE_UID,
+
+	// Separator
+	SEPARATOR
 };
 
 struct Member {
@@ -53,6 +59,10 @@ struct Member {
 		: type(type_)
 		, name(name_)
 		, offset(offset_) {}
+
+	Member(MemberType type_, std::string name_)
+		: type(type_)
+		, name(name_) {}
 
 	MemberType type;
 	std::string name;

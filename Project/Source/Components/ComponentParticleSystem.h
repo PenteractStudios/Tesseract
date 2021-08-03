@@ -7,8 +7,6 @@
 
 #include "Math/float2.h"
 #include "Math/float3.h"
-#include "Math/float4.h"
-#include "Math/float4x4.h"
 #include "Math/Quat.h"
 
 #include <vector>
@@ -17,10 +15,11 @@ class ComponentTransform;
 class ParticleModule;
 class btRigidBody;
 class ParticleMotionState;
+class Trail;
 class ImGradient;
 struct ImGradientMark;
 
-enum WorldLayers;
+enum class WorldLayers;
 
 enum class ParticleEmitterType {
 	CONE,
@@ -94,6 +93,7 @@ public:
 		ComponentParticleSystem* emitter = nullptr;
 		Collider col {this, typeid(Particle)};
 		float radius = 0;
+		Trail* trail = nullptr;
 	};
 
 	struct SubEmitter {
@@ -125,6 +125,7 @@ public:
 	void InitParticleSpeed(Particle* currentParticle);
 	void InitParticleLife(Particle* currentParticle);
 	void InitParticleAnimationTexture(Particle* currentParticle);
+	void InitParticleTrail(Particle* currentParticle);
 	void InitStartDelay();
 	void InitStartRate();
 	void InitSubEmitter(Particle* currentParticle, SubEmitterType subEmitterType);
@@ -133,6 +134,7 @@ public:
 	void UpdateRotation(Particle* currentParticle);
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
+	void UpdateTrail(Particle* currentParticle);
 	void UpdateGravityDirection(Particle* currentParticle);
 	void UpdateSubEmitters();
 
@@ -268,7 +270,7 @@ public:
 	TESSERACT_ENGINE_API void SetIsSubEmitter(bool _isEmitter);
 
 public:
-	WorldLayers layer;
+	WorldLayers layer = (WorldLayers)(1 << 20); // = WorldLayers::EVERYHTING
 	int layerIndex = 5;
 	float radius = .25f;
 
@@ -362,6 +364,23 @@ private:
 
 	// Collision
 	bool collision = false;
+
+	// Trail
+	bool hasTrail = false;
+
+	int nTextures = 1;
+	int trailQuads = 50;
+
+	float nRepeats = 1;
+	float width = 0.1f;
+	float quadLife = 10.0f;
+
+	bool colorOverTrail = false;
+	UID textureTrailID = 0;
+
+	ImGradient* gradientTrail = nullptr;
+	ImGradientMark* draggingGradientTrail = nullptr;
+	ImGradientMark* selectedGradientTrail = nullptr;
 
 	// Sub Emitter
 	bool isSubEmitter = false;
