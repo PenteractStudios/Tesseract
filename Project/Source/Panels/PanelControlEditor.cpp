@@ -32,10 +32,10 @@ void PanelControlEditor::Update() {
 
 	if (ImGui::Begin(windowName.c_str(), &enabled, flags)) {
 		// Control Bar
-		if (!App->input->GetMouseButton(SDL_BUTTON_RIGHT)) {
-			if (App->input->GetKey(SDL_SCANCODE_W)) currentGuizmoOperation = ImGuizmo::TRANSLATE; // W key
-			if (App->input->GetKey(SDL_SCANCODE_E)) currentGuizmoOperation = ImGuizmo::ROTATE;
-			if (App->input->GetKey(SDL_SCANCODE_R)) currentGuizmoOperation = ImGuizmo::SCALE; // R key
+		if (App->input->GetMouseButton(SDL_BUTTON_RIGHT) == KeyState::KS_IDLE) {
+			if (App->input->GetKey(SDL_SCANCODE_W) != KeyState::KS_IDLE) currentGuizmoOperation = ImGuizmo::TRANSLATE; // W key
+			if (App->input->GetKey(SDL_SCANCODE_E) != KeyState::KS_IDLE) currentGuizmoOperation = ImGuizmo::ROTATE;
+			if (App->input->GetKey(SDL_SCANCODE_R) != KeyState::KS_IDLE) currentGuizmoOperation = ImGuizmo::SCALE; // R key
 		}
 
 		std::string translate = std::string(ICON_FA_ARROWS_ALT);

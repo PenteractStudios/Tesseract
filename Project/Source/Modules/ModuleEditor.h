@@ -80,6 +80,7 @@ public:
 	UID selectedResource = 0;							   // Currently selected resource in the PanelProject.
 	ImVec4 titleColor = ImVec4(0.35f, 0.69f, 0.87f, 1.0f); // Color used for the titles in ImGui
 	ImVec4 textColor = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);	   // Color used for text and information in ImGui
+	ImVec4 memberSeparatorTextColor = ImVec4(0.27f, 0.55f, 1.0f, 1.0f); // Color used for the name of the Separator in Members of Script
 
 	// --- Float Sliders speeds ---- //
 	float dragSpeed1f = 0.5f;

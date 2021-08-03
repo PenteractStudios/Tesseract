@@ -447,6 +447,7 @@ namespace Input {
 	TESSERACT_ENGINE_API bool GetControllerButtonUp(SDL_GameControllerButton button, int playerID);
 	TESSERACT_ENGINE_API bool GetControllerButton(SDL_GameControllerButton button, int playerID);
 	TESSERACT_ENGINE_API float GetControllerAxisValue(SDL_GameControllerAxis axis, int playerID);
+	TESSERACT_ENGINE_API void StartControllerVibration(int playerID, float strength, float duration);
 	TESSERACT_ENGINE_API bool IsGamepadConnected(int playerID);
 }; // namespace Input
 
@@ -523,3 +524,7 @@ namespace Audio {
 namespace UserInterface {
 	TESSERACT_ENGINE_API ComponentEventSystem* GetCurrentEventSystem();
 }; // namespace UserInterface
+
+namespace Navigation {
+	TESSERACT_ENGINE_API void Raycast(float3 startPosition, float3 targetPosition, bool& hitResult, float3& hitPosition);
+}

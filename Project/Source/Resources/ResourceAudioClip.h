@@ -15,6 +15,6 @@ public:
 	void RemoveSource(ComponentAudioSource* component);
 
 public:
-	unsigned ALbuffer;
+	unsigned int ALbuffer = 0;
 	std::vector<ComponentAudioSource*> componentAudioSources;
 };

@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Components/Component.h"
-#include "Components/UI/ComponentTransform2D.h"
 #include "UI/Interfaces/IMouseClickHandler.h"
+
+#include "Math/float4.h"
 
 enum class DirectionType {
 	LEFT_TO_RIGHT,

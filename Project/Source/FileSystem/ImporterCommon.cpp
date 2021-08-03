@@ -4,7 +4,6 @@
 #include "Application.h"
 #include "Resources/Resource.h"
 #include "Modules/ModuleFiles.h"
-#include "Utils/Logging.h"
 
 #include "rapidjson/prettywriter.h"
 

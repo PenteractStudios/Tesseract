@@ -2,11 +2,10 @@
 
 #include "Module.h"
 #include "Utils/Quadtree.h"
+#include "LightFrustum.h"
 
 #include "MathGeoLibFwd.h"
 #include "Math/float3.h"
-#include "LightFrustum.h"
-
 #include <map>
 
 #define SSAO_KERNEL_SIZE 64
@@ -175,6 +174,8 @@ private:
 	float2 viewportSize = float2::zero;
 	bool drawDepthMapTexture = false;
 	bool drawSSAOTexture = false;
+	bool drawNormalsTexture = false;
+	bool drawPositionsTexture = false;
 
 	std::vector<GameObject*> shadowGameObjects;			 // Vector of Shadow Casted GameObjects
 	std::vector<GameObject*> opaqueGameObjects;			 // Vector of Opaque GameObjects

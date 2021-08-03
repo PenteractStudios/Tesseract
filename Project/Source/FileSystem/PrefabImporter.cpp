@@ -9,7 +9,6 @@
 #include "Modules/ModuleResources.h"
 #include "ImporterCommon.h"
 
-#include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/error/en.h"
 

@@ -2,8 +2,8 @@
 
 #include "Component.h"
 #include "Scripting/Member.h"
-#include "Utils/UID.h"
 #include "Scripting/Script.h"
+#include "Utils/UID.h"
 
 #include <unordered_map>
 #include <vector>
