@@ -476,7 +476,7 @@ void Screen::SetChromaticAberration(bool value) {
 }
 
 const float Screen::GetChromaticAberrationStrength() {
-	return App->renderer->chromaticAberrationActive;
+	return App->renderer->chromaticAberrationStrength;
 }
 
 void Screen::SetChromaticAberrationStrength(float value) {
