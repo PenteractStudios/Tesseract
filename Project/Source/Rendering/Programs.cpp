@@ -277,6 +277,9 @@ ProgramColorCorrection::ProgramColorCorrection(unsigned program_)
 	smallMipLevelLocation = glGetUniformLocation(program, "smallMipLevel");
 	mediumMipLevelLocation = glGetUniformLocation(program, "mediumMipLevel");
 	largeMipLevelLocation = glGetUniformLocation(program, "largeMipLevel");
+
+	hasChromaticAberrationLocation = glGetUniformLocation(program, "hasChromaticAberration");
+	chromaticAberrationStrengthLocation = glGetUniformLocation(program, "chromaticAberrationStrength");
 }
 
 ProgramHeightFog::ProgramHeightFog(unsigned program_)

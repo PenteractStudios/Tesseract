@@ -490,6 +490,11 @@ namespace Screen {
 	TESSERACT_ENGINE_API const float GetBloomThreshold();
 	TESSERACT_ENGINE_API void SetBloomThreshold(float value);
 
+	TESSERACT_ENGINE_API const bool IsChromaticAberrationActive();
+	TESSERACT_ENGINE_API void SetChromaticAberration(bool value);
+	TESSERACT_ENGINE_API const float GetChromaticAberrationStrength();
+	TESSERACT_ENGINE_API void SetChromaticAberrationStrength(float value);
+
 }; // namespace Screen
 
 namespace SceneManager {

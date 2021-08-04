@@ -291,6 +291,9 @@ struct ProgramColorCorrection : Program {
 	int smallMipLevelLocation = -1;
 	int mediumMipLevelLocation = -1;
 	int largeMipLevelLocation = -1;
+
+	int hasChromaticAberrationLocation = -1;
+	int chromaticAberrationStrengthLocation = -1;
 };
 
 struct ProgramHeightFog : Program {
