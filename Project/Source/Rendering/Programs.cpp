@@ -98,8 +98,13 @@ ProgramStandard::ProgramStandard(unsigned program_)
 	viewLocation = glGetUniformLocation(program, "view");
 	projLocation = glGetUniformLocation(program, "proj");
 
-	viewLightLocation = glGetUniformLocation(program, "viewLight");
-	projLightLocation = glGetUniformLocation(program, "projLight");
+	viewOrtoLightsLocation = glGetUniformLocation(program, "viewOrtoLights");
+	projOrtoLightsLocation = glGetUniformLocation(program, "projOrtoLights");
+	shadowCascadesCounterLocation = glGetUniformLocation(program, "shadowCascadesCounter");
+
+	for (unsigned int i = 0; i < CASCADE_FRUSTUMS; ++i) {
+		depthMaps[i] = DepthMapsUniforms(program, i);
+	}
 
 	paletteLocation = glGetUniformLocation(program, "palette");
 	hasBonesLocation = glGetUniformLocation(program, "hasBones");
@@ -122,8 +127,6 @@ ProgramStandard::ProgramStandard(unsigned program_)
 
 	ambientOcclusionMapLocation = glGetUniformLocation(program, "ambientOcclusionMap");
 	hasAmbientOcclusionMapLocation = glGetUniformLocation(program, "hasAmbientOcclusionMap");
-
-	depthMapTextureLocation = glGetUniformLocation(program, "depthMapTexture");
 
 	ssaoTextureLocation = glGetUniformLocation(program, "ssaoTexture");
 	ssaoDirectLightingStrengthLocation = glGetUniformLocation(program, "ssaoDirectLightingStrength");
@@ -311,4 +314,11 @@ ProgramTrail::ProgramTrail(unsigned program_)
 	inputColorLocation = glGetUniformLocation(program, "inputColor");
 	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
 	diffuseMap = glGetUniformLocation(program, "diffuseMap");
+}
+
+DepthMapsUniforms::DepthMapsUniforms() {}
+
+DepthMapsUniforms::DepthMapsUniforms(unsigned program, unsigned number) {
+	depthMapLocation = glGetUniformLocation(program, (std::string("depthMapTextures[") + std::to_string(number) + "]").c_str());
+	farPlaneLocation = glGetUniformLocation(program, (std::string("farPlaneDistances[") + std::to_string(number) + "]").c_str());
 }

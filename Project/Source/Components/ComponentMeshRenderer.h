@@ -19,7 +19,7 @@ public:
 
 	void Draw(const float4x4& modelMatrix) const;
 	void DrawDepthPrepass(const float4x4& modelMatrix) const;
-	void DrawShadow(const float4x4& modelMatrix) const;
+	void DrawShadow(const float4x4& modelMatrix, unsigned int i) const;
 
 	void AddRenderingModeMask();
 	void DeleteRenderingModeMask();

@@ -2,7 +2,7 @@
 
 #include "FrustumPlanes.h"
 
-constexpr unsigned int NUM_CASCADE_FRUSTUM = 4;
+constexpr unsigned int NUM_CASCADES_FRUSTUM = 4;
 constexpr float MINIMUM_FAR_DISTANE = 50.f;
 
 
@@ -29,7 +29,9 @@ public:
 
 	void DrawGizmos();
 
-	Frustum GetFrustum() const;
+	Frustum GetOrthographicFrustum(unsigned int i) const;
+	Frustum GetPersepectiveFrustum(unsigned int i) const;
+	const std::vector<LightFrustum::FrustumInformation>& GetSubFrustums() const;
 
 	FrustumInformation& operator[](int i);
 
@@ -38,5 +40,5 @@ public:
 private:
 	bool dirty = true;
 	CascadeMode mode = CascadeMode::FitToScene;
-	FrustumInformation subFrustums[NUM_CASCADE_FRUSTUM];
+	std::vector<FrustumInformation> subFrustums;
 };

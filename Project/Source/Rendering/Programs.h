@@ -29,6 +29,15 @@ struct SpotLightUniforms {
 	int outerAngleLocation = -1;
 };
 
+struct DepthMapsUniforms {
+	DepthMapsUniforms();
+	DepthMapsUniforms(unsigned program, unsigned number);
+
+	int depthMapLocation = -1;
+	int farPlaneLocation = -1;
+
+};
+
 struct Program {
 	Program(unsigned program);
 	virtual ~Program();
@@ -105,8 +114,11 @@ struct ProgramStandard : public Program {
 	int viewLocation = -1;
 	int projLocation = -1;
 
-	int viewLightLocation = -1;
-	int projLightLocation = -1;
+	int viewOrtoLightsLocation = -1;
+	int projOrtoLightsLocation = -1;
+
+	int shadowCascadesCounterLocation = -1;
+	DepthMapsUniforms depthMaps[CASCADE_FRUSTUMS];
 
 	int paletteLocation = -1;
 	int hasBonesLocation = -1;
@@ -129,8 +141,6 @@ struct ProgramStandard : public Program {
 
 	int ambientOcclusionMapLocation = -1;
 	int hasAmbientOcclusionMapLocation = -1;
-
-	int depthMapTextureLocation = -1;
 
 	int ssaoTextureLocation = -1;
 	int ssaoDirectLightingStrengthLocation = -1;

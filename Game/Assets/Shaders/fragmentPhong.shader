@@ -42,7 +42,8 @@ void main()
 
         vec3 directionalColor = (colorDiffuse.rgb * (1 - Rf0) + (shininess + 2) / 2 * Rf * VRn) * light.directional.color * light.directional.intensity * NL;
 
-        float shadow = Shadow(fragPosLight, normal, normalize(light.directional.direction), depthMapTexture);
+        unsigned int shadowIndex = ShadowIndex();
+        float shadow = Shadow(fragPosLights[shadowIndex], normal, normalize(light.directional.direction), depthMapTextures[shadowIndex]);
         
         colorAccumulative += (1.0 - shadow) * directionalColor;
     }

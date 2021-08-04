@@ -11,6 +11,7 @@
 #include "Components/UI/ComponentSelectable.h"
 #include "FileSystem/ModelImporter.h"
 #include "Modules/ModuleInput.h"
+#include "Modules/ModuleScene.h"
 #include "Utils/Logging.h"
 
 #include "Math/myassert.h"
@@ -171,6 +172,7 @@ void GameObject::AddMask(MaskType mask_) {
 		break;
 	case MaskType::CAST_SHADOWS:
 		mask.bitMask |= static_cast<int>(mask_);
+		App->scene->scene->AddShadowCaster(this);
 		break;
 	case MaskType::TRANSPARENT:
 		mask.bitMask |= static_cast<int>(mask_);
@@ -196,6 +198,7 @@ void GameObject::DeleteMask(MaskType mask_) {
 		break;
 	case MaskType::CAST_SHADOWS:
 		mask.bitMask ^= static_cast<int>(mask_);
+		App->scene->scene->RemoveShadowCaster(this);
 		break;
 	case MaskType::TRANSPARENT:
 		mask.bitMask ^= static_cast<int>(mask_);

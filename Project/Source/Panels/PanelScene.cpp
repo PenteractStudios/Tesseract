@@ -31,6 +31,8 @@
 
 #include "Utils/Leaks.h"
 
+constexpr char* shadingMode[3] = {"Shaded", "Wireframe", "Ambient Occlusion"};
+
 PanelScene::PanelScene()
 	: Panel("Scene", true) {}
 
@@ -49,7 +51,7 @@ void PanelScene::Update() {
 
 		if (ImGui::BeginMenuBar()) {
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
-			const char* shadingMode[4] = {"Shaded", "Wireframe", "Depth", "Ambient Occlusion"};
+			
 			if (ImGui::Button(currentShadingMode)) {
 				ImGui::OpenPopup("DrawMode");
 			}
@@ -57,7 +59,7 @@ void PanelScene::Update() {
 			if (ImGui::BeginPopup("DrawMode")) {
 				ImGui::TextColored(App->editor->titleColor, "Shading Mode");
 				ImGui::Separator();
-				for (int i = 0; i < IM_ARRAYSIZE(shadingMode); i++) {
+				for (unsigned int i = 0; i < IM_ARRAYSIZE(shadingMode); i++) {
 					bool isSelected = (currentShadingMode == shadingMode[i]);
 					if (ImGui::Selectable(shadingMode[i])) {
 						currentShadingMode = shadingMode[i];
@@ -67,6 +69,16 @@ void PanelScene::Update() {
 						ImGui::SetItemDefaultFocus();
 					}
 				}
+
+				for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+					std::string str = "Depth " + std::to_string(i);
+					bool isSelected = (currentShadingMode == str.c_str());
+					if (ImGui::Selectable(str.c_str())) {
+						currentShadingMode = "Depth";
+						App->renderer->UpdateShadingMode(str.c_str());
+					}
+				}
+
 				ImGui::EndPopup();
 			}
 

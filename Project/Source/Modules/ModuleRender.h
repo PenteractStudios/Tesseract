@@ -53,8 +53,8 @@ public:
 
 	void UpdateShadingMode(const char* shadingMode);
 
-	float4x4 GetLightViewMatrix() const;
-	float4x4 GetLightProjectionMatrix() const;
+	float4x4 GetLightViewMatrix(unsigned int i) const;
+	float4x4 GetLightProjectionMatrix(unsigned int i) const;
 
 	int GetCulledTriangles() const;
 	const float2 GetViewportSize();
@@ -76,7 +76,7 @@ public:
 	unsigned depthsTexture = 0;
 	unsigned positionsTexture = 0;
 	unsigned normalsTexture = 0;
-	unsigned depthMapTextures[NUM_CASCADE_FRUSTUM] = {0, 0, 0, 0};
+	unsigned depthMapTextures[NUM_CASCADES_FRUSTUM] = {0, 0, 0, 0};
 	unsigned ssaoTexture = 0;
 	unsigned auxBlurTexture = 0;
 	unsigned colorTextures[2] = {0, 0}; // position 0: scene render texture; position 1: bloom texture to be blurred
@@ -85,7 +85,7 @@ public:
 	unsigned renderPassBuffer = 0;
 	unsigned depthPrepassBuffer = 0;
 	unsigned depthPrepassTextureConversionBuffer = 0;
-	unsigned depthMapTextureBuffer = 0;
+	unsigned depthMapTextureBuffers[NUM_CASCADES_FRUSTUM] = {0, 0, 0, 0};
 	unsigned ssaoTextureBuffer = 0;
 	unsigned ssaoBlurTextureBufferH = 0;
 	unsigned ssaoBlurTextureBufferV = 0;
@@ -154,7 +154,7 @@ private:
 	//bool CheckIfInsideFrustum(const AABB& aabb, const OBB& obb);									  // ??
 	void DrawGameObject(GameObject* gameObject);													  // ??
 	void DrawGameObjectDepthPrepass(GameObject* gameObject);
-	void DrawGameObjectShadowPass(GameObject* gameObject);
+	void DrawGameObjectShadowPass(GameObject* gameObject, unsigned int i);
 	void DrawAnimation(const GameObject* gameObject, bool hasAnimation = false);
 	void RenderUI();
 	void SetOrtographicRender();
@@ -174,6 +174,7 @@ private:
 private:
 	// ------- Viewport Size ------- //
 	float2 viewportSize = float2::zero;
+	unsigned int indexDepthMapTexture = -1;
 	bool drawDepthMapTexture = false;
 	bool drawSSAOTexture = false;
 

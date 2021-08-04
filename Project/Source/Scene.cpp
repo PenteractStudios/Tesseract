@@ -2,11 +2,12 @@
 
 #include "GameObject.h"
 #include "Application.h"
-#include "Modules/ModuleEditor.h"
-#include "Modules/ModuleResources.h"
-#include "Modules/ModulePhysics.h"
 #include "Modules/ModuleTime.h"
+#include "Modules/ModuleEditor.h"
+#include "Modules/ModuleRender.h"
+#include "Modules/ModulePhysics.h"
 #include "Resources/ResourceMesh.h"
+#include "Modules/ModuleResources.h"
 #include "Utils/Logging.h"
 
 #include "Utils/Leaks.h"
@@ -189,6 +190,9 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 	case ComponentType::TRANSFORM:
 		return transformComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::MESH_RENDERER:
+		if ((owner->GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0) {
+			shadowCasters.push_back(owner);
+		}
 		return meshRendererComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::BOUNDING_BOX:
 		return boundingBoxComponents.Obtain(componentId, owner, componentId, owner->IsActive());
@@ -441,6 +445,15 @@ std::vector<float> Scene::GetNormals() {
 	return result;
 }
 
+bool Scene::InsideFrustumPlanes(const FrustumPlanes& planes, const GameObject* go) {
+	
+	ComponentBoundingBox* boundingBox = go->GetComponent<ComponentBoundingBox>();
+	if (boundingBox && planes.CheckIfInsideFrustumPlanes(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB())) {
+		return true;
+	}
+	return false;
+}
+
 std::vector<GameObject*> Scene::GetCulledMeshes(const FrustumPlanes& planes, const int mask) {
 	std::vector<GameObject*> meshes;
 
@@ -451,14 +464,23 @@ std::vector<GameObject*> Scene::GetCulledMeshes(const FrustumPlanes& planes, con
 		Mask& maskGo = go->GetMask();
 
 		if ((maskGo.bitMask & mask) != 0) {
-			ComponentBoundingBox* boundingBox = go->GetComponent<ComponentBoundingBox>();
-			if (boundingBox) {
-				if (planes.CheckIfInsideFrustumPlanes(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB())) {
-					meshes.push_back(go);
-				}
+			if (InsideFrustumPlanes(planes, go)) {
+				meshes.push_back(go);
 			}
 		}
 
+	}
+
+	return meshes;
+}
+
+std::vector<GameObject*> Scene::GetCulledShadowCasters(const FrustumPlanes& planes) {
+	std::vector<GameObject*> meshes;
+
+	for (GameObject* go : shadowCasters) {
+		if (InsideFrustumPlanes(planes, go)) {
+			meshes.push_back(go);
+		}
 	}
 
 	return meshes;
@@ -478,4 +500,25 @@ void Scene::SetNavMesh(UID navMesh) {
 
 UID Scene::GetNavMesh() {
 	return navMeshId;
+}
+
+void Scene::RemoveShadowCaster(const GameObject* go) {
+	auto it = std::find(shadowCasters.begin(), shadowCasters.end(), go);
+
+	if (it == shadowCasters.end()) return;
+
+	shadowCasters.erase(it);
+
+	App->renderer->lightFrustum.Invalidate();
+
+}
+
+void Scene::AddShadowCaster(GameObject* go) {
+	auto it = std::find(shadowCasters.begin(), shadowCasters.end(), go);
+
+	if (it != shadowCasters.end()) return;
+
+	shadowCasters.push_back(go);
+
+	App->renderer->lightFrustum.Invalidate();
 }

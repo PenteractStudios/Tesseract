@@ -24,21 +24,21 @@ void FrustumPlanes::CalculateFrustumPlanes(const Frustum& frustum) {
 	float3 farCenter = pos + front * farDistance;
 	float3 nearCenter = pos + front * nearDistance;
 
-	points[0] = farCenter + (up * hFar / 2) - (right * wFar / 2);
-	points[1] = farCenter + (up * hFar / 2) + (right * wFar / 2);
-	points[2] = farCenter - (up * hFar / 2) - (right * wFar / 2);
-	points[3] = farCenter - (up * hFar / 2) + (right * wFar / 2);
-	points[4] = nearCenter + (up * hNear / 2) - (right * wNear / 2);
-	points[5] = nearCenter + (up * hNear / 2) + (right * wNear / 2);
-	points[6] = nearCenter - (up * hNear / 2) - (right * wNear / 2);
-	points[7] = nearCenter - (up * hNear / 2) + (right * wNear / 2);
+	frustumPoints[0] = farCenter + (up * hFar / 2) - (right * wFar / 2);
+	frustumPoints[1] = farCenter + (up * hFar / 2) + (right * wFar / 2);
+	frustumPoints[2] = farCenter - (up * hFar / 2) - (right * wFar / 2);
+	frustumPoints[3] = farCenter - (up * hFar / 2) + (right * wFar / 2);
+	frustumPoints[4] = nearCenter + (up * hNear / 2) - (right * wNear / 2);
+	frustumPoints[5] = nearCenter + (up * hNear / 2) + (right * wNear / 2);
+	frustumPoints[6] = nearCenter - (up * hNear / 2) - (right * wNear / 2);
+	frustumPoints[7] = nearCenter - (up * hNear / 2) + (right * wNear / 2);
 
-	planes[0] = frustum.LeftPlane();
-	planes[1] = frustum.RightPlane();
-	planes[2] = frustum.TopPlane();
-	planes[3] = frustum.BottomPlane();
-	planes[4] = frustum.FarPlane();
-	planes[5] = frustum.NearPlane();
+	frustumPlanes[0] = frustum.LeftPlane();
+	frustumPlanes[1] = frustum.RightPlane();
+	frustumPlanes[2] = frustum.TopPlane();
+	frustumPlanes[3] = frustum.BottomPlane();
+	frustumPlanes[4] = frustum.FarPlane();
+	frustumPlanes[5] = frustum.NearPlane();
 
 }
 
@@ -53,8 +53,8 @@ bool FrustumPlanes::CheckIfInsideFrustumPlanes(const AABB& aabb, const OBB& obb)
 		obb.pos + obb.r.x * obb.axis[0] - obb.r.y * obb.axis[1] + obb.r.z * obb.axis[2],
 		obb.pos + obb.r.x * obb.axis[0] + obb.r.y * obb.axis[1] - obb.r.z * obb.axis[2],
 		obb.pos + obb.r.x * obb.axis[0] + obb.r.y * obb.axis[1] + obb.r.z * obb.axis[2]};
-
-	for (const Plane& plane : planes) {
+	
+	for (const Plane& plane : frustumPlanes) {
 		// check box outside/inside of frustum
 		int out = 0;
 		for (int i = 0; i < 8; i++) {
@@ -66,22 +66,22 @@ bool FrustumPlanes::CheckIfInsideFrustumPlanes(const AABB& aabb, const OBB& obb)
 	// check frustum outside/inside box
 	int out;
 	out = 0;
-	for (int i = 0; i < 8; i++) out += ((points[i].x > aabb.MaxX()) ? 1 : 0);
+	for (int i = 0; i < 8; i++) out += ((frustumPoints[i].x > aabb.MaxX()) ? 1 : 0);
 	if (out == 8) return false;
 	out = 0;
-	for (int i = 0; i < 8; i++) out += ((points[i].x < aabb.MinX()) ? 1 : 0);
+	for (int i = 0; i < 8; i++) out += ((frustumPoints[i].x < aabb.MinX()) ? 1 : 0);
 	if (out == 8) return false;
 	out = 0;
-	for (int i = 0; i < 8; i++) out += ((points[i].y > aabb.MaxY()) ? 1 : 0);
+	for (int i = 0; i < 8; i++) out += ((frustumPoints[i].y > aabb.MaxY()) ? 1 : 0);
 	if (out == 8) return false;
 	out = 0;
-	for (int i = 0; i < 8; i++) out += ((points[i].y < aabb.MinY()) ? 1 : 0);
+	for (int i = 0; i < 8; i++) out += ((frustumPoints[i].y < aabb.MinY()) ? 1 : 0);
 	if (out == 8) return false;
 	out = 0;
-	for (int i = 0; i < 8; i++) out += ((points[i].z > aabb.MaxZ()) ? 1 : 0);
+	for (int i = 0; i < 8; i++) out += ((frustumPoints[i].z > aabb.MaxZ()) ? 1 : 0);
 	if (out == 8) return false;
 	out = 0;
-	for (int i = 0; i < 8; i++) out += ((points[i].z < aabb.MinZ()) ? 1 : 0);
+	for (int i = 0; i < 8; i++) out += ((frustumPoints[i].z < aabb.MinZ()) ? 1 : 0);
 	if (out == 8) return false;
 
 	return true;

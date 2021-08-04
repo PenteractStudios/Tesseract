@@ -4,16 +4,22 @@
 #define EPSILON 1e-5
 #define POINT_LIGHTS 32
 #define SPOT_LIGHTS 8
+#define MAX_SHADOW_FRUSTUMS 10
 
 in vec3 fragNormal;
 in mat3 TBN;
 in vec3 fragPos;
 in vec2 uv;
-in vec4 fragPosLight;
+
+// Cascade Shadow Mapping
+in vec4 fragPosLights[MAX_SHADOW_FRUSTUMS];
+flat in unsigned int cascadesCounter;
+
 out vec4 outColor;
 
 // Depth Map
-uniform sampler2D depthMapTexture;
+uniform sampler2D depthMapTextures[MAX_SHADOW_FRUSTUMS];
+uniform float farPlaneDistances[MAX_SHADOW_FRUSTUMS];
 
 // SSAO texture
 uniform sampler2D ssaoTexture;
@@ -145,6 +151,18 @@ vec3 GetNormal(vec2 tiledUV)
     normal.xy *= normalStrength;
     normal = normalize(normal);
     return normalize(TBN * normal);
+}
+
+unsigned int ShadowIndex() {
+
+	for (unsigned int i = 0; i < cascadesCounter; ++i) {
+		if (abs(fragPos.z) < farPlaneDistances[i]) {
+			return i;
+		}
+	}
+
+	return cascadesCounter - 1;
+
 }
 
 float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMap) {
@@ -312,7 +330,8 @@ void main()
     vec3 R = reflect(-viewDir, normal);
     vec3 colorAccumulative = GetOccludedAmbientLight(R, normal, viewDir, Cd, F0, roughness, tiledUV);
 
-	float shadow = Shadow(fragPosLight, normal,  normalize(light.directional.direction), depthMapTexture);
+	unsigned int shadowIndex = ShadowIndex();
+	float shadow = Shadow(fragPosLights[shadowIndex], normal,  normalize(light.directional.direction), depthMapTextures[shadowIndex]);
 
 	// Directional Light
 	if (light.directional.isActive == 1)
@@ -360,7 +379,8 @@ void main()
     vec3 R = reflect(-viewDir, normal);
     vec3 colorAccumulative = GetOccludedAmbientLight(R, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness, tiledUV);
 
-	float shadow = Shadow(fragPosLight, normal, normalize(light.directional.direction), depthMapTexture);
+	unsigned int shadowIndex = ShadowIndex();
+	float shadow = Shadow(fragPosLights[shadowIndex], normal, normalize(light.directional.direction), depthMapTextures[shadowIndex]);
 
     // Directional Light
     if (light.directional.isActive == 1)

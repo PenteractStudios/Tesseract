@@ -50,11 +50,11 @@ static std::vector<float> mediumGaussKernel;
 static std::vector<float> largeGaussKernel;
 
 float defIntGaussian(const float x, const float mu, const float sigma) {
-	return 0.5 * erf((x - mu) / (sqrt(2) * sigma));
+	return 0.5f * erf((x - mu) / (sqrtf(2) * sigma));
 }
 
 void gaussianKernel(const int kernelSize, const float sigma, const float mu, const float step, std::vector<float>& coeff) {
-	const float end = 0.5*kernelSize;
+	const float end = 0.5f * kernelSize;
 	const float start = -end;
 	float sum = 0;
 	float x = start;
@@ -71,7 +71,7 @@ void gaussianKernel(const int kernelSize, const float sigma, const float mu, con
 
 	//normalize
 	sum = 1 / sum;
-	for (int i = 0; i < coeff.size(); ++i) {
+	for (unsigned int i = 0; i < coeff.size(); ++i) {
 		coeff[i] *= sum;
 	}
 
@@ -232,7 +232,7 @@ bool ModuleRender::Init() {
 	glGenTextures(1, &depthsTexture);
 	glGenTextures(1, &positionsTexture);
 	glGenTextures(1, &normalsTexture);
-	for (unsigned i = 0; i < NUM_CASCADE_FRUSTUM; i++) {
+	for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
 		glGenTextures(1, &depthMapTextures[i]);
 	}
 	glGenTextures(1, &ssaoTexture);
@@ -243,7 +243,9 @@ bool ModuleRender::Init() {
 	glGenFramebuffers(1, &renderPassBuffer);
 	glGenFramebuffers(1, &depthPrepassBuffer);
 	glGenFramebuffers(1, &depthPrepassTextureConversionBuffer);
-	glGenFramebuffers(1, &depthMapTextureBuffer);
+	for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
+		glGenFramebuffers(1, &depthMapTextureBuffers[i]);
+	}
 	glGenFramebuffers(1, &ssaoTextureBuffer);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferH);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferV);
@@ -491,6 +493,7 @@ bool ModuleRender::Start() {
 UpdateStatus ModuleRender::PreUpdate() {
 	BROFILER_CATEGORY("ModuleRender - PreUpdate", Profiler::Color::Green)
 
+	lightFrustum.UpdateFrustums();
 	lightFrustum.ReconstructFrustum();
 
 #if GAME
@@ -508,20 +511,20 @@ UpdateStatus ModuleRender::Update() {
 	Scene* scene = App->scene->scene;
 	float3 gammaClearColor = float3(pow(clearColor.x, 2.2f), pow(clearColor.y, 2.2f), pow(clearColor.y, 2.2f));
 
-	lightFrustum.UpdateFrustums();
-
 	ClassifyGameObjects();
 
 	// Shadow Pass
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
-	glDepthFunc(GL_LESS);
-	glClear(GL_DEPTH_BUFFER_BIT);
+	for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffers[i]);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+		glDepthFunc(GL_LESS);
+		glClear(GL_DEPTH_BUFFER_BIT);
 
-	for (GameObject* gameObject : shadowGameObjects) {
-		DrawGameObjectShadowPass(gameObject);
+		for (GameObject* gameObject : shadowGameObjects) {
+			DrawGameObjectShadowPass(gameObject, i);
+		}
 	}
 
 	// Depth Prepass
@@ -597,7 +600,8 @@ UpdateStatus ModuleRender::Update() {
 		return UpdateStatus::CONTINUE;
 	}
 	if (drawDepthMapTexture) {
-		DrawTexture(depthMapTextures[0]);
+		assert(drawDepthMapTexture && indexDepthMapTexture < NUM_CASCADES_FRUSTUM);
+		DrawTexture(depthMapTextures[indexDepthMapTexture]);
 
 		// Render to screen
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, renderPassBuffer);
@@ -716,7 +720,7 @@ UpdateStatus ModuleRender::Update() {
 		glBindTexture(GL_TEXTURE_2D, colorTextures[1]);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
-		for (unsigned int i = 0; i < 2 * bloomQuality; i++) {
+		for (int i = 0; i < 2 * bloomQuality; i++) {
 			int width = static_cast<int>(viewportSize.x);
 			int height = static_cast<int>(viewportSize.y);
 			glViewport(0, 0, width / (1 << gaussSmallMipLevel), height / (1 << gaussSmallMipLevel));
@@ -793,7 +797,7 @@ bool ModuleRender::CleanUp() {
 	glDeleteTextures(1, &depthsTexture);
 	glDeleteTextures(1, &positionsTexture);
 	glDeleteTextures(1, &normalsTexture);
-	for (unsigned i = 0; i < NUM_CASCADE_FRUSTUM; i++) {
+	for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
 		glDeleteTextures(1, &depthMapTextures[i]);
 	}
 	glDeleteTextures(1, &ssaoTexture);
@@ -804,7 +808,9 @@ bool ModuleRender::CleanUp() {
 	glDeleteFramebuffers(1, &renderPassBuffer);
 	glDeleteFramebuffers(1, &depthPrepassBuffer);
 	glDeleteFramebuffers(1, &depthPrepassTextureConversionBuffer);
-	glDeleteFramebuffers(1, &depthMapTextureBuffer);
+	for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
+		glDeleteFramebuffers(1, &depthMapTextureBuffers[i]);
+	}
 	glDeleteFramebuffers(1, &ssaoTextureBuffer);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferH);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferV);
@@ -883,12 +889,13 @@ void ModuleRender::UpdateFramebuffers() {
 	glDrawBuffers(2, drawBuffers2);
 
 	// Shadow buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffer);
 
-	for (unsigned int i = 0; i < NUM_CASCADE_FRUSTUM; ++i) {
+	for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
 
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapTextureBuffers[i]);
+		
 		glBindTexture(GL_TEXTURE_2D, depthMapTextures[i]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, static_cast<int>(viewportSize.x) * lightFrustum.GetSubFrustums()[i].multiplier, static_cast<int>(viewportSize.y) * lightFrustum.GetSubFrustums()[i].multiplier, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -996,10 +1003,10 @@ void ModuleRender::UpdateFramebuffers() {
 	}
 
 	// Compute Gaussian kernels
-	gaussSmallKernelRadius = roundf(viewportSize.y * 0.002f);
-	gaussMediumKernelRadius = roundf(viewportSize.y * 0.004f);
-	gaussLargeKernelRadius = roundf(viewportSize.y * 0.008f);
-	float term = Ln(1e5 / sqrt(2 * pi));
+	gaussSmallKernelRadius = static_cast<int>(roundf(viewportSize.y * 0.002f));
+	gaussMediumKernelRadius = static_cast<int>(roundf(viewportSize.y * 0.004f));
+	gaussLargeKernelRadius = static_cast<int>(roundf(viewportSize.y * 0.008f));
+	float term = Ln(1e5f / sqrt(2 * pi));
 	float sigma1 = gaussSmallKernelRadius * gaussSmallKernelRadius / 2.0f;
 	float sigma2 = gaussMediumKernelRadius * gaussMediumKernelRadius / 2.0f;
 	float sigma3 = gaussLargeKernelRadius * gaussLargeKernelRadius / 2.0f;
@@ -1082,19 +1089,25 @@ void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	} else if (strcmp(shadingMode, "Wireframe") == 0) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	} else if (strcmp(shadingMode, "Depth") == 0) {
-		drawDepthMapTexture = true;
 	} else if (strcmp(shadingMode, "Ambient Occlusion") == 0) {
 		drawSSAOTexture = true;
+	} else {
+		for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+			std::string str = "Depth " + std::to_string(i);
+			if (strcmp(shadingMode, str.c_str()) == 0) {
+				drawDepthMapTexture = true;
+				indexDepthMapTexture = i;
+			}
+		}
 	}
 }
 
-float4x4 ModuleRender::GetLightViewMatrix() const {
-	return lightFrustum.GetFrustum().ViewMatrix();
+float4x4 ModuleRender::GetLightViewMatrix(unsigned int i) const {
+	return lightFrustum.GetOrthographicFrustum(i).ViewMatrix();
 }
 
-float4x4 ModuleRender::GetLightProjectionMatrix() const {
-	return lightFrustum.GetFrustum().ProjectionMatrix();
+float4x4 ModuleRender::GetLightProjectionMatrix(unsigned int i) const {
+	return lightFrustum.GetOrthographicFrustum(i).ProjectionMatrix();
 }
 
 int ModuleRender::GetCulledTriangles() const {
@@ -1189,54 +1202,6 @@ void ModuleRender::ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::N
 	}
 }
 
-// TODO: Remove
-/*
-bool ModuleRender::CheckIfInsideFrustum(const AABB& aabb, const OBB& obb) {
-	float3 points[8] {
-		obb.pos - obb.r.x * obb.axis[0] - obb.r.y * obb.axis[1] - obb.r.z * obb.axis[2],
-		obb.pos - obb.r.x * obb.axis[0] - obb.r.y * obb.axis[1] + obb.r.z * obb.axis[2],
-		obb.pos - obb.r.x * obb.axis[0] + obb.r.y * obb.axis[1] - obb.r.z * obb.axis[2],
-		obb.pos - obb.r.x * obb.axis[0] + obb.r.y * obb.axis[1] + obb.r.z * obb.axis[2],
-		obb.pos + obb.r.x * obb.axis[0] - obb.r.y * obb.axis[1] - obb.r.z * obb.axis[2],
-		obb.pos + obb.r.x * obb.axis[0] - obb.r.y * obb.axis[1] + obb.r.z * obb.axis[2],
-		obb.pos + obb.r.x * obb.axis[0] + obb.r.y * obb.axis[1] - obb.r.z * obb.axis[2],
-		obb.pos + obb.r.x * obb.axis[0] + obb.r.y * obb.axis[1] + obb.r.z * obb.axis[2]};
-
-	const FrustumPlanes& frustumPlanes = App->camera->GetFrustumPlanes();
-	for (const Plane& plane : frustumPlanes.planes) {
-		// check box outside/inside of frustum
-		int out = 0;
-		for (int i = 0; i < 8; i++) {
-			out += (plane.normal.Dot(points[i]) - plane.d > 0 ? 1 : 0);
-		}
-		if (out == 8) return false;
-	}
-
-	// check frustum outside/inside box
-	int out;
-	out = 0;
-	for (int i = 0; i < 8; i++) out += ((frustumPlanes.points[i].x > aabb.MaxX()) ? 1 : 0);
-	if (out == 8) return false;
-	out = 0;
-	for (int i = 0; i < 8; i++) out += ((frustumPlanes.points[i].x < aabb.MinX()) ? 1 : 0);
-	if (out == 8) return false;
-	out = 0;
-	for (int i = 0; i < 8; i++) out += ((frustumPlanes.points[i].y > aabb.MaxY()) ? 1 : 0);
-	if (out == 8) return false;
-	out = 0;
-	for (int i = 0; i < 8; i++) out += ((frustumPlanes.points[i].y < aabb.MinY()) ? 1 : 0);
-	if (out == 8) return false;
-	out = 0;
-	for (int i = 0; i < 8; i++) out += ((frustumPlanes.points[i].z > aabb.MaxZ()) ? 1 : 0);
-	if (out == 8) return false;
-	out = 0;
-	for (int i = 0; i < 8; i++) out += ((frustumPlanes.points[i].z < aabb.MinZ()) ? 1 : 0);
-	if (out == 8) return false;
-
-	return true;
-}
-*/
-
 void ModuleRender::DrawGameObject(GameObject* gameObject) {
 	ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
 	ComponentView<ComponentMeshRenderer> meshes = gameObject->GetComponents<ComponentMeshRenderer>();
@@ -1266,13 +1231,13 @@ void ModuleRender::DrawGameObjectDepthPrepass(GameObject* gameObject) {
 	}
 }
 
-void ModuleRender::DrawGameObjectShadowPass(GameObject* gameObject) {
+void ModuleRender::DrawGameObjectShadowPass(GameObject* gameObject, unsigned int i) {
 	ComponentView<ComponentMeshRenderer> meshes = gameObject->GetComponents<ComponentMeshRenderer>();
 	ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
 	assert(transform);
 
 	for (ComponentMeshRenderer& mesh : meshes) {
-		mesh.DrawShadow(transform->GetGlobalMatrix());
+		mesh.DrawShadow(transform->GetGlobalMatrix(), i);
 	}
 }
 

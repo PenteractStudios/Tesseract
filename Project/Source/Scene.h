@@ -62,10 +62,14 @@ public:
 	std::vector<int> GetTriangles();  // Gets all the triangles from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
 	std::vector<float> GetNormals();
 
-	std::vector<GameObject*> GetCulledMeshes(const FrustumPlanes& planes, const int mask); // Gets all the game objects inside in the given frustum
+	std::vector<GameObject*> GetCulledMeshes(const FrustumPlanes& planes, const int mask); // Gets all the game objects inside the given frustum
+	std::vector<GameObject*> GetCulledShadowCasters(const FrustumPlanes& planes); // Gets all the shadow casters game objects inside the given frustum
 
 	void SetNavMesh(UID navMesh);
 	UID GetNavMesh();
+
+	void RemoveShadowCaster(const GameObject* go);
+	void AddShadowCaster(GameObject* go);
 
 public:
 	GameObject* root = nullptr;				// GameObject Root. Parent of everything and god among gods (Game Object Deity) :D.
@@ -115,6 +119,12 @@ public:
 
 	// ---- Nav Mesh ID parameters ---- //
 	UID navMeshId = 0;
+
+private:
+	bool InsideFrustumPlanes(const FrustumPlanes& planes, const GameObject* go); 
+
+private:
+	std::vector<GameObject*> shadowCasters;
 };
 
 template<class T>
