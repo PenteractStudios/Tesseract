@@ -31,7 +31,7 @@
 
 #include "Utils/Leaks.h"
 
-constexpr char* shadingMode[3] = {"Shaded", "Wireframe", "Ambient Occlusion"};
+constexpr char* shadingMode[5] = {"Shaded", "Wireframe", "Ambient Occlusion", "Normals", "Positions"};
 
 PanelScene::PanelScene()
 	: Panel("Scene", true) {}
@@ -279,7 +279,7 @@ void PanelScene::Update() {
 
 		// Capture input
 		if (ImGui::IsWindowFocused()) {
-			if (App->input->GetMouseButton(SDL_BUTTON_RIGHT) || App->input->GetKey(SDL_SCANCODE_LALT)) {
+			if (App->input->GetMouseButton(SDL_BUTTON_RIGHT) != KeyState::KS_IDLE || App->input->GetKey(SDL_SCANCODE_LALT) != KeyState::KS_IDLE) {
 				ImGuizmo::Enable(false);
 			} else {
 				ImGuizmo::Enable(true);

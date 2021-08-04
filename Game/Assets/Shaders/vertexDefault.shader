@@ -1,7 +1,7 @@
 --- vertVarCommon
 
 #define MAX_BONES 100
-#define MAX_SHADOW_FRUSTUMS 10
+#define MAX_CASCADES 10
 
 in layout(location=0) vec3 pos;
 in layout(location=1) vec3 norm;
@@ -14,19 +14,17 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
 
-uniform mat4 viewOrtoLights[MAX_SHADOW_FRUSTUMS];
-uniform mat4 projOrtoLights[MAX_SHADOW_FRUSTUMS];
-uniform float farPlaneDistances[MAX_SHADOW_FRUSTUMS];
 uniform unsigned int shadowCascadesCounter;
+uniform mat4 viewOrtoLights[MAX_CASCADES];
+uniform mat4 projOrtoLights[MAX_CASCADES];
 
 out vec3 fragNormal;
 out mat3 TBN;
 out vec3 fragPos;
 out vec2 uv;
 
-out unsigned int cascadesCounter;
-out vec4 fragPosLights[MAX_SHADOW_FRUSTUMS];
-out float farPlaneDistancesClipSpace[MAX_SHADOW_FRUSTUMS];
+out unsigned int cascadesCount;
+out vec4 fragPosLight[MAX_CASCADES];
 
 uniform mat4 palette[MAX_BONES];
 uniform bool hasBones;
@@ -52,11 +50,11 @@ void main()
     fragNormal = normalize(transpose(inverse(mat3(model))) * normal.xyz);
     uv = uvs;
     
-    for (unsigned int i = 0; i < shadowCascadesCounter; ++i) {
-        fragPosLights[i] = projOrtoLights[i] * viewOrtoLights[i] * model * position;
+    for(unsigned int i = 0; i < shadowCascadesCounter; ++i){
+        fragPosLight[i] = projOrtoLights[i] * viewOrtoLights[i] * model * position;
     }
 
-    cascadesCounter = shadowCascadesCounter;
+    cascadesCount = shadowCascadesCounter;
 
 }
 
@@ -87,9 +85,9 @@ void main()
     TBN = mat3(T, B, N);
     uv = uvs;
 
-    for (unsigned int i = 0; i < shadowCascadesCounter; ++i) {
-        fragPosLights[i] = projOrtoLights[i] * viewOrtoLights[i] * model * position;
+    for(unsigned int i = 0; i < shadowCascadesCounter; ++i){
+        fragPosLight[i] = projOrtoLights[i] * viewOrtoLights[i] * model * position;
     }
 
-    cascadesCounter = shadowCascadesCounter;
+    cascadesCount = shadowCascadesCounter;
 }

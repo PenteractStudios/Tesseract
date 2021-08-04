@@ -1,12 +1,12 @@
 #pragma once
 
-#include "AnimationInterpolation.h"
-#include "StateMachineEnum.h"
 #include "Utils/UID.h"
 #include "Resources/ResourceClip.h"
+#include "Animation/StateMachineEnum.h"
+#include "Animation/AnimationInterpolation.h"
 
-#include "Math/float3.h"
-#include "Math/Quat.h"
+#include <Math/float3.h>
+#include <Math/Quat.h>
 
 #include <string>
 #include <unordered_map>
@@ -25,4 +25,5 @@ namespace StateMachineManager {
 
 	bool CalculateAnimation(GameObject* gameObject, const GameObject& owner, StateMachineEnum stateMachineSelected, ComponentAnimation& componentAnimation, float3& position, Quat& rotation, bool& resetSecondaryStatemachine, bool principalEqualSecondary = false);
 
+	void ResetKeyEvents(ComponentAnimation& componentAnimation, const State& state);
 }; // namespace StateMachineManager

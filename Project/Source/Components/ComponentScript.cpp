@@ -1,6 +1,7 @@
 #include "ComponentScript.h"
 
 #include "Application.h"
+#include "GameObject.h"
 #include "Modules/ModuleProject.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleTime.h"
@@ -9,14 +10,10 @@
 #include "Resources/ResourceScript.h"
 #include "Resources/ResourcePrefab.h"
 #include "Resources/ResourceScene.h"
-#include "Utils/FileDialog.h"
 #include "Utils/ImGuiUtils.h"
 #include "Utils/Logging.h"
-#include "Scripting/Script.h"
-#include "GameObject.h"
 
 #include "Math/myassert.h"
-#include "imgui.h"
 #include "imgui_stdlib.h"
 
 #include "Utils/Leaks.h"
@@ -196,6 +193,13 @@ void ComponentScript::OnEditorUpdate() {
 				if (old != *memberPtr) {
 					changedValues[member.name] = std::pair<MemberType, MEMBER_VARIANT>(member.type, *memberPtr);
 				}
+				break;
+			}
+			case MemberType::SEPARATOR: {
+				ImGui::Text("");
+				ImGui::Separator();
+				ImGui::TextColored(App->editor->memberSeparatorTextColor, member.name.c_str());
+				ImGui::Text("");
 				break;
 			}
 			default:

@@ -96,19 +96,27 @@ void ModulePrograms::LoadShaders() {
 	skybox = new ProgramSkybox(CreateProgram(filePath, "vertCube", "gammaCorrection fragSkybox"));
 
 	// Unlit Shader
-	unlit = new ProgramUnlit(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragUnlit"));
+	unlit = new ProgramUnlit(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragFunctionEmptyDissolve fragUnlit"));
+
+	// Volumetric Light Shader
+	volumetricLight = new ProgramVolumetricLight(CreateProgram(filePath, "vertVolumetricLight", "gammaCorrection fragVolumetricLight"));
 
 	// General shaders
 	phongNotNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarSpecular fragMainPhong"));
 	phongNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarSpecular fragMainPhong"));
-	standardNotNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic"));
-	standardNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragMainMetallic"));
+	standardNotNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragFunctionEmptyDissolve fragMainMetallic"));
+	standardNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragFunctionEmptyDissolve fragMainMetallic"));
 	specularNotNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
 	specularNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
 
+	// Dissolve shaders. Maybe another one for Normals
+	dissolveStandard = new ProgramStandardDissolve(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragFunctionDissolveCommon fragFunctionDissolveFunction fragMainMetallic"));
+	dissolveUnlit = new ProgramUnlitDissolve(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragFunctionDissolveCommon fragFunctionDissolveFunction fragUnlit"));
+
 	// Depth Prepass Shaders
-	depthPrepass = new ProgramDepthPrepass(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragDepthPrepass"));
+	depthPrepass = new ProgramDepthPrepass(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragFunctionEmptyDissolveDepth fragDepthPrepass"));
 	depthPrepassConvertTextures = new ProgramDepthPrepassConvertTextures(CreateProgram(filePath, "vertScreen", "fragDepthPrepassConvertTextures"));
+	depthPrepassDissolve = new ProgramDepthPrepassDissolve(CreateProgram(filePath, "vertVarCommon vertMainCommon", "fragFunctionDissolveCommon fragFunctionDepthDissolve fragDepthPrepass"));
 
 	// SSAO Shaders
 	ssao = new ProgramSSAO(CreateProgram(filePath, "vertScreen", "fragSSAO"));
@@ -117,6 +125,9 @@ void ModulePrograms::LoadShaders() {
 	// Post-processing Shaders
 	postprocess = new ProgramPostprocess(CreateProgram(filePath, "vertScreen", "fragPostprocess"));
 	colorCorrection = new ProgramColorCorrection(CreateProgram(filePath, "vertScreen", "gammaCorrection fragColorCorrection"));
+
+	// Fog Shaders
+	heightFog = new ProgramHeightFog(CreateProgram(filePath, "vertScreen", "gammaCorrection fragHeightFog"));
 
 	// Shadow Shaders
 	shadowMap = CreateProgram(filePath, "vertDepthMap", "fragDepthMap");
@@ -145,6 +156,8 @@ void ModulePrograms::UnloadShaders() {
 
 	RELEASE(unlit);
 
+	RELEASE(volumetricLight);
+
 	RELEASE(phongNormal);
 	RELEASE(phongNotNormal);
 	RELEASE(standardNormal);
@@ -154,6 +167,10 @@ void ModulePrograms::UnloadShaders() {
 
 	RELEASE(depthPrepass);
 	RELEASE(depthPrepassConvertTextures);
+	RELEASE(depthPrepassDissolve);
+
+	RELEASE(dissolveStandard);
+	RELEASE(dissolveUnlit);
 
 	RELEASE(ssao);
 	RELEASE(blur);
@@ -161,6 +178,8 @@ void ModulePrograms::UnloadShaders() {
 	RELEASE(colorCorrection);
 
 	RELEASE(postprocess);
+
+	RELEASE(heightFog);
 
 	glDeleteProgram(shadowMap);
 

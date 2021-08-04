@@ -111,8 +111,8 @@ public:
 	bool drawColliders = false;
 	int culledTriangles = 0;
 
-	float3 ambientColor = {0.25f, 0.25f, 0.25f};  // Color of ambient Light
-	float3 clearColor = {0.1f, 0.1f, 0.1f}; // Color of the viewport between frames
+	float3 ambientColor = {0.25f, 0.25f, 0.25f}; // Color of ambient Light
+	float3 clearColor = {0.1f, 0.1f, 0.1f};		 // Color of the viewport between frames
 
 	// SSAO
 	bool ssaoActive = true;
@@ -143,6 +143,9 @@ public:
 	MSAA_SAMPLES_TYPE msaaSampleType = MSAA_SAMPLES_TYPE::MSAA_X4;
 	int msaaSamplesNumber[static_cast<int>(MSAA_SAMPLES_TYPE::COUNT)] = {2, 4, 8};
 	int msaaSampleSingle = 1;
+
+	bool chromaticAberrationActive = false;
+	float chromaticAberrationStrength = 1.0f;
 
 	LightFrustum lightFrustum;
 
@@ -177,10 +180,18 @@ private:
 	unsigned int indexDepthMapTexture = -1;
 	bool drawDepthMapTexture = false;
 	bool drawSSAOTexture = false;
+	bool drawNormalsTexture = false;
+	bool drawPositionsTexture = false;
 
 	std::vector<GameObject*> shadowGameObjects;			 // Vector of Shadow Casted GameObjects
 	std::vector<GameObject*> opaqueGameObjects;			 // Vector of Opaque GameObjects
 	std::map<float, GameObject*> transparentGameObjects; // Map with Transparent GameObjects
+
+	// ------- Kernels ------- //
+	std::vector<float> ssaoGaussKernel;
+	std::vector<float> smallGaussKernel;
+	std::vector<float> mediumGaussKernel;
+	std::vector<float> largeGaussKernel;
 
 	float3 ssaoKernel[SSAO_KERNEL_SIZE];
 	float3 randomTangents[RANDOM_TANGENTS_ROWS * RANDOM_TANGENTS_COLS];

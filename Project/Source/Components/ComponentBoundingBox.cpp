@@ -3,13 +3,11 @@
 
 #include "Globals.h"
 #include "Application.h"
-#include "Utils/Logging.h"
 #include "GameObject.h"
-#include "Components/ComponentTransform.h"
 #include "Modules/ModuleEditor.h"
+#include "Components/ComponentTransform.h"
 
 #include "debugdraw.h"
-#include "Math/float3x3.h"
 
 #include "Utils/Leaks.h"
 

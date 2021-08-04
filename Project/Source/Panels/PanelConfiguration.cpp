@@ -265,6 +265,10 @@ void PanelConfiguration::Update() {
 				}
 				ImGui::EndCombo();
 			}
+
+			ImGui::Separator();
+			ImGui::Checkbox("Activate Chromatic Aberration", &App->renderer->chromaticAberrationActive);
+			ImGui::DragFloat("Chromatic Aberration Strength", &App->renderer->chromaticAberrationStrength, 0.1f);
 		}
 
 		// Scene

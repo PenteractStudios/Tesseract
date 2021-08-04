@@ -1,16 +1,17 @@
 #include "StateMachineManager.h"
-#include <Application.h>
-#include <Modules/ModuleResources.h>
+
+#include "Animation/Transition.h"
+#include "Application.h"
 #include "Modules/ModuleTime.h"
-#include <Resources/ResourceStateMachine.h>
-#include "Transition.h"
-#include <Utils/UID.h>
-#include <Utils/Logging.h>
+#include "Modules/ModuleResources.h"
+#include "Resources/ResourceStateMachine.h"
+#include "Utils/UID.h"
+#include "Utils/Logging.h"
 #include "GameObject.h"
 #include "Components/ComponentAnimation.h"
 
 bool StateMachineManager::Contains(std::list<AnimationInterpolation>& animationInterpolations, const UID& id) {
-	for (const auto element : animationInterpolations) {
+	for (const auto &element : animationInterpolations) {
 		if (element.state->id == id) return true;
 	}
 	return false;
@@ -54,6 +55,8 @@ void StateMachineManager::SendTrigger(const std::string& trigger, StateMachineEn
 				componentAnimation.animationInterpolationsSecondary.pop_front();
 				componentAnimation.animationInterpolationsSecondary.push_front(AnimationInterpolation(&transition->target, componentAnimation.currentTimeStatesPrincipal[transition->target.id], 0, transition->interpolationDuration));
 			}
+
+			ResetKeyEvents(componentAnimation, transition->target);
 
 			(*currentState) = transition->target;
 		} else {
@@ -120,7 +123,7 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 		return result;
 	}
 
-	ResourceClip* clip = App->resources->GetResource<ResourceClip>(currentState.clipUid);	
+	ResourceClip* clip = App->resources->GetResource<ResourceClip>(currentState.clipUid);
 	if (!clip) {
 		return result;
 	}
@@ -145,9 +148,7 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 				resetSecondaryStatemachine = true;
 			}
 
-			result = AnimationController::GetTransform(*clip, (*currentTimeStates)[currentState.id], gameObject->name.c_str(), position, rotation, gameObject->name == (*resourceStateMachine->bones.begin()), componentAnimation);
-			if (gameObject->name == (*resourceStateMachine->bones.begin())) {
-			}
+			result = AnimationController::GetTransform(*clip, (*currentTimeStates)[currentState.id], gameObject->name.c_str(), position, rotation, componentAnimation);
 		}
 	}
 
@@ -200,4 +201,15 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 	}
 
 	return result;
+}
+
+void StateMachineManager::ResetKeyEvents(ComponentAnimation& componentAnimation, const State& state) {
+	//Resetting variables for keyevents
+	ResourceClip* clip = App->resources->GetResource<ResourceClip>(state.clipUid);
+	if (clip) {
+		for (auto& element : componentAnimation.listClipsKeyEvents[clip->GetId()]) {
+			element.second.sent = false;
+		}
+		componentAnimation.listClipsCurrentEventKeyFrames[clip->GetId()] = clip->beginIndex;
+	}
 }

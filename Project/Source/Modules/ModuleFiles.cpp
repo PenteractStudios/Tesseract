@@ -3,10 +3,11 @@
 #include "Globals.h"
 #include "Utils/Logging.h"
 
+#include "Math/MathFunc.h"
 #include "physfs.h"
 
 #include "Utils/Leaks.h"
-#include "Math/MathFunc.h"
+
 
 bool ModuleFiles::Init() {
 	PHYSFS_init(nullptr);

@@ -1,20 +1,16 @@
 #include "ComponentToggle.h"
 
-#include "Utils/Logging.h"
-#include "GameObject.h"
-#include "Components/UI/ComponentEventSystem.h"
-#include "Components/UI/ComponentImage.h"
-#include "Components/ComponentBoundingBox2D.h"
 #include "Application.h"
+#include "GameObject.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleInput.h"
-#include "Modules/ModuleTime.h"
-#include "Resources/ResourceScript.h"
-#include "Scripting/Script.h"
-#include "imgui.h"
+#include "Components/ComponentScript.h"
+#include "Components/UI/ComponentEventSystem.h"
+#include "Components/UI/ComponentImage.h"
 #include "Utils/ImGuiUtils.h"
+
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_IS_ON "IsOn"
@@ -152,7 +148,7 @@ void ComponentToggle::Update() {
 	bool gameControllerConnected = App->input->GetPlayerController(0);
 
 	if (clicked) {
-		if (!App->input->GetMouseButton(1) && !App->input->GetKey(SDL_SCANCODE_RETURN) && (!gameControllerConnected || gameControllerConnected && !App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A))) {
+		if (App->input->GetMouseButton(1) == KeyState::KS_IDLE && App->input->GetKey(SDL_SCANCODE_RETURN) == KeyState::KS_IDLE && (!gameControllerConnected || gameControllerConnected && App->input->GetPlayerController(0)->GetButtonState(SDL_CONTROLLER_BUTTON_A) == KeyState::KS_IDLE)) {
 			clicked = false;
 		}
 	}

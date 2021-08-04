@@ -6,7 +6,7 @@
 #include "Components/UI/ComponentCanvasRenderer.h"
 #include "Components/UI/ComponentImage.h"
 #include "Components/UI/ComponentTransform2D.h"
-#include "Components/ComponentBoundingBox2D.h"
+#include "Components/UI/ComponentBoundingBox2D.h"
 #include "Components/UI/ComponentEventSystem.h"
 #include "Components/UI/ComponentSelectable.h"
 #include "FileSystem/ModelImporter.h"

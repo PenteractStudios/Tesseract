@@ -29,6 +29,9 @@ uniform int smallMipLevel;
 uniform int mediumMipLevel;
 uniform int largeMipLevel;
 
+uniform int hasChromaticAberration;
+uniform float chromaticAberrationStrength;
+
 vec3 ACESFilm(in vec3 x) {
 	float a = 2.51f;
 	float b = 0.03f;
@@ -41,6 +44,16 @@ vec3 ACESFilm(in vec3 x) {
 void main()
 {
 	vec4 hdrColor = texture(scene, uv);
+
+	// Apply chromatic aberration
+	if (hasChromaticAberration == 1) {
+		vec2 d = ((uv - vec2(.5)) * .0075) * chromaticAberrationStrength;
+		vec3 color = vec3(texture(scene, uv - 0.0 * d).r,
+			texture(scene, uv - 1.0 * d).g,
+			texture(scene, uv - 2.0 * d).b);
+
+		hdrColor = vec4(color, hdrColor.a);
+	}
 
 	// Apply bloom
 	if (hasBloomBlur == 1) {

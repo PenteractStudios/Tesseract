@@ -7,8 +7,6 @@
 #include "Modules/ModuleEditor.h"
 #include "Components/ComponentTransform.h"
 
-#include "imgui.h"
-
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_MAXSPEED "MaxSpeed"

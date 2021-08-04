@@ -104,7 +104,7 @@ UpdateStatus ModuleCamera::Update() {
 	// Increase zoom and movement speed with shift
 	float finalMovementSpeed = movementSpeed;
 	float finalZoomSpeed = zoomSpeed;
-	if (App->input->GetKey(SDL_SCANCODE_LSHIFT) || App->input->GetKey(SDL_SCANCODE_RSHIFT)) {
+	if (App->input->GetKey(SDL_SCANCODE_LSHIFT) != KeyState::KS_IDLE || App->input->GetKey(SDL_SCANCODE_RSHIFT) != KeyState::KS_IDLE) {
 		finalMovementSpeed *= shiftMultiplier;
 		finalZoomSpeed *= shiftMultiplier;
 	}
@@ -115,8 +115,8 @@ UpdateStatus ModuleCamera::Update() {
 		Zoom(mouseWheelMotion * 0.1f * focusDistance);
 	}
 
-	if (App->input->GetKey(SDL_SCANCODE_LALT)) {
-		if (App->input->GetMouseButton(SDL_BUTTON_LEFT)) {
+	if (App->input->GetKey(SDL_SCANCODE_LALT) != KeyState::KS_IDLE) {
+		if (App->input->GetMouseButton(SDL_BUTTON_LEFT) != KeyState::KS_IDLE) {
 			WarpMouseOnEdges();
 
 			// Orbit with alt + left mouse button
@@ -125,13 +125,13 @@ UpdateStatus ModuleCamera::Update() {
 			Rotate(float3x3::RotateY(-mouseMotion.x * rotationSpeed * DEGTORAD));
 			vec newFocus = activeFrustum->Pos() + activeFrustum->Front().Normalized() * focusDistance;
 			Translate(oldFocus - newFocus);
-		} else if (App->input->GetMouseButton(SDL_BUTTON_RIGHT)) {
+		} else if (App->input->GetMouseButton(SDL_BUTTON_RIGHT) != KeyState::KS_IDLE) {
 			WarpMouseOnEdges();
 
 			// Zoom with alt + right mouse button
 			Zoom(mouseMotion.y * finalZoomSpeed * focusDistance);
 		}
-	} else if (App->input->GetMouseButton(SDL_BUTTON_RIGHT)) {
+	} else if (App->input->GetMouseButton(SDL_BUTTON_RIGHT) != KeyState::KS_IDLE) {
 		WarpMouseOnEdges();
 
 		// Rotate with mouse motion
@@ -139,41 +139,41 @@ UpdateStatus ModuleCamera::Update() {
 		Rotate(float3x3::RotateY(-mouseMotion.x * rotationSpeed * DEGTORAD));
 
 		// Move with WASD + QE
-		if (App->input->GetKey(SDL_SCANCODE_Q)) {
+		if (App->input->GetKey(SDL_SCANCODE_Q) != KeyState::KS_IDLE) {
 			Translate(activeFrustum->Up().Normalized() * -finalMovementSpeed * focusDistance * deltaTime);
 		}
-		if (App->input->GetKey(SDL_SCANCODE_E)) {
+		if (App->input->GetKey(SDL_SCANCODE_E) != KeyState::KS_IDLE) {
 			Translate(activeFrustum->Up().Normalized() * finalMovementSpeed * focusDistance * deltaTime);
 		}
-		if (App->input->GetKey(SDL_SCANCODE_W)) {
+		if (App->input->GetKey(SDL_SCANCODE_W) != KeyState::KS_IDLE) {
 			Translate(activeFrustum->Front().Normalized() * finalMovementSpeed * focusDistance * deltaTime);
 		}
-		if (App->input->GetKey(SDL_SCANCODE_S)) {
+		if (App->input->GetKey(SDL_SCANCODE_S) != KeyState::KS_IDLE) {
 			Translate(activeFrustum->Front().Normalized() * -finalMovementSpeed * focusDistance * deltaTime);
 		}
-		if (App->input->GetKey(SDL_SCANCODE_A)) {
+		if (App->input->GetKey(SDL_SCANCODE_A) != KeyState::KS_IDLE) {
 			Translate(activeFrustum->WorldRight().Normalized() * -finalMovementSpeed * focusDistance * deltaTime);
 		}
-		if (App->input->GetKey(SDL_SCANCODE_D)) {
+		if (App->input->GetKey(SDL_SCANCODE_D) != KeyState::KS_IDLE) {
 			Translate(activeFrustum->WorldRight().Normalized() * finalMovementSpeed * focusDistance * deltaTime);
 		}
 	} else {
 		// Focus camera around geometry with f key
-		if (App->input->GetKey(SDL_SCANCODE_F)) {
+		if (App->input->GetKey(SDL_SCANCODE_F) != KeyState::KS_IDLE) {
 			Focus(App->editor->selectedGameObject);
 		}
 
 		// Move with arrow keys
-		if (App->input->GetKey(SDL_SCANCODE_UP)) {
+		if (App->input->GetKey(SDL_SCANCODE_UP) != KeyState::KS_IDLE) {
 			Translate(activeFrustum->Front().Normalized() * finalMovementSpeed * focusDistance * deltaTime);
 		}
-		if (App->input->GetKey(SDL_SCANCODE_DOWN)) {
+		if (App->input->GetKey(SDL_SCANCODE_DOWN) != KeyState::KS_IDLE) {
 			Translate(activeFrustum->Front().Normalized() * -finalMovementSpeed * focusDistance * deltaTime);
 		}
-		if (App->input->GetKey(SDL_SCANCODE_LEFT)) {
+		if (App->input->GetKey(SDL_SCANCODE_LEFT) != KeyState::KS_IDLE) {
 			Translate(activeFrustum->WorldRight().Normalized() * -finalMovementSpeed * focusDistance * deltaTime);
 		}
-		if (App->input->GetKey(SDL_SCANCODE_RIGHT)) {
+		if (App->input->GetKey(SDL_SCANCODE_RIGHT) != KeyState::KS_IDLE) {
 			Translate(activeFrustum->WorldRight().Normalized() * finalMovementSpeed * focusDistance * deltaTime);
 		}
 	}

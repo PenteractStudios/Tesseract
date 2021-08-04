@@ -2,10 +2,6 @@
 
 #include "FileSystem/JsonValue.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sndfile.h>
-
 #define BUFFER_LEN 4096
 
 namespace AudioImporter {
