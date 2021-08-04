@@ -15,8 +15,8 @@ class ComponentTransform;
 class ParticleModule;
 class btRigidBody;
 class ParticleMotionState;
-class ImGradient;
 class Trail;
+class ImGradient;
 struct ImGradientMark;
 
 enum class WorldLayers;
@@ -55,9 +55,19 @@ enum class RandomMode {
 	CONST_MULT
 };
 
+enum class SubEmitterType {
+	BIRTH,
+	COLLISION,
+	DEATH,
+};
+
 class ComponentParticleSystem : public Component {
 public:
 	struct Particle {
+		~Particle() {
+			collidedWith.clear();
+		}
+
 		float3 initialPosition = float3(0.0f, 0.0f, 0.0f);
 		float3 position = float3(0.0f, 0.0f, 0.0f);
 		Quat rotation = Quat(0.0f, 0.0f, 0.0f, 0.0f);
@@ -72,9 +82,12 @@ public:
 		float gravityTime = 0.0f;
 
 		float3 emitterPosition = float3::zero;
-		float3 emitterDirection = float3::zero;
+		Quat emitterRotation = Quat::identity;
 
 		// Collider
+		bool hasCollided = false;
+		std::vector<GameObject*> collidedWith;
+
 		ParticleMotionState* motionState = nullptr;
 		btRigidBody* rigidBody = nullptr;
 		ComponentParticleSystem* emitter = nullptr;
@@ -83,18 +96,26 @@ public:
 		Trail* trail = nullptr;
 	};
 
+	struct SubEmitter {
+		UID gameObjectUID = 0;
+		ComponentParticleSystem* particleSystem = nullptr;
+		SubEmitterType subEmitterType = SubEmitterType::BIRTH;
+		float emitProbability = 1;
+	};
+
 	REGISTER_COMPONENT(ComponentParticleSystem, ComponentType::PARTICLE, false);
 
 	~ComponentParticleSystem();
 
 	void Init() override;
+	void Start() override;
 	void Update() override;
 	void DrawGizmos() override;
 	void OnEditorUpdate() override;
 	void Load(JsonValue jComponent) override;
 	void Save(JsonValue jComponent) const override;
 
-	void CreateParticles();
+	void AllocateParticlesMemory();
 	void SpawnParticles();
 	void SpawnParticleUnit();
 
@@ -107,6 +128,7 @@ public:
 	void InitParticleTrail(Particle* currentParticle);
 	void InitStartDelay();
 	void InitStartRate();
+	void InitSubEmitter(Particle* currentParticle, SubEmitterType subEmitterType);
 
 	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
 	void UpdateRotation(Particle* currentParticle);
@@ -114,10 +136,10 @@ public:
 	void UpdateLife(Particle* currentParticle);
 	void UpdateTrail(Particle* currentParticle);
 	void UpdateGravityDirection(Particle* currentParticle);
+	void UpdateSubEmitters();
 
 	TESSERACT_ENGINE_API void KillParticle(Particle* currentParticle);
 	void UndertakerParticle(bool force = false);
-	void DestroyParticlesColliders();
 	void Draw();
 	void ImGuiParticlesEffect();
 
@@ -145,11 +167,11 @@ public:
 	TESSERACT_ENGINE_API bool GetPlayOnAwake() const;
 
 	// Emision
-	TESSERACT_ENGINE_API bool GetIsAttachEmmitter() const;
+	TESSERACT_ENGINE_API bool GetIsAttachEmitter() const;
 	TESSERACT_ENGINE_API float2 GetParticlesPerSecond() const;
 
 	// Shape
-	TESSERACT_ENGINE_API ParticleEmitterType GetEmmitterType() const;
+	TESSERACT_ENGINE_API ParticleEmitterType GetEmitterType() const;
 	// -- Cone
 	TESSERACT_ENGINE_API float GetConeRadiusUp() const;
 	TESSERACT_ENGINE_API float GetConeRadiusDown() const;
@@ -184,6 +206,9 @@ public:
 
 	// Collision
 	TESSERACT_ENGINE_API bool GetCollision() const;
+
+	// Sub Emitter
+	TESSERACT_ENGINE_API bool GetIsSubEmitter();
 
 	// ----- SETTERS -----
 
@@ -241,12 +266,16 @@ public:
 	// Collision
 	TESSERACT_ENGINE_API void SetCollision(bool _collision);
 
+	// Sub Emitter
+	TESSERACT_ENGINE_API void SetIsSubEmitter(bool _isEmitter);
+
 public:
 	WorldLayers layer = (WorldLayers)(1 << 20); // = WorldLayers::EVERYHTING
 	int layerIndex = 5;
 	float radius = .25f;
 
 private:
+	// Common
 	Pool<Particle> particles;
 	std::vector<Particle*> deadParticles;
 	bool isPlaying = false;
@@ -257,6 +286,7 @@ private:
 	float restDelayTime = 0.f;
 	float restParticlesPerSecond = 0.0f;
 	float particlesCurrentFrame = 0;
+	std::vector<GameObject*> subEmittersGO;
 
 	// Gizmo
 	bool drawGizmo = true;
@@ -337,7 +367,7 @@ private:
 
 	// Trail
 	bool hasTrail = false;
-	// -- Trail Info
+
 	int nTextures = 1;
 	int trailQuads = 50;
 
@@ -348,9 +378,11 @@ private:
 	bool colorOverTrail = false;
 	UID textureTrailID = 0;
 
-	// -- Color Settings
-
 	ImGradient* gradientTrail = nullptr;
 	ImGradientMark* draggingGradientTrail = nullptr;
 	ImGradientMark* selectedGradientTrail = nullptr;
+
+	// Sub Emitter
+	bool isSubEmitter = false;
+	std::vector<SubEmitter*> subEmitters;
 };

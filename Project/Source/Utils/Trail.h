@@ -22,6 +22,8 @@ public:
 		float life = 0.0f;
 	};
 
+	~Trail();
+
 	void Init();
 	void Update(float3 mPosition);
 	void OnEditorUpdate();
@@ -67,6 +69,7 @@ public:
 	float quadLife = 10.0f;
 
 	bool isRendering = true;
+
 	// Color Settings
 	ImGradient* gradient = nullptr;
 	ImGradientMark* draggingGradient = nullptr;

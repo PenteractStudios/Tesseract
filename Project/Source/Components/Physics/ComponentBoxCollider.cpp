@@ -60,8 +60,7 @@ void ComponentBoxCollider::OnEditorUpdate() {
 		if (GetOwner().IsActive()) {
 			if (active) {
 				Enable();
-			}
-			else {
+			} else {
 				Disable();
 			}
 		}
@@ -154,7 +153,6 @@ void ComponentBoxCollider::Save(JsonValue jComponent) const {
 
 	JsonValue jFreeze = jComponent[JSON_TAG_FREEZE_ROTATION];
 	jFreeze = freezeRotation;
-
 }
 
 void ComponentBoxCollider::Load(JsonValue jComponent) {
@@ -182,15 +180,29 @@ void ComponentBoxCollider::Load(JsonValue jComponent) {
 }
 
 void ComponentBoxCollider::OnEnable() {
-	if(!rigidBody && App->time->HasGameStarted()) App->physics->CreateBoxRigidbody(this);
+	if (!rigidBody && App->time->HasGameStarted()) App->physics->CreateBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::OnDisable() {
-	if(rigidBody && App->time->HasGameStarted()) App->physics->RemoveBoxRigidbody(this);
+	if (rigidBody && App->time->HasGameStarted()) App->physics->RemoveBoxRigidbody(this);
 }
 
-void ComponentBoxCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance,
-	                                   ComponentParticleSystem::Particle* p) {
+void ComponentBoxCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance, ComponentParticleSystem::Particle* p) {
+	if (p != nullptr) {
+		bool alreadyCollided = false;
+		for (GameObject* collided : p->collidedWith) {
+			if (collided == &GetOwner()) {
+				alreadyCollided = true;
+			}
+		}
+		if (!alreadyCollided) {
+			p->collidedWith.push_back(&GetOwner());
+			p->hasCollided = true;
+		} else {
+			p->hasCollided = false;
+		}
+	}
+
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
 		if (script != nullptr) {

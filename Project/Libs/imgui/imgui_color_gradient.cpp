@@ -201,14 +201,14 @@ namespace ImGui {
 
 			draw_list->AddTriangleFilled(ImVec2(to, bar_pos.y + (height - 6)), ImVec2(to - 6, barBottom), ImVec2(to + 6, barBottom), IM_COL32(100, 100, 100, 255));
 
-			draw_list->AddRectFilled(ImVec2(to - 6, barBottom), ImVec2(to + 6, bar_pos.y + (height + 12)), IM_COL32(100, 100, 100, 255), 1.0f, 1);
+			draw_list->AddRectFilled(ImVec2(to - 6, barBottom), ImVec2(to + 6, bar_pos.y + (height + 12)), IM_COL32(100, 100, 100, 255), 1.0f, ImDrawFlags_Closed);
 
-			draw_list->AddRectFilled(ImVec2(to - 5, bar_pos.y + (height + 1)), ImVec2(to + 5, bar_pos.y + (height + 11)), IM_COL32(0, 0, 0, 255), 1.0f, 1);
+			draw_list->AddRectFilled(ImVec2(to - 5, bar_pos.y + (height + 1)), ImVec2(to + 5, bar_pos.y + (height + 11)), IM_COL32(0, 0, 0, 255), 1.0f, ImDrawFlags_Closed);
 
 			if (selectedMark == mark) {
 				draw_list->AddTriangleFilled(ImVec2(to, bar_pos.y + (height - 3)), ImVec2(to - 4, barBottom + 1), ImVec2(to + 4, barBottom + 1), IM_COL32(0, 255, 0, 255));
 
-				draw_list->AddRect(ImVec2(to - 5, bar_pos.y + (height + 1)), ImVec2(to + 5, bar_pos.y + (height + 11)), IM_COL32(0, 255, 0, 255), 1.0f, 1);
+				draw_list->AddRect(ImVec2(to - 5, bar_pos.y + (height + 1)), ImVec2(to + 5, bar_pos.y + (height + 11)), IM_COL32(0, 255, 0, 255), 1.0f, ImDrawFlags_Closed);
 			}
 
 			draw_list->AddRectFilledMultiColor(ImVec2(to - 3, bar_pos.y + (height + 3)), ImVec2(to + 3, bar_pos.y + (height + 9)), colorBU32, colorBU32, colorBU32, colorBU32);

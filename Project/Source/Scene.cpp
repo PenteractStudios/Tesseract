@@ -103,7 +103,7 @@ void Scene::DestroyGameObject(GameObject* gameObject) {
 	if (gameObject->isInQuadtree) {
 		quadtree.Remove(gameObject);
 	}
-	
+
 	bool selected = App->editor->selectedGameObject == gameObject;
 	if (selected) App->editor->selectedGameObject = nullptr;
 
@@ -318,9 +318,6 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		scriptComponents.Release(componentId);
 		break;
 	case ComponentType::PARTICLE:
-		for (ComponentParticleSystem& ps : particleComponents) {
-			ps.DestroyParticlesColliders();
-		}
 		particleComponents.Release(componentId);
 		break;
 	case ComponentType::TRAIL:

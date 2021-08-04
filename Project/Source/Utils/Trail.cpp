@@ -30,9 +30,13 @@
 #include <string>
 #include "Utils/Leaks.h"
 
+Trail::~Trail() {
+	RELEASE(gradient);
+}
+
 void Trail::Init() {
+	if (!gradient) gradient = new ImGradient();
 	glGenBuffers(1, &quadVBO);
-	//if (!gradient) gradient = new ImGradient();
 	EditTextureCoords();
 }
 
@@ -131,7 +135,6 @@ void Trail::OnEditorUpdate() {
 		ImGui::GradientEditor(gradient, draggingGradient, selectedGradient);
 	}
 
-	UID oldID = textureID;
 	ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
 	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
 	if (textureResource != nullptr) {
@@ -256,7 +259,7 @@ void Trail::EditTextureCoords() {
 
 	int nLine = 0;
 	float factor = nTextures / (float) trailQuads;
-	nRepeats = (trailQuads / nTextures) * 12;
+	nRepeats = (float) (trailQuads / nTextures) * 12;
 	for (int textureEdited = 0; textureEdited < nRepeats;) {
 		///vertice1
 		textureCords[textureEdited++] = nLine * factor;
