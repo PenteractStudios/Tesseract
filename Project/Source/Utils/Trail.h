@@ -3,8 +3,7 @@
 #include "Utils/Pool.h"
 #include "Utils/UID.h"
 
-#include "Math/float4.h"
-#include "Math/float2.h"
+#include "Math/float3.h"
 #include "Math/float4x4.h"
 #include "Math/Quat.h"
 
@@ -22,13 +21,11 @@ public:
 		float life = 0.0f;
 	};
 
-	~Trail();
-
 	void Init();
 	void Update(float3 mPosition);
 	void OnEditorUpdate();
 
-	void Draw();
+	void Draw(float4x4 modelMatrix);
 	void InsertVertex(Quad* currentQuad, float3 vertex);
 	void InsertTextureCoords(Quad* currentQuad);
 	void SpawnQuad(Quad* currentQuad);
@@ -69,6 +66,8 @@ public:
 	float quadLife = 10.0f;
 
 	bool isRendering = true;
+
+	bool flipTexture[2] = {false, false};
 
 	// Color Settings
 	ImGradient* gradient = nullptr;

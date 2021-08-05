@@ -373,10 +373,13 @@ struct ProgramTrail : Program {
 
 	int viewLocation = -1;
 	int projLocation = -1;
+	int modelLocation = -1;
 
 	int inputColorLocation = -1;
 	int hasDiffuseLocation = -1;
 	int diffuseMap = -1;
+	int xFlipLocation = -1;
+	int yFlipLocation = -1;
 };
 
 struct ProgramStandardDissolve : ProgramStandardMetallic {

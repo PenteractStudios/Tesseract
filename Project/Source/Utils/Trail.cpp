@@ -30,12 +30,7 @@
 #include <string>
 #include "Utils/Leaks.h"
 
-Trail::~Trail() {
-	RELEASE(gradient);
-}
-
 void Trail::Init() {
-	if (!gradient) gradient = new ImGradient();
 	glGenBuffers(1, &quadVBO);
 	EditTextureCoords();
 }
@@ -118,43 +113,52 @@ void Trail::OnEditorUpdate() {
 	if (ImGui::Checkbox("Render", &isRendering)) {
 		isStarted = false;
 	}
-	ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
+	ImGui::DragFloat("Width", &width, App->editor->dragSpeed2f, 0, inf);
 	if (ImGui::DragInt("Trail Quads", &trailQuads, 1.0f, 1, 50, "%d", ImGuiSliderFlags_AlwaysClamp)) {
 		if (nTextures > trailQuads) nTextures = trailQuads;
 		DeleteQuads();
 	}
-	if (ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, trailQuads, "%d", ImGuiSliderFlags_AlwaysClamp)) {
-		DeleteQuads();
-		EditTextureCoords();
-	}
-
 	ImGui::DragFloat("Quad Life", &quadLife, App->editor->dragSpeed2f, 1, inf);
 
+	ImGui::NewLine();
 	ImGui::Checkbox("Color Over Trail", &colorOverTrail);
 	if (colorOverTrail) {
 		ImGui::GradientEditor(gradient, draggingGradient, selectedGradient);
 	}
 
+	ImGui::NewLine();
 	ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
-	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
-	if (textureResource != nullptr) {
-		int width;
-		int height;
-		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
-		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
+	ImGui::Text("Flip: ");
+	ImGui::SameLine();
+	ImGui::Checkbox("X", &flipTexture[0]);
+	ImGui::SameLine();
+	ImGui::Checkbox("Y", &flipTexture[1]);
 
-		ImGui::NewLine();
-		ImGui::Separator();
-		ImGui::TextColored(App->editor->titleColor, "Texture Preview");
-		ImGui::TextWrapped("Size:");
-		ImGui::SameLine();
-		ImGui::TextWrapped("%d x %d", width, height);
-		ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
-		ImGui::Separator();
+	if (ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, trailQuads, "%d", ImGuiSliderFlags_AlwaysClamp)) {
+		DeleteQuads();
+		EditTextureCoords();
 	}
+
+	ImGui::NewLine();
+	ImGui::Indent();
+	if (ImGui::CollapsingHeader("Texture Preview")) {
+		ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
+		if (textureResource != nullptr) {
+			int width;
+			int height;
+			glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
+			glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
+
+			ImGui::TextWrapped("Size:");
+			ImGui::SameLine();
+			ImGui::TextWrapped("%d x %d", width, height);
+			ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
+		}
+	}
+	ImGui::Unindent();
 }
 
-void Trail::Draw() {
+void Trail::Draw(float4x4 modelMatrix) {
 	ProgramTrail* trailProgram = App->programs->trail;
 	if (!trailProgram) return;
 	unsigned glTexture = 0;
@@ -189,6 +193,7 @@ void Trail::Draw() {
 
 		glUniformMatrix4fv(trailProgram->viewLocation, 1, GL_TRUE, view->ptr());
 		glUniformMatrix4fv(trailProgram->projLocation, 1, GL_TRUE, proj->ptr());
+		glUniformMatrix4fv(trailProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
 
 		float4 color = float4::one;
 		if (colorOverTrail) {
@@ -199,6 +204,9 @@ void Trail::Draw() {
 		glUniform1i(trailProgram->diffuseMap, 0);
 		glUniform1i(trailProgram->hasDiffuseLocation, hasDiffuseMap);
 		glUniform4fv(trailProgram->inputColorLocation, 1, color.ptr());
+
+		glUniform1i(trailProgram->xFlipLocation, flipTexture[0] ? 1 : 0);
+		glUniform1i(trailProgram->yFlipLocation, flipTexture[1] ? 1 : 0);
 
 		glBindTexture(GL_TEXTURE_2D, glTexture);
 
