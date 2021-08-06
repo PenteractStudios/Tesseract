@@ -465,7 +465,9 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			ImGui::DragFloat("Ratio", &trailRatio, App->editor->dragSpeed2f, 0, 1, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 			if (ImGuiRandomMenu("Width", width, widthRM, App->editor->dragSpeed2f, 0, inf)) {
 				for (Particle& particle : particles) {
-					particle.trail->width = ObtainRandomValueFloat(width, widthRM);
+					if (particle.trail != nullptr) {
+						particle.trail->width = ObtainRandomValueFloat(width, widthRM);
+					}
 				}
 			}
 			ImGuiRandomMenu("Num Quads (Length)", trailQuads, trailQuadsRM, 1.0f, 1, 50, "%.1f", ImGuiSliderFlags_AlwaysClamp);
@@ -486,13 +488,17 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			ImGui::SameLine();
 			if (ImGui::Checkbox("X##flip_trail", &flipTrailTexture[0])) {
 				for (Particle& particle : particles) {
-					particle.trail->flipTexture[0] = flipTrailTexture[0];
+					if (particle.trail != nullptr) {
+						particle.trail->flipTexture[0] = flipTrailTexture[0];
+					}
 				}
 			}
 			ImGui::SameLine();
 			if (ImGui::Checkbox("Y##flip_trail", &flipTrailTexture[1])) {
 				for (Particle& particle : particles) {
-					particle.trail->flipTexture[1] = flipTrailTexture[1];
+					if (particle.trail != nullptr) {
+						particle.trail->flipTexture[1] = flipTrailTexture[1];
+					}
 				}
 			}
 			ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, inf, "%d", ImGuiSliderFlags_AlwaysClamp);
@@ -1169,7 +1175,7 @@ void ComponentParticleSystem::Update() {
 				if (!isRandomFrame) {
 					currentParticle.currentFrame += currentParticle.animationSpeed * App->time->GetDeltaTimeOrRealDeltaTime();
 				}
-				if (hasTrail) {
+				if (currentParticle.trail != nullptr) {
 					UpdateTrail(&currentParticle);
 				}
 
@@ -1447,7 +1453,7 @@ void ComponentParticleSystem::Draw() {
 			glDisable(GL_BLEND);
 			glDepthMask(GL_TRUE);
 
-			if (hasTrail) {
+			if (currentParticle.trail != nullptr) {
 				currentParticle.trail->Draw(float4x4::identity);
 			}
 			if (App->renderer->drawColliders) {
