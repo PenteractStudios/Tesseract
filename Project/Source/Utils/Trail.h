@@ -25,7 +25,7 @@ public:
 	void Update(float3 mPosition);
 	void OnEditorUpdate();
 
-	void Draw(float4x4 modelMatrix);
+	void Draw();
 	void InsertVertex(Quad* currentQuad, float3 vertex);
 	void InsertTextureCoords(Quad* currentQuad);
 	void SpawnQuad(Quad* currentQuad);
