@@ -367,17 +367,20 @@ private:
 
 	// Trail
 	bool hasTrail = false;
+	float trailRatio = 1;
 
+	RandomMode widthRM = RandomMode::CONST;
+	float2 width = {0.1f, 0.1f};
+	RandomMode trailQuadsRM = RandomMode::CONST;
+	float2 trailQuads = {50.0f, 50.0f};
+	RandomMode quadLifeRM = RandomMode::CONST;
+	float2 quadLife = {10.0f, 10.f};
+
+	UID textureTrailID = 0;
+	bool flipTrailTexture[2] = {false, false};
 	int nTextures = 1;
-	int trailQuads = 50;
-
-	float nRepeats = 1;
-	float width = 0.1f;
-	float quadLife = 10.0f;
 
 	bool colorOverTrail = false;
-	UID textureTrailID = 0;
-
 	ImGradient* gradientTrail = nullptr;
 	ImGradientMark* draggingGradientTrail = nullptr;
 	ImGradientMark* selectedGradientTrail = nullptr;

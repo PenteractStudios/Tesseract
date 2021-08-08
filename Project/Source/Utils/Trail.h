@@ -3,8 +3,7 @@
 #include "Utils/Pool.h"
 #include "Utils/UID.h"
 
-#include "Math/float4.h"
-#include "Math/float2.h"
+#include "Math/float3.h"
 #include "Math/float4x4.h"
 #include "Math/Quat.h"
 
@@ -21,8 +20,6 @@ public:
 		float quadInfo[30] = {0.0f};
 		float life = 0.0f;
 	};
-
-	~Trail();
 
 	void Init();
 	void Update(float3 mPosition);
@@ -69,6 +66,8 @@ public:
 	float quadLife = 10.0f;
 
 	bool isRendering = true;
+
+	bool flipTexture[2] = {false, false};
 
 	// Color Settings
 	ImGradient* gradient = nullptr;

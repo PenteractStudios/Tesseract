@@ -351,18 +351,20 @@ ProgramBillboard::ProgramBillboard(unsigned program_)
 
 ProgramTrail::ProgramTrail(unsigned program_)
 	: Program(program_) {
-	//modelLocation = glGetUniformLocation(program, "model");
 	viewLocation = glGetUniformLocation(program, "view");
 	projLocation = glGetUniformLocation(program, "proj");
+	modelLocation = glGetUniformLocation(program, "model");
 
 	inputColorLocation = glGetUniformLocation(program, "inputColor");
 	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
 	diffuseMap = glGetUniformLocation(program, "diffuseMap");
+
+	xFlipLocation = glGetUniformLocation(program, "flipX");
+	yFlipLocation = glGetUniformLocation(program, "flipY");
 }
 
-ProgramStandardDissolve::ProgramStandardDissolve(unsigned program) 
+ProgramStandardDissolve::ProgramStandardDissolve(unsigned program)
 	: ProgramStandardMetallic(program) {
-
 	scaleLocation = glGetUniformLocation(program, "dissolveScale");
 	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
 	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
@@ -371,16 +373,14 @@ ProgramStandardDissolve::ProgramStandardDissolve(unsigned program)
 
 ProgramUnlitDissolve::ProgramUnlitDissolve(unsigned program)
 	: ProgramUnlit(program) {
-
 	scaleLocation = glGetUniformLocation(program, "dissolveScale");
 	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
 	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
 	edgeSizeLocation = glGetUniformLocation(program, "edgeSize");
 }
 
-ProgramDepthPrepassDissolve::ProgramDepthPrepassDissolve(unsigned program) 
+ProgramDepthPrepassDissolve::ProgramDepthPrepassDissolve(unsigned program)
 	: ProgramDepthPrepass(program) {
-
 	scaleLocation = glGetUniformLocation(program, "dissolveScale");
 	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
 	offsetLocation = glGetUniformLocation(program, "dissolveOffset");

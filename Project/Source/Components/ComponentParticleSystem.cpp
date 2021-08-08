@@ -110,13 +110,16 @@
 
 // Trail
 #define JSON_TAG_HASTRAIL "HasTrail"
-#define JSON_TAG_TRAIL_TEXTURE_TEXTUREID "TextureTrailID"
-
-#define JSON_TAG_WIDTH "Width"
+#define JSON_TAG_TRAIL_RATIO "TrailRatio"
+#define JSON_TAG_TRAIL_WIDTH_RM "WidthRM"
+#define JSON_TAG_TRAIL_WIDTH "Width"
+#define JSON_TAG_TRAIL_QUADS_RM "TrailQuadsRM"
 #define JSON_TAG_TRAIL_QUADS "TrailQuads"
-#define JSON_TAG_TEXTURE_REPEATS "TextureRepeats"
-#define JSON_TAG_QUAD_LIFE "QuadLife"
-
+#define JSON_TAG_TRAIL_QUAD_LIFE_RM "QuadLifeRM"
+#define JSON_TAG_TRAIL_QUAD_LIFE "QuadLife"
+#define JSON_TAG_TRAIL_TEXTURE_TEXTUREID "TextureTrailID"
+#define JSON_TAG_TRAIL_FLIP_TEXTURE "FlipTrailTexture"
+#define JSON_TAG_TRAIL_TEXTURE_REPEATS "TextureRepeats"
 #define JSON_TAG_HAS_COLOR_OVER_TRAIL "HasColorOverTrail"
 #define JSON_TAG_NUMBER_COLORS_TRAIL "NumberColorsTrail"
 #define JSON_TAG_GRADIENT_COLORS_TRAIL "GradientColorsTrail"
@@ -130,13 +133,13 @@
 
 #define ITEM_SIZE 150
 
-static bool ImGuiRandomMenu(const char* name, float2& values, RandomMode& mode, float speed = 0.01f, float min = 0, float max = inf) {
+static bool ImGuiRandomMenu(const char* name, float2& values, RandomMode& mode, float speed = 0.01f, float min = 0, float max = inf, const char* format = "%.3f", ImGuiSliderFlags flags = 0) {
 	ImGui::PushID(name);
 	bool used = false;
 	if (mode == RandomMode::CONST) {
-		used = ImGui::DragFloat(name, &values[0], App->editor->dragSpeed2f, min, max);
+		used = ImGui::DragFloat(name, &values[0], App->editor->dragSpeed2f, min, max, format, flags);
 	} else if (mode == RandomMode::CONST_MULT) {
-		used = ImGui::DragFloat2(name, &values[0], App->editor->dragSpeed2f, min, max);
+		used = ImGui::DragFloat2(name, &values[0], App->editor->dragSpeed2f, min, max, format, flags);
 	}
 	if (used && values[0] > values[1]) {
 		values[1] = values[0];
@@ -459,13 +462,16 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		}
 		if (hasTrail) {
 			ImGui::Indent();
-			ImGui::DragFloat("Witdh", &width, App->editor->dragSpeed2f, 0, inf);
-
-			ImGui::DragInt("Trail Quads", &trailQuads, 1.0f, 1, 50, "%d", ImGuiSliderFlags_AlwaysClamp);
-
-			ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, trailQuads, "%d", ImGuiSliderFlags_AlwaysClamp);
-
-			ImGui::DragFloat("Quad Life", &quadLife, App->editor->dragSpeed2f, 1, inf);
+			ImGui::DragFloat("Ratio", &trailRatio, App->editor->dragSpeed2f, 0, 1, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+			if (ImGuiRandomMenu("Width", width, widthRM, App->editor->dragSpeed2f, 0, inf)) {
+				for (Particle& particle : particles) {
+					if (particle.trail != nullptr) {
+						particle.trail->width = ObtainRandomValueFloat(width, widthRM);
+					}
+				}
+			}
+			ImGuiRandomMenu("Num Quads (Length)", trailQuads, trailQuadsRM, 1.0f, 1, 50, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+			ImGuiRandomMenu("Quad Life", quadLife, quadLifeRM, App->editor->dragSpeed2f, 1, inf);
 
 			ImGui::Checkbox("Color Over Trail", &colorOverTrail);
 			if (colorOverTrail) {
@@ -478,6 +484,24 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 			ImGui::NewLine();
 			ImGui::ResourceSlot<ResourceTexture>("texture", &textureTrailID);
+			ImGui::Text("Flip: ");
+			ImGui::SameLine();
+			if (ImGui::Checkbox("X##flip_trail", &flipTrailTexture[0])) {
+				for (Particle& particle : particles) {
+					if (particle.trail != nullptr) {
+						particle.trail->flipTexture[0] = flipTrailTexture[0];
+					}
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Checkbox("Y##flip_trail", &flipTrailTexture[1])) {
+				for (Particle& particle : particles) {
+					if (particle.trail != nullptr) {
+						particle.trail->flipTexture[1] = flipTrailTexture[1];
+					}
+				}
+			}
+			ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, inf, "%d", ImGuiSliderFlags_AlwaysClamp);
 
 			ImGui::Unindent();
 		}
@@ -703,23 +727,36 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	//Trail
 	hasTrail = jComponent[JSON_TAG_HASTRAIL];
 
+	trailRatio = jComponent[JSON_TAG_TRAIL_RATIO];
+	widthRM = (RandomMode)(int) jComponent[JSON_TAG_TRAIL_WIDTH_RM];
+	JsonValue jWidth = jComponent[JSON_TAG_TRAIL_WIDTH];
+	width[0] = jWidth[0];
+	width[1] = jWidth[1];
+	trailQuadsRM = (RandomMode)(int) jComponent[JSON_TAG_TRAIL_QUADS_RM];
+	JsonValue jtrailQuads = jComponent[JSON_TAG_TRAIL_QUADS];
+	trailQuads[0] = jtrailQuads[0];
+	trailQuads[1] = jtrailQuads[1];
+	quadLifeRM = (RandomMode)(int) jComponent[JSON_TAG_TRAIL_QUAD_LIFE_RM];
+	JsonValue jQuadLife = jComponent[JSON_TAG_TRAIL_QUAD_LIFE];
+	quadLife[0] = jQuadLife[0];
+	quadLife[1] = jQuadLife[1];
+
 	textureTrailID = jComponent[JSON_TAG_TRAIL_TEXTURE_TEXTUREID];
 	if (textureTrailID != 0) {
 		App->resources->IncreaseReferenceCount(textureTrailID);
 	}
-
-	trailQuads = jComponent[JSON_TAG_TRAIL_QUADS];
-	quadLife = jComponent[JSON_TAG_QUAD_LIFE];
-	width = jComponent[JSON_TAG_WIDTH];
-	nTextures = jComponent[JSON_TAG_TEXTURE_REPEATS];
+	JsonValue jTrailFlip = jComponent[JSON_TAG_TRAIL_FLIP_TEXTURE];
+	flipTrailTexture[0] = jTrailFlip[0];
+	flipTrailTexture[1] = jTrailFlip[1];
+	nTextures = jComponent[JSON_TAG_TRAIL_TEXTURE_REPEATS];
 
 	colorOverTrail = jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL];
 	int trailNumberColors = jComponent[JSON_TAG_NUMBER_COLORS_TRAIL];
 	if (!gradientTrail) gradientTrail = new ImGradient();
 	gradientTrail->clearList();
-	JsonValue trailJColor = jComponent[JSON_TAG_GRADIENT_COLORS_TRAIL];
+	JsonValue jTrailColor = jComponent[JSON_TAG_GRADIENT_COLORS_TRAIL];
 	for (int i = 0; i < trailNumberColors; ++i) {
-		JsonValue jMark = trailJColor[i];
+		JsonValue jMark = jTrailColor[i];
 		gradientTrail->addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
 	}
 
@@ -851,25 +888,39 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 
 	// Trail
 	jComponent[JSON_TAG_HASTRAIL] = hasTrail;
-	jComponent[JSON_TAG_TRAIL_TEXTURE_TEXTUREID] = textureTrailID;
-	jComponent[JSON_TAG_TRAIL_QUADS] = trailQuads;
 
-	jComponent[JSON_TAG_WIDTH] = width;
-	jComponent[JSON_TAG_TEXTURE_REPEATS] = nTextures;
-	jComponent[JSON_TAG_QUAD_LIFE] = quadLife;
+	jComponent[JSON_TAG_TRAIL_RATIO] = trailRatio;
+	jComponent[JSON_TAG_TRAIL_WIDTH_RM] = (int) widthRM;
+	JsonValue jWidth = jComponent[JSON_TAG_TRAIL_WIDTH];
+	jWidth[0] = width[0];
+	jWidth[1] = width[1];
+	jComponent[JSON_TAG_TRAIL_QUADS_RM] = (int) trailQuadsRM;
+	JsonValue jTrailQuads = jComponent[JSON_TAG_TRAIL_QUADS];
+	jTrailQuads[0] = trailQuads[0];
+	jTrailQuads[1] = trailQuads[1];
+	jComponent[JSON_TAG_TRAIL_QUAD_LIFE_RM] = (int) quadLifeRM;
+	JsonValue jQuadLife = jComponent[JSON_TAG_TRAIL_QUAD_LIFE];
+	jQuadLife[0] = quadLife[0];
+	jQuadLife[1] = quadLife[1];
+
+	jComponent[JSON_TAG_TRAIL_TEXTURE_TEXTUREID] = textureTrailID;
+	JsonValue jTrailFlip = jComponent[JSON_TAG_TRAIL_FLIP_TEXTURE];
+	jTrailFlip[0] = flipTrailTexture[0];
+	jTrailFlip[1] = flipTrailTexture[1];
+	jComponent[JSON_TAG_TRAIL_TEXTURE_REPEATS] = nTextures;
 
 	jComponent[JSON_TAG_HAS_COLOR_OVER_TRAIL] = colorOverTrail;
 	int trailColor = 0;
-	JsonValue trailJColor = jComponent[JSON_TAG_GRADIENT_COLORS_TRAIL];
+	JsonValue jTrailColor = jComponent[JSON_TAG_GRADIENT_COLORS_TRAIL];
 	for (ImGradientMark* mark : gradientTrail->getMarks()) {
-		JsonValue jMask = jColor[trailJColor];
+		JsonValue jMask = jTrailColor[trailColor];
 		jMask[0] = mark->color[0];
 		jMask[1] = mark->color[1];
 		jMask[2] = mark->color[2];
 		jMask[3] = mark->color[3];
 		jMask[4] = mark->position;
 
-		color++;
+		trailColor++;
 	}
 	jComponent[JSON_TAG_NUMBER_COLORS_TRAIL] = gradientTrail->getMarks().size();
 
@@ -918,7 +969,7 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 		InitParticleSpeed(currentParticle);
 		InitParticleLife(currentParticle);
 		InitParticleAnimationTexture(currentParticle);
-		if (hasTrail) {
+		if (hasTrail && IsProbably(trailRatio)) {
 			InitParticleTrail(currentParticle);
 		}
 		currentParticle->emitterPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
@@ -1030,15 +1081,19 @@ void ComponentParticleSystem::InitParticleAnimationTexture(Particle* currentPart
 void ComponentParticleSystem::InitParticleTrail(Particle* currentParticle) {
 	currentParticle->trail = new Trail();
 	currentParticle->trail->Init();
-	currentParticle->trail->width = width;
-	currentParticle->trail->trailQuads = trailQuads;
-	currentParticle->trail->nTextures = nTextures;
-	currentParticle->trail->quadLife = quadLife;
+	currentParticle->trail->width = ObtainRandomValueFloat(width, widthRM);
+	currentParticle->trail->trailQuads = ObtainRandomValueFloat(trailQuads, trailQuadsRM);
+	currentParticle->trail->quadLife = ObtainRandomValueFloat(quadLife, quadLifeRM);
+
+	currentParticle->trail->textureID = textureTrailID;
+	currentParticle->trail->flipTexture[0] = flipTrailTexture[0];
+	currentParticle->trail->flipTexture[1] = flipTrailTexture[1];
+	currentParticle->trail->nTextures = (nTextures > currentParticle->trail->trailQuads ? currentParticle->trail->trailQuads : nTextures);
+
+	currentParticle->trail->colorOverTrail = colorOverTrail;
 	currentParticle->trail->gradient = gradientTrail;
 	currentParticle->trail->draggingGradient = draggingGradientTrail;
 	currentParticle->trail->selectedGradient = selectedGradientTrail;
-	currentParticle->trail->colorOverTrail = colorOverTrail;
-	currentParticle->trail->textureID = textureTrailID;
 }
 
 void ComponentParticleSystem::InitStartDelay() {
@@ -1120,7 +1175,7 @@ void ComponentParticleSystem::Update() {
 				if (!isRandomFrame) {
 					currentParticle.currentFrame += currentParticle.animationSpeed * App->time->GetDeltaTimeOrRealDeltaTime();
 				}
-				if (hasTrail) {
+				if (currentParticle.trail != nullptr) {
 					UpdateTrail(&currentParticle);
 				}
 
@@ -1398,7 +1453,7 @@ void ComponentParticleSystem::Draw() {
 			glDisable(GL_BLEND);
 			glDepthMask(GL_TRUE);
 
-			if (hasTrail) {
+			if (currentParticle.trail != nullptr) {
 				currentParticle.trail->Draw();
 			}
 			if (App->renderer->drawColliders) {
