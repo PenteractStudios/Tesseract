@@ -124,8 +124,7 @@ void ComponentTrail::Save(JsonValue jComponent) const {
 }
 
 void ComponentTrail::Draw() {
-	float4x4 modelMatrix = float4x4::identity;
-	trail->Draw(modelMatrix);
+	trail->Draw();
 }
 
 TESSERACT_ENGINE_API void ComponentTrail::Play() {

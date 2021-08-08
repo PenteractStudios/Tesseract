@@ -158,7 +158,7 @@ void Trail::OnEditorUpdate() {
 	ImGui::Unindent();
 }
 
-void Trail::Draw(float4x4 modelMatrix) {
+void Trail::Draw() {
 	ProgramTrail* trailProgram = App->programs->trail;
 	if (!trailProgram) return;
 	unsigned glTexture = 0;
@@ -188,12 +188,13 @@ void Trail::Draw(float4x4 modelMatrix) {
 		Frustum* frustum = App->camera->GetActiveCamera()->GetFrustum();
 		float4x4* proj = &App->camera->GetProjectionMatrix();
 		float4x4* view = &App->camera->GetViewMatrix();
+		float4x4 model = float4x4::identity;
 
 		glActiveTexture(GL_TEXTURE0);
 
 		glUniformMatrix4fv(trailProgram->viewLocation, 1, GL_TRUE, view->ptr());
 		glUniformMatrix4fv(trailProgram->projLocation, 1, GL_TRUE, proj->ptr());
-		glUniformMatrix4fv(trailProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
+		glUniformMatrix4fv(trailProgram->modelLocation, 1, GL_TRUE, model.ptr());
 
 		float4 color = float4::one;
 		if (colorOverTrail) {

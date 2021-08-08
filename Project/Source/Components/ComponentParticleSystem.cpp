@@ -1701,7 +1701,7 @@ void ComponentParticleSystem::Draw() {
 			glDepthMask(GL_TRUE);
 
 			if (currentParticle.trail != nullptr) {
-				currentParticle.trail->Draw(float4x4::identity);
+				currentParticle.trail->Draw();
 			}
 			if (App->renderer->drawColliders) {
 				dd::sphere(currentParticle.position, dd::colors::LawnGreen, currentParticle.radius);
