@@ -15,6 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Libs\imgui\curve_editor.h" />
     <ClInclude Include="Source\Components\ComponentFog.h" />
     <ClInclude Include="Source\Modules\ModuleConfiguration.h" />
     <ClInclude Include="Source\Components\ComponentObstacle.h" />

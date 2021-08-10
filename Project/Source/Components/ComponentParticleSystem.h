@@ -8,8 +8,10 @@
 #include "Math/float2.h"
 #include "Math/float3.h"
 #include "Math/Quat.h"
-
+#include "imgui.h"
 #include <vector>
+
+#define CURVE_SIZE 10
 
 class ComponentTransform;
 class ComponentLight;
@@ -53,7 +55,8 @@ enum class ParticleRenderAlignment {
 
 enum class RandomMode {
 	CONST,
-	CONST_MULT
+	CONST_MULT,
+	CURVE
 };
 
 enum class SubEmitterType {
@@ -150,6 +153,8 @@ public:
 	void UndertakerParticle(bool force = false);
 	void Draw();
 	void ImGuiParticlesEffect();
+	bool ImGuiRandomMenu(const char* name, RandomMode& mode, float2& values, ImVec2* curveValues, bool isEmitterDuration = true, float speed = 0.01f, float min = 0, float max = inf, const char* format = "%.3f", ImGuiSliderFlags flags = 0);
+	float ParticleLifeNormalized(Particle* currentParticle);
 
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Restart();
@@ -306,6 +311,12 @@ private:
 	// Gizmo
 	bool drawGizmo = true;
 
+	// Curve Editor
+	const char* nameCE = nullptr;
+	ImVec2* valuesCE = nullptr;
+	float2* axisYScaleCE = nullptr;
+	bool isEmitterDurationCE = false;
+
 	// Particle System
 	float duration = 5.0f; // Emitter duration
 	bool looping = false;
@@ -313,15 +324,20 @@ private:
 	float2 startDelay = {0.0f, 0.0f}; // Start Delay
 	RandomMode lifeRM = RandomMode::CONST;
 	float2 life = {5.0f, 5.0f}; // Start life
+	ImVec2 lifeCurve[CURVE_SIZE];
 	RandomMode speedRM = RandomMode::CONST;
 	float2 speed = {1.3f, 1.3f}; // Start speed
+	ImVec2 speedCurve[CURVE_SIZE];
 	RandomMode rotationRM = RandomMode::CONST;
 	float2 rotation = {0.0f, 0.0f}; // Start rotation
+	ImVec2 rotationCurve[CURVE_SIZE];
 	RandomMode scaleRM = RandomMode::CONST;
 	float2 scale = {1.0f, 1.0f}; // Start scale
+	ImVec2 scaleCurve[CURVE_SIZE];
 	bool reverseEffect = false;
 	RandomMode reverseDistanceRM = RandomMode::CONST;
 	float2 reverseDistance = {5.0f, 5.0f};
+	ImVec2 reverseDistanceCurve[CURVE_SIZE];
 	unsigned maxParticles = 100;
 	bool playOnAwake = false;
 
@@ -334,6 +350,7 @@ private:
 	bool gravityEffect = false;
 	RandomMode gravityFactorRM = RandomMode::CONST;
 	float2 gravityFactor = {0.0f, 0.0f};
+	ImVec2 gravityFactorCurve[CURVE_SIZE];
 
 	// Shape
 	ParticleEmitterType emitterType = ParticleEmitterType::CONE;
@@ -348,11 +365,13 @@ private:
 	bool rotationOverLifetime = false;
 	RandomMode rotationFactorRM = RandomMode::CONST;
 	float2 rotationFactor = {0.0f, 0.0f};
+	ImVec2 rotationFactorCurve[CURVE_SIZE];
 
 	// Size over Lifetime
 	bool sizeOverLifetime = false;
 	RandomMode scaleFactorRM = RandomMode::CONST;
 	float2 scaleFactor = {0.0f, 0.0f};
+	ImVec2 scaleFactorCurve[CURVE_SIZE];
 
 	// Color over Lifetime
 	bool colorOverLifetime = false;
@@ -412,8 +431,10 @@ private:
 	float3 lightOffset = float3::zero;
 	RandomMode intensityMultiplierRM = RandomMode::CONST;
 	float2 intensityMultiplier = {1.0f, 1.0f};
+	ImVec2 intensityMultiplierCurve[CURVE_SIZE];
 	RandomMode rangeMultiplierRM = RandomMode::CONST;
 	float2 rangeMultiplier = {1.0f, 1.0f};
+	ImVec2 rangeMultiplierCurve[CURVE_SIZE];
 	bool useParticleColor = false;
 	bool useCustomColor = false;
 	ImGradient* gradientLight = nullptr;
