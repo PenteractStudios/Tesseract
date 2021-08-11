@@ -21,6 +21,7 @@
 #include "FileSystem/TextureImporter.h"
 #include "Utils/ImGuiUtils.h"
 
+#include "Geometry/Sphere.h"
 #include "assimp/mesh.h"
 #include "GL/glew.h"
 
@@ -566,8 +567,12 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		} else if (light.lightType == LightType::POINT) {
 			if (light.IsActive()) {
 				float3 meshPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+				const AABB& meshAABB = GetOwner().GetComponent<ComponentBoundingBox>()->GetWorldAABB();
 				float3 lightPosition = light.GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+
 				float distance = Distance(meshPosition, lightPosition);
+				if (!meshAABB.Intersects(Sphere(lightPosition, light.radius))) continue;
+
 				if (pointLightsArraySize < POINT_LIGHTS) {
 					pointDistancesArray[pointLightsArraySize] = distance;
 					pointLightsArray[pointLightsArraySize] = &light;
@@ -608,8 +613,12 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		} else if (light.lightType == LightType::SPOT) {
 			if (light.IsActive()) {
 				float3 meshPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+				const AABB& meshAABB = GetOwner().GetComponent<ComponentBoundingBox>()->GetWorldAABB();
 				float3 lightPosition = light.GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+
 				float distance = Distance(meshPosition, lightPosition);
+				if (!meshAABB.Intersects(Sphere(lightPosition, light.radius))) continue;
+
 				if (spotLightsArraySize < SPOT_LIGHTS) {
 					spotDistancesArray[spotLightsArraySize] = distance;
 					spotLightsArray[spotLightsArraySize] = &light;
