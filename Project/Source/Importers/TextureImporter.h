@@ -1,7 +1,7 @@
 #pragma once
 
-#include "FileSystem/JsonValue.h"
-#include "FileSystem/ImportOptions.h"
+#include "Utils/JsonValue.h"
+#include "Importers/ImportOptions.h"
 #include "Resources/ResourceTexture.h"
 
 class TextureImportOptions : public ImportOptions {

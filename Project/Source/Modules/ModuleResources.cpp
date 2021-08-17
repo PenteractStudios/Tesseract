@@ -3,7 +3,9 @@
 #include "Globals.h"
 #include "Application.h"
 #include "Utils/Logging.h"
+#include "Utils/PathUtils.h"
 #include "Utils/FileDialog.h"
+#include "Utils/JsonValue.h"
 #include "Resources/ResourcePrefab.h"
 #include "Resources/ResourceMaterial.h"
 #include "Resources/ResourceMesh.h"
@@ -18,20 +20,19 @@
 #include "Resources/ResourceClip.h"
 #include "Resources/ResourceAudioClip.h"
 #include "Resources/ResourceNavMesh.h"
-#include "FileSystem/JsonValue.h"
-#include "FileSystem/SceneImporter.h"
-#include "FileSystem/ModelImporter.h"
-#include "FileSystem/PrefabImporter.h"
-#include "FileSystem/TextureImporter.h"
-#include "FileSystem/MaterialImporter.h"
-#include "FileSystem/SkyboxImporter.h"
-#include "FileSystem/ShaderImporter.h"
-#include "FileSystem/AudioImporter.h"
-#include "FileSystem/StateMachineImporter.h"
-#include "FileSystem/ClipImporter.h"
-#include "FileSystem/FontImporter.h"
-#include "FileSystem/ScriptImporter.h"
-#include "FileSystem/NavMeshImporter.h"
+#include "Importers/SceneImporter.h"
+#include "Importers/ModelImporter.h"
+#include "Importers/PrefabImporter.h"
+#include "Importers/TextureImporter.h"
+#include "Importers/MaterialImporter.h"
+#include "Importers/SkyboxImporter.h"
+#include "Importers/ShaderImporter.h"
+#include "Importers/AudioImporter.h"
+#include "Importers/StateMachineImporter.h"
+#include "Importers/ClipImporter.h"
+#include "Importers/FontImporter.h"
+#include "Importers/ScriptImporter.h"
+#include "Importers/NavMeshImporter.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleInput.h"
@@ -112,7 +113,7 @@ UpdateStatus ModuleResources::Update() {
 	// Copy dropped file to assets folder
 	const char* droppedFilePath = App->input->GetDroppedFilePath();
 	if (droppedFilePath != nullptr) {
-		std::string newFilePath = std::string(ASSETS_PATH) + "/" + FileDialog::GetFileNameAndExtension(droppedFilePath);
+		std::string newFilePath = std::string(ASSETS_PATH) + "/" + PathUtils::GetFileNameAndExtension(droppedFilePath);
 		FileDialog::Copy(droppedFilePath, newFilePath.c_str());
 		App->input->ReleaseDroppedFilePath();
 	}
@@ -178,7 +179,7 @@ void ModuleResources::RecreateResources(JsonValue jMeta, const char* filePath) {
 
 bool ModuleResources::ImportAssetByExtension(JsonValue jMeta, const char* filePath) {
 	bool validExtension = true;
-	std::string extension = FileDialog::GetFileExtension(filePath);
+	std::string extension = PathUtils::GetFileExtension(filePath);
 
 	Resource* resource = nullptr;
 	if (extension == SCENE_EXTENSION) {
@@ -415,7 +416,7 @@ void ModuleResources::UpdateAsync() {
 void ModuleResources::CheckForNewAssetsRecursive(const char* path, AssetCache& assetCache, AssetFolder& parentFolder) {
 	for (std::string& file : App->files->GetFilesInFolder(path)) {
 		std::string filePath = std::string(path) + "/" + file;
-		std::string extension = FileDialog::GetFileExtension(file.c_str());
+		std::string extension = PathUtils::GetFileExtension(file.c_str());
 		if (App->files->IsDirectory(filePath.c_str())) {
 			parentFolder.folders.push_back(AssetFolder(filePath.c_str()));
 			assetCache.foldersMap[filePath] = &parentFolder.folders.back();
@@ -438,7 +439,7 @@ void ModuleResources::ImportLibrary() {
 		if (App->files->IsDirectory(libraryFilePath.c_str())) {
 			for (std::string file : App->files->GetFilesInFolder(libraryFilePath.c_str())) {
 				std::string filePath = libraryFilePath + "/" + file;
-				std::string extension = FileDialog::GetFileExtension(file.c_str());
+				std::string extension = PathUtils::GetFileExtension(file.c_str());
 				if (extension != META_EXTENSION) {
 					ImportLibraryResource(filePath.c_str());
 				}
@@ -461,7 +462,7 @@ void ModuleResources::ImportLibraryResource(const char* filePath) {
 	std::string resourceName = jResourceMeta[JSON_TAG_NAME];
 
 	ResourceType type = GetResourceTypeFromName(resourceTypeName.c_str());
-	std::string fileName = FileDialog::GetFileName(filePath);
+	std::string fileName = PathUtils::GetFileName(filePath);
 	UID id = SDL_strtoull(fileName.c_str(), nullptr, 10);
 
 	Resource* resource = CreateResourceByType(type, resourceName.c_str(), "", id);
@@ -576,7 +577,7 @@ void ModuleResources::LoadResource(Resource* resource) {
 
 void ModuleResources::LoadImportOptions(std::unique_ptr<ImportOptions>& importOptions, const char* filePath) {
 	if (importOptions == nullptr) {
-		std::string extension = FileDialog::GetFileExtension(filePath);
+		std::string extension = PathUtils::GetFileExtension(filePath);
 		if (extension == JPG_TEXTURE_EXTENSION || extension == PNG_TEXTURE_EXTENSION || extension == TIF_TEXTURE_EXTENSION || extension == DDS_TEXTURE_EXTENSION || extension == TGA_TEXTURE_EXTENSION) {
 			// Texture files
 			importOptions.reset(new TextureImportOptions());

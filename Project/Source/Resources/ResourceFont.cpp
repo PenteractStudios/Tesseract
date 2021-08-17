@@ -2,7 +2,7 @@
 
 #include "Utils/Logging.h"
 #include "Utils/MSTimer.h"
-#include "Utils/FileDialog.h"
+#include "Utils/PathUtils.h"
 
 #include "ft2build.h"
 #include "freetype/freetype.h"
@@ -72,7 +72,7 @@ void ResourceFont::Load() {
 	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
 
-	name = FileDialog::GetFileName(filePath.c_str());
+	name = PathUtils::GetFileName(filePath.c_str());
 }
 
 void ResourceFont::Unload() {

@@ -3,7 +3,7 @@
 #include "Globals.h"
 #include "Application.h"
 #include "Utils/Logging.h"
-#include "FileSystem/SceneImporter.h"
+#include "Importers/SceneImporter.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleFiles.h"

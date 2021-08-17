@@ -7,7 +7,7 @@
 #include "Utils/Logging.h"
 #include "Utils/MSTimer.h"
 #include "Utils/Buffer.h"
-#include "Utils/FileDialog.h"
+#include "Utils/PathUtils.h"
 #include "ImporterCommon.h"
 
 #include "rapidjson/error/en.h"
@@ -46,7 +46,7 @@ bool ClipImporter::ImportClip(const char* filePath, JsonValue jMeta) {
 
 	// Create clip resource
 	unsigned resourceIndex = 0;
-	std::unique_ptr<ResourceClip> clip = ImporterCommon::CreateResource<ResourceClip>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+	std::unique_ptr<ResourceClip> clip = ImporterCommon::CreateResource<ResourceClip>(PathUtils::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
 	// Save resource meta file
 	bool saved = ImporterCommon::SaveResourceMetaFile(clip.get());

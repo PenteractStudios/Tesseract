@@ -8,7 +8,7 @@
 #include "Resources/ResourceAudioClip.h"
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
-#include "Utils/FileDialog.h"
+#include "Utils/PathUtils.h"
 #include "ImporterCommon.h"
 
 #include <sndfile.h>
@@ -45,7 +45,7 @@ bool AudioImporter::ImportAudio(const char* filePath, JsonValue jMeta) {
 
 	// Create audio clip resource
 	unsigned resourceIndex = 0;
-	std::unique_ptr<ResourceAudioClip> audioClip = ImporterCommon::CreateResource<ResourceAudioClip>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+	std::unique_ptr<ResourceAudioClip> audioClip = ImporterCommon::CreateResource<ResourceAudioClip>(PathUtils::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
 	// Save resource meta file
 	bool saved = ImporterCommon::SaveResourceMetaFile(audioClip.get());

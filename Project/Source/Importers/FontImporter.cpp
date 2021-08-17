@@ -7,7 +7,7 @@
 #include "Utils/MSTimer.h"
 #include "Utils/Buffer.h"
 #include "Utils/Logging.h"
-#include "Utils/FileDialog.h"
+#include "Utils/PathUtils.h"
 #include "ImporterCommon.h"
 
 #include "Utils/Leaks.h"
@@ -29,7 +29,7 @@ bool FontImporter::ImportFont(const char* filePath, JsonValue jMeta) {
 
 	// Create font resource
 	unsigned resourceIndex = 0;
-	std::unique_ptr<ResourceFont> font = ImporterCommon::CreateResource<ResourceFont>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+	std::unique_ptr<ResourceFont> font = ImporterCommon::CreateResource<ResourceFont>(PathUtils::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
 	// Save resource meta file
 	bool saved = ImporterCommon::SaveResourceMetaFile(font.get());

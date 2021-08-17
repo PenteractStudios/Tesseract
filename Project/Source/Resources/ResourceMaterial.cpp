@@ -4,13 +4,13 @@
 
 #include "GameObject.h"
 #include "Modules/ModuleFiles.h"
-#include "FileSystem/JsonValue.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleScene.h"
 #include "ResourceTexture.h"
-#include "Utils/FileDialog.h"
+#include "Utils/JsonValue.h"
+#include "Utils/PathUtils.h"
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
 #include "Utils/ImGuiUtils.h"
@@ -19,9 +19,9 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/document.h"
-
 #include "imgui.h"
 #include "imgui_internal.h"
+
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_SHADER "ShaderType"
@@ -227,7 +227,7 @@ void ResourceMaterial::UpdateMask() {
 
 void ResourceMaterial::OnEditorUpdate() {
 	// Save Material
-	if (FileDialog::GetFileExtension(GetAssetFilePath().c_str()) == MATERIAL_EXTENSION) {
+	if (PathUtils::GetFileExtension(GetAssetFilePath().c_str()) == MATERIAL_EXTENSION) {
 		if (ImGui::Button("Save Material")) {
 			SaveToFile(GetAssetFilePath().c_str());
 		}

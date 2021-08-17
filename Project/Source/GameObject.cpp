@@ -9,7 +9,7 @@
 #include "Components/UI/ComponentBoundingBox2D.h"
 #include "Components/UI/ComponentEventSystem.h"
 #include "Components/UI/ComponentSelectable.h"
-#include "FileSystem/ModelImporter.h"
+#include "Importers/ModelImporter.h"
 #include "Modules/ModuleInput.h"
 #include "Utils/Logging.h"
 

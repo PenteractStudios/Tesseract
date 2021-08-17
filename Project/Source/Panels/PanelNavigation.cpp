@@ -1,18 +1,15 @@
 #include "PanelNavigation.h"
 
-#include "Navigation/NavMesh.h"
-
+#include "Globals.h"
 #include "Application.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleNavigation.h"
+#include "Importers/NavMeshImporter.h"
+#include "Navigation/NavMesh.h"
 
 #include "imgui.h"
 #include "IconsFontAwesome5.h"
 #include "IconsForkAwesome.h"
-#include "FileSystem/NavMeshImporter.h"
-
-#include "Globals.h"
-
 #include <string>
 
 #include "Utils/Leaks.h"

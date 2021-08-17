@@ -5,7 +5,7 @@
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleScene.h"
 #include "Components/UI/ComponentTransform2D.h"
-#include "FileSystem/JsonValue.h"
+#include "Utils/JsonValue.h"
 
 #include "Utils/Leaks.h"
 

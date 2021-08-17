@@ -1,18 +1,19 @@
-#include "StateMachinGenerator.h"
+#include "StateMachineGenerator.h"
 
 #include "Application.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleTime.h"
-#include <Utils/FileDialog.h>
+#include "Utils/PathUtils.h"
+#include "Utils/Logging.h"
+#include "Utils/Buffer.h"
+#include "Utils/JsonValue.h"
+
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/document.h"
 
-#include "Utils/Logging.h"
-#include "Utils/Buffer.h"
 #include "Utils/Leaks.h"
-#include <FileSystem/JsonValue.h>
 
 #define JSON_TAG_ID "Id"
 #define JSON_TAG_RESOURCES "Resources"
@@ -33,7 +34,7 @@
 #define JSON_TAG_INTERPOLATION_DURATION "Interpolation"
 
 bool StateMachineGenerator::GenerateStateMachine(const char* filePath) {
-	std::string filePath2 = FileDialog::GetFileFolder(filePath);
+	std::string filePath2 = PathUtils::GetFileFolder(filePath);
 
 	std::vector<std::string> files = App->files->GetFilesInFolder(filePath2.c_str());
 	if (files.empty()) {
@@ -42,7 +43,7 @@ bool StateMachineGenerator::GenerateStateMachine(const char* filePath) {
 
 	std::unordered_map<UID, std::string> listClips;
 	for (std::string file : files) {
-		std::string clipMeta = FileDialog::GetFileExtension(FileDialog::GetFileName(file.c_str()).c_str()) + FileDialog::GetFileExtension(file.c_str());
+		std::string clipMeta = PathUtils::GetFileExtension(PathUtils::GetFileName(file.c_str()).c_str()) + PathUtils::GetFileExtension(file.c_str());
 		if (clipMeta == ".clip.meta") {
 			std::string pathCipMeta = filePath2 + "/" + file;
 			Buffer<char> buffer = App->files->Load(pathCipMeta.c_str());
@@ -57,7 +58,7 @@ bool StateMachineGenerator::GenerateStateMachine(const char* filePath) {
 			JsonValue jStateMachine(document, document);
 
 			UID clipUid = jStateMachine[JSON_TAG_RESOURCES][0][JSON_TAG_ID];
-			std::string name = FileDialog::GetFileName(FileDialog::GetFileName(pathCipMeta.c_str()).c_str());
+			std::string name = PathUtils::GetFileName(PathUtils::GetFileName(pathCipMeta.c_str()).c_str());
 			LOG("GenerateStateMachine; name: %s, UID: %lld", name.c_str(), clipUid);
 			listClips.insert(std::make_pair(clipUid, name));
 		}
@@ -142,8 +143,8 @@ void StateMachineGenerator::SaveToFile(const char* filePath, std::unordered_map<
 	bool saved = App->files->Save(filePath, stringBuffer.GetString(), stringBuffer.GetSize());
 
 	// Save Second State Machin
-	std::string nameSecondary = FileDialog::GetFileName(filePath) + "Secondary";
-	std::string filePathSecondary = FileDialog::GetFileFolder(filePath) + "/" + nameSecondary + ".stma";
+	std::string nameSecondary = PathUtils::GetFileName(filePath) + "Secondary";
+	std::string filePathSecondary = PathUtils::GetFileFolder(filePath) + "/" + nameSecondary + ".stma";
 	saved &= App->files->Save(filePathSecondary.c_str(), stringBuffer.GetString(), stringBuffer.GetSize());
 
 	if (!saved) {

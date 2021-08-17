@@ -5,8 +5,8 @@
 
 #include "Resources/ResourceClip.h"
 #include "Modules/ModuleFiles.h"
-#include "FileSystem/JsonValue.h"
-#include "FileSystem/StateMachinGenerator.h"
+#include "Utils/JsonValue.h"
+#include "Importers/StateMachineGenerator.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleEditor.h"

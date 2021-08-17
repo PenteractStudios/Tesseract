@@ -3,8 +3,8 @@
 #include "Application.h"
 #include "GameObject.h"
 #include "Utils/Logging.h"
-#include "Utils/FileDialog.h"
-#include "FileSystem/TextureImporter.h"
+#include "Utils/PathUtils.h"
+#include "Importers/TextureImporter.h"
 #include "Resources/ResourceScene.h"
 #include "Components/ComponentTransform.h"
 #include "Components/ComponentBoundingBox.h"
@@ -61,7 +61,7 @@ bool SceneImporter::ImportScene(const char* filePath, JsonValue jMeta) {
 
 	// Create scene resource
 	unsigned resourceIndex = 0;
-	std::unique_ptr<ResourceScene> scene = ImporterCommon::CreateResource<ResourceScene>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+	std::unique_ptr<ResourceScene> scene = ImporterCommon::CreateResource<ResourceScene>(PathUtils::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
 	// Save resource meta file
 	bool saved = ImporterCommon::SaveResourceMetaFile(scene.get());

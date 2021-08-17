@@ -7,8 +7,8 @@
 #include "Utils/UID.h"
 #include "Utils/AssetCache.h"
 #include "Resources/Resource.h"
-#include "FileSystem/JsonValue.h"
-#include "FileSystem/ImportOptions.h"
+#include "Utils/JsonValue.h"
+#include "Importers/ImportOptions.h"
 #include "TesseractEvent.h"
 
 #include <string>

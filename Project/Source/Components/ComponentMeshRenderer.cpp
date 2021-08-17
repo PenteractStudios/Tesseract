@@ -18,7 +18,7 @@
 #include "Components/ComponentSkyBox.h"
 #include "Components/ComponentBoundingBox.h"
 #include "Components/ComponentAnimation.h"
-#include "FileSystem/TextureImporter.h"
+#include "Importers/TextureImporter.h"
 #include "Utils/ImGuiUtils.h"
 
 #include "Geometry/Sphere.h"

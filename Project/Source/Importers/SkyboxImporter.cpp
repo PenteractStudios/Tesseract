@@ -8,7 +8,7 @@
 #include "Utils/Logging.h"
 #include "Utils/MSTimer.h"
 #include "Utils/Buffer.h"
-#include "Utils/FileDialog.h"
+#include "Utils/PathUtils.h"
 #include "ImporterCommon.h"
 
 #include "IL/il.h"
@@ -32,7 +32,7 @@ bool SkyboxImporter::ImportSkybox(const char* filePath, JsonValue jMeta) {
 
 	// Create skybox resource
 	unsigned resourceIndex = 0;
-	std::unique_ptr<ResourceSkybox> skybox = ImporterCommon::CreateResource<ResourceSkybox>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+	std::unique_ptr<ResourceSkybox> skybox = ImporterCommon::CreateResource<ResourceSkybox>(PathUtils::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
 	// Save resource meta file
 	bool saved = ImporterCommon::SaveResourceMetaFile(skybox.get());

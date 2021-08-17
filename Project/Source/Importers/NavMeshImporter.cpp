@@ -2,10 +2,10 @@
 
 #include "Application.h"
 #include "Modules/ModuleFiles.h"
-#include "FileSystem/ImporterCommon.h"
+#include "Importers/ImporterCommon.h"
 #include "Resources/ResourceNavMesh.h"
 #include "Navigation/NavMesh.h"
-#include "Utils/FileDialog.h"
+#include "Utils/PathUtils.h"
 #include "Utils/Logging.h"
 #include "Utils/MSTimer.h"
 #include "Utils/Buffer.h"
@@ -28,7 +28,7 @@ bool NavMeshImporter::ImportNavMesh(const char* filePath, JsonValue jMeta) {
 
 	// Create NavMesh resource
 	unsigned resourceIndex = 0;
-	std::unique_ptr<ResourceNavMesh> navMesh = ImporterCommon::CreateResource<ResourceNavMesh>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+	std::unique_ptr<ResourceNavMesh> navMesh = ImporterCommon::CreateResource<ResourceNavMesh>(PathUtils::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
 	// Save resource meta file
 	bool saved = ImporterCommon::SaveResourceMetaFile(navMesh.get());

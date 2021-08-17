@@ -3,16 +3,16 @@
   <ItemGroup>
     <ClCompile Include="Source\LightFrustum.cpp" />
     <ClCompile Include="Source\Components\ComponentAgent.cpp" />
-    <ClCompile Include="Source\FileSystem\NavMeshImporter.cpp" />
+    <ClCompile Include="Source\Importers\NavMeshImporter.cpp" />
     <ClCompile Include="Source\Panels\PanelDebug.cpp" />
-    <ClCompile Include="Source\FileSystem\ImportOptions.cpp" />
-    <ClCompile Include="Source\FileSystem\ImporterCommon.cpp" />
+    <ClCompile Include="Source\Importers\ImportOptions.cpp" />
+    <ClCompile Include="Source\Importers\ImporterCommon.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentProgressBar.cpp" />
     <ClCompile Include="Source\Components\ComponentParticleSystem.cpp" />
     <ClCompile Include="Source\Components\ComponentTrail.cpp" />
     <ClCompile Include="Source\MaskType.cpp" />
-    <ClCompile Include="Source\FileSystem\ClipImporter.cpp" />
-    <ClCompile Include="Source\FileSystem\StateMachineImporter.cpp" />
+    <ClCompile Include="Source\Importers\ClipImporter.cpp" />
+    <ClCompile Include="Source\Importers\StateMachineImporter.cpp" />
     <ClCompile Include="Source\Panels\PanelResource.cpp" />
     <ClCompile Include="Source\Resources\ResourceClip.cpp" />
     <ClCompile Include="Libs\recastnavigation-1.5.1\DebugUtils\DebugDraw.cpp" />
@@ -59,12 +59,12 @@
     <ClCompile Include="Source\Utils\MotionState.cpp" />
     <ClCompile Include="Source\Components\Physics\ComponentSphereCollider.cpp" />
     <ClCompile Include="Source\Modules\ModulePhysics.cpp" />
-    <ClCompile Include="Source\FileSystem\AudioImporter.cpp" />
+    <ClCompile Include="Source\Importers\AudioImporter.cpp" />
     <ClCompile Include="Libs\imgui\imgui_stdlib.cpp" />
     <ClCompile Include="Source\Resources\ResourceAudioClip.cpp" />
     <ClCompile Include="Source\Components\ComponentType.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentText.cpp" />
-    <ClCompile Include="Source\FileSystem\PrefabImporter.cpp" />
+    <ClCompile Include="Source\Importers\PrefabImporter.cpp" />
     <ClCompile Include="Source\Scripting\Member.cpp" />
     <ClCompile Include="Source\TesseractEvent.cpp" />
     <ClCompile Include="Source\Resources\ResourceFont.cpp" />
@@ -72,7 +72,7 @@
     <ClCompile Include="Source\Components\UI\ComponentToggle.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentCanvas.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentCanvasRenderer.cpp" />
-    <ClCompile Include="Source\FileSystem\FontImporter.cpp" />
+    <ClCompile Include="Source\Importers\FontImporter.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentImage.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentTransform2D.cpp" />
     <ClCompile Include="Source\GameplaySystems.cpp" />
@@ -117,11 +117,11 @@
     <ClCompile Include="Libs\PhysicsFS\physfs_unicode.c" />
     <ClCompile Include="Source\Components\ComponentSkyBox.cpp" />
     <ClCompile Include="Source\Resources\ResourceSkybox.cpp" />
-    <ClCompile Include="Source\FileSystem\SkyboxImporter.cpp" />
-    <ClCompile Include="Source\FileSystem\MaterialImporter.cpp" />
-    <ClCompile Include="Source\FileSystem\ModelImporter.cpp" />
-    <ClCompile Include="Source\FileSystem\ScriptImporter.cpp" />
-    <ClCompile Include="Source\FileSystem\ShaderImporter.cpp" />
+    <ClCompile Include="Source\Importers\SkyboxImporter.cpp" />
+    <ClCompile Include="Source\Importers\MaterialImporter.cpp" />
+    <ClCompile Include="Source\Importers\ModelImporter.cpp" />
+    <ClCompile Include="Source\Importers\ScriptImporter.cpp" />
+    <ClCompile Include="Source\Importers\ShaderImporter.cpp" />
     <ClCompile Include="Source\Resources\Resource.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\Application.cpp" />
@@ -142,9 +142,9 @@
     <ClCompile Include="Source\Utils\MSTimer.cpp" />
     <ClCompile Include="Source\Utils\PerformanceTimer.cpp" />
     <ClCompile Include="Source\Utils\UID.cpp" />
-    <ClCompile Include="Source\FileSystem\JsonValue.cpp" />
-    <ClCompile Include="Source\FileSystem\SceneImporter.cpp" />
-    <ClCompile Include="Source\FileSystem\TextureImporter.cpp" />
+    <ClCompile Include="Source\Utils\JsonValue.cpp" />
+    <ClCompile Include="Source\Importers\SceneImporter.cpp" />
+    <ClCompile Include="Source\Importers\TextureImporter.cpp" />
     <ClCompile Include="Source\GameObject.cpp" />
     <ClCompile Include="Source\Modules\Module.cpp" />
     <ClCompile Include="Source\Modules\ModuleCamera.cpp" />
@@ -226,7 +226,7 @@
     <ClCompile Include="Libs\MathGeoLib\Math\TransformOps.cpp" />
     <ClCompile Include="Libs\MathGeoLib\Time\Clock.cpp" />
     <ClCompile Include="Source\StateMachineManager.cpp" />
-    <ClCompile Include="Source\FileSystem\StateMachinGenerator.cpp" />
+    <ClCompile Include="Source\Importers\StateMachineGenerator.cpp" />
     <ClCompile Include="Source\Components\ComponentAnimation.cpp" />
     <ClCompile Include="Libs\PhysicsFS\physfs.c" />
     <ClCompile Include="Libs\PhysicsFS\physfs_archiver_7z.c" />
@@ -262,7 +262,6 @@
     <ClCompile Include="Source\GameObject.cpp" />
     <ClCompile Include="Source\AnimationController.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentToggle.cpp" />
-    <ClCompile Include="Source\Components\ComponentBoundingBox2D.cpp" />
     <ClCompile Include="Source\FileSystem\FontImporter.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentImage.cpp" />
     <ClCompile Include="Source\Modules\ModuleUserInterface.cpp" />
@@ -377,6 +376,7 @@
     <ClCompile Include="Source\Modules\ModuleConfiguration.cpp" />
     <ClCompile Include="Source\Utils\Trail.cpp" />
     <ClCompile Include="Source\Components\ComponentFog.cpp" />
+    <ClCompile Include="Source\Utils\PathUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\LightFrustum.h" />
@@ -410,20 +410,20 @@
     <ClInclude Include="Libs\recastnavigation-1.5.1\Recast\RecastAlloc.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\Recast\RecastAssert.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\Recast\SampleInterfaces.h" />
-    <ClInclude Include="Source\FileSystem\NavMeshImporter.h" />
+    <ClInclude Include="Source\Importers\NavMeshImporter.h" />
     <ClInclude Include="Source\Resources\ResourceNavMesh.h" />
     <ClInclude Include="Source\Navigation\NavMesh.h" />
     <ClInclude Include="Source\Panels\PanelNavigation.h" />
     <ClInclude Include="Source\Modules\ModuleNavigation.h" />
     <ClInclude Include="Source\Panels\PanelDebug.h" />
-    <ClInclude Include="Source\FileSystem\ImportOptions.h" />
-    <ClInclude Include="Source\FileSystem\ImporterCommon.h" />
+    <ClInclude Include="Source\Importers\ImportOptions.h" />
+    <ClInclude Include="Source\Importers\ImporterCommon.h" />
     <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />
     <ClInclude Include="Source\Components\ComponentParticleSystem.h" />
     <ClInclude Include="Source\Components\ComponentTrail.h" />
     <ClInclude Include="Source\MaskType.h" />
-    <ClInclude Include="Source\FileSystem\ClipImporter.h" />
-    <ClInclude Include="Source\FileSystem\StateMachineImporter.h" />
+    <ClInclude Include="Source\Importers\ClipImporter.h" />
+    <ClInclude Include="Source\Importers\StateMachineImporter.h" />
     <ClInclude Include="Source\AnimationInterpolation.h" />
     <ClInclude Include="Source\Resources\ResourceClip.h" />
     <ClInclude Include="Source\State.h" />
@@ -434,7 +434,7 @@
     <ClInclude Include="Source\Utils\MotionState.h" />
     <ClInclude Include="Source\Components\Physics\ComponentSphereCollider.h" />
     <ClInclude Include="Source\Modules\ModulePhysics.h" />
-    <ClInclude Include="Source\FileSystem\AudioImporter.h" />
+    <ClInclude Include="Source\Importers\AudioImporter.h" />
     <ClInclude Include="Libs\imgui\imgui_stdlib.h" />
     <ClInclude Include="Source\Resources\ResourceAudioClip.h" />
     <ClInclude Include="Source\Components\UI\ComponentText.h" />
@@ -484,7 +484,7 @@
     <ClInclude Include="Libs\freetype\include\freetype\tttables.h" />
     <ClInclude Include="Libs\freetype\include\freetype\tttags.h" />
     <ClInclude Include="Libs\freetype\include\ft2build.h" />
-    <ClInclude Include="Source\FileSystem\PrefabImporter.h" />
+    <ClInclude Include="Source\Importers\PrefabImporter.h" />
     <ClInclude Include="Source\Resources\ResourceFont.h" />
     <ClInclude Include="Source\Scripting\Member.h" />
     <ClInclude Include="Source\StateMachineEnum.h" />
@@ -493,7 +493,7 @@
     <ClInclude Include="Source\UI\Interfaces\IPointerExitHandler.h" />
     <ClInclude Include="Source\Components\UI\ComponentCanvas.h" />
     <ClInclude Include="Source\Components\UI\ComponentCanvasRenderer.h" />
-    <ClInclude Include="Source\FileSystem\FontImporter.h" />
+    <ClInclude Include="Source\Importers\FontImporter.h" />
     <ClInclude Include="Source\Components\UI\ComponentSlider.h" />
     <ClInclude Include="Source\Components\UI\ComponentImage.h" />
     <ClInclude Include="Source\Components\UI\ComponentTransform2D.h" />
@@ -541,11 +541,11 @@
     <ClInclude Include="Libs\PhysicsFS\physfs_platforms.h" />
     <ClInclude Include="Source\Components\ComponentSkyBox.h" />
     <ClInclude Include="Source\Resources\ResourceSkybox.h" />
-    <ClInclude Include="Source\FileSystem\SkyboxImporter.h" />
-    <ClInclude Include="Source\FileSystem\MaterialImporter.h" />
-    <ClInclude Include="Source\FileSystem\ModelImporter.h" />
-    <ClInclude Include="Source\FileSystem\ScriptImporter.h" />
-    <ClInclude Include="Source\FileSystem\ShaderImporter.h" />
+    <ClInclude Include="Source\Importers\SkyboxImporter.h" />
+    <ClInclude Include="Source\Importers\MaterialImporter.h" />
+    <ClInclude Include="Source\Importers\ModelImporter.h" />
+    <ClInclude Include="Source\Importers\ScriptImporter.h" />
+    <ClInclude Include="Source\Importers\ShaderImporter.h" />
     <ClInclude Include="Source\Resources\ResourceScene.h" />
     <ClInclude Include="Source\Resources\ResourceScript.h" />
     <ClInclude Include="Source\Resources\ResourceShader.h" />
@@ -567,9 +567,9 @@
     <ClInclude Include="Source\Utils\PerformanceTimer.h" />
     <ClInclude Include="Source\Utils\Pool.h" />
     <ClInclude Include="Source\Utils\Quadtree.h" />
-    <ClInclude Include="Source\FileSystem\JsonValue.h" />
-    <ClInclude Include="Source\FileSystem\SceneImporter.h" />
-    <ClInclude Include="Source\FileSystem\TextureImporter.h" />
+    <ClInclude Include="Source\Utils\JsonValue.h" />
+    <ClInclude Include="Source\Importers\SceneImporter.h" />
+    <ClInclude Include="Source\Importers\TextureImporter.h" />
     <ClInclude Include="Source\GameObject.h" />
     <ClInclude Include="Source\Resources\ResourceMaterial.h" />
     <ClInclude Include="Source\Resources\ResourceMesh.h" />
@@ -699,7 +699,7 @@
     <ClInclude Include="Source\Utils\PoolMap.h" />
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
     <ClInclude Include="Source\StateMachineManager.h" />
-    <ClInclude Include="Source\FileSystem\StateMachinGenerator.h" />
+    <ClInclude Include="Source\Importers\StateMachineGenerator.h" />
     <ClInclude Include="Source\LightFrustum.h" />
     <ClInclude Include="Source\Panels\PanelResource.h" />
     <ClInclude Include="Source\Components\UI\ComponentProgressBar.h" />
@@ -732,6 +732,7 @@
     <ClInclude Include="Source\Modules\ModuleConfiguration.h" />
     <ClInclude Include="Source\Utils\Trail.h" />
     <ClInclude Include="Source\Components\ComponentFog.h" />
+    <ClInclude Include="Source\Utils\PathUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />

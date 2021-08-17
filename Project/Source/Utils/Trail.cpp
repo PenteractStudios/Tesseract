@@ -14,8 +14,8 @@
 #include "Panels/PanelScene.h"
 #include "Resources/ResourceTexture.h"
 #include "Resources/ResourceShader.h"
-#include "FileSystem/TextureImporter.h"
-#include "FileSystem/JsonValue.h"
+#include "Importers/TextureImporter.h"
+#include "Utils/JsonValue.h"
 #include "Utils/ImGuiUtils.h"
 #include "Utils/Logging.h"
 
@@ -26,8 +26,8 @@
 #include "debugdraw.h"
 #include "rapidjson/rapidjson.h"
 #include "imgui_color_gradient.h"
-
 #include <string>
+
 #include "Utils/Leaks.h"
 
 void Trail::Init() {

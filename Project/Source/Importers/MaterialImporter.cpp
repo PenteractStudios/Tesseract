@@ -7,7 +7,7 @@
 #include "Utils/Logging.h"
 #include "Utils/MSTimer.h"
 #include "Utils/Buffer.h"
-#include "Utils/FileDialog.h"
+#include "Utils/PathUtils.h"
 #include "ImporterCommon.h"
 
 #include "rapidjson/error/en.h"
@@ -60,7 +60,7 @@ bool MaterialImporter::ImportMaterial(const char* filePath, JsonValue jMeta) {
 
 	// Create material resource
 	unsigned resourceIndex = 0;
-	std::unique_ptr<ResourceMaterial> material = ImporterCommon::CreateResource<ResourceMaterial>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+	std::unique_ptr<ResourceMaterial> material = ImporterCommon::CreateResource<ResourceMaterial>(PathUtils::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
 	// Save resource meta file
 	bool saved = ImporterCommon::SaveResourceMetaFile(material.get());

@@ -5,7 +5,7 @@
 #include "Application.h"
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
-#include "Utils/FileDialog.h"
+#include "Utils/PathUtils.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleTime.h"
@@ -33,7 +33,7 @@ bool ShaderImporter::ImportShader(const char* filePath, JsonValue jMeta) {
 
 	// Create shader resource
 	unsigned resourceIndex = 0;
-	std::unique_ptr<ResourceShader> shader = ImporterCommon::CreateResource<ResourceShader>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+	std::unique_ptr<ResourceShader> shader = ImporterCommon::CreateResource<ResourceShader>(PathUtils::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
 	// Save resource meta file
 	bool saved = ImporterCommon::SaveResourceMetaFile(shader.get());

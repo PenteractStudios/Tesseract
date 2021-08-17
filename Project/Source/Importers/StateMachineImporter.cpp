@@ -3,7 +3,7 @@
 #include "Utils/Logging.h"
 #include "Utils/MSTimer.h"
 #include "Utils/Buffer.h"
-#include "Utils/FileDialog.h"
+#include "Utils/PathUtils.h"
 #include "Application.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleFiles.h"
@@ -47,7 +47,7 @@ bool StateMachineImporter::ImportStateMachine(const char* filePath, JsonValue jM
 
 	// Create state machine resource
 	unsigned resourceIndex = 0;
-	std::unique_ptr<ResourceStateMachine> stateMachine = ImporterCommon::CreateResource<ResourceStateMachine>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+	std::unique_ptr<ResourceStateMachine> stateMachine = ImporterCommon::CreateResource<ResourceStateMachine>(PathUtils::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
 	// Save resource meta file
 	bool saved = ImporterCommon::SaveResourceMetaFile(stateMachine.get());

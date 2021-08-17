@@ -2,7 +2,8 @@
 
 #include "Resource.h"
 
-#include "FileSystem/JsonValue.h"
+#include "Utils/JsonValue.h"
+
 class ResourceSkybox : public Resource {
 public:
 	REGISTER_RESOURCE(ResourceSkybox, ResourceType::SKYBOX);

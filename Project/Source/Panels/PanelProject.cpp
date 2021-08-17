@@ -3,7 +3,7 @@
 #include "Globals.h"
 #include "Application.h"
 #include "Utils/Logging.h"
-#include "Utils/FileDialog.h"
+#include "Utils/PathUtils.h"
 #include "GameObject.h"
 #include "Components/ComponentTransform.h"
 #include "Components/ComponentBoundingBox.h"
@@ -55,7 +55,7 @@ void PanelProject::Update() {
 }
 
 void PanelProject::UpdateFoldersRecursive(const AssetFolder& folder) {
-	std::string name = std::string(ICON_FA_FOLDER " ") + FileDialog::GetFileName(folder.path.c_str());
+	std::string name = std::string(ICON_FA_FOLDER " ") + PathUtils::GetFileName(folder.path.c_str());
 
 	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
 	if (folder.folders.empty()) flags |= ImGuiTreeNodeFlags_Leaf;
@@ -85,7 +85,7 @@ void PanelProject::UpdateAssets() {
 	AssetFolder* folder = it->second;
 
 	for (const AssetFile& assetFile : folder->files) {
-		std::string name = std::string(ICON_FA_BOX " ") + FileDialog::GetFileNameAndExtension(assetFile.path.c_str());
+		std::string name = std::string(ICON_FA_BOX " ") + PathUtils::GetFileNameAndExtension(assetFile.path.c_str());
 
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf;
 		bool isSelected = App->editor->selectedAsset == assetFile.path;

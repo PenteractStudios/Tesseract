@@ -19,7 +19,7 @@
 #include "Resources/ResourcePrefab.h"
 #include "Resources/ResourceMaterial.h"
 #include "Resources/ResourceClip.h"
-#include "FileSystem/SceneImporter.h"
+#include "Importers/SceneImporter.h"
 #include "Utils/Logging.h"
 #include "TesseractEvent.h"
 

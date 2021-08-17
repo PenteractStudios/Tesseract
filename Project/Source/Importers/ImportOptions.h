@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FileSystem/JsonValue.h"
+#include "Utils/JsonValue.h"
 
 /* Creating import options for a new asset type:
 *    1. Extend the ImportOptions class

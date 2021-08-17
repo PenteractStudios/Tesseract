@@ -6,8 +6,8 @@
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
 #include "Utils/MSTimer.h"
-#include "Utils/FileDialog.h"
-#include "FileSystem/PrefabImporter.h"
+#include "Utils/PathUtils.h"
+#include "Importers/PrefabImporter.h"
 #include "Components/ComponentTransform.h"
 #include "Components/ComponentBoundingBox.h"
 #include "Components/ComponentMeshRenderer.h"
@@ -532,7 +532,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 	timer.Start();
 
 	// Check for extension support
-	std::string extension = FileDialog::GetFileExtension(filePath);
+	std::string extension = PathUtils::GetFileExtension(filePath);
 	if (!aiIsExtensionSupported(extension.c_str())) {
 		LOG("Extension is not supported by assimp: \"%s\".", extension);
 		return false;
@@ -577,7 +577,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to model folder...");
-				std::string modelFolderPath = FileDialog::GetFileFolder(filePath);
+				std::string modelFolderPath = PathUtils::GetFileFolder(filePath);
 				std::string modelFolderMaterialFilePath = modelFolderPath + "/" + materialFilePath.C_Str();
 				textureResourceIds = App->resources->ImportAssetResources(modelFolderMaterialFilePath.c_str());
 			}
@@ -585,7 +585,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 			// Try to load relative to the textures folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to textures folder...");
-				std::string materialFile = FileDialog::GetFileNameAndExtension(materialFilePath.C_Str());
+				std::string materialFile = PathUtils::GetFileNameAndExtension(materialFilePath.C_Str());
 				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFile;
 				textureResourceIds = App->resources->ImportAssetResources(texturesFolderMaterialFileDir.c_str());
 			}
@@ -612,7 +612,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to model folder...");
-				std::string modelFolderPath = FileDialog::GetFileFolder(filePath);
+				std::string modelFolderPath = PathUtils::GetFileFolder(filePath);
 				std::string modelFolderMaterialFilePath = modelFolderPath + "/" + materialFilePath.C_Str();
 				textureResourceIds = App->resources->ImportAssetResources(modelFolderMaterialFilePath.c_str());
 			}
@@ -620,7 +620,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 			// Try to load relative to the textures folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to textures folder...");
-				std::string materialFileName = FileDialog::GetFileName(materialFilePath.C_Str());
+				std::string materialFileName = PathUtils::GetFileName(materialFilePath.C_Str());
 				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFileName + DDS_TEXTURE_EXTENSION;
 				textureResourceIds = App->resources->ImportAssetResources(texturesFolderMaterialFileDir.c_str());
 			}
@@ -647,7 +647,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to model folder...");
-				std::string modelFolderPath = FileDialog::GetFileFolder(filePath);
+				std::string modelFolderPath = PathUtils::GetFileFolder(filePath);
 				std::string modelFolderMaterialFilePath = modelFolderPath + "/" + materialFilePath.C_Str();
 				textureResourceIds = App->resources->ImportAssetResources(modelFolderMaterialFilePath.c_str());
 			}
@@ -655,7 +655,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 			// Try to load relative to the textures folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to textures folder...");
-				std::string materialFileName = FileDialog::GetFileName(materialFilePath.C_Str());
+				std::string materialFileName = PathUtils::GetFileName(materialFilePath.C_Str());
 				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFileName + DDS_TEXTURE_EXTENSION;
 				textureResourceIds = App->resources->ImportAssetResources(texturesFolderMaterialFileDir.c_str());
 			}
@@ -682,7 +682,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 			// Try to load relative to the model folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to model folder...");
-				std::string modelFolderPath = FileDialog::GetFileFolder(filePath);
+				std::string modelFolderPath = PathUtils::GetFileFolder(filePath);
 				std::string modelFolderMaterialFilePath = modelFolderPath + "/" + materialFilePath.C_Str();
 				textureResourceIds = App->resources->ImportAssetResources(modelFolderMaterialFilePath.c_str());
 			}
@@ -690,7 +690,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 			// Try to load relative to the textures folder
 			if (textureResourceIds.empty()) {
 				LOG("Trying to import texture relative to textures folder...");
-				std::string materialFileName = FileDialog::GetFileName(materialFilePath.C_Str());
+				std::string materialFileName = PathUtils::GetFileName(materialFilePath.C_Str());
 				std::string texturesFolderMaterialFileDir = std::string(TEXTURES_PATH) + "/" + materialFileName + DDS_TEXTURE_EXTENSION;
 				textureResourceIds = App->resources->ImportAssetResources(texturesFolderMaterialFileDir.c_str());
 			}
@@ -768,7 +768,7 @@ bool ModelImporter::ImportModel(const char* filePath, JsonValue jMeta) {
 	}
 
 	// Create prefab resource
-	std::unique_ptr<ResourcePrefab> prefab = ImporterCommon::CreateResource<ResourcePrefab>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+	std::unique_ptr<ResourcePrefab> prefab = ImporterCommon::CreateResource<ResourcePrefab>(PathUtils::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
 	// Save resource meta file
 	bool saved = ImporterCommon::SaveResourceMetaFile(prefab.get());

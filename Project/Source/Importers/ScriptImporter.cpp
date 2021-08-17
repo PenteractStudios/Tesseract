@@ -8,7 +8,7 @@
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
 #include "Utils/MSTimer.h"
-#include "Utils/FileDialog.h"
+#include "Utils/PathUtils.h"
 #include "ImporterCommon.h"
 
 #include "Utils/Leaks.h"
@@ -29,7 +29,7 @@ bool ScriptImporter::ImportScript(const char* filePath, JsonValue jMeta) {
 
 	// Create script resource
 	unsigned resourceIndex = 0;
-	std::unique_ptr<ResourceScript> script = ImporterCommon::CreateResource<ResourceScript>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+	std::unique_ptr<ResourceScript> script = ImporterCommon::CreateResource<ResourceScript>(PathUtils::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
 	// Save resource meta file
 	bool saved = ImporterCommon::SaveResourceMetaFile(script.get());
