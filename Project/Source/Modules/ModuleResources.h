@@ -35,6 +35,7 @@ public:
 
 	void IncreaseReferenceCount(UID id);
 	void DecreaseReferenceCount(UID id);
+	void ResetReferenceCount(UID id);
 	unsigned GetReferenceCount(UID id) const;
 
 	std::string GenerateResourcePath(UID id) const;

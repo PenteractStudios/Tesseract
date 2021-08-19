@@ -305,6 +305,19 @@ void ModuleResources::DecreaseReferenceCount(UID id) {
 	}
 }
 
+void ModuleResources::ResetReferenceCount(UID id) {
+	if (id == 0) return;
+
+	if (referenceCounts.find(id) != referenceCounts.end()) {
+		referenceCounts[id] = 0;
+		Resource* resource = GetResource<Resource>(id);
+		if (resource != nullptr) {
+			resource->Unload();
+		}
+		referenceCounts.erase(id);
+	}
+}
+
 unsigned ModuleResources::GetReferenceCount(UID id) const {
 	auto it = referenceCounts.find(id);
 	return it != referenceCounts.end() ? it->second : 0;

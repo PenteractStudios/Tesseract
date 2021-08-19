@@ -99,15 +99,11 @@ void ComponentObstacle::Load(JsonValue jComponent) {
 }
 
 void ComponentObstacle::AddObstacle() {
-	NavMesh& navMesh = App->navigation->GetNavMesh();
-	if (!navMesh.IsGenerated()) {
-		return;
-	}
+	NavMesh* navMesh = GetOwner().scene->GetNavMesh();
+	if (navMesh == nullptr || !navMesh->IsGenerated()) return;
 
-	dtTileCache* tileCache = navMesh.GetTileCache();
-	if (!tileCache) {
-		return;
-	}
+	dtTileCache* tileCache = navMesh->GetTileCache();
+	if (!tileCache) return;
 
 	RemoveObstacle();
 
@@ -127,15 +123,11 @@ void ComponentObstacle::AddObstacle() {
 }
 
 void ComponentObstacle::RemoveObstacle() {
-	NavMesh& navMesh = App->navigation->GetNavMesh();
-	if (!navMesh.IsGenerated()) {
-		return;
-	}
+	NavMesh* navMesh = GetOwner().scene->GetNavMesh();
+	if (navMesh == nullptr || !navMesh->IsGenerated()) return;
 
-	dtTileCache* tileCache = navMesh.GetTileCache();
-	if (!tileCache || !obstacleReference) {
-		return;
-	}
+	dtTileCache* tileCache = navMesh->GetTileCache();
+	if (!tileCache || !obstacleReference) return;
 
 	tileCache->removeObstacle(*obstacleReference);
 	RELEASE(obstacleReference);

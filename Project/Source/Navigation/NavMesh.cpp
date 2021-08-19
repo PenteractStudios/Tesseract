@@ -1,7 +1,6 @@
 #include "NavMesh.h"
 
 #include "Application.h"
-#include "Modules/ModuleScene.h"
 #include "Modules/ModuleDebugDraw.h"
 #include "Modules/ModuleCamera.h"
 #include "Components/ComponentMeshRenderer.h"
@@ -437,16 +436,14 @@ NavMesh::~NavMesh() {
 	ctx = nullptr;
 }
 
-bool NavMesh::Build() {
+bool NavMesh::Build(Scene* scene) {
 	CleanUp();
 
-	verts = App->scene->scene->GetVertices();
-	nverts = verts.size();
-	tris = App->scene->scene->GetTriangles();
-	ntris = tris.size() / 3;
-	normals = App->scene->scene->GetNormals();
+	std::vector<float> verts = scene->GetVertices();
+	std::vector<int> tris = scene->GetTriangles();
+	std::vector<float> normals = scene->GetNormals();
 
-	if (nverts == 0) {
+	if (verts.size() == 0) {
 		LOG("Building navigation:");
 		LOG("There's no mesh to build");
 		return false;
@@ -458,7 +455,7 @@ bool NavMesh::Build() {
 
 	float bmin[3] = {FLT_MAX, FLT_MAX, FLT_MAX};
 	float bmax[3] = {FLT_MIN, FLT_MIN, FLT_MIN};
-	for (ComponentBoundingBox boundingBox : App->scene->scene->boundingBoxComponents) {
+	for (ComponentBoundingBox boundingBox : scene->boundingBoxComponents) {
 		AABB currentBB = boundingBox.GetWorldAABB();
 		float3 currentBBMin = currentBB.minPoint;
 		float3 currentBBMax = currentBB.maxPoint;
@@ -508,7 +505,7 @@ bool NavMesh::Build() {
 
 	LOG("Building navigation:");
 	LOG(" - %d x %d cells", cfg.width, cfg.height);
-	LOG(" - %.1fK verts, %.1fK tris", nverts / 1000.0f, ntris / 1000.0f);
+	LOG(" - %.1fK verts, %.1fK tris", verts.size() / 1000.0f, tris.size() / 1000.0f);
 
 	int tileBits = rcMin((int) dtIlog2(dtNextPow2(tw * th * EXPECTED_LAYERS_PER_TILE)), 14);
 	if (tileBits > 14) tileBits = 14;
@@ -577,7 +574,7 @@ bool NavMesh::Build() {
 		LOG("buildTiledNavigation: Out of memory 'm_chunkyMesh'.");
 		return false;
 	}
-	if (!rcCreateChunkyTriMesh(&verts[0], &tris[0], ntris, 256, chunkyMesh)) {
+	if (!rcCreateChunkyTriMesh(&verts[0], &tris[0], tris.size(), 256, chunkyMesh)) {
 		LOG("buildTiledNavigation: Failed to build chunky mesh.");
 		return false;
 	}
@@ -586,7 +583,7 @@ bool NavMesh::Build() {
 		for (int x = 0; x < tw; ++x) {
 			TileCacheData tiles[MAX_LAYERS];
 			memset(tiles, 0, sizeof(tiles));
-			int ntiles = RasterizeTileLayers(&verts[0], nverts, ntris, ctx, chunkyMesh, x, y, cfg, tiles, MAX_LAYERS);
+			int ntiles = RasterizeTileLayers(&verts[0], verts.size(), tris.size(), ctx, chunkyMesh, x, y, cfg, tiles, MAX_LAYERS);
 
 			for (int i = 0; i < ntiles; ++i) {
 				TileCacheData* tile = &tiles[i];
@@ -623,13 +620,13 @@ bool NavMesh::Build() {
 
 	InitCrowd();
 
-	RescanCrowd();
-	RescanObstacles();
+	RescanCrowd(scene);
+	RescanObstacles(scene);
 
 	return true;
 }
 
-void NavMesh::DrawGizmos() {
+void NavMesh::DrawGizmos(Scene* scene) {
 	DebugDrawGL dds;
 
 	glUseProgram(0);
@@ -649,7 +646,7 @@ void NavMesh::DrawGizmos() {
 	// Draw bounds
 	float bmin[3] = {FLT_MAX, FLT_MAX, FLT_MAX};
 	float bmax[3] = {FLT_MIN, FLT_MIN, FLT_MIN};
-	for (ComponentBoundingBox boundingBox : App->scene->scene->boundingBoxComponents) {
+	for (ComponentBoundingBox boundingBox : scene->boundingBoxComponents) {
 		AABB currentBB = boundingBox.GetWorldAABB();
 		float3 currentBBMin = currentBB.minPoint;
 		float3 currentBBMax = currentBB.maxPoint;
@@ -725,12 +722,6 @@ struct TileCacheTileHeader {
 void NavMesh::Load(Buffer<char>& buffer) {
 	CleanUp();
 
-	verts = App->scene->scene->GetVertices();
-	nverts = verts.size();
-	tris = App->scene->scene->GetTriangles();
-	ntris = tris.size() / 3;
-	normals = App->scene->scene->GetNormals();
-
 	talloc = new LinearAllocator(32000);
 	tcomp = new FastLZCompressor;
 	tmproc = new MeshProcess;
@@ -792,10 +783,7 @@ void NavMesh::Load(Buffer<char>& buffer) {
 		return;
 	}
 
-
 	InitCrowd();
-	RescanCrowd();
-	RescanObstacles();
 }
 
 void NavMesh::CleanUp() {
@@ -808,11 +796,6 @@ void NavMesh::CleanUp() {
 	RELEASE(tmproc);
 	RELEASE(tcomp);
 	RELEASE(talloc);
-	nverts = 0;
-	ntris = 0;
-	verts.clear();
-	tris.clear();
-	normals.clear();
 }
 
 Buffer<char> NavMesh::Save() {
@@ -927,26 +910,26 @@ void NavMesh::InitCrowd() {
 	crowd->setObstacleAvoidanceParams(3, &params);
 }
 
-void NavMesh::CleanCrowd() {
-	for (ComponentAgent& agent : App->scene->scene->agentComponents) {
+void NavMesh::CleanCrowd(Scene* scene) {
+	for (ComponentAgent& agent : scene->agentComponents) {
 		agent.RemoveAgentFromCrowd();
 	}
 }
 
-void NavMesh::RescanCrowd() {
-	for (ComponentAgent& agent : App->scene->scene->agentComponents) {
+void NavMesh::RescanCrowd(Scene* scene) {
+	for (ComponentAgent& agent : scene->agentComponents) {
 		agent.AddAgentToCrowd();
 	}
 }
 
-void NavMesh::CleanObstacles() {
-	for (ComponentObstacle& obstacle : App->scene->scene->obstacleComponents) {
+void NavMesh::CleanObstacles(Scene* scene) {
+	for (ComponentObstacle& obstacle : scene->obstacleComponents) {
 		obstacle.RemoveObstacle();
 	}
 }
 
-void NavMesh::RescanObstacles() {
-	for (ComponentObstacle& obstacle : App->scene->scene->obstacleComponents) {
+void NavMesh::RescanObstacles(Scene* scene) {
+	for (ComponentObstacle& obstacle : scene->obstacleComponents) {
 		obstacle.AddObstacle();
 	}
 }

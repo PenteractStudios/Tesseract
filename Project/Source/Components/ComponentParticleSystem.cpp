@@ -200,7 +200,7 @@ void ComponentParticleSystem::Start() {
 	if (subEmitters.size() > 0) {
 		int pos = 0;
 		for (SubEmitter* subEmitter : subEmitters) {
-			GameObject* gameObject = App->scene->scene->GetGameObject(subEmitter->gameObjectUID);
+			GameObject* gameObject = GetOwner().scene->GetGameObject(subEmitter->gameObjectUID);
 			if (gameObject != nullptr) {
 				ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
 				if (particleSystem != nullptr) {
@@ -526,7 +526,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			{
 				ImGui::GameObjectSlot("", &subEmitter->gameObjectUID);
 				if (oldUI != subEmitter->gameObjectUID) {
-					GameObject* gameObject = App->scene->scene->GetGameObject(subEmitter->gameObjectUID);
+					GameObject* gameObject = GetOwner().scene->GetGameObject(subEmitter->gameObjectUID);
 					if (gameObject != nullptr) {
 						ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
 						if (particleSystem == nullptr) {
@@ -1319,7 +1319,7 @@ void ComponentParticleSystem::UndertakerParticle(bool force) {
 		}
 	}
 	for (Particle* currentParticle : deadParticles) {
-		if (App->time->IsGameRunning()) App->physics->RemoveParticleRigidbody(currentParticle);
+		if (currentParticle->rigidBody) App->physics->RemoveParticleRigidbody(currentParticle);
 		if (currentParticle->motionState) {
 			RELEASE(currentParticle->motionState);
 		}

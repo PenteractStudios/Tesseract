@@ -11,10 +11,7 @@ class ComponentImage : public Component {
 public:
 	REGISTER_COMPONENT(ComponentImage, ComponentType::IMAGE, false);
 
-	~ComponentImage(); // Destructor
-
 	void Init() override;							// Inits the component
-	void Update() override;							// Update
 	void OnEditorUpdate() override;					// Works as input of the AlphaTransparency, color and Texture and Shader used
 	void Save(JsonValue jComponent) const override; // Serializes object
 	void Load(JsonValue jComponent) override;		// Deserializes object
@@ -27,7 +24,7 @@ public:
 	TESSERACT_ENGINE_API void SetIsFill(bool b);
 	TESSERACT_ENGINE_API bool IsFill() const;
 	TESSERACT_ENGINE_API bool HasAlphaTransparency() const;
-	TESSERACT_ENGINE_API void SetAlphaTransparency(bool alphaTransparency_) ;
+	TESSERACT_ENGINE_API void SetAlphaTransparency(bool alphaTransparency_);
 
 private:
 	void RebuildFillQuadVBO();

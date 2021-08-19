@@ -24,15 +24,8 @@
 #define JSON_TAG_IS_FILL "IsFill"
 #define JSON_TAG_FILL_VALUE "FillValue"
 
-ComponentImage::~ComponentImage() {
-	//TODO DECREASE REFERENCE COUNT OF SHADER AND TEXTURE, MAYBE IN A NEW COMPONENT::CLEANUP?
-}
-
 void ComponentImage::Init() {
 	RebuildFillQuadVBO();
-}
-
-void ComponentImage::Update() {
 }
 
 void ComponentImage::OnEditorUpdate() {
@@ -212,8 +205,9 @@ float4 ComponentImage::GetColor() const {
 void ComponentImage::SetFillValue(float val) {
 	if (val >= 1.0f) {
 		fillVal = 1.0f;
-	} else
+	} else {
 		fillVal = val;
+	}
 	RebuildFillQuadVBO();
 }
 

@@ -19,13 +19,6 @@
 #define JSON_TAG_BACKGROUND_POSITION "BackgroundPosition"
 #define JSON_TAG_BACKGROUND_SIZE "BackgroundSize"
 
-ComponentProgressBar::~ComponentProgressBar() {
-}
-
-void ComponentProgressBar::Init() {
-
-}
-
 void ComponentProgressBar::Update() {
 	//The progress bar GameObject must have two image gameobjects as childs (for background and fill)
 	if (background == nullptr || fill == nullptr) {
@@ -132,9 +125,9 @@ void ComponentProgressBar::Load(JsonValue jComponent) {
 	dir = (FillDirection)(int) jFillDir;
 	dirIndex = (int) dir;
 	fillID = jComponent[JSON_TAG_FILL_IMAGE];
-	fill = App->scene->scene->GetGameObject(fillID);
+	fill = GetOwner().scene->GetGameObject(fillID);
 	backgroundID = jComponent[JSON_TAG_BACKGROUND_IMAGE];
-	background = App->scene->scene->GetGameObject(backgroundID);
+	background = GetOwner().scene->GetGameObject(backgroundID);
 	JsonValue jPosition = jComponent[JSON_TAG_BACKGROUND_POSITION];
 	backPos.Set(jPosition[0], jPosition[1], jPosition[2]);
 	JsonValue jSize = jComponent[JSON_TAG_BACKGROUND_SIZE];

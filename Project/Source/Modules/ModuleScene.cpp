@@ -51,6 +51,7 @@
 #include <string>
 #include <Windows.h>
 #include <array>
+#include <future>
 
 #include "Brofiler.h"
 
@@ -78,7 +79,6 @@ bool ModuleScene::Init() {
 bool ModuleScene::Start() {
 	App->events->AddObserverToEvent(TesseractEventType::GAMEOBJECT_DESTROYED, this);
 	App->events->AddObserverToEvent(TesseractEventType::CHANGE_SCENE, this);
-	App->events->AddObserverToEvent(TesseractEventType::RESOURCES_LOADED, this);
 	App->events->AddObserverToEvent(TesseractEventType::COMPILATION_FINISHED, this);
 	App->events->AddObserverToEvent(TesseractEventType::PRESSED_PLAY, this);
 
@@ -119,12 +119,25 @@ UpdateStatus ModuleScene::Update() {
 	// Update GameObjects
 	scene->root->Update();
 
+	// Check for scene loading
+	if (preloadSceneId != 0) {
+		std::future_status status = preloadSceneFuture->wait_for(std::chrono::milliseconds(0));
+		if (status == std::future_status::ready) {
+			ResourceScene* preloadScene = App->resources->GetResource<ResourceScene>(preloadSceneId);
+			scene = preloadScene->GetScene();
+
+			preloadSceneLoaded = true;
+			RELEASE(preloadSceneFuture);
+		}
+	}
+
 	return UpdateStatus::CONTINUE;
 }
 
 bool ModuleScene::CleanUp() {
 	scene->ClearScene();
 	RELEASE(scene);
+	RELEASE(preloadSceneFuture);
 
 #ifdef _DEBUG
 	aiDetachAllLogStreams();
@@ -138,24 +151,8 @@ void ModuleScene::ReceiveEvent(TesseractEvent& e) {
 	case TesseractEventType::GAMEOBJECT_DESTROYED:
 		scene->DestroyGameObject(e.Get<DestroyGameObjectStruct>().gameObject);
 		break;
-	case TesseractEventType::CHANGE_SCENE: {
-		ResourceScene* newScene = App->resources->GetResource<ResourceScene>(e.Get<ChangeSceneStruct>().sceneId);
-		if (newScene != nullptr) {
-			SceneImporter::LoadScene(newScene->GetResourceFilePath().c_str());
-		}
-		break;
-	}
-	case TesseractEventType::RESOURCES_LOADED:
-		if (App->time->HasGameStarted() && !scene->sceneLoaded) {
-			scene->sceneLoaded = true;
-			for (ComponentScript& script : scene->scriptComponents) {
-				script.CreateScriptInstance();
-				Script* scriptInstance = script.GetScriptInstance();
-				if (scriptInstance != nullptr) {
-					scriptInstance->Start();
-				}
-			}
-		}
+	case TesseractEventType::CHANGE_SCENE:
+		ChangeScene(e.Get<ChangeSceneStruct>().sceneId);
 		break;
 	case TesseractEventType::COMPILATION_FINISHED:
 		for (ComponentScript& script : scene->scriptComponents) {
@@ -195,8 +192,59 @@ void ModuleScene::CreateEmptyScene() {
 	ComponentSkyBox* gameCameraSkybox = gameCamera->CreateComponent<ComponentSkyBox>();
 	ComponentAudioListener* audioListener = gameCamera->CreateComponent<ComponentAudioListener>();
 	gameCamera->Init();
+}
 
-	root->Start();
+void ModuleScene::PreloadSceneAsync(UID sceneId) {
+	if (preloadSceneId != 0) return;
+
+	ResourceScene* sceneResource = App->resources->GetResource<ResourceScene>(sceneId);
+	if (sceneResource->GetScene() != nullptr) return;
+
+	preloadSceneLoaded = false;
+	RELEASE(preloadSceneFuture);
+
+	preloadSceneId = sceneId;
+	preloadSceneFuture = new std::future<void>(std::async(&ResourceScene::LoadScene, sceneResource));
+}
+
+bool ModuleScene::IsPreloadSceneLoaded() {
+	return preloadSceneId != 0 && preloadSceneLoaded;
+}
+
+void ModuleScene::ChangeScene(UID sceneId) {
+	ResourceScene* sceneResource = nullptr;
+	if (preloadSceneId != 0) {
+		if (!preloadSceneLoaded) return;
+
+		sceneResource = App->resources->GetResource<ResourceScene>(preloadSceneId);
+		if (sceneResource == nullptr) return;
+
+		preloadSceneId = 0;
+		preloadSceneLoaded = false;
+
+	} else {
+		sceneResource = App->resources->GetResource<ResourceScene>(sceneId);
+		if (sceneResource == nullptr) return;
+
+		sceneResource->LoadScene();
+	}
+
+	scene->ClearScene();
+	RELEASE(scene);
+	scene = sceneResource->TransferScene();
+
+	ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(scene->gameCameraId);
+	App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
+
+	App->renderer->ambientColor = scene->ambientColor;
+
+	if (App->time->HasGameStarted()) {
+		scene->StartScene();
+	}
+}
+
+Scene* ModuleScene::GetCurrentScene() {
+	return scene;
 }
 
 void ModuleScene::DestroyGameObjectDeferred(GameObject* gameObject) {

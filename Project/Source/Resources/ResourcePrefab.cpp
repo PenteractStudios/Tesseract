@@ -5,6 +5,7 @@
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleFiles.h"
+#include "Modules/ModuleTime.h"
 #include "Utils/Logging.h"
 #include "Utils/MSTimer.h"
 
@@ -44,7 +45,10 @@ UID ResourcePrefab::BuildPrefab(GameObject* parent) {
 	gameObject->id = gameObjectId;
 	gameObject->SetParent(parent);
 	gameObject->LoadPrefab(jRoot);
-	gameObject->Start();
+
+	if (App->time->HasGameStarted()) {
+		gameObject->Start();
+	}
 
 	unsigned timeMs = timer.Stop();
 	LOG("Prefab built in %ums.", timeMs);

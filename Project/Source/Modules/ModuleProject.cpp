@@ -402,8 +402,8 @@ bool ModuleProject::Init() {
 }
 
 UpdateStatus ModuleProject::Update() {
-	if (App->time->HasGameStarted() && App->scene->scene->sceneLoaded) {
-		for (ComponentScript& script : App->scene->scene->scriptComponents) {
+	if (App->time->HasGameStarted()) {
+		for (ComponentScript& script : App->scene->GetCurrentScene()->scriptComponents) {
 			if (script.IsActive()) {
 				Script* scriptInstance = script.GetScriptInstance();
 				if (scriptInstance != nullptr) {
@@ -423,8 +423,8 @@ bool ModuleProject::CleanUp() {
 }
 
 void ModuleProject::ReceiveEvent(TesseractEvent& e) {
-	if (App->time->HasGameStarted() && App->scene->scene->sceneLoaded) {
-		for (ComponentScript& script : App->scene->scene->scriptComponents) {
+	if (App->time->HasGameStarted()) {
+		for (ComponentScript& script : App->scene->GetCurrentScene()->scriptComponents) {
 			if (script.IsActive()) {
 				Script* scriptInstance = script.GetScriptInstance();
 				if (scriptInstance != nullptr) {
@@ -673,7 +673,7 @@ bool ModuleProject::LoadGameCodeDLL(const char* path) {
 }
 
 bool ModuleProject::UnloadGameCodeDLL() {
-	Scene* scene = App->scene->scene;
+	Scene* scene = App->scene->GetCurrentScene();
 	if (scene != nullptr) {
 		for (ComponentScript& scriptComponent : scene->scriptComponents) {
 			scriptComponent.ReleaseScriptInstance();

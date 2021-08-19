@@ -72,15 +72,15 @@ void PanelScene::Update() {
 
 			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 			if (ImGui::Checkbox("2D", &App->userInterface->view2DInternal)) {
-				for (ComponentCanvas& canvas : App->scene->scene->canvasComponents) {
+				for (ComponentCanvas& canvas : App->scene->GetCurrentScene()->canvasComponents) {
 					canvas.Invalidate();
 				}
 
-				for (ComponentTransform2D& transform2D : App->scene->scene->transform2DComponents) {
+				for (ComponentTransform2D& transform2D : App->scene->GetCurrentScene()->transform2DComponents) {
 					transform2D.Invalidate();
 				};
 
-				for (ComponentText& text : App->scene->scene->textComponents) {
+				for (ComponentText& text : App->scene->GetCurrentScene()->textComponents) {
 					text.Invalidate();
 				};
 			};
@@ -142,7 +142,7 @@ void PanelScene::Update() {
 				char ms[10];
 				sprintf_s(ms, 10, "%.1f", logger->msLog[logger->fpsLogIndex]);
 
-				int triangles = App->scene->scene->GetTotalTriangles();
+				int triangles = App->scene->GetCurrentScene()->GetTotalTriangles();
 
 				ImGui::TextColored(App->editor->titleColor, "Framerate");
 				ImGui::Text("Frames: ");
@@ -194,8 +194,8 @@ void PanelScene::Update() {
 					UID prefabId = *(UID*) payload->Data;
 					ResourcePrefab* prefab = App->resources->GetResource<ResourcePrefab>(prefabId);
 					if (prefab != nullptr) {
-						UID gameObjectId = prefab->BuildPrefab(App->scene->scene->root);
-						App->editor->selectedGameObject = App->scene->scene->GetGameObject(gameObjectId);
+						UID gameObjectId = prefab->BuildPrefab(App->scene->GetCurrentScene()->root);
+						App->editor->selectedGameObject = App->scene->GetCurrentScene()->GetGameObject(gameObjectId);
 					}
 				}
 
@@ -203,10 +203,7 @@ void PanelScene::Update() {
 				std::string payloadTypeScene = std::string("_RESOURCE_") + GetResourceTypeName(ResourceType::SCENE);
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadTypeScene.c_str())) {
 					UID sceneId = *(UID*) payload->Data;
-					ResourceScene* scene = App->resources->GetResource<ResourceScene>(sceneId);
-					if (scene != nullptr) {
-						scene->BuildScene();
-					}
+					App->scene->ChangeScene(sceneId);
 				}
 				ImGui::EndDragDropTarget();
 			}

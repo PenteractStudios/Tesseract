@@ -498,6 +498,8 @@ namespace Screen {
 }; // namespace Screen
 
 namespace SceneManager {
+	TESSERACT_ENGINE_API void PreloadSceneAsync(UID sceneId);
+	TESSERACT_ENGINE_API bool IsPreloadSceneLoaded();
 	TESSERACT_ENGINE_API void ChangeScene(UID sceneId);
 	TESSERACT_ENGINE_API void ExitGame();
 }; // namespace SceneManager

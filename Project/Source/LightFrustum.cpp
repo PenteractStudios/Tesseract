@@ -18,7 +18,7 @@ LightFrustum::LightFrustum() {
 void LightFrustum::ReconstructFrustum() {
 	if (!dirty) return;
 
-	GameObject* light = App->scene->scene->directionalLight;
+	GameObject* light = App->scene->GetCurrentScene()->directionalLight;
 	if (!light) return;
 
 	ComponentTransform* transform = light->GetComponent<ComponentTransform>();
@@ -30,7 +30,7 @@ void LightFrustum::ReconstructFrustum() {
 	AABB lightAABB;
 	lightAABB.SetNegativeInfinity();
 
-	for (GameObject& go : App->scene->scene->gameObjects) {
+	for (GameObject& go : App->scene->GetCurrentScene()->gameObjects) {
 		Mask mask = go.GetMask();
 		if ((mask.bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0 && go.HasComponent<ComponentMeshRenderer>()) {
 			ComponentBoundingBox* componentBBox = go.GetComponent<ComponentBoundingBox>();

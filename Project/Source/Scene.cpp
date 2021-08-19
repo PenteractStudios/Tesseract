@@ -6,10 +6,25 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModulePhysics.h"
 #include "Modules/ModuleTime.h"
+#include "Modules/ModuleCamera.h"
+#include "Modules/ModuleRender.h"
+#include "Modules/ModuleFiles.h"
 #include "Resources/ResourceMesh.h"
+#include "Resources/ResourceNavMesh.h"
 #include "Utils/Logging.h"
 
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/error/en.h"
+
 #include "Utils/Leaks.h"
+
+#define JSON_TAG_ROOT "Root"
+#define JSON_TAG_QUADTREE_BOUNDS "QuadtreeBounds"
+#define JSON_TAG_QUADTREE_MAX_DEPTH "QuadtreeMaxDepth"
+#define JSON_TAG_QUADTREE_ELEMENTS_PER_NODE "QuadtreeElementsPerNode"
+#define JSON_TAG_GAME_CAMERA "GameCamera"
+#define JSON_TAG_AMBIENTLIGHT "AmbientLight"
+#define JSON_TAG_NAVMESH "NavMesh"
 
 Scene::Scene(unsigned numGameObjects) {
 	gameObjects.Allocate(numGameObjects);
@@ -47,6 +62,10 @@ Scene::Scene(unsigned numGameObjects) {
 	fogComponents.Allocate(numGameObjects);
 }
 
+Scene::~Scene() {
+	ClearScene();
+}
+
 void Scene::ClearScene() {
 	DestroyGameObject(root);
 	root = nullptr;
@@ -76,6 +95,18 @@ void Scene::ClearQuadtree() {
 	for (GameObject& gameObject : gameObjects) {
 		gameObject.isInQuadtree = false;
 	}
+}
+
+void Scene::StartScene() {
+	if (App->camera->GetGameCamera()) {
+		// Set the Game Camera as active
+		App->camera->ChangeActiveCamera(App->camera->GetGameCamera(), true);
+		App->camera->ChangeCullingCamera(App->camera->GetGameCamera(), true);
+	} else {
+		// TODO: Modal window. Warning - camera not set.
+	}
+
+	root->Start();
 }
 
 GameObject* Scene::CreateGameObject(GameObject* parent, UID id, const char* name) {
@@ -363,6 +394,86 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 	}
 }
 
+void Scene::LoadFromFile(const char* filePath) {
+	ClearScene();
+
+	// Read from file
+	Buffer<char> buffer = App->files->Load(filePath);
+
+	if (buffer.Size() == 0) return;
+
+	// Parse document from file
+	rapidjson::Document document;
+	document.ParseInsitu<rapidjson::kParseNanAndInfFlag>(buffer.Data());
+	if (document.HasParseError()) {
+		LOG("Error parsing JSON: %s (offset: %u)", rapidjson::GetParseError_En(document.GetParseError()), document.GetErrorOffset());
+		return;
+	}
+	JsonValue jScene(document, document);
+
+	// Load GameObjects
+	JsonValue jRoot = jScene[JSON_TAG_ROOT];
+	root = gameObjects.Obtain(0);
+	root->scene = this;
+	root->Load(jRoot);
+
+	// Quadtree generation
+	JsonValue jQuadtreeBounds = jScene[JSON_TAG_QUADTREE_BOUNDS];
+	quadtreeBounds = {{jQuadtreeBounds[0], jQuadtreeBounds[1]}, {jQuadtreeBounds[2], jQuadtreeBounds[3]}};
+	quadtreeMaxDepth = jScene[JSON_TAG_QUADTREE_MAX_DEPTH];
+	quadtreeElementsPerNode = jScene[JSON_TAG_QUADTREE_ELEMENTS_PER_NODE];
+	RebuildQuadtree();
+
+	// Game Camera
+	gameCameraId = jScene[JSON_TAG_GAME_CAMERA];
+
+	// Ambient Light
+	JsonValue ambientLight = jScene[JSON_TAG_AMBIENTLIGHT];
+	ambientColor = {ambientLight[0], ambientLight[1], ambientLight[2]};
+
+	// NavMesh
+	SetNavMesh(jScene[JSON_TAG_NAVMESH]);
+}
+
+void Scene::SaveToFile(const char* filePath) {
+	// Create document
+	rapidjson::Document document;
+	document.SetObject();
+	JsonValue jScene(document, document);
+
+	// Save scene information
+	JsonValue jQuadtreeBounds = jScene[JSON_TAG_QUADTREE_BOUNDS];
+	jQuadtreeBounds[0] = quadtreeBounds.minPoint.x;
+	jQuadtreeBounds[1] = quadtreeBounds.minPoint.y;
+	jQuadtreeBounds[2] = quadtreeBounds.maxPoint.x;
+	jQuadtreeBounds[3] = quadtreeBounds.maxPoint.y;
+	jScene[JSON_TAG_QUADTREE_MAX_DEPTH] = quadtreeMaxDepth;
+	jScene[JSON_TAG_QUADTREE_ELEMENTS_PER_NODE] = quadtreeElementsPerNode;
+
+	ComponentCamera* gameCamera = App->camera->GetGameCamera();
+	jScene[JSON_TAG_GAME_CAMERA] = gameCamera ? gameCamera->GetID() : 0;
+
+	JsonValue ambientLight = jScene[JSON_TAG_AMBIENTLIGHT];
+	ambientLight[0] = App->renderer->ambientColor.x;
+	ambientLight[1] = App->renderer->ambientColor.y;
+	ambientLight[2] = App->renderer->ambientColor.z;
+
+	// NavMesh
+	jScene[JSON_TAG_NAVMESH] = navMeshId;
+
+	// Save GameObjects
+	JsonValue jRoot = jScene[JSON_TAG_ROOT];
+	root->Save(jRoot);
+
+	// Write document to buffer
+	rapidjson::StringBuffer stringBuffer;
+	rapidjson::PrettyWriter<rapidjson::StringBuffer, rapidjson::UTF8<>, rapidjson::UTF8<>, rapidjson::CrtAllocator, rapidjson::kWriteNanAndInfFlag> writer(stringBuffer);
+	document.Accept(writer);
+
+	// Save to file
+	App->files->Save(filePath, stringBuffer.GetString(), stringBuffer.GetSize());
+}
+
 int Scene::GetTotalTriangles() const {
 	int triangles = 0;
 	for (const ComponentMeshRenderer& meshComponent : meshRendererComponents) {
@@ -446,18 +557,23 @@ std::vector<float> Scene::GetNormals() {
 	return result;
 }
 
-void Scene::SetNavMesh(UID navMesh) {
+void Scene::SetNavMesh(UID id) {
 	if (navMeshId != 0) {
 		App->resources->DecreaseReferenceCount(navMeshId);
 	}
 
-	navMeshId = navMesh;
+	navMeshId = id;
 
-	if (navMesh != 0) {
-		App->resources->IncreaseReferenceCount(navMesh);
+	if (id != 0) {
+		App->resources->IncreaseReferenceCount(id);
+
+		NavMesh* navMesh = GetNavMesh();
+		navMesh->RescanCrowd(this);
+		navMesh->RescanObstacles(this);
 	}
 }
 
-UID Scene::GetNavMesh() {
-	return navMeshId;
+NavMesh* Scene::GetNavMesh() {
+	ResourceNavMesh* navMeshResource = App->resources->GetResource<ResourceNavMesh>(navMeshId);
+	return navMeshResource ? &navMeshResource->GetNavMesh() : nullptr;
 }

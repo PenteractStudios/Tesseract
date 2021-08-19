@@ -33,16 +33,16 @@
 // ----------- GAMEPLAY ------------ //
 
 GameObject* GameplaySystems::GetGameObject(const char* name) {
-	GameObject* root = App->scene->scene->root;
+	GameObject* root = App->scene->GetCurrentScene()->root;
 	return root->name == name ? root : root->FindDescendant(name);
 }
 
 GameObject* GameplaySystems::GetGameObject(UID id) {
-	return App->scene->scene->GetGameObject(id);
+	return App->scene->GetCurrentScene()->GetGameObject(id);
 }
 // --------- Instantiating --------- //
 GameObject* GameplaySystems::Instantiate(ResourcePrefab* prefab, float3 position, Quat rotation) {
-	UID prefabId = prefab->BuildPrefab(App->scene->scene->root);
+	UID prefabId = prefab->BuildPrefab(App->scene->GetCurrentScene()->root);
 	GameObject* go = GameplaySystems::GetGameObject(prefabId);
 	ComponentTransform* transform = go->GetComponent<ComponentTransform>();
 	transform->SetGlobalRotation(rotation);
@@ -121,7 +121,7 @@ void Debug::UpdateShadingMode(const char* shadingMode) {
 }
 
 int Debug::GetTotalTriangles() {
-	return App->scene->scene->GetTotalTriangles();
+	return App->scene->GetCurrentScene()->GetTotalTriangles();
 }
 
 int Debug::GetCulledTriangles() {
@@ -265,6 +265,14 @@ bool Input::IsGamepadConnected(int index) {
 
 // --------- SCENE MANAGER --------- //
 
+void SceneManager::PreloadSceneAsync(UID sceneId) {
+	App->scene->PreloadSceneAsync(sceneId);
+}
+
+bool SceneManager::IsPreloadSceneLoaded() {
+	return App->scene->IsPreloadSceneLoaded();
+}
+
 void SceneManager::ChangeScene(UID sceneId) {
 	TesseractEvent e(TesseractEventType::CHANGE_SCENE);
 	e.Set<ChangeSceneStruct>(sceneId);
@@ -280,7 +288,7 @@ void SceneManager::ExitGame() {
 GameObject* Physics::Raycast(const float3& start, const float3& end, const int mask) {
 	LineSegment ray = LineSegment(start, end);
 
-	Scene* scene = App->scene->scene;
+	Scene* scene = App->scene->GetCurrentScene();
 
 	GameObject* closestGo = nullptr;
 	float closestNear = FLT_MAX;

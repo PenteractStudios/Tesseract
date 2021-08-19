@@ -33,16 +33,20 @@
 #include "Components/ComponentAgent.h"
 #include "Components/ComponentObstacle.h"
 #include "Components/ComponentFog.h"
+#include "Navigation/NavMesh.h"
 
 class GameObject;
 
 class Scene {
 public:
 	Scene(unsigned numGameObjects);
+	~Scene();
 
 	void ClearScene();		// Removes and clears every GameObject from the scene.
 	void RebuildQuadtree(); // Recalculates the Quadtree hierarchy with all the GameObjects in the scene.
 	void ClearQuadtree();	// Resets the Quadrtee as empty, and removes all GameObjects from it.
+
+	void StartScene();
 
 	// --- GameObject Management --- //
 	GameObject* CreateGameObject(GameObject* parent, UID id, const char* name);
@@ -57,21 +61,22 @@ public:
 	Component* CreateComponentByTypeAndId(GameObject* owner, ComponentType type, UID componentId);
 	void RemoveComponentByTypeAndId(ComponentType type, UID componentId);
 
+	void LoadFromFile(const char* filePath);
+	void SaveToFile(const char* filePath);
+
 	int GetTotalTriangles() const;
 	std::vector<float> GetVertices(); // Gets all the vertices from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
 	std::vector<int> GetTriangles();  // Gets all the triangles from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
 	std::vector<float> GetNormals();
 
-	void SetNavMesh(UID navMesh);
-	UID GetNavMesh();
+	void SetNavMesh(UID id);
+	NavMesh* GetNavMesh();
 
 public:
 	GameObject* root = nullptr;				// GameObject Root. Parent of everything and god among gods (Game Object Deity) :D.
 	GameObject* directionalLight = nullptr; // GameObject of directional light
 
 	PoolMap<UID, GameObject> gameObjects; // Pool of GameObjects. Stores all the memory of all existing GameObject in a contiguous memory space.
-
-	bool sceneLoaded = true; // This is set to true when all scene resources have been loaded
 
 	// ---- Components ---- //
 	PoolMap<UID, ComponentTransform> transformComponents;
@@ -111,6 +116,12 @@ public:
 	AABB2D quadtreeBounds = {{-1000, -1000}, {1000, 1000}};
 	unsigned quadtreeMaxDepth = 4;
 	unsigned quadtreeElementsPerNode = 200;
+
+	// ---- Game Camera Parameters ---- //
+	UID gameCameraId = 0;
+
+	// ---- Ambient Light Parameters ---- //
+	float3 ambientColor = {0.25f, 0.25f, 0.25f};
 
 	// ---- Nav Mesh ID parameters ---- //
 	UID navMeshId = 0;

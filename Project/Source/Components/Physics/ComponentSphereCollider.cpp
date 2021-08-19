@@ -17,6 +17,10 @@
 #define JSON_TAG_COLLIDER_TYPE "colliderType"
 #define JSON_TAG_LAYER_TYPE "layerType"
 
+ComponentSphereCollider::~ComponentSphereCollider() {
+	if (rigidBody) App->physics->RemoveSphereRigidbody(this);
+}
+
 void ComponentSphereCollider::Init() {
 	if (!centerOffset.IsFinite()) {
 		ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();
@@ -27,7 +31,10 @@ void ComponentSphereCollider::Init() {
 			centerOffset = float3::zero;
 		}
 	}
-	if (App->time->HasGameStarted() && !rigidBody) App->physics->CreateSphereRigidbody(this);
+}
+
+void ComponentSphereCollider::Start() {
+	if (!rigidBody && IsActive()) App->physics->CreateSphereRigidbody(this);
 }
 
 void ComponentSphereCollider::DrawGizmos() {

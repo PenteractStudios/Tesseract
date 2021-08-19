@@ -298,7 +298,7 @@ void ModuleRender::ClassifyGameObjects() {
 
 	App->camera->CalculateFrustumPlanes();
 	float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
-	Scene* scene = App->scene->scene;
+	Scene* scene = App->scene->GetCurrentScene();
 	for (ComponentBoundingBox& boundingBox : scene->boundingBoxComponents) {
 		GameObject& gameObject = boundingBox.GetOwner();
 		gameObject.flag = false;
@@ -495,7 +495,7 @@ UpdateStatus ModuleRender::Update() {
 	BROFILER_CATEGORY("ModuleRender - Update", Profiler::Color::Green)
 
 	culledTriangles = 0;
-	Scene* scene = App->scene->scene;
+	Scene* scene = App->scene->GetCurrentScene();
 	float3 gammaClearColor = float3(pow(clearColor.x, 2.2f), pow(clearColor.y, 2.2f), pow(clearColor.y, 2.2f));
 
 	ClassifyGameObjects();
@@ -694,14 +694,14 @@ UpdateStatus ModuleRender::Update() {
 		}
 
 		// Draw quadtree
-		if (drawQuadtree) DrawQuadtreeRecursive(App->scene->scene->quadtree.root, App->scene->scene->quadtree.bounds);
+		if (drawQuadtree) DrawQuadtreeRecursive(App->scene->GetCurrentScene()->quadtree.root, App->scene->GetCurrentScene()->quadtree.bounds);
 
 		// Draw debug draw
 		if (drawDebugDraw) App->debugDraw->Draw(App->camera->GetViewMatrix(), App->camera->GetProjectionMatrix(), static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
 
 		// Draw Animations
 		if (drawAllBones) {
-			for (ComponentAnimation& animationComponent : App->scene->scene->animationComponents) {
+			for (ComponentAnimation& animationComponent : App->scene->GetCurrentScene()->animationComponents) {
 				GameObject* rootBone = animationComponent.GetOwner().GetRootBone();
 				if (rootBone) DrawAnimation(rootBone);
 			}
