@@ -25,7 +25,7 @@ public:
 	void DeleteRenderingModeMask();
 
 	// Dissolve
-	TESSERACT_ENGINE_API void PlayDissolveAnimation();
+	TESSERACT_ENGINE_API void PlayDissolveAnimation(bool reverse = false);
 	TESSERACT_ENGINE_API void ResetDissolveValues();
 
 public:
@@ -37,6 +37,7 @@ public:
 
 private:
 	void UpdateDissolveAnimation();
+	float GetDissolveValue() const;
 
 private:
 	bool bbActive = false;
@@ -45,4 +46,5 @@ private:
 	float currentTime = 0.0f;
 	float dissolveThreshold = 0.0f;
 	bool dissolveAnimationFinished = true;
+	bool dissolveAnimationReverse = false;
 };
