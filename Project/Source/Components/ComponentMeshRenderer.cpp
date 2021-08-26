@@ -421,9 +421,6 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		ProgramUnlitDissolve* unlitProgram = App->programs->dissolveUnlit;
 		if (unlitProgram == nullptr) return;
 
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 		glUseProgram(unlitProgram->program);
 
 		// Matrices
@@ -479,8 +476,6 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glBindVertexArray(mesh->vao);
 		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
 		glBindVertexArray(0);
-
-		glDisable(GL_BLEND);
 
 		break;
 	}
