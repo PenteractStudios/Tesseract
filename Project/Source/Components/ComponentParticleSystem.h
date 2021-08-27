@@ -12,6 +12,7 @@
 #include <vector>
 
 class ComponentTransform;
+class ComponentLight;
 class ParticleModule;
 class btRigidBody;
 class ParticleMotionState;
@@ -93,7 +94,12 @@ public:
 		ComponentParticleSystem* emitter = nullptr;
 		Collider col {this, typeid(Particle)};
 		float radius = 0;
+
+		// Trail
 		Trail* trail = nullptr;
+
+		// Light
+		GameObject* lightGO = nullptr;
 	};
 
 	struct SubEmitter {
@@ -129,6 +135,7 @@ public:
 	void InitStartDelay();
 	void InitStartRate();
 	void InitSubEmitter(Particle* currentParticle, SubEmitterType subEmitterType);
+	void InitLight(Particle* currentParticle);
 
 	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
 	void UpdateRotation(Particle* currentParticle);
@@ -137,6 +144,7 @@ public:
 	void UpdateTrail(Particle* currentParticle);
 	void UpdateGravityDirection(Particle* currentParticle);
 	void UpdateSubEmitters();
+	void UpdateLight(Particle* currentParticle);
 
 	TESSERACT_ENGINE_API void KillParticle(Particle* currentParticle);
 	void UndertakerParticle(bool force = false);
@@ -208,7 +216,10 @@ public:
 	TESSERACT_ENGINE_API bool GetCollision() const;
 
 	// Sub Emitter
-	TESSERACT_ENGINE_API bool GetIsSubEmitter();
+	TESSERACT_ENGINE_API bool GetIsSubEmitter() const;
+
+	// Lights
+	TESSERACT_ENGINE_API bool GetHasLights() const;
 
 	// ----- SETTERS -----
 
@@ -269,6 +280,9 @@ public:
 	// Sub Emitter
 	TESSERACT_ENGINE_API void SetIsSubEmitter(bool _isEmitter);
 
+	// Lights
+	TESSERACT_ENGINE_API void SetHasLights(bool _hasLights);
+
 public:
 	WorldLayers layer = (WorldLayers)(1 << 20); // = WorldLayers::EVERYHTING
 	int layerIndex = 5;
@@ -286,6 +300,7 @@ private:
 	float restDelayTime = 0.f;
 	float restParticlesPerSecond = 0.0f;
 	float particlesCurrentFrame = 0;
+	float lightsSpawned = 0;
 	std::vector<GameObject*> subEmittersGO;
 
 	// Gizmo
@@ -388,4 +403,21 @@ private:
 	// Sub Emitter
 	bool isSubEmitter = false;
 	std::vector<SubEmitter*> subEmitters;
+
+	// Lights
+	bool hasLights = false;
+	UID lightGameObjectUID = 0;
+	ComponentLight* lightComponent;
+	float lightsRatio = 1;
+	float3 lightOffset = float3::zero;
+	RandomMode intensityMultiplierRM = RandomMode::CONST;
+	float2 intensityMultiplier = {1.0f, 1.0f};
+	RandomMode rangeMultiplierRM = RandomMode::CONST;
+	float2 rangeMultiplier = {1.0f, 1.0f};
+	bool useParticleColor = false;
+	bool useCustomColor = false;
+	ImGradient* gradientLight = nullptr;
+	ImGradientMark* draggingGradientLight = nullptr;
+	ImGradientMark* selectedGradientLight = nullptr;
+	int maxLights = 0;
 };
