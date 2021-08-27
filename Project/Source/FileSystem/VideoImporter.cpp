@@ -15,12 +15,27 @@ bool VideoImporter::ImportVideo(const char* filePath, JsonValue jMeta) {
 	MSTimer timer;
 	timer.Start();
 
-	// Read from file
+	/*// Read from file
 	Buffer<char> buffer = App->files->Load(filePath);
 	if (buffer.Size() == 0) {
 		LOG("Error loading video %s", filePath);
 		return false;
-	}
+	}*/
+
+	// decode frames
+	// 
+	// 
+	// videobuffer
+	// 
+	// audiobuffer
+	// 
+	// 
+	
+
+
+
+	// buffers plens
+
 
 	// Create video resource
 	unsigned resourceIndex = 0;
@@ -34,7 +49,7 @@ bool VideoImporter::ImportVideo(const char* filePath, JsonValue jMeta) {
 	}
 
 	// Save to file
-	saved = App->files->Save(video->GetResourceFilePath().c_str(), buffer);
+	saved = App->files->Save(video->GetResourceFilePath().c_str(), buffer); // <-- videobuffer
 	if (!saved) {
 		LOG("Failed to save video resource file.");
 		return false;
@@ -46,4 +61,15 @@ bool VideoImporter::ImportVideo(const char* filePath, JsonValue jMeta) {
 	unsigned timeMs = timer.Stop();
 	LOG("Video imported in %ums", timeMs);
 	return true;
+
+
+
+
+	// lo mismo pal audio
+
+	// veure EncondeWavToOgg()
+
+	// crear objecte SF_INFO
+	// sfInfo.format = SF_FORMAT_WAV;
+	// sfInfo...
 }
