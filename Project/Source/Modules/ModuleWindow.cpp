@@ -10,6 +10,7 @@
 #include "SDL.h"
 #include "SDL_image.h"
 #include "Scene.h"
+#include "GL/glew.h"
 
 #include "Utils/Leaks.h"
 
@@ -140,19 +141,36 @@ void ModuleWindow::SetTitle(const char* title) {
 
 void ModuleWindow::SetCursor(bool isPlaying) {
 	if (isPlaying) {
-		SDL_Surface* loadedImage = nullptr;
-		//Load the image using SDL_image
-		loadedImage = IMG_Load("./Assets/Textures/UI/cursor30x30.png"); // TO TESTING
-		// loadedImage = IMG_Load("./Assets/Textures/UI/cursor.png");
-		if (loadedImage) {
-			cursor = SDL_CreateColorCursor(loadedImage, 15, 15);
+		// Load resource
+		Scene* scene = App->scene->scene;
+		ResourceTexture* cursorResourceTexture = App->resources->GetResource<ResourceTexture>(scene->GetCursor());
+		
+		// From glTexture to SDL_Surface
+		int w = 0;
+		int h = 0;
+		glGetTextureLevelParameteriv(cursorResourceTexture->glTexture, 0, GL_TEXTURE_WIDTH, &w);
+		glGetTextureLevelParameteriv(cursorResourceTexture->glTexture, 0, GL_TEXTURE_HEIGHT, &h);
+
+		void* pixel_data = malloc(w*h*4);
+		memset(pixel_data, 0, w*h * 4);
+
+		glBindTexture(GL_TEXTURE_2D, cursorResourceTexture->glTexture);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixel_data);
+
+		SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(pixel_data, w, h, 32, 4 * w, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
+
+		// Scale image
+		SDL_Surface* scaledImage = SDL_CreateRGBSurfaceWithFormat(0, scene->widthCursor, scene->heightCursor, 32, SDL_PIXELFORMAT_RGBA32);
+		SDL_SoftStretch(surface, &surface->clip_rect, scaledImage, &scaledImage->clip_rect);
+
+		if (scaledImage) {
+			cursor = SDL_CreateColorCursor(scaledImage, scene->widthCursor / 2, scene->heightCursor / 2);
 		} else {
-			LOG(IMG_GetError());
+			LOG("Error creating Cursor");
 			cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
 		}
-		/* cursor = (App->scene->scene->GetCursor() != 0) ? 
-			SDL_CreateColorCursor(IMG_Load("Assets/Textures/UI/cursor.png"), 0, 0)
-			: SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);*/
+		free(pixel_data);
+		pixel_data = nullptr;
 	} else {
 		cursor = SDL_GetDefaultCursor();
 	}

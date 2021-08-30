@@ -459,9 +459,33 @@ UID Scene::GetNavMesh() {
 }
 
 void Scene::SetCursor(UID cursor) {
-	// TODO: Set Creating Cursor
+	if (cursorId != 0) {
+		App->resources->DecreaseReferenceCount(cursorId);
+	}
+
+	cursorId = cursor;
+
+	if (cursor != 0) {
+		App->resources->IncreaseReferenceCount(cursor);
+	}
 }
 
 UID Scene::GetCursor() {
 	return cursorId;
+}
+
+void Scene::SetCursorWith(int with) {
+	widthCursor = with;
+}
+
+int Scene::GetCursorWith() {
+	return widthCursor;
+}
+
+void Scene::SetCursorHeight(int height) {
+	heightCursor = height;
+}
+
+int Scene::GetCursorHeight() {
+	return heightCursor;
 }
