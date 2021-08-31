@@ -21,6 +21,7 @@
 #include "FileSystem/TextureImporter.h"
 #include "Utils/ImGuiUtils.h"
 
+#include "Geometry/Sphere.h"
 #include "assimp/mesh.h"
 #include "GL/glew.h"
 
@@ -169,6 +170,11 @@ void ComponentMeshRenderer::OnEditorUpdate() {
 				if (ImGui::Button("Play Dissolve Animation")) {
 					PlayDissolveAnimation();
 				}
+
+				if (ImGui::Button("Play Dissolve Animation Reverse")) {
+					PlayDissolveAnimation(true);
+				}
+
 				if (ImGui::Button("Reset Dissolve Animation")) {
 					ResetDissolveValues();
 				}
@@ -349,7 +355,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 		// Dissolve settings
 		glUniform1f(dissolveProgram->scaleLocation, material->dissolveScale);
-		glUniform1f(dissolveProgram->thresholdLocation, dissolveThreshold);
+		glUniform1f(dissolveProgram->thresholdLocation, GetDissolveValue());
 		glUniform2fv(dissolveProgram->offsetLocation, 1, material->dissolveOffset.ptr());
 		glUniform1f(dissolveProgram->edgeSizeLocation, material->dissolveEdgeSize);
 
@@ -415,9 +421,6 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		ProgramUnlitDissolve* unlitProgram = App->programs->dissolveUnlit;
 		if (unlitProgram == nullptr) return;
 
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 		glUseProgram(unlitProgram->program);
 
 		// Matrices
@@ -466,15 +469,13 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 		// Dissolve settings
 		glUniform1f(unlitProgram->scaleLocation, material->dissolveScale);
-		glUniform1f(unlitProgram->thresholdLocation, dissolveThreshold);
+		glUniform1f(unlitProgram->thresholdLocation, GetDissolveValue());
 		glUniform2fv(unlitProgram->offsetLocation, 1, material->dissolveOffset.ptr());
 		glUniform1f(unlitProgram->edgeSizeLocation, material->dissolveEdgeSize);
 		
 		glBindVertexArray(mesh->vao);
 		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
 		glBindVertexArray(0);
-
-		glDisable(GL_BLEND);
 
 		break;
 	}
@@ -566,8 +567,12 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		} else if (light.lightType == LightType::POINT) {
 			if (light.IsActive()) {
 				float3 meshPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+				const AABB& meshAABB = GetOwner().GetComponent<ComponentBoundingBox>()->GetWorldAABB();
 				float3 lightPosition = light.GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+
 				float distance = Distance(meshPosition, lightPosition);
+				if (!meshAABB.Intersects(Sphere(lightPosition, light.radius))) continue;
+
 				if (pointLightsArraySize < POINT_LIGHTS) {
 					pointDistancesArray[pointLightsArraySize] = distance;
 					pointLightsArray[pointLightsArraySize] = &light;
@@ -608,8 +613,12 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		} else if (light.lightType == LightType::SPOT) {
 			if (light.IsActive()) {
 				float3 meshPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+				const AABB& meshAABB = GetOwner().GetComponent<ComponentBoundingBox>()->GetWorldAABB();
 				float3 lightPosition = light.GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+
 				float distance = Distance(meshPosition, lightPosition);
+				if (!meshAABB.Intersects(Sphere(lightPosition, light.radius))) continue;
+
 				if (spotLightsArraySize < SPOT_LIGHTS) {
 					spotDistancesArray[spotLightsArraySize] = distance;
 					spotLightsArray[spotLightsArraySize] = &light;
@@ -828,7 +837,7 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 		glUseProgram(depthPrepassProgram->program);
 
 		glUniform1f(depthPrepassProgramDissolve->scaleLocation, material->dissolveScale);
-		glUniform1f(depthPrepassProgramDissolve->thresholdLocation, dissolveThreshold);
+		glUniform1f(depthPrepassProgramDissolve->thresholdLocation, GetDissolveValue());
 		glUniform2fv(depthPrepassProgramDissolve->offsetLocation, 1, material->dissolveOffset.ptr());
 	}
 	else {
@@ -935,8 +944,9 @@ void ComponentMeshRenderer::DeleteRenderingModeMask() {
 	}
 }
 
-void ComponentMeshRenderer::PlayDissolveAnimation() {
+void ComponentMeshRenderer::PlayDissolveAnimation(bool reverse) {
 	dissolveAnimationFinished = false;
+	dissolveAnimationReverse = reverse;
 	currentTime = 0.0f;
 	dissolveThreshold = 0.0f;
 }
@@ -945,6 +955,7 @@ void ComponentMeshRenderer::ResetDissolveValues() {
 	dissolveThreshold = 0.0f;
 	currentTime = 0.0f;
 	dissolveAnimationFinished = true;
+	dissolveAnimationReverse = false;
 }
 
 void ComponentMeshRenderer::UpdateDissolveAnimation() {
@@ -960,4 +971,8 @@ void ComponentMeshRenderer::UpdateDissolveAnimation() {
 			dissolveThreshold = 1.0f;
 		}
 	}
+}
+
+float ComponentMeshRenderer::GetDissolveValue() const {
+	return dissolveAnimationReverse ? 1.0f - dissolveThreshold : dissolveThreshold;
 }
