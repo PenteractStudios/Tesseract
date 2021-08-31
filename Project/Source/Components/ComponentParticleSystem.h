@@ -7,11 +7,13 @@
 
 #include "Math/float2.h"
 #include "Math/float3.h"
+#include "Math/float4x4.h"
 #include "Math/Quat.h"
+#include "Geometry/OBB.h"
 #include "imgui.h"
 #include <vector>
 
-#define CURVE_SIZE 10
+#define CURVE_SIZE 11
 
 class ComponentTransform;
 class ComponentLight;
@@ -27,10 +29,14 @@ enum class WorldLayers;
 enum class ParticleEmitterType {
 	CONE,
 	SPHERE,
-	HEMISPHERE,
-	DONUT,
 	CIRCLE,
-	RECTANGLE
+	BOX
+};
+
+enum class BoxEmitterFrom {
+	VOLUME,
+	SHELL,
+	EDGE
 };
 
 enum class ParticleRenderMode {
@@ -185,11 +191,14 @@ public:
 
 	// Shape
 	TESSERACT_ENGINE_API ParticleEmitterType GetEmitterType() const;
+	TESSERACT_ENGINE_API float GetShapeRadius() const;
+	TESSERACT_ENGINE_API float GetShapeRadiusThickness() const;
+	TESSERACT_ENGINE_API float GetShapeArc() const;
 	// -- Cone
 	TESSERACT_ENGINE_API float GetConeRadiusUp() const;
-	TESSERACT_ENGINE_API float GetConeRadiusDown() const;
-	TESSERACT_ENGINE_API bool GetRandomConeRadiusDown() const;
 	TESSERACT_ENGINE_API bool GetRandomConeRadiusUp() const;
+	// -- Box
+	TESSERACT_ENGINE_API BoxEmitterFrom GetBoxEmitterFrom() const;
 
 	// Rotation over Lifetime
 	TESSERACT_ENGINE_API bool GetRotationOverLifetime() const;
@@ -246,11 +255,14 @@ public:
 
 	// Shape
 	TESSERACT_ENGINE_API void SetEmmitterType(ParticleEmitterType _emmitterType);
+	TESSERACT_ENGINE_API void SetShapeRadius(float _shapeRadius);
+	TESSERACT_ENGINE_API void SetShapeRadiusThickness(float _shapeRadiusThickness);
+	TESSERACT_ENGINE_API void SetShapeArc(float _shapeArc);
 	// -- Cone
 	TESSERACT_ENGINE_API void SetConeRadiusUp(float _coneRadiusUp);
-	TESSERACT_ENGINE_API void SetConeRadiusDown(float _coneRadiusUp);
-	TESSERACT_ENGINE_API void SetRandomConeRadiusDown(bool _randomConeRadiusDown);
 	TESSERACT_ENGINE_API void SetRandomConeRadiusUp(bool _randomConeRadiusUp);
+	// -- Box
+	TESSERACT_ENGINE_API void SetBoxEmitterFrom(BoxEmitterFrom _boxEmitterFrom);
 
 	// Rotation over Lifetime
 	TESSERACT_ENGINE_API void SetRotationOverLifetime(bool _rotationOverLifeTime);
@@ -312,6 +324,7 @@ private:
 	bool drawGizmo = true;
 
 	// Curve Editor
+	bool activeCE = false;
 	const char* nameCE = nullptr;
 	ImVec2* valuesCE = nullptr;
 	float2* axisYScaleCE = nullptr;
@@ -354,12 +367,16 @@ private:
 
 	// Shape
 	ParticleEmitterType emitterType = ParticleEmitterType::CONE;
-
+	float shapeRadius = 0.5f;
+	float shapeRadiusThickness = 1.0f;
+	float shapeArc = 2 * pi;
+	float4x4 emitterModel = float4x4::identity;
+	OBB obbEmitter;
 	// -- Cone
 	float coneRadiusUp = 1.0f;
-	float coneRadiusDown = 0.5f;
-	bool randomConeRadiusDown = false;
 	bool randomConeRadiusUp = false;
+	// -- Box
+	BoxEmitterFrom boxEmitterFrom = BoxEmitterFrom::VOLUME;
 
 	// Rotation over Lifetime
 	bool rotationOverLifetime = false;

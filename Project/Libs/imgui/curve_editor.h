@@ -397,8 +397,10 @@ namespace ImGui {
 		ImGui::PushID(label);
 		int modified = 0;
 		int i;
-		if (maxpoints < 2 || points == 0)
+		if (maxpoints < 2 || points == 0) {
+			ImGui::PopID();
 			return 0;
+		}
 
 		if (points[0].x < 0) {
 			points[0].x = 0;
@@ -412,13 +414,17 @@ namespace ImGui {
 		ImGuiContext& g = *GImGui;
 		const ImGuiStyle& style = g.Style;
 		const ImGuiID id = window->GetID(label);
-		if (window->SkipItems)
+		if (window->SkipItems) {
+			ImGui::PopID();
 			return 0;
+		}
 
 		ImRect bb(window->DC.CursorPos, (float2) window->DC.CursorPos + size);
 		ItemSize(bb);
-		if (!ItemAdd(bb, NULL))
+		if (!ItemAdd(bb, NULL)) {
+			ImGui::PopID();
 			return 0;
+		}
 
 		const bool hovered = ImGui::ItemHoverable(bb, id);
 
