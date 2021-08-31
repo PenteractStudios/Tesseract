@@ -606,7 +606,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 					}
 				}
 			}
-			ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, inf, "%d", ImGuiSliderFlags_AlwaysClamp);
+			ImGui::DragInt("Texture Repeats", &nTextures, 1, 1, (int) inf, "%d", ImGuiSliderFlags_AlwaysClamp);
 
 			ImGui::Unindent();
 		}
@@ -1351,7 +1351,7 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 		} else if (boxEmitterFrom == BoxEmitterFrom::SHELL) {
 			float u, v;
 			float3 point = obbEmitter.CornerPoint(0);
-			int index = floor(Random() * 6);
+			int index = (int) floor(Random() * 6);
 			if (index == 0 || index == 1) { // X planes
 				u = point.y;
 				v = point.z;
@@ -1370,7 +1370,7 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 			y0 = finalPoint.y;
 			z0 = finalPoint.z;
 		} else { // Edge
-			int index = floor(Random() * 12);
+			int index = (int) floor(Random() * 12);
 			float3 finalPoint = obbEmitter.PointOnEdge(index, Random());
 			x0 = finalPoint.x;
 			y0 = finalPoint.y;
