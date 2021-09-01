@@ -271,12 +271,12 @@ void PanelConfiguration::Update() {
 			ImGui::Separator();
 			ImGui::ResourceSlot<ResourceTexture>("Cursor Texture", &scene->cursorId);
 
-			int widthCursor = scene->widthCursor;
-			if (ImGui::SliderInt("Width Cursor", &widthCursor, 10, 100)) {
+			int widthCursor = scene->widthCursor;			
+			if (ImGui::DragInt("Width Cursor", &widthCursor, 1, 10, 100)) {
 				scene->widthCursor = widthCursor;
 			}
 			int heightCursor = scene->heightCursor;
-			if (ImGui::SliderInt("Height Cursor", &heightCursor, 10, 100)) {
+			if (ImGui::DragInt("Height Cursor", &heightCursor, 1, 10, 100)) {
 				scene->heightCursor = heightCursor;
 			}
 		}

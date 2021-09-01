@@ -67,8 +67,8 @@ public:
 	void SetCursor(UID cursor);
 	UID GetCursor();
 
-	void SetCursorWith(int with);
-	int GetCursorWith();
+	void SetCursorWidth(int width);
+	int GetCursorWidth();
 	void SetCursorHeight(int height);
 	int GetCursorHeight();
 

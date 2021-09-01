@@ -474,11 +474,11 @@ UID Scene::GetCursor() {
 	return cursorId;
 }
 
-void Scene::SetCursorWith(int with) {
-	widthCursor = with;
+void Scene::SetCursorWidth(int width) {
+	widthCursor = width;
 }
 
-int Scene::GetCursorWith() {
+int Scene::GetCursorWidth() {
 	return widthCursor;
 }
 
