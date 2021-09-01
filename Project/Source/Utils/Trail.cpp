@@ -26,7 +26,7 @@
 #include "debugdraw.h"
 #include "rapidjson/rapidjson.h"
 #include "imgui_color_gradient.h"
-
+#include "Math/float3.h"
 #include <string>
 #include "Utils/Leaks.h"
 
@@ -35,12 +35,18 @@ void Trail::Init() {
 	EditTextureCoords();
 }
 
+bool Trail::CalculateDistance(float3 A, float3 B) {
+	if (Abs(B.x - A.x) > vertexDistance) return true;
+	if (Abs(B.y - A.y) > vertexDistance) return true;
+	if (Abs(B.z - A.z) > vertexDistance) return true;
+	return false;
+}
 void Trail::Update(float3 mPosition) {
 	if (!isRendering) return;
 
-	float3 vectorUp = (mainRotation * float3::unitY).Normalized();
+	float3 vectorUp = (mainRotation * float3::unitY);
 	if (isStarted) {
-		if (!previousPosition.Equals(mPosition)) {
+		if (CalculateDistance(currentPosition, mPosition)) {
 			previousPositionUp = currentPositionUp;
 			previousPositionDown = currentPositionDown;
 			previousPosition = currentPosition;
@@ -72,6 +78,18 @@ void Trail::Update(float3 mPosition) {
 			InsertTextureCoords(currentQuad);
 			InsertVertex(currentQuad, previousPositionUp);
 			InsertTextureCoords(currentQuad);
+		} else {
+			if (quadsCreated > 0) {
+				currentPosition = mPosition;
+				currentPositionUp = (vectorUp * width) + currentPosition;
+				currentPositionDown = (-vectorUp * width) + currentPosition;
+
+				Quad* currentQuad = &quads[quadsCreated-1];
+
+				UpdateVertex(currentQuad, currentPositionDown, 5);
+				UpdateVertex(currentQuad, currentPositionDown, 15);
+				UpdateVertex(currentQuad, currentPositionUp, 20);
+			}
 		}
 	} else {
 		isStarted = true;
@@ -119,7 +137,7 @@ void Trail::OnEditorUpdate() {
 		DeleteQuads();
 	}
 	ImGui::DragFloat("Quad Life", &quadLife, App->editor->dragSpeed2f, 1, inf);
-
+	ImGui::DragFloat("Vertex Distance", &vertexDistance, App->editor->dragSpeed2f, 0, inf);
 	ImGui::NewLine();
 	ImGui::Checkbox("Color Over Trail", &colorOverTrail);
 	if (colorOverTrail) {
@@ -250,6 +268,18 @@ void Trail::SpawnQuad(Quad* currentQuad) {
 	currentQuad->life = quadLife;
 	quadsCreated++;
 }
+
+void Trail::UpdateVertex(Quad* currentQuad, float3 vertex, int index) {
+	currentQuad->quadInfo[index++] = vertex.x;
+	currentQuad->quadInfo[index++] = vertex.y;
+	currentQuad->quadInfo[index++] = vertex.z;
+}
+void Trail::UpdateVertexTexture(Quad* currentQuad, int index, int indexTexture) {
+	currentQuad->quadInfo[index++] = textureCords[indexTexture++];
+	currentQuad->quadInfo[index++] = textureCords[indexTexture++];
+}
+
+
 
 void Trail::DeleteQuads() {
 	for (int i = 0; i < maxQuads; i++) {

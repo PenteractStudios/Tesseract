@@ -22,6 +22,7 @@ public:
 	};
 
 	void Init();
+	bool CalculateDistance(float3 A, float3 B);
 	void Update(float3 mPosition);
 	void OnEditorUpdate();
 
@@ -30,6 +31,8 @@ public:
 	void InsertTextureCoords(Quad* currentQuad);
 	void SpawnQuad(Quad* currentQuad);
 	void UpdateQuads();
+	void UpdateVertex(Quad* currentQuad, float3 vertex,int index);
+	void UpdateVertexTexture(Quad* currentQuad, int index, int indexTexture);
 	void UpdateLife(Quad* currentQuad);
 	void DeleteQuads();
 	void EditTextureCoords();
@@ -57,6 +60,7 @@ public:
 	int trailQuads = 50;
 	int maxVertices = 1500;
 	int textureCreated = 0;
+	float vertexDistance = 0;
 	const static int maxQuads = 100;
 
 	float nRepeats = 1;
@@ -79,6 +83,7 @@ public:
 
 	Quad quads[maxQuads];
 
-	Quat mainRotation = Quat(0.0f, 0.0f, 0.0f, 0.0f);
+	Quat mainRotation;
+
 	float3* mainPosition = nullptr;
 };
