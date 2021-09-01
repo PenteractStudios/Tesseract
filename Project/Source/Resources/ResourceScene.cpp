@@ -7,53 +7,32 @@
 
 #include "Utils/Leaks.h"
 
-void ResourceScene::LoadScene() {
-	sceneMutex.lock();
-
-	if (scene != nullptr) {
-		sceneMutex.unlock();
-		return;
-	}
-
+void ResourceScene::FinishLoading() {
 	const char* filePath = GetResourceFilePath().c_str();
-
-	// Create scene
-	scene = new Scene(10000);
 
 	// Timer to measure loading a scene
 	MSTimer timer;
 	timer.Start();
 	LOG("Loading scene from path: \"%s\".", filePath);
 
+	// Create scene
+	scene = new Scene(10000);
 	scene->LoadFromFile(filePath);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Scene loaded in %ums.", timeMs);
+}
 
-	sceneMutex.unlock();
+void ResourceScene::Unload() {
+	RELEASE(scene);
 }
 
 Scene* ResourceScene::GetScene() {
-	Scene* currentScene = nullptr;
-
-	if (sceneMutex.try_lock()) {
-		currentScene = scene;
-
-		sceneMutex.unlock();
-	}
-
-	return currentScene;
+	return scene;
 }
 
 Scene* ResourceScene::TransferScene() {
-	Scene* currentScene = nullptr;
-
-	if (sceneMutex.try_lock()) {
-		currentScene = scene;
-		scene = nullptr;
-
-		sceneMutex.unlock();
-	}
-
+	Scene* currentScene = scene;
+	scene = nullptr;
 	return currentScene;
 }

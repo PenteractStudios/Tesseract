@@ -61,7 +61,6 @@ void ResourceStateMachine::Load() {
 	for (unsigned int i = 0; i < clipArray.Size(); ++i) {
 		UID clipUID = clipArray[i];
 		ResourceClip* clip = App->resources->GetResource<ResourceClip>(clipUID);
-		App->resources->IncreaseReferenceCount(clipUID);
 		clipsUids.push_back(clipUID);
 	}
 
@@ -101,6 +100,13 @@ void ResourceStateMachine::Load() {
 
 	unsigned timeMs = timer.Stop();
 	LOG("Material loaded in %ums", timeMs);
+}
+
+void ResourceStateMachine::FinishLoading() {
+	std::list<UID>::iterator itClip;
+	for (itClip = clipsUids.begin(); itClip != clipsUids.end(); ++itClip) {
+		App->resources->IncreaseReferenceCount((*itClip));
+	}
 }
 
 void ResourceStateMachine::Unload() {

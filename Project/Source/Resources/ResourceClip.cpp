@@ -54,7 +54,6 @@ void ResourceClip::Load() {
 
 	name = jStateMachine[JSON_TAG_NAME];
 	animationUID = jStateMachine[JSON_TAG_ANIMATION_UID];
-	App->resources->IncreaseReferenceCount(animationUID);
 	endIndex = jStateMachine[JSON_TAG_END_INDEX];
 	beginIndex = jStateMachine[JSON_TAG_BEGIN_INDEX];
 	loop = jStateMachine[JSON_TAG_LOOP];
@@ -113,6 +112,10 @@ void ResourceClip::GetInfoJson() {
 
 	unsigned timeMs = timer.Stop();
 	LOG("Clip info received in %ums", timeMs);
+}
+
+void ResourceClip::FinishLoading() {
+	App->resources->IncreaseReferenceCount(animationUID);
 }
 
 void ResourceClip::Unload() {

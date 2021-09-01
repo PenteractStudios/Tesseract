@@ -198,7 +198,7 @@ void ComponentAudioSource::UpdateSourceParameters() {
 
 	alSourcef(sourceId, AL_PITCH, pitch);
 	alSourcei(sourceId, AL_LOOPING, loop);
-	alSourcei(sourceId, AL_BUFFER, audioResource->ALbuffer);
+	alSourcei(sourceId, AL_BUFFER, audioResource->alBuffer);
 	audioResource->AddSource(this);
 
 	if (!spatialBlend) {

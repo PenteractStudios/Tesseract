@@ -9,11 +9,12 @@ class ResourceScene : public Resource {
 public:
 	REGISTER_RESOURCE(ResourceScene, ResourceType::SCENE);
 
-	void LoadScene();
+	void FinishLoading();
+	void Unload();
+
 	Scene* GetScene();
 	Scene* TransferScene();
 
 private:
-	std::mutex sceneMutex;
 	Scene* scene = nullptr;
 };

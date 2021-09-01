@@ -20,6 +20,7 @@ public:
 	REGISTER_RESOURCE(ResourceClip, ResourceType::CLIP);
 
 	void Load() override;
+	void FinishLoading() override;
 	void GetInfoJson();
 	void Unload() override;
 	void OnEditorUpdate() override;

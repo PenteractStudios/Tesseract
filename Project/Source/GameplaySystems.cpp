@@ -19,6 +19,7 @@
 #include "Resources/ResourcePrefab.h"
 #include "Resources/ResourceMaterial.h"
 #include "Resources/ResourceClip.h"
+#include "Resources/ResourceScene.h"
 #include "Importers/SceneImporter.h"
 #include "Utils/Logging.h"
 #include "TesseractEvent.h"
@@ -58,6 +59,7 @@ T* GameplaySystems::GetResource(UID id) {
 template TESSERACT_ENGINE_API ResourcePrefab* GameplaySystems::GetResource<ResourcePrefab>(UID id);
 template TESSERACT_ENGINE_API ResourceMaterial* GameplaySystems::GetResource<ResourceMaterial>(UID id);
 template TESSERACT_ENGINE_API ResourceClip* GameplaySystems::GetResource<ResourceClip>(UID id);
+template TESSERACT_ENGINE_API ResourceScene* GameplaySystems::GetResource<ResourceScene>(UID id);
 
 void GameplaySystems::SetRenderCamera(ComponentCamera* camera) {
 	App->camera->ChangeActiveCamera(camera, true);
@@ -265,12 +267,8 @@ bool Input::IsGamepadConnected(int index) {
 
 // --------- SCENE MANAGER --------- //
 
-void SceneManager::PreloadSceneAsync(UID sceneId) {
-	App->scene->PreloadSceneAsync(sceneId);
-}
-
-bool SceneManager::IsPreloadSceneLoaded() {
-	return App->scene->IsPreloadSceneLoaded();
+void SceneManager::PreloadScene(UID sceneId) {
+	App->scene->PreloadScene(sceneId);
 }
 
 void SceneManager::ChangeScene(UID sceneId) {

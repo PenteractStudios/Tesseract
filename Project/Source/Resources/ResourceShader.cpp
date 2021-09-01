@@ -8,7 +8,7 @@
 
 #include "Utils/Leaks.h"
 
-void ResourceShader::Load() {
+void ResourceShader::FinishLoading() {
 	// Timer to measure loading a shader
 	MSTimer timer;
 	timer.Start();

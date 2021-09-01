@@ -101,15 +101,16 @@ bool ModuleResources::Init() {
 }
 
 bool ModuleResources::Start() {
-	stopImportThread = false;
+	stopLoadingThread = false;
 
-	importThread = std::thread(&ModuleResources::UpdateAsync, this);
+	loadingThread = std::thread(&ModuleResources::UpdateAsync, this);
 
 	return true;
 }
 
 UpdateStatus ModuleResources::Update() {
 	BROFILER_CATEGORY("ModuleResources - Update", Profiler::Color::Orange)
+
 	// Copy dropped file to assets folder
 	const char* droppedFilePath = App->input->GetDroppedFilePath();
 	if (droppedFilePath != nullptr) {
@@ -117,12 +118,23 @@ UpdateStatus ModuleResources::Update() {
 		FileDialog::Copy(droppedFilePath, newFilePath.c_str());
 		App->input->ReleaseDroppedFilePath();
 	}
+
+	// Finish resource loading
+	while (!loadedResources.empty()) {
+		Resource* resource = nullptr;
+		if (!loadedResources.try_pop(resource)) break;
+		if (resource == nullptr) continue;
+
+		resource->FinishLoading();
+		resource->SetLoaded(true);
+	}
+
 	return UpdateStatus::CONTINUE;
 }
 
 bool ModuleResources::CleanUp() {
-	stopImportThread = true;
-	importThread.join();
+	stopLoadingThread = true;
+	loadingThread.join();
 	return true;
 }
 
@@ -272,6 +284,13 @@ std::list<UID> ModuleResources::ImportAssetResources(const char* filePath, bool 
 	return resources;
 }
 
+ResourceType ModuleResources::GetResourceType(UID id) {
+	auto it = resources.find(id);
+	Resource* resource = it != resources.end() ? it->second.get() : nullptr;
+	if (resource == nullptr) return ResourceType::UNKNOWN;
+	return resource->GetType();
+}
+
 AssetCache* ModuleResources::GetAssetCache() const {
 	return assetCache.get();
 }
@@ -299,6 +318,7 @@ void ModuleResources::DecreaseReferenceCount(UID id) {
 			Resource* resource = GetResource<Resource>(id);
 			if (resource != nullptr) {
 				resource->Unload();
+				resource->SetLoaded(false);
 			}
 			referenceCounts.erase(id);
 		}
@@ -313,6 +333,7 @@ void ModuleResources::ResetReferenceCount(UID id) {
 		Resource* resource = GetResource<Resource>(id);
 		if (resource != nullptr) {
 			resource->Unload();
+			resource->SetLoaded(false);
 		}
 		referenceCounts.erase(id);
 	}
@@ -335,7 +356,7 @@ std::string ModuleResources::GenerateResourcePath(UID id) const {
 }
 
 void ModuleResources::UpdateAsync() {
-	while (!stopImportThread) {
+	while (!stopLoadingThread) {
 #if !GAME
 		// Check if any asset file has been modified / deleted
 		std::vector<UID> resourcesToRemove;
@@ -420,7 +441,15 @@ void ModuleResources::UpdateAsync() {
 		App->events->AddEvent(updateAssetCacheEv);
 #endif
 
-		App->events->AddEvent(TesseractEventType::RESOURCES_LOADED);
+		// Load resources
+		while (!resourcesToLoad.empty()) {
+			Resource* resource = nullptr;
+			if (!resourcesToLoad.try_pop(resource)) break;
+			if (resource == nullptr) continue;
+
+			resource->Load();
+			loadedResources.push(resource);
+		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BETWEEN_RESOURCE_UPDATES_MS));
 	}
@@ -585,7 +614,7 @@ void ModuleResources::LoadResource(Resource* resource) {
 	}
 
 	// Load resource
-	resource->Load();
+	resourcesToLoad.push(resource);
 }
 
 void ModuleResources::LoadImportOptions(std::unique_ptr<ImportOptions>& importOptions, const char* filePath) {

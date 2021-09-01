@@ -119,25 +119,11 @@ UpdateStatus ModuleScene::Update() {
 	// Update GameObjects
 	scene->root->Update();
 
-	// Check for scene loading
-	if (preloadSceneId != 0) {
-		std::future_status status = preloadSceneFuture->wait_for(std::chrono::milliseconds(0));
-		if (status == std::future_status::ready) {
-			ResourceScene* preloadScene = App->resources->GetResource<ResourceScene>(preloadSceneId);
-			scene = preloadScene->GetScene();
-
-			preloadSceneLoaded = true;
-			RELEASE(preloadSceneFuture);
-		}
-	}
-
 	return UpdateStatus::CONTINUE;
 }
 
 bool ModuleScene::CleanUp() {
-	scene->ClearScene();
 	RELEASE(scene);
-	RELEASE(preloadSceneFuture);
 
 #ifdef _DEBUG
 	aiDetachAllLogStreams();
@@ -194,43 +180,21 @@ void ModuleScene::CreateEmptyScene() {
 	gameCamera->Init();
 }
 
-void ModuleScene::PreloadSceneAsync(UID sceneId) {
-	if (preloadSceneId != 0) return;
-
-	ResourceScene* sceneResource = App->resources->GetResource<ResourceScene>(sceneId);
-	if (sceneResource->GetScene() != nullptr) return;
-
-	preloadSceneLoaded = false;
-	RELEASE(preloadSceneFuture);
-
-	preloadSceneId = sceneId;
-	preloadSceneFuture = new std::future<void>(std::async(&ResourceScene::LoadScene, sceneResource));
+void ModuleScene::PreloadScene(UID newSceneId) {
+	App->resources->IncreaseReferenceCount(newSceneId);
 }
 
-bool ModuleScene::IsPreloadSceneLoaded() {
-	return preloadSceneId != 0 && preloadSceneLoaded;
-}
+void ModuleScene::ChangeScene(UID newSceneId) {
+	if (newSceneId == 0) return;
 
-void ModuleScene::ChangeScene(UID sceneId) {
-	ResourceScene* sceneResource = nullptr;
-	if (preloadSceneId != 0) {
-		if (!preloadSceneLoaded) return;
+	App->resources->ResetReferenceCount(sceneId);
+	App->resources->IncreaseReferenceCount(newSceneId);
 
-		sceneResource = App->resources->GetResource<ResourceScene>(preloadSceneId);
-		if (sceneResource == nullptr) return;
+	ResourceScene* sceneResource = App->resources->GetResource<ResourceScene>(newSceneId);
+	if (sceneResource == nullptr) return;
 
-		preloadSceneId = 0;
-		preloadSceneLoaded = false;
-
-	} else {
-		sceneResource = App->resources->GetResource<ResourceScene>(sceneId);
-		if (sceneResource == nullptr) return;
-
-		sceneResource->LoadScene();
-	}
-
-	scene->ClearScene();
 	RELEASE(scene);
+	sceneId = newSceneId;
 	scene = sceneResource->TransferScene();
 
 	ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(scene->gameCameraId);

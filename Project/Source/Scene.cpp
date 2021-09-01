@@ -479,7 +479,7 @@ int Scene::GetTotalTriangles() const {
 	for (const ComponentMeshRenderer& meshComponent : meshRendererComponents) {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshComponent.meshId);
 		if (mesh != nullptr) {
-			triangles += mesh->numIndices / 3;
+			triangles += mesh->indices.size() / 3;
 		}
 	}
 	return triangles;
@@ -492,8 +492,8 @@ std::vector<float> Scene::GetVertices() {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
 		ComponentTransform* transform = meshRenderer.GetOwner().GetComponent<ComponentTransform>();
 		if (mesh != nullptr && transform->GetOwner().IsStatic()) {
-			for (size_t i = 0; i < mesh->meshVertices.size(); i += 3) {
-				float4 transformedVertex = transform->GetGlobalMatrix() * float4(mesh->meshVertices[i], mesh->meshVertices[i + 1], mesh->meshVertices[i + 2], 1);
+			for (const ResourceMesh::Vertex& vertex : mesh->vertices) {
+				float4 transformedVertex = transform->GetGlobalMatrix() * float4(vertex.position, 1.0f);
 				result.push_back(transformedVertex.x);
 				result.push_back(transformedVertex.y);
 				result.push_back(transformedVertex.z);
@@ -511,8 +511,8 @@ std::vector<int> Scene::GetTriangles() {
 	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
 		if (mesh != nullptr && meshRenderer.GetOwner().IsStatic()) {
-			triangles += mesh->numIndices / 3;
-			maxVertMesh.push_back(mesh->numVertices);
+			triangles += mesh->indices.size() / 3;
+			maxVertMesh.push_back(mesh->vertices.size());
 		}
 	}
 	std::vector<int> result(triangles * 3);
@@ -525,10 +525,10 @@ std::vector<int> Scene::GetTriangles() {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
 		if (mesh != nullptr && meshRenderer.GetOwner().IsStatic()) {
 			vertOverload += maxVertMesh[i];
-			for (unsigned j = 0; j < mesh->meshIndices.size(); j += 3) {
-				result[currentGlobalTri] = mesh->meshIndices[j] + vertOverload;
-				result[currentGlobalTri + 1] = mesh->meshIndices[j + 1] + vertOverload;
-				result[currentGlobalTri + 2] = mesh->meshIndices[j + 2] + vertOverload;
+			for (unsigned j = 0; j < mesh->indices.size(); j += 3) {
+				result[currentGlobalTri] = mesh->indices[j] + vertOverload;
+				result[currentGlobalTri + 1] = mesh->indices[j + 1] + vertOverload;
+				result[currentGlobalTri + 2] = mesh->indices[j + 2] + vertOverload;
 				currentGlobalTri += 3;
 			}
 			i++;
@@ -545,8 +545,8 @@ std::vector<float> Scene::GetNormals() {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
 		ComponentTransform* transform = meshRenderer.GetOwner().GetComponent<ComponentTransform>();
 		if (mesh != nullptr && transform->GetOwner().IsStatic()) {
-			for (size_t i = 0; i < mesh->meshNormals.size(); i += 3) {
-				float4 transformedVertex = transform->GetGlobalMatrix() * float4(mesh->meshNormals[i], mesh->meshNormals[i + 1], mesh->meshNormals[i + 2], 1);
+			for (const ResourceMesh::Vertex& vertex : mesh->vertices) {
+				float4 transformedVertex = transform->GetGlobalMatrix() * float4(vertex.normal, 1.0f);
 				result.push_back(transformedVertex.x);
 				result.push_back(transformedVertex.y);
 				result.push_back(transformedVertex.z);

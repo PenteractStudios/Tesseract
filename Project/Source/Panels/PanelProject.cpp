@@ -111,17 +111,17 @@ void PanelProject::UpdateResources() {
 	AssetFile* assetFile = it->second;
 
 	for (UID resourceId : assetFile->resourceIds) {
-		Resource* resource = App->resources->GetResource<Resource>(resourceId);
-		if (resource == nullptr) continue;
+		ResourceType resourceType = App->resources->GetResourceType(resourceId);
+		if (resourceType == ResourceType::UNKNOWN) continue;
 
 		std::string resourceName = std::to_string(resourceId);
-		std::string resourceTypeName = GetResourceTypeName(resource->GetType());
+		std::string resourceTypeName = GetResourceTypeName(resourceType);
 		std::string name = std::string(ICON_FA_FILE " ") + "[" + resourceTypeName + "] " + resourceName.c_str();
 
 		ImGuiSelectableFlags flags = ImGuiSelectableFlags_None;
 		ImGui::PushID(resourceName.c_str());
 		if (ImGui::Selectable(name.c_str(), flags)) {
-			App->editor->selectedResource = resource->GetId();
+			App->editor->selectedResource = resourceId;
 		}
 		ImGui::PopID();
 

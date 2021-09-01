@@ -31,6 +31,7 @@ public:
 
 	template<typename T> T* GetImportOptions(const char* filePath, bool forceLoad = false);
 	template<typename T> T* GetResource(UID id);
+	ResourceType GetResourceType(UID id);
 	AssetCache* GetAssetCache() const;
 
 	void IncreaseReferenceCount(UID id);
@@ -70,9 +71,11 @@ private:
 	std::unordered_map<UID, unsigned> referenceCounts;
 	std::unique_ptr<AssetCache> assetCache;
 
-	std::thread importThread;
-	bool stopImportThread = false;
+	std::thread loadingThread;
+	bool stopLoadingThread = false;
 	std::unordered_map<UID, std::string> concurrentResourceUIDToAssetFilePath;
+	concurrency::concurrent_queue<Resource*> resourcesToLoad;
+	concurrency::concurrent_queue<Resource*> loadedResources;
 };
 
 template<typename T>
@@ -91,6 +94,7 @@ template<typename T>
 inline T* ModuleResources::GetResource(UID id) {
 	auto it = resources.find(id);
 	T* resource = it != resources.end() ? static_cast<T*>(it->second.get()) : nullptr;
+	if (resource == nullptr || !resource->IsLoaded()) return nullptr;
 	return resource;
 }
 

@@ -1262,7 +1262,7 @@ void ModuleRender::DrawGameObject(GameObject* gameObject) {
 
 		ResourceMesh* resourceMesh = App->resources->GetResource<ResourceMesh>(mesh.meshId);
 		if (resourceMesh != nullptr) {
-			culledTriangles += resourceMesh->numIndices / 3;
+			culledTriangles += resourceMesh->indices.size() / 3;
 		}
 	}
 }

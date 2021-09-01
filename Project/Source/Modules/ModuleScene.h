@@ -4,7 +4,6 @@
 #include "Utils/UID.h"
 
 #include <string>
-#include <future>
 
 class Scene;
 class GameObject;
@@ -19,8 +18,7 @@ public:
 	void ReceiveEvent(TesseractEvent& e) override;
 
 	void CreateEmptyScene(); // Crates a new scene with a default game camera and directional light.
-	void PreloadSceneAsync(UID sceneId);
-	bool IsPreloadSceneLoaded();
+	void PreloadScene(UID sceneId);
 	void ChangeScene(UID sceneId);
 	Scene* GetCurrentScene();
 
@@ -33,9 +31,6 @@ public:
 	bool godModeOn = false;
 
 private:
+	UID sceneId = 0;
 	Scene* scene = nullptr;
-
-	bool preloadSceneLoaded = false;
-	UID preloadSceneId = 0;
-	std::future<void>* preloadSceneFuture = nullptr;
 };

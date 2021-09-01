@@ -15,6 +15,7 @@ public:
 	REGISTER_RESOURCE(ResourceStateMachine, ResourceType::STATE_MACHINE);
 
 	void Load() override;
+	void FinishLoading() override;
 	void Unload() override;
 	void SaveToFile(const char* filePath);
 	void OnEditorUpdate() override;

@@ -9,6 +9,7 @@ public:
 	REGISTER_RESOURCE(ResourceSkybox, ResourceType::SKYBOX);
 
 	void Load() override;
+	void FinishLoading() override;
 	void Unload() override;
 
 	unsigned GetGlCubeMap() const {
@@ -32,6 +33,10 @@ public:
 	}
 
 private:
+	unsigned char* imageData = nullptr;
+	unsigned width = 0;
+	unsigned height = 0;
+
 	unsigned glCubeMap = 0;
 	unsigned glIrradianceMap = 0;
 	unsigned glPreFilteredMap = 0;
