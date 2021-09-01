@@ -47,19 +47,20 @@ void ComponentVideo::Init() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	if (videoID) OpenVideoReader(App->resources->GetResource<ResourceVideo>(videoID)->GetAssetFilePath().c_str());
+	if (videoID) OpenVideoReader(App->resources->GetResource<ResourceVideo>(videoID)->GetResourceFilePath().c_str());
 }
 
 void ComponentVideo::Update() {
 	if (videoID != 0) {
 		elapsedVideoTime += App->time->GetDeltaTime();
+		LOG("elapsed: %f ------- frametime: %f", elapsedVideoTime, videoFrameTime);
 		if (elapsedVideoTime > videoFrameTime || videoFrameTime == 0) { // TODO: this will give an offset of 1 frame between video and audio!
 			ReadVideoFrame();
 		}
 
-		if (elapsedVideoTime > audioFrameTime) {
+		/* if (elapsedVideoTime > audioFrameTime) {
 			ReadAudioFrame(); //each packet contains complete frames, or multiple frames in the case of audio.
-		}
+		}*/
 		// audioPlayer.UpdateStreamData(audioFrameData, audioPlayer.checkFramesSync());
 	}
 }
@@ -276,8 +277,21 @@ void ComponentVideo::OpenVideoReader(const char* filename) {
 
 void ComponentVideo::ReadVideoFrame() {
 	int response = -1;
-	while (av_read_frame(formatCtx, avPacket) >= 0) {
+	int error = 0;
+	while (error >= 0) {
+		error = av_read_frame(formatCtx, avPacket);
+
 		if (avPacket->stream_index != videoStreamIndex) {
+			av_packet_unref(avPacket);
+			continue;
+		}
+
+		if (error < 0) {
+			LOG("I'm an error");
+			if (error == AVERROR_EOF) {
+				LOG("Its EOF!!");
+				av_seek_frame(formatCtx, videoStreamIndex, 0, 0);
+			}
 			av_packet_unref(avPacket);
 			continue;
 		}
@@ -301,8 +315,9 @@ void ComponentVideo::ReadVideoFrame() {
 		av_packet_unref(avPacket);
 		break;
 	}
-
+	LOG("I'm playing frames!");
 	videoFrameTime = avFrame->pts * timeBase.num / (float) timeBase.den;
+	if (videoFrameTime == 0) elapsedVideoTime = 0;
 	// ------------------------------- TODO: can we read frames directly in RGB?
 	if (!scalerCtx) {
 		// Set SwScaler - Scale frame size + Pixel converter to RGB

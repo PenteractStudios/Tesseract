@@ -6,7 +6,6 @@
 #include "Modules/ModuleTime.h"
 #include "Resources/ResourceVideo.h"
 #include "Utils/Logging.h"
-#include "Utils/Buffer.h"
 #include "Utils/FileDialog.h"
 #include "ImporterCommon.h"
 
@@ -15,30 +14,15 @@ bool VideoImporter::ImportVideo(const char* filePath, JsonValue jMeta) {
 	MSTimer timer;
 	timer.Start();
 
-	/*// Read from file
+	// Read from file
 	Buffer<char> buffer = App->files->Load(filePath);
 	if (buffer.Size() == 0) {
 		LOG("Error loading video %s", filePath);
 		return false;
-	}*/
-
-	// decode frames
-	// 
-	// 
-	// videobuffer
-	// 
-	// audiobuffer
-	// 
-	// 
-	
-
-
-
-	// buffers plens
-
+	}
 
 	// Create video resource
-	unsigned resourceIndex = 0;
+	 unsigned resourceIndex = 0;
 	std::unique_ptr<ResourceVideo> video = ImporterCommon::CreateResource<ResourceVideo>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
 	// Save resource meta file
@@ -49,7 +33,7 @@ bool VideoImporter::ImportVideo(const char* filePath, JsonValue jMeta) {
 	}
 
 	// Save to file
-	saved = App->files->Save(video->GetResourceFilePath().c_str(), buffer); // <-- videobuffer
+	saved = App->files->Save(video->GetResourceFilePath().c_str(), buffer);
 	if (!saved) {
 		LOG("Failed to save video resource file.");
 		return false;
@@ -57,19 +41,8 @@ bool VideoImporter::ImportVideo(const char* filePath, JsonValue jMeta) {
 
 	// Send resource creation event
 	App->resources->SendCreateResourceEvent(video);
-
+	
 	unsigned timeMs = timer.Stop();
 	LOG("Video imported in %ums", timeMs);
 	return true;
-
-
-
-
-	// lo mismo pal audio
-
-	// veure EncondeWavToOgg()
-
-	// crear objecte SF_INFO
-	// sfInfo.format = SF_FORMAT_WAV;
-	// sfInfo...
 }
