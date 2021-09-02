@@ -2,6 +2,7 @@
 
 #include "Component.h"
 
+#include "Math/float2.h"
 #include "Math/float4x4.h"
 #include <unordered_map>
 
@@ -28,6 +29,12 @@ public:
 	TESSERACT_ENGINE_API void PlayDissolveAnimation(bool reverse = false);
 	TESSERACT_ENGINE_API void ResetDissolveValues();
 
+	// Tilling
+	TESSERACT_ENGINE_API float2 GetTextureTiling() const;
+	TESSERACT_ENGINE_API float2 GetTextureOffset() const;
+	TESSERACT_ENGINE_API void SetTextureTiling(float2 _tiling);
+	TESSERACT_ENGINE_API void SetTextureOffset(float2 _offset);
+
 public:
 	UID meshId = 0;
 	UID materialId = 0;
@@ -39,6 +46,9 @@ private:
 	void UpdateDissolveAnimation();
 	float GetDissolveValue() const;
 
+	void UpdateTextureTiling(int programId, float2 value) const;
+	void UpdateTextureOffset(int programId, float2 value) const;
+
 private:
 	bool bbActive = false;
 
@@ -47,4 +57,8 @@ private:
 	float dissolveThreshold = 0.0f;
 	bool dissolveAnimationFinished = true;
 	bool dissolveAnimationReverse = false;
+
+	// Tiling variable
+	float2 textureTiling = {1.0f, 1.0f};
+	float2 textureOffset = {0.0f, 0.0f};
 };
