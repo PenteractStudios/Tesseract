@@ -502,6 +502,13 @@ void ComponentParticleSystem::OnEditorUpdate() {
 					}
 				}
 			}
+			if (ImGui::DragFloat("Vertex Distance", &distanceVertex, App->editor->dragSpeed2f, 0, 10, "%.2f", ImGuiSliderFlags_AlwaysClamp)) {
+				for (Particle& particle : particles) {
+					if (particle.trail != nullptr) {
+						particle.trail->vertexDistance = distanceVertex;
+					}
+				}
+			}
 			ImGuiRandomMenu("Num Quads (Length)", trailQuads, trailQuadsRM, 1.0f, 1, 50, "%.1f", ImGuiSliderFlags_AlwaysClamp);
 			ImGuiRandomMenu("Quad Life", quadLife, quadLifeRM, App->editor->dragSpeed2f, 1, inf);
 
@@ -1245,7 +1252,7 @@ void ComponentParticleSystem::InitParticleTrail(Particle* currentParticle) {
 	currentParticle->trail->width = ObtainRandomValueFloat(width, widthRM);
 	currentParticle->trail->trailQuads = (int) ObtainRandomValueFloat(trailQuads, trailQuadsRM);
 	currentParticle->trail->quadLife = ObtainRandomValueFloat(quadLife, quadLifeRM);
-
+	currentParticle->trail->vertexDistance = distanceVertex;
 	currentParticle->trail->textureID = textureTrailID;
 	currentParticle->trail->flipTexture[0] = flipTrailTexture[0];
 	currentParticle->trail->flipTexture[1] = flipTrailTexture[1];
