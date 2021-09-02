@@ -131,6 +131,21 @@
 #define JSON_TAG_SUB_EMMITERS_EMITTER_TYPE "EmitterType"
 #define JSON_TAG_SUB_EMITTERS_EMIT_PROB "EmitProbability"
 
+// Lights
+#define JSON_TAG_HAS_LIGHTS "HasLights"
+#define JSON_TAG_LIGHT_GAMEOBJECT "LightGameObjectUID"
+#define JSON_TAG_LIGHTS_RATIO "LightsRatio"
+#define JSON_TAG_LIGHTS_OFFSET "LightsOffset"
+#define JSON_TAG_LIGHTS_INTENSITY_MULTIPLIER_RM "IntensityMultiplierRM"
+#define JSON_TAG_LIGHTS_INTENSITY_MULTIPLIER "IntensityMultiplier"
+#define JSON_TAG_LIGHTS_RANGE_MULTIPLIER_RM "RangeMultiplierRM"
+#define JSON_TAG_LIGHTS_RANGE_MULTIPLIER "RangeMultiplier"
+#define JSON_TAG_LIGHTS_USE_PARTICLE_COLOR "UseParticleColor"
+#define JSON_TAG_LIGHTS_USE_CUSTOM_COLOR "UseCustomColor"
+#define JSON_TAG_LIGHTS_NUMBER_COLORS "NumberColorsLights"
+#define JSON_TAG_LIGHTS_GRADIENT_COLORS "GradientColorsLights"
+#define JSON_TAG_LIGHTS_MAX_LIGHTS "MaxLights"
+
 #define ITEM_SIZE 150
 
 static bool ImGuiRandomMenu(const char* name, float2& values, RandomMode& mode, float speed = 0.01f, float min = 0, float max = inf, const char* format = "%.3f", ImGuiSliderFlags flags = 0) {
@@ -179,6 +194,7 @@ static bool IsProbably(float probablility) {
 ComponentParticleSystem::~ComponentParticleSystem() {
 	RELEASE(gradient);
 	RELEASE(gradientTrail);
+	RELEASE(gradientLight);
 
 	UndertakerParticle(true);
 	for (SubEmitter* subEmitter : subEmitters) {
@@ -198,6 +214,7 @@ ComponentParticleSystem::~ComponentParticleSystem() {
 void ComponentParticleSystem::Init() {
 	if (!gradient) gradient = new ImGradient();
 	if (!gradientTrail) gradientTrail = new ImGradient();
+	if (!gradientLight) gradientLight = new ImGradient();
 	layer = WorldLayers(1 << layerIndex);
 	AllocateParticlesMemory();
 	isStarted = false;
@@ -219,6 +236,21 @@ void ComponentParticleSystem::Start() {
 				subEmitters.erase(subEmitters.begin() + pos);
 			}
 			pos += 1;
+		}
+	}
+	if (lightGameObjectUID != 0) {
+		GameObject* gameObject = App->scene->scene->GetGameObject(lightGameObjectUID);
+		if (gameObject != nullptr) {
+			ComponentLight* light = gameObject->GetComponent<ComponentLight>();
+			if (light == nullptr || light->lightType != LightType::POINT) {
+				lightGameObjectUID = 0;
+				lightComponent = nullptr;
+			} else {
+				lightComponent = light;
+			}
+		} else {
+			lightGameObjectUID = 0;
+			lightComponent = nullptr;
 		}
 	}
 }
@@ -584,6 +616,63 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		}
 	}
 
+	// Lights
+	if (ImGui::CollapsingHeader("Lights")) {
+		ImGui::Checkbox("##lights", &hasLights);
+		if (hasLights) {
+			ImGui::Indent();
+			UID oldUID = lightGameObjectUID;
+			ImGui::GameObjectSlot("Point Light", &lightGameObjectUID);
+			if (oldUID != lightGameObjectUID) {
+				GameObject* gameObject = App->scene->scene->GetGameObject(lightGameObjectUID);
+				if (gameObject != nullptr) {
+					ComponentLight* light = gameObject->GetComponent<ComponentLight>();
+					if (light == nullptr || light->lightType != LightType::POINT) {
+						lightGameObjectUID = 0;
+						lightComponent = nullptr;
+					} else {
+						lightComponent = light;
+					}
+				} else {
+					lightGameObjectUID = 0;
+					lightComponent = nullptr;
+				}
+			}
+			ImGui::NewLine();
+			ImGui::DragFloat("Ratio##lights_ratio", &lightsRatio, App->editor->dragSpeed2f, 0, 1, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+			ImGuiRandomMenu("Intensity Multiplier", intensityMultiplier, intensityMultiplierRM, App->editor->dragSpeed2f, 0, 10, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+			ImGuiRandomMenu("Range Multiplier", rangeMultiplier, rangeMultiplierRM, App->editor->dragSpeed2f, 0, 10, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+			if (ImGui::Checkbox("Use Particle Color", &useParticleColor)) {
+				if (useParticleColor && useCustomColor) {
+					useCustomColor = false;
+				}
+			}
+			ImGui::SameLine();
+			ImGui::Spacing();
+			ImGui::SameLine();
+			if (ImGui::Checkbox("Use Custom Color", &useCustomColor)) {
+				if (useCustomColor && useParticleColor) {
+					useParticleColor = false;
+				}
+			}
+			if (useCustomColor) {
+				ImGui::PopItemWidth();
+				ImGui::PushItemWidth(200);
+				ImGui::GradientEditor(gradientLight, draggingGradientLight, selectedGradientLight);
+				ImGui::PopItemWidth();
+				ImGui::PushItemWidth(ITEM_SIZE);
+				ImGui::NewLine();
+			}
+			ImGui::DragInt("Max Lights", &maxLights, 1.0f, 0, 10, "%d", ImGuiSliderFlags_AlwaysClamp);
+
+			ImGui::NewLine();
+			ImGui::SetNextItemWidth(200);
+			ImGui::DragFloat3("Local Offset (X, Y, Z)", lightOffset.ptr(), App->editor->dragSpeed2f, inf, inf, "%.2f");
+
+			ImGui::Unindent();
+		}
+	}
+
 	ImGui::NewLine();
 
 	// Texture Preview
@@ -780,6 +869,33 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 		subEmitters.push_back(subEmitter);
 	}
 
+	// Lights
+	hasLights = jComponent[JSON_TAG_HAS_LIGHTS];
+	lightGameObjectUID = jComponent[JSON_TAG_LIGHT_GAMEOBJECT];
+
+	lightsRatio = jComponent[JSON_TAG_LIGHTS_RATIO];
+	JsonValue jLightOffset = jComponent[JSON_TAG_LIGHTS_OFFSET];
+	lightOffset.Set(jLightOffset[0], jLightOffset[1], jLightOffset[2]);
+	intensityMultiplierRM = (RandomMode)(int) jComponent[JSON_TAG_LIGHTS_INTENSITY_MULTIPLIER_RM];
+	JsonValue jIntensityMultiplier = jComponent[JSON_TAG_LIGHTS_INTENSITY_MULTIPLIER];
+	intensityMultiplier.Set(jIntensityMultiplier[0], jIntensityMultiplier[1]);
+	rangeMultiplierRM = (RandomMode)(int) jComponent[JSON_TAG_LIGHTS_RANGE_MULTIPLIER_RM];
+	JsonValue jRangeMultiplier = jComponent[JSON_TAG_LIGHTS_RANGE_MULTIPLIER];
+	rangeMultiplier.Set(jRangeMultiplier[0], jRangeMultiplier[1]);
+
+	useParticleColor = jComponent[JSON_TAG_LIGHTS_USE_PARTICLE_COLOR];
+	useCustomColor = jComponent[JSON_TAG_LIGHTS_USE_CUSTOM_COLOR];
+	int lightsNumberColors = jComponent[JSON_TAG_LIGHTS_NUMBER_COLORS];
+	if (!gradientLight) gradientLight = new ImGradient();
+	gradientLight->clearList();
+	JsonValue jLightColor = jComponent[JSON_TAG_LIGHTS_GRADIENT_COLORS];
+	for (int i = 0; i < lightsNumberColors; ++i) {
+		JsonValue jMark = jLightColor[i];
+		gradientLight->addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
+	}
+
+	maxLights = jComponent[JSON_TAG_LIGHTS_MAX_LIGHTS];
+
 	AllocateParticlesMemory();
 }
 
@@ -944,9 +1060,48 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 		num += 1;
 	}
 	jComponent[JSON_TAG_SUB_EMITTERS_NUMBER] = num;
+
+	// Lights
+	jComponent[JSON_TAG_HAS_LIGHTS] = hasLights;
+	jComponent[JSON_TAG_LIGHT_GAMEOBJECT] = lightGameObjectUID;
+
+	jComponent[JSON_TAG_LIGHTS_RATIO] = lightsRatio;
+	JsonValue jLightOffset = jComponent[JSON_TAG_LIGHTS_OFFSET];
+	jLightOffset[0] = lightOffset[0];
+	jLightOffset[1] = lightOffset[1];
+	jLightOffset[2] = lightOffset[2];
+	jComponent[JSON_TAG_LIGHTS_INTENSITY_MULTIPLIER_RM] = (int) intensityMultiplierRM;
+	JsonValue jIntensityMultiplier = jComponent[JSON_TAG_LIGHTS_INTENSITY_MULTIPLIER];
+	jIntensityMultiplier[0] = intensityMultiplier[0];
+	jIntensityMultiplier[1] = intensityMultiplier[1];
+	jComponent[JSON_TAG_LIGHTS_RANGE_MULTIPLIER_RM] = (int) rangeMultiplierRM;
+	JsonValue jRangeMultiplier = jComponent[JSON_TAG_LIGHTS_RANGE_MULTIPLIER];
+	jRangeMultiplier[0] = rangeMultiplier[0];
+	jRangeMultiplier[1] = rangeMultiplier[1];
+
+	jComponent[JSON_TAG_LIGHTS_USE_PARTICLE_COLOR] = useParticleColor;
+	jComponent[JSON_TAG_LIGHTS_USE_CUSTOM_COLOR] = useCustomColor;
+	int lightsColor = 0;
+	JsonValue jLightColor = jComponent[JSON_TAG_LIGHTS_GRADIENT_COLORS];
+	for (ImGradientMark* mark : gradientLight->getMarks()) {
+		JsonValue jMask = jLightColor[lightsColor];
+		jMask[0] = mark->color[0];
+		jMask[1] = mark->color[1];
+		jMask[2] = mark->color[2];
+		jMask[3] = mark->color[3];
+		jMask[4] = mark->position;
+
+		lightsColor++;
+	}
+	jComponent[JSON_TAG_LIGHTS_NUMBER_COLORS] = gradientLight->getMarks().size();
+
+	jComponent[JSON_TAG_LIGHTS_MAX_LIGHTS] = maxLights;
 }
 
 void ComponentParticleSystem::AllocateParticlesMemory() {
+	if (isPlaying) {
+		Restart();
+	}
 	particles.Allocate(maxParticles);
 }
 
@@ -988,6 +1143,12 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 			App->physics->CreateParticleRigidbody(currentParticle);
 		}
 		InitSubEmitter(currentParticle, SubEmitterType::BIRTH);
+
+		if (hasLights && IsProbably(lightsRatio)) {
+			if (lightsSpawned < maxLights) {
+				InitLight(currentParticle);
+			}
+		}
 	}
 }
 
@@ -1089,7 +1250,7 @@ void ComponentParticleSystem::InitParticleTrail(Particle* currentParticle) {
 	currentParticle->trail = new Trail();
 	currentParticle->trail->Init();
 	currentParticle->trail->width = ObtainRandomValueFloat(width, widthRM);
-	currentParticle->trail->trailQuads = ObtainRandomValueFloat(trailQuads, trailQuadsRM);
+	currentParticle->trail->trailQuads = (int) ObtainRandomValueFloat(trailQuads, trailQuadsRM);
 	currentParticle->trail->quadLife = ObtainRandomValueFloat(quadLife, quadLifeRM);
 
 	currentParticle->trail->textureID = textureTrailID;
@@ -1152,6 +1313,48 @@ void ComponentParticleSystem::InitSubEmitter(Particle* currentParticle, SubEmitt
 	}
 }
 
+void ComponentParticleSystem::InitLight(Particle* currentParticle) {
+	if (lightComponent == nullptr) return;
+
+	GameObject& parent = GetOwner();
+	Scene* scene = parent.scene;
+	UID gameObjectId = GenerateUID();
+	GameObject* newGameObject = scene->gameObjects.Obtain(gameObjectId);
+	newGameObject->scene = scene;
+	newGameObject->id = gameObjectId;
+	newGameObject->name = "Light (Temp)";
+	newGameObject->SetParent(&parent);
+	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
+	ComponentTransform* transformPS = GetOwner().GetComponent<ComponentTransform>();
+	float3 globalOffset = transformPS->GetGlobalMatrix().RotatePart() * lightOffset;
+	transform->SetGlobalPosition(currentParticle->position + globalOffset);
+	transform->SetGlobalRotation(float3::zero);
+	transform->SetGlobalScale(float3::one);
+	newGameObject->Init();
+
+	ComponentLight* newLight = newGameObject->CreateComponent<ComponentLight>();
+	rapidjson::Document resourceMetaDocument;
+	JsonValue jResourceMeta(resourceMetaDocument, resourceMetaDocument);
+	lightComponent->Save(jResourceMeta);
+	newLight->Load(jResourceMeta);
+	newLight->Enable();
+	newLight->lightType = LightType::POINT;
+	newLight->intensity *= ObtainRandomValueFloat(intensityMultiplier, intensityMultiplierRM);
+	newLight->radius *= ObtainRandomValueFloat(rangeMultiplier, rangeMultiplierRM);
+
+	if (useParticleColor && colorOverLifetime) {
+		float4 color = float4::one;
+		gradient->getColorAt(0.0f, color.ptr());
+		newLight->color = float3(color.x, color.y, color.z);
+	} else if (useCustomColor) {
+		float4 color = float4::one;
+		gradientLight->getColorAt(0.0f, color.ptr());
+		newLight->color = float3(color.x, color.y, color.z);
+	}
+	currentParticle->lightGO = newGameObject;
+	lightsSpawned++;
+}
+
 void ComponentParticleSystem::Update() {
 	if (!isStarted && App->time->HasGameStarted() && playOnAwake) {
 		Play();
@@ -1193,6 +1396,10 @@ void ComponentParticleSystem::Update() {
 
 				if (currentParticle.hasCollided) {
 					InitSubEmitter(&currentParticle, SubEmitterType::COLLISION);
+				}
+
+				if (currentParticle.lightGO != nullptr) {
+					UpdateLight(&currentParticle);
 				}
 			}
 		}
@@ -1315,6 +1522,40 @@ void ComponentParticleSystem::UpdateSubEmitters() {
 	}
 }
 
+void ComponentParticleSystem::UpdateLight(Particle* currentParticle) {
+	if (lightComponent && lightComponent->lightType != LightType::POINT) {
+		lightGameObjectUID = 0;
+		lightComponent = nullptr;
+	}
+
+	if (currentParticle->lightGO && (lightGameObjectUID == 0 || !hasLights)) {
+		App->scene->DestroyGameObjectDeferred(currentParticle->lightGO);
+		lightsSpawned--;
+	}
+
+	if (currentParticle->lightGO == nullptr) return;
+	ComponentLight* light = currentParticle->lightGO->GetComponent<ComponentLight>();
+	if (light == nullptr) return;
+
+	float3 position = currentParticle->position;
+	ComponentTransform* transform = currentParticle->lightGO->GetComponent<ComponentTransform>();
+	ComponentTransform* transformPS = GetOwner().GetComponent<ComponentTransform>();
+	float3 globalOffset = transformPS->GetGlobalMatrix().RotatePart() * lightOffset;
+	transform->SetGlobalPosition(currentParticle->position + globalOffset);
+
+	if (useParticleColor && colorOverLifetime) {
+		float4 color = float4::one;
+		float factor = 1 - currentParticle->life / currentParticle->initialLife;
+		gradient->getColorAt(factor, color.ptr());
+		light->color = float3(color.x, color.y, color.z);
+	} else if (useCustomColor) {
+		float4 color = float4::one;
+		float factor = 1 - currentParticle->life / currentParticle->initialLife;
+		gradientLight->getColorAt(factor, color.ptr());
+		light->color = float3(color.x, color.y, color.z);
+	}
+}
+
 void ComponentParticleSystem::KillParticle(Particle* currentParticle) {
 	currentParticle->life = -1;
 }
@@ -1331,6 +1572,12 @@ void ComponentParticleSystem::UndertakerParticle(bool force) {
 			RELEASE(currentParticle->motionState);
 		}
 		RELEASE(currentParticle->trail);
+
+		if (currentParticle->lightGO != nullptr) {
+			if (App->editor->selectedGameObject == currentParticle->lightGO) App->editor->selectedGameObject = nullptr;
+			App->scene->DestroyGameObjectDeferred(currentParticle->lightGO);
+			lightsSpawned--;
+		}
 		particles.Release(currentParticle);
 	}
 	deadParticles.clear();
@@ -1518,6 +1765,7 @@ void ComponentParticleSystem::Restart() {
 void ComponentParticleSystem::Stop() {
 	UndertakerParticle(true);
 	isPlaying = false;
+	lightsSpawned = 0;
 }
 
 void ComponentParticleSystem::PlayChildParticles() {
@@ -1683,8 +1931,13 @@ bool ComponentParticleSystem::GetCollision() const {
 }
 
 // Sub Emitter
-bool ComponentParticleSystem::GetIsSubEmitter() {
+bool ComponentParticleSystem::GetIsSubEmitter() const {
 	return isSubEmitter;
+}
+
+// Lights
+bool ComponentParticleSystem::GetHasLights() const {
+	return hasLights;
 }
 
 // ----- SETTERS -----
@@ -1818,4 +2071,9 @@ void ComponentParticleSystem::SetCollision(bool _collision) {
 // Sub Emitter
 void ComponentParticleSystem::SetIsSubEmitter(bool _isSubEmitter) {
 	isSubEmitter = _isSubEmitter;
+}
+
+// Lights
+void ComponentParticleSystem::SetHasLights(bool _hasLights) {
+	hasLights = _hasLights;
 }
