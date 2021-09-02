@@ -144,7 +144,6 @@ void ModuleWindow::SetCursor(bool isPlaying) {
 		Scene* scene = App->scene->scene;
 		ResourceTexture* cursorResourceTexture = App->resources->GetResource<ResourceTexture>(scene->GetCursor());
 		if (cursorResourceTexture == nullptr) {
-			LOG("Error cursorResourceTexture null");
 			return;
 		}
 		// From glTexture to SDL_Surface
