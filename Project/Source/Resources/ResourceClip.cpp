@@ -141,7 +141,7 @@ void ResourceClip::OnEditorUpdate() {
 	ImGui::ResourceSlot<ResourceAnimation>("Animaton", &animationUID);
 
 	int maxFrames = 0;
-	ResourceAnimation* resourceAnimation = GetResourceAnimation();
+	ResourceAnimation* resourceAnimation = App->resources->GetResource<ResourceAnimation>(animationUID);
 	if (resourceAnimation != nullptr && resourceAnimation->keyFrames.size() != 0) {
 		maxFrames = resourceAnimation->keyFrames.size();
 	}
@@ -280,8 +280,4 @@ void ResourceClip::SetEndIndex(unsigned int index) {
 			duration = keyFramesSize * frameRate;
 		}
 	}
-}
-
-ResourceAnimation* ResourceClip::GetResourceAnimation() const {
-	return App->resources->GetResource<ResourceAnimation>(animationUID);
 }
