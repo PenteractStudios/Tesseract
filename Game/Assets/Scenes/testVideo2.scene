@@ -7,7 +7,7 @@
     ],
     "QuadtreeMaxDepth": 4,
     "QuadtreeElementsPerNode": 200,
-    "GameCamera": 221337963901948202,
+    "GameCamera": 11146338404044997192,
     "AmbientLight": [
         0.25,
         0.25,
@@ -15,7 +15,7 @@
     ],
     "NavMesh": 0,
     "Root": {
-        "Id": 16946397930096898685,
+        "Id": 11592354141313059608,
         "Name": "Scene",
         "Active": true,
         "Static": false,
@@ -25,7 +25,7 @@
         "Components": [
             {
                 "Type": "Transform",
-                "Id": 16994854302473669853,
+                "Id": 11012127820162273281,
                 "Active": true,
                 "Position": [
                     0.0,
@@ -52,7 +52,7 @@
         ],
         "Children": [
             {
-                "Id": 8742605118285511620,
+                "Id": 10898165396146488425,
                 "Name": "Directional Light",
                 "Active": true,
                 "Static": false,
@@ -62,7 +62,7 @@
                 "Components": [
                     {
                         "Type": "Transform",
-                        "Id": 10976918777180405087,
+                        "Id": 10579957733418228379,
                         "Active": true,
                         "Position": [
                             0.0,
@@ -88,7 +88,7 @@
                     },
                     {
                         "Type": "Light",
-                        "Id": 1864653140751178282,
+                        "Id": 3573229821220265752,
                         "Active": true,
                         "LightType": 0,
                         "Color": [
@@ -106,7 +106,7 @@
                 "Children": null
             },
             {
-                "Id": 14565247924234116856,
+                "Id": 15959389591218963920,
                 "Name": "Game Camera",
                 "Active": true,
                 "Static": false,
@@ -116,7 +116,7 @@
                 "Components": [
                     {
                         "Type": "Transform",
-                        "Id": 11487586525792682228,
+                        "Id": 7543384207052935847,
                         "Active": true,
                         "Position": [
                             2.0,
@@ -142,7 +142,7 @@
                     },
                     {
                         "Type": "Camera",
-                        "Id": 13316696369654906292,
+                        "Id": 13612056161183863176,
                         "Active": true,
                         "Frustum": {
                             "Pos": [
@@ -162,20 +162,20 @@
                             ],
                             "NearPlaneDistance": 0.10000000149011612,
                             "FarPlaneDistance": 2000.0,
-                            "HorizontalFov": 1.819494605064392,
+                            "HorizontalFov": 1.9228036403656006,
                             "VerticalFov": 1.3113912343978882
                         }
                     },
                     {
                         "Type": "Skybox",
-                        "Id": 12531279697099403440,
+                        "Id": 2740007277538152273,
                         "Active": true,
                         "Shader": 0,
                         "Skybox": 0
                     },
                     {
                         "Type": "AudioListener",
-                        "Id": 12278440362411099427,
+                        "Id": 6495871682290664446,
                         "Active": true,
                         "Gain": 1.0,
                         "ModelIndex": 2,
@@ -186,7 +186,7 @@
                 "Children": null
             },
             {
-                "Id": 6967217509676472288,
+                "Id": 15944402025557521418,
                 "Name": "Canvas",
                 "Active": true,
                 "Static": false,
@@ -196,7 +196,7 @@
                 "Components": [
                     {
                         "Type": "Transform2D",
-                        "Id": 16964791679529619753,
+                        "Id": 5337640597457639270,
                         "Active": true,
                         "Position": [
                             0.0,
@@ -240,13 +240,13 @@
                     },
                     {
                         "Type": "Canvas",
-                        "Id": 6157558972879071792,
+                        "Id": 5889051613295686219,
                         "Active": true
                     }
                 ],
                 "Children": [
                     {
-                        "Id": 14034138803407721507,
+                        "Id": 13217786113281963586,
                         "Name": "Video",
                         "Active": true,
                         "Static": false,
@@ -256,7 +256,7 @@
                         "Components": [
                             {
                                 "Type": "Transform2D",
-                                "Id": 7738722225011638701,
+                                "Id": 16411999356670643775,
                                 "Active": true,
                                 "Position": [
                                     0.0,
@@ -300,20 +300,66 @@
                             },
                             {
                                 "Type": "CanvasRenderer",
-                                "Id": 12431650057765777044,
+                                "Id": 16968107711976181036,
                                 "Active": true
                             },
                             {
                                 "Type": "Video",
-                                "Id": 15664779201435072181,
+                                "Id": 10376464855833393352,
                                 "Active": true,
                                 "VideoId": 10341351743313672719,
+                                "PlayOnAwake": true,
+                                "Loop": true,
                                 "VerticalFlip": false
                             }
                         ],
                         "Children": null
                     }
                 ]
+            },
+            {
+                "Id": 14694214752628321815,
+                "Name": "Event System",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 4965538726199892981,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ]
+                    },
+                    {
+                        "Type": "EventSystem",
+                        "Id": 5472817877485584119,
+                        "Active": true,
+                        "FirstSelectedId": 0
+                    }
+                ],
+                "Children": null
             }
         ]
     }

@@ -23,7 +23,9 @@ extern "C" {
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_VIDEOID "VideoId"
-#define JSON_TAG_IS_FLIPPED "VerticalFlip"
+#define JSON_TAG_VIDEO_PLAY_ON_AWAKE "PlayOnAwake"
+#define JSON_TAG_VIDEO_IS_LOOPING "Loop"
+#define JSON_TAG_VIDEO_IS_FLIPPED "VerticalFlip"
 
 char av_error[AV_ERROR_MAX_STRING_SIZE] = {0};
 #define av_err2str(errnum) av_make_error_string(av_error, AV_ERROR_MAX_STRING_SIZE, errnum)
@@ -40,24 +42,29 @@ void ComponentVideo::Init() {
 	imageUIProgram = App->programs->imageUI;
 
 	// Set GL texture buffer
+	
 	glGenTextures(1, &frameTexture);
 	glBindTexture(GL_TEXTURE_2D, frameTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	
 
 	if (videoID) OpenVideoReader(App->resources->GetResource<ResourceVideo>(videoID)->GetResourceFilePath().c_str());
+
+	if (playOnAwake) isPlaying = true;
 }
 
 void ComponentVideo::Update() {
 	if (videoID != 0) {
-		elapsedVideoTime += App->time->GetDeltaTime();
-		LOG("elapsed: %f ------- frametime: %f", elapsedVideoTime, videoFrameTime);
-		if (elapsedVideoTime > videoFrameTime || videoFrameTime == 0) { // TODO: this will give an offset of 1 frame between video and audio!
-			ReadVideoFrame();
+		if (isPlaying) {
+			elapsedVideoTime += App->time->GetDeltaTime();
+			if (elapsedVideoTime > videoFrameTime) {
+				ReadVideoFrame();
+			}
 		}
-
+		LOG("elapsed vd time %f", elapsedVideoTime);
 		/* if (elapsedVideoTime > audioFrameTime) {
 			ReadAudioFrame(); //each packet contains complete frames, or multiple frames in the case of audio.
 		}*/
@@ -94,10 +101,27 @@ void ComponentVideo::OnEditorUpdate() {
 	ImGui::SameLine();
 	ImGui::TextUnformatted("Remove Video");
 
-	ResourceVideo* videoResource = App->resources->GetResource<ResourceVideo>(videoID);
-	if (videoResource != nullptr) {
-		ImGui::Separator();
-		ImGui::Checkbox("Flip Vertically", &verticalFlip);
+	if (videoID != 0) {
+		ResourceVideo* videoResource = App->resources->GetResource<ResourceVideo>(videoID);
+		if (videoResource != nullptr) {
+			ImGui::Separator();
+			if (ImGui::Button("Play")) {
+				isPlaying = true;
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Pause")) {
+				isPlaying = false;
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Stop")) {
+				forceStop = true;
+				RestartVideo();
+				CleanFrameBuffer();
+			}
+			ImGui::Checkbox("Play on Awake", &playOnAwake);
+			ImGui::Checkbox("Loop", &loopVideo);
+			ImGui::Checkbox("Flip Vertically", &verticalFlip);
+		}
 	}
 
 	//audioPlayer->OnEditorUpdate();
@@ -105,12 +129,16 @@ void ComponentVideo::OnEditorUpdate() {
 
 void ComponentVideo::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_VIDEOID] = videoID;
-	jComponent[JSON_TAG_IS_FLIPPED] = verticalFlip;
+	jComponent[JSON_TAG_VIDEO_PLAY_ON_AWAKE] = playOnAwake;
+	jComponent[JSON_TAG_VIDEO_IS_LOOPING] = loopVideo;
+	jComponent[JSON_TAG_VIDEO_IS_FLIPPED] = verticalFlip;
 }
 
 void ComponentVideo::Load(JsonValue jComponent) {
 	videoID = jComponent[JSON_TAG_VIDEOID];
-	verticalFlip = jComponent[JSON_TAG_IS_FLIPPED];
+	playOnAwake = jComponent[JSON_TAG_VIDEO_PLAY_ON_AWAKE];
+	loopVideo = jComponent[JSON_TAG_VIDEO_IS_LOOPING];
+	verticalFlip = jComponent[JSON_TAG_VIDEO_IS_FLIPPED];
 }
 
 void ComponentVideo::Draw(ComponentTransform2D* transform) {
@@ -156,6 +184,16 @@ void ComponentVideo::Draw(ComponentTransform2D* transform) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glDisable(GL_BLEND);
+}
+
+void ComponentVideo::SetVideoFrameSize(int width, int height) {
+	GameObject* owner = &this->GetOwner();
+	if (owner) {
+		ComponentTransform2D* transform = owner->GetComponent<ComponentTransform2D>();
+		if (transform) {
+			transform->SetSize(float2(width,height));
+		}
+	}
 }
 
 void ComponentVideo::OpenVideoReader(const char* filename) {
@@ -213,6 +251,8 @@ void ComponentVideo::OpenVideoReader(const char* filename) {
 	frameHeight = videoCodecParams->height;
 	timeBase = formatCtx->streams[videoStreamIndex]->time_base;
 	frameData = new uint8_t[frameWidth * frameHeight * 4];
+	SetVideoFrameSize(frameWidth, frameHeight);
+	CleanFrameBuffer();
 
 	// DECODING AUDIO
 	// Find a valid audio stream in the file
@@ -286,14 +326,11 @@ void ComponentVideo::ReadVideoFrame() {
 			continue;
 		}
 
-		if (error < 0) {
-			LOG("I'm an error");
-			if (error == AVERROR_EOF) {
-				LOG("Its EOF!!");
-				av_seek_frame(formatCtx, videoStreamIndex, 0, 0);
-			}
+		//SEEK to frame 0 -> Restart the video timestamp
+		if (error == AVERROR_EOF) {
+			RestartVideo();
 			av_packet_unref(avPacket);
-			continue;
+			break;
 		}
 
 		response = avcodec_send_packet(videoCodecCtx, avPacket);
@@ -318,7 +355,6 @@ void ComponentVideo::ReadVideoFrame() {
 	LOG("I'm playing frames!");
 	videoFrameTime = avFrame->pts * timeBase.num / (float) timeBase.den;
 	if (videoFrameTime == 0) elapsedVideoTime = 0;
-	// ------------------------------- TODO: can we read frames directly in RGB?
 	if (!scalerCtx) {
 		// Set SwScaler - Scale frame size + Pixel converter to RGB
 		scalerCtx = sws_getContext(frameWidth, frameHeight, videoCodecCtx->pix_fmt, frameWidth, frameHeight, AV_PIX_FMT_RGB0, SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
@@ -328,7 +364,6 @@ void ComponentVideo::ReadVideoFrame() {
 			return;
 		}
 	}
-	// -------------------------------------------
 
 	// Transform pixel format to RGB and send the data to the framebuffer
 	if (!verticalFlip) { // We flip the image by default. To have an inverted image, don't do the flipping
@@ -376,6 +411,16 @@ void ComponentVideo::ReadAudioFrame() {
 	// TODO: Do stuff with audio
 }
 
+void ComponentVideo::RestartVideo() {
+	avio_seek(formatCtx->pb, 0, SEEK_SET);
+	if (av_seek_frame(formatCtx, videoStreamIndex, -1, 0) >= 0) {
+		if (!loopVideo || forceStop) {
+			isPlaying = false;
+		}
+		forceStop = false;
+	}
+}
+
 void ComponentVideo::CloseVideoReader() {
 	// Close libAV context -  free allocated memory
 	sws_freeContext(scalerCtx);
@@ -403,4 +448,8 @@ void ComponentVideo::RemoveVideoResource() {
 
 	// Clean libAV space
 	CloseVideoReader();
+}
+
+void ComponentVideo::CleanFrameBuffer() {
+	memset(frameData, 0, frameWidth * frameHeight * 4);
 }

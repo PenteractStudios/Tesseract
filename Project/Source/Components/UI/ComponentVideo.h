@@ -28,17 +28,26 @@ public:
 
 	void Draw(ComponentTransform2D* transform); // Draws the current frame of the loaded video as a texture in a framebuffer, and plays the corresponding audio data through an internal audio source component.
 
+	void SetVideoFrameSize(int width, int height);
+
+private:
 	void OpenVideoReader(const char* filename); // Opens a video file and allocates the neccessary memory to work with it.
-	void ReadVideoFrame();						// Reads the next video frame of the allocated video
-	void ReadAudioFrame();						// Reads the next audio frame of the allocated video
+	void ReadVideoFrame();						// Reads the next video frame of the allocated video.
+	void ReadAudioFrame();						// Reads the next audio frame of the allocated video.
+	void RestartVideo();						// Resets the current frame to the 1st frame of the file.
 	void CloseVideoReader();					// Frees the memory of the allocated video.
 	void RemoveVideoResource();					// Reinitialises the video variables when changing the Video Resource loaded from inspector.
+	void CleanFrameBuffer();					// Sets the framebuffer to all zeros (black screen).
 
 private:
 	UID videoID = 0;							 // Video file resource ID
 	ComponentAudioSource* audioPlayer = nullptr; // This AudioSource will store the audio stream from the video and send it to openAL
 
 	// Video Options
+	bool isPlaying = false;
+	bool forceStop = false;
+	bool playOnAwake = false;
+	bool loopVideo = false;
 	bool verticalFlip = false;
 
 	// LibAV internal state
