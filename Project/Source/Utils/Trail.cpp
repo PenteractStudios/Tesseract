@@ -43,10 +43,12 @@ bool Trail::CalculateDistance(float3 A, float3 B) {
 }
 void Trail::Update(float3 mPosition) {
 	if (!isRendering) return;
+	float3 currentDirection = (previousPosition - currentPosition).Normalized();
+	float3 right = currentDirection.Perpendicular(float3::unitY, -float3::unitZ);
+	float3 vectorUp = Cross(currentDirection, right);
 
-	float3 vectorUp = (mainRotation * float3::unitY);
 	if (isStarted) {
-		if (CalculateDistance(currentPosition, mPosition)) {
+		if (CalculateDistance(previousPosition, mPosition)) {
 			previousPositionUp = currentPositionUp;
 			previousPositionDown = currentPositionDown;
 			previousPosition = currentPosition;
@@ -274,12 +276,6 @@ void Trail::UpdateVertex(Quad* currentQuad, float3 vertex, int index) {
 	currentQuad->quadInfo[index++] = vertex.y;
 	currentQuad->quadInfo[index++] = vertex.z;
 }
-void Trail::UpdateVertexTexture(Quad* currentQuad, int index, int indexTexture) {
-	currentQuad->quadInfo[index++] = textureCords[indexTexture++];
-	currentQuad->quadInfo[index++] = textureCords[indexTexture++];
-}
-
-
 
 void Trail::DeleteQuads() {
 	for (int i = 0; i < maxQuads; i++) {

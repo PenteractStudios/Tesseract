@@ -32,7 +32,6 @@ public:
 	void SpawnQuad(Quad* currentQuad);
 	void UpdateQuads();
 	void UpdateVertex(Quad* currentQuad, float3 vertex,int index);
-	void UpdateVertexTexture(Quad* currentQuad, int index, int indexTexture);
 	void UpdateLife(Quad* currentQuad);
 	void DeleteQuads();
 	void EditTextureCoords();
