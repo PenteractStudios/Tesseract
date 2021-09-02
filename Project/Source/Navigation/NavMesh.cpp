@@ -432,8 +432,7 @@ NavMesh::~NavMesh() {
 	crowd = nullptr;
 	dtFreeNavMeshQuery(navQuery);
 	navQuery = nullptr;
-	delete ctx;
-	ctx = nullptr;
+	RELEASE(ctx);
 }
 
 bool NavMesh::Build(Scene* scene) {
@@ -619,9 +618,6 @@ bool NavMesh::Build(Scene* scene) {
 	LOG("navmeshMemUsage = %.1f kB", navmeshMemUsage / 1024.0f);
 
 	InitCrowd();
-
-	RescanCrowd(scene);
-	RescanObstacles(scene);
 
 	return true;
 }
@@ -908,28 +904,4 @@ void NavMesh::InitCrowd() {
 	params.adaptiveDepth = 3;
 
 	crowd->setObstacleAvoidanceParams(3, &params);
-}
-
-void NavMesh::CleanCrowd(Scene* scene) {
-	for (ComponentAgent& agent : scene->agentComponents) {
-		agent.RemoveAgentFromCrowd();
-	}
-}
-
-void NavMesh::RescanCrowd(Scene* scene) {
-	for (ComponentAgent& agent : scene->agentComponents) {
-		agent.AddAgentToCrowd();
-	}
-}
-
-void NavMesh::CleanObstacles(Scene* scene) {
-	for (ComponentObstacle& obstacle : scene->obstacleComponents) {
-		obstacle.RemoveObstacle();
-	}
-}
-
-void NavMesh::RescanObstacles(Scene* scene) {
-	for (ComponentObstacle& obstacle : scene->obstacleComponents) {
-		obstacle.AddObstacle();
-	}
 }

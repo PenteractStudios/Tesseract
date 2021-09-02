@@ -28,11 +28,6 @@ public:
 	dtNavMesh* GetNavMesh();		   // Returns navMesh
 	dtTileCache* GetTileCache();	   // Returns tileCache
 
-	void CleanCrowd(Scene* scene);
-	void RescanCrowd(Scene* scene);
-	void CleanObstacles(Scene* scene);
-	void RescanObstacles(Scene* scene);
-
 public:
 	enum DrawMode {
 		DRAWMODE_NAVMESH,

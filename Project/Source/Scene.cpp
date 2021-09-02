@@ -570,10 +570,6 @@ void Scene::SetNavMesh(UID id) {
 
 	if (id != 0) {
 		App->resources->IncreaseReferenceCount(id);
-
-		NavMesh* navMesh = GetNavMesh();
-		navMesh->RescanCrowd(this);
-		navMesh->RescanObstacles(this);
 	}
 }
 

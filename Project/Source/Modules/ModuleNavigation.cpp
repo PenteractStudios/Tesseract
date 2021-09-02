@@ -46,20 +46,18 @@ void ModuleNavigation::ReceiveEvent(TesseractEvent& e) {
 }
 
 void ModuleNavigation::BakeNavMesh() {
+	Scene* scene = App->scene->GetCurrentScene();
 	NavMesh* navMesh = GetCurrentNavMesh();
 	if (navMesh == nullptr) return;
 
 	MSTimer timer;
 	timer.Start();
 	LOG("Loading NavMesh");
-	bool generated = navMesh->Build(App->scene->GetCurrentScene());
+	bool generated = navMesh->Build(scene);
 	unsigned timeMs = timer.Stop();
 	if (generated) {
 		navMesh->GetTileCache()->update(App->time->GetDeltaTime(), navMesh->GetNavMesh());
 		navMesh->GetCrowd()->update(App->time->GetDeltaTime(), nullptr);
-
-		navMesh->RescanCrowd(App->scene->GetCurrentScene());
-		navMesh->RescanObstacles(App->scene->GetCurrentScene());
 
 		LOG("NavMesh successfully baked in %ums", timeMs);
 	} else {
