@@ -111,7 +111,9 @@
 
 // Render
 #define JSON_TAG_TEXTURE_TEXTURE_ID "TextureId"
+#define JSON_TAG_TEXTURE_INTENSITY "TextureItensity"
 #define JSON_TAG_BILLBOARD_TYPE "BillboardType"
+#define JSON_TAG_IS_HORIZONTAL_ORIENTATION "IsHorizontalOrientation"
 #define JSON_TAG_PARTICLE_RENDER_MODE "ParticleRenderMode"
 #define JSON_TAG_PARTICLE_RENDER_ALIGNMENT "ParticleRenderAlignment"
 #define JSON_TAG_FLIP_TEXTURE "FlipTexture"
@@ -338,6 +340,8 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 	// Shape
 	if (ImGui::CollapsingHeader("Shape")) {
+		bool modified = false;
+
 		const char* emitterTypeCombo[] = {"Cone", "Sphere", "Circle", "Box"};
 		const char* emitterTypeComboCurrent = emitterTypeCombo[(int) emitterType];
 		ImGui::TextColored(App->editor->textColor, "Shape");
@@ -346,6 +350,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 				bool isSelected = (emitterTypeComboCurrent == emitterTypeCombo[n]);
 				if (ImGui::Selectable(emitterTypeCombo[n], isSelected)) {
 					emitterType = (ParticleEmitterType) n;
+					modified = true;
 				}
 				if (isSelected) {
 					ImGui::SetItemDefaultFocus();
@@ -384,36 +389,33 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			shapeArc = arcDegree * DEGTORAD;
 		}
 
-		float3 position = emitterModel.TranslatePart();
-		float3 rotation = emitterModel.RotatePart().ToEulerXYZ() * RADTODEG;
-		float3 scale = emitterModel.GetScale();
-
-		ImGui::NewLine();
-		ImGui::PopItemWidth();
-		ImGui::PushItemWidth(200);
-		bool modified = false;
-		if (ImGui::DragFloat3("Position", position.ptr(), App->editor->dragSpeed2f, -inf, inf)) {
-			modified = true;
-		}
-		if (ImGui::DragFloat3("Scale", scale.ptr(), App->editor->dragSpeed2f, 0.0001f, inf, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
-			modified = true;
-		}
+		// TODO: Fix BOX Emitter
 		if (emitterType != ParticleEmitterType::BOX) {
-			scale = float3(1.0, 1.0, 1.0);
-			ImGui::SameLine();
-			App->editor->HelpMarker("Scale works only with Box shape");
+			float3 position = emitterModel.TranslatePart();
+			float3 rotation = emitterModel.RotatePart().ToEulerXYZ() * RADTODEG;
+			float3 scale = emitterModel.GetScale();
+
+			ImGui::NewLine();
+			ImGui::PopItemWidth();
+			ImGui::PushItemWidth(200);
+
+			modified |= ImGui::DragFloat3("Position", position.ptr(), App->editor->dragSpeed2f, -inf, inf);
+			modified |= ImGui::DragFloat3("Scale", scale.ptr(), App->editor->dragSpeed2f, 0.0001f, inf, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+			if (emitterType != ParticleEmitterType::BOX) {
+				scale = float3(1.0, 1.0, 1.0);
+				ImGui::SameLine();
+				App->editor->HelpMarker("Scale works only with Box shape");
+			}
+			modified |= ImGui::DragFloat3("Rotation", rotation.ptr(), App->editor->dragSpeed2f, -inf, inf);
+
+			if (modified) {
+				emitterModel = float4x4::FromTRS(position, Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD), scale);
+				float3x3 rotateMatrix = emitterModel.RotatePart();
+				obbEmitter = OBB(float3::zero, emitterModel.GetScale() / 2, rotateMatrix.Col3(0).Normalized(), rotateMatrix.Col3(1).Normalized(), rotateMatrix.Col3(2).Normalized());
+			}
+			ImGui::PopItemWidth();
+			ImGui::PushItemWidth(ITEM_SIZE);
 		}
-		if (ImGui::DragFloat3("Rotation", rotation.ptr(), App->editor->dragSpeed2f, -inf, inf)) {
-			modified = true;
-		}
-		if (modified) {
-			emitterModel = float4x4::FromTRS(position, float3x3::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD), scale);
-			emitterModel.Orthogonalize3();
-			float3x3 rotateMatrix = emitterModel.RotatePart();
-			obbEmitter = OBB(float3::zero, emitterModel.GetScale() / 2, rotateMatrix.Col3(0), rotateMatrix.Col3(1), rotateMatrix.Col3(2));
-		}
-		ImGui::PopItemWidth();
-		ImGui::PushItemWidth(ITEM_SIZE);
 		ImGui::Unindent();
 	}
 
@@ -481,6 +483,13 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			}
 			ImGui::EndCombo();
 		}
+
+		if (billboardType == BillboardType::HORIZONTAL) {
+			ImGui::Indent();
+			ImGui::Checkbox("Orientate to direction", &isHorizontalOrientation);
+			ImGui::Unindent();
+		}
+
 		if (billboardType == BillboardType::NORMAL) {
 			ImGui::Indent();
 			const char* renderAlignmentCombo[] = {"View", "World", "Local", "Facing", "Velocity"};
@@ -515,6 +524,11 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		}
 
 		ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
+		if (textureID) {
+			ImGui::Indent();
+			ImGui::DragFloat3("Intensity (RGB)", textureIntensity.ptr(), App->editor->dragSpeed2f, 0.0f, inf);
+			ImGui::Unindent();
+		}
 
 		ImGui::NewLine();
 		ImGui::Text("Flip: ");
@@ -934,7 +948,12 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	if (textureID != 0) {
 		App->resources->IncreaseReferenceCount(textureID);
 	}
+	JsonValue jTextureIntensity = jComponent[JSON_TAG_TEXTURE_INTENSITY];
+	textureIntensity[0] = jTextureIntensity[0];
+	textureIntensity[1] = jTextureIntensity[1];
+	textureIntensity[2] = jTextureIntensity[2];
 	billboardType = (BillboardType)(int) jComponent[JSON_TAG_BILLBOARD_TYPE];
+	isHorizontalOrientation = jComponent[JSON_TAG_IS_HORIZONTAL_ORIENTATION];
 	renderMode = (ParticleRenderMode)(int) jComponent[JSON_TAG_PARTICLE_RENDER_MODE];
 	renderAlignment = (ParticleRenderAlignment)(int) jComponent[JSON_TAG_PARTICLE_RENDER_ALIGNMENT];
 	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
@@ -1164,7 +1183,12 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 
 	// Render
 	jComponent[JSON_TAG_TEXTURE_TEXTURE_ID] = textureID;
+	JsonValue jTextureIntensity = jComponent[JSON_TAG_TEXTURE_INTENSITY];
+	jTextureIntensity[0] = textureIntensity[0];
+	jTextureIntensity[1] = textureIntensity[1];
+	jTextureIntensity[2] = textureIntensity[2];
 	jComponent[JSON_TAG_BILLBOARD_TYPE] = (int) billboardType;
+	jComponent[JSON_TAG_IS_HORIZONTAL_ORIENTATION] = isHorizontalOrientation;
 	jComponent[JSON_TAG_PARTICLE_RENDER_MODE] = (int) renderMode;
 	jComponent[JSON_TAG_PARTICLE_RENDER_ALIGNMENT] = (int) renderAlignment;
 	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
@@ -1309,9 +1333,10 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 			InitParticleTrail(currentParticle);
 		}
 
-		float4x4 newModel = GetOwner().GetComponent<ComponentTransform>()->GetGlobalMatrix() * emitterModel;
-		newModel.Orthonormalize3();
+		float4x4 newModel;
+		ObtainEmitterGlobalMatrix(newModel);
 		currentParticle->emitterPosition = newModel.TranslatePart();
+		newModel.Orthonormalize3();
 		currentParticle->emitterRotation = newModel.RotatePart().ToQuat();
 
 		if (App->time->HasGameStarted() && collision) {
@@ -1330,57 +1355,35 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 }
 
 void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
-	float x0 = 0, y0 = 0, z0 = 0, x1 = 0, y1 = 0, z1 = 0;
-	float3 localPos = float3::zero;
-	float3 localDir = float3::zero;
-
-	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-	float4x4 newModel = transform->GetGlobalMatrix() * emitterModel;
+	float4x4 newModel;
+	ObtainEmitterGlobalMatrix(newModel);
+	newModel.Orthonormalize3();
 
 	float reverseDist = ObtainRandomValueFloat(reverseDistanceRM, reverseDistance, reverseDistanceCurve, emitterTime / duration);
 
 	if (emitterType == ParticleEmitterType::BOX) {
+		float3 point;
 		if (boxEmitterFrom == BoxEmitterFrom::VOLUME) {
-			float3 minPoint = obbEmitter.CornerPoint(5);
-			float3 maxPoint = obbEmitter.CornerPoint(7);
-
-			x0 = Random() * minPoint.x * 2 - minPoint.x;
-			y0 = Random() * minPoint.y * 2 - minPoint.y;
-			z0 = Random() * minPoint.z * 2 - minPoint.z;
-
+			point = obbEmitter.PointInside(Random(), Random(), Random());
 		} else if (boxEmitterFrom == BoxEmitterFrom::SHELL) {
-			float u, v;
-			float3 point = obbEmitter.CornerPoint(0);
 			int index = (int) floor(Random() * 6);
-			if (index == 0 || index == 1) { // X planes
-				u = point.y;
-				v = point.z;
-			} else if (index == 2 || index == 3) { // Y planes
-				u = point.x;
-				v = point.z;
-			} else { // Z planes
-				u = point.x;
-				v = point.y;
-			}
-			Plane plane = obbEmitter.FacePlane(index);
-			float u0 = Random() * u * 2 - u;
-			float v0 = Random() * v * 2 - v;
-			float3 finalPoint = plane.Point(u0, v0);
-			x0 = finalPoint.x;
-			y0 = finalPoint.y;
-			z0 = finalPoint.z;
+			point = obbEmitter.FacePoint(index, Random(), Random());
 		} else { // Edge
 			int index = (int) floor(Random() * 12);
-			float3 finalPoint = obbEmitter.PointOnEdge(index, Random());
-			x0 = finalPoint.x;
-			y0 = finalPoint.y;
-			z0 = finalPoint.z;
+			point = obbEmitter.PointOnEdge(index, Random());
 		}
-
-		currentParticle->initialPosition = newModel.TranslatePart() + newModel.RotatePart() * float3(x0, y0, z0);
+		point = point.Div(emitterModel.GetScale());
+		currentParticle->initialPosition = newModel.TranslatePart() + newModel.RotatePart() * float3(point.x, point.y, point.z).Div(emitterModel.GetScale());
+		//float4x4 matrix = GetOwner().GetComponent<ComponentTransform>()->GetGlobalMatrix();
+		//float3 localPos = emitterModel.TranslatePart() + emitterModel.RotatePart() * float3(point.x, point.y, point.z);
+		//currentParticle->initialPosition = matrix.TranslatePart() + matrix.RotatePart() * localPos;
 		currentParticle->direction = (newModel.RotatePart() * float3::unitY).Normalized();
 
 	} else {
+		float x0 = 0, y0 = 0, z0 = 0, x1 = 0, y1 = 0, z1 = 0;
+		float3 localPos = float3::zero;
+		float3 localDir = float3::zero;
+
 		float theta = shapeArc * Random();
 		float phi = pi * Random();
 		x0 = (1 - Random() * shapeRadiusThickness) * cos(theta);
@@ -1412,7 +1415,7 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 		}
 
 		currentParticle->initialPosition = newModel.TranslatePart() + newModel.RotatePart() * localPos;
-		currentParticle->direction = newModel.RotatePart() * localDir;
+		currentParticle->direction = (newModel.RotatePart() * localDir).Normalized();
 	}
 
 	currentParticle->position = currentParticle->initialPosition;
@@ -1634,10 +1637,10 @@ void ComponentParticleSystem::Update() {
 
 void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
 	if (attachEmitter) {
-		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-		float4x4 newModel = transform->GetGlobalMatrix() * emitterModel;
-		newModel.Orthonormalize3();
+		float4x4 newModel;
+		ObtainEmitterGlobalMatrix(newModel);
 		float3 position = newModel.TranslatePart();
+		newModel.Orthonormalize3();
 		Quat rotation = newModel.RotatePart().ToQuat();
 
 		if (!currentParticle->emitterRotation.Equals(rotation)) {
@@ -1818,8 +1821,8 @@ void ComponentParticleSystem::UndertakerParticle(bool force) {
 
 void ComponentParticleSystem::DrawGizmos() {
 	if (IsActive() && drawGizmo) {
-		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
-		float4x4 newModel = transform->GetGlobalMatrix() * emitterModel;
+		float4x4 newModel;
+		ObtainEmitterGlobalMatrix(newModel);
 		if (emitterType == ParticleEmitterType::CONE) {
 			dd::cone(newModel.TranslatePart(), newModel.RotatePart() * float3::unitY, dd::colors::White, coneRadiusUp, shapeRadius);
 			dd::circle(newModel.TranslatePart(), newModel.RotatePart() * float3::unitY, dd::colors::White, shapeRadius * (1 - shapeRadiusThickness), 50.0f);
@@ -1902,7 +1905,19 @@ void ComponentParticleSystem::Draw() {
 
 				newModelMatrix = float4x4::identity * newRotation;
 			} else if (billboardType == BillboardType::HORIZONTAL) {
-				newModelMatrix = float4x4::LookAt(float3::unitZ, float3::unitY, float3::unitY, float3::unitY);
+				if (isHorizontalOrientation) {
+					float3 right = Cross(float3::unitY, currentParticle.direction);
+					float3 direction = Cross(right, float3::unitY);
+
+					float3x3 newRotation;
+					newRotation.SetCol(1, right);
+					newRotation.SetCol(2, float3::unitY);
+					newRotation.SetCol(0, direction);
+
+					newModelMatrix = float4x4::identity * newRotation;
+				} else {
+					newModelMatrix = float4x4::LookAt(float3::unitZ, float3::unitY, float3::unitY, float3::unitY);
+				}
 			} else if (billboardType == BillboardType::VERTICAL) {
 				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
 				float3 cameraDir = (float3(cameraPos.x, currentParticle.position.y, cameraPos.z) - currentParticle.position).Normalized();
@@ -1937,6 +1952,7 @@ void ComponentParticleSystem::Draw() {
 			glUniform1i(program->diffuseMapLocation, 1);
 			glUniform1i(program->hasDiffuseLocation, hasDiffuseMap);
 			glUniform4fv(program->inputColorLocation, 1, color.ptr());
+			glUniform3fv(program->intensity, 1, textureIntensity.ptr());
 
 			glUniform1f(program->currentFrameLocation, currentParticle.currentFrame);
 
@@ -2077,6 +2093,13 @@ bool ComponentParticleSystem::ImGuiRandomMenu(const char* name, RandomMode& mode
 
 float ComponentParticleSystem::ParticleLifeNormalized(Particle* currentParticle) {
 	return 1 - currentParticle->life / currentParticle->initialLife;
+}
+
+void ComponentParticleSystem::ObtainEmitterGlobalMatrix(float4x4& matrix) {
+	float4x4 model = GetOwner().GetComponent<ComponentTransform>()->GetGlobalMatrix();
+	model.Orthogonalize3();
+	model.RemoveScale();
+	matrix = model * emitterModel;
 }
 
 void ComponentParticleSystem::Play() {
@@ -2245,8 +2268,14 @@ float ComponentParticleSystem::GetNCycles() const {
 }
 
 // Render
+float3 ComponentParticleSystem::GetTextureIntensity() const {
+	return textureIntensity;
+}
 BillboardType ComponentParticleSystem::GetBillboardType() const {
 	return billboardType;
+}
+bool ComponentParticleSystem::GetIsHorizontalOrientation() const {
+	return isHorizontalOrientation;
 }
 ParticleRenderMode ComponentParticleSystem::GetRenderMode() const {
 	return renderMode;
@@ -2387,8 +2416,14 @@ void ComponentParticleSystem::SetNCycles(float _nCycles) {
 }
 
 // Render
+void ComponentParticleSystem::SetTextureIntensity(float3 _textureIntensity) {
+	textureIntensity = _textureIntensity;
+}
 void ComponentParticleSystem::SetBillboardType(BillboardType _bilboardType) {
 	billboardType = _bilboardType;
+}
+void ComponentParticleSystem::SetIsHorizontalOrientation(bool _isHorizontalOrientation) {
+	isHorizontalOrientation = _isHorizontalOrientation;
 }
 void ComponentParticleSystem::SetRenderMode(ParticleRenderMode _renderMode) {
 	renderMode = _renderMode;

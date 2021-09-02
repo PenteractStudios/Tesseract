@@ -161,6 +161,7 @@ public:
 	void ImGuiParticlesEffect();
 	bool ImGuiRandomMenu(const char* name, RandomMode& mode, float2& values, ImVec2* curveValues, bool isEmitterDuration = true, float speed = 0.01f, float min = 0, float max = inf, const char* format = "%.3f", ImGuiSliderFlags flags = 0);
 	float ParticleLifeNormalized(Particle* currentParticle);
+	void ObtainEmitterGlobalMatrix(float4x4& matrix);
 
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Restart();
@@ -220,7 +221,9 @@ public:
 	TESSERACT_ENGINE_API float GetNCycles() const;
 
 	// Render
+	TESSERACT_ENGINE_API float3 GetTextureIntensity() const;
 	TESSERACT_ENGINE_API BillboardType GetBillboardType() const;
+	TESSERACT_ENGINE_API bool GetIsHorizontalOrientation() const;
 	TESSERACT_ENGINE_API ParticleRenderMode GetRenderMode() const;
 	TESSERACT_ENGINE_API ParticleRenderAlignment GetRenderAlignment() const;
 	TESSERACT_ENGINE_API bool GetFlipXTexture() const;
@@ -284,7 +287,9 @@ public:
 	TESSERACT_ENGINE_API void SetNCycles(float _nCycles);
 
 	// Render
+	TESSERACT_ENGINE_API void SetTextureIntensity(float3 _textureIntensity);
 	TESSERACT_ENGINE_API void SetBillboardType(BillboardType _bilboardType);
+	TESSERACT_ENGINE_API void SetIsHorizontalOrientation(bool _isHorizontalOrientation);
 	TESSERACT_ENGINE_API void SetRenderMode(ParticleRenderMode _renderMode);
 	TESSERACT_ENGINE_API void SetRenderAlignment(ParticleRenderAlignment _renderAligment);
 	TESSERACT_ENGINE_API void SetFlipXTexture(bool _flipX);
@@ -406,7 +411,9 @@ private:
 
 	// Render
 	UID textureID = 0;
+	float3 textureIntensity = {1.0f, 1.0f, 1.0f};
 	BillboardType billboardType = BillboardType::NORMAL;
+	bool isHorizontalOrientation = false;
 	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
 	ParticleRenderAlignment renderAlignment = ParticleRenderAlignment::VIEW;
 	bool flipTexture[2] = {false, false};
@@ -443,7 +450,7 @@ private:
 	// Lights
 	bool hasLights = false;
 	UID lightGameObjectUID = 0;
-	ComponentLight* lightComponent;
+	ComponentLight* lightComponent = nullptr;
 	float lightsRatio = 1;
 	float3 lightOffset = float3::zero;
 	RandomMode intensityMultiplierRM = RandomMode::CONST;

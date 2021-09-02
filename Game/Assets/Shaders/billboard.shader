@@ -27,6 +27,7 @@ uniform sampler2D depths;
 uniform sampler2D diffuseMap;
 uniform int hasDiffuseMap;
 uniform vec4 inputColor;
+uniform vec3 intensity;
 
 uniform int transparent;
 
@@ -61,7 +62,7 @@ void main()
 	u = X / Xtiles;
 	v = Y / Ytiles;
 	
-	outColor = SRGBA(inputColor) * (hasDiffuseMap * SRGBA(texture2D(diffuseMap,  vec2(u, v))) + (1 - hasDiffuseMap));
+	outColor = SRGBA(inputColor) * (hasDiffuseMap * SRGBA(texture2D(diffuseMap,  vec2(u, v)) * vec4(intensity.r, intensity.g, intensity.b, 1.0)) + (1 - hasDiffuseMap));
 	
 	if (isSoft == 1) {
 		vec2 screenUV = gl_FragCoord.xy / vec2(textureSize(depths, 0));
