@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Application.h"
-#include "JsonValue.h"
-#include "Utils/UID.h"
 #include "Modules/ModuleResources.h"
 #include "Resources/ResourceType.h"
+#include "JsonValue.h"
+#include "Utils/UID.h"
 
 #include <memory>
 

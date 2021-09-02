@@ -272,7 +272,7 @@ btRigidBody* ModulePhysics::AddCapsuleBody(MotionState* myMotionState, float rad
 	}
 
 	btVector3 localInertia(0, 0, 0);
-	if (mass != 0.f) {
+	if (mass != 0.f && colShape) {
 		colShape->calculateLocalInertia(mass, localInertia);
 	}
 
@@ -310,38 +310,38 @@ void ModulePhysics::AddBodyToWorld(btRigidBody* rigidbody, ColliderType collider
 		break;
 	}
 
-	short collisionMask = 0;
+	int collisionMask = 0;
 	switch (layer) {
-	case EVENT_TRIGGERS:
-		collisionMask = WorldLayers::PLAYER | WorldLayers::EVERYTHING;
+	case WorldLayers::EVENT_TRIGGERS:
+		collisionMask = (int) WorldLayers::PLAYER | (int) WorldLayers::EVERYTHING;
 		break;
-	case ENEMY:
-		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::BULLET | WorldLayers::EVERYTHING;
+	case WorldLayers::ENEMY:
+		collisionMask = (int) WorldLayers::WORLD_ELEMENTS | (int) WorldLayers::BULLET | (int) WorldLayers::SKILLS | (int) WorldLayers::EVERYTHING;
 		break;
-	case BULLET:
-		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::ENEMY | WorldLayers::EVERYTHING;
+	case WorldLayers::BULLET:
+		collisionMask = (int) WorldLayers::WORLD_ELEMENTS | (int) WorldLayers::ENEMY | (int) WorldLayers::EVERYTHING;
 		break;
-	case BULLET_ENEMY:
-		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::EVERYTHING;
+	case WorldLayers::BULLET_ENEMY:
+		collisionMask = (int) WorldLayers::WORLD_ELEMENTS | (int) WorldLayers::PLAYER | (int) WorldLayers::SKILLS | (int) WorldLayers::EVERYTHING;
 		break;
-	case WORLD_ELEMENTS:
-		collisionMask = WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::ENEMY | WorldLayers::BULLET | WorldLayers::BULLET_ENEMY | WorldLayers::EVERYTHING;
+	case WorldLayers::WORLD_ELEMENTS:
+		collisionMask = (int) WorldLayers::WORLD_ELEMENTS | (int) WorldLayers::PLAYER | (int) WorldLayers::ENEMY | (int) WorldLayers::BULLET | (int) WorldLayers::BULLET_ENEMY | (int) WorldLayers::EVERYTHING;
 		break;
-	case PLAYER:
-		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::BULLET_ENEMY | WorldLayers::EVERYTHING;
+	case WorldLayers::PLAYER:
+		collisionMask = (int) WorldLayers::EVENT_TRIGGERS | (int) WorldLayers::WORLD_ELEMENTS | (int) WorldLayers::BULLET_ENEMY | (int) WorldLayers::EVERYTHING;
 		break;
-	case SKILLS:
-		collisionMask = WorldLayers::BULLET_ENEMY | WorldLayers::ENEMY | WorldLayers::EVERYTHING;
+	case WorldLayers::SKILLS:
+		collisionMask = (int) WorldLayers::BULLET_ENEMY | (int) WorldLayers::ENEMY | (int) WorldLayers::EVERYTHING;
 		break;
-	case EVERYTHING:
-		collisionMask = WorldLayers::EVENT_TRIGGERS | WorldLayers::WORLD_ELEMENTS | WorldLayers::PLAYER | WorldLayers::ENEMY | WorldLayers::BULLET | WorldLayers::BULLET_ENEMY | WorldLayers::EVERYTHING;
+	case WorldLayers::EVERYTHING:
+		collisionMask = (int) WorldLayers::EVENT_TRIGGERS | (int) WorldLayers::WORLD_ELEMENTS | (int) WorldLayers::PLAYER | (int) WorldLayers::ENEMY | (int) WorldLayers::BULLET | (int) WorldLayers::BULLET_ENEMY | (int) WorldLayers::SKILLS | (int) WorldLayers::EVERYTHING;
 		break;
 	default: //NO_COLLISION
 		collisionMask = 0;
 		break;
 	}
 
-	world->addRigidBody(rigidbody, layer, collisionMask);
+	world->addRigidBody(rigidbody, (short) layer, collisionMask);
 }
 
 void ModulePhysics::CreateParticleRigidbody(ComponentParticleSystem::Particle* currentParticle) {

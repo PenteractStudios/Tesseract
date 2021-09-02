@@ -1,10 +1,10 @@
 #include "ComponentAudioListener.h"
 
 #include "GameObject.h"
+#include "Modules/ModuleEditor.h"
 #include "Utils/Logging.h"
 
 #include "AL/al.h"
-#include "imgui.h"
 
 #include "Utils/Leaks.h"
 

@@ -1,6 +1,5 @@
 #include "ModuleWindow.h"
 
-#include "Globals.h"
 #include "Application.h"
 #include "Utils/Logging.h"
 #include "Modules/ModuleEvents.h"

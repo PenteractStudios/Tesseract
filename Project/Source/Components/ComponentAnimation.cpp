@@ -7,7 +7,6 @@
 #include "AnimationController.h"
 #include "Resources/ResourceAnimation.h"
 #include "Resources/ResourceClip.h"
-#include "Components/ComponentType.h"
 #include "Components/ComponentTransform.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleResources.h"
@@ -15,7 +14,6 @@
 #include "Modules/ModuleInput.h"
 #include "Modules/ModuleEvents.h"
 #include "Utils/UID.h"
-#include "Utils/Logging.h"
 #include "Utils/ImGuiUtils.h"
 #include "StateMachineEnum.h"
 #include "StateMachineManager.h"
@@ -29,7 +27,6 @@
 #define JSON_TAG_STATE_MACHINE_PRINCIPAL_ID "StateMachinePrincipalId"
 #define JSON_TAG_STATE_MACHINE_SECONDARY_ID "StateMachineSecondaryId"
 #define JSON_TAG_CLIP "Clip"
-
 
 void ComponentAnimation::Update() {
 	if (!App->time->IsGameRunning() || !IsActive()) {
@@ -121,7 +118,6 @@ void ComponentAnimation::OnUpdate() {
 
 	UpdateAnimations(rootBone);
 
-	
 	if (loadedResourceStateMachine && animationInterpolationsPrincipal.empty()) {
 		ResourceClip* currentClip = App->resources->GetResource<ResourceClip>(currentStatePrincipal.clipUid);
 		if (!currentClip) {
@@ -139,17 +135,17 @@ void ComponentAnimation::OnUpdate() {
 }
 
 void ComponentAnimation::SendTrigger(const std::string& trigger) {
-	StateMachineManager::SendTrigger(trigger, currentTimeStatesPrincipal, animationInterpolationsPrincipal, stateMachineResourceUIDPrincipal, currentStatePrincipal, currentStateSecondary, currentTimeStatesPrincipal,StateMachineEnum::PRINCIPAL,animationInterpolationsSecondary);
+	StateMachineManager::SendTrigger(trigger, StateMachineEnum::PRINCIPAL, *this);
 }
 void ComponentAnimation::SendTriggerSecondary(const std::string& trigger) {
 	if (loadedResourceStateMachine && currentStateSecondary.id == 0) {
 		//For doing the interpolation between states correctly it is necessary to set the current state of the principal state machine to be the same as the second state machine current state
 		currentStateSecondary = currentStatePrincipal;
 		//Updating current time to the currentTimeStatesSecondary to sync the times between the current state machine of the first one and the second one
-		currentTimeStatesSecondary[currentStateSecondary.id] = currentTimeStatesPrincipal[currentStatePrincipal.id];		
+		currentTimeStatesSecondary[currentStateSecondary.id] = currentTimeStatesPrincipal[currentStatePrincipal.id];
 	}
 
-	StateMachineManager::SendTrigger(trigger, currentTimeStatesSecondary, animationInterpolationsSecondary, stateMachineResourceUIDSecondary, currentStateSecondary,currentStateSecondary, currentTimeStatesPrincipal,StateMachineEnum::SECONDARY,animationInterpolationsSecondary);
+	StateMachineManager::SendTrigger(trigger, StateMachineEnum::SECONDARY, *this);
 }
 
 void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
@@ -165,14 +161,7 @@ void ComponentAnimation::UpdateAnimations(GameObject* gameObject) {
 	bool result = StateMachineManager::UpdateAnimations(
 		gameObject,
 		GetOwner(),
-		currentTimeStatesPrincipal,
-		animationInterpolationsPrincipal,
-		stateMachineResourceUIDPrincipal,
-		GetCurrentState(),
-		currentTimeStatesSecondary,
-		animationInterpolationsSecondary,
-		stateMachineResourceUIDSecondary,
-		GetCurrentStateSecondary(),
+		*this,
 		position,
 		rotation,
 		resetSecondaryStatemachine);
@@ -232,6 +221,13 @@ void ComponentAnimation::InitCurrentTimeStates(UID stateMachineResourceUid, Stat
 		case StateMachineEnum::SECONDARY:
 			for (const auto& element : resourceStateMachine->states) {
 				currentTimeStatesSecondary.insert({element.first, 0.0f});
+
+				//Filling the key events given that the secondary state machine has all of the states
+				ResourceClip* clip = App->resources->GetResource<ResourceClip>(element.second.clipUid);
+				if (clip) {
+					listClipsKeyEvents.insert({element.second.clipUid, clip->keyEventClips});
+					listClipsCurrentEventKeyFrames.insert({element.second.clipUid, 0});
+				}
 			}
 			break;
 		}

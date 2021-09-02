@@ -9,9 +9,9 @@ struct PointLightUniforms {
 	int posLocation = -1;
 	int colorLocation = -1;
 	int intensityLocation = -1;
-	int kcLocation = -1;
-	int klLocation = -1;
-	int kqLocation = -1;
+	int radiusLocation = -1;
+	int useCustomFalloffLocation = -1;
+	int falloffExponentLocation = -1;
 };
 
 struct SpotLightUniforms {
@@ -22,9 +22,9 @@ struct SpotLightUniforms {
 	int directionLocation = -1;
 	int colorLocation = -1;
 	int intensityLocation = -1;
-	int kcLocation = -1;
-	int klLocation = -1;
-	int kqLocation = -1;
+	int radiusLocation = -1;
+	int useCustomFalloffLocation = -1;
+	int falloffExponentLocation = -1;
 	int innerAngleLocation = -1;
 	int outerAngleLocation = -1;
 };
@@ -93,9 +93,37 @@ struct ProgramUnlit : public Program {
 	int emissiveMapLocation = -1;
 	int hasEmissiveMapLocation = -1;
 	int emissiveIntensityLocation = -1;
+	int emissiveColorLocation = -1;
 
 	int tilingLocation = -1;
 	int offsetLocation = -1;
+};
+
+struct ProgramVolumetricLight : public Program {
+	ProgramVolumetricLight(unsigned program);
+
+	int modelLocation = -1;
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int paletteLocation = -1;
+	int hasBonesLocation = -1;
+
+	int viewPosLocation = -1;
+
+	int nearLocation = -1;
+	int farLocation = -1;
+
+	int depthsLocation = -1;
+
+	int lightColorLocation = -1;
+	int lightMapLocation = -1;
+	int hasLightMapLocation = -1;
+	int intensityLocation = -1;
+	int attenuationExponentLocation = -1;
+
+	int isSoftLocation = -1;
+	int softRangeLocation = -1;
 };
 
 struct ProgramStandard : public Program {
@@ -125,6 +153,7 @@ struct ProgramStandard : public Program {
 
 	int emissiveMapLocation = -1;
 	int hasEmissiveMapLocation = -1;
+	int emissiveColorLocation = -1;
 	int emissiveIntensityLocation = -1;
 
 	int ambientOcclusionMapLocation = -1;
@@ -138,10 +167,12 @@ struct ProgramStandard : public Program {
 	int tilingLocation = -1;
 	int offsetLocation = -1;
 
+	int hasIBLLocation = -1;
 	int diffuseIBLLocation = -1;
 	int prefilteredIBLLocation = -1;
 	int environmentBRDFLocation = -1;
 	int prefilteredIBLNumLevelsLocation = -1;
+	int strengthIBLLocation = -1;
 
 	int lightAmbientColorLocation = -1;
 
@@ -204,6 +235,7 @@ struct ProgramDepthPrepassConvertTextures : Program {
 
 	int samplesNumberLocation = -1;
 
+	int depthsLocation = -1;
 	int positionsLocation = -1;
 	int normalsLocation = -1;
 };
@@ -259,6 +291,25 @@ struct ProgramColorCorrection : Program {
 	int smallMipLevelLocation = -1;
 	int mediumMipLevelLocation = -1;
 	int largeMipLevelLocation = -1;
+
+	int hasChromaticAberrationLocation = -1;
+	int chromaticAberrationStrengthLocation = -1;
+};
+
+struct ProgramHeightFog : Program {
+	ProgramHeightFog(unsigned program);
+
+	int viewLocation = -1;
+	int projLocation = -1;
+
+	int positionsLocation = -1;
+
+	int viewPosLocation = -1;
+
+	int densityLocation = -1;
+	int falloffLocation = -1;
+	int heightLocation = -1;
+	int inscatteringColorLocation = -1;
 };
 
 struct ProgramDrawTexture : Program {
@@ -296,6 +347,13 @@ struct ProgramBillboard : Program {
 	int viewLocation = -1;
 	int projLocation = -1;
 
+	int nearLocation = -1;
+	int farLocation = -1;
+
+	int transparentLocation = -1;
+
+	int depthsLocation = -1;
+
 	int inputColorLocation = -1;
 	int hasDiffuseLocation = -1;
 	int diffuseMapLocation = -1;
@@ -305,14 +363,48 @@ struct ProgramBillboard : Program {
 	int yTilesLocation = -1;
 	int xFlipLocation = -1;
 	int yFlipLocation = -1;
+
+	int isSoftLocation = -1;
+	int softRangeLocation = -1;
 };
+
 struct ProgramTrail : Program {
 	ProgramTrail(unsigned program);
 
 	int viewLocation = -1;
 	int projLocation = -1;
+	int modelLocation = -1;
 
 	int inputColorLocation = -1;
 	int hasDiffuseLocation = -1;
 	int diffuseMap = -1;
+	int xFlipLocation = -1;
+	int yFlipLocation = -1;
+};
+
+struct ProgramStandardDissolve : ProgramStandardMetallic {
+	ProgramStandardDissolve(unsigned program);
+
+	int scaleLocation = -1;
+	int thresholdLocation = -1;
+	int offsetLocation = -1;
+	int edgeSizeLocation = -1;
+};
+
+
+struct ProgramUnlitDissolve : ProgramUnlit {
+	ProgramUnlitDissolve(unsigned program);
+
+	int scaleLocation = -1;
+	int thresholdLocation = -1;
+	int offsetLocation = -1;
+	int edgeSizeLocation = -1;
+};
+
+struct ProgramDepthPrepassDissolve : ProgramDepthPrepass {
+	ProgramDepthPrepassDissolve(unsigned program);
+
+	int scaleLocation = -1;
+	int thresholdLocation = -1;
+	int offsetLocation = -1;
 };

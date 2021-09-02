@@ -3,7 +3,6 @@
 #include "Application.h"
 #include "GameObject.h"
 #include "Utils/Logging.h"
-#include "Utils/MSTimer.h"
 #include "Utils/FileDialog.h"
 #include "FileSystem/TextureImporter.h"
 #include "Resources/ResourceScene.h"
@@ -21,7 +20,6 @@
 #include "Scripting/Script.h"
 #include "ImporterCommon.h"
 
-#include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/error/en.h"
 

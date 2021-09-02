@@ -7,7 +7,7 @@
     ],
     "QuadtreeMaxDepth": 4,
     "QuadtreeElementsPerNode": 200,
-    "GameCamera": 18291458259393081356,
+    "GameCamera": 71277050702357301,
     "AmbientLight": [
         0.25,
         0.25,
@@ -97,8 +97,9 @@
                             1.0
                         ],
                         "Intensity": 1.0,
-                        "Kl": 0.04500000178813934,
-                        "Kq": 0.007499999832361937,
+                        "Radius": 1.0,
+                        "UseCustomFalloff": false,
+                        "FalloffExponent": 0.0,
                         "InnerAngle": 0.2617993950843811,
                         "OuterAngle": 0.5235987901687622
                     }
@@ -171,13 +172,17 @@
                         "Id": 11840596377370928096,
                         "Active": true,
                         "Shader": 0,
-                        "Skybox": 17754930081670969392
+                        "Skybox": 17754930081670969392,
+                        "Strength": 1.0
                     },
                     {
                         "Type": "AudioListener",
                         "Id": 8215766938036622007,
                         "Active": true,
-                        "Gain": 1.0
+                        "Gain": 1.0,
+                        "ModelIndex": 0,
+                        "DistanceModel": 0,
+                        "Clamped": false
                     }
                 ],
                 "Children": null

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Globals.h"
 #include "Module.h"
 
 #include "SDL_video.h"
