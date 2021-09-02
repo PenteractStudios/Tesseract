@@ -442,6 +442,8 @@ bool NavMesh::Build(Scene* scene) {
 	std::vector<int> tris = scene->GetTriangles();
 	std::vector<float> normals = scene->GetNormals();
 
+	unsigned ntris = tris.size() / 3;
+
 	if (verts.size() == 0) {
 		LOG("Building navigation:");
 		LOG("There's no mesh to build");
@@ -504,7 +506,7 @@ bool NavMesh::Build(Scene* scene) {
 
 	LOG("Building navigation:");
 	LOG(" - %d x %d cells", cfg.width, cfg.height);
-	LOG(" - %.1fK verts, %.1fK tris", verts.size() / 1000.0f, tris.size() / 1000.0f);
+	LOG(" - %.1fK verts, %.1fK tris", verts.size() / 1000.0f, ntris / 1000.0f);
 
 	int tileBits = rcMin((int) dtIlog2(dtNextPow2(tw * th * EXPECTED_LAYERS_PER_TILE)), 14);
 	if (tileBits > 14) tileBits = 14;
@@ -573,7 +575,7 @@ bool NavMesh::Build(Scene* scene) {
 		LOG("buildTiledNavigation: Out of memory 'm_chunkyMesh'.");
 		return false;
 	}
-	if (!rcCreateChunkyTriMesh(&verts[0], &tris[0], tris.size(), 256, chunkyMesh)) {
+	if (!rcCreateChunkyTriMesh(&verts[0], &tris[0], ntris, 256, chunkyMesh)) {
 		LOG("buildTiledNavigation: Failed to build chunky mesh.");
 		return false;
 	}
@@ -582,7 +584,7 @@ bool NavMesh::Build(Scene* scene) {
 		for (int x = 0; x < tw; ++x) {
 			TileCacheData tiles[MAX_LAYERS];
 			memset(tiles, 0, sizeof(tiles));
-			int ntiles = RasterizeTileLayers(&verts[0], verts.size(), tris.size(), ctx, chunkyMesh, x, y, cfg, tiles, MAX_LAYERS);
+			int ntiles = RasterizeTileLayers(&verts[0], verts.size(), ntris, ctx, chunkyMesh, x, y, cfg, tiles, MAX_LAYERS);
 
 			for (int i = 0; i < ntiles; ++i) {
 				TileCacheData* tile = &tiles[i];
