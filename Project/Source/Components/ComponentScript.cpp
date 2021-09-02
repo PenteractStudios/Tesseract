@@ -25,6 +25,13 @@
 #define JSON_TAG_VALUE "Value"
 
 ComponentScript::~ComponentScript() {
+	for (auto& entry : changedValues) {
+		if (entry.second.first == MemberType::PREFAB_RESOURCE_UID) {
+			UID prefabId = std::get<UID>(entry.second.second);
+			if (prefabId) App->resources->DecreaseReferenceCount(prefabId);
+		}
+	}
+
 	if (scriptId != 0) App->resources->DecreaseReferenceCount(scriptId);
 }
 
@@ -328,9 +335,12 @@ void ComponentScript::Load(JsonValue jComponent) {
 		case MemberType::GAME_OBJECT_UID:
 			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, static_cast<UID>(jValue[JSON_TAG_VALUE]));
 			break;
-		case MemberType::PREFAB_RESOURCE_UID:
-			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, static_cast<UID>(jValue[JSON_TAG_VALUE]));
+		case MemberType::PREFAB_RESOURCE_UID: {
+			UID prefabId = jValue[JSON_TAG_VALUE];
+			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, prefabId);
+			if (prefabId) App->resources->IncreaseReferenceCount(prefabId);
 			break;
+		}
 		case MemberType::SCENE_RESOURCE_UID:
 			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, static_cast<UID>(jValue[JSON_TAG_VALUE]));
 			break;
