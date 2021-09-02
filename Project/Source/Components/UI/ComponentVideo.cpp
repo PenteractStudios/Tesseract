@@ -42,18 +42,17 @@ void ComponentVideo::Init() {
 	imageUIProgram = App->programs->imageUI;
 
 	// Set GL texture buffer
-	
 	glGenTextures(1, &frameTexture);
 	glBindTexture(GL_TEXTURE_2D, frameTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	
 
-	if (videoID) OpenVideoReader(App->resources->GetResource<ResourceVideo>(videoID)->GetResourceFilePath().c_str());
-
-	if (playOnAwake) isPlaying = true;
+	if (videoID) {
+		OpenVideoReader(App->resources->GetResource<ResourceVideo>(videoID)->GetResourceFilePath().c_str());
+		if (playOnAwake) isPlaying = true;
+	}
 }
 
 void ComponentVideo::Update() {

@@ -28,7 +28,7 @@ public:
 
 	void Draw(ComponentTransform2D* transform); // Draws the current frame of the loaded video as a texture in a framebuffer, and plays the corresponding audio data through an internal audio source component.
 
-	void SetVideoFrameSize(int width, int height);
+	void SetVideoFrameSize(int width, int height); // Sets the ComponentTransform2D size to adjust to the video sizes.
 
 private:
 	void OpenVideoReader(const char* filename); // Opens a video file and allocates the neccessary memory to work with it.
@@ -44,11 +44,11 @@ private:
 	ComponentAudioSource* audioPlayer = nullptr; // This AudioSource will store the audio stream from the video and send it to openAL
 
 	// Video Options
-	bool isPlaying = false;
-	bool forceStop = false;
-	bool playOnAwake = false;
-	bool loopVideo = false;
-	bool verticalFlip = false;
+	bool isPlaying = false;	   // Control for the video Play/pause/Stop functionalities.
+	bool forceStop = false;	   // Signal that indicates that the video decoding must be stopped. Set to true on Stop().
+	bool playOnAwake = false;  // Signal to automatically Play() the video when starting the scene.
+	bool loopVideo = false;	   // If true, the video will restart after decoding the last frame.
+	bool verticalFlip = false; // Invert the Y axis of the rendered image.
 
 	// LibAV internal state
 	AVFormatContext* formatCtx = nullptr;	 // Video file context.
