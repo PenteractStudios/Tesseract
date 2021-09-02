@@ -1,6 +1,7 @@
 #include "ComponentImage.h"
 
 #include "Application.h"
+#include "GameObject.h"
 #include "Modules/ModulePrograms.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleRender.h"

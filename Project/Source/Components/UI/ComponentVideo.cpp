@@ -28,7 +28,7 @@ extern "C" {
 #define JSON_TAG_VIDEO_IS_FLIPPED "VerticalFlip"
 
 char av_error[AV_ERROR_MAX_STRING_SIZE] = {0};
-#define av_err2str(errnum) av_make_error_string(av_error, AV_ERROR_MAX_STRING_SIZE, errnum)
+#define libav_err2str(errnum) av_make_error_string(av_error, AV_ERROR_MAX_STRING_SIZE, errnum)
 
 ComponentVideo::~ComponentVideo() {
 	CloseVideoReader();
@@ -191,7 +191,7 @@ void ComponentVideo::SetVideoFrameSize(int width, int height) {
 	if (owner) {
 		ComponentTransform2D* transform = owner->GetComponent<ComponentTransform2D>();
 		if (transform) {
-			transform->SetSize(float2(width,height));
+			transform->SetSize(float2((float) width, (float) height));
 		}
 	}
 }
@@ -335,7 +335,7 @@ void ComponentVideo::ReadVideoFrame() {
 
 		response = avcodec_send_packet(videoCodecCtx, avPacket);
 		if (response < 0) {
-			LOG("Failed to decode packet: %s.", av_err2str(response));
+			LOG("Failed to decode packet: %s.", libav_err2str(response));
 			return;
 		}
 
@@ -345,7 +345,7 @@ void ComponentVideo::ReadVideoFrame() {
 			continue;
 		}
 		if (response < 0) {
-			LOG("Failed to decode frame: %s.", av_err2str(response));
+			LOG("Failed to decode frame: %s.", libav_err2str(response));
 			return;
 		}
 
@@ -389,7 +389,7 @@ void ComponentVideo::ReadAudioFrame() {
 
 		response = avcodec_send_packet(audioCodecCtx, avPacket);
 		if (response < 0) {
-			LOG("Failed to decode packet: %s.", av_err2str(response));
+			LOG("Failed to decode packet: %s.", libav_err2str(response));
 			return;
 		}
 
@@ -399,7 +399,7 @@ void ComponentVideo::ReadAudioFrame() {
 			continue;
 		}
 		if (response < 0) {
-			LOG("Failed to decode frame: %s.", av_err2str(response));
+			LOG("Failed to decode frame: %s.", libav_err2str(response));
 			return;
 		}
 

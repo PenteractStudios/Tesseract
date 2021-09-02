@@ -12,6 +12,7 @@
 #include "Components/UI/ComponentCanvas.h"
 #include "Components/UI/ComponentCanvasRenderer.h"
 #include "Components/UI/ComponentImage.h"
+#include "Components/UI/ComponentVideo.h"
 #include "Components/UI/ComponentTransform2D.h"
 #include "Components/UI/ComponentEventSystem.h"
 #include "Components/UI/ComponentButton.h"

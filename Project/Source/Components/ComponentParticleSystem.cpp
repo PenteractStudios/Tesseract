@@ -533,7 +533,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 					}
 				}
 			}
-			ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, inf, "%d", ImGuiSliderFlags_AlwaysClamp);
+			ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, std::numeric_limits<int>::max(), "%d", ImGuiSliderFlags_AlwaysClamp);
 
 			ImGui::Unindent();
 		}

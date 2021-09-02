@@ -407,7 +407,7 @@ private:
 	// Lights
 	bool hasLights = false;
 	UID lightGameObjectUID = 0;
-	ComponentLight* lightComponent;
+	ComponentLight* lightComponent = nullptr;
 	float lightsRatio = 1;
 	float3 lightOffset = float3::zero;
 	RandomMode intensityMultiplierRM = RandomMode::CONST;
