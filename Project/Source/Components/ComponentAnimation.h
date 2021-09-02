@@ -21,6 +21,7 @@ class ResourceTransition;
 class ComponentAnimation : public Component {
 public:
 	REGISTER_COMPONENT(ComponentAnimation, ComponentType::ANIMATION, false); // Refer to ComponentType for the Constructor
+	~ComponentAnimation();
 
 	void Update() override;
 	void OnEditorUpdate() override;

@@ -28,7 +28,7 @@
 #define JSON_TAG_COLOR "Color"
 
 ComponentText::~ComponentText() {
-	//TODO DECREASE REFERENCE COUNT OF SHADER AND FONT, MAYBE IN A NEW COMPONENT::CLEANUP?
+	if (fontID) App->resources->DecreaseReferenceCount(fontID);
 }
 
 void ComponentText::Init() {
@@ -106,7 +106,7 @@ void ComponentText::Save(JsonValue jComponent) const {
 
 void ComponentText::Load(JsonValue jComponent) {
 	fontID = jComponent[JSON_TAG_TEXT_FONTID];
-	App->resources->IncreaseReferenceCount(fontID);
+	if (fontID) App->resources->IncreaseReferenceCount(fontID);
 
 	fontSize = jComponent[JSON_TAG_TEXT_FONTSIZE];
 

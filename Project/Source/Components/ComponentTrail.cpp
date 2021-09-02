@@ -35,6 +35,10 @@
 #define JSON_TAG_MAXVERTICES "MaxVertices"
 
 ComponentTrail::~ComponentTrail() {
+	if (trail->textureID != 0) {
+		App->resources->DecreaseReferenceCount(trail->textureID);
+	}
+
 	RELEASE(trail);
 	RELEASE(gradient);
 }

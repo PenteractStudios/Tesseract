@@ -24,6 +24,12 @@
 #define JSON_TAG_IS_FILL "IsFill"
 #define JSON_TAG_FILL_VALUE "FillValue"
 
+ComponentImage::~ComponentImage() {
+	if (textureID != 0) {
+		App->resources->DecreaseReferenceCount(textureID);
+	}
+}
+
 void ComponentImage::Init() {
 	RebuildFillQuadVBO();
 }

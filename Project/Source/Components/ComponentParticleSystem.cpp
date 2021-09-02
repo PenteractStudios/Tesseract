@@ -186,6 +186,13 @@ ComponentParticleSystem::~ComponentParticleSystem() {
 	}
 	subEmitters.clear();
 	subEmittersGO.clear();
+
+	if (textureID != 0) {
+		App->resources->DecreaseReferenceCount(textureID);
+	}
+	if (textureTrailID != 0) {
+		App->resources->DecreaseReferenceCount(textureTrailID);
+	}
 }
 
 void ComponentParticleSystem::Init() {

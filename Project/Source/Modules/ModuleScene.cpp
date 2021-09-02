@@ -187,15 +187,14 @@ void ModuleScene::PreloadScene(UID newSceneId) {
 void ModuleScene::ChangeScene(UID newSceneId) {
 	if (newSceneId == 0) return;
 
-	App->resources->ResetReferenceCount(sceneId);
 	App->resources->IncreaseReferenceCount(newSceneId);
 
 	ResourceScene* sceneResource = App->resources->GetResource<ResourceScene>(newSceneId);
 	if (sceneResource == nullptr) return;
 
 	RELEASE(scene);
-	sceneId = newSceneId;
 	scene = sceneResource->TransferScene();
+	App->resources->ResetReferenceCount(newSceneId);
 
 	ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(scene->gameCameraId);
 	App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);

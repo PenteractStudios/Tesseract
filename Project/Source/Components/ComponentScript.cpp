@@ -24,6 +24,10 @@
 #define JSON_TAG_TYPE "Type"
 #define JSON_TAG_VALUE "Value"
 
+ComponentScript::~ComponentScript() {
+	if (scriptId != 0) App->resources->DecreaseReferenceCount(scriptId);
+}
+
 void ComponentScript::Start() {
 	if (scriptInstance) {
 		scriptInstance->Start();

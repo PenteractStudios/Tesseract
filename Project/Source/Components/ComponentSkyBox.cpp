@@ -29,6 +29,11 @@ void ComponentSkyBox::Load(JsonValue jComponent) {
 	strength = jComponent[JSON_TAG_STRENGTH];
 }
 
+ComponentSkyBox::~ComponentSkyBox() {
+	if (shaderId != 0) App->resources->DecreaseReferenceCount(shaderId);
+	if (skyboxId != 0) App->resources->DecreaseReferenceCount(skyboxId);
+}
+
 void ComponentSkyBox::OnEditorUpdate() {
 	if (ImGui::Checkbox("Active", &active)) {
 		if (GetOwner().IsActive()) {

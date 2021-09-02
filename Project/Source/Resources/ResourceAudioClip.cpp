@@ -100,6 +100,7 @@ void ResourceAudioClip::Unload() {
 
 	while (!componentAudioSources.empty()) {
 		componentAudioSources.back()->Stop();
+		componentAudioSources.pop_back();
 	}
 
 	if (validAudio) {

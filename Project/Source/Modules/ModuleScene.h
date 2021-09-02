@@ -31,6 +31,5 @@ public:
 	bool godModeOn = false;
 
 private:
-	UID sceneId = 0;
 	Scene* scene = nullptr;
 };

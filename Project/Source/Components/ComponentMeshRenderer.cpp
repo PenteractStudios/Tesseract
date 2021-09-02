@@ -99,6 +99,14 @@ static const char* spotLightStrings[SPOT_LIGHTS][SPOT_LIGHT_MEMBERS] = {
 	SPOT_LIGHT_STRING("6"),
 	SPOT_LIGHT_STRING("7")};
 
+ComponentMeshRenderer::~ComponentMeshRenderer() {
+	if (meshId != 0) App->resources->DecreaseReferenceCount(meshId);
+	if (materialId != 0) {
+		DeleteRenderingModeMask();
+		App->resources->DecreaseReferenceCount(materialId);
+	}
+}
+
 void ComponentMeshRenderer::OnEditorUpdate() {
 	if (ImGui::Checkbox("Active", &active)) {
 		if (GetOwner().IsActive()) {

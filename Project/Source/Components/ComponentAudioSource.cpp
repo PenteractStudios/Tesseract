@@ -32,6 +32,10 @@
 
 ComponentAudioSource::~ComponentAudioSource() {
 	Stop();
+
+	if (audioClipId) {
+		App->resources->DecreaseReferenceCount(audioClipId);
+	}
 }
 
 void ComponentAudioSource::Init() {

@@ -28,7 +28,7 @@ bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, c
 	}
 
 	ResourceAnimation* resourceAnimation = clip.GetResourceAnimation();
-	if (resourceAnimation == nullptr && resourceAnimation->keyFrames.size() != 0) return false;
+	if (resourceAnimation == nullptr || resourceAnimation->keyFrames.size() != 0) return false;
 
 	//Resetting the events since it has been a loop only for one bone
 	if (  currentTime >= clip.duration) {

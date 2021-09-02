@@ -13,6 +13,7 @@
 class ComponentScript : public Component {
 public:
 	REGISTER_COMPONENT(ComponentScript, ComponentType::SCRIPT, true);
+	~ComponentScript();
 
 	void Start() override;
 

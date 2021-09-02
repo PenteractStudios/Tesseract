@@ -38,6 +38,8 @@
 
 ComponentBillboard::~ComponentBillboard() {
 	RELEASE(gradient);
+
+	if (textureID) App->resources->DecreaseReferenceCount(textureID);
 }
 
 void ComponentBillboard::OnEditorUpdate() {

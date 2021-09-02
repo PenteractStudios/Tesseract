@@ -101,7 +101,6 @@ void ResourceMesh::Load() {
 	vertices.resize(numVertices);
 	for (unsigned i = 0; i < numVertices; ++i) {
 		vertices[i] = *((Vertex*) cursor);
-
 		cursor += sizeof(Vertex);
 	}
 

@@ -28,6 +28,11 @@
 #define JSON_TAG_STATE_MACHINE_SECONDARY_ID "StateMachineSecondaryId"
 #define JSON_TAG_CLIP "Clip"
 
+ComponentAnimation::~ComponentAnimation() {
+	if (stateMachineResourceUIDPrincipal != 0) App->resources->DecreaseReferenceCount(stateMachineResourceUIDPrincipal);
+	if (stateMachineResourceUIDSecondary != 0) App->resources->DecreaseReferenceCount(stateMachineResourceUIDSecondary);
+}
+
 void ComponentAnimation::Update() {
 	if (!App->time->IsGameRunning() || !IsActive()) {
 		return;

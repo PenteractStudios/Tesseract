@@ -10,6 +10,7 @@ class ComponentTransform2D;
 class ComponentImage : public Component {
 public:
 	REGISTER_COMPONENT(ComponentImage, ComponentType::IMAGE, false);
+	~ComponentImage();
 
 	void Init() override;							// Inits the component
 	void OnEditorUpdate() override;					// Works as input of the AlphaTransparency, color and Texture and Shader used
