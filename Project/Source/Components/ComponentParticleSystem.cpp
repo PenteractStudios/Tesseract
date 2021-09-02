@@ -239,7 +239,7 @@ void ComponentParticleSystem::Start() {
 		}
 	}
 	if (lightGameObjectUID != 0) {
-		GameObject* gameObject = App->scene->scene->GetGameObject(lightGameObjectUID);
+		GameObject* gameObject = GetOwner().scene->GetGameObject(lightGameObjectUID);
 		if (gameObject != nullptr) {
 			ComponentLight* light = gameObject->GetComponent<ComponentLight>();
 			if (light == nullptr || light->lightType != LightType::POINT) {
@@ -624,7 +624,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			UID oldUID = lightGameObjectUID;
 			ImGui::GameObjectSlot("Point Light", &lightGameObjectUID);
 			if (oldUID != lightGameObjectUID) {
-				GameObject* gameObject = App->scene->scene->GetGameObject(lightGameObjectUID);
+				GameObject* gameObject = GetOwner().scene->GetGameObject(lightGameObjectUID);
 				if (gameObject != nullptr) {
 					ComponentLight* light = gameObject->GetComponent<ComponentLight>();
 					if (light == nullptr || light->lightType != LightType::POINT) {

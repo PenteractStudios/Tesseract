@@ -234,7 +234,7 @@ static UID ImportMesh(const char* modelFilePath, JsonValue jMeta, const aiMesh* 
 	return mesh->GetId();
 }
 
-static std::pair<UID, UID> ImportAnimation(const char* modelFilePath, JsonValue jMeta, const aiAnimation* aiAnim, const aiScene* assimpScene, unsigned& resourceIndex, unsigned animationIndex) {
+static void ImportAnimation(const char* modelFilePath, JsonValue jMeta, const aiAnimation* aiAnim, const aiScene* assimpScene, unsigned& resourceIndex, unsigned animationIndex) {
 	// Timer to measure importing an animation
 	MSTimer timer;
 	timer.Start();
@@ -381,14 +381,14 @@ static std::pair<UID, UID> ImportAnimation(const char* modelFilePath, JsonValue 
 	bool animationSaved = ImporterCommon::SaveResourceMetaFile(animation.get());
 	if (!animationSaved) {
 		LOG("Failed to save animation resource meta file.");
-		return {0, 0};
+		return;
 	}
 
 	// Save animation to file
 	animationSaved = App->files->Save(animation->GetResourceFilePath().c_str(), buffer);
 	if (!animationSaved) {
 		LOG("Failed to save animation resource file.");
-		return {0, 0};
+		return;
 	}
 
 	// Send resource creation event
@@ -408,13 +408,13 @@ static std::pair<UID, UID> ImportAnimation(const char* modelFilePath, JsonValue 
 	bool clipSaved = ImporterCommon::SaveResourceMetaFile(clip.get());
 	if (!clipSaved) {
 		LOG("Failed to save clip resource meta file.");
-		return {0, 0};
+		return;
 	}
 
 	// Save clip to file
 	clipSaved = clip->SaveToFile(clip->GetResourceFilePath().c_str());
 	if (!clipSaved) {
-		return {0, 0};
+		return;
 	}
 
 	// Send resource creation event
@@ -422,7 +422,6 @@ static std::pair<UID, UID> ImportAnimation(const char* modelFilePath, JsonValue 
 
 	unsigned timeMs = timer.Stop();
 	LOG("Animation imported in %ums", timeMs);
-	return {animation->GetId(), clip->GetId()};
 }
 
 static void ImportNode(const char* modelFilePath, JsonValue jMeta, const aiScene* assimpScene, const aiNode* node, Scene* scene, GameObject* parent, std::vector<UID>& materialIds, const float4x4& accumulatedTransform, unsigned& resourceIndex, std::vector<const char*>& bones) {
@@ -800,10 +799,7 @@ void ModelImporter::CacheBones(GameObject* node, std::unordered_map<std::string,
 
 void ModelImporter::SaveBones(GameObject* node, std::unordered_map<std::string, GameObject*>& goBones) {
 	for (ComponentMeshRenderer& meshRenderer : node->GetComponents<ComponentMeshRenderer>()) {
-		ResourceMesh* resourceMesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
-		if (resourceMesh && resourceMesh->bones.size() > 0) {
-			meshRenderer.goBones = goBones;
-		}
+		meshRenderer.goBones = goBones;
 	}
 
 	for (GameObject* child : node->GetChildren()) {
