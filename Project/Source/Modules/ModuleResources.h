@@ -32,12 +32,14 @@ public:
 	template<typename T> T* GetImportOptions(const char* filePath, bool forceLoad = false);
 	template<typename T> T* GetResource(UID id);
 	ResourceType GetResourceType(UID id);
+	const char* GetResourceName(UID id);
 	AssetCache* GetAssetCache() const;
 
 	void IncreaseReferenceCount(UID id);
 	void DecreaseReferenceCount(UID id);
 	void ResetReferenceCount(UID id);
 	unsigned GetReferenceCount(UID id) const;
+	bool HaveResourcesFinishedLoading();
 
 	std::string GenerateResourcePath(UID id) const;
 
@@ -49,6 +51,8 @@ private:
 	void ImportLibrary();
 
 	void CheckForNewAssetsRecursive(const char* path, AssetCache& assetCache, AssetFolder& parentFolder);
+
+	template<typename T> T* GetResourceInternal(UID id);
 
 	void SendCreateResourceEventByType(ResourceType type, const char* resourceName, const char* assetFilePath, UID id);
 	Resource* CreateResourceByType(ResourceType type, const char* resourceName, const char* assetFilePath, UID id);
@@ -66,16 +70,19 @@ public:
 	concurrency::concurrent_queue<std::string> assetsToReimport;
 
 private:
+	std::mutex resourcesMutex;
 	std::unordered_map<std::string, std::unique_ptr<ImportOptions>> assetImportOptions;
 	std::unordered_map<UID, std::unique_ptr<Resource>> resources;
 	std::unordered_map<UID, unsigned> referenceCounts;
 	std::unique_ptr<AssetCache> assetCache;
 
+	unsigned numResourcesLoading = 0;
+
 	std::thread loadingThread;
 	bool stopLoadingThread = false;
 	std::unordered_map<UID, std::string> concurrentResourceUIDToAssetFilePath;
 	concurrency::concurrent_queue<Resource*> resourcesToLoad;
-	concurrency::concurrent_queue<Resource*> loadedResources;
+	concurrency::concurrent_queue<Resource*> resourcesToFinishLoading;
 };
 
 template<typename T>
@@ -92,9 +99,17 @@ inline T* ModuleResources::GetImportOptions(const char* filePath, bool forceLoad
 
 template<typename T>
 inline T* ModuleResources::GetResource(UID id) {
+	T* resource = GetResourceInternal<T>(id);
+	if (resource == nullptr || !resource->IsLoaded()) return nullptr;
+	return resource;
+}
+
+template<typename T>
+inline T* ModuleResources::GetResourceInternal(UID id) {
+	resourcesMutex.lock();
 	auto it = resources.find(id);
 	T* resource = it != resources.end() ? static_cast<T*>(it->second.get()) : nullptr;
-	if (resource == nullptr || !resource->IsLoaded()) return nullptr;
+	resourcesMutex.unlock();
 	return resource;
 }
 

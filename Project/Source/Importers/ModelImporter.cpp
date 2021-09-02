@@ -290,7 +290,7 @@ static std::pair<UID, UID> ImportAnimation(const char* modelFilePath, JsonValue 
 
 			ResourceAnimation::Channel channel = keyFrames[frame].channels[channelName];
 			channel.rotation = Quat(aiQuat.x, aiQuat.y, aiQuat.z, aiQuat.w);
-			channel.tranlation = float3(aiV3D.x, aiV3D.y, aiV3D.z);
+			channel.translation = float3(aiV3D.x, aiV3D.y, aiV3D.z);
 
 			keyFrames[frame++].channels[channelName] = channel;
 		}
@@ -307,14 +307,14 @@ static std::pair<UID, UID> ImportAnimation(const char* modelFilePath, JsonValue 
 				while (std::string(node->mName.C_Str()).find(channelName) != std::string::npos) {
 					if (keyFrame.channels.find(node->mName.C_Str()) != keyFrame.channels.end()) {
 						channel.rotation = keyFrame.channels[node->mName.C_Str()].rotation * channel.rotation;
-						channel.tranlation = keyFrame.channels[node->mName.C_Str()].tranlation + keyFrame.channels[node->mName.C_Str()].rotation.Transform(channel.tranlation);
+						channel.translation = keyFrame.channels[node->mName.C_Str()].translation + keyFrame.channels[node->mName.C_Str()].rotation.Transform(channel.translation);
 						keyFrame.channels.erase(node->mName.C_Str());
 					} else {
 						aiVector3D scaling, translation;
 						aiQuaternion rotation;
 						node->mTransformation.Decompose(scaling, rotation, translation);
 						channel.rotation = Quat(rotation.x, rotation.y, rotation.z, rotation.w) * channel.rotation;
-						channel.tranlation = float3(translation.x, translation.y, translation.z) + Quat(rotation.x, rotation.y, rotation.z, rotation.w).Transform(channel.tranlation);
+						channel.translation = float3(translation.x, translation.y, translation.z) + Quat(rotation.x, rotation.y, rotation.z, rotation.w).Transform(channel.translation);
 					}
 					node = node->mParent;
 				}
@@ -327,11 +327,11 @@ static std::pair<UID, UID> ImportAnimation(const char* modelFilePath, JsonValue 
 
 					ResourceAnimation::Channel& c = keyFrame.channels[channelName];
 					c.rotation = channel.rotation * Quat(rotation.x, rotation.y, rotation.z, rotation.w);
-					c.tranlation = channel.tranlation + channel.rotation.Transform(float3(translation.x, translation.y, translation.z));
+					c.translation = channel.translation + channel.rotation.Transform(float3(translation.x, translation.y, translation.z));
 				} else {
 					ResourceAnimation::Channel& c = keyFrame.channels[channelName];
 					c.rotation = channel.rotation * c.rotation;
-					c.tranlation = channel.tranlation + channel.rotation.Transform(c.tranlation);
+					c.translation = channel.translation + channel.rotation.Transform(c.translation);
 				}
 			}
 		}
@@ -355,11 +355,11 @@ static std::pair<UID, UID> ImportAnimation(const char* modelFilePath, JsonValue 
 			cursor += (FILENAME_MAX / 2) * sizeof(char);
 
 			// Translation
-			*((float*) cursor) = channel.tranlation.x;
+			*((float*) cursor) = channel.translation.x;
 			cursor += sizeof(float);
-			*((float*) cursor) = channel.tranlation.y;
+			*((float*) cursor) = channel.translation.y;
 			cursor += sizeof(float);
-			*((float*) cursor) = channel.tranlation.z;
+			*((float*) cursor) = channel.translation.z;
 			cursor += sizeof(float);
 
 			// Rotation

@@ -30,6 +30,7 @@ namespace GameplaySystems {
 	TESSERACT_ENGINE_API GameObject* GetGameObject(const char* name);
 	TESSERACT_ENGINE_API GameObject* GetGameObject(UID id);
 	template<typename T> TESSERACT_ENGINE_API T* GetResource(UID id);
+	TESSERACT_ENGINE_API bool HaveResourcesFinishedLoading();
 	TESSERACT_ENGINE_API void SetRenderCamera(ComponentCamera* camera);
 	TESSERACT_ENGINE_API void DestroyGameObject(GameObject* gameObject);
 

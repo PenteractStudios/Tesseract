@@ -76,5 +76,8 @@ void ResourceFont::FinishLoading() {
 }
 
 void ResourceFont::Unload() {
-	// TODO: release all textures generated with glDeleteTextures
+	for (const auto& entry : characters) {
+		glDeleteTextures(1, &entry.second.textureID);
+	}
+	characters.clear();
 }

@@ -194,27 +194,6 @@ void ModuleUserInterface::ReceiveEvent(TesseractEvent& e) {
 	}
 }
 
-Character ModuleUserInterface::GetCharacter(UID font, char c) {
-	ResourceFont* fontResource = App->resources->GetResource<ResourceFont>(font);
-
-	if (fontResource == nullptr) {
-		return Character();
-	}
-	return fontResource->characters[c];
-}
-
-void ModuleUserInterface::GetCharactersInString(UID font, const std::string& sentence, std::vector<Character>& charsInSentence) {
-	ResourceFont* fontResource = App->resources->GetResource<ResourceFont>(font);
-
-	if (fontResource == nullptr) {
-		return;
-	}
-
-	for (std::string::const_iterator i = sentence.begin(); i != sentence.end(); ++i) {
-		charsInSentence.push_back(fontResource->characters[*i]);
-	}
-}
-
 void ModuleUserInterface::RecursiveRender(const GameObject* obj) {
 	ComponentCanvasRenderer* renderer = obj->GetComponent<ComponentCanvasRenderer>();
 

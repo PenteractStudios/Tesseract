@@ -61,6 +61,10 @@ template TESSERACT_ENGINE_API ResourceMaterial* GameplaySystems::GetResource<Res
 template TESSERACT_ENGINE_API ResourceClip* GameplaySystems::GetResource<ResourceClip>(UID id);
 template TESSERACT_ENGINE_API ResourceScene* GameplaySystems::GetResource<ResourceScene>(UID id);
 
+bool GameplaySystems::HaveResourcesFinishedLoading() {
+	return App->resources->HaveResourcesFinishedLoading();
+}
+
 void GameplaySystems::SetRenderCamera(ComponentCamera* camera) {
 	App->camera->ChangeActiveCamera(camera, true);
 	App->camera->ChangeCullingCamera(camera, true);

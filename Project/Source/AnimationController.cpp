@@ -60,7 +60,7 @@ bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, c
 		return false;
 	}
 
-	pos = float3::Lerp(channel->second.tranlation, channelNext->second.tranlation, decimal);
+	pos = float3::Lerp(channel->second.translation, channelNext->second.translation, decimal);
 	quat = AnimationController::Interpolate(channel->second.rotation, channelNext->second.rotation, decimal);
 
 	return true;

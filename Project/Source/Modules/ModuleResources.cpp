@@ -120,13 +120,14 @@ UpdateStatus ModuleResources::Update() {
 	}
 
 	// Finish resource loading
-	while (!loadedResources.empty()) {
+	while (!resourcesToFinishLoading.empty()) {
 		Resource* resource = nullptr;
-		if (!loadedResources.try_pop(resource)) break;
+		if (!resourcesToFinishLoading.try_pop(resource)) break;
 		if (resource == nullptr) continue;
 
 		resource->FinishLoading();
 		resource->SetLoaded(true);
+		numResourcesLoading -= 1;
 	}
 
 	return UpdateStatus::CONTINUE;
@@ -135,6 +136,9 @@ UpdateStatus ModuleResources::Update() {
 bool ModuleResources::CleanUp() {
 	stopLoadingThread = true;
 	loadingThread.join();
+
+	resources.clear();
+
 	return true;
 }
 
@@ -143,7 +147,9 @@ void ModuleResources::ReceiveEvent(TesseractEvent& e) {
 		CreateResourceStruct& createResourceStruct = e.Get<CreateResourceStruct>();
 		Resource* resource = CreateResourceByType(createResourceStruct.type, createResourceStruct.resourceName.c_str(), createResourceStruct.assetFilePath.c_str(), createResourceStruct.resourceId);
 		UID id = resource->GetId();
+		resourcesMutex.lock();
 		resources[id].reset(resource);
+		resourcesMutex.unlock();
 
 		if (GetReferenceCount(id) > 0) {
 			LoadResource(resource);
@@ -151,11 +157,13 @@ void ModuleResources::ReceiveEvent(TesseractEvent& e) {
 
 	} else if (e.type == TesseractEventType::DESTROY_RESOURCE) {
 		UID id = e.Get<DestroyResourceStruct>().resourceId;
+		resourcesMutex.lock();
 		auto& it = resources.find(id);
 		if (it != resources.end()) {
 			it->second->Unload();
 			resources.erase(it);
 		}
+		resourcesMutex.unlock();
 	} else if (e.type == TesseractEventType::UPDATE_ASSET_CACHE) {
 		AssetCache* newAssetCache = e.Get<UpdateAssetCacheStruct>().assetCache;
 		assetCache.reset(newAssetCache);
@@ -181,7 +189,7 @@ void ModuleResources::RecreateResources(JsonValue jMeta, const char* filePath) {
 	for (unsigned i = 0; i < jResources.Size(); ++i) {
 		JsonValue jResource = jResources[i];
 		UID id = jResource[JSON_TAG_ID];
-		if (GetResource<Resource>(id) == nullptr) {
+		if (GetResourceInternal<Resource>(id) == nullptr) {
 			std::string typeName = jResource[JSON_TAG_TYPE];
 			ResourceType type = GetResourceTypeFromName(typeName.c_str());
 			SendCreateResourceEventByType(type, "", filePath, id);
@@ -285,10 +293,15 @@ std::list<UID> ModuleResources::ImportAssetResources(const char* filePath, bool 
 }
 
 ResourceType ModuleResources::GetResourceType(UID id) {
-	auto it = resources.find(id);
-	Resource* resource = it != resources.end() ? it->second.get() : nullptr;
+	Resource* resource = GetResourceInternal<Resource>(id);
 	if (resource == nullptr) return ResourceType::UNKNOWN;
 	return resource->GetType();
+}
+
+const char* ModuleResources::GetResourceName(UID id) {
+	Resource* resource = GetResourceInternal<Resource>(id);
+	if (resource == nullptr) return nullptr;
+	return resource->GetName().c_str();
 }
 
 AssetCache* ModuleResources::GetAssetCache() const {
@@ -301,7 +314,7 @@ void ModuleResources::IncreaseReferenceCount(UID id) {
 	if (referenceCounts.find(id) != referenceCounts.end()) {
 		referenceCounts[id] = referenceCounts[id] + 1;
 	} else {
-		Resource* resource = GetResource<Resource>(id);
+		Resource* resource = GetResourceInternal<Resource>(id);
 		if (resource != nullptr) {
 			LoadResource(resource);
 		}
@@ -315,7 +328,7 @@ void ModuleResources::DecreaseReferenceCount(UID id) {
 	if (referenceCounts.find(id) != referenceCounts.end()) {
 		referenceCounts[id] = referenceCounts[id] - 1;
 		if (referenceCounts[id] <= 0) {
-			Resource* resource = GetResource<Resource>(id);
+			Resource* resource = GetResourceInternal<Resource>(id);
 			if (resource != nullptr) {
 				resource->Unload();
 				resource->SetLoaded(false);
@@ -330,7 +343,7 @@ void ModuleResources::ResetReferenceCount(UID id) {
 
 	if (referenceCounts.find(id) != referenceCounts.end()) {
 		referenceCounts[id] = 0;
-		Resource* resource = GetResource<Resource>(id);
+		Resource* resource = GetResourceInternal<Resource>(id);
 		if (resource != nullptr) {
 			resource->Unload();
 			resource->SetLoaded(false);
@@ -342,6 +355,10 @@ void ModuleResources::ResetReferenceCount(UID id) {
 unsigned ModuleResources::GetReferenceCount(UID id) const {
 	auto it = referenceCounts.find(id);
 	return it != referenceCounts.end() ? it->second : 0;
+}
+
+bool ModuleResources::HaveResourcesFinishedLoading() {
+	return numResourcesLoading == 0;
 }
 
 std::string ModuleResources::GenerateResourcePath(UID id) const {
@@ -448,7 +465,7 @@ void ModuleResources::UpdateAsync() {
 			if (resource == nullptr) continue;
 
 			resource->Load();
-			loadedResources.push(resource);
+			resourcesToFinishLoading.push(resource);
 		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BETWEEN_RESOURCE_UPDATES_MS));
@@ -508,7 +525,9 @@ void ModuleResources::ImportLibraryResource(const char* filePath) {
 	UID id = SDL_strtoull(fileName.c_str(), nullptr, 10);
 
 	Resource* resource = CreateResourceByType(type, resourceName.c_str(), "", id);
+	resourcesMutex.lock();
 	resources[id].reset(resource);
+	resourcesMutex.unlock();
 
 	if (GetReferenceCount(id) > 0) {
 		LoadResource(resource);
@@ -586,6 +605,8 @@ void ModuleResources::DestroyResource(UID id) {
 }
 
 void ModuleResources::LoadResource(Resource* resource) {
+	numResourcesLoading += 1;
+
 	// Read resource meta file
 	bool resourceMetaLoaded = true;
 	std::string resourceMetaFile = resource->GetResourceFilePath() + META_EXTENSION;

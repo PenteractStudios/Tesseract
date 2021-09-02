@@ -119,7 +119,10 @@ void ResourceClip::FinishLoading() {
 }
 
 void ResourceClip::Unload() {
-	App->resources->DecreaseReferenceCount(animationUID);
+	if (animationUID) {
+		App->resources->DecreaseReferenceCount(animationUID);
+		animationUID = 0;
+	}
 }
 
 void ResourceClip::OnEditorUpdate() {

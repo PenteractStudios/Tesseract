@@ -62,6 +62,7 @@ public:
 	void RemoveComponentByTypeAndId(ComponentType type, UID componentId);
 
 	void LoadFromFile(const char* filePath);
+	void LoadFromJSON(JsonValue jScene);
 	void SaveToFile(const char* filePath);
 
 	int GetTotalTriangles() const;

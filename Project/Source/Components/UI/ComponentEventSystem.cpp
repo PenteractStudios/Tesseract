@@ -18,10 +18,8 @@
 
 ComponentEventSystem ::~ComponentEventSystem() {
 	ComponentEventSystem* eventSystem = App->userInterface->GetCurrentEventSystem();
-	if (eventSystem != nullptr) {
-		if (eventSystem->GetID() == GetID()) {
-			App->userInterface->SetCurrentEventSystem(0);
-		}
+	if (App->userInterface->GetCurrentEventSystem() == this) {
+		App->userInterface->SetCurrentEventSystem(0);
 	}
 }
 
@@ -122,7 +120,9 @@ void ComponentEventSystem::Load(JsonValue jComponent) {
 }
 
 void ComponentEventSystem::OnEnable() {
-	App->userInterface->SetCurrentEventSystem(GetID());
+	if (App->userInterface->GetCurrentEventSystem() == nullptr) {
+		App->userInterface->SetCurrentEventSystem(GetID());
+	}
 }
 
 void ComponentEventSystem::OnDisable() {

@@ -151,15 +151,24 @@ void ResourceMesh::FinishLoading() {
 }
 
 void ResourceMesh::Unload() {
-	if (!vao) return;
-
 	bones.clear();
 	vertices.clear();
 	indices.clear();
 
-	glDeleteVertexArrays(1, &vao);
-	glDeleteBuffers(1, &vbo);
-	glDeleteBuffers(1, &ebo);
+	if (vao) {
+		glDeleteVertexArrays(1, &vao);
+		vao = 0;
+	}
+
+	if (vbo) {
+		glDeleteBuffers(1, &vbo);
+		vbo = 0;
+	}
+	
+	if (ebo) {
+		glDeleteBuffers(1, &ebo);
+		ebo = 0;
+	}
 }
 
 std::vector<Triangle> ResourceMesh::ExtractTriangles(const float4x4& modelMatrix) const {

@@ -411,6 +411,10 @@ void Scene::LoadFromFile(const char* filePath) {
 	}
 	JsonValue jScene(document, document);
 
+	LoadFromJSON(jScene);
+}
+
+void Scene::LoadFromJSON(JsonValue jScene) {
 	// Load GameObjects
 	JsonValue jRoot = jScene[JSON_TAG_ROOT];
 	root = gameObjects.Obtain(0);

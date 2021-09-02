@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Resource.h"
-#include "Components/ComponentAudioSource.h"
+#include "Utils/UID.h"
 
 #include <vector>
 #include <sndfile.h>
@@ -14,12 +14,8 @@ public:
 	void FinishLoading() override;
 	void Unload() override;
 
-	void AddSource(ComponentAudioSource* component);
-	void RemoveSource(ComponentAudioSource* component);
-
 public:
 	unsigned int alBuffer = 0;
-	std::vector<ComponentAudioSource*> componentAudioSources;
 
 private:
 	bool validAudio = false;
