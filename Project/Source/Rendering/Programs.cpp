@@ -9,9 +9,9 @@ PointLightUniforms::PointLightUniforms(unsigned program, unsigned number) {
 	posLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].pos").c_str());
 	colorLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].color").c_str());
 	intensityLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].intensity").c_str());
-	kcLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].kc").c_str());
-	klLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].kl").c_str());
-	kqLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].kq").c_str());
+	radiusLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].radius").c_str());
+	useCustomFalloffLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].useCustomFalloff").c_str());
+	falloffExponentLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].falloffExponent").c_str());
 }
 
 SpotLightUniforms::SpotLightUniforms() {}
@@ -21,9 +21,9 @@ SpotLightUniforms::SpotLightUniforms(unsigned program, unsigned number) {
 	directionLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].direction").c_str());
 	colorLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].color").c_str());
 	intensityLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].intensity").c_str());
-	kcLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].kc").c_str());
-	klLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].kl").c_str());
-	kqLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].kq").c_str());
+	radiusLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].radius").c_str());
+	useCustomFalloffLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].useCustomFalloff").c_str());
+	falloffExponentLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].falloffExponent").c_str());
 	innerAngleLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].innerAngle").c_str());
 	outerAngleLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].outerAngle").c_str());
 }
@@ -70,7 +70,6 @@ ProgramSkybox::ProgramSkybox(unsigned program_)
 	cubemapLocation = glGetUniformLocation(program, "cubemap");
 }
 
-
 ProgramUnlit::ProgramUnlit(unsigned program_)
 	: Program(program_) {
 	modelLocation = glGetUniformLocation(program, "model");
@@ -87,9 +86,36 @@ ProgramUnlit::ProgramUnlit(unsigned program_)
 	emissiveMapLocation = glGetUniformLocation(program, "emissiveMap");
 	hasEmissiveMapLocation = glGetUniformLocation(program, "hasEmissiveMap");
 	emissiveIntensityLocation = glGetUniformLocation(program, "emissiveIntensity");
+	emissiveColorLocation = glGetUniformLocation(program, "emissiveColor");
 
 	tilingLocation = glGetUniformLocation(program, "tiling");
 	offsetLocation = glGetUniformLocation(program, "offset");
+}
+
+ProgramVolumetricLight::ProgramVolumetricLight(unsigned program_)
+	: Program(program_) {
+	modelLocation = glGetUniformLocation(program, "model");
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
+	paletteLocation = glGetUniformLocation(program, "palette");
+	hasBonesLocation = glGetUniformLocation(program, "hasBones");
+
+	viewPosLocation = glGetUniformLocation(program, "viewPos");
+
+	nearLocation = glGetUniformLocation(program, "near");
+	farLocation = glGetUniformLocation(program, "far");
+
+	depthsLocation = glGetUniformLocation(program, "depths");
+
+	lightColorLocation = glGetUniformLocation(program, "lightColor");
+	lightMapLocation = glGetUniformLocation(program, "lightMap");
+	hasLightMapLocation = glGetUniformLocation(program, "hasLightMap");
+	intensityLocation = glGetUniformLocation(program, "intensity");
+	attenuationExponentLocation = glGetUniformLocation(program, "attenuationExponent");
+
+	isSoftLocation = glGetUniformLocation(program, "isSoft");
+	softRangeLocation = glGetUniformLocation(program, "softRange");
 }
 
 ProgramStandard::ProgramStandard(unsigned program_)
@@ -118,6 +144,7 @@ ProgramStandard::ProgramStandard(unsigned program_)
 
 	emissiveMapLocation = glGetUniformLocation(program, "emissiveMap");
 	hasEmissiveMapLocation = glGetUniformLocation(program, "hasEmissiveMap");
+	emissiveColorLocation = glGetUniformLocation(program, "emissiveColor");
 	emissiveIntensityLocation = glGetUniformLocation(program, "emissiveIntensity");
 
 	ambientOcclusionMapLocation = glGetUniformLocation(program, "ambientOcclusionMap");
@@ -131,10 +158,12 @@ ProgramStandard::ProgramStandard(unsigned program_)
 	tilingLocation = glGetUniformLocation(program, "tiling");
 	offsetLocation = glGetUniformLocation(program, "offset");
 
+	hasIBLLocation = glGetUniformLocation(program, "hasIBL");
 	diffuseIBLLocation = glGetUniformLocation(program, "diffuseIBL");
 	prefilteredIBLLocation = glGetUniformLocation(program, "prefilteredIBL");
 	environmentBRDFLocation = glGetUniformLocation(program, "environmentBRDF");
 	prefilteredIBLNumLevelsLocation = glGetUniformLocation(program, "prefilteredIBLNumLevels");
+	strengthIBLLocation = glGetUniformLocation(program, "strengthIBL");
 
 	lightAmbientColorLocation = glGetUniformLocation(program, "light.ambient.color");
 
@@ -248,6 +277,24 @@ ProgramColorCorrection::ProgramColorCorrection(unsigned program_)
 	smallMipLevelLocation = glGetUniformLocation(program, "smallMipLevel");
 	mediumMipLevelLocation = glGetUniformLocation(program, "mediumMipLevel");
 	largeMipLevelLocation = glGetUniformLocation(program, "largeMipLevel");
+
+	hasChromaticAberrationLocation = glGetUniformLocation(program, "hasChromaticAberration");
+	chromaticAberrationStrengthLocation = glGetUniformLocation(program, "chromaticAberrationStrength");
+}
+
+ProgramHeightFog::ProgramHeightFog(unsigned program_)
+	: Program(program_) {
+	viewLocation = glGetUniformLocation(program, "view");
+	projLocation = glGetUniformLocation(program, "proj");
+
+	positionsLocation = glGetUniformLocation(program, "positions");
+
+	viewPosLocation = glGetUniformLocation(program, "viewPos");
+
+	densityLocation = glGetUniformLocation(program, "density");
+	falloffLocation = glGetUniformLocation(program, "falloff");
+	heightLocation = glGetUniformLocation(program, "height");
+	inscatteringColorLocation = glGetUniformLocation(program, "inscatteringColor");
 }
 
 ProgramDrawTexture::ProgramDrawTexture(unsigned program_)
@@ -304,11 +351,37 @@ ProgramBillboard::ProgramBillboard(unsigned program_)
 
 ProgramTrail::ProgramTrail(unsigned program_)
 	: Program(program_) {
-	//modelLocation = glGetUniformLocation(program, "model");
 	viewLocation = glGetUniformLocation(program, "view");
 	projLocation = glGetUniformLocation(program, "proj");
+	modelLocation = glGetUniformLocation(program, "model");
 
 	inputColorLocation = glGetUniformLocation(program, "inputColor");
 	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
 	diffuseMap = glGetUniformLocation(program, "diffuseMap");
+
+	xFlipLocation = glGetUniformLocation(program, "flipX");
+	yFlipLocation = glGetUniformLocation(program, "flipY");
+}
+
+ProgramStandardDissolve::ProgramStandardDissolve(unsigned program)
+	: ProgramStandardMetallic(program) {
+	scaleLocation = glGetUniformLocation(program, "dissolveScale");
+	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
+	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
+	edgeSizeLocation = glGetUniformLocation(program, "edgeSize");
+}
+
+ProgramUnlitDissolve::ProgramUnlitDissolve(unsigned program)
+	: ProgramUnlit(program) {
+	scaleLocation = glGetUniformLocation(program, "dissolveScale");
+	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
+	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
+	edgeSizeLocation = glGetUniformLocation(program, "edgeSize");
+}
+
+ProgramDepthPrepassDissolve::ProgramDepthPrepassDissolve(unsigned program)
+	: ProgramDepthPrepass(program) {
+	scaleLocation = glGetUniformLocation(program, "dissolveScale");
+	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
+	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
 }

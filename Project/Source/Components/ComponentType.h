@@ -49,6 +49,7 @@ enum class ComponentType {
 	CAPSULE_COLLIDER,
 	AGENT,
 	OBSTACLE,
+	FOG,
 	VIDEO
 };
 

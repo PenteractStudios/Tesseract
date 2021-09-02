@@ -44,6 +44,7 @@ Scene::Scene(unsigned numGameObjects) {
 	capsuleColliderComponents.Allocate(numGameObjects);
 	agentComponents.Allocate(numGameObjects);
 	obstacleComponents.Allocate(numGameObjects);
+	fogComponents.Allocate(numGameObjects);
 	videoComponents.Allocate(numGameObjects);
 }
 
@@ -103,7 +104,7 @@ void Scene::DestroyGameObject(GameObject* gameObject) {
 	if (gameObject->isInQuadtree) {
 		quadtree.Remove(gameObject);
 	}
-	
+
 	bool selected = App->editor->selectedGameObject == gameObject;
 	if (selected) App->editor->selectedGameObject = nullptr;
 
@@ -178,6 +179,8 @@ Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 		return agentComponents.Find(componentId);
 	case ComponentType::OBSTACLE:
 		return obstacleComponents.Find(componentId);
+	case ComponentType::FOG:
+		return fogComponents.Find(componentId);
 	case ComponentType::VIDEO:
 		return videoComponents.Find(componentId);
 	default:
@@ -249,6 +252,8 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 		return agentComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::OBSTACLE:
 		return obstacleComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::FOG:
+		return fogComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::VIDEO:
 		return videoComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	default:
@@ -318,9 +323,6 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		scriptComponents.Release(componentId);
 		break;
 	case ComponentType::PARTICLE:
-		for (ComponentParticleSystem& ps : particleComponents) {
-			ps.DestroyParticlesColliders();
-		}
 		particleComponents.Release(componentId);
 		break;
 	case ComponentType::TRAIL:
@@ -355,6 +357,9 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		break;
 	case ComponentType::OBSTACLE:
 		obstacleComponents.Release(componentId);
+		break;
+	case ComponentType::FOG:
+		fogComponents.Release(componentId);
 		break;
 	case ComponentType::VIDEO:
 		videoComponents.Release(componentId);

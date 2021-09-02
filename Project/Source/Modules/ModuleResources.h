@@ -4,7 +4,6 @@
 #include "Application.h"
 #include "Module.h"
 #include "ModuleEvents.h"
-#include "Utils/Pool.h"
 #include "Utils/UID.h"
 #include "Utils/AssetCache.h"
 #include "Resources/Resource.h"

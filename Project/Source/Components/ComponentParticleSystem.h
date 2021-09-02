@@ -7,20 +7,20 @@
 
 #include "Math/float2.h"
 #include "Math/float3.h"
-#include "Math/float4.h"
-#include "Math/float4x4.h"
 #include "Math/Quat.h"
 
 #include <vector>
 
 class ComponentTransform;
+class ComponentLight;
 class ParticleModule;
 class btRigidBody;
 class ParticleMotionState;
+class Trail;
 class ImGradient;
-class ImGradientMark;
+struct ImGradientMark;
 
-enum WorldLayers;
+enum class WorldLayers;
 
 enum class ParticleEmitterType {
 	CONE,
@@ -56,9 +56,19 @@ enum class RandomMode {
 	CONST_MULT
 };
 
+enum class SubEmitterType {
+	BIRTH,
+	COLLISION,
+	DEATH,
+};
+
 class ComponentParticleSystem : public Component {
 public:
 	struct Particle {
+		~Particle() {
+			collidedWith.clear();
+		}
+
 		float3 initialPosition = float3(0.0f, 0.0f, 0.0f);
 		float3 position = float3(0.0f, 0.0f, 0.0f);
 		Quat rotation = Quat(0.0f, 0.0f, 0.0f, 0.0f);
@@ -73,14 +83,30 @@ public:
 		float gravityTime = 0.0f;
 
 		float3 emitterPosition = float3::zero;
-		float3 emitterDirection = float3::zero;
+		Quat emitterRotation = Quat::identity;
 
 		// Collider
+		bool hasCollided = false;
+		std::vector<GameObject*> collidedWith;
+
 		ParticleMotionState* motionState = nullptr;
 		btRigidBody* rigidBody = nullptr;
 		ComponentParticleSystem* emitter = nullptr;
 		Collider col {this, typeid(Particle)};
 		float radius = 0;
+
+		// Trail
+		Trail* trail = nullptr;
+
+		// Light
+		GameObject* lightGO = nullptr;
+	};
+
+	struct SubEmitter {
+		UID gameObjectUID = 0;
+		ComponentParticleSystem* particleSystem = nullptr;
+		SubEmitterType subEmitterType = SubEmitterType::BIRTH;
+		float emitProbability = 1;
 	};
 
 	REGISTER_COMPONENT(ComponentParticleSystem, ComponentType::PARTICLE, false);
@@ -88,13 +114,14 @@ public:
 	~ComponentParticleSystem();
 
 	void Init() override;
+	void Start() override;
 	void Update() override;
 	void DrawGizmos() override;
 	void OnEditorUpdate() override;
 	void Load(JsonValue jComponent) override;
 	void Save(JsonValue jComponent) const override;
 
-	void CreateParticles();
+	void AllocateParticlesMemory();
 	void SpawnParticles();
 	void SpawnParticleUnit();
 
@@ -104,18 +131,23 @@ public:
 	void InitParticleSpeed(Particle* currentParticle);
 	void InitParticleLife(Particle* currentParticle);
 	void InitParticleAnimationTexture(Particle* currentParticle);
+	void InitParticleTrail(Particle* currentParticle);
 	void InitStartDelay();
 	void InitStartRate();
+	void InitSubEmitter(Particle* currentParticle, SubEmitterType subEmitterType);
+	void InitLight(Particle* currentParticle);
 
 	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
 	void UpdateRotation(Particle* currentParticle);
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
+	void UpdateTrail(Particle* currentParticle);
 	void UpdateGravityDirection(Particle* currentParticle);
+	void UpdateSubEmitters();
+	void UpdateLight(Particle* currentParticle);
 
 	TESSERACT_ENGINE_API void KillParticle(Particle* currentParticle);
 	void UndertakerParticle(bool force = false);
-	void DestroyParticlesColliders();
 	void Draw();
 	void ImGuiParticlesEffect();
 
@@ -143,11 +175,11 @@ public:
 	TESSERACT_ENGINE_API bool GetPlayOnAwake() const;
 
 	// Emision
-	TESSERACT_ENGINE_API bool GetIsAttachEmmitter() const;
+	TESSERACT_ENGINE_API bool GetIsAttachEmitter() const;
 	TESSERACT_ENGINE_API float2 GetParticlesPerSecond() const;
 
 	// Shape
-	TESSERACT_ENGINE_API ParticleEmitterType GetEmmitterType() const;
+	TESSERACT_ENGINE_API ParticleEmitterType GetEmitterType() const;
 	// -- Cone
 	TESSERACT_ENGINE_API float GetConeRadiusUp() const;
 	TESSERACT_ENGINE_API float GetConeRadiusDown() const;
@@ -182,6 +214,12 @@ public:
 
 	// Collision
 	TESSERACT_ENGINE_API bool GetCollision() const;
+
+	// Sub Emitter
+	TESSERACT_ENGINE_API bool GetIsSubEmitter() const;
+
+	// Lights
+	TESSERACT_ENGINE_API bool GetHasLights() const;
 
 	// ----- SETTERS -----
 
@@ -239,12 +277,19 @@ public:
 	// Collision
 	TESSERACT_ENGINE_API void SetCollision(bool _collision);
 
+	// Sub Emitter
+	TESSERACT_ENGINE_API void SetIsSubEmitter(bool _isEmitter);
+
+	// Lights
+	TESSERACT_ENGINE_API void SetHasLights(bool _hasLights);
+
 public:
-	WorldLayers layer;
+	WorldLayers layer = (WorldLayers)(1 << 20); // = WorldLayers::EVERYHTING
 	int layerIndex = 5;
 	float radius = .25f;
 
 private:
+	// Common
 	Pool<Particle> particles;
 	std::vector<Particle*> deadParticles;
 	bool isPlaying = false;
@@ -255,6 +300,8 @@ private:
 	float restDelayTime = 0.f;
 	float restParticlesPerSecond = 0.0f;
 	float particlesCurrentFrame = 0;
+	float lightsSpawned = 0;
+	std::vector<GameObject*> subEmittersGO;
 
 	// Gizmo
 	bool drawGizmo = true;
@@ -332,4 +379,45 @@ private:
 
 	// Collision
 	bool collision = false;
+
+	// Trail
+	bool hasTrail = false;
+	float trailRatio = 1;
+
+	RandomMode widthRM = RandomMode::CONST;
+	float2 width = {0.1f, 0.1f};
+	RandomMode trailQuadsRM = RandomMode::CONST;
+	float2 trailQuads = {50.0f, 50.0f};
+	RandomMode quadLifeRM = RandomMode::CONST;
+	float2 quadLife = {10.0f, 10.f};
+
+	UID textureTrailID = 0;
+	bool flipTrailTexture[2] = {false, false};
+	int nTextures = 1;
+
+	bool colorOverTrail = false;
+	ImGradient* gradientTrail = nullptr;
+	ImGradientMark* draggingGradientTrail = nullptr;
+	ImGradientMark* selectedGradientTrail = nullptr;
+
+	// Sub Emitter
+	bool isSubEmitter = false;
+	std::vector<SubEmitter*> subEmitters;
+
+	// Lights
+	bool hasLights = false;
+	UID lightGameObjectUID = 0;
+	ComponentLight* lightComponent;
+	float lightsRatio = 1;
+	float3 lightOffset = float3::zero;
+	RandomMode intensityMultiplierRM = RandomMode::CONST;
+	float2 intensityMultiplier = {1.0f, 1.0f};
+	RandomMode rangeMultiplierRM = RandomMode::CONST;
+	float2 rangeMultiplier = {1.0f, 1.0f};
+	bool useParticleColor = false;
+	bool useCustomColor = false;
+	ImGradient* gradientLight = nullptr;
+	ImGradientMark* draggingGradientLight = nullptr;
+	ImGradientMark* selectedGradientLight = nullptr;
+	int maxLights = 0;
 };

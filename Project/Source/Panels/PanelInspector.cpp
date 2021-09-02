@@ -12,19 +12,19 @@
 #include "Components/ComponentCamera.h"
 #include "Components/ComponentAnimation.h"
 #include "Components/ComponentMeshRenderer.h"
-#include "Components/ComponentBoundingBox2D.h"
 #include "Components/ComponentAgent.h"
 #include "Components/ComponentObstacle.h"
+#include "Components/UI/ComponentTransform2D.h"
+#include "Components/UI/ComponentBoundingBox2D.h"
 #include "Components/UI/ComponentEventSystem.h"
+#include "Components/UI/ComponentSelectable.h"
+#include "Components/UI/ComponentCanvasRenderer.h"
 #include "Components/UI/ComponentText.h"
 #include "Components/UI/ComponentImage.h"
 #include "Components/UI/ComponentCanvas.h"
 #include "Components/UI/ComponentButton.h"
 #include "Components/UI/ComponentSlider.h"
-#include "Components/UI/ComponentSelectable.h"
-#include "Components/UI/ComponentTransform2D.h"
-#include "Components/UI/ComponentCanvasRenderer.h"
-#include "Components/UI/ComponentVideo.h"
+#include "Components/UI/ComponentProgressBar.h"
 #include "Components/Physics/ComponentSphereCollider.h"
 #include "Components/Physics/ComponentBoxCollider.h"
 #include "Modules/ModuleScene.h"
@@ -133,9 +133,6 @@ void PanelInspector::Update() {
 				case ComponentType::EVENT_SYSTEM:
 					cName = "Event System";
 					break;
-				case ComponentType::IMAGE:
-					cName = "Image";
-					break;
 				case ComponentType::CANVAS:
 					cName = "Canvas";
 					break;
@@ -150,6 +147,12 @@ void PanelInspector::Update() {
 					break;
 				case ComponentType::TEXT:
 					cName = "Text";
+					break;
+				case ComponentType::IMAGE:
+					cName = "Image";
+					break;
+				case ComponentType::VIDEO:
+					cName = "Video";
 					break;
 				case ComponentType::SELECTABLE:
 					cName = "Selectable";
@@ -199,8 +202,8 @@ void PanelInspector::Update() {
 				case ComponentType::OBSTACLE:
 					cName = "Obstacle";
 					break;
-				case ComponentType::VIDEO:
-					cName = "Video";
+				case ComponentType::FOG:
+					cName = "Fog";
 					break;
 				default:
 					cName = "";
@@ -278,6 +281,14 @@ void PanelInspector::Update() {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
 				}
+				if (ImGui::MenuItem("Fog")) {
+					ComponentFog* fog = selected->CreateComponent<ComponentFog>();
+					if (fog != nullptr) {
+						fog->Init();
+					} else {
+						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+					}
+				}
 				if (ImGui::MenuItem("Script")) {
 					ComponentScript* script = selected->CreateComponent<ComponentScript>();
 					if (script != nullptr) {
@@ -294,7 +305,7 @@ void PanelInspector::Update() {
 						App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
 					}
 				}
-				
+
 				// TRANSFORM is always there, cannot add a new one.
 				AddParticleComponentsOptions(selected);
 				AddAudioComponentsOptions(selected);
@@ -455,6 +466,17 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 			}
 		}
 
+		if (ImGui::MenuItem("Slider")) {
+			ComponentSlider* component = selected->GetComponent<ComponentSlider>();
+			if (component == nullptr) {
+				typeToCreate = ComponentType::SLIDER;
+				newUIComponentCreated = true;
+				newUISelectableCreated = true;
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+			}
+		}
+
 		if (newUIComponentCreated) {
 			// Create new Transform2D
 			ComponentTransform2D* transform2d = selected->CreateComponent<ComponentTransform2D>();
@@ -537,24 +559,51 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 		case ComponentType::PROGRESS_BAR: {
 			ComponentProgressBar* component = selected->CreateComponent<ComponentProgressBar>();
 			component->Init();
-			if (!selected->GetComponent<ComponentImage>()) {
-				ComponentImage* image = selected->CreateComponent<ComponentImage>();
-				image->Init();
-			}
+
 			GameObject* background = App->scene->scene->CreateGameObject(selected, GenerateUID(), "Background");
 			ComponentTransform2D* transform2D = background->CreateComponent<ComponentTransform2D>();
 			ComponentCanvasRenderer* canvasRenderer = background->CreateComponent<ComponentCanvasRenderer>();
 			ComponentImage* image = background->CreateComponent<ComponentImage>();
-			background->GetComponent<ComponentTransform2D>()->SetSize(float2(700, 80));
+			background->Init();
+			transform2D->SetSize(float2(700, 80));
 
 			GameObject* fill = App->scene->scene->CreateGameObject(selected, GenerateUID(), "Fill");
-			ComponentTransform2D* transform2Dfill = fill->CreateComponent<ComponentTransform2D>();
-			ComponentCanvasRenderer* canvasRendererfill = fill->CreateComponent<ComponentCanvasRenderer>();
-			ComponentImage* imagefill = fill->CreateComponent<ComponentImage>();
-			background->GetComponent<ComponentTransform2D>()->SetSize(float2(700, 80));
-			fill->GetComponent<ComponentImage>()->SetColor(float4(255.0f, 0, 0, 255.0f));
+			ComponentTransform2D* transform2DFill = fill->CreateComponent<ComponentTransform2D>();
+			ComponentCanvasRenderer* canvasRendererFill = fill->CreateComponent<ComponentCanvasRenderer>();
+			ComponentImage* imageFill = fill->CreateComponent<ComponentImage>();
+			fill->Init();
+			imageFill->SetColor(float4(1.f, 0, 0, 1.f));
+			break;
 		}
+		case ComponentType::SLIDER: {
+			ComponentSlider* component = selected->CreateComponent<ComponentSlider>();
+			component->Init();
+			if (!selected->GetComponent<ComponentImage>()) {
+				ComponentImage* image = selected->CreateComponent<ComponentImage>();
+				image->Init();
+			}
+
+			GameObject* background = App->scene->scene->CreateGameObject(selected, GenerateUID(), "Background");
+			ComponentTransform2D* transform2D = background->CreateComponent<ComponentTransform2D>();
+			ComponentCanvasRenderer* canvasRenderer = background->CreateComponent<ComponentCanvasRenderer>();
+			ComponentImage* image = background->CreateComponent<ComponentImage>();
+			background->Init();
+			transform2D->SetSize(float2(700, 80));
+
+			GameObject* fill = App->scene->scene->CreateGameObject(selected, GenerateUID(), "Fill");
+			ComponentTransform2D* transform2DFill = fill->CreateComponent<ComponentTransform2D>();
+			ComponentCanvasRenderer* canvasRendererFill = fill->CreateComponent<ComponentCanvasRenderer>();
+			ComponentImage* imageFill = fill->CreateComponent<ComponentImage>();
+			fill->Init();
+
+			GameObject* handle = App->scene->scene->CreateGameObject(selected, GenerateUID(), "Handle");
+			ComponentTransform2D* transform2DHandle = fill->CreateComponent<ComponentTransform2D>();
+			ComponentCanvasRenderer* canvasRendererHandle = fill->CreateComponent<ComponentCanvasRenderer>();
+			ComponentImage* imageHandle = fill->CreateComponent<ComponentImage>();
+			fill->Init();
+			break;
 		}
+		} // ens switch
 
 		ImGui::EndMenu();
 	}

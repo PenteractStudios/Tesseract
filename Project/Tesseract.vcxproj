@@ -15,6 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Components\ComponentFog.h" />
     <ClInclude Include="Source\Modules\ModuleConfiguration.h" />
     <ClInclude Include="Source\Resources\ResourceVideo.h" />
     <ClInclude Include="Source\Components\UI\ComponentVideo.h" />
@@ -132,7 +133,7 @@
     <ClInclude Include="Libs\freetype\include\ft2build.h" />
     <ClInclude Include="Source\FileSystem\PrefabImporter.h" />
     <ClInclude Include="Source\Resources\ResourceFont.h" />
-    <ClInclude Include="Source\Components\ComponentBoundingBox2D.h" />
+    <ClInclude Include="Source\Components\UI\ComponentBoundingBox2D.h" />
     <ClInclude Include="Source\Scripting\Member.h" />
     <ClInclude Include="Source\StateMachineEnum.h" />
     <ClInclude Include="Source\UI\Interfaces\IMouseClickHandler.h" />
@@ -348,9 +349,11 @@
     <ClInclude Include="Source\Utils\PoolMap.h" />
     <ClInclude Include="Source\Utils\StringBlocksParser.h" />
     <ClInclude Include="Source\StateMachineManager.h" />
+    <ClInclude Include="Source\Utils\Trail.h" />
     <ClInclude Include="Source\FileSystem\VideoImporter.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Components\ComponentFog.cpp" />
     <ClCompile Include="Source\Modules\ModuleConfiguration.cpp" />
     <ClCompile Include="Source\Resources\ResourceVideo.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentVideo.cpp" />
@@ -429,7 +432,7 @@
     <ClCompile Include="Source\Resources\ResourceFont.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentSlider.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentToggle.cpp" />
-    <ClCompile Include="Source\Components\ComponentBoundingBox2D.cpp" />
+    <ClCompile Include="Source\Components\UI\ComponentBoundingBox2D.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentCanvas.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentCanvasRenderer.cpp" />
     <ClCompile Include="Source\FileSystem\FontImporter.cpp" />
@@ -588,6 +591,7 @@
     <ClCompile Include="Libs\MathGeoLib\Math\TransformOps.cpp" />
     <ClCompile Include="Libs\MathGeoLib\Time\Clock.cpp" />
     <ClCompile Include="Source\StateMachineManager.cpp" />
+    <ClCompile Include="Source\Utils\Trail.cpp" />
     <ClCompile Include="Source\FileSystem\VideoImporter.cpp" />
   </ItemGroup>
   <ItemGroup>

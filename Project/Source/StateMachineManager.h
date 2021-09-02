@@ -24,4 +24,5 @@ namespace StateMachineManager {
 
 	bool CalculateAnimation(GameObject* gameObject, const GameObject& owner, StateMachineEnum stateMachineSelected, ComponentAnimation& componentAnimation, float3& position, Quat& rotation, bool& resetSecondaryStatemachine, bool principalEqualSecondary = false);
 
+	void ResetKeyEvents(ComponentAnimation& componentAnimation, const State& state);
 }; // namespace StateMachineManager

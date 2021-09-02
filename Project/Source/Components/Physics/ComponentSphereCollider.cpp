@@ -2,7 +2,6 @@
 
 #include "Application.h"
 #include "GameObject.h"
-#include "Modules/ModulePhysics.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleTime.h"
 #include "Components/ComponentBoundingBox.h"
@@ -45,8 +44,7 @@ void ComponentSphereCollider::OnEditorUpdate() {
 		if (GetOwner().IsActive()) {
 			if (active) {
 				Enable();
-			}
-			else {
+			} else {
 				Disable();
 			}
 		}
@@ -56,13 +54,13 @@ void ComponentSphereCollider::OnEditorUpdate() {
 	ImGui::Checkbox("Draw Shape", &drawGizmo);
 
 	// World Layers combo box
-	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Enemy", "Bullet", "Bullet Enemy", "Skills", "Everything"};
+	const char* layerTypeItems[] = {"No Collision", "Event Triggers", "World Elements", "Player", "Enemy", "Bullet", "Bullet Enemy", "Skills", "Everything"};	// Increase if (n == X) when adding a new layer, a few lines down
 	const char* layerCurrent = layerTypeItems[layerIndex];
 	if (ImGui::BeginCombo("Layer", layerCurrent)) {
 		for (int n = 0; n < IM_ARRAYSIZE(layerTypeItems); ++n) {
 			if (ImGui::Selectable(layerTypeItems[n])) {
 				layerIndex = n;
-				if (n == 7) {
+				if (n == 8) {
 					layer = WorldLayers::EVERYTHING;
 				} else {
 					layer = WorldLayers(1 << layerIndex);
@@ -162,8 +160,22 @@ void ComponentSphereCollider::OnDisable() {
 	if (rigidBody && App->time->HasGameStarted()) App->physics->RemoveSphereRigidbody(this);
 }
 
-void ComponentSphereCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance,
-										  ComponentParticleSystem::Particle* p) {
+void ComponentSphereCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance, ComponentParticleSystem::Particle* p) {
+	if (p != nullptr) {
+		bool alreadyCollided = false;
+		for (GameObject* collided : p->collidedWith) {
+			if (collided == &GetOwner()) {
+				alreadyCollided = true;
+			}
+		}
+		if (!alreadyCollided) {
+			p->collidedWith.push_back(&GetOwner());
+			p->hasCollided = true;
+		} else {
+			p->hasCollided = false;
+		}
+	}
+
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
 		if (script != nullptr) {

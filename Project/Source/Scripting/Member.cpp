@@ -34,6 +34,8 @@ const char* GetMemberTypeName(MemberType type) {
 		return "PrefabResourceUID";
 	case MemberType::SCENE_RESOURCE_UID:
 		return "SceneResourceUID";
+	case MemberType::SEPARATOR:
+		return "Separator";
 	default:
 		LOG("Member of type %i hasn't been registered in GetMemberTypeName.", (unsigned) type);
 		assert(false); // ERROR: Member type not registered
@@ -68,6 +70,8 @@ MemberType GetMemberTypeFromName(const char* name) {
 		return MemberType::PREFAB_RESOURCE_UID;
 	} else if (strcmp(name, "SceneResourceUID") == 0) {
 		return MemberType::SCENE_RESOURCE_UID;
+	} else if (strcmp(name, "Separator") == 0) {
+		return MemberType::SEPARATOR;
 	} else {
 		LOG("No member of name %s exists.", (unsigned) name);
 		assert(false); // ERROR: Invalid name

@@ -15,6 +15,7 @@
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleAudio.h"
 #include "Modules/ModuleUserInterface.h"
+#include "Modules/ModuleNavigation.h"
 #include "Resources/ResourcePrefab.h"
 #include "Resources/ResourceMaterial.h"
 #include "Resources/ResourceClip.h"
@@ -167,19 +168,19 @@ void Time::ResumeGame() {
 const int JOYSTICK_MAX_VALUE = 32767;
 
 bool Input::GetMouseButtonDown(int button) {
-	return App->input->GetMouseButtons()[button] == KS_DOWN;
+	return App->input->GetMouseButtons()[button] == KeyState::KS_DOWN;
 }
 
 bool Input::GetMouseButtonUp(int button) {
-	return App->input->GetMouseButtons()[button] == KS_UP;
+	return App->input->GetMouseButtons()[button] == KeyState::KS_UP;
 }
 
 bool Input::GetMouseButtonRepeat(int button) {
-	return App->input->GetMouseButtons()[button] == KS_REPEAT;
+	return App->input->GetMouseButtons()[button] == KeyState::KS_REPEAT;
 }
 
 bool Input::GetMouseButton(int button) {
-	return App->input->GetMouseButtons()[button];
+	return App->input->GetMouseButtons()[button] == KeyState::KS_IDLE ? false : true;
 }
 
 const float2& Input::GetMouseMotion() {
@@ -216,40 +217,46 @@ const float2 Input::GetMousePositionNormalized() {
 }
 
 bool Input::GetKeyCodeDown(KEYCODE keycode) {
-	return App->input->GetKeyboard()[keycode] == KS_DOWN;
+	return App->input->GetKeyboard()[keycode] == KeyState::KS_DOWN;
 }
 
 bool Input::GetKeyCodeUp(KEYCODE keycode) {
-	return App->input->GetKeyboard()[keycode] == KS_UP;
+	return App->input->GetKeyboard()[keycode] == KeyState::KS_UP;
 }
 
 bool Input::GetKeyCodeRepeat(KEYCODE keycode) {
-	return App->input->GetKeyboard()[keycode] == KS_REPEAT;
+	return App->input->GetKeyboard()[keycode] == KeyState::KS_REPEAT;
 }
 
 bool Input::GetKeyCode(KEYCODE keycode) {
-	return App->input->GetKeyboard()[keycode];
+	return App->input->GetKeyboard()[keycode] == KeyState::KS_IDLE? false : true;
 }
 
 bool Input::GetControllerButtonDown(SDL_GameControllerButton button, int playerID) {
 	PlayerController* player = App->input->GetPlayerController(playerID);
-	return player ? player->gameControllerButtons[button] == KS_DOWN : false;
+	return player ? player->gameControllerButtons[button] == KeyState::KS_DOWN : false;
 }
 
 bool Input::GetControllerButtonUp(SDL_GameControllerButton button, int playerID) {
 	PlayerController* player = App->input->GetPlayerController(playerID);
-	return player ? player->gameControllerButtons[button] == KS_UP : false;
+	return player ? player->gameControllerButtons[button] == KeyState::KS_UP : false;
 }
 
 bool Input::GetControllerButton(SDL_GameControllerButton button, int playerID) {
 	PlayerController* player = App->input->GetPlayerController(playerID);
-	return player ? player->gameControllerButtons[button] == KS_REPEAT : false;
+	return player ? player->gameControllerButtons[button] == KeyState::KS_REPEAT : false;
 }
 
 float Input::GetControllerAxisValue(SDL_GameControllerAxis axis, int playerID) {
 	PlayerController* player = App->input->GetPlayerController(playerID);
 
 	return player ? player->gameControllerAxises[axis] / JOYSTICK_MAX_VALUE : 0.0f;
+}
+
+void Input::StartControllerVibration(int playerID, float strength, float duration) {
+	PlayerController* player = App->input->GetPlayerController(playerID);
+	if (player == nullptr) return;
+	player->StartSimpleControllerVibration(strength, duration);
 }
 
 bool Input::IsGamepadConnected(int index) {
@@ -460,6 +467,22 @@ void Screen::SetBloomThreshold(float value) {
 	App->renderer->bloomThreshold = value;
 }
 
+const bool Screen::IsChromaticAberrationActive() {
+	return App->renderer->chromaticAberrationActive;
+}
+
+void Screen::SetChromaticAberration(bool value) {
+	App->renderer->chromaticAberrationActive = value;
+}
+
+const float Screen::GetChromaticAberrationStrength() {
+	return App->renderer->chromaticAberrationStrength;
+}
+
+void Screen::SetChromaticAberrationStrength(float value) {
+	App->renderer->chromaticAberrationStrength = value;
+}
+
 // --------- Camera --------- //
 
 bool Camera::CheckObjectInsideFrustum(GameObject* gameObject) {
@@ -474,4 +497,10 @@ void Audio::StopAllSources() {
 
 ComponentEventSystem* UserInterface::GetCurrentEventSystem() {
 	return App->userInterface->GetCurrentEventSystem();
+}
+
+void Navigation::Raycast(float3 startPosition, float3 targetPosition, bool& hitResult, float3& hitPosition) {
+	if (App->navigation != nullptr) {
+		App->navigation->Raycast(startPosition, targetPosition, hitResult, hitPosition);
+	}
 }

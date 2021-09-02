@@ -37,6 +37,8 @@
 #define JSON_TAG_BLOOM_LARGE_WEIGHT "BloomLargeWeight"
 #define JSON_TAG_MSAA_ACTIVE "MSAAActive"
 #define JSON_TAG_MSAA_SAMPLE_TYPE "MSAASampleType"
+#define JSON_TAG_CHROMATIC_ABERRATION_ACTIVE "ChromaticAberrationActive"
+#define JSON_TAG_CHROMATIC_ABERRATION_STRENGTH "ChromaticAberrationStrength"
 
 bool ModuleConfiguration::Init() {
 	LoadConfiguration();
@@ -95,6 +97,9 @@ void ModuleConfiguration::LoadConfiguration() {
 	App->renderer->msaaActive = jConfig[JSON_TAG_MSAA_ACTIVE];
 	App->renderer->msaaSampleType = (MSAA_SAMPLES_TYPE)(int) jConfig[JSON_TAG_MSAA_SAMPLE_TYPE];
 
+	App->renderer->chromaticAberrationActive = jConfig[JSON_TAG_CHROMATIC_ABERRATION_ACTIVE];
+	App->renderer->chromaticAberrationStrength = jConfig[JSON_TAG_CHROMATIC_ABERRATION_STRENGTH];
+
 	unsigned timeMs = timer.Stop();
 	LOG("Configuration loaded in %ums.", timeMs);
 }
@@ -139,6 +144,9 @@ void ModuleConfiguration::SaveConfiguration() {
 
 	jConfig[JSON_TAG_MSAA_ACTIVE] = App->renderer->msaaActive;
 	jConfig[JSON_TAG_MSAA_SAMPLE_TYPE] = (int) App->renderer->msaaSampleType;
+
+	jConfig[JSON_TAG_CHROMATIC_ABERRATION_ACTIVE] = App->renderer->chromaticAberrationActive;
+	jConfig[JSON_TAG_CHROMATIC_ABERRATION_STRENGTH] = App->renderer->chromaticAberrationStrength;
 
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;

@@ -83,27 +83,27 @@ void PanelDebug::DisplayGamepadInfo(int index, PlayerController* playerControlle
 			playerController->GetAxisNormalized(SDL_CONTROLLER_AXIS_RIGHTY));
 
 		//BUTTON A
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_A] ? yellow : App->editor->textColor, "Button A");
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_A] != KeyState::KS_IDLE ? yellow : App->editor->textColor, "Button A");
 
 		ImGui::SameLine();
 		ImGui::TextColored(App->editor->textColor, "---");
 		ImGui::SameLine();
 
 		//BUTTON B
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_B] ? yellow : App->editor->textColor, "Button B");
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_B] != KeyState::KS_IDLE ? yellow : App->editor->textColor, "Button B");
 
 		//BUTTON X
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_X] ? yellow : App->editor->textColor, "Button X");
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_X] != KeyState::KS_IDLE ? yellow : App->editor->textColor, "Button X");
 
 		ImGui::SameLine();
 		ImGui::TextColored(App->editor->textColor, "---");
 		ImGui::SameLine();
 
 		//BUTTON Y
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_Y] ? yellow : App->editor->textColor, "Button Y");
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_Y] != KeyState::KS_IDLE ? yellow : App->editor->textColor, "Button Y");
 
 		//LEFT BUMPER
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_LEFTSHOULDER] ? yellow : App->editor->textColor, "Left Bumper");
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_LEFTSHOULDER] != KeyState::KS_IDLE ? yellow : App->editor->textColor, "Left Bumper");
 
 		ImGui::SameLine();
 		ImGui::TextColored(App->editor->textColor, "---");
@@ -111,19 +111,19 @@ void PanelDebug::DisplayGamepadInfo(int index, PlayerController* playerControlle
 
 		//RIGHT BUMPER
 
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_RIGHTSHOULDER] ? yellow : App->editor->textColor, "Right Bumper");
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_RIGHTSHOULDER] != KeyState::KS_IDLE ? yellow : App->editor->textColor, "Right Bumper");
 
 		ImGui::TextColored(App->editor->textColor, "DPad:");
 		ImGui::SameLine();
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_DPAD_LEFT] ? yellow : App->editor->textColor, ICON_FK_ARROW_LEFT);
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_DPAD_LEFT] != KeyState::KS_IDLE ? yellow : App->editor->textColor, ICON_FK_ARROW_LEFT);
 		ImGui::SameLine();
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_DPAD_RIGHT] ? yellow : App->editor->textColor, ICON_FK_ARROW_RIGHT);
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_DPAD_RIGHT] != KeyState::KS_IDLE ? yellow : App->editor->textColor, ICON_FK_ARROW_RIGHT);
 		ImGui::SameLine();
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_DPAD_UP] ? yellow : App->editor->textColor, ICON_FK_ARROW_UP);
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_DPAD_UP] != KeyState::KS_IDLE ? yellow : App->editor->textColor, ICON_FK_ARROW_UP);
 		ImGui::SameLine();
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_DPAD_DOWN] ? yellow : App->editor->textColor, ICON_FK_ARROW_DOWN);		
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_DPAD_DOWN] != KeyState::KS_IDLE ? yellow : App->editor->textColor, ICON_FK_ARROW_DOWN);		
 		ImGui::SameLine();
-		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_START] ? yellow : App->editor->textColor, ICON_FK_PLAY);
+		ImGui::TextColored(playerController->gameControllerButtons[SDL_CONTROLLER_BUTTON_START] != KeyState::KS_IDLE ? yellow : App->editor->textColor, ICON_FK_PLAY);
 
 
 	}

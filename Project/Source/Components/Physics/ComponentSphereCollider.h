@@ -3,6 +3,7 @@
 #include "Components/Component.h"
 #include "Modules/ModulePhysics.h"
 #include "Utils/MotionState.h"
+#include "Utils/Collider.h"
 
 #include "Math/float3.h"
 

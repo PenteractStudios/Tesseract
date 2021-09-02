@@ -5,7 +5,7 @@
 #include "GameObject.h"
 #include "FileSystem/PrefabImporter.h"
 #include "Components/ComponentTransform.h"
-#include "Components/ComponentBoundingBox2D.h"
+#include "Components/UI/ComponentBoundingBox2D.h"
 #include "Components/UI/ComponentTransform2D.h"
 #include "Components/UI/ComponentCanvas.h"
 #include "Components/UI/ComponentCanvasRenderer.h"
@@ -363,7 +363,7 @@ GameObject* PanelHierarchy::CreateUIProgressBar(GameObject* gameObject) {
 	background->name = "Background";
 
 	GameObject* fill = CreateUIImage(progressBar);
-	fill->GetComponent<ComponentImage>()->SetColor(float4(255.0f, 0, 0, 255.0f));
+	fill->GetComponent<ComponentImage>()->SetColor(float4(1.f, 0, 0, 1.f));
 	fill->name = "Fill";
 
 	return progressBar;

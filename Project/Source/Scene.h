@@ -19,8 +19,7 @@
 #include "Components/UI/ComponentText.h"
 #include "Components/UI/ComponentSlider.h"
 #include "Components/UI/ComponentProgressBar.h"
-#include "Components/UI/ComponentVideo.h"
-#include "Components/ComponentBoundingBox2D.h"
+#include "Components/UI/ComponentBoundingBox2D.h"
 #include "Components/ComponentSkybox.h"
 #include "Components/ComponentTrail.h"
 #include "Components/ComponentParticleSystem.h"
@@ -33,6 +32,7 @@
 #include "Components/Physics/ComponentCapsuleCollider.h"
 #include "Components/ComponentAgent.h"
 #include "Components/ComponentObstacle.h"
+#include "Components/ComponentFog.h"
 
 class GameObject;
 
@@ -104,6 +104,7 @@ public:
 	PoolMap<UID, ComponentCapsuleCollider> capsuleColliderComponents;
 	PoolMap<UID, ComponentAgent> agentComponents;
 	PoolMap<UID, ComponentObstacle> obstacleComponents;
+	PoolMap<UID, ComponentFog> fogComponents;
 	PoolMap<UID, ComponentVideo> videoComponents;
 
 	// ---- Quadtree Parameters ---- //
