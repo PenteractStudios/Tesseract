@@ -63,7 +63,6 @@ void ComponentVideo::Update() {
 				ReadVideoFrame();
 			}
 		}
-		LOG("elapsed vd time %f", elapsedVideoTime);
 		/* if (elapsedVideoTime > audioFrameTime) {
 			ReadAudioFrame(); //each packet contains complete frames, or multiple frames in the case of audio.
 		}*/
@@ -368,7 +367,7 @@ void ComponentVideo::ReadVideoFrame() {
 		av_packet_unref(avPacket);
 		break;
 	}
-	LOG("I'm playing frames!");
+
 	videoFrameTime = avFrame->pts * timeBase.num / (float) timeBase.den;
 	if (videoFrameTime == 0) elapsedVideoTime = 0;
 	if (!scalerCtx) {
