@@ -134,6 +134,8 @@ void ComponentAgent::AddAgentToCrowd() {
 }
 
 void ComponentAgent::RemoveAgentFromCrowd() {
+	shouldAddAgentToCrowd = false;
+
 	NavMesh* navMesh = GetOwner().scene->GetNavMesh();
 	if (navMesh == nullptr || !navMesh->IsGenerated() || agentId == -1) return;
 

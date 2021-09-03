@@ -130,6 +130,8 @@ void ComponentObstacle::AddObstacle() {
 }
 
 void ComponentObstacle::RemoveObstacle() {
+	shouldAddObstacle = false;
+
 	NavMesh* navMesh = GetOwner().scene->GetNavMesh();
 	if (navMesh == nullptr || !navMesh->IsGenerated()) return;
 

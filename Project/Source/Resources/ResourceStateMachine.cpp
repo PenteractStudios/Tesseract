@@ -105,14 +105,20 @@ void ResourceStateMachine::Load() {
 
 void ResourceStateMachine::FinishLoading() {
 	for (UID clipId : clipIds) {
-		App->resources->IncreaseReferenceCount(clipId);
+		if (clipId) App->resources->IncreaseReferenceCount(clipId);
 	}
 }
 
 void ResourceStateMachine::Unload() {
 	for (UID clipId : clipIds) {
-		App->resources->DecreaseReferenceCount(clipId);
+		if (clipId) App->resources->DecreaseReferenceCount(clipId);
 	}
+	clipIds.clear();
+
+	states.clear();
+	initialState = State();
+	bones.clear();
+	transitions.clear();
 }
 
 void ResourceStateMachine::SaveToFile(const char* filePath) {
@@ -202,6 +208,8 @@ void ResourceStateMachine::OnEditorUpdate() {
 }
 
 State ResourceStateMachine::AddState(const std::string& name, UID clipUID) {
+	if (clipUID == 0) return State();
+
 	State state(name, clipUID);
 	states.insert(std::make_pair(state.id, state));
 
@@ -211,8 +219,11 @@ State ResourceStateMachine::AddState(const std::string& name, UID clipUID) {
 }
 
 void ResourceStateMachine::AddClip(UID clipUid) {
+	if (clipUid == 0) return;
+
 	if (std::find(clipIds.begin(), clipIds.end(), clipUid) == clipIds.end()) {
 		clipIds.push_back(clipUid);
+		App->resources->IncreaseReferenceCount(clipUid);
 	}
 }
 
