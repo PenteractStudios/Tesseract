@@ -12,9 +12,10 @@ public:
 	REGISTER_COMPONENT(ComponentMeshRenderer, ComponentType::MESH_RENDERER, true);
 	~ComponentMeshRenderer();
 
-	void OnEditorUpdate() override;
 	void Init() override;
 	void Update() override;
+
+	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
 

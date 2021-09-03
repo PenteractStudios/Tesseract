@@ -15,6 +15,16 @@
 #define JSON_TAG_SKYBOX "Skybox"
 #define JSON_TAG_STRENGTH "Strength"
 
+ComponentSkyBox::~ComponentSkyBox() {
+	App->resources->DecreaseReferenceCount(shaderId);
+	App->resources->DecreaseReferenceCount(skyboxId);
+}
+
+void ComponentSkyBox::Init() {
+	App->resources->IncreaseReferenceCount(shaderId);
+	App->resources->IncreaseReferenceCount(skyboxId);
+}
+
 void ComponentSkyBox::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_SHADER] = shaderId;
 	jComponent[JSON_TAG_SKYBOX] = skyboxId;
@@ -23,15 +33,8 @@ void ComponentSkyBox::Save(JsonValue jComponent) const {
 
 void ComponentSkyBox::Load(JsonValue jComponent) {
 	shaderId = jComponent[JSON_TAG_SHADER];
-	if (shaderId != 0) App->resources->IncreaseReferenceCount(shaderId);
 	skyboxId = jComponent[JSON_TAG_SKYBOX];
-	if (skyboxId != 0) App->resources->IncreaseReferenceCount(skyboxId);
 	strength = jComponent[JSON_TAG_STRENGTH];
-}
-
-ComponentSkyBox::~ComponentSkyBox() {
-	if (shaderId != 0) App->resources->DecreaseReferenceCount(shaderId);
-	if (skyboxId != 0) App->resources->DecreaseReferenceCount(skyboxId);
 }
 
 void ComponentSkyBox::OnEditorUpdate() {

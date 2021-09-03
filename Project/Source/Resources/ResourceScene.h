@@ -17,6 +17,5 @@ public:
 	Scene* TransferScene();
 
 private:
-	rapidjson::Document* document = nullptr;
 	Scene* scene = nullptr;
 };

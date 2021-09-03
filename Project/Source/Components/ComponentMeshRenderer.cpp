@@ -100,10 +100,43 @@ static const char* spotLightStrings[SPOT_LIGHTS][SPOT_LIGHT_MEMBERS] = {
 	SPOT_LIGHT_STRING("7")};
 
 ComponentMeshRenderer::~ComponentMeshRenderer() {
-	if (meshId != 0) App->resources->DecreaseReferenceCount(meshId);
-	if (materialId != 0) {
-		DeleteRenderingModeMask();
-		App->resources->DecreaseReferenceCount(materialId);
+	App->resources->DecreaseReferenceCount(meshId);
+	App->resources->DecreaseReferenceCount(materialId);
+	DeleteRenderingModeMask();
+}
+
+void ComponentMeshRenderer::Init() {
+	App->resources->IncreaseReferenceCount(meshId);
+	App->resources->IncreaseReferenceCount(materialId);
+	AddRenderingModeMask();
+}
+
+void ComponentMeshRenderer::Update() {
+	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
+	if (!mesh) return;
+
+	if (palette.empty()) {
+		palette.resize(mesh->bones.size());
+		for (unsigned i = 0; i < mesh->bones.size(); ++i) {
+			palette[i] = float4x4::identity;
+		}
+	}
+
+	UpdateDissolveAnimation();
+
+	if (App->time->GetDeltaTime() <= 0) return;
+
+	const GameObject* parent = GetOwner().GetParent();
+	const GameObject* rootBone = parent->GetRootBone();
+	if (rootBone != nullptr) {
+		const GameObject* rootBoneParent = rootBone->GetParent();
+		const float4x4& invertedRootBoneTransform = rootBoneParent ? rootBoneParent->GetComponent<ComponentTransform>()->GetGlobalMatrix().Inverted() : float4x4::identity;
+
+		const float4x4& localMatrix = GetOwner().GetComponent<ComponentTransform>()->GetLocalMatrix();
+		for (unsigned i = 0; i < mesh->bones.size(); ++i) {
+			const GameObject* bone = goBones.at(mesh->bones[i].boneName);
+			palette[i] = localMatrix * invertedRootBoneTransform * bone->GetComponent<ComponentTransform>()->GetGlobalMatrix() * mesh->bones[i].transform;
+		}
 	}
 }
 
@@ -197,47 +230,6 @@ void ComponentMeshRenderer::OnEditorUpdate() {
 	}
 }
 
-void ComponentMeshRenderer::Init() {
-	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
-	if (!mesh) return;
-
-	palette.resize(mesh->bones.size());
-	for (unsigned i = 0; i < mesh->bones.size(); ++i) {
-		palette[i] = float4x4::identity;
-	}
-}
-
-void ComponentMeshRenderer::Update() {
-	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
-	if (!mesh) return;
-
-	if (palette.empty()) {
-		palette.resize(mesh->bones.size());
-		for (unsigned i = 0; i < mesh->bones.size(); ++i) {
-			palette[i] = float4x4::identity;
-		}
-	}
-
-	UpdateDissolveAnimation();
-
-	if (App->time->GetDeltaTime() <= 0) return;
-
-	const GameObject* parent = GetOwner().GetParent();
-	const GameObject* rootBone = parent->GetRootBone();
-	if (rootBone != nullptr) {
-		const GameObject* rootBoneParent = rootBone->GetParent();
-		const float4x4& invertedRootBoneTransform = rootBoneParent ? rootBoneParent->GetComponent<ComponentTransform>()->GetGlobalMatrix().Inverted() : float4x4::identity;
-
-		const float4x4& localMatrix = GetOwner().GetComponent<ComponentTransform>()->GetLocalMatrix();
-		for (unsigned i = 0; i < mesh->bones.size(); ++i) {
-			const GameObject* bone = goBones.at(mesh->bones[i].boneName);
-			palette[i] = localMatrix * invertedRootBoneTransform * bone->GetComponent<ComponentTransform>()->GetGlobalMatrix() * mesh->bones[i].transform;
-		}
-	}
-
-	
-}
-
 void ComponentMeshRenderer::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_MESH_ID] = meshId;
 	jComponent[JSON_TAG_MATERIAL_ID] = materialId;
@@ -245,13 +237,7 @@ void ComponentMeshRenderer::Save(JsonValue jComponent) const {
 
 void ComponentMeshRenderer::Load(JsonValue jComponent) {
 	meshId = jComponent[JSON_TAG_MESH_ID];
-	if (meshId != 0) App->resources->IncreaseReferenceCount(meshId);
 	materialId = jComponent[JSON_TAG_MATERIAL_ID];
-	if (materialId != 0) {
-		AddRenderingModeMask();
-		App->resources->IncreaseReferenceCount(materialId);
-	}
-
 	ResetDissolveValues();
 }
 
@@ -480,7 +466,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform1f(unlitProgram->thresholdLocation, GetDissolveValue());
 		glUniform2fv(unlitProgram->offsetLocation, 1, material->dissolveOffset.ptr());
 		glUniform1f(unlitProgram->edgeSizeLocation, material->dissolveEdgeSize);
-		
+
 		glBindVertexArray(mesh->vao);
 		glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
 		glBindVertexArray(0);
@@ -835,27 +821,25 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 
 	ProgramDepthPrepass* depthPrepassProgram = App->programs->depthPrepass;
 	bool mustUseDissolveProgram = material->shaderType == MaterialShader::UNLIT_DISSOLVE || material->shaderType == MaterialShader::STANDARD_DISSOLVE;
-	
+
 	if (mustUseDissolveProgram) {
 		ProgramDepthPrepassDissolve* depthPrepassProgramDissolve = App->programs->depthPrepassDissolve;
 		if (depthPrepassProgramDissolve == nullptr) return;
 
 		depthPrepassProgram = depthPrepassProgramDissolve;
-		
+
 		glUseProgram(depthPrepassProgram->program);
 
 		glUniform1f(depthPrepassProgramDissolve->scaleLocation, material->dissolveScale);
 		glUniform1f(depthPrepassProgramDissolve->thresholdLocation, GetDissolveValue());
 		glUniform2fv(depthPrepassProgramDissolve->offsetLocation, 1, material->dissolveOffset.ptr());
-	}
-	else {
+	} else {
 		if (depthPrepassProgram == nullptr) return;
 		glUseProgram(depthPrepassProgram->program);
 	}
 
 	float4x4 viewMatrix = App->camera->GetViewMatrix();
 	float4x4 projMatrix = App->camera->GetProjectionMatrix();
-
 
 	// Common uniform settings
 	glUniformMatrix4fv(depthPrepassProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
@@ -937,6 +921,8 @@ void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix) const {
 }
 
 void ComponentMeshRenderer::AddRenderingModeMask() {
+	if (materialId == 0) return;
+
 	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
 	if (material && material->renderingMode == RenderingMode::TRANSPARENT) {
 		GameObject& gameObject = GetOwner();
@@ -945,6 +931,8 @@ void ComponentMeshRenderer::AddRenderingModeMask() {
 }
 
 void ComponentMeshRenderer::DeleteRenderingModeMask() {
+	if (materialId == 0) return;
+
 	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
 	if (material && material->renderingMode == RenderingMode::TRANSPARENT) {
 		GameObject& gameObject = GetOwner();

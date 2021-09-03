@@ -38,11 +38,6 @@ void ResourcePrefab::Load() {
 	// Create auxiliary scene
 	prefabScene = new Scene(100);
 
-	unsigned timeMs = timer.Stop();
-	LOG("Prefab loaded in %ums.", timeMs);
-}
-
-void ResourcePrefab::FinishLoading() {
 	JsonValue jPrefab(*document, *document);
 
 	// Load GameObjects
@@ -54,6 +49,13 @@ void ResourcePrefab::FinishLoading() {
 	gameObject->id = gameObjectId;
 	gameObject->SetParent(nullptr);
 	gameObject->LoadPrefab(jRoot);
+
+	unsigned timeMs = timer.Stop();
+	LOG("Prefab loaded in %ums.", timeMs);
+}
+
+void ResourcePrefab::FinishLoading() {
+	prefabScene->root->Init();
 }
 
 void ResourcePrefab::Unload() {
@@ -73,6 +75,7 @@ UID ResourcePrefab::BuildPrefab(GameObject* parent) {
 	gameObject->id = gameObjectId;
 	gameObject->SetParent(parent);
 	gameObject->LoadPrefab(jRoot);
+	gameObject->Init();
 
 	if (App->time->HasGameStarted()) {
 		gameObject->Start();

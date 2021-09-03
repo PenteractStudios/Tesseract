@@ -1,5 +1,6 @@
 #include "ResourceScene.h"
 
+#include "GameObject.h"
 #include "Application.h"
 #include "Scene.h"
 #include "Utils/Logging.h"
@@ -24,28 +25,28 @@ void ResourceScene::Load() {
 	if (buffer.Size() == 0) return;
 
 	// Parse document from file
-	document = new rapidjson::Document();
-	document->Parse<rapidjson::kParseNanAndInfFlag>(buffer.Data());
-	if (document->HasParseError()) {
-		LOG("Error parsing JSON: %s (offset: %u)", rapidjson::GetParseError_En(document->GetParseError()), document->GetErrorOffset());
+	rapidjson::Document document;
+	document.ParseInsitu<rapidjson::kParseNanAndInfFlag>(buffer.Data());
+	if (document.HasParseError()) {
+		LOG("Error parsing JSON: %s (offset: %u)", rapidjson::GetParseError_En(document.GetParseError()), document.GetErrorOffset());
 		return;
 	}
-	
+
 	// Create scene
+	JsonValue jScene = JsonValue(document, document);
 	scene = new Scene(10000);
+	scene->LoadFromJSON(jScene);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Scene loaded in %ums.", timeMs);
 }
 
 void ResourceScene::FinishLoading() {
-	scene->LoadFromJSON(JsonValue(*document, *document));
-	RELEASE(document);
+	scene->root->Init();
 }
 
 void ResourceScene::Unload() {
 	RELEASE(scene);
-	RELEASE(document);
 }
 
 Scene* ResourceScene::GetScene() {

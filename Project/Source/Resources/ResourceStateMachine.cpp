@@ -105,16 +105,16 @@ void ResourceStateMachine::Load() {
 
 void ResourceStateMachine::FinishLoading() {
 	for (UID clipId : clipIds) {
-		if (clipId) App->resources->IncreaseReferenceCount(clipId);
+		App->resources->IncreaseReferenceCount(clipId);
 	}
 }
 
 void ResourceStateMachine::Unload() {
 	for (UID clipId : clipIds) {
-		if (clipId) App->resources->DecreaseReferenceCount(clipId);
+		App->resources->DecreaseReferenceCount(clipId);
 	}
-	clipIds.clear();
 
+	clipIds.clear();
 	states.clear();
 	initialState = State();
 	bones.clear();

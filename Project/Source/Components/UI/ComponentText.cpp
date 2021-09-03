@@ -28,19 +28,29 @@
 #define JSON_TAG_COLOR "Color"
 
 ComponentText::~ComponentText() {
-	if (fontID) App->resources->DecreaseReferenceCount(fontID);
+	App->resources->DecreaseReferenceCount(fontID);
+
+	glDeleteVertexArrays(1, &vao);
+	glDeleteBuffers(1, &vbo);
 }
 
 void ComponentText::Init() {
+	App->resources->IncreaseReferenceCount(fontID);
+
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
+
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+
 	Invalidate();
 }
 
@@ -106,12 +116,8 @@ void ComponentText::Save(JsonValue jComponent) const {
 
 void ComponentText::Load(JsonValue jComponent) {
 	fontID = jComponent[JSON_TAG_TEXT_FONTID];
-	if (fontID) App->resources->IncreaseReferenceCount(fontID);
-
 	fontSize = jComponent[JSON_TAG_TEXT_FONTSIZE];
-
 	lineHeight = jComponent[JSON_TAG_TEXT_LINEHEIGHT];
-
 	textAlignment = jComponent[JSON_TAG_TEXT_ALIGNMENT];
 
 	text = jComponent[JSON_TAG_TEXT_VALUE];

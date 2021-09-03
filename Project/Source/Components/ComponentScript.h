@@ -15,6 +15,7 @@ public:
 	REGISTER_COMPONENT(ComponentScript, ComponentType::SCRIPT, true);
 	~ComponentScript();
 
+	void Init() override;
 	void Start() override;
 
 	void OnEditorUpdate() override;

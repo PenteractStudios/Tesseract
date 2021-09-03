@@ -101,9 +101,11 @@ bool ModuleResources::Init() {
 }
 
 bool ModuleResources::Start() {
-	stopLoadingThread = false;
+	stopImportThread = false;
+	importThread = std::thread(&ModuleResources::UpdateImportAsync, this);
 
-	loadingThread = std::thread(&ModuleResources::UpdateAsync, this);
+	stopLoadingThread = false;
+	loadingThread = std::thread(&ModuleResources::UpdateLoadingAsync, this);
 
 	return true;
 }
@@ -137,6 +139,12 @@ bool ModuleResources::CleanUp() {
 	stopLoadingThread = true;
 	loadingThread.join();
 
+	stopImportThread = true;
+	importThread.join();
+
+	for (auto& entry : resources) {
+		entry.second->Unload();
+	}
 	resources.clear();
 
 	return true;
@@ -314,11 +322,11 @@ void ModuleResources::IncreaseReferenceCount(UID id) {
 	if (referenceCounts.find(id) != referenceCounts.end()) {
 		referenceCounts[id] = referenceCounts[id] + 1;
 	} else {
+		referenceCounts[id] = 1;
 		Resource* resource = GetResourceInternal<Resource>(id);
 		if (resource != nullptr) {
 			LoadResource(resource);
 		}
-		referenceCounts[id] = 1;
 	}
 }
 
@@ -328,12 +336,12 @@ void ModuleResources::DecreaseReferenceCount(UID id) {
 	if (referenceCounts.find(id) != referenceCounts.end()) {
 		referenceCounts[id] = referenceCounts[id] - 1;
 		if (referenceCounts[id] <= 0) {
+			referenceCounts.erase(id);
 			Resource* resource = GetResourceInternal<Resource>(id);
 			if (resource != nullptr) {
-				resource->Unload();
 				resource->SetLoaded(false);
+				resource->Unload();
 			}
-			referenceCounts.erase(id);
 		}
 	}
 }
@@ -342,13 +350,12 @@ void ModuleResources::ResetReferenceCount(UID id) {
 	if (id == 0) return;
 
 	if (referenceCounts.find(id) != referenceCounts.end()) {
-		referenceCounts[id] = 0;
+		referenceCounts.erase(id);
 		Resource* resource = GetResourceInternal<Resource>(id);
 		if (resource != nullptr) {
-			resource->Unload();
 			resource->SetLoaded(false);
+			resource->Unload();
 		}
-		referenceCounts.erase(id);
 	}
 }
 
@@ -372,8 +379,8 @@ std::string ModuleResources::GenerateResourcePath(UID id) const {
 	return metaFolder + "/" + strId;
 }
 
-void ModuleResources::UpdateAsync() {
-	while (!stopLoadingThread) {
+void ModuleResources::UpdateImportAsync() {
+	while (!stopImportThread) {
 #if !GAME
 		// Check if any asset file has been modified / deleted
 		std::vector<UID> resourcesToRemove;
@@ -458,6 +465,12 @@ void ModuleResources::UpdateAsync() {
 		App->events->AddEvent(updateAssetCacheEv);
 #endif
 
+		std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BETWEEN_RESOURCE_UPDATES_MS));
+	}
+}
+
+void ModuleResources::UpdateLoadingAsync() {
+	while (!stopLoadingThread) {
 		// Load resources
 		while (!resourcesToLoad.empty()) {
 			Resource* resource = nullptr;
@@ -467,8 +480,6 @@ void ModuleResources::UpdateAsync() {
 			resource->Load();
 			resourcesToFinishLoading.push(resource);
 		}
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BETWEEN_RESOURCE_UPDATES_MS));
 	}
 }
 

@@ -23,6 +23,7 @@ public:
 	REGISTER_COMPONENT(ComponentAnimation, ComponentType::ANIMATION, false); // Refer to ComponentType for the Constructor
 	~ComponentAnimation();
 
+	void Init() override;
 	void Update() override;
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;

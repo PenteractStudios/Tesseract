@@ -29,8 +29,13 @@
 #define JSON_TAG_CLIP "Clip"
 
 ComponentAnimation::~ComponentAnimation() {
-	if (stateMachineResourceUIDPrincipal != 0) App->resources->DecreaseReferenceCount(stateMachineResourceUIDPrincipal);
-	if (stateMachineResourceUIDSecondary != 0) App->resources->DecreaseReferenceCount(stateMachineResourceUIDSecondary);
+	App->resources->DecreaseReferenceCount(stateMachineResourceUIDPrincipal);
+	App->resources->DecreaseReferenceCount(stateMachineResourceUIDSecondary);
+}
+
+void ComponentAnimation::Init() {
+	App->resources->IncreaseReferenceCount(stateMachineResourceUIDPrincipal);
+	App->resources->IncreaseReferenceCount(stateMachineResourceUIDSecondary);
 }
 
 void ComponentAnimation::Update() {
@@ -103,9 +108,7 @@ void ComponentAnimation::Save(JsonValue jComponent) const {
 
 void ComponentAnimation::Load(JsonValue jComponent) {
 	stateMachineResourceUIDPrincipal = jComponent[JSON_TAG_STATE_MACHINE_PRINCIPAL_ID];
-	if (stateMachineResourceUIDPrincipal != 0) App->resources->IncreaseReferenceCount(stateMachineResourceUIDPrincipal);
 	stateMachineResourceUIDSecondary = jComponent[JSON_TAG_STATE_MACHINE_SECONDARY_ID];
-	if (stateMachineResourceUIDSecondary != 0) App->resources->IncreaseReferenceCount(stateMachineResourceUIDSecondary);
 }
 
 void ComponentAnimation::SendTrigger(const std::string& trigger) {

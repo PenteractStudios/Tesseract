@@ -25,14 +25,25 @@
 #define JSON_TAG_VALUE "Value"
 
 ComponentScript::~ComponentScript() {
+	App->resources->DecreaseReferenceCount(scriptId);
+
 	for (auto& entry : changedValues) {
 		if (entry.second.first == MemberType::PREFAB_RESOURCE_UID) {
 			UID prefabId = std::get<UID>(entry.second.second);
-			if (prefabId) App->resources->DecreaseReferenceCount(prefabId);
+			App->resources->DecreaseReferenceCount(prefabId);
 		}
 	}
+}
 
-	if (scriptId != 0) App->resources->DecreaseReferenceCount(scriptId);
+void ComponentScript::Init() {
+	App->resources->IncreaseReferenceCount(scriptId);
+
+	for (auto& entry : changedValues) {
+		if (entry.second.first == MemberType::PREFAB_RESOURCE_UID) {
+			UID prefabId = std::get<UID>(entry.second.second);
+			App->resources->IncreaseReferenceCount(prefabId);
+		}
+	}
 }
 
 void ComponentScript::Start() {
@@ -289,7 +300,6 @@ void ComponentScript::Save(JsonValue jComponent) const {
 
 void ComponentScript::Load(JsonValue jComponent) {
 	scriptId = jComponent[JSON_TAG_SCRIPT];
-	if (scriptId != 0) App->resources->IncreaseReferenceCount(scriptId);
 	changedValues.clear();
 	JsonValue jValues = jComponent[JSON_TAG_VALUES];
 	for (unsigned i = 0; i < jValues.Size(); ++i) {
@@ -335,12 +345,9 @@ void ComponentScript::Load(JsonValue jComponent) {
 		case MemberType::GAME_OBJECT_UID:
 			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, static_cast<UID>(jValue[JSON_TAG_VALUE]));
 			break;
-		case MemberType::PREFAB_RESOURCE_UID: {
-			UID prefabId = jValue[JSON_TAG_VALUE];
-			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, prefabId);
-			if (prefabId) App->resources->IncreaseReferenceCount(prefabId);
+		case MemberType::PREFAB_RESOURCE_UID:
+			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, static_cast<UID>(jValue[JSON_TAG_VALUE]));
 			break;
-		}
 		case MemberType::SCENE_RESOURCE_UID:
 			changedValues[valueName] = std::pair<MemberType, MEMBER_VARIANT>(type, static_cast<UID>(jValue[JSON_TAG_VALUE]));
 			break;

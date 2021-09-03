@@ -33,12 +33,12 @@
 ComponentAudioSource::~ComponentAudioSource() {
 	Stop();
 
-	if (audioClipId) {
-		App->resources->DecreaseReferenceCount(audioClipId);
-	}
+	App->resources->DecreaseReferenceCount(audioClipId);
 }
 
 void ComponentAudioSource::Init() {
+	App->resources->IncreaseReferenceCount(audioClipId);
+
 	isStarted = false;
 	UpdateAudioSource();
 }
@@ -300,10 +300,6 @@ void ComponentAudioSource::Load(JsonValue jComponent) {
 	rollOffFactor = jComponent[JSON_TAG_ROLLOFF_FACTOR];
 	referenceDistance = jComponent[JSON_TAG_REFERENCE_DISTANCE];
 	maxDistance = jComponent[JSON_TAG_MAX_DISTANCE];
-
-	if (audioClipId) {
-		App->resources->IncreaseReferenceCount(audioClipId);
-	}
 }
 
 // --- GETTERS ---

@@ -25,12 +25,16 @@
 #define JSON_TAG_FILL_VALUE "FillValue"
 
 ComponentImage::~ComponentImage() {
-	if (textureID != 0) {
-		App->resources->DecreaseReferenceCount(textureID);
-	}
+	App->resources->DecreaseReferenceCount(textureID);
+
+	glDeleteBuffers(1, &fillQuadVBO);
 }
 
 void ComponentImage::Init() {
+	App->resources->IncreaseReferenceCount(textureID);
+
+	glGenBuffers(1, &fillQuadVBO);
+
 	RebuildFillQuadVBO();
 }
 
@@ -95,10 +99,6 @@ void ComponentImage::Save(JsonValue jComponent) const {
 
 void ComponentImage::Load(JsonValue jComponent) {
 	textureID = jComponent[JSON_TAG_TEXTURE_TEXTUREID];
-
-	if (textureID != 0) {
-		App->resources->IncreaseReferenceCount(textureID);
-	}
 
 	JsonValue jColor = jComponent[JSON_TAG_COLOR];
 	color.Set(jColor[0], jColor[1], jColor[2], jColor[3]);
@@ -277,7 +277,7 @@ void ComponentImage::RebuildFillQuadVBO() {
 		0.0f,
 		1.0f * fillVal //  v5 texcoord
 	};
-	glGenBuffers(1, &fillQuadVBO);
+
 	glBindBuffer(GL_ARRAY_BUFFER, fillQuadVBO); // set vbo active
 	glBufferData(GL_ARRAY_BUFFER, sizeof(buffer_data), buffer_data, GL_STATIC_DRAW);
 }

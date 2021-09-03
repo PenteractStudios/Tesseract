@@ -47,7 +47,8 @@ public:
 	template<typename T> void SendCreateResourceEvent(std::unique_ptr<T>& resource);
 
 private:
-	void UpdateAsync();
+	void UpdateImportAsync();
+	void UpdateLoadingAsync();
 	void ImportLibrary();
 
 	void CheckForNewAssetsRecursive(const char* path, AssetCache& assetCache, AssetFolder& parentFolder);
@@ -78,9 +79,12 @@ private:
 
 	unsigned numResourcesLoading = 0;
 
+	std::thread importThread;
+	bool stopImportThread = false;
+	std::unordered_map<UID, std::string> concurrentResourceUIDToAssetFilePath;
+
 	std::thread loadingThread;
 	bool stopLoadingThread = false;
-	std::unordered_map<UID, std::string> concurrentResourceUIDToAssetFilePath;
 	concurrency::concurrent_queue<Resource*> resourcesToLoad;
 	concurrency::concurrent_queue<Resource*> resourcesToFinishLoading;
 };

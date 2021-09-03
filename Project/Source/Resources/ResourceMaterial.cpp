@@ -124,30 +124,19 @@ void ResourceMaterial::FinishLoading() {
 }
 
 void ResourceMaterial::Unload() {
-	if (diffuseMapId) {
-		App->resources->DecreaseReferenceCount(diffuseMapId);
-		diffuseMapId = 0;
-	}
-	if (specularMapId) {
-		App->resources->DecreaseReferenceCount(specularMapId);
-		specularMapId = 0;
-	}
-	if (metallicMapId) {
-		App->resources->DecreaseReferenceCount(metallicMapId);
-		metallicMapId = 0;
-	}
-	if (normalMapId) {
-		App->resources->DecreaseReferenceCount(normalMapId);
-		normalMapId = 0;
-	}
-	if (emissiveMapId) {
-		App->resources->DecreaseReferenceCount(emissiveMapId);
-		emissiveMapId = 0;
-	}
-	if (ambientOcclusionMapId) {
-		App->resources->DecreaseReferenceCount(ambientOcclusionMapId);
-		ambientOcclusionMapId = 0;
-	}
+	App->resources->DecreaseReferenceCount(diffuseMapId);
+	App->resources->DecreaseReferenceCount(specularMapId);
+	App->resources->DecreaseReferenceCount(metallicMapId);
+	App->resources->DecreaseReferenceCount(normalMapId);
+	App->resources->DecreaseReferenceCount(emissiveMapId);
+	App->resources->DecreaseReferenceCount(ambientOcclusionMapId);
+
+	diffuseMapId = 0;
+	specularMapId = 0;
+	metallicMapId = 0;
+	normalMapId = 0;
+	emissiveMapId = 0;
+	ambientOcclusionMapId = 0;
 }
 
 void ResourceMaterial::SaveToFile(const char* filePath) {

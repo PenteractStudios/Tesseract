@@ -203,15 +203,14 @@ ComponentParticleSystem::~ComponentParticleSystem() {
 	subEmitters.clear();
 	subEmittersGO.clear();
 
-	if (textureID != 0) {
-		App->resources->DecreaseReferenceCount(textureID);
-	}
-	if (textureTrailID != 0) {
-		App->resources->DecreaseReferenceCount(textureTrailID);
-	}
+	App->resources->DecreaseReferenceCount(textureID);
+	App->resources->DecreaseReferenceCount(textureTrailID);
 }
 
 void ComponentParticleSystem::Init() {
+	App->resources->IncreaseReferenceCount(textureID);
+	App->resources->IncreaseReferenceCount(textureTrailID);
+
 	if (!gradient) gradient = new ImGradient();
 	if (!gradientTrail) gradientTrail = new ImGradient();
 	if (!gradientLight) gradientLight = new ImGradient();
@@ -802,9 +801,6 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 
 	// Render
 	textureID = jComponent[JSON_TAG_TEXTURE_TEXTURE_ID];
-	if (textureID != 0) {
-		App->resources->IncreaseReferenceCount(textureID);
-	}
 	billboardType = (BillboardType)(int) jComponent[JSON_TAG_BILLBOARD_TYPE];
 	renderMode = (ParticleRenderMode)(int) jComponent[JSON_TAG_PARTICLE_RENDER_MODE];
 	renderAlignment = (ParticleRenderAlignment)(int) jComponent[JSON_TAG_PARTICLE_RENDER_ALIGNMENT];
@@ -838,9 +834,6 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	quadLife[1] = jQuadLife[1];
 
 	textureTrailID = jComponent[JSON_TAG_TRAIL_TEXTURE_TEXTUREID];
-	if (textureTrailID != 0) {
-		App->resources->IncreaseReferenceCount(textureTrailID);
-	}
 	JsonValue jTrailFlip = jComponent[JSON_TAG_TRAIL_FLIP_TEXTURE];
 	flipTrailTexture[0] = jTrailFlip[0];
 	flipTrailTexture[1] = jTrailFlip[1];
