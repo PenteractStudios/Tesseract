@@ -12,16 +12,15 @@
 #include "Utils/Leaks.h"
 
 void ResourceScene::Load() {
-	const char* filePath = GetResourceFilePath().c_str();
-
 	// Timer to measure loading a scene
 	MSTimer timer;
 	timer.Start();
+
+	const char* filePath = GetResourceFilePath().c_str();
 	LOG("Loading scene from path: \"%s\".", filePath);
 	
 	// Read from file
 	Buffer<char> buffer = App->files->Load(filePath);
-
 	if (buffer.Size() == 0) return;
 
 	// Parse document from file
