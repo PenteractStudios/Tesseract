@@ -105,17 +105,15 @@ void ComponentVideo::OnEditorUpdate() {
 		if (videoResource != nullptr) {
 			ImGui::Separator();
 			if (ImGui::Button("Play")) {
-				isPlaying = true;
+				Play();
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Pause")) {
-				isPlaying = false;
+				Pause();
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Stop")) {
-				forceStop = true;
-				RestartVideo();
-				CleanFrameBuffer();
+				Stop();
 			}
 			ImGui::Checkbox("Play on Awake", &playOnAwake);
 			ImGui::Checkbox("Loop", &loopVideo);
@@ -185,6 +183,21 @@ void ComponentVideo::Draw(ComponentTransform2D* transform) {
 	glDisable(GL_BLEND);
 }
 
+void ComponentVideo::Play() {
+	isPlaying = true;
+	hasVideoFinished = false;
+}
+
+void ComponentVideo::Pause() {
+	isPlaying = false;
+}
+
+void ComponentVideo::Stop() {
+	forceStop = true;
+	RestartVideo();
+	CleanFrameBuffer();
+}
+
 void ComponentVideo::SetVideoFrameSize(int width, int height) {
 	GameObject* owner = &this->GetOwner();
 	if (owner) {
@@ -193,6 +206,10 @@ void ComponentVideo::SetVideoFrameSize(int width, int height) {
 			transform->SetSize(float2((float) width, (float) height));
 		}
 	}
+}
+
+bool ComponentVideo::HasVideoFinished() {
+	return false;
 }
 
 void ComponentVideo::OpenVideoReader(const char* filename) {
@@ -415,6 +432,7 @@ void ComponentVideo::RestartVideo() {
 	if (av_seek_frame(formatCtx, videoStreamIndex, -1, 0) >= 0) {
 		if (!loopVideo || forceStop) {
 			isPlaying = false;
+			hasVideoFinished = true;
 		}
 		forceStop = false;
 	}

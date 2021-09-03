@@ -25,10 +25,13 @@ public:
 	void OnEditorUpdate() override;					// Show component info in inspector
 	void Save(JsonValue jComponent) const override; // Serializes object
 	void Load(JsonValue jComponent) override;		// Deserializes object
+	void Draw(ComponentTransform2D* transform);		// Draws the current frame of the loaded video as a texture in a framebuffer, and plays the corresponding audio data through an internal audio source component.
 
-	void Draw(ComponentTransform2D* transform); // Draws the current frame of the loaded video as a texture in a framebuffer, and plays the corresponding audio data through an internal audio source component.
-
-	void SetVideoFrameSize(int width, int height); // Sets the ComponentTransform2D size to adjust to the video sizes.
+	TESSERACT_ENGINE_API void Play();
+	TESSERACT_ENGINE_API void Pause();
+	TESSERACT_ENGINE_API void Stop();
+	TESSERACT_ENGINE_API void SetVideoFrameSize(int width, int height); // Sets the ComponentTransform2D size to adjust to the video sizes.
+	TESSERACT_ENGINE_API bool HasVideoFinished();						// Returns true if the video has finished and it is not playing anymore.
 
 private:
 	void OpenVideoReader(const char* filename); // Opens a video file and allocates the neccessary memory to work with it.
@@ -40,15 +43,18 @@ private:
 	void CleanFrameBuffer();					// Sets the framebuffer to all zeros (black screen).
 
 private:
-	UID videoID = 0;							 // Video file resource ID
-	ComponentAudioSource* audioPlayer = nullptr; // This AudioSource will store the audio stream from the video and send it to openAL
+	UID videoID = 0;							 // Video file resource ID.
+	ComponentAudioSource* audioPlayer = nullptr; // This AudioSource will store the audio stream from the video and send it to openAL.
+
+	// Video Controllers
+	bool isPlaying = false;		   // Control for the video Play/pause/Stop functionalities.
+	bool forceStop = false;		   // Signal that indicates that the video decoding process must be stopped. Set to true on Stop().
+	bool hasVideoFinished = false; // Signal that the video has finished and it is not playing anymore.
 
 	// Video Options
-	bool isPlaying = false;	   // Control for the video Play/pause/Stop functionalities.
-	bool forceStop = false;	   // Signal that indicates that the video decoding must be stopped. Set to true on Stop().
-	bool playOnAwake = false;  // Signal to automatically Play() the video when starting the scene.
-	bool loopVideo = false;	   // If true, the video will restart after decoding the last frame.
-	bool verticalFlip = false; // Invert the Y axis of the rendered image.
+	bool playOnAwake = false;	   // Signal to automatically Play() the video when starting the scene.
+	bool loopVideo = false;		   // If true, the video will restart after decoding the last frame.
+	bool verticalFlip = false;	   // Invert the Y axis of the rendered image.
 
 	// LibAV internal state
 	AVFormatContext* formatCtx = nullptr;	 // Video file context.
