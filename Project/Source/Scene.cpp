@@ -6,6 +6,7 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModulePhysics.h"
 #include "Modules/ModuleTime.h"
+#include "Modules/ModuleWindow.h"
 #include "Resources/ResourceMesh.h"
 #include "Utils/Logging.h"
 
@@ -473,6 +474,7 @@ void Scene::SetCursor(UID cursor) {
 	if (cursor != 0) {
 		App->resources->IncreaseReferenceCount(cursor);
 	}
+	App->window->SetCursor(true);
 }
 
 UID Scene::GetCursor() {

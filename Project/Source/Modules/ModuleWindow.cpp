@@ -58,7 +58,6 @@ bool ModuleWindow::Init() {
 
 #if GAME
 	SetWindowMode(WindowMode::FULLSCREEN);
-	SetCursor(true);
 #else
 	SetWindowMode(WindowMode::WINDOWED);
 #endif
