@@ -225,7 +225,7 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 void ResourceMaterial::UpdateMask() {
 	for (GameObject& gameObject : App->scene->GetCurrentScene()->gameObjects) {
 		ComponentMeshRenderer* meshRenderer = gameObject.GetComponent<ComponentMeshRenderer>();
-		if (meshRenderer && meshRenderer->materialId == GetId()) {
+		if (meshRenderer && meshRenderer->GetMaterialID() == GetId()) {
 			if (renderingMode == RenderingMode::TRANSPARENT) {
 				gameObject.AddMask(MaskType::TRANSPARENT);
 			} else {

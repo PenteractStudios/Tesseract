@@ -481,7 +481,7 @@ void Scene::SaveToFile(const char* filePath) {
 int Scene::GetTotalTriangles() const {
 	int triangles = 0;
 	for (const ComponentMeshRenderer& meshComponent : meshRendererComponents) {
-		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshComponent.meshId);
+		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshComponent.GetMeshID());
 		if (mesh != nullptr) {
 			triangles += mesh->indices.size() / 3;
 		}
@@ -493,7 +493,7 @@ std::vector<float> Scene::GetVertices() {
 	std::vector<float> result;
 
 	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
-		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
+		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.GetMeshID());
 		ComponentTransform* transform = meshRenderer.GetOwner().GetComponent<ComponentTransform>();
 		if (mesh != nullptr && transform->GetOwner().IsStatic()) {
 			for (const ResourceMesh::Vertex& vertex : mesh->vertices) {
@@ -513,7 +513,7 @@ std::vector<int> Scene::GetTriangles() {
 	std::vector<int> maxVertMesh;
 	maxVertMesh.push_back(0);
 	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
-		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
+		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.GetMeshID());
 		if (mesh != nullptr && meshRenderer.GetOwner().IsStatic()) {
 			triangles += mesh->indices.size() / 3;
 			maxVertMesh.push_back(mesh->vertices.size());
@@ -526,7 +526,7 @@ std::vector<int> Scene::GetTriangles() {
 	int i = 0;
 
 	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
-		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
+		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.GetMeshID());
 		if (mesh != nullptr && meshRenderer.GetOwner().IsStatic()) {
 			vertOverload += maxVertMesh[i];
 			for (unsigned j = 0; j < mesh->indices.size(); j += 3) {
@@ -546,7 +546,7 @@ std::vector<float> Scene::GetNormals() {
 	std::vector<float> result;
 
 	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
-		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
+		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.GetMeshID());
 		ComponentTransform* transform = meshRenderer.GetOwner().GetComponent<ComponentTransform>();
 		if (mesh != nullptr && transform->GetOwner().IsStatic()) {
 			for (const ResourceMesh::Vertex& vertex : mesh->vertices) {

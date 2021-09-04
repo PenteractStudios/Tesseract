@@ -3,6 +3,7 @@
 #include "Application.h"
 #include "GameObject.h"
 #include "Modules/ModuleEditor.h"
+#include "Modules/ModuleScene.h"
 #include "Modules/ModuleTime.h"
 #include "Components/ComponentBoundingBox.h"
 
@@ -180,17 +181,14 @@ void ComponentBoxCollider::Load(JsonValue jComponent) {
 
 	JsonValue jFreeze = jComponent[JSON_TAG_FREEZE_ROTATION];
 	freezeRotation = jFreeze;
-
-	if (rigidBody) App->physics->RemoveBoxRigidbody(this);
-	rigidBody = nullptr;
 }
 
 void ComponentBoxCollider::OnEnable() {
-	if (!rigidBody && App->time->HasGameStarted()) App->physics->CreateBoxRigidbody(this);
+	if (!rigidBody && App->time->HasGameStarted() && App->scene->GetCurrentScene() == GetOwner().scene) App->physics->CreateBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::OnDisable() {
-	if (rigidBody && App->time->HasGameStarted()) App->physics->RemoveBoxRigidbody(this);
+	if (rigidBody && App->time->HasGameStarted() && App->scene->GetCurrentScene() == GetOwner().scene) App->physics->RemoveBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance, ComponentParticleSystem::Particle* p) {

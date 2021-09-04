@@ -13,6 +13,7 @@ public:
 	~ComponentMeshRenderer();
 
 	void Init() override;
+	void Start() override;
 	void Update() override;
 
 	void OnEditorUpdate() override;
@@ -26,22 +27,31 @@ public:
 	void AddRenderingModeMask();
 	void DeleteRenderingModeMask();
 
+	TESSERACT_ENGINE_API UID GetMeshID() const;
+	TESSERACT_ENGINE_API UID GetMaterialID() const;
+	void SetMeshID(UID meshId);
+	void SetMaterialID(UID materialId);
+	TESSERACT_ENGINE_API void ChangeMesh(UID meshId);
+	TESSERACT_ENGINE_API void ChangeMaterial(UID materialId);
+
+	void SetGameObjectBones(const std::unordered_map<std::string, GameObject*>& goBones);
+
 	// Dissolve
 	TESSERACT_ENGINE_API void PlayDissolveAnimation(bool reverse = false);
 	TESSERACT_ENGINE_API void ResetDissolveValues();
-
-public:
-	UID meshId = 0;
-	UID materialId = 0;
-	std::vector<float4x4> palette;
-
-	std::unordered_map<std::string, GameObject*> goBones;
 
 private:
 	void UpdateDissolveAnimation();
 	float GetDissolveValue() const;
 
 private:
+	UID meshId = 0;
+	UID materialId = 0;
+
+	std::vector<float4x4> palette;
+
+	std::unordered_map<std::string, GameObject*> goBones;
+
 	bool bbActive = false;
 
 	// Dissolve variables

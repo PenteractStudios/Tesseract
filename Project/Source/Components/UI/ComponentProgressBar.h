@@ -19,6 +19,7 @@ class ComponentProgressBar : public Component {
 public:
 	REGISTER_COMPONENT(ComponentProgressBar, ComponentType::PROGRESS_BAR, false);
 
+	void Init() override;
 	void Update() override;							// Update
 	void OnEditorUpdate() override;					// Input for parameters
 	void Save(JsonValue jComponent) const override; // Serializes object

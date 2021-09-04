@@ -44,6 +44,10 @@ void ComponentScript::Init() {
 			App->resources->IncreaseReferenceCount(prefabId);
 		}
 	}
+
+	if (App->project->IsGameLoaded()) {
+		CreateScriptInstance();
+	}
 }
 
 void ComponentScript::Start() {
@@ -356,9 +360,6 @@ void ComponentScript::Load(JsonValue jComponent) {
 			assert(false); // ERROR: Member type not registered
 			break;
 		}
-	}
-	if (App->project->IsGameLoaded()) {
-		CreateScriptInstance();
 	}
 }
 

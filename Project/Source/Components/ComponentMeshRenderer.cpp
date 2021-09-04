@@ -111,6 +111,10 @@ void ComponentMeshRenderer::Init() {
 	AddRenderingModeMask();
 }
 
+void ComponentMeshRenderer::Start() {
+	ResetDissolveValues();
+}
+
 void ComponentMeshRenderer::Update() {
 	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
 	if (!mesh) return;
@@ -238,7 +242,6 @@ void ComponentMeshRenderer::Save(JsonValue jComponent) const {
 void ComponentMeshRenderer::Load(JsonValue jComponent) {
 	meshId = jComponent[JSON_TAG_MESH_ID];
 	materialId = jComponent[JSON_TAG_MATERIAL_ID];
-	ResetDissolveValues();
 }
 
 void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
@@ -938,6 +941,38 @@ void ComponentMeshRenderer::DeleteRenderingModeMask() {
 		GameObject& gameObject = GetOwner();
 		gameObject.DeleteMask(MaskType::TRANSPARENT);
 	}
+}
+
+UID ComponentMeshRenderer::GetMeshID() const {
+	return meshId;
+}
+
+UID ComponentMeshRenderer::GetMaterialID() const {
+	return materialId;
+}
+
+void ComponentMeshRenderer::SetMeshID(UID meshId_) {
+	meshId = meshId_;
+}
+
+void ComponentMeshRenderer::SetMaterialID(UID materialId_) {
+	materialId = materialId_;
+}
+
+void ComponentMeshRenderer::ChangeMesh(UID meshId_) {
+	App->resources->DecreaseReferenceCount(meshId);
+	meshId = meshId_;
+	App->resources->IncreaseReferenceCount(meshId);
+}
+
+void ComponentMeshRenderer::ChangeMaterial(UID materialId_) {
+	App->resources->DecreaseReferenceCount(materialId);
+	materialId = materialId_;
+	App->resources->IncreaseReferenceCount(materialId);
+}
+
+void ComponentMeshRenderer::SetGameObjectBones(const std::unordered_map<std::string, GameObject*>& goBones_) {
+	goBones = goBones_;
 }
 
 void ComponentMeshRenderer::PlayDissolveAnimation(bool reverse) {

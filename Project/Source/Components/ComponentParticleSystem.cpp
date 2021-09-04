@@ -888,8 +888,6 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	}
 
 	maxLights = jComponent[JSON_TAG_LIGHTS_MAX_LIGHTS];
-
-	AllocateParticlesMemory();
 }
 
 void ComponentParticleSystem::Save(JsonValue jComponent) const {
