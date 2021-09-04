@@ -1952,7 +1952,7 @@ void ComponentParticleSystem::Draw() {
 			glUniform1i(program->diffuseMapLocation, 1);
 			glUniform1i(program->hasDiffuseLocation, hasDiffuseMap);
 			glUniform4fv(program->inputColorLocation, 1, color.ptr());
-			glUniform3fv(program->intensity, 1, textureIntensity.ptr());
+			glUniform3fv(program->intensityLocation, 1, textureIntensity.ptr());
 
 			glUniform1f(program->currentFrameLocation, currentParticle.currentFrame);
 

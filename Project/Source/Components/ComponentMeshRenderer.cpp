@@ -406,8 +406,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glBindTexture(GL_TEXTURE_2D, glTextureEmissive);
 
 		// Tilling settings
-		UpdateTextureTiling(unlitProgram->tilingLocation, material->tiling);
-		UpdateTextureOffset(unlitProgram->offsetLocation, material->offset);
+		glUniform2fv(unlitProgram->tilingLocation, 1, ChooseTextureTiling(material->tiling).ptr());
+		glUniform2fv(unlitProgram->offsetLocation, 1, ChooseTextureOffset(material->offset).ptr());
 
 		glBindVertexArray(mesh->vao);
 		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
@@ -462,8 +462,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glBindTexture(GL_TEXTURE_2D, glTextureEmissive);
 
 		// Tilling settings
-		UpdateTextureTiling(unlitProgram->tilingLocation, material->tiling);
-		UpdateTextureOffset(unlitProgram->offsetLocation, material->offset);
+		glUniform2fv(unlitProgram->tilingLocation, 1, ChooseTextureTiling(material->tiling).ptr());
+		glUniform2fv(unlitProgram->offsetLocation, 1, ChooseTextureOffset(material->offset).ptr());
 
 		// Dissolve settings
 		glUniform1f(unlitProgram->scaleLocation, material->dissolveScale);
@@ -744,8 +744,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform1f(standardProgram->ssaoDirectLightingStrengthLocation, App->renderer->ssaoDirectLightingStrength);
 
 	// Tilling settings
-	UpdateTextureTiling(standardProgram->tilingLocation, material->tiling);
-	UpdateTextureOffset(standardProgram->offsetLocation, material->offset);
+	glUniform2fv(standardProgram->tilingLocation, 1, ChooseTextureTiling(material->tiling).ptr());
+	glUniform2fv(standardProgram->offsetLocation, 1, ChooseTextureOffset(material->offset).ptr());
 
 	// IBL textures
 	auto skyboxIt = scene->skyboxComponents.begin();
@@ -871,8 +871,8 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	glBindTexture(GL_TEXTURE_2D, glTextureDiffuse);
 
 	// Tiling settings
-	UpdateTextureTiling(depthPrepassProgram->tilingLocation, material->tiling);
-	UpdateTextureOffset(depthPrepassProgram->offsetLocation, material->offset);
+	glUniform2fv(depthPrepassProgram->tilingLocation, 1, ChooseTextureTiling(material->tiling).ptr());
+	glUniform2fv(depthPrepassProgram->offsetLocation, 1, ChooseTextureOffset(material->offset).ptr());
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
@@ -989,18 +989,18 @@ float ComponentMeshRenderer::GetDissolveValue() const {
 	return dissolveAnimationReverse ? 1.0f - dissolveThreshold : dissolveThreshold;
 }
 
-void ComponentMeshRenderer::UpdateTextureTiling(int programId, float2 value) const {
+float2 ComponentMeshRenderer::ChooseTextureTiling(float2 value) const {
 	if (textureTiling[0] - 1.0f > 0.0001f || textureTiling[1] - 1.0f > 0.0001f) {
-		glUniform2fv(programId, 1, textureTiling.ptr());
+		return textureTiling;
 	} else {
-		glUniform2fv(programId, 1, value.ptr());
+		return value;
 	}
 }
 
-void ComponentMeshRenderer::UpdateTextureOffset(int programId, float2 value) const {
+float2 ComponentMeshRenderer::ChooseTextureOffset(float2 value) const {
 	if (textureOffset[0] > 0.0001f || textureOffset[1] > 0.0001f) {
-		glUniform2fv(programId, 1, textureOffset.ptr());
+		return textureOffset;
 	} else {
-		glUniform2fv(programId, 1, value.ptr());
+		return value;
 	}
 }

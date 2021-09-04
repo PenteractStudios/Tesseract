@@ -46,8 +46,8 @@ private:
 	void UpdateDissolveAnimation();
 	float GetDissolveValue() const;
 
-	void UpdateTextureTiling(int programId, float2 value) const;
-	void UpdateTextureOffset(int programId, float2 value) const;
+	float2 ChooseTextureTiling(float2 value) const;
+	float2 ChooseTextureOffset(float2 value) const;
 
 private:
 	bool bbActive = false;

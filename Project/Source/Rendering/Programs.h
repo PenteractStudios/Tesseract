@@ -357,7 +357,7 @@ struct ProgramBillboard : Program {
 	int inputColorLocation = -1;
 	int hasDiffuseLocation = -1;
 	int diffuseMapLocation = -1;
-	int intensity = -1;
+	int intensityLocation = -1;
 
 	int currentFrameLocation = -1;
 	int xTilesLocation = -1;

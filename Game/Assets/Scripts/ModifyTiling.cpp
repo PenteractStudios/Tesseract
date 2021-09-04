@@ -18,7 +18,7 @@ void ModifyTiling::Start() {
 
 void ModifyTiling::Update() {
     if (isTiling) {
-        tiling += float2(0.5f, 0.5f)* Time::GetDeltaTime();
+        tiling += float2(1.0f, 1.0f)* Time::GetDeltaTime();
         GetOwner().GetComponent<ComponentMeshRenderer>()->SetTextureTiling(tiling);
     }
 
