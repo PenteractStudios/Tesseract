@@ -119,6 +119,10 @@ UpdateStatus ModuleScene::Update() {
 	// Update GameObjects
 	scene->root->Update();
 
+	if (loadingSceneId) {
+		ChangeScene(loadingSceneId);
+	}
+
 	return UpdateStatus::CONTINUE;
 }
 
@@ -181,20 +185,32 @@ void ModuleScene::CreateEmptyScene() {
 }
 
 void ModuleScene::PreloadScene(UID newSceneId) {
-	App->resources->IncreaseReferenceCount(newSceneId);
+	if (loadingSceneId != newSceneId) {
+		App->resources->DecreaseReferenceCount(loadingSceneId);
+		loadingSceneId = newSceneId;
+		App->resources->IncreaseReferenceCount(newSceneId);
+	}
 }
 
 void ModuleScene::ChangeScene(UID newSceneId) {
 	if (newSceneId == 0) return;
 
-	App->resources->IncreaseReferenceCount(newSceneId);
+	shouldChangeScene = true;
+
+	if (loadingSceneId != newSceneId) {
+		App->resources->DecreaseReferenceCount(loadingSceneId);
+		loadingSceneId = newSceneId;
+		App->resources->IncreaseReferenceCount(newSceneId);
+	}
 
 	ResourceScene* sceneResource = App->resources->GetResource<ResourceScene>(newSceneId);
 	if (sceneResource == nullptr) return;
 
 	RELEASE(scene);
 	scene = sceneResource->TransferScene();
-	App->resources->ResetReferenceCount(newSceneId);
+	App->resources->DecreaseReferenceCount(newSceneId);
+	loadingSceneId = 0;
+	shouldChangeScene = false;
 
 	ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(scene->gameCameraId);
 	App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);

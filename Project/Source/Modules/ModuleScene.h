@@ -32,4 +32,7 @@ public:
 
 private:
 	Scene* scene = nullptr;
+
+	bool shouldChangeScene = false;
+	UID loadingSceneId = 0;
 };
