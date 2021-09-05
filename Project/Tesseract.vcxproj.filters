@@ -266,7 +266,6 @@
     <ClCompile Include="Source\GameObject.cpp" />
     <ClCompile Include="Source\AnimationController.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentToggle.cpp" />
-    <ClCompile Include="Source\Components\ComponentBoundingBox2D.cpp" />
     <ClCompile Include="Source\FileSystem\FontImporter.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentImage.cpp" />
     <ClCompile Include="Source\Modules\ModuleUserInterface.cpp" />
@@ -740,6 +739,7 @@
     <ClInclude Include="Source\Modules\ModuleConfiguration.h" />
     <ClInclude Include="Source\Utils\Trail.h" />
     <ClInclude Include="Source\Components\ComponentFog.h" />
+    <ClInclude Include="Libs\imgui\curve_editor.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />

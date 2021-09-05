@@ -511,3 +511,14 @@ void ModuleEditor::OnMouseReleased() {
 	TesseractEvent mouseEvent = TesseractEvent(TesseractEventType::MOUSE_RELEASED);
 	App->events->AddEvent(mouseEvent);
 }
+
+void ModuleEditor::HelpMarker(const char* text) {
+	ImGui::TextDisabled("(?)");
+	if (ImGui::IsItemHovered()) {
+		ImGui::BeginTooltip();
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+		ImGui::TextUnformatted(text);
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+	}
+}
