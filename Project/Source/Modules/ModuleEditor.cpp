@@ -307,13 +307,13 @@ UpdateStatus ModuleEditor::Update() {
 
 	if (FileDialog::OpenDialog("Load scene", selectedPath)) {
 		std::string filePath = FileDialog::GetRelativePath(selectedPath.c_str());
-		App->scene->GetCurrentScene()->LoadFromFile(filePath.c_str());
+		App->scene->LoadScene(filePath.c_str());
 		ImGui::CloseCurrentPopup();
 	}
 
 	if (FileDialog::OpenDialog("Save scene", selectedPath)) {
 		std::string filePath = FileDialog::GetRelativePath(selectedPath.c_str());
-		App->scene->GetCurrentScene()->SaveToFile(filePath.c_str());
+		App->scene->SaveScene(filePath.c_str());
 		ImGui::CloseCurrentPopup();
 	}
 

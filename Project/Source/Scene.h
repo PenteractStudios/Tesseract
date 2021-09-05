@@ -48,6 +48,9 @@ public:
 
 	void StartScene();
 
+	void Load(JsonValue jScene);
+	void Save(JsonValue jScene) const;
+
 	// --- GameObject Management --- //
 	GameObject* CreateGameObject(GameObject* parent, UID id, const char* name);
 	void DestroyGameObject(GameObject* gameObject);
@@ -60,10 +63,6 @@ public:
 	Component* GetComponentByTypeAndId(ComponentType type, UID componentId);
 	Component* CreateComponentByTypeAndId(GameObject* owner, ComponentType type, UID componentId);
 	void RemoveComponentByTypeAndId(ComponentType type, UID componentId);
-
-	void LoadFromFile(const char* filePath);
-	void LoadFromJSON(JsonValue jScene);
-	void SaveToFile(const char* filePath);
 
 	int GetTotalTriangles() const;
 	std::vector<float> GetVertices(); // Gets all the vertices from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static

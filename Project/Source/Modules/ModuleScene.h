@@ -22,6 +22,9 @@ public:
 	void ChangeScene(UID sceneId);
 	Scene* GetCurrentScene();
 
+	void LoadScene(const char* filePath);
+	void SaveScene(const char* filePath);
+
 	void DestroyGameObjectDeferred(GameObject* gameObject); //Event dependant destruction, Gameobjects are destroyed upon the receival of an event, so that info is not null
 
 public:

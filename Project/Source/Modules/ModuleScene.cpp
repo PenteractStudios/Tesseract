@@ -79,6 +79,8 @@ bool ModuleScene::Init() {
 bool ModuleScene::Start() {
 	App->events->AddObserverToEvent(TesseractEventType::GAMEOBJECT_DESTROYED, this);
 	App->events->AddObserverToEvent(TesseractEventType::CHANGE_SCENE, this);
+	App->events->AddObserverToEvent(TesseractEventType::LOAD_SCENE, this);
+	App->events->AddObserverToEvent(TesseractEventType::SAVE_SCENE, this);
 	App->events->AddObserverToEvent(TesseractEventType::COMPILATION_FINISHED, this);
 	App->events->AddObserverToEvent(TesseractEventType::PRESSED_PLAY, this);
 
@@ -144,13 +146,23 @@ void ModuleScene::ReceiveEvent(TesseractEvent& e) {
 	case TesseractEventType::CHANGE_SCENE:
 		ChangeScene(e.Get<ChangeSceneStruct>().sceneId);
 		break;
+	case TesseractEventType::LOAD_SCENE: {
+		Scene* newScene = SceneImporter::LoadScene(e.Get<LoadSceneStruct>().filePath.c_str());
+		if (newScene == nullptr) break;
+
+		RELEASE(scene);
+		scene = newScene;
+		break;
+	}
+	case TesseractEventType::SAVE_SCENE:
+		SceneImporter::SaveScene(scene, e.Get<SaveSceneStruct>().filePath.c_str());
+		break;
 	case TesseractEventType::COMPILATION_FINISHED:
 		for (ComponentScript& script : scene->scriptComponents) {
 			script.CreateScriptInstance();
 		}
 		break;
 	}
-
 }
 
 void ModuleScene::CreateEmptyScene() {
@@ -198,9 +210,9 @@ void ModuleScene::ChangeScene(UID newSceneId) {
 	shouldChangeScene = true;
 
 	if (loadingSceneId != newSceneId) {
-		App->resources->DecreaseReferenceCount(loadingSceneId);
-		loadingSceneId = newSceneId;
 		App->resources->IncreaseReferenceCount(newSceneId);
+		loadingSceneId = newSceneId;
+		App->resources->DecreaseReferenceCount(loadingSceneId);
 	}
 
 	ResourceScene* sceneResource = App->resources->GetResource<ResourceScene>(newSceneId);
@@ -224,6 +236,18 @@ void ModuleScene::ChangeScene(UID newSceneId) {
 
 Scene* ModuleScene::GetCurrentScene() {
 	return scene;
+}
+
+void ModuleScene::LoadScene(const char* filePath) {
+	TesseractEvent loadSceneEv(TesseractEventType::LOAD_SCENE);
+	loadSceneEv.Set<LoadSceneStruct>(filePath);
+	App->events->AddEvent(loadSceneEv);
+}
+
+void ModuleScene::SaveScene(const char* filePath) {
+	TesseractEvent saveSceneEv(TesseractEventType::SAVE_SCENE);
+	saveSceneEv.Set<SaveSceneStruct>(filePath);
+	App->events->AddEvent(saveSceneEv);
 }
 
 void ModuleScene::DestroyGameObjectDeferred(GameObject* gameObject) {

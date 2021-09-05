@@ -35,7 +35,7 @@ void ResourceScene::Load() {
 	// Create scene
 	JsonValue jScene = JsonValue(document, document);
 	scene = new Scene(10000);
-	scene->LoadFromJSON(jScene);
+	scene->Load(jScene);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Scene loaded in %ums.", timeMs);
