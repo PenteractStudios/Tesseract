@@ -151,11 +151,9 @@ void ComponentLight::UpdateLight() {
 }
 
 void ComponentLight::SetIntensity(float newIntensity) {
-	if (newIntensity >= 0.0f) {
-		intensity = newIntensity;
-	}
+	intensity = std::max(0.0f, newIntensity);
 }
 
-float ComponentLight::GetIntensity() {
+float ComponentLight::GetIntensity() const {
 	return intensity;
 }

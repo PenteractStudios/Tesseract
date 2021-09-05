@@ -24,7 +24,7 @@ public:
 
 	void UpdateLight();
 	TESSERACT_ENGINE_API void SetIntensity(float newIntensity);
-	TESSERACT_ENGINE_API float GetIntensity();
+	TESSERACT_ENGINE_API float GetIntensity() const;
 
 public:
 	LightType lightType = LightType::DIRECTIONAL; // Defines the type of the light from one in the LightType enum.
