@@ -222,10 +222,15 @@ float3 ComponentTransform::GetGlobalPosition() {
 
 Quat ComponentTransform::GetGlobalRotation() {
 	CalculateGlobalMatrix();
-	float4x4 newTransform_ = globalMatrix;
-	newTransform_.Orthogonalize3();
-	newTransform_.Orthonormalize3();
-	return Quat(newTransform_.SubMatrix(3, 3));
+	float3x3 globalRotation = globalMatrix.RotatePart();
+	float3 globalScale;
+	globalScale.x = globalRotation.Col3(0).Length();
+	globalScale.y = globalRotation.Col3(1).Length();
+	globalScale.z = globalRotation.Col3(2).Length();
+	globalRotation.ScaleCol(0, 1.0f / globalScale.x);
+	globalRotation.ScaleCol(1, 1.0f / globalScale.y);
+	globalRotation.ScaleCol(2, 1.0f / globalScale.z);
+	return Quat(globalRotation);
 }
 
 float3 ComponentTransform::GetGlobalScale() {
