@@ -226,8 +226,6 @@ void ComponentMeshRenderer::Update() {
 			palette[i] = localMatrix * invertedRootBoneTransform * bone->GetComponent<ComponentTransform>()->GetGlobalMatrix() * mesh->bones[i].transform;
 		}
 	}
-
-	
 }
 
 void ComponentMeshRenderer::Save(JsonValue jComponent) const {
@@ -408,8 +406,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glBindTexture(GL_TEXTURE_2D, glTextureEmissive);
 
 		// Tilling settings
-		glUniform2fv(unlitProgram->tilingLocation, 1, material->tiling.ptr());
-		glUniform2fv(unlitProgram->offsetLocation, 1, material->offset.ptr());
+		glUniform2fv(unlitProgram->tilingLocation, 1, ChooseTextureTiling(material->tiling).ptr());
+		glUniform2fv(unlitProgram->offsetLocation, 1, ChooseTextureOffset(material->offset).ptr());
 
 		glBindVertexArray(mesh->vao);
 		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
@@ -464,15 +462,15 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glBindTexture(GL_TEXTURE_2D, glTextureEmissive);
 
 		// Tilling settings
-		glUniform2fv(unlitProgram->tilingLocation, 1, material->tiling.ptr());
-		glUniform2fv(unlitProgram->offsetLocation, 1, material->offset.ptr());
+		glUniform2fv(unlitProgram->tilingLocation, 1, ChooseTextureTiling(material->tiling).ptr());
+		glUniform2fv(unlitProgram->offsetLocation, 1, ChooseTextureOffset(material->offset).ptr());
 
 		// Dissolve settings
 		glUniform1f(unlitProgram->scaleLocation, material->dissolveScale);
 		glUniform1f(unlitProgram->thresholdLocation, GetDissolveValue());
 		glUniform2fv(unlitProgram->offsetLocation, 1, material->dissolveOffset.ptr());
 		glUniform1f(unlitProgram->edgeSizeLocation, material->dissolveEdgeSize);
-		
+
 		glBindVertexArray(mesh->vao);
 		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
 		glBindVertexArray(0);
@@ -746,8 +744,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform1f(standardProgram->ssaoDirectLightingStrengthLocation, App->renderer->ssaoDirectLightingStrength);
 
 	// Tilling settings
-	glUniform2fv(standardProgram->tilingLocation, 1, material->tiling.ptr());
-	glUniform2fv(standardProgram->offsetLocation, 1, material->offset.ptr());
+	glUniform2fv(standardProgram->tilingLocation, 1, ChooseTextureTiling(material->tiling).ptr());
+	glUniform2fv(standardProgram->offsetLocation, 1, ChooseTextureOffset(material->offset).ptr());
 
 	// IBL textures
 	auto skyboxIt = scene->skyboxComponents.begin();
@@ -827,27 +825,25 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 
 	ProgramDepthPrepass* depthPrepassProgram = App->programs->depthPrepass;
 	bool mustUseDissolveProgram = material->shaderType == MaterialShader::UNLIT_DISSOLVE || material->shaderType == MaterialShader::STANDARD_DISSOLVE;
-	
+
 	if (mustUseDissolveProgram) {
 		ProgramDepthPrepassDissolve* depthPrepassProgramDissolve = App->programs->depthPrepassDissolve;
 		if (depthPrepassProgramDissolve == nullptr) return;
 
 		depthPrepassProgram = depthPrepassProgramDissolve;
-		
+
 		glUseProgram(depthPrepassProgram->program);
 
 		glUniform1f(depthPrepassProgramDissolve->scaleLocation, material->dissolveScale);
 		glUniform1f(depthPrepassProgramDissolve->thresholdLocation, GetDissolveValue());
 		glUniform2fv(depthPrepassProgramDissolve->offsetLocation, 1, material->dissolveOffset.ptr());
-	}
-	else {
+	} else {
 		if (depthPrepassProgram == nullptr) return;
 		glUseProgram(depthPrepassProgram->program);
 	}
 
 	float4x4 viewMatrix = App->camera->GetViewMatrix();
 	float4x4 projMatrix = App->camera->GetProjectionMatrix();
-
 
 	// Common uniform settings
 	glUniformMatrix4fv(depthPrepassProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
@@ -875,8 +871,8 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	glBindTexture(GL_TEXTURE_2D, glTextureDiffuse);
 
 	// Tiling settings
-	glUniform2fv(depthPrepassProgram->tilingLocation, 1, material->tiling.ptr());
-	glUniform2fv(depthPrepassProgram->offsetLocation, 1, material->offset.ptr());
+	glUniform2fv(depthPrepassProgram->tilingLocation, 1, ChooseTextureTiling(material->tiling).ptr());
+	glUniform2fv(depthPrepassProgram->offsetLocation, 1, ChooseTextureOffset(material->offset).ptr());
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
@@ -958,6 +954,22 @@ void ComponentMeshRenderer::ResetDissolveValues() {
 	dissolveAnimationReverse = false;
 }
 
+float2 ComponentMeshRenderer::GetTextureTiling() const {
+	return textureTiling;
+}
+
+float2 ComponentMeshRenderer::GetTextureOffset() const {
+	return textureOffset;
+}
+
+void ComponentMeshRenderer::SetTextureTiling(float2 _tiling) {
+	textureTiling = _tiling;
+}
+
+void ComponentMeshRenderer::SetTextureOffset(float2 _offset) {
+	textureOffset = _offset;
+}
+
 void ComponentMeshRenderer::UpdateDissolveAnimation() {
 	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
 	if (!material) return;
@@ -975,4 +987,20 @@ void ComponentMeshRenderer::UpdateDissolveAnimation() {
 
 float ComponentMeshRenderer::GetDissolveValue() const {
 	return dissolveAnimationReverse ? 1.0f - dissolveThreshold : dissolveThreshold;
+}
+
+float2 ComponentMeshRenderer::ChooseTextureTiling(float2 value) const {
+	if (textureTiling[0] - 1.0f > 0.0001f || textureTiling[1] - 1.0f > 0.0001f) {
+		return textureTiling;
+	} else {
+		return value;
+	}
+}
+
+float2 ComponentMeshRenderer::ChooseTextureOffset(float2 value) const {
+	if (textureOffset[0] > 0.0001f || textureOffset[1] > 0.0001f) {
+		return textureOffset;
+	} else {
+		return value;
+	}
 }
