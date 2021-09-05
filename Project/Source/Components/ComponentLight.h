@@ -23,6 +23,8 @@ public:
 	void Load(JsonValue jComponent) override;
 
 	void UpdateLight();
+	TESSERACT_ENGINE_API void SetIntensity(float newIntensity);
+	TESSERACT_ENGINE_API float GetIntensity();
 
 public:
 	LightType lightType = LightType::DIRECTIONAL; // Defines the type of the light from one in the LightType enum.
