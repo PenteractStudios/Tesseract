@@ -133,9 +133,6 @@ void PanelInspector::Update() {
 				case ComponentType::EVENT_SYSTEM:
 					cName = "Event System";
 					break;
-				case ComponentType::IMAGE:
-					cName = "Image";
-					break;
 				case ComponentType::CANVAS:
 					cName = "Canvas";
 					break;
@@ -150,6 +147,12 @@ void PanelInspector::Update() {
 					break;
 				case ComponentType::TEXT:
 					cName = "Text";
+					break;
+				case ComponentType::IMAGE:
+					cName = "Image";
+					break;
+				case ComponentType::VIDEO:
+					cName = "Video";
 					break;
 				case ComponentType::SELECTABLE:
 					cName = "Selectable";
@@ -408,6 +411,16 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 			}
 		}
 
+		if (ImGui::MenuItem("Video")) {
+			ComponentVideo* component = selected->GetComponent<ComponentVideo>();
+			if (component == nullptr) {
+				newUIComponentCreated = true;
+				typeToCreate = ComponentType::VIDEO;
+			} else {
+				App->editor->modalToOpen = Modal::COMPONENT_EXISTS;
+			}
+		}
+
 		if (ImGui::MenuItem("Text")) {
 			ComponentText* component = selected->GetComponent<ComponentText>();
 			if (component == nullptr) {
@@ -510,6 +523,11 @@ void PanelInspector::AddUIComponentsOptions(GameObject* selected) {
 		}
 		case ComponentType::IMAGE: {
 			ComponentImage* component = selected->CreateComponent<ComponentImage>();
+			component->Init();
+			break;
+		}
+		case ComponentType::VIDEO: {
+			ComponentVideo* component = selected->CreateComponent<ComponentVideo>();
 			component->Init();
 			break;
 		}

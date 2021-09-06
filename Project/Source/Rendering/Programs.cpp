@@ -338,6 +338,7 @@ ProgramBillboard::ProgramBillboard(unsigned program_)
 	diffuseMapLocation = glGetUniformLocation(program, "diffuseMap");
 	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuseMap");
 	inputColorLocation = glGetUniformLocation(program, "inputColor");
+	intensityLocation = glGetUniformLocation(program, "intensity");
 
 	currentFrameLocation = glGetUniformLocation(program, "currentFrame");
 	xTilesLocation = glGetUniformLocation(program, "Xtiles");

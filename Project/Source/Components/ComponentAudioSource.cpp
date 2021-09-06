@@ -196,9 +196,11 @@ void ComponentAudioSource::UpdateSourceParameters() {
 	ResourceAudioClip* audioResource = App->resources->GetResource<ResourceAudioClip>(audioClipId);
 	if (audioResource == nullptr) return;
 
+	// EDIT HERE - check if resource exists, else get buffer
+
 	alSourcef(sourceId, AL_PITCH, pitch);
 	alSourcei(sourceId, AL_LOOPING, loop);
-	alSourcei(sourceId, AL_BUFFER, audioResource->ALbuffer);
+	alSourcei(sourceId, AL_BUFFER, audioResource->ALbuffer); // buffer here
 	audioResource->AddSource(this);
 
 	if (!spatialBlend) {
@@ -260,6 +262,12 @@ bool ComponentAudioSource::IsPlaying() const {
 	ALint state;
 	alGetSourcei(sourceId, AL_SOURCE_STATE, &state);
 	return (state == AL_PLAYING);
+}
+
+bool ComponentAudioSource::IsPaused() const {
+	ALint state;
+	alGetSourcei(sourceId, AL_SOURCE_STATE, &state);
+	return (state == AL_PAUSED);
 }
 
 bool ComponentAudioSource::IsStopped() const {
