@@ -474,7 +474,10 @@ void Scene::SetCursor(UID cursor) {
 	if (cursor != 0) {
 		App->resources->IncreaseReferenceCount(cursor);
 	}
-	App->window->SetCursor(true);
+	App->window->SetCursor(cursorId, widthCursor, heightCursor);
+#if GAME
+	App->window->ActivateCursor(true);
+#endif
 }
 
 UID Scene::GetCursor() {

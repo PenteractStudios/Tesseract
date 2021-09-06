@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Module.h"
+#include "Utils/UID.h"
 
 #include "SDL_video.h"
 #include <vector>
@@ -29,7 +30,8 @@ public:
 	void ResetToDefaultSize();
 	void SetBrightness(float brightness);
 	void SetTitle(const char* title);
-	void SetCursor(bool isPlaying);
+	void SetCursor(UID cursorID, int widthCursor, int heightCursor);
+	void ActivateCursor(bool isPlaying);
 
 	// ---------- Getters ---------- //
 	WindowMode GetWindowMode() const;

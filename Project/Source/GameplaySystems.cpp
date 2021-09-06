@@ -397,8 +397,8 @@ void Screen::SetBrightness(float brightness) {
 	App->window->SetBrightness(brightness);
 }
 
-void Screen::SetCursor(bool isPlaying) {
-	App->window->SetCursor(isPlaying);
+void Screen::SetCursor(UID cursorID, int widthCursor, int heightCursor) {
+	App->window->SetCursor(cursorID, widthCursor, heightCursor);
 }
 
 WindowMode Screen::GetWindowMode() {
