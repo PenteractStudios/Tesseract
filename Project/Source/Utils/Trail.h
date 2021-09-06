@@ -82,7 +82,5 @@ public:
 
 	Quad quads[maxQuads];
 
-	Quat mainRotation;
-
 	float3* mainPosition = nullptr;
 };

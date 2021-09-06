@@ -36,14 +36,12 @@ void Trail::Init() {
 }
 
 bool Trail::CalculateDistance(float3 A, float3 B) {
-	if (Abs(B.x - A.x) > vertexDistance) return true;
-	if (Abs(B.y - A.y) > vertexDistance) return true;
-	if (Abs(B.z - A.z) > vertexDistance) return true;
+	if (B.DistanceSq(A) > vertexDistance * vertexDistance) return true;
 	return false;
 }
 void Trail::Update(float3 mPosition) {
 	if (!isRendering) return;
-	float3 currentDirection = (previousPosition - currentPosition).Normalized();
+	float3 currentDirection = (currentPosition - previousPosition).Normalized();
 	float3 right = currentDirection.Perpendicular(float3::unitY, -float3::unitZ);
 	float3 vectorUp = Cross(currentDirection, right);
 
