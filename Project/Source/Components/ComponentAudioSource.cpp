@@ -264,6 +264,12 @@ bool ComponentAudioSource::IsPlaying() const {
 	return (state == AL_PLAYING);
 }
 
+bool ComponentAudioSource::IsPaused() const {
+	ALint state;
+	alGetSourcei(sourceId, AL_SOURCE_STATE, &state);
+	return (state == AL_PAUSED);
+}
+
 bool ComponentAudioSource::IsStopped() const {
 	ALint state;
 	alGetSourcei(sourceId, AL_SOURCE_STATE, &state);
