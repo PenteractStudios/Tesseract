@@ -57,6 +57,7 @@ Scene::Scene(unsigned numGameObjects) {
 	agentComponents.Allocate(numGameObjects);
 	obstacleComponents.Allocate(numGameObjects);
 	fogComponents.Allocate(numGameObjects);
+	videoComponents.Allocate(numGameObjects);
 }
 
 Scene::~Scene() {
@@ -261,6 +262,8 @@ Component* Scene::GetComponentByTypeAndId(ComponentType type, UID componentId) {
 		return obstacleComponents.Find(componentId);
 	case ComponentType::FOG:
 		return fogComponents.Find(componentId);
+	case ComponentType::VIDEO:
+		return videoComponents.Find(componentId);
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::GetComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -332,6 +335,8 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 		return obstacleComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::FOG:
 		return fogComponents.Obtain(componentId, owner, componentId, owner->IsActive());
+	case ComponentType::VIDEO:
+		return videoComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::CreateComponentByTypeAndId.", (unsigned) type);
 		assert(false);
@@ -436,6 +441,9 @@ void Scene::RemoveComponentByTypeAndId(ComponentType type, UID componentId) {
 		break;
 	case ComponentType::FOG:
 		fogComponents.Release(componentId);
+		break;
+	case ComponentType::VIDEO:
+		videoComponents.Release(componentId);
 		break;
 	default:
 		LOG("Component of type %i hasn't been registered in Scene::RemoveComponentByTypeAndId.", (unsigned) type);

@@ -16,6 +16,7 @@ private:
 	GameObject* CreateEventSystem(GameObject* gameObject);
 	GameObject* CreateUICanvas(GameObject* gameObject);
 	GameObject* CreateUIImage(GameObject* gameObject);
+	GameObject* CreateUIVideo(GameObject* gameObject);
 	GameObject* CreateUIText(GameObject* gameObject);
 	GameObject* CreateUIButton(GameObject* gameObject);
 	GameObject* CreateUISlider(GameObject* gameObject);

@@ -357,6 +357,7 @@ struct ProgramBillboard : Program {
 	int inputColorLocation = -1;
 	int hasDiffuseLocation = -1;
 	int diffuseMapLocation = -1;
+	int intensityLocation = -1;
 
 	int currentFrameLocation = -1;
 	int xTilesLocation = -1;
@@ -390,7 +391,6 @@ struct ProgramStandardDissolve : ProgramStandardMetallic {
 	int offsetLocation = -1;
 	int edgeSizeLocation = -1;
 };
-
 
 struct ProgramUnlitDissolve : ProgramUnlit {
 	ProgramUnlitDissolve(unsigned program);

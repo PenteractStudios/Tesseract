@@ -28,7 +28,8 @@ enum class ResourceType {
 	NAVMESH,
 	STATE_MACHINE,
 	CLIP,
-	AUDIO
+	AUDIO,
+	VIDEO
 };
 
 const char* GetResourceTypeName(ResourceType type);

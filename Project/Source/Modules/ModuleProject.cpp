@@ -502,9 +502,9 @@ void ModuleProject::CreateMSVCProject(const char* path, const char* name, const 
 	std::string enginePath = PathUtils::GetFileFolder(FileDialog::GetAbsolutePath("").c_str());
 
 #ifdef _DEBUG
-	std::string result = fmt::format(project, name, UIDProject, "../../Project/Source/", "../../Project/Libs/MathGeoLib", "../../Project/Libs/SDL/include", "../../Project/Libs/rapidjson/include", "../../Project/Libs/OpenAL-soft/include", "../../Project/Libs/Bullet/include", "../../Project/Libs/recastnavigation-1.5.1", enginePath);
+	std::string result = fmt::format(project, name, UIDProject, "../../Project/Source/", "../../Project/Libs/MathGeoLib", "../../Project/Libs/SDL/include", "../../Project/Libs/rapidjson/include", "../../Project/Libs/OpenAL-soft/include", "../../Project/Libs/Bullet/include", "../../Project/Libs/recastnavigation-1.5.1", "../../Project/Libs/imgui/", enginePath);
 #else
-	std::string result = fmt::format(project, name, UIDProject, "../Engine/Source/", "../Engine/Libs/MathGeoLib", "../Engine/Libs/SDL/include", "../Engine/Libs/rapidjson/include", "../Engine/Libs/OpenAL-soft/include", "../Engine/Libs/Bullet/include", "../Engine/Libs/recastnavigation-1.5.1", enginePath);
+	std::string result = fmt::format(project, name, UIDProject, "../Engine/Source/", "../Engine/Libs/MathGeoLib", "../Engine/Libs/SDL/include", "../Engine/Libs/rapidjson/include", "../Engine/Libs/OpenAL-soft/include", "../Engine/Libs/Bullet/include", "../Engine/Libs/recastnavigation-1.5.1", "../../Project/Libs/imgui/", enginePath);
 #endif
 
 	App->files->Save(path, result.data(), result.size());

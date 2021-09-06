@@ -19,6 +19,7 @@
 #include "Resources/ResourceStateMachine.h"
 #include "Resources/ResourceClip.h"
 #include "Resources/ResourceAudioClip.h"
+#include "Resources/ResourceVideo.h"
 #include "Resources/ResourceNavMesh.h"
 #include "Importers/SceneImporter.h"
 #include "Importers/ModelImporter.h"
@@ -28,6 +29,7 @@
 #include "Importers/SkyboxImporter.h"
 #include "Importers/ShaderImporter.h"
 #include "Importers/AudioImporter.h"
+#include "Importers/VideoImporter.h"
 #include "Importers/StateMachineImporter.h"
 #include "Importers/ClipImporter.h"
 #include "Importers/FontImporter.h"
@@ -237,6 +239,9 @@ bool ModuleResources::ImportAssetByExtension(JsonValue jMeta, const char* filePa
 	} else if (extension == WAV_AUDIO_EXTENSION || extension == OGG_AUDIO_EXTENSION) {
 		// Audio files
 		AudioImporter::ImportAudio(filePath, jMeta);
+	} else if (extension == MP4_VIDEO_EXTENSION) {
+		// Video files
+		VideoImporter::ImportVideo(filePath, jMeta);
 	} else if (extension == PREFAB_EXTENSION) {
 		// Prefab files
 		PrefabImporter::ImportPrefab(filePath, jMeta);
@@ -595,6 +600,9 @@ Resource* ModuleResources::CreateResourceByType(ResourceType type, const char* r
 		break;
 	case ResourceType::AUDIO:
 		resource = new ResourceAudioClip(id, resourceName, assetFilePath, resourceFilePath.c_str());
+		break;
+	case ResourceType::VIDEO:
+		resource = new ResourceVideo(id, resourceName, assetFilePath, resourceFilePath.c_str());
 		break;
 	case ResourceType::NAVMESH:
 		resource = new ResourceNavMesh(id, resourceName, assetFilePath, resourceFilePath.c_str());
