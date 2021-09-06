@@ -14,8 +14,8 @@
 #include "Utils/Leaks.h"
 
 int AnimationController::GetCurrentSample(const ResourceClip& clip, float& currentTime) {
-	unsigned currentSamble = clip.beginIndex + static_cast<unsigned>((currentTime * (clip.keyFramesSize)) / clip.duration);
-	return Clamp(currentSamble, clip.beginIndex, clip.endIndex);
+	unsigned currentSample = clip.beginIndex + static_cast<unsigned>((currentTime * (clip.keyFramesSize)) / clip.duration);
+	return Clamp(currentSample, clip.beginIndex, clip.endIndex);
 }
 
 bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, const char* name, float3& pos, Quat& quat, ComponentAnimation& componentAnimation) {
