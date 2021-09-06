@@ -125,6 +125,12 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 				App->editor->selectedGameObject = newGameObject;
 			}
 
+			if (ImGui::MenuItem("Video")) {
+				GameObject* newGameObject = CreateUIVideo(gameObject);
+				if (newGameObject) newGameObject->Start();
+				App->editor->selectedGameObject = newGameObject;
+			}
+
 			if (ImGui::MenuItem("Text")) {
 				GameObject* newGameObject = CreateUIText(gameObject);
 				if (newGameObject) newGameObject->Start();
@@ -259,6 +265,20 @@ GameObject* PanelHierarchy::CreateUIImage(GameObject* gameObject) {
 	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* canvasRenderer = newGameObject->CreateComponent<ComponentCanvasRenderer>();
 	ComponentImage* image = newGameObject->CreateComponent<ComponentImage>();
+	newGameObject->Init();
+
+	return newGameObject;
+}
+
+GameObject* PanelHierarchy::CreateUIVideo(GameObject* gameObject) {
+	if (gameObject->HasComponentInAnyParent<ComponentCanvas>(gameObject) == nullptr) {
+		gameObject = CreateUICanvas(gameObject);
+	}
+
+	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Video");
+	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
+	ComponentCanvasRenderer* canvasRenderer = newGameObject->CreateComponent<ComponentCanvasRenderer>();
+	ComponentVideo* image = newGameObject->CreateComponent<ComponentVideo>();
 	newGameObject->Init();
 
 	return newGameObject;

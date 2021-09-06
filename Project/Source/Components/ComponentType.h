@@ -49,7 +49,8 @@ enum class ComponentType {
 	CAPSULE_COLLIDER,
 	AGENT,
 	OBSTACLE,
-	FOG
+	FOG,
+	VIDEO
 };
 
 const char* GetComponentTypeName(ComponentType type);

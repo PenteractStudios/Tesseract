@@ -32,6 +32,11 @@ void ComponentCanvasRenderer::Render(const GameObject* gameObject) const {
 		if (componentText != nullptr && componentText->IsActive()) {
 			componentText->Draw(transform2D);
 		}
+
+		ComponentVideo* componentVideo = gameObject->GetComponent<ComponentVideo>();
+		if (componentVideo != nullptr && componentVideo->IsActive()) {
+			componentVideo->Draw(transform2D);
+		}
 	}
 }
 

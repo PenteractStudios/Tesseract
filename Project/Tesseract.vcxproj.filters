@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+
     <ClCompile Include="Source\LightFrustum.cpp" />
     <ClCompile Include="Source\Components\ComponentAgent.cpp" />
     <ClCompile Include="Source\FileSystem\NavMeshImporter.cpp" />
@@ -74,6 +75,7 @@
     <ClCompile Include="Source\Components\UI\ComponentCanvasRenderer.cpp" />
     <ClCompile Include="Source\FileSystem\FontImporter.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentImage.cpp" />
+    <ClCompile Include="Source\Components\UI\ComponentVideo.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentTransform2D.cpp" />
     <ClCompile Include="Source\GameplaySystems.cpp" />
     <ClCompile Include="Source\Components\ComponentScript.cpp" />
@@ -122,6 +124,7 @@
     <ClCompile Include="Source\FileSystem\ModelImporter.cpp" />
     <ClCompile Include="Source\FileSystem\ScriptImporter.cpp" />
     <ClCompile Include="Source\FileSystem\ShaderImporter.cpp" />
+    <ClCompile Include="Source\FileSystem\VideoImporter.cpp" />
     <ClCompile Include="Source\Resources\Resource.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\Application.cpp" />
@@ -137,6 +140,7 @@
     <ClCompile Include="Source\Resources\ResourceScript.cpp" />
     <ClCompile Include="Source\Resources\ResourceShader.cpp" />
     <ClCompile Include="Source\Resources\ResourceTexture.cpp" />
+    <ClCompile Include="Source\Resources\ResourceVideo.cpp" />
     <ClCompile Include="Source\Utils\ImGuiUtils.cpp" />
     <ClCompile Include="Source\Utils\Logging.cpp" />
     <ClCompile Include="Source\Utils\MSTimer.cpp" />
@@ -262,7 +266,6 @@
     <ClCompile Include="Source\GameObject.cpp" />
     <ClCompile Include="Source\AnimationController.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentToggle.cpp" />
-    <ClCompile Include="Source\Components\ComponentBoundingBox2D.cpp" />
     <ClCompile Include="Source\FileSystem\FontImporter.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentImage.cpp" />
     <ClCompile Include="Source\Modules\ModuleUserInterface.cpp" />
@@ -379,8 +382,8 @@
     <ClCompile Include="Source\Components\ComponentFog.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\LightFrustum.h" />
-    <ClInclude Include="Source\Components\ComponentAgent.h" />
+    <ClInclude Include="Source\Modules\ModuleConfiguration.h" />
+    <ClInclude Include="Source\Resources\ResourceVideo.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\DebugUtils\DebugDraw.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\DebugUtils\DetourDebugDraw.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\DebugUtils\RecastDebugDraw.h" />
@@ -411,8 +414,8 @@
     <ClInclude Include="Libs\recastnavigation-1.5.1\Recast\RecastAssert.h" />
     <ClInclude Include="Libs\recastnavigation-1.5.1\Recast\SampleInterfaces.h" />
     <ClInclude Include="Source\FileSystem\NavMeshImporter.h" />
+    <ClInclude Include="Source\Rendering\Programs.h" />
     <ClInclude Include="Source\Resources\ResourceNavMesh.h" />
-    <ClInclude Include="Source\Navigation\NavMesh.h" />
     <ClInclude Include="Source\Panels\PanelNavigation.h" />
     <ClInclude Include="Source\Modules\ModuleNavigation.h" />
     <ClInclude Include="Source\Panels\PanelDebug.h" />
@@ -431,8 +434,8 @@
     <ClInclude Include="Source\Panels\PanelImportOptions.h" />
     <ClInclude Include="Source\Components\Physics\ComponentBoxCollider.h" />
     <ClInclude Include="Source\Components\Physics\ComponentCapsuleCollider.h" />
+    <ClInclude Include="Source\Utils\Collider.h" />
     <ClInclude Include="Source\Utils\MotionState.h" />
-    <ClInclude Include="Source\Components\Physics\ComponentSphereCollider.h" />
     <ClInclude Include="Source\Modules\ModulePhysics.h" />
     <ClInclude Include="Source\FileSystem\AudioImporter.h" />
     <ClInclude Include="Libs\imgui\imgui_stdlib.h" />
@@ -488,6 +491,7 @@
     <ClInclude Include="Source\Resources\ResourceFont.h" />
     <ClInclude Include="Source\Scripting\Member.h" />
     <ClInclude Include="Source\StateMachineEnum.h" />
+    <ClInclude Include="Source\Components\ComponentBoundingBox2D.h" />
     <ClInclude Include="Source\UI\Interfaces\IMouseClickHandler.h" />
     <ClInclude Include="Source\UI\Interfaces\IPointerEnterHandler.h" />
     <ClInclude Include="Source\UI\Interfaces\IPointerExitHandler.h" />
@@ -496,6 +500,7 @@
     <ClInclude Include="Source\FileSystem\FontImporter.h" />
     <ClInclude Include="Source\Components\UI\ComponentSlider.h" />
     <ClInclude Include="Source\Components\UI\ComponentImage.h" />
+    <ClInclude Include="Source\Components\UI\ComponentVideo.h" />
     <ClInclude Include="Source\Components\UI\ComponentTransform2D.h" />
     <ClInclude Include="Source\GameplaySystems.h" />
     <ClInclude Include="Source\Components\ComponentScript.h" />
@@ -546,6 +551,7 @@
     <ClInclude Include="Source\FileSystem\ModelImporter.h" />
     <ClInclude Include="Source\FileSystem\ScriptImporter.h" />
     <ClInclude Include="Source\FileSystem\ShaderImporter.h" />
+    <ClInclude Include="Source\FileSystem\VideoImporter.h" />
     <ClInclude Include="Source\Resources\ResourceScene.h" />
     <ClInclude Include="Source\Resources\ResourceScript.h" />
     <ClInclude Include="Source\Resources\ResourceShader.h" />
@@ -562,8 +568,8 @@
     <ClInclude Include="Source\Utils\Leaks.h" />
     <ClInclude Include="Source\Utils\Logging.h" />
     <ClInclude Include="Source\Utils\Buffer.h" />
-    <ClInclude Include="Source\Utils\UID.h" />
-    <ClInclude Include="Source\Utils\MSTimer.h" />
+    <ClInclude Include="Source\Utils\Random.h" />
+    <ClInclude Include="Source\Utils\ParticleMotionState.h" />
     <ClInclude Include="Source\Utils\PerformanceTimer.h" />
     <ClInclude Include="Source\Utils\Pool.h" />
     <ClInclude Include="Source\Utils\Quadtree.h" />
@@ -574,6 +580,7 @@
     <ClInclude Include="Source\Resources\ResourceMaterial.h" />
     <ClInclude Include="Source\Resources\ResourceMesh.h" />
     <ClInclude Include="Source\Resources\ResourceTexture.h" />
+    <ClInclude Include="Source\Resources\ResourceVideo.h" />
     <ClInclude Include="Source\Modules\Module.h" />
     <ClInclude Include="Source\Modules\ModuleCamera.h" />
     <ClInclude Include="Source\Modules\ModuleFiles.h" />
@@ -732,6 +739,7 @@
     <ClInclude Include="Source\Modules\ModuleConfiguration.h" />
     <ClInclude Include="Source\Utils\Trail.h" />
     <ClInclude Include="Source\Components\ComponentFog.h" />
+    <ClInclude Include="Libs\imgui\curve_editor.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />
