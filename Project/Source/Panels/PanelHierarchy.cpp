@@ -275,7 +275,7 @@ GameObject* PanelHierarchy::CreateUIVideo(GameObject* gameObject) {
 		gameObject = CreateUICanvas(gameObject);
 	}
 
-	GameObject* newGameObject = App->scene->scene->CreateGameObject(gameObject, GenerateUID(), "Video");
+	GameObject* newGameObject = App->scene->GetCurrentScene()->CreateGameObject(gameObject, GenerateUID(), "Video");
 	ComponentTransform2D* transform2D = newGameObject->CreateComponent<ComponentTransform2D>();
 	ComponentCanvasRenderer* canvasRenderer = newGameObject->CreateComponent<ComponentCanvasRenderer>();
 	ComponentVideo* image = newGameObject->CreateComponent<ComponentVideo>();

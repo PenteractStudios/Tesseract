@@ -3,10 +3,11 @@
 #include "Application.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleTime.h"
-#include "Modules/ModuleTime.h"
+#include "Modules/ModuleFiles.h"
 #include "Resources/ResourceVideo.h"
 #include "Utils/Logging.h"
-#include "Utils/FileDialog.h"
+#include "Utils/PathUtils.h"
+#include "Utils/Buffer.h"
 #include "ImporterCommon.h"
 
 bool VideoImporter::ImportVideo(const char* filePath, JsonValue jMeta) {
@@ -23,7 +24,7 @@ bool VideoImporter::ImportVideo(const char* filePath, JsonValue jMeta) {
 
 	// Create video resource
 	 unsigned resourceIndex = 0;
-	std::unique_ptr<ResourceVideo> video = ImporterCommon::CreateResource<ResourceVideo>(FileDialog::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
+	std::unique_ptr<ResourceVideo> video = ImporterCommon::CreateResource<ResourceVideo>(PathUtils::GetFileName(filePath).c_str(), filePath, jMeta, resourceIndex);
 
 	// Save resource meta file
 	bool saved = ImporterCommon::SaveResourceMetaFile(video.get());
