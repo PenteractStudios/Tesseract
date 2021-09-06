@@ -118,12 +118,31 @@ bool ModuleScene::Start() {
 UpdateStatus ModuleScene::Update() {
 	BROFILER_CATEGORY("ModuleScene - Update", Profiler::Color::Green)
 
-	if (loadingSceneId) {
-		ChangeScene(loadingSceneId);
-	}
-
 	// Update GameObjects
 	scene->root->Update();
+
+	// Check for scene events
+	if (App->resources->HaveResourcesFinishedLoading()) {
+		if (shouldChangeScene) {
+			TesseractEvent e(TesseractEventType::CHANGE_SCENE);
+			e.Set<ChangeSceneStruct>(loadingSceneId);
+			App->events->AddEvent(e);
+
+			shouldChangeScene = false;
+		} else if (shouldLoadScene) {
+			TesseractEvent e(TesseractEventType::LOAD_SCENE);
+			e.Set<LoadSceneStruct>(sceneToLoadPath.c_str());
+			App->events->AddEvent(e);
+
+			shouldLoadScene = false;
+		} else if (shouldSaveScene) {
+			TesseractEvent e(TesseractEventType::SAVE_SCENE);
+			e.Set<SaveSceneStruct>(sceneToSavePath.c_str());
+			App->events->AddEvent(e);
+
+			shouldSaveScene = false;
+		}
+	}
 
 	return UpdateStatus::CONTINUE;
 }
@@ -230,15 +249,6 @@ void ModuleScene::ChangeScene(UID newSceneId) {
 		loadingSceneId = newSceneId;
 		App->resources->IncreaseReferenceCount(loadingSceneId);
 	}
-
-	ResourceScene* sceneResource = App->resources->GetResource<ResourceScene>(newSceneId);
-	if (sceneResource == nullptr) return;
-
-	TesseractEvent e(TesseractEventType::CHANGE_SCENE);
-	e.Set<ChangeSceneStruct>(newSceneId);
-	App->events->AddEvent(e);
-
-	shouldChangeScene = false;
 }
 
 Scene* ModuleScene::GetCurrentScene() {
@@ -246,15 +256,13 @@ Scene* ModuleScene::GetCurrentScene() {
 }
 
 void ModuleScene::LoadScene(const char* filePath) {
-	TesseractEvent loadSceneEv(TesseractEventType::LOAD_SCENE);
-	loadSceneEv.Set<LoadSceneStruct>(filePath);
-	App->events->AddEvent(loadSceneEv);
+	shouldLoadScene = true;
+	sceneToLoadPath = filePath;
 }
 
 void ModuleScene::SaveScene(const char* filePath) {
-	TesseractEvent saveSceneEv(TesseractEventType::SAVE_SCENE);
-	saveSceneEv.Set<SaveSceneStruct>(filePath);
-	App->events->AddEvent(saveSceneEv);
+	shouldSaveScene = true;
+	sceneToSavePath = filePath;
 }
 
 void ModuleScene::DestroyGameObjectDeferred(GameObject* gameObject) {

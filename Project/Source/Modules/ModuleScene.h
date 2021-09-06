@@ -38,4 +38,10 @@ private:
 
 	bool shouldChangeScene = false;
 	UID loadingSceneId = 0;
+
+	bool shouldLoadScene = false;
+	std::string sceneToLoadPath = "";
+
+	bool shouldSaveScene = false;
+	std::string sceneToSavePath = "";
 };
