@@ -339,8 +339,8 @@ void ModuleResources::DecreaseReferenceCount(UID id) {
 			referenceCounts.erase(id);
 			Resource* resource = GetResourceInternal<Resource>(id);
 			if (resource != nullptr) {
-				resource->SetLoaded(false);
 				resource->Unload();
+				resource->SetLoaded(false);
 			}
 		}
 	}

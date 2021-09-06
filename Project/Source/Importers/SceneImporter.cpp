@@ -1,6 +1,7 @@
 #include "SceneImporter.h"
 
 #include "Application.h"
+#include "GameObject.h"
 #include "Utils/PathUtils.h"
 #include "Utils/Logging.h"
 #include "Modules/ModuleFiles.h"
@@ -83,6 +84,7 @@ Scene* SceneImporter::LoadScene(const char* filePath) {
 
 	Scene* scene = new Scene(10000);
 	scene->Load(jScene);
+	scene->root->Init();
 	return scene;
 }
 

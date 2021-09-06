@@ -118,12 +118,12 @@ bool ModuleScene::Start() {
 UpdateStatus ModuleScene::Update() {
 	BROFILER_CATEGORY("ModuleScene - Update", Profiler::Color::Green)
 
-	// Update GameObjects
-	scene->root->Update();
-
 	if (loadingSceneId) {
 		ChangeScene(loadingSceneId);
 	}
+
+	// Update GameObjects
+	scene->root->Update();
 
 	return UpdateStatus::CONTINUE;
 }
@@ -143,9 +143,26 @@ void ModuleScene::ReceiveEvent(TesseractEvent& e) {
 	case TesseractEventType::GAMEOBJECT_DESTROYED:
 		scene->DestroyGameObject(e.Get<DestroyGameObjectStruct>().gameObject);
 		break;
-	case TesseractEventType::CHANGE_SCENE:
-		ChangeScene(e.Get<ChangeSceneStruct>().sceneId);
+	case TesseractEventType::CHANGE_SCENE: {
+		UID sceneId = e.Get<ChangeSceneStruct>().sceneId;
+		ResourceScene* sceneResource = App->resources->GetResource<ResourceScene>(sceneId);
+		if (sceneResource == nullptr) break;
+
+		RELEASE(scene);
+		scene = sceneResource->TransferScene();
+		App->resources->DecreaseReferenceCount(sceneId);
+		loadingSceneId = 0;
+
+		ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(scene->gameCameraId);
+		App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
+
+		App->renderer->ambientColor = scene->ambientColor;
+
+		if (App->time->HasGameStarted()) {
+			scene->StartScene();
+		}
 		break;
+	}
 	case TesseractEventType::LOAD_SCENE: {
 		Scene* newScene = SceneImporter::LoadScene(e.Get<LoadSceneStruct>().filePath.c_str());
 		if (newScene == nullptr) break;
@@ -172,7 +189,6 @@ void ModuleScene::CreateEmptyScene() {
 	GameObject* root = scene->CreateGameObject(nullptr, GenerateUID(), "Scene");
 	scene->root = root;
 	ComponentTransform* sceneTransform = root->CreateComponent<ComponentTransform>();
-	root->Init();
 
 	// Create Directional Light
 	GameObject* dirLight = scene->CreateGameObject(root, GenerateUID(), "Directional Light");
@@ -182,7 +198,6 @@ void ModuleScene::CreateEmptyScene() {
 	dirLightTransform->SetRotation(Quat::FromEulerXYZ(pi / 2, 0.0f, 0.0));
 	dirLightTransform->SetScale(float3(1, 1, 1));
 	ComponentLight* dirLightLight = dirLight->CreateComponent<ComponentLight>();
-	dirLight->Init();
 
 	// Create Game Camera
 	GameObject* gameCamera = scene->CreateGameObject(root, GenerateUID(), "Game Camera");
@@ -193,14 +208,15 @@ void ModuleScene::CreateEmptyScene() {
 	ComponentCamera* gameCameraCamera = gameCamera->CreateComponent<ComponentCamera>();
 	ComponentSkyBox* gameCameraSkybox = gameCamera->CreateComponent<ComponentSkyBox>();
 	ComponentAudioListener* audioListener = gameCamera->CreateComponent<ComponentAudioListener>();
-	gameCamera->Init();
+
+	root->Init();
 }
 
 void ModuleScene::PreloadScene(UID newSceneId) {
 	if (loadingSceneId != newSceneId) {
 		App->resources->DecreaseReferenceCount(loadingSceneId);
 		loadingSceneId = newSceneId;
-		App->resources->IncreaseReferenceCount(newSceneId);
+		App->resources->IncreaseReferenceCount(loadingSceneId);
 	}
 }
 
@@ -210,28 +226,19 @@ void ModuleScene::ChangeScene(UID newSceneId) {
 	shouldChangeScene = true;
 
 	if (loadingSceneId != newSceneId) {
-		App->resources->IncreaseReferenceCount(newSceneId);
-		loadingSceneId = newSceneId;
 		App->resources->DecreaseReferenceCount(loadingSceneId);
+		loadingSceneId = newSceneId;
+		App->resources->IncreaseReferenceCount(loadingSceneId);
 	}
 
 	ResourceScene* sceneResource = App->resources->GetResource<ResourceScene>(newSceneId);
 	if (sceneResource == nullptr) return;
 
-	RELEASE(scene);
-	scene = sceneResource->TransferScene();
-	App->resources->DecreaseReferenceCount(newSceneId);
-	loadingSceneId = 0;
+	TesseractEvent e(TesseractEventType::CHANGE_SCENE);
+	e.Set<ChangeSceneStruct>(newSceneId);
+	App->events->AddEvent(e);
+
 	shouldChangeScene = false;
-
-	ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(scene->gameCameraId);
-	App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
-
-	App->renderer->ambientColor = scene->ambientColor;
-
-	if (App->time->HasGameStarted()) {
-		scene->StartScene();
-	}
 }
 
 Scene* ModuleScene::GetCurrentScene() {

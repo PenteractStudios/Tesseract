@@ -36,13 +36,15 @@ void ComponentProgressBar::Update() {
 				fill = *it;
 			}
 		}
-
-		if (background != nullptr && fill != nullptr) {
-			rectBack = background->GetComponent<ComponentTransform2D>();
-			rectFill = fill->GetComponent<ComponentTransform2D>();
-		} else
-			return;
 	}
+
+	if (background != nullptr && fill != nullptr) {
+		rectBack = background->GetComponent<ComponentTransform2D>();
+		rectFill = fill->GetComponent<ComponentTransform2D>();
+	} else {
+		return;
+	}
+
 	backPos = rectBack->GetPosition();
 	backSize = rectBack->GetSize();
 

@@ -131,9 +131,6 @@ void Scene::Load(JsonValue jScene) {
 
 	// NavMesh
 	SetNavMesh(jScene[JSON_TAG_NAVMESH]);
-
-	// Initialize scene
-	root->Init();
 }
 
 void Scene::Save(JsonValue jScene) const {
@@ -544,5 +541,5 @@ void Scene::SetNavMesh(UID id) {
 
 NavMesh* Scene::GetNavMesh() {
 	ResourceNavMesh* navMeshResource = App->resources->GetResource<ResourceNavMesh>(navMeshId);
-	return navMeshResource ? &navMeshResource->GetNavMesh() : nullptr;
+	return navMeshResource ? navMeshResource->GetNavMesh() : nullptr;
 }

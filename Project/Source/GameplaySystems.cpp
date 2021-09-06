@@ -276,9 +276,7 @@ void SceneManager::PreloadScene(UID sceneId) {
 }
 
 void SceneManager::ChangeScene(UID sceneId) {
-	TesseractEvent e(TesseractEventType::CHANGE_SCENE);
-	e.Set<ChangeSceneStruct>(sceneId);
-	App->events->AddEvent(e);
+	App->scene->ChangeScene(sceneId);
 }
 
 void SceneManager::ExitGame() {

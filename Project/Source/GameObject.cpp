@@ -407,7 +407,6 @@ void GameObject::LoadPrefab(JsonValue jGameObject) {
 		components.push_back(component);
 		component->Load(jComponent);
 	}
-	Init();
 
 	JsonValue jChildren = jGameObject[JSON_TAG_CHILDREN];
 	for (unsigned i = 0; i < jChildren.Size(); ++i) {

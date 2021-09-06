@@ -20,16 +20,17 @@ void ResourceNavMesh::Load() {
 	LOG("Loading mesh from path: \"%s\".", filePath.c_str());
 
 	Buffer<char> buffer = App->files->Load(filePath.c_str());
-	navMesh.Load(buffer);
+	navMesh = new NavMesh();
+	navMesh->Load(buffer);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Mesh loaded in %ums", timeMs);
 }
 
 void ResourceNavMesh::Unload() {
-	navMesh.CleanUp();
+	RELEASE(navMesh);
 }
 
-NavMesh& ResourceNavMesh::GetNavMesh() {
+NavMesh* ResourceNavMesh::GetNavMesh() {
 	return navMesh;
 }
