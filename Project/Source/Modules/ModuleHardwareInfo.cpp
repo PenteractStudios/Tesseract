@@ -17,6 +17,9 @@
 #include "physfs.h"
 #include "rapidjson/rapidjson.h"
 #include "AL/al.h"
+extern "C" {
+#include "libavutil/version.h"
+}
 
 #include "Brofiler.h"
 #include "LinearMath/btScalar.h"
@@ -42,6 +45,8 @@ bool ModuleHardwareInfo::Start() {
 	sprintf_s(rapidJsonVersion, "%i.%i.%i", RAPIDJSON_MAJOR_VERSION, RAPIDJSON_MINOR_VERSION, RAPIDJSON_PATCH_VERSION);
 	sprintf_s(openALVersion, alGetString(AL_VERSION));
 	sprintf_s(bulletVersion, "%i.%i", btGetVersion() / 100, (btGetVersion() % 100));
+	sprintf_s(libavVersion, "%i.%i.%i", LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO);
+	
 
 	cpuCount = SDL_GetCPUCount();
 	cacheSizeKb = SDL_GetCPUCacheLineSize();

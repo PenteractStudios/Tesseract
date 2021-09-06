@@ -24,9 +24,9 @@ public:
 	char physFSVersion[20] = "Not available";
 	char rapidJsonVersion[20] = "Not available";
 	char openALVersion[20] = "Not available";
-
 	char bulletVersion[20] = "Not Available";
-	// TODO: fmt, imgui, imguizmo, libsndfile, mathgeolib, openAL
+	char libavVersion[20] = "Not Available";
+
 	int cpuCount = 0;
 	int cacheSizeKb = 0;
 	float ramGb = 0;

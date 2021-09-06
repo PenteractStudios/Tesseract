@@ -57,6 +57,8 @@ enum class UpdateStatus {
 #define WAV_AUDIO_EXTENSION ".wav"
 #define OGG_AUDIO_EXTENSION ".ogg"
 
+#define MP4_VIDEO_EXTENSION ".mp4"
+
 #define STATE_MACHINE_EXTENSION ".stma"
 #define ANIMATION_CLIP_EXTENSION ".clip"
 
