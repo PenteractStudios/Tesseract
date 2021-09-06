@@ -33,11 +33,15 @@ char av_error[AV_ERROR_MAX_STRING_SIZE] = {0};
 ComponentVideo::~ComponentVideo() {
 	CloseVideoReader();
 
+	App->resources->DecreaseReferenceCount(videoID);
+
 	// Release GL texture
 	glDeleteTextures(1, &frameTexture);
 }
 
 void ComponentVideo::Init() {
+	App->resources->IncreaseReferenceCount(videoID);
+
 	// Load shader
 	imageUIProgram = App->programs->imageUI;
 
@@ -91,7 +95,7 @@ void ComponentVideo::OnEditorUpdate() {
 		[this]() { RemoveVideoResource(); },
 		[this]() {
 			ResourceVideo* video = App->resources->GetResource<ResourceVideo>(videoID);
-			if (video) OpenVideoReader(video->GetAssetFilePath().c_str());
+			if (video) OpenVideoReader(video->GetResourceFilePath().c_str());
 		});
 
 	std::string removeButton = std::string(ICON_FA_TIMES "##") + "video";
@@ -174,9 +178,10 @@ void ComponentVideo::Draw(ComponentTransform2D* transform) {
 
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(imageUIProgram->diffuseLocation, 0);
-	glUniform4fv(imageUIProgram->inputColorLocation, 1, float4(1.f, 1.f, 1.f, 1.f).ptr());
+	glUniform4fv(imageUIProgram->inputColorLocation, 1, float4::one.ptr());
 
 	// allocate memory and set texture data
+	glBindTexture(GL_TEXTURE_2D, frameTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, frameWidth, frameHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, frameData);
 
 	glUniform1i(imageUIProgram->hasDiffuseLocation, 1);
@@ -184,8 +189,6 @@ void ComponentVideo::Draw(ComponentTransform2D* transform) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glDisable(GL_BLEND);
 }
 
 void ComponentVideo::Play() {
