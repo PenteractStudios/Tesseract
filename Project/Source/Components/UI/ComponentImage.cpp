@@ -269,15 +269,15 @@ void ComponentImage::SetAlphaTransparency(bool alphaTransparency_) {
 	alphaTransparency = alphaTransparency_;
 }
 
-TESSERACT_ENGINE_API float2 ComponentImage::GetTextureOffset() const {
+float2 ComponentImage::GetTextureOffset() const {
 	return textureOffset;
 }
 
-TESSERACT_ENGINE_API void ComponentImage::SetTextureOffset(float2 textureOffset_) {
+void ComponentImage::SetTextureOffset(float2 textureOffset_) {
 	textureOffset = textureOffset_;
 }
 
-TESSERACT_ENGINE_API float2 ComponentImage::GetTextureTiling() const {
+float2 ComponentImage::GetTextureTiling() const {
 	return textureTiling;
 }
 
