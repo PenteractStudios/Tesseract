@@ -22,10 +22,11 @@ in vec2 uv0;
 uniform sampler2D diffuse;
 uniform int hasDiffuse;
 uniform vec4 inputColor;
+uniform vec2 offset;
 
 out vec4 outColor;
 
 void main()
 {	
-	outColor = (hasDiffuse * SRGBA(texture2D(diffuse, uv0)) + 1 - hasDiffuse) * SRGBA(inputColor);
+	outColor = (hasDiffuse * SRGBA(texture2D(diffuse, uv0 + offset)) + 1 - hasDiffuse) * SRGBA(inputColor);
 }

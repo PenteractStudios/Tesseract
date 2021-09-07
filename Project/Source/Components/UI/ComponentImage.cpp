@@ -23,6 +23,7 @@
 #define JSON_TAG_ALPHATRANSPARENCY "AlphaTransparency"
 #define JSON_TAG_IS_FILL "IsFill"
 #define JSON_TAG_FILL_VALUE "FillValue"
+#define JSON_TAG_TEXTURE_OFFSET "Offset"
 
 ComponentImage::~ComponentImage() {
 	//TODO DECREASE REFERENCE COUNT OF SHADER AND TEXTURE, MAYBE IN A NEW COMPONENT::CLEANUP?
@@ -59,6 +60,8 @@ void ComponentImage::OnEditorUpdate() {
 		RebuildFillQuadVBO();
 	}
 
+	ImGui::InputFloat2("Texture Offset", &textureOffset[0]);
+
 	UID oldID = textureID;
 	ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
 
@@ -92,6 +95,10 @@ void ComponentImage::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_ALPHATRANSPARENCY] = alphaTransparency;
 	jComponent[JSON_TAG_IS_FILL] = isFill;
 	jComponent[JSON_TAG_FILL_VALUE] = fillVal;
+
+	JsonValue jOffset = jComponent[JSON_TAG_TEXTURE_OFFSET];
+	jOffset[0] = textureOffset.x;
+	jOffset[1] = textureOffset.y;
 }
 
 void ComponentImage::Load(JsonValue jComponent) {
@@ -107,6 +114,9 @@ void ComponentImage::Load(JsonValue jComponent) {
 	alphaTransparency = jComponent[JSON_TAG_ALPHATRANSPARENCY];
 	isFill = jComponent[JSON_TAG_IS_FILL];
 	fillVal = jComponent[JSON_TAG_FILL_VALUE];
+
+	JsonValue jOffset = jComponent[JSON_TAG_TEXTURE_OFFSET];
+	textureOffset.Set(jOffset[0], jOffset[1]);
 }
 
 float4 ComponentImage::GetMainColor() const {
@@ -182,6 +192,8 @@ void ComponentImage::Draw(ComponentTransform2D* transform) const {
 	glUniformMatrix4fv(imageUIProgram->projLocation, 1, GL_TRUE, proj.ptr());
 	glUniformMatrix4fv(imageUIProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
 
+	glUniform2fv(imageUIProgram->offsetLocation, 1, textureOffset.ptr());
+
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(imageUIProgram->diffuseLocation, 0);
 	glUniform4fv(imageUIProgram->inputColorLocation, 1, GetMainColor().ptr());
@@ -231,6 +243,14 @@ bool ComponentImage::HasAlphaTransparency() const {
 
 void ComponentImage::SetAlphaTransparency(bool alphaTransparency_) {
 	alphaTransparency = alphaTransparency_;
+}
+
+TESSERACT_ENGINE_API float2 ComponentImage::GetTextureOffset() const {
+	return textureOffset;
+}
+
+TESSERACT_ENGINE_API void ComponentImage::SetTextureOffset(float2 textureOffset_) {
+	textureOffset = textureOffset_;
 }
 
 void ComponentImage::RebuildFillQuadVBO() {

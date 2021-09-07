@@ -328,6 +328,7 @@ struct ProgramImageUI : Program {
 	int inputColorLocation = -1;
 	int hasDiffuseLocation = -1;
 	int diffuseLocation = -1;
+	int offsetLocation = -1;
 };
 
 struct ProgramTextUI : Program {

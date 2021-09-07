@@ -311,6 +311,7 @@ ProgramImageUI::ProgramImageUI(unsigned program_)
 	inputColorLocation = glGetUniformLocation(program, "inputColor");
 	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
 	diffuseLocation = glGetUniformLocation(program, "diffuse");
+	offsetLocation = glGetUniformLocation(program, "offset");
 }
 
 ProgramTextUI::ProgramTextUI(unsigned program_)
