@@ -135,6 +135,7 @@ void PanelControlEditor::Update() {
 			}
 			ImGui::SameLine();
 			if (ImGui::Button(step.c_str())) {
+				App->window->ActivateCursor(false);
 				App->events->AddEvent(TesseractEvent(TesseractEventType::PRESSED_STEP));
 			}
 			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
