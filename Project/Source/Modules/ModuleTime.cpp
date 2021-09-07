@@ -4,10 +4,12 @@
 #include "Application.h"
 #include "Utils/Logging.h"
 #include "FileSystem/SceneImporter.h"
+#include "Scripting/PropertyMap.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleEvents.h"
+#include "Modules/ModuleProject.h"
 #include "Modules/ModuleAudio.h"
 #include "Modules/ModuleRender.h"
 #include "Modules/ModulePhysics.h"
@@ -168,6 +170,8 @@ void ModuleTime::StartGame() {
 	App->scene->scene->sceneLoaded = false;
 #endif // !GAME
 
+	App->project->GetGameState()->Clear();
+
 	//TODO: this goes inside !GAME?
 	if (App->camera->GetGameCamera()) {
 		// Set the Game Camera as active
@@ -186,6 +190,8 @@ void ModuleTime::StopGame() {
 	gameStarted = false;
 	gameRunning = false;
 	timeLastMs = 0;
+
+	App->project->GetGameState()->Clear();
 
 	// Stop all audio sources
 	App->audio->StopAllSources();

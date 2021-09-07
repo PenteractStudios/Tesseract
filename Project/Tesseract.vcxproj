@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libs\imgui\curve_editor.h" />
+    <ClInclude Include="Source\Scripting\PropertyMap.h" />
     <ClInclude Include="Source\Components\ComponentFog.h" />
     <ClInclude Include="Source\Modules\ModuleConfiguration.h" />
     <ClInclude Include="Source\Resources\ResourceVideo.h" />
@@ -354,6 +355,7 @@
     <ClInclude Include="Source\FileSystem\VideoImporter.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Scripting\PropertyMap.cpp" />
     <ClCompile Include="Source\Components\ComponentFog.cpp" />
     <ClCompile Include="Source\Modules\ModuleConfiguration.cpp" />
     <ClCompile Include="Source\Resources\ResourceVideo.cpp" />

@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-
     <ClCompile Include="Source\LightFrustum.cpp" />
     <ClCompile Include="Source\Components\ComponentAgent.cpp" />
     <ClCompile Include="Source\FileSystem\NavMeshImporter.cpp" />
@@ -380,6 +379,7 @@
     <ClCompile Include="Source\Modules\ModuleConfiguration.cpp" />
     <ClCompile Include="Source\Utils\Trail.cpp" />
     <ClCompile Include="Source\Components\ComponentFog.cpp" />
+    <ClCompile Include="Source\Scripting\PropertyMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Modules\ModuleConfiguration.h" />
@@ -491,7 +491,6 @@
     <ClInclude Include="Source\Resources\ResourceFont.h" />
     <ClInclude Include="Source\Scripting\Member.h" />
     <ClInclude Include="Source\StateMachineEnum.h" />
-    <ClInclude Include="Source\Components\ComponentBoundingBox2D.h" />
     <ClInclude Include="Source\UI\Interfaces\IMouseClickHandler.h" />
     <ClInclude Include="Source\UI\Interfaces\IPointerEnterHandler.h" />
     <ClInclude Include="Source\UI\Interfaces\IPointerExitHandler.h" />
@@ -740,6 +739,10 @@
     <ClInclude Include="Source\Utils\Trail.h" />
     <ClInclude Include="Source\Components\ComponentFog.h" />
     <ClInclude Include="Libs\imgui\curve_editor.h" />
+    <ClInclude Include="Source\Navigation\NavMesh.h" />
+    <ClInclude Include="Source\Utils\UID.h" />
+    <ClInclude Include="Source\Utils\MSTimer.h" />
+    <ClInclude Include="Source\Scripting\PropertyMap.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />
