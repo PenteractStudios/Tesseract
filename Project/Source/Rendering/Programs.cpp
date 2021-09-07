@@ -312,6 +312,7 @@ ProgramImageUI::ProgramImageUI(unsigned program_)
 	hasDiffuseLocation = glGetUniformLocation(program, "hasDiffuse");
 	diffuseLocation = glGetUniformLocation(program, "diffuse");
 	offsetLocation = glGetUniformLocation(program, "offset");
+	tilingLocation = glGetUniformLocation(program, "tiling");
 }
 
 ProgramTextUI::ProgramTextUI(unsigned program_)

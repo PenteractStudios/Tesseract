@@ -329,6 +329,7 @@ struct ProgramImageUI : Program {
 	int hasDiffuseLocation = -1;
 	int diffuseLocation = -1;
 	int offsetLocation = -1;
+	int tilingLocation = -1;
 };
 
 struct ProgramTextUI : Program {
