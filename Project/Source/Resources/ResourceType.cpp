@@ -34,6 +34,8 @@ const char* GetResourceTypeName(ResourceType type) {
 		return "Clip";
 	case ResourceType::AUDIO:
 		return "Audio";
+	case ResourceType::VIDEO:
+		return "Video";
 	case ResourceType::NAVMESH:
 		return "NavMesh";
 	default:
@@ -70,6 +72,8 @@ ResourceType GetResourceTypeFromName(const char* name) {
 		return ResourceType::CLIP;
 	} else if (strcmp(name, "Audio") == 0) {
 		return ResourceType::AUDIO;
+	} else if (strcmp(name, "Video") == 0) {
+		return ResourceType::VIDEO;
 	} else if (strcmp(name, "NavMesh") == 0) {
 		return ResourceType::NAVMESH;
 	} else {

@@ -338,6 +338,8 @@ struct ProgramImageUI : Program {
 	int inputColorLocation = -1;
 	int hasDiffuseLocation = -1;
 	int diffuseLocation = -1;
+	int offsetLocation = -1;
+	int tilingLocation = -1;
 };
 
 struct ProgramTextUI : Program {
@@ -367,6 +369,7 @@ struct ProgramBillboard : Program {
 	int inputColorLocation = -1;
 	int hasDiffuseLocation = -1;
 	int diffuseMapLocation = -1;
+	int intensityLocation = -1;
 
 	int currentFrameLocation = -1;
 	int xTilesLocation = -1;
@@ -383,10 +386,13 @@ struct ProgramTrail : Program {
 
 	int viewLocation = -1;
 	int projLocation = -1;
+	int modelLocation = -1;
 
 	int inputColorLocation = -1;
 	int hasDiffuseLocation = -1;
 	int diffuseMap = -1;
+	int xFlipLocation = -1;
+	int yFlipLocation = -1;
 };
 
 struct ProgramStandardDissolve : ProgramStandardMetallic {
@@ -397,7 +403,6 @@ struct ProgramStandardDissolve : ProgramStandardMetallic {
 	int offsetLocation = -1;
 	int edgeSizeLocation = -1;
 };
-
 
 struct ProgramUnlitDissolve : ProgramUnlit {
 	ProgramUnlitDissolve(unsigned program);

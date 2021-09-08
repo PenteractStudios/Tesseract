@@ -149,3 +149,11 @@ void ComponentLight::UpdateLight() {
 	pos = transform->GetGlobalPosition();
 	direction = transform->GetGlobalRotation() * float3::unitZ;
 }
+
+void ComponentLight::SetIntensity(float newIntensity) {
+	intensity = std::max(0.0f, newIntensity);
+}
+
+float ComponentLight::GetIntensity() const {
+	return intensity;
+}

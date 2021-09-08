@@ -32,6 +32,7 @@ public:
 
 public:
 	Trail* trail = nullptr;
+
 	// Color Settings
 	ImGradient* gradient = nullptr;
 	ImGradientMark* draggingGradient = nullptr;

@@ -119,6 +119,7 @@ bool ModuleEditor::Init() {
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
 
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
@@ -510,4 +511,15 @@ void ModuleEditor::OnMouseClicked() {
 void ModuleEditor::OnMouseReleased() {
 	TesseractEvent mouseEvent = TesseractEvent(TesseractEventType::MOUSE_RELEASED);
 	App->events->AddEvent(mouseEvent);
+}
+
+void ModuleEditor::HelpMarker(const char* text) {
+	ImGui::TextDisabled("(?)");
+	if (ImGui::IsItemHovered()) {
+		ImGui::BeginTooltip();
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+		ImGui::TextUnformatted(text);
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+	}
 }

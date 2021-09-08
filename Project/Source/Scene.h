@@ -13,6 +13,7 @@
 #include "Components/UI/ComponentCanvas.h"
 #include "Components/UI/ComponentCanvasRenderer.h"
 #include "Components/UI/ComponentImage.h"
+#include "Components/UI/ComponentVideo.h"
 #include "Components/UI/ComponentTransform2D.h"
 #include "Components/UI/ComponentEventSystem.h"
 #include "Components/UI/ComponentButton.h"
@@ -74,6 +75,18 @@ public:
 
 	void RemoveDynamicShadowCaster(const GameObject* go);
 	void AddDynamicShadowCaster(GameObject* go);
+	
+	const std::vector<GameObject*>& GetStaticShadowCasters() const; 
+	const std::vector<GameObject*>& GetDynamicShadowCasters() const;
+
+	void SetCursor(UID cursor);
+	UID GetCursor();
+
+	void SetCursorWidth(int width);
+	int GetCursorWidth();
+	void SetCursorHeight(int height);
+	int GetCursorHeight();
+
 
 public:
 	GameObject* root = nullptr;				// GameObject Root. Parent of everything and god among gods (Game Object Deity) :D.
@@ -115,6 +128,7 @@ public:
 	PoolMap<UID, ComponentAgent> agentComponents;
 	PoolMap<UID, ComponentObstacle> obstacleComponents;
 	PoolMap<UID, ComponentFog> fogComponents;
+	PoolMap<UID, ComponentVideo> videoComponents;
 
 	// ---- Quadtree Parameters ---- //
 	Quadtree<GameObject> quadtree;
@@ -125,8 +139,10 @@ public:
 	// ---- Nav Mesh ID parameters ---- //
 	UID navMeshId = 0;
 
-	const std::vector<GameObject*>& GetStaticShadowCasters() const; 
-	const std::vector<GameObject*>& GetDynamicShadowCasters() const;
+	// ---- Cursor parameters ---- //
+	UID cursorId = 0;
+	int widthCursor = 30;
+	int heightCursor = 30;
 
 private:
 	bool InsideFrustumPlanes(const FrustumPlanes& planes, const GameObject* go); 

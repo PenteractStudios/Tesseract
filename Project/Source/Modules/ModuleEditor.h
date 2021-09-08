@@ -48,6 +48,7 @@ public:
 	bool CleanUp() override;
 	void OnMouseClicked();
 	void OnMouseReleased();
+	void HelpMarker(const char* text);
 
 public:
 	Modal modalToOpen = Modal::NONE; // Used in the MenuBar to popup a Modal Window of the specific type.
@@ -74,12 +75,12 @@ public:
 	PanelImportOptions panelImportOptions;
 	PanelAudioMixer panelAudioMixer;
 
-	GameObject* selectedGameObject = nullptr;			   // Pointer to the GameObject that will be shown in the inspector.
-	std::string selectedFolder = "";					   // Currently selected folder in the PanelProject.
-	std::string selectedAsset = "";						   // Currently selected asset in the PanelProject.
-	UID selectedResource = 0;							   // Currently selected resource in the PanelProject.
-	ImVec4 titleColor = ImVec4(0.35f, 0.69f, 0.87f, 1.0f); // Color used for the titles in ImGui
-	ImVec4 textColor = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);	   // Color used for text and information in ImGui
+	GameObject* selectedGameObject = nullptr;							// Pointer to the GameObject that will be shown in the inspector.
+	std::string selectedFolder = "";									// Currently selected folder in the PanelProject.
+	std::string selectedAsset = "";										// Currently selected asset in the PanelProject.
+	UID selectedResource = 0;											// Currently selected resource in the PanelProject.
+	ImVec4 titleColor = ImVec4(0.35f, 0.69f, 0.87f, 1.0f);				// Color used for the titles in ImGui
+	ImVec4 textColor = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);					// Color used for text and information in ImGui
 	ImVec4 memberSeparatorTextColor = ImVec4(0.27f, 0.55f, 1.0f, 1.0f); // Color used for the name of the Separator in Members of Script
 
 	// --- Float Sliders speeds ---- //

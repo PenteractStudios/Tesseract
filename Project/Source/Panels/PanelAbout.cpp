@@ -42,6 +42,7 @@ void PanelAbout::Update() {
 			ImGui::Text("RapidJSON v%s", App->hardware->rapidJsonVersion);
 			ImGui::Text("Open Audio Library (OpenAL) v%s", App->hardware->openALVersion);
 			ImGui::Text("Bullet Physics v%s", App->hardware->bulletVersion);
+			ImGui::Text("LibAV v%s", App->hardware->libavVersion);
 
 			ImGui::EndChildFrame();
 		}
