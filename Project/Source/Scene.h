@@ -66,6 +66,15 @@ public:
 	void SetNavMesh(UID navMesh);
 	UID GetNavMesh();
 
+	void SetCursor(UID cursor);
+	UID GetCursor();
+
+	void SetCursorWidth(int width);
+	int GetCursorWidth();
+	void SetCursorHeight(int height);
+	int GetCursorHeight();
+
+
 public:
 	GameObject* root = nullptr;				// GameObject Root. Parent of everything and god among gods (Game Object Deity) :D.
 	GameObject* directionalLight = nullptr; // GameObject of directional light
@@ -116,6 +125,10 @@ public:
 
 	// ---- Nav Mesh ID parameters ---- //
 	UID navMeshId = 0;
+	// ---- Cursor parameters ---- //
+	UID cursorId = 0;
+	int widthCursor = 30;
+	int heightCursor = 30;
 };
 
 template<class T>
