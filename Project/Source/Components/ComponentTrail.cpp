@@ -44,7 +44,6 @@ void ComponentTrail::Init() {
 	if (!trail) trail = new Trail();
 	trail->Init();
 	trail->mainPosition = &GetOwner().GetComponent<ComponentTransform>()->GetPosition();
-	trail->mainRotation = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation();
 	trail->gradient = gradient;
 	trail->draggingGradient = draggingGradient;
 	trail->selectedGradient = selectedGradient;
@@ -53,7 +52,6 @@ void ComponentTrail::Init() {
 void ComponentTrail::Update() {
 	trail->Update(GetOwner().GetComponent<ComponentTransform>()->GetPosition());
 	trail->mainPosition = &GetOwner().GetComponent<ComponentTransform>()->GetPosition();
-	trail->mainRotation = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation();
 }
 
 void ComponentTrail::OnEditorUpdate() {
