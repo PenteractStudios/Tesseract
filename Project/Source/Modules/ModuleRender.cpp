@@ -514,9 +514,14 @@ UpdateStatus ModuleRender::Update() {
 		glDepthFunc(GL_LESS);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
-		for (GameObject* gameObject : shadowGameObjects) {
+		//for (GameObject* gameObject : shadowGameObjects) {
+		//	DrawGameObjectShadowPass(gameObject, i);
+		//}
+
+		for (GameObject* gameObject : App->scene->scene->GetStaticShadowCasters()) {
 			DrawGameObjectShadowPass(gameObject, i);
 		}
+
 	}
 	
 	// Depth Prepass

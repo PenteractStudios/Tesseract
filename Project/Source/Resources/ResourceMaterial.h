@@ -21,6 +21,16 @@ enum class RenderingMode {
 	TRANSPARENT
 };
 
+enum class ShadowCasterType {
+	STATIC,
+	DYNAMIC
+};
+
+enum class MaskToChange {
+	RENDERING,
+	SHADOW
+};
+
 class ResourceMaterial : public Resource {
 public:
 	REGISTER_RESOURCE(ResourceMaterial, ResourceType::MATERIAL);
@@ -31,7 +41,7 @@ public:
 
 	void SaveToFile(const char* filePath);
 
-	void UpdateMask();
+	void UpdateMask(MaskToChange maskToChange, bool forceDelete = false);
 
 public:
 	// Material shader
@@ -85,4 +95,8 @@ public:
 	// Softness (transparency when near other meshes)
 	bool isSoft = false;
 	float softRange = 1.0f;
+
+	//Shadows
+	ShadowCasterType shadowCasterType = ShadowCasterType::STATIC;
+	bool castShadows = false;
 };

@@ -172,7 +172,7 @@ void GameObject::AddMask(MaskType mask_) {
 		break;
 	case MaskType::CAST_SHADOWS:
 		mask.bitMask |= static_cast<int>(mask_);
-		App->scene->scene->AddShadowCaster(this);
+		App->scene->scene->AddStaticShadowCaster(this);
 		break;
 	case MaskType::TRANSPARENT:
 		mask.bitMask |= static_cast<int>(mask_);
@@ -198,7 +198,7 @@ void GameObject::DeleteMask(MaskType mask_) {
 		break;
 	case MaskType::CAST_SHADOWS:
 		mask.bitMask ^= static_cast<int>(mask_);
-		App->scene->scene->RemoveShadowCaster(this);
+		App->scene->scene->RemoveStaticShadowCaster(this);
 		break;
 	case MaskType::TRANSPARENT:
 		mask.bitMask ^= static_cast<int>(mask_);

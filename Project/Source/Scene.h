@@ -69,8 +69,11 @@ public:
 	void SetNavMesh(UID navMesh);
 	UID GetNavMesh();
 
-	void RemoveShadowCaster(const GameObject* go);
-	void AddShadowCaster(GameObject* go);
+	void RemoveStaticShadowCaster(const GameObject* go);
+	void AddStaticShadowCaster(GameObject* go);
+
+	void RemoveDynamicShadowCaster(const GameObject* go);
+	void AddDynamicShadowCaster(GameObject* go);
 
 public:
 	GameObject* root = nullptr;				// GameObject Root. Parent of everything and god among gods (Game Object Deity) :D.
@@ -122,11 +125,15 @@ public:
 	// ---- Nav Mesh ID parameters ---- //
 	UID navMeshId = 0;
 
+	const std::vector<GameObject*>& GetStaticShadowCasters() const; 
+	const std::vector<GameObject*>& GetDynamicShadowCasters() const;
+
 private:
 	bool InsideFrustumPlanes(const FrustumPlanes& planes, const GameObject* go); 
 
 private:
-	std::vector<GameObject*> shadowCasters;
+	std::vector<GameObject*> staticShadowCasters;
+	std::vector<GameObject*> dynamicShadowCasters;
 };
 
 template<class T>

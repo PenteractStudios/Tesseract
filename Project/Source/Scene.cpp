@@ -56,6 +56,9 @@ void Scene::ClearScene() {
 
 	assert(gameObjects.Count() == 0); // There should be no GameObjects outside the scene hierarchy
 	gameObjects.Clear();			  // This looks redundant, but it resets the free list so that GameObject order is mantained when saving/loading
+
+	staticShadowCasters.clear();
+	dynamicShadowCasters.clear();
 }
 
 void Scene::RebuildQuadtree() {
@@ -194,7 +197,7 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 		return transformComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::MESH_RENDERER:
 		if ((owner->GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0) {
-			shadowCasters.push_back(owner);
+			AddStaticShadowCaster(owner);
 		}
 		return meshRendererComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::BOUNDING_BOX:
@@ -450,6 +453,14 @@ std::vector<float> Scene::GetNormals() {
 	return result;
 }
 
+const std::vector<GameObject*>& Scene::GetStaticShadowCasters() const {
+	return staticShadowCasters;
+}
+
+const std::vector<GameObject*>& Scene::GetDynamicShadowCasters() const {
+	return dynamicShadowCasters;
+}
+
 bool Scene::InsideFrustumPlanes(const FrustumPlanes& planes, const GameObject* go) {
 	
 	ComponentBoundingBox* boundingBox = go->GetComponent<ComponentBoundingBox>();
@@ -482,7 +493,7 @@ std::vector<GameObject*> Scene::GetCulledMeshes(const FrustumPlanes& planes, con
 std::vector<GameObject*> Scene::GetCulledShadowCasters(const FrustumPlanes& planes) {
 	std::vector<GameObject*> meshes;
 
-	for (GameObject* go : shadowCasters) {
+	for (GameObject* go : staticShadowCasters) {
 		if (InsideFrustumPlanes(planes, go)) {
 			meshes.push_back(go);
 		}
@@ -507,23 +518,43 @@ UID Scene::GetNavMesh() {
 	return navMeshId;
 }
 
-void Scene::RemoveShadowCaster(const GameObject* go) {
-	auto it = std::find(shadowCasters.begin(), shadowCasters.end(), go);
+void Scene::RemoveStaticShadowCaster(const GameObject* go) {
+	auto it = std::find(staticShadowCasters.begin(), staticShadowCasters.end(), go);
 
-	if (it == shadowCasters.end()) return;
+	if (it == staticShadowCasters.end()) return;
 
-	shadowCasters.erase(it);
+	staticShadowCasters.erase(it);
 
 	App->renderer->lightFrustum.Invalidate();
 
 }
 
-void Scene::AddShadowCaster(GameObject* go) {
-	auto it = std::find(shadowCasters.begin(), shadowCasters.end(), go);
+void Scene::AddStaticShadowCaster(GameObject* go) {
+	auto it = std::find(staticShadowCasters.begin(), staticShadowCasters.end(), go);
 
-	if (it != shadowCasters.end()) return;
+	if (it != staticShadowCasters.end()) return;
 
-	shadowCasters.push_back(go);
+	staticShadowCasters.push_back(go);
+
+	App->renderer->lightFrustum.Invalidate();
+}
+
+void Scene::RemoveDynamicShadowCaster(const GameObject* go) {
+	auto it = std::find(dynamicShadowCasters.begin(), dynamicShadowCasters.end(), go);
+
+	if (it == dynamicShadowCasters.end()) return;
+
+	dynamicShadowCasters.erase(it);
+
+	App->renderer->lightFrustum.Invalidate();
+}
+
+void Scene::AddDynamicShadowCaster(GameObject* go) {
+	auto it = std::find(dynamicShadowCasters.begin(), dynamicShadowCasters.end(), go);
+
+	if (it != dynamicShadowCasters.end()) return;
+
+	dynamicShadowCasters.push_back(go);
 
 	App->renderer->lightFrustum.Invalidate();
 }
