@@ -16,7 +16,7 @@ void TestMSAA::Start() {
     video = GameplaySystems::GetGameObject(videoID);
     Debug::Log("video read");
     if (video){
-        ComponentVideo* videoComp = video->GetComponent<ComponentVideo>();
+        videoComp = video->GetComponent<ComponentVideo>();
         Debug::Log("componet video read");
         if (videoComp) {
             Debug::Log("componet video play");
@@ -26,6 +26,9 @@ void TestMSAA::Start() {
 }
 
 void TestMSAA::Update() {
+    if (videoComp->HasVideoFinished()) {
+        Debug::Log("WOLOLOOOO");
+    }
     /*std::string logMSG = "IS ACTIVE " + std::to_string(Screen::IsMSAAActive());
     Debug::Log(logMSG.c_str());
 
