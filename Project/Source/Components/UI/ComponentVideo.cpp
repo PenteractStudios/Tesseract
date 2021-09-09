@@ -119,8 +119,6 @@ void ComponentVideo::OnEditorUpdate() {
 			ImGui::Checkbox("Flip Vertically", &verticalFlip);
 		}
 	}
-
-	//audioPlayer->OnEditorUpdate();
 }
 
 void ComponentVideo::Save(JsonValue jComponent) const {
@@ -166,11 +164,15 @@ void ComponentVideo::Draw(ComponentTransform2D* transform) {
 	glUniformMatrix4fv(imageUIProgram->projLocation, 1, GL_TRUE, proj.ptr());
 	glUniformMatrix4fv(imageUIProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
 
+	glUniform2fv(imageUIProgram->offsetLocation, 1, float2::zero.ptr());
+	glUniform2fv(imageUIProgram->tilingLocation, 1, float2::one.ptr());
+
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(imageUIProgram->diffuseLocation, 0);
-	glUniform4fv(imageUIProgram->inputColorLocation, 1, float4(1.f, 1.f, 1.f, 1.f).ptr());
+	glUniform4fv(imageUIProgram->inputColorLocation, 1, float4::one.ptr());
 
 	// allocate memory and set texture data
+	glBindTexture(GL_TEXTURE_2D, frameTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, frameWidth, frameHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, frameData);
 
 	glUniform1i(imageUIProgram->hasDiffuseLocation, 1);
@@ -178,8 +180,6 @@ void ComponentVideo::Draw(ComponentTransform2D* transform) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glDisable(GL_BLEND);
 }
 
 void ComponentVideo::Play() {
@@ -208,7 +208,7 @@ void ComponentVideo::SetVideoFrameSize(int width, int height) {
 }
 
 bool ComponentVideo::HasVideoFinished() {
-	return false;
+	return hasVideoFinished;
 }
 
 void ComponentVideo::OpenVideoReader(const char* filename) {
