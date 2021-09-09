@@ -14,14 +14,19 @@ GENERATE_BODY_IMPL(TestMSAA);
 
 void TestMSAA::Start() {
     video = GameplaySystems::GetGameObject(videoID);
+    Debug::Log("video read");
     if (video){
         ComponentVideo* videoComp = video->GetComponent<ComponentVideo>();
-        videoComp->Play();
+        Debug::Log("componet video read");
+        if (videoComp) {
+            Debug::Log("componet video play");
+            videoComp->Play();
+        }
     }
 }
 
 void TestMSAA::Update() {
-    std::string logMSG = "IS ACTIVE " + std::to_string(Screen::IsMSAAActive());
+    /*std::string logMSG = "IS ACTIVE " + std::to_string(Screen::IsMSAAActive());
     Debug::Log(logMSG.c_str());
 
     std::string logMSG2 = "SAMPLING " + std::to_string(static_cast<int>(Screen::GetMSAAType()));
@@ -49,5 +54,5 @@ void TestMSAA::Update() {
 
     if (Input::GetKeyCodeUp(Input::KEYCODE::KEY_P)) {
         Screen::SetBloomThreshold(1.0f);
-    }
+    }*/
 }
