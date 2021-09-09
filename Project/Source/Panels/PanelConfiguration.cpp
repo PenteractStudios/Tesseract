@@ -239,12 +239,15 @@ void PanelConfiguration::Update() {
 			ImGui::Checkbox("Activate Bloom", &App->renderer->bloomActive);
 			ImGui::DragFloat("Bloom Threshold", &App->renderer->bloomThreshold, 0.1f);
 			ImGui::DragFloat("Intensity", &App->renderer->bloomIntensity, 0.1f);
+			if (ImGui::DragFloat("Size Multiplier", &App->renderer->bloomSizeMultiplier, 0.01f, 0.0f, 10.0f)) {
+				App->renderer->ComputeBloomGaussianKernel();
+			};
 			ImGui::Text("Shape");
-			ImGui::SliderFloat("Very Small weight", &App->renderer->bloomVerySmallWeight, 0.0f, 1.0f, "%.2f");
-			ImGui::SliderFloat("Small weight", &App->renderer->bloomSmallWeight, 0.0f, 1.0f, "%.2f");
-			ImGui::SliderFloat("Medium weight", &App->renderer->bloomMediumWeight, 0.0f, 1.0f, "%.2f");
-			ImGui::SliderFloat("Large weight", &App->renderer->bloomLargeWeight, 0.0f, 1.0f, "%.2f");
 			ImGui::SliderFloat("Very Large weight", &App->renderer->bloomVeryLargeWeight, 0.0f, 1.0f, "%.2f");
+			ImGui::SliderFloat("Large weight", &App->renderer->bloomLargeWeight, 0.0f, 1.0f, "%.2f");
+			ImGui::SliderFloat("Medium weight", &App->renderer->bloomMediumWeight, 0.0f, 1.0f, "%.2f");
+			ImGui::SliderFloat("Small weight", &App->renderer->bloomSmallWeight, 0.0f, 1.0f, "%.2f");
+			ImGui::SliderFloat("Very Small weight", &App->renderer->bloomVerySmallWeight, 0.0f, 1.0f, "%.2f");
 
 			ImGui::Separator();
 

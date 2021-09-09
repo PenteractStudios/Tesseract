@@ -32,6 +32,7 @@
 #define JSON_TAG_BLOOM_QUALITY "BloomQuality"
 #define JSON_TAG_BLOOM_THRESHOLD "BloomThreshold"
 #define JSON_TAG_BLOOM_INTENSITY "BloomIntensity"
+#define JSON_TAG_BLOOM_SIZE_MULTIPLIER "BloomSizeMultiplier"
 #define JSON_TAG_BLOOM_VERY_SMALL_WEIGHT "BloomVerySmallWeight"
 #define JSON_TAG_BLOOM_SMALL_WEIGHT "BloomSmallWeight"
 #define JSON_TAG_BLOOM_MEDIUM_WEIGHT "BloomMediumWeight"
@@ -91,6 +92,7 @@ void ModuleConfiguration::LoadConfiguration() {
 	App->renderer->bloomActive = jConfig[JSON_TAG_BLOOM_ACTIVE];
 	App->renderer->bloomThreshold = jConfig[JSON_TAG_BLOOM_THRESHOLD];
 	App->renderer->bloomIntensity = jConfig[JSON_TAG_BLOOM_INTENSITY];
+	App->renderer->bloomSizeMultiplier = jConfig[JSON_TAG_BLOOM_SIZE_MULTIPLIER];
 	App->renderer->bloomVerySmallWeight = jConfig[JSON_TAG_BLOOM_VERY_SMALL_WEIGHT];
 	App->renderer->bloomSmallWeight = jConfig[JSON_TAG_BLOOM_SMALL_WEIGHT];
 	App->renderer->bloomMediumWeight = jConfig[JSON_TAG_BLOOM_MEDIUM_WEIGHT];
@@ -140,6 +142,7 @@ void ModuleConfiguration::SaveConfiguration() {
 	jConfig[JSON_TAG_BLOOM_ACTIVE] = App->renderer->bloomActive;
 	jConfig[JSON_TAG_BLOOM_THRESHOLD] = App->renderer->bloomThreshold;
 	jConfig[JSON_TAG_BLOOM_INTENSITY] = App->renderer->bloomIntensity;
+	jConfig[JSON_TAG_BLOOM_SIZE_MULTIPLIER] = App->renderer->bloomSizeMultiplier;
 	jConfig[JSON_TAG_BLOOM_VERY_SMALL_WEIGHT] = App->renderer->bloomVerySmallWeight;
 	jConfig[JSON_TAG_BLOOM_SMALL_WEIGHT] = App->renderer->bloomSmallWeight;
 	jConfig[JSON_TAG_BLOOM_MEDIUM_WEIGHT] = App->renderer->bloomMediumWeight;

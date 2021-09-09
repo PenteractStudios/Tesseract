@@ -35,6 +35,7 @@ public:
 
 	void ViewportResized(int width, int height); // Updates the viewport aspect ratio with the new one given by parameters. It will set 'viewportUpdated' to true, to regenerate the framebuffer to its new size using UpdateFramebuffers().
 	void UpdateFramebuffers();					 // Generates the rendering framebuffer on Init(). If 'viewportUpdated' was set to true, it will be also called at PostUpdate().
+	void ComputeBloomGaussianKernel();
 
 	void SetVSync(bool vsync);
 
@@ -125,9 +126,7 @@ public:
 	// Bloom
 	bool bloomActive = true;
 	int gaussSSAOKernelRadius = 0;
-	int gaussSmallKernelRadius = 0;
-	int gaussMediumKernelRadius = 0;
-	int gaussLargeKernelRadius = 0;
+	int gaussBloomKernelRadius = 0;
 
 	int gaussVerySmallMipLevel = 1;
 	int gaussSmallMipLevel = 2;
@@ -137,6 +136,7 @@ public:
 
 	float bloomIntensity = 1.0f;
 	float bloomThreshold = 1.0f;
+	float bloomSizeMultiplier = 1.0f;
 	float bloomVerySmallWeight = 0.5f;
 	float bloomSmallWeight = 0.5f;
 	float bloomMediumWeight = 0.5f;
@@ -191,9 +191,7 @@ private:
 
 	// ------- Kernels ------- //
 	std::vector<float> ssaoGaussKernel;
-	std::vector<float> smallGaussKernel;
-	std::vector<float> mediumGaussKernel;
-	std::vector<float> largeGaussKernel;
+	std::vector<float> bloomGaussKernel;
 
 	float3 ssaoKernel[SSAO_KERNEL_SIZE];
 	float3 randomTangents[RANDOM_TANGENTS_ROWS * RANDOM_TANGENTS_COLS];

@@ -753,7 +753,7 @@ UpdateStatus ModuleRender::Update() {
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glDisable(GL_DEPTH_TEST);
 			glClear(GL_COLOR_BUFFER_BIT);
-			BlurBloomTexture(horizontal ? colorTextures[1] : bloomBlurTextures[1], horizontal, largeGaussKernel, gaussLargeKernelRadius, gaussVeryLargeMipLevel);
+			BlurBloomTexture(horizontal ? colorTextures[1] : bloomBlurTextures[1], horizontal, bloomGaussKernel, gaussBloomKernelRadius, gaussVeryLargeMipLevel);
 
 			horizontal = !horizontal;
 		}
@@ -771,7 +771,7 @@ UpdateStatus ModuleRender::Update() {
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glDisable(GL_DEPTH_TEST);
 			glClear(GL_COLOR_BUFFER_BIT);
-			BlurBloomTexture(horizontal ? bloomCombineTexture : bloomBlurTextures[1], horizontal, largeGaussKernel, gaussLargeKernelRadius, gaussLargeMipLevel);
+			BlurBloomTexture(horizontal ? bloomCombineTexture : bloomBlurTextures[1], horizontal, bloomGaussKernel, gaussBloomKernelRadius, gaussLargeMipLevel);
 
 			horizontal = !horizontal;
 		}
@@ -789,7 +789,7 @@ UpdateStatus ModuleRender::Update() {
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glDisable(GL_DEPTH_TEST);
 			glClear(GL_COLOR_BUFFER_BIT);
-			BlurBloomTexture(horizontal ? bloomCombineTexture : bloomBlurTextures[1], horizontal, largeGaussKernel, gaussLargeKernelRadius, gaussMediumMipLevel);
+			BlurBloomTexture(horizontal ? bloomCombineTexture : bloomBlurTextures[1], horizontal, bloomGaussKernel, gaussBloomKernelRadius, gaussMediumMipLevel);
 
 			horizontal = !horizontal;
 		}
@@ -807,7 +807,7 @@ UpdateStatus ModuleRender::Update() {
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glDisable(GL_DEPTH_TEST);
 			glClear(GL_COLOR_BUFFER_BIT);
-			BlurBloomTexture(horizontal ? bloomCombineTexture : bloomBlurTextures[1], horizontal, largeGaussKernel, gaussLargeKernelRadius, gaussSmallMipLevel);
+			BlurBloomTexture(horizontal ? bloomCombineTexture : bloomBlurTextures[1], horizontal, bloomGaussKernel, gaussBloomKernelRadius, gaussSmallMipLevel);
 
 			horizontal = !horizontal;
 		}
@@ -825,7 +825,7 @@ UpdateStatus ModuleRender::Update() {
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glDisable(GL_DEPTH_TEST);
 			glClear(GL_COLOR_BUFFER_BIT);
-			BlurBloomTexture(horizontal ? bloomCombineTexture : bloomBlurTextures[1], horizontal, largeGaussKernel, gaussLargeKernelRadius, gaussVerySmallMipLevel);
+			BlurBloomTexture(horizontal ? bloomCombineTexture : bloomBlurTextures[1], horizontal, bloomGaussKernel, gaussBloomKernelRadius, gaussVerySmallMipLevel);
 
 			horizontal = !horizontal;
 		}
@@ -843,7 +843,7 @@ UpdateStatus ModuleRender::Update() {
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glDisable(GL_DEPTH_TEST);
 			glClear(GL_COLOR_BUFFER_BIT);
-			BlurBloomTexture(horizontal ? bloomCombineTexture : bloomBlurTextures[1], horizontal, largeGaussKernel, gaussLargeKernelRadius, 0);
+			BlurBloomTexture(horizontal ? bloomCombineTexture : bloomBlurTextures[1], horizontal, bloomGaussKernel, gaussBloomKernelRadius, 0);
 
 			horizontal = !horizontal;
 		}
@@ -1134,22 +1134,7 @@ void ModuleRender::UpdateFramebuffers() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloomCombineTexture, 0);
 
 	// Compute Gaussian kernels
-	gaussSmallKernelRadius = (int) roundf(viewportSize.y * 0.002f);
-	gaussMediumKernelRadius = (int) roundf(viewportSize.y * 0.004f);
-	gaussLargeKernelRadius = (int) roundf(viewportSize.y * 0.008f);
-	float term = Ln(1e5f / sqrt(2 * pi));
-	float sigma1 = gaussSmallKernelRadius * gaussSmallKernelRadius / 2.0f;
-	float sigma2 = gaussMediumKernelRadius * gaussMediumKernelRadius / 2.0f;
-	float sigma3 = gaussLargeKernelRadius * gaussLargeKernelRadius / 2.0f;
-	sigma1 = sqrt(sigma1 / (term - Ln(sigma1)));
-	sigma2 = sqrt(sigma2 / (term - Ln(sigma2)));
-	sigma3 = sqrt(sigma3 / (term - Ln(sigma3)));
-	smallGaussKernel.clear();
-	mediumGaussKernel.clear();
-	largeGaussKernel.clear();
-	gaussianKernel(2 * gaussSmallKernelRadius + 1, sigma1, 0.f, 1.f, smallGaussKernel);
-	gaussianKernel(2 * gaussMediumKernelRadius + 1, sigma2, 0.f, 1.f, mediumGaussKernel);
-	gaussianKernel(2 * gaussLargeKernelRadius + 1, sigma3, 0.f, 1.f, largeGaussKernel);
+	ComputeBloomGaussianKernel();
 
 	// Color correction buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, colorCorrectionBuffer);
@@ -1166,6 +1151,15 @@ void ModuleRender::UpdateFramebuffers() {
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		LOG("ERROR: Framebuffer is not complete!");
 	}
+}
+
+void ModuleRender::ComputeBloomGaussianKernel() {
+	gaussBloomKernelRadius = (int) roundf(viewportSize.y * 0.008f * bloomSizeMultiplier);
+	float term = Ln(1e5f / sqrt(2 * pi));
+	float sigma = gaussBloomKernelRadius * gaussBloomKernelRadius / 2.0f;
+	sigma = sqrt(sigma / (term - Ln(sigma)));
+	bloomGaussKernel.clear();
+	gaussianKernel(2 * gaussBloomKernelRadius + 1, sigma, 0.f, 1.f, bloomGaussKernel);
 }
 
 void ModuleRender::SetVSync(bool vsync) {
