@@ -14,6 +14,7 @@
 #include "Modules/ModuleConfiguration.h"
 #include "Resources/ResourceScene.h"
 #include "Resources/ResourceNavMesh.h"
+#include "Resources/ResourceTexture.h"
 #include "Scene.h"
 #include "Utils/ImGuiUtils.h"
 
@@ -236,13 +237,17 @@ void PanelConfiguration::Update() {
 
 			ImGui::TextColored(App->editor->titleColor, "Bloom Settings");
 			ImGui::Checkbox("Activate Bloom", &App->renderer->bloomActive);
-			ImGui::SliderInt("Quality", &App->renderer->bloomQuality, 1, 7);
 			ImGui::DragFloat("Bloom Threshold", &App->renderer->bloomThreshold, 0.1f);
 			ImGui::DragFloat("Intensity", &App->renderer->bloomIntensity, 0.1f);
+			if (ImGui::DragFloat("Size Multiplier", &App->renderer->bloomSizeMultiplier, 0.01f, 0.0f, 10.0f)) {
+				App->renderer->ComputeBloomGaussianKernel();
+			};
 			ImGui::Text("Shape");
-			ImGui::SliderFloat("Small weight", &App->renderer->bloomSmallWeight, 0.0f, 2.0f, "%.2f");
-			ImGui::SliderFloat("Medium weight", &App->renderer->bloomMediumWeight, 0.0f, 2.0f, "%.2f");
-			ImGui::SliderFloat("Large weight", &App->renderer->bloomLargeWeight, 0.0f, 2.0f, "%.2f");
+			ImGui::SliderFloat("Very Large weight", &App->renderer->bloomVeryLargeWeight, 0.0f, 1.0f, "%.2f");
+			ImGui::SliderFloat("Large weight", &App->renderer->bloomLargeWeight, 0.0f, 1.0f, "%.2f");
+			ImGui::SliderFloat("Medium weight", &App->renderer->bloomMediumWeight, 0.0f, 1.0f, "%.2f");
+			ImGui::SliderFloat("Small weight", &App->renderer->bloomSmallWeight, 0.0f, 1.0f, "%.2f");
+			ImGui::SliderFloat("Very Small weight", &App->renderer->bloomVerySmallWeight, 0.0f, 1.0f, "%.2f");
 
 			ImGui::Separator();
 
@@ -294,6 +299,18 @@ void PanelConfiguration::Update() {
 
 			ImGui::TextColored(App->editor->titleColor, "NavMesh");
 			ImGui::ResourceSlot<ResourceNavMesh>("Nav Mesh", &scene->navMeshId);
+
+			ImGui::Separator();
+			ImGui::ResourceSlot<ResourceTexture>("Cursor Texture", &scene->cursorId);
+
+			int widthCursor = scene->widthCursor;			
+			if (ImGui::DragInt("Width Cursor", &widthCursor, 1, 10, 100)) {
+				scene->widthCursor = widthCursor;
+			}
+			int heightCursor = scene->heightCursor;
+			if (ImGui::DragInt("Height Cursor", &heightCursor, 1, 10, 100)) {
+				scene->heightCursor = heightCursor;
+			}
 		}
 	}
 	ImGui::End();

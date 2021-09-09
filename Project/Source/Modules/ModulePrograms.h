@@ -51,6 +51,9 @@ public:
 	ProgramSSAO* ssao = nullptr;
 	ProgramBlur* blur = nullptr;
 
+	// Bloom shaders
+	ProgramBloomCombine* bloomCombine = nullptr;
+
 	// Post-processing Shaders
 	ProgramPostprocess* postprocess = nullptr;
 	ProgramColorCorrection* colorCorrection = nullptr;

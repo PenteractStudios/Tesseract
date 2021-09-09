@@ -438,6 +438,10 @@ void Screen::SetBrightness(float brightness) {
 	App->window->SetBrightness(brightness);
 }
 
+void Screen::SetCursor(UID cursorID, int widthCursor, int heightCursor) {
+	App->window->SetCursor(cursorID, widthCursor, heightCursor);
+}
+
 WindowMode Screen::GetWindowMode() {
 	return App->window->GetWindowMode();
 }

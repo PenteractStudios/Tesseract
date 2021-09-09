@@ -6,6 +6,7 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModulePhysics.h"
 #include "Modules/ModuleTime.h"
+#include "Modules/ModuleWindow.h"
 #include "Resources/ResourceMesh.h"
 #include "Utils/Logging.h"
 
@@ -53,6 +54,7 @@ void Scene::ClearScene() {
 	root = nullptr;
 	quadtree.Clear();
 	SetNavMesh(0);
+	SetCursor(0);
 
 	assert(gameObjects.Count() == 0); // There should be no GameObjects outside the scene hierarchy
 	gameObjects.Clear();			  // This looks redundant, but it resets the free list so that GameObject order is mantained when saving/loading
@@ -468,4 +470,40 @@ void Scene::SetNavMesh(UID navMesh) {
 
 UID Scene::GetNavMesh() {
 	return navMeshId;
+}
+
+void Scene::SetCursor(UID cursor) {
+	if (cursorId != 0) {
+		App->resources->DecreaseReferenceCount(cursorId);
+	}
+
+	cursorId = cursor;
+
+	if (cursor != 0) {
+		App->resources->IncreaseReferenceCount(cursor);
+	}
+	App->window->SetCursor(cursorId, widthCursor, heightCursor);
+#if GAME
+	App->window->ActivateCursor(true);
+#endif
+}
+
+UID Scene::GetCursor() {
+	return cursorId;
+}
+
+void Scene::SetCursorWidth(int width) {
+	widthCursor = width;
+}
+
+int Scene::GetCursorWidth() {
+	return widthCursor;
+}
+
+void Scene::SetCursorHeight(int height) {
+	heightCursor = height;
+}
+
+int Scene::GetCursorHeight() {
+	return heightCursor;
 }

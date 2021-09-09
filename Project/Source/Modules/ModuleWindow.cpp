@@ -3,8 +3,13 @@
 #include "Application.h"
 #include "Utils/Logging.h"
 #include "Modules/ModuleEvents.h"
+#include "Modules/ModuleScene.h"
+#include "Resources/ResourceTexture.h"
 
 #include "SDL.h"
+#include "SDL_image.h"
+#include "Scene.h"
+#include "GL/glew.h"
 
 #include "Utils/Leaks.h"
 
@@ -65,6 +70,10 @@ bool ModuleWindow::CleanUp() {
 
 	if (window != NULL) {
 		SDL_DestroyWindow(window);
+	}
+
+	if (cursor != nullptr) {
+		SDL_FreeCursor(cursor);
 	}
 
 	SDL_Quit();
@@ -128,6 +137,48 @@ void ModuleWindow::SetTitle(const char* title) {
 	SDL_SetWindowTitle(window, title);
 }
 
+void ModuleWindow::ActivateCursor(bool isPlaying) {
+	if (isPlaying) {
+		SDL_SetCursor(cursor);
+	} else {
+		SDL_SetCursor(SDL_GetDefaultCursor());
+	}
+}
+
+void ModuleWindow::SetCursor(UID cursorID, int widthCursor, int heightCursor) {
+	// Load resource
+	ResourceTexture* cursorResourceTexture = App->resources->GetResource<ResourceTexture>(cursorID);
+	if (cursorResourceTexture == nullptr) {
+		return;
+	}
+	// From glTexture to SDL_Surface
+	int w = 0;
+	int h = 0;
+	glGetTextureLevelParameteriv(cursorResourceTexture->glTexture, 0, GL_TEXTURE_WIDTH, &w);
+	glGetTextureLevelParameteriv(cursorResourceTexture->glTexture, 0, GL_TEXTURE_HEIGHT, &h);
+
+	void* pixel_data = malloc(w*h*4);
+	memset(pixel_data, 0, w*h * 4);
+
+	glBindTexture(GL_TEXTURE_2D, cursorResourceTexture->glTexture);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixel_data);
+
+	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(pixel_data, w, h, 32, 4 * w, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
+
+	// Scale image
+	SDL_Surface* scaledImage = SDL_CreateRGBSurfaceWithFormat(0, widthCursor,heightCursor, 32, SDL_PIXELFORMAT_RGBA32);
+	SDL_SoftStretch(surface, &surface->clip_rect, scaledImage, &scaledImage->clip_rect);
+
+	if (scaledImage) {
+		cursor = SDL_CreateColorCursor(scaledImage, widthCursor / 2, heightCursor / 2);
+	} else {
+		LOG("Error creating Cursor");
+		cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
+	}
+	free(pixel_data);
+	pixel_data = nullptr;
+}
+
 WindowMode ModuleWindow::GetWindowMode() const {
 	return windowMode;
 }
@@ -183,4 +234,8 @@ float ModuleWindow::GetBrightness() const {
 
 const char* ModuleWindow::GetTitle() const {
 	return SDL_GetWindowTitle(window);
+}
+
+SDL_Cursor* ModuleWindow::GetCursor() const {
+	return cursor;
 }
