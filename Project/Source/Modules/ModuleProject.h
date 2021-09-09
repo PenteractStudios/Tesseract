@@ -4,6 +4,8 @@
 
 #include <string>
 
+class PropertyMap;
+
 #ifndef _WINDEF_
 struct HINSTANCE__; // Forward or never
 typedef HINSTANCE__* HINSTANCE;
@@ -32,6 +34,8 @@ public:
 
 	bool IsGameLoaded() const;
 
+	PropertyMap* GetGameState() const;
+
 public:
 	std::string projectName = "";
 	std::string projectPath = "";
@@ -45,4 +49,6 @@ private:
 
 private:
 	HMODULE gameCodeDLL = nullptr;
+
+	PropertyMap* gameState = nullptr;
 };
