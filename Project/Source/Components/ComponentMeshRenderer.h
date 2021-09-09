@@ -29,10 +29,10 @@ public:
 	TESSERACT_ENGINE_API void PlayDissolveAnimation(bool reverse = false);	// Plays Dissolve animation. If reverse is true, it will go from transparent to material's color, else it will go from color to transparent
 	TESSERACT_ENGINE_API void ResetDissolveValues();				// Resets current timer, dissolve threshold and reverse to false
 	
-	TESSERACT_ENGINE_API float GetDissolveDuration();				// Returns material's dissolve duration
-	TESSERACT_ENGINE_API float GetDissolveThreshold();				// Returns current dissolve threshold. From 0 to 1.
-	TESSERACT_ENGINE_API bool HasDissolveAnimationFinished();		// Returns true if the dissolve animation has finished
-	TESSERACT_ENGINE_API bool IsDissolvePlayingOnReverse();			// Returns true if the dissolve animation is playing on reverse
+	TESSERACT_ENGINE_API float GetDissolveDuration() const;				// Returns material's dissolve duration
+	TESSERACT_ENGINE_API float GetDissolveThreshold() const;			// Returns current dissolve threshold. From 0 to 1.
+	TESSERACT_ENGINE_API bool HasDissolveAnimationFinished() const;		// Returns true if the dissolve animation has finished
+	TESSERACT_ENGINE_API bool IsDissolvePlayingOnReverse() const;		// Returns true if the dissolve animation is playing on reverse
 
 	// Tilling
 	TESSERACT_ENGINE_API float2 GetTextureTiling() const;
