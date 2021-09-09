@@ -23,6 +23,7 @@
 #define JSON_TAG_TEXT_FONTID "FontID"
 #define JSON_TAG_TEXT_FONTSIZE "FontSize"
 #define JSON_TAG_TEXT_LINEHEIGHT "LineHeight"
+#define JSON_TAG_TEXT_LETTER_SPACING "LetterSpacing"
 #define JSON_TAG_TEXT_VALUE "Value"
 #define JSON_TAG_TEXT_ALIGNMENT "Alignment"
 #define JSON_TAG_COLOR "Color"
@@ -60,7 +61,7 @@ void ComponentText::OnEditorUpdate() {
 
 	bool mustRecalculateVertices = false;
 
-	if (ImGui::InputTextMultiline("Text input", &text, ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 8), flags)) {
+	if (ImGui::InputTextMultiline("Text input", &text, ImVec2(0.0f, ImGui::GetTextLineHeight() * 8), flags)) {
 		SetText(text);
 	}
 	UID oldFontID = fontID;
@@ -69,10 +70,13 @@ void ComponentText::OnEditorUpdate() {
 		mustRecalculateVertices = true;
 	}
 
-	if (ImGui::DragFloat("Font Size", &fontSize, 2.0f, 0, FLT_MAX)) {
+	if (ImGui::DragFloat("Font Size", &fontSize, 2.0f, 0.0f, FLT_MAX)) {
 		mustRecalculateVertices = true;
 	}
-	if (ImGui::DragFloat("Line height", &lineHeight, 2.0f, 0, FLT_MAX)) {
+	if (ImGui::DragFloat("Line height", &lineHeight, 2.0f, -FLT_MAX, FLT_MAX)) {
+		mustRecalculateVertices = true;
+	}
+	if (ImGui::DragFloat("Letter spacing", &letterSpacing, 0.1f, -FLT_MAX, FLT_MAX)) {
 		mustRecalculateVertices = true;
 	}
 
@@ -93,6 +97,7 @@ void ComponentText::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_TEXT_FONTID] = fontID;
 	jComponent[JSON_TAG_TEXT_FONTSIZE] = fontSize;
 	jComponent[JSON_TAG_TEXT_LINEHEIGHT] = lineHeight;
+	jComponent[JSON_TAG_TEXT_LETTER_SPACING] = letterSpacing;
 	jComponent[JSON_TAG_TEXT_ALIGNMENT] = textAlignment;
 
 	jComponent[JSON_TAG_TEXT_VALUE] = text.c_str();
@@ -111,6 +116,8 @@ void ComponentText::Load(JsonValue jComponent) {
 	fontSize = jComponent[JSON_TAG_TEXT_FONTSIZE];
 
 	lineHeight = jComponent[JSON_TAG_TEXT_LINEHEIGHT];
+
+	letterSpacing = jComponent[JSON_TAG_TEXT_LETTER_SPACING];
 
 	textAlignment = jComponent[JSON_TAG_TEXT_ALIGNMENT];
 
@@ -210,7 +217,7 @@ void ComponentText::RecalculateVertices() {
 
 	ComponentTransform2D* transform = GetOwner().GetComponent<ComponentTransform2D>();
 
-	float x = -transform->GetSize().x / 2.0f;
+	float x = -transform->GetSize().x * 0.5f;
 	float y = 0;
 
 	float dy = 0; // additional y shifting
@@ -234,7 +241,7 @@ void ComponentText::RecalculateVertices() {
 			break;
 		}
 		case TextAlignment::CENTER: {
-			xpos += (transform->GetSize().x / 2.0f - SubstringWidth(&text.c_str()[j], scale) / 2.0f);
+			xpos += (transform->GetSize().x - SubstringWidth(&text.c_str()[j], scale)) * 0.5f;
 			break;
 		}
 		case TextAlignment::RIGHT: {
@@ -245,7 +252,7 @@ void ComponentText::RecalculateVertices() {
 
 		if (text.at(i) == '\n') {
 			dy += lineHeight;					// shifts to next line
-			x = -transform->GetSize().x / 2.0f; // reset to initial position
+			x = -transform->GetSize().x * 0.5f; // reset to initial position
 			j = i + 1;							// updated j variable in order to get the substringwidth of the following line in the next iteration
 		}
 
@@ -262,7 +269,7 @@ void ComponentText::RecalculateVertices() {
 
 		// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
 		if (text.at(i) != '\n') {
-			x += (character.advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64). Divides / 64
+			x += ((character.advance >> 6) + letterSpacing) * scale; // bitshift by 6 to get value in pixels (2^6 = 64). Divides / 64
 		}
 	}
 
@@ -278,8 +285,9 @@ float ComponentText::SubstringWidth(const char* substring, float scale) {
 
 	for (int i = 0; substring[i] != '\0' && substring[i] != '\n'; ++i) {
 		Character c = App->userInterface->GetCharacter(fontID, substring[i]);
-		subWidth += (c.advance >> 6) * scale;
+		subWidth += ((c.advance >> 6) + letterSpacing) * scale;
 	}
+	subWidth -= letterSpacing * scale;
 
 	return subWidth;
 }

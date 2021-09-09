@@ -14,6 +14,7 @@
 #include "Modules/ModuleConfiguration.h"
 #include "Resources/ResourceScene.h"
 #include "Resources/ResourceNavMesh.h"
+#include "Resources/ResourceTexture.h"
 #include "Scene.h"
 #include "Utils/ImGuiUtils.h"
 
@@ -294,6 +295,18 @@ void PanelConfiguration::Update() {
 
 			ImGui::TextColored(App->editor->titleColor, "NavMesh");
 			ImGui::ResourceSlot<ResourceNavMesh>("Nav Mesh", &scene->navMeshId);
+
+			ImGui::Separator();
+			ImGui::ResourceSlot<ResourceTexture>("Cursor Texture", &scene->cursorId);
+
+			int widthCursor = scene->widthCursor;			
+			if (ImGui::DragInt("Width Cursor", &widthCursor, 1, 10, 100)) {
+				scene->widthCursor = widthCursor;
+			}
+			int heightCursor = scene->heightCursor;
+			if (ImGui::DragInt("Height Cursor", &heightCursor, 1, 10, 100)) {
+				scene->heightCursor = heightCursor;
+			}
 		}
 	}
 	ImGui::End();

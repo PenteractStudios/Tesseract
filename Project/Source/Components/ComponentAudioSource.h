@@ -24,6 +24,7 @@ public:
 	TESSERACT_ENGINE_API void Stop();
 	TESSERACT_ENGINE_API void Pause() const;
 	TESSERACT_ENGINE_API bool IsPlaying() const;
+	TESSERACT_ENGINE_API bool IsPaused() const;
 	TESSERACT_ENGINE_API bool IsStopped() const;
 
 	// --- GETTERS ---
