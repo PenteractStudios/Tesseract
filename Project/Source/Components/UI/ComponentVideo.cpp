@@ -119,8 +119,6 @@ void ComponentVideo::OnEditorUpdate() {
 			ImGui::Checkbox("Flip Vertically", &verticalFlip);
 		}
 	}
-
-	//audioPlayer->OnEditorUpdate();
 }
 
 void ComponentVideo::Save(JsonValue jComponent) const {
@@ -208,7 +206,7 @@ void ComponentVideo::SetVideoFrameSize(int width, int height) {
 }
 
 bool ComponentVideo::HasVideoFinished() {
-	return false;
+	return hasVideoFinished;
 }
 
 void ComponentVideo::OpenVideoReader(const char* filename) {
