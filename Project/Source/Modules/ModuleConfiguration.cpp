@@ -32,9 +32,11 @@
 #define JSON_TAG_BLOOM_QUALITY "BloomQuality"
 #define JSON_TAG_BLOOM_THRESHOLD "BloomThreshold"
 #define JSON_TAG_BLOOM_INTENSITY "BloomIntensity"
+#define JSON_TAG_BLOOM_VERY_SMALL_WEIGHT "BloomVerySmallWeight"
 #define JSON_TAG_BLOOM_SMALL_WEIGHT "BloomSmallWeight"
 #define JSON_TAG_BLOOM_MEDIUM_WEIGHT "BloomMediumWeight"
 #define JSON_TAG_BLOOM_LARGE_WEIGHT "BloomLargeWeight"
+#define JSON_TAG_BLOOM_VERY_LARGE_WEIGHT "BloomVeryLargeWeight"
 #define JSON_TAG_MSAA_ACTIVE "MSAAActive"
 #define JSON_TAG_MSAA_SAMPLE_TYPE "MSAASampleType"
 #define JSON_TAG_CHROMATIC_ABERRATION_ACTIVE "ChromaticAberrationActive"
@@ -87,12 +89,13 @@ void ModuleConfiguration::LoadConfiguration() {
 	App->renderer->ssaoDirectLightingStrength = jConfig[JSON_TAG_SSAO_DIRECT_LIGHTING_STRENGTH];
 
 	App->renderer->bloomActive = jConfig[JSON_TAG_BLOOM_ACTIVE];
-	App->renderer->bloomQuality = jConfig[JSON_TAG_BLOOM_QUALITY];
 	App->renderer->bloomThreshold = jConfig[JSON_TAG_BLOOM_THRESHOLD];
 	App->renderer->bloomIntensity = jConfig[JSON_TAG_BLOOM_INTENSITY];
+	App->renderer->bloomVerySmallWeight = jConfig[JSON_TAG_BLOOM_VERY_SMALL_WEIGHT];
 	App->renderer->bloomSmallWeight = jConfig[JSON_TAG_BLOOM_SMALL_WEIGHT];
 	App->renderer->bloomMediumWeight = jConfig[JSON_TAG_BLOOM_MEDIUM_WEIGHT];
 	App->renderer->bloomLargeWeight = jConfig[JSON_TAG_BLOOM_LARGE_WEIGHT];
+	App->renderer->bloomVeryLargeWeight = jConfig[JSON_TAG_BLOOM_VERY_LARGE_WEIGHT];
 
 	App->renderer->msaaActive = jConfig[JSON_TAG_MSAA_ACTIVE];
 	App->renderer->msaaSampleType = (MSAA_SAMPLES_TYPE)(int) jConfig[JSON_TAG_MSAA_SAMPLE_TYPE];
@@ -135,12 +138,13 @@ void ModuleConfiguration::SaveConfiguration() {
 	jConfig[JSON_TAG_SSAO_DIRECT_LIGHTING_STRENGTH] = App->renderer->ssaoDirectLightingStrength;
 
 	jConfig[JSON_TAG_BLOOM_ACTIVE] = App->renderer->bloomActive;
-	jConfig[JSON_TAG_BLOOM_QUALITY] = App->renderer->bloomQuality;
 	jConfig[JSON_TAG_BLOOM_THRESHOLD] = App->renderer->bloomThreshold;
 	jConfig[JSON_TAG_BLOOM_INTENSITY] = App->renderer->bloomIntensity;
+	jConfig[JSON_TAG_BLOOM_VERY_SMALL_WEIGHT] = App->renderer->bloomVerySmallWeight;
 	jConfig[JSON_TAG_BLOOM_SMALL_WEIGHT] = App->renderer->bloomSmallWeight;
 	jConfig[JSON_TAG_BLOOM_MEDIUM_WEIGHT] = App->renderer->bloomMediumWeight;
 	jConfig[JSON_TAG_BLOOM_LARGE_WEIGHT] = App->renderer->bloomLargeWeight;
+	jConfig[JSON_TAG_BLOOM_VERY_LARGE_WEIGHT] = App->renderer->bloomVeryLargeWeight;
 
 	jConfig[JSON_TAG_MSAA_ACTIVE] = App->renderer->msaaActive;
 	jConfig[JSON_TAG_MSAA_SAMPLE_TYPE] = (int) App->renderer->msaaSampleType;
