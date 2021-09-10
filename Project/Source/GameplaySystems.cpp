@@ -187,6 +187,10 @@ const float2& Input::GetMouseMotion() {
 	return App->input->GetMouseMotion();
 }
 
+float Input::GetMouseWheelMotion() {
+	return App->input->GetMouseWheelMotion();
+}
+
 const float3 Input::GetMouseWorldPosition() {
 	float2 MousePositionNormalized = App->editor->panelScene.GetMousePosOnSceneNormalized();
 	float4x4 Projection = App->camera->GetProjectionMatrix();
