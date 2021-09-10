@@ -1,23 +1,35 @@
 #include "TestMSAA.h"
 
-
+#include "Components/UI/ComponentVideo.h"
 #include "GameplaySystems.h"
 
 EXPOSE_MEMBERS(TestMSAA) {
     // Add members here to expose them to the engine. Example:
     // MEMBER(MemberType::BOOL, exampleMember1),
     // MEMBER(MemberType::PREFAB_RESOURCE_UID, exampleMember2),
-    // MEMBER(MemberType::GAME_OBJECT_UID, exampleMember3)
+    MEMBER(MemberType::GAME_OBJECT_UID, videoID)
 };
 
 GENERATE_BODY_IMPL(TestMSAA);
 
 void TestMSAA::Start() {
-	
+    video = GameplaySystems::GetGameObject(videoID);
+    Debug::Log("video read");
+    if (video){
+        videoComp = video->GetComponent<ComponentVideo>();
+        Debug::Log("componet video read");
+        if (videoComp) {
+            Debug::Log("componet video play");
+            videoComp->Play();
+        }
+    }
 }
 
 void TestMSAA::Update() {
-    std::string logMSG = "IS ACTIVE " + std::to_string(Screen::IsMSAAActive());
+    if (videoComp->HasVideoFinished()) {
+        Debug::Log("WOLOLOOOO");
+    }
+    /*std::string logMSG = "IS ACTIVE " + std::to_string(Screen::IsMSAAActive());
     Debug::Log(logMSG.c_str());
 
     std::string logMSG2 = "SAMPLING " + std::to_string(static_cast<int>(Screen::GetMSAAType()));
@@ -45,5 +57,5 @@ void TestMSAA::Update() {
 
     if (Input::GetKeyCodeUp(Input::KEYCODE::KEY_P)) {
         Screen::SetBloomThreshold(1.0f);
-    }
+    }*/
 }

@@ -989,6 +989,24 @@ void ComponentMeshRenderer::ResetDissolveValues() {
 	dissolveAnimationReverse = false;
 }
 
+float ComponentMeshRenderer::GetDissolveDuration() const {
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+	if (!material) return 0.0f;
+	return material->dissolveDuration;
+}
+
+float ComponentMeshRenderer::GetDissolveThreshold() const {
+	return dissolveThreshold;
+}
+
+bool ComponentMeshRenderer::HasDissolveAnimationFinished() const {
+	return GetDissolveValue() == 1.0f;
+}
+
+bool ComponentMeshRenderer::IsDissolvePlayingOnReverse() const {
+	return dissolveAnimationReverse;
+}
+
 float2 ComponentMeshRenderer::GetTextureTiling() const {
 	return textureTiling;
 }

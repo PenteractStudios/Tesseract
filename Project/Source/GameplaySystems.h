@@ -438,6 +438,7 @@ namespace Input {
 	TESSERACT_ENGINE_API const float3 GetMouseWorldPosition();
 	TESSERACT_ENGINE_API const float2 GetMousePositionNormalized();
 	TESSERACT_ENGINE_API float2 GetMousePosition();
+	TESSERACT_ENGINE_API float GetMouseWheelMotion();
 	TESSERACT_ENGINE_API bool GetKeyCodeDown(KEYCODE keycode);
 	TESSERACT_ENGINE_API bool GetKeyCodeUp(KEYCODE keycode);
 	TESSERACT_ENGINE_API bool GetKeyCodeRepeat(KEYCODE keycode);
@@ -470,6 +471,7 @@ namespace Screen {
 	TESSERACT_ENGINE_API void SetCurrentDisplayMode(unsigned index);
 	TESSERACT_ENGINE_API void SetSize(int width, int height);
 	TESSERACT_ENGINE_API void SetBrightness(float brightness);
+	TESSERACT_ENGINE_API void SetCursor(UID cursorID, int widthCursor, int heightCursor);
 
 	TESSERACT_ENGINE_API WindowMode GetWindowMode();
 	TESSERACT_ENGINE_API bool GetMaximized();

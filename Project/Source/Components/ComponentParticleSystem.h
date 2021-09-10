@@ -426,6 +426,7 @@ private:
 	// Trail
 	bool hasTrail = false;
 	float trailRatio = 1;
+	float distanceVertex = 0;
 
 	RandomMode widthRM = RandomMode::CONST;
 	float2 width = {0.1f, 0.1f};

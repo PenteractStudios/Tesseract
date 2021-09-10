@@ -7,13 +7,16 @@
     ],
     "QuadtreeMaxDepth": 4,
     "QuadtreeElementsPerNode": 200,
-    "GameCamera": 11146338404044997192,
+    "GameCamera": 6537823253383471165,
     "AmbientLight": [
         0.25,
         0.25,
         0.25
     ],
     "NavMesh": 0,
+    "Cursor": 0,
+    "CursorHeight": 0,
+    "CursorWidth": 0,
     "Root": {
         "Id": 11592354141313059608,
         "Name": "Scene",
@@ -97,8 +100,9 @@
                             1.0
                         ],
                         "Intensity": 1.0,
-                        "Kl": 0.04500000178813934,
-                        "Kq": 0.007499999832361937,
+                        "Radius": 0.0,
+                        "UseCustomFalloff": false,
+                        "FalloffExponent": 0.0,
                         "InnerAngle": 0.2617993950843811,
                         "OuterAngle": 0.5235987901687622
                     }
@@ -171,7 +175,8 @@
                         "Id": 2740007277538152273,
                         "Active": true,
                         "Shader": 0,
-                        "Skybox": 0
+                        "Skybox": 0,
+                        "Strength": 0.0
                     },
                     {
                         "Type": "AudioListener",
@@ -308,7 +313,7 @@
                                 "Id": 10376464855833393352,
                                 "Active": true,
                                 "VideoId": 10341351743313672719,
-                                "PlayOnAwake": true,
+                                "PlayOnAwake": false,
                                 "Loop": true,
                                 "VerticalFlip": false
                             }
@@ -357,6 +362,57 @@
                         "Id": 5472817877485584119,
                         "Active": true,
                         "FirstSelectedId": 0
+                    }
+                ],
+                "Children": null
+            },
+            {
+                "Id": 2112319116309999276,
+                "Name": "Game Object",
+                "Active": true,
+                "Static": false,
+                "ActiveHierarchy": true,
+                "RootBoneId": 0,
+                "Mask": 0,
+                "Components": [
+                    {
+                        "Type": "Transform",
+                        "Id": 16665014243005074456,
+                        "Active": true,
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "LocalEulerAngles": [
+                            -0.0,
+                            0.0,
+                            -0.0
+                        ]
+                    },
+                    {
+                        "Type": "Script",
+                        "Id": 9509994948132030405,
+                        "Active": true,
+                        "Script": 17943104451880984825,
+                        "Values": [
+                            {
+                                "Name": "videoID",
+                                "Type": "GameObjectUID",
+                                "Value": 13217786113281963586
+                            }
+                        ]
                     }
                 ],
                 "Children": null

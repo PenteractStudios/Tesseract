@@ -35,6 +35,7 @@ public:
 
 	void ViewportResized(int width, int height); // Updates the viewport aspect ratio with the new one given by parameters. It will set 'viewportUpdated' to true, to regenerate the framebuffer to its new size using UpdateFramebuffers().
 	void UpdateFramebuffers();					 // Generates the rendering framebuffer on Init(). If 'viewportUpdated' was set to true, it will be also called at PostUpdate().
+	void ComputeBloomGaussianKernel();
 
 	void SetVSync(bool vsync);
 
@@ -80,6 +81,7 @@ public:
 	unsigned auxBlurTexture = 0;
 	unsigned colorTextures[2] = {0, 0}; // position 0: scene render texture; position 1: bloom texture to be blurred
 	unsigned bloomBlurTextures[2] = {0, 0};
+	unsigned bloomCombineTexture = 0;
 
 	unsigned renderPassBuffer = 0;
 	unsigned depthPrepassBuffer = 0;
@@ -90,7 +92,8 @@ public:
 	unsigned ssaoBlurTextureBufferV = 0;
 	unsigned colorCorrectionBuffer = 0;
 	unsigned hdrFramebuffer = 0;
-	unsigned bloomBlurFramebuffers[6] = {0, 0, 0, 0, 0, 0}; // Ping-pong buffers to blur bloom horizontally and vertically
+	unsigned bloomBlurFramebuffers[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // Ping-pong buffers to blur bloom horizontally and vertically
+	unsigned bloomCombineFramebuffers[5] = {0, 0, 0, 0, 0};
 
 	// ------- Viewport Updated ------- //
 	bool viewportUpdated = true;
@@ -123,20 +126,22 @@ public:
 	// Bloom
 	bool bloomActive = true;
 	int gaussSSAOKernelRadius = 0;
-	int gaussSmallKernelRadius = 0;
-	int gaussMediumKernelRadius = 0;
-	int gaussLargeKernelRadius = 0;
+	int gaussBloomKernelRadius = 0;
 
+	int gaussVerySmallMipLevel = 1;
 	int gaussSmallMipLevel = 2;
 	int gaussMediumMipLevel = 3;
 	int gaussLargeMipLevel = 4;
+	int gaussVeryLargeMipLevel = 5;
 
-	int bloomQuality = 2;
 	float bloomIntensity = 1.0f;
 	float bloomThreshold = 1.0f;
-	float bloomSmallWeight = 1.0f;
-	float bloomMediumWeight = 1.0f;
-	float bloomLargeWeight = 1.0f;
+	float bloomSizeMultiplier = 1.0f;
+	float bloomVerySmallWeight = 0.5f;
+	float bloomSmallWeight = 0.5f;
+	float bloomMediumWeight = 0.5f;
+	float bloomLargeWeight = 0.5f;
+	float bloomVeryLargeWeight = 0.5f;
 
 	bool msaaActive = true;
 	MSAA_SAMPLES_TYPE msaaSampleType = MSAA_SAMPLES_TYPE::MSAA_X4;
@@ -164,10 +169,10 @@ private:
 	void ConvertDepthPrepassTextures();
 	void ComputeSSAOTexture();
 	void BlurSSAOTexture(bool horizontal);
-	void BlurBloomTexture(bool horizontal, bool firstTime, const std::vector<float>& kernel, int kernelRadius, int textureLevel);
-	void CombineBlooms();
+	void BlurBloomTexture(unsigned bloomTexture, bool horizontal, const std::vector<float>& kernel, int kernelRadius, int textureLevel);
+	void BloomCombine(unsigned bloomTexture, int bloomTextureLevel, int brightTextureLevel, float bloomWeight);
 
-	void ExecuteColorCorrection(bool horizontal);
+	void ExecuteColorCorrection();
 
 	void DrawTexture(unsigned texture);
 	void DrawScene();
@@ -186,9 +191,7 @@ private:
 
 	// ------- Kernels ------- //
 	std::vector<float> ssaoGaussKernel;
-	std::vector<float> smallGaussKernel;
-	std::vector<float> mediumGaussKernel;
-	std::vector<float> largeGaussKernel;
+	std::vector<float> bloomGaussKernel;
 
 	float3 ssaoKernel[SSAO_KERNEL_SIZE];
 	float3 randomTangents[RANDOM_TANGENTS_ROWS * RANDOM_TANGENTS_COLS];

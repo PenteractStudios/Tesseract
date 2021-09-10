@@ -9,6 +9,7 @@
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleRender.h"
 #include "Modules/ModuleFiles.h"
+#include "Modules/ModuleWindow.h"
 #include "Resources/ResourceMesh.h"
 #include "Resources/ResourceNavMesh.h"
 #include "Utils/Logging.h"
@@ -22,6 +23,9 @@
 #define JSON_TAG_GAME_CAMERA "GameCamera"
 #define JSON_TAG_AMBIENTLIGHT "AmbientLight"
 #define JSON_TAG_NAVMESH "NavMesh"
+#define JSON_TAG_CURSOR "Cursor"
+#define JSON_TAG_CURSOR_WIDTH "CursorWidth"
+#define JSON_TAG_CURSOR_HEIGHT "CursorHeight"
 
 Scene::Scene(unsigned numGameObjects) {
 	gameObjects.Allocate(numGameObjects);
@@ -69,6 +73,7 @@ void Scene::ClearScene() {
 	root = nullptr;
 	quadtree.Clear();
 	SetNavMesh(0);
+	SetCursor(0);
 
 	assert(gameObjects.Count() == 0); // There should be no GameObjects outside the scene hierarchy
 	gameObjects.Clear();			  // This looks redundant, but it resets the free list so that GameObject order is mantained when saving/loading
@@ -132,6 +137,11 @@ void Scene::Load(JsonValue jScene) {
 
 	// NavMesh
 	SetNavMesh(jScene[JSON_TAG_NAVMESH]);
+
+	// Cursor
+	SetCursor(jScene[JSON_TAG_CURSOR]);
+	SetCursorHeight(jScene[JSON_TAG_CURSOR_HEIGHT]);
+	SetCursorWidth(jScene[JSON_TAG_CURSOR_WIDTH]);
 }
 
 void Scene::Save(JsonValue jScene) const {
@@ -154,6 +164,11 @@ void Scene::Save(JsonValue jScene) const {
 
 	// NavMesh
 	jScene[JSON_TAG_NAVMESH] = navMeshId;
+
+	// Cursor
+	jScene[JSON_TAG_CURSOR] = cursorId;
+	jScene[JSON_TAG_CURSOR_HEIGHT] = heightCursor;
+	jScene[JSON_TAG_CURSOR_WIDTH] = widthCursor;
 
 	// Save GameObjects
 	JsonValue jRoot = jScene[JSON_TAG_ROOT];
@@ -550,4 +565,40 @@ void Scene::SetNavMesh(UID id) {
 NavMesh* Scene::GetNavMesh() {
 	ResourceNavMesh* navMeshResource = App->resources->GetResource<ResourceNavMesh>(navMeshId);
 	return navMeshResource ? navMeshResource->GetNavMesh() : nullptr;
+}
+
+void Scene::SetCursor(UID cursor) {
+	if (cursorId != 0) {
+		App->resources->DecreaseReferenceCount(cursorId);
+	}
+
+	cursorId = cursor;
+
+	if (cursor != 0) {
+		App->resources->IncreaseReferenceCount(cursor);
+	}
+	App->window->SetCursor(cursorId, widthCursor, heightCursor);
+#if GAME
+	App->window->ActivateCursor(true);
+#endif
+}
+
+UID Scene::GetCursor() {
+	return cursorId;
+}
+
+void Scene::SetCursorWidth(int width) {
+	widthCursor = width;
+}
+
+int Scene::GetCursorWidth() {
+	return widthCursor;
+}
+
+void Scene::SetCursorHeight(int height) {
+	heightCursor = height;
+}
+
+int Scene::GetCursorHeight() {
+	return heightCursor;
 }

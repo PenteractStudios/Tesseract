@@ -193,6 +193,10 @@ const float2& Input::GetMouseMotion() {
 	return App->input->GetMouseMotion();
 }
 
+float Input::GetMouseWheelMotion() {
+	return App->input->GetMouseWheelMotion();
+}
+
 const float3 Input::GetMouseWorldPosition() {
 	float2 MousePositionNormalized = App->editor->panelScene.GetMousePosOnSceneNormalized();
 	float4x4 Projection = App->camera->GetProjectionMatrix();
@@ -403,6 +407,10 @@ void Screen::SetSize(int width, int height) {
 
 void Screen::SetBrightness(float brightness) {
 	App->window->SetBrightness(brightness);
+}
+
+void Screen::SetCursor(UID cursorID, int widthCursor, int heightCursor) {
+	App->window->SetCursor(cursorID, widthCursor, heightCursor);
 }
 
 WindowMode Screen::GetWindowMode() {

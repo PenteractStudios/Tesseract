@@ -3,6 +3,7 @@
 #include "Components/Component.h"
 
 #include "Math/float4.h"
+#include "Math/float2.h"
 
 class ComponentTransform2D;
 
@@ -25,7 +26,13 @@ public:
 	TESSERACT_ENGINE_API void SetIsFill(bool b);
 	TESSERACT_ENGINE_API bool IsFill() const;
 	TESSERACT_ENGINE_API bool HasAlphaTransparency() const;
-	TESSERACT_ENGINE_API void SetAlphaTransparency(bool alphaTransparency_);
+	TESSERACT_ENGINE_API void SetAlphaTransparency(bool alphaTransparency);
+
+	TESSERACT_ENGINE_API float2 GetTextureOffset() const;
+	TESSERACT_ENGINE_API void SetTextureOffset(float2 offset);
+
+	TESSERACT_ENGINE_API float2 GetTextureTiling() const;
+	TESSERACT_ENGINE_API void SetTextureTiling(float2 tiling);
 
 private:
 	void RebuildFillQuadVBO();
@@ -37,4 +44,6 @@ private:
 	UID textureID = 0;				// ID of the image
 	float fillVal = 1.0f;			// Percent of image rendered (0 to 1)
 	unsigned int fillQuadVBO = 0;
+	float2 textureOffset = float2(0, 0);
+	float2 textureTiling = float2(1, 1);
 };

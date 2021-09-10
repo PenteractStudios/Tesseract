@@ -129,8 +129,6 @@ void ComponentVideo::OnEditorUpdate() {
 			ImGui::Checkbox("Flip Vertically", &verticalFlip);
 		}
 	}
-
-	//audioPlayer->OnEditorUpdate();
 }
 
 void ComponentVideo::Save(JsonValue jComponent) const {
@@ -176,6 +174,9 @@ void ComponentVideo::Draw(ComponentTransform2D* transform) {
 	glUniformMatrix4fv(imageUIProgram->projLocation, 1, GL_TRUE, proj.ptr());
 	glUniformMatrix4fv(imageUIProgram->modelLocation, 1, GL_TRUE, modelMatrix.ptr());
 
+	glUniform2fv(imageUIProgram->offsetLocation, 1, float2::zero.ptr());
+	glUniform2fv(imageUIProgram->tilingLocation, 1, float2::one.ptr());
+
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(imageUIProgram->diffuseLocation, 0);
 	glUniform4fv(imageUIProgram->inputColorLocation, 1, float4::one.ptr());
@@ -217,7 +218,7 @@ void ComponentVideo::SetVideoFrameSize(int width, int height) {
 }
 
 bool ComponentVideo::HasVideoFinished() {
-	return false;
+	return hasVideoFinished;
 }
 
 void ComponentVideo::OpenVideoReader(const char* filename) {

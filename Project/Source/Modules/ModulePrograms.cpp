@@ -122,6 +122,9 @@ void ModulePrograms::LoadShaders() {
 	ssao = new ProgramSSAO(CreateProgram(filePath, "vertScreen", "fragSSAO"));
 	blur = new ProgramBlur(CreateProgram(filePath, "vertScreen", "fragGaussianBlur"));
 
+	// Bloom shaders
+	bloomCombine = new ProgramBloomCombine(CreateProgram(filePath, "vertScreen", "fragBloomCombine"));
+
 	// Post-processing Shaders
 	postprocess = new ProgramPostprocess(CreateProgram(filePath, "vertScreen", "fragPostprocess"));
 	colorCorrection = new ProgramColorCorrection(CreateProgram(filePath, "vertScreen", "gammaCorrection fragColorCorrection"));
@@ -174,6 +177,8 @@ void ModulePrograms::UnloadShaders() {
 
 	RELEASE(ssao);
 	RELEASE(blur);
+
+	RELEASE(bloomCombine);
 
 	RELEASE(colorCorrection);
 
