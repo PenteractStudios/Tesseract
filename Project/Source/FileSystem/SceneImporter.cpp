@@ -140,9 +140,9 @@ void SceneImporter::LoadScene(const char* filePath) {
 	scene->SetNavMesh(jScene[JSON_TAG_NAVMESH]);
 
 	// Cursor
-	scene->SetCursor(jScene[JSON_TAG_CURSOR]);
 	scene->SetCursorHeight(jScene[JSON_TAG_CURSOR_HEIGHT]);
 	scene->SetCursorWidth(jScene[JSON_TAG_CURSOR_WIDTH]);
+	scene->SetCursor(jScene[JSON_TAG_CURSOR]);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Scene loaded in %ums.", timeMs);
