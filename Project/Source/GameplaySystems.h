@@ -441,6 +441,7 @@ namespace Input {
 	TESSERACT_ENGINE_API const float3 GetMouseWorldPosition();
 	TESSERACT_ENGINE_API const float2 GetMousePositionNormalized();
 	TESSERACT_ENGINE_API float2 GetMousePosition();
+	TESSERACT_ENGINE_API float GetMouseWheelMotion();
 	TESSERACT_ENGINE_API bool GetKeyCodeDown(KEYCODE keycode);
 	TESSERACT_ENGINE_API bool GetKeyCodeUp(KEYCODE keycode);
 	TESSERACT_ENGINE_API bool GetKeyCodeRepeat(KEYCODE keycode);
