@@ -65,7 +65,8 @@ public:
 	std::vector<float> GetNormals();
 
 	std::vector<GameObject*> GetCulledMeshes(const FrustumPlanes& planes, const int mask); // Gets all the game objects inside the given frustum
-	std::vector<GameObject*> GetCulledShadowCasters(const FrustumPlanes& planes); // Gets all the shadow casters game objects inside the given frustum
+	std::vector<GameObject*> GetStaticCulledShadowCasters(const FrustumPlanes& planes); // Gets all the shadow casters game objects inside the given frustum
+	std::vector<GameObject*> GetDynamicCulledShadowCasters(const FrustumPlanes& planes);	   // Gets all the shadow casters game objects inside the given frustum
 
 	void SetNavMesh(UID navMesh);
 	UID GetNavMesh();

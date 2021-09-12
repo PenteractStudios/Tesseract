@@ -4,7 +4,7 @@
 #define EPSILON 1e-5
 #define POINT_LIGHTS 32
 #define SPOT_LIGHTS 8
-#define MAX_SHADOW_FRUSTUMS 10
+#define MAX_CASCADES 10
 
 in vec3 fragNormal;
 in mat3 TBN;
@@ -12,14 +12,17 @@ in vec3 fragPos;
 in vec2 uv;
 
 // Cascade Shadow Mapping
-in vec4 fragPosLight[MAX_CASCADES];
+in vec4 fragPosLightStatic[MAX_CASCADES];
+in vec4 fragPosLightDynamic[MAX_CASCADES];
 flat in unsigned int cascadesCount;
 
 out vec4 outColor;
 
 // Depth Map
-uniform sampler2D depthMapTextures[MAX_CASCADES];
-uniform float farPlaneDistances[MAX_CASCADES];
+uniform sampler2D depthMapTexturesStatic[MAX_CASCADES];
+uniform sampler2D depthMapTexturesDynamic[MAX_CASCADES];
+uniform float farPlaneDistancesStatic[MAX_CASCADES];
+uniform float farPlaneDistancesDynamic[MAX_CASCADES];
 
 // SSAO texture
 uniform sampler2D ssaoTexture;
@@ -165,11 +168,23 @@ vec3 GetNormal(vec2 tiledUV)
     return normalize(TBN * normal);
 }
 
-unsigned int DepthMapIndex(){
+unsigned int DepthMapIndexStatic(){
 
 	for(unsigned int i = 0; i < cascadesCount; ++i){
 
-		if(fragPosLight[i].z < farPlaneDistances[i]) return i;
+		if(fragPosLightStatic[i].z < farPlaneDistancesStatic[i]) return i;
+
+	}
+
+	return cascadesCount - 1;
+
+}
+
+unsigned int DepthMapIndexDynamic(){
+
+	for(unsigned int i = 0; i < cascadesCount; ++i){
+
+		if(fragPosLightDynamic[i].z < farPlaneDistancesDynamic[i]) return i;
 
 	}
 
@@ -346,8 +361,12 @@ void main()
     vec3 R = reflect(-viewDir, normal);
     vec3 colorAccumulative = GetOccludedAmbientLight(R, normal, viewDir, Cd, F0, roughness, tiledUV);
 
-	unsigned int index = DepthMapIndex();
-	float shadow = Shadow(fragPosLight[index], normal,  normalize(light.directional.direction), depthMapTextures[index]);
+	unsigned int indexS = DepthMapIndexStatic();
+	unsigned int indexD = DepthMapIndexDynamic();
+	float shadowS = Shadow(fragPosLightStatic[indexS], normal,  normalize(light.directional.direction), depthMapTexturesStatic[indexS]);
+	float shadowD = Shadow(fragPosLightDynamic[indexD], normal,  normalize(light.directional.direction), depthMapTexturesDynamic[indexD]);
+
+	float shadow = max(min(shadowD, 1), shadowS);
 
 	// Directional Light
 	if (light.directional.isActive == 1)
@@ -398,8 +417,12 @@ void main()
     vec3 R = reflect(-viewDir, normal);
     vec3 colorAccumulative = GetOccludedAmbientLight(R, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness, tiledUV);
 
-	unsigned int index = DepthMapIndex();
-	float shadow = Shadow(fragPosLight[index], normal, normalize(light.directional.direction), depthMapTextures[index]);
+	unsigned int indexS = DepthMapIndexStatic();
+	unsigned int indexD = DepthMapIndexDynamic();
+	float shadowS = Shadow(fragPosLightStatic[indexS], normal,  normalize(light.directional.direction), depthMapTexturesStatic[indexS]);
+	float shadowD = Shadow(fragPosLightDynamic[indexD], normal,  normalize(light.directional.direction), depthMapTexturesDynamic[indexD]);
+
+	float shadow = max(min(shadowD, 1), shadowS);
 
     // Directional Light
     if (light.directional.isActive == 1)

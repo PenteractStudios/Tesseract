@@ -33,9 +33,10 @@ struct DepthMapsUniforms {
 	DepthMapsUniforms();
 	DepthMapsUniforms(unsigned program, unsigned number);
 
-	int depthMapLocation = -1;
-	int farPlaneLocation = -1;
-
+	int depthMapLocationStatic = -1;
+	int farPlaneLocationStatic = -1;
+	int depthMapLocationDynamic = -1;
+	int farPlaneLocationDynamic = -1;
 };
 
 struct Program {
@@ -142,8 +143,11 @@ struct ProgramStandard : public Program {
 	int viewLocation = -1;
 	int projLocation = -1;
 
-	int viewOrtoLightsLocation = -1;
-	int projOrtoLightsLocation = -1;
+	int viewOrtoLightsStaticLocation = -1;
+	int projOrtoLightsStaticLocation = -1;
+
+	int viewOrtoLightsDynamicLocation = -1;
+	int projOrtoLightsDynamicLocation = -1;
 
 	int shadowCascadesCounterLocation = -1;
 	DepthMapsUniforms depthMaps[CASCADE_FRUSTUMS];

@@ -71,10 +71,17 @@ void PanelScene::Update() {
 				}
 
 				for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
-					std::string str = "Depth " + std::to_string(i);
-					bool isSelected = (currentShadingMode == str.c_str());
+					std::string str = "StaticDepth " + std::to_string(i);
 					if (ImGui::Selectable(str.c_str())) {
-						currentShadingMode = "Depth";
+						currentShadingMode = "StaticDepth";
+						App->renderer->UpdateShadingMode(str.c_str());
+					}
+				}
+
+				for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+					std::string str = "DynamicDepth " + std::to_string(i);
+					if (ImGui::Selectable(str.c_str())) {
+						currentShadingMode = "DynamicDepth";
 						App->renderer->UpdateShadingMode(str.c_str());
 					}
 				}

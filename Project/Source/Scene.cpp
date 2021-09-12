@@ -202,9 +202,6 @@ Component* Scene::CreateComponentByTypeAndId(GameObject* owner, ComponentType ty
 	case ComponentType::TRANSFORM:
 		return transformComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::MESH_RENDERER:
-		if ((owner->GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0) {
-			AddStaticShadowCaster(owner);
-		}
 		return meshRendererComponents.Obtain(componentId, owner, componentId, owner->IsActive());
 	case ComponentType::BOUNDING_BOX:
 		return boundingBoxComponents.Obtain(componentId, owner, componentId, owner->IsActive());
@@ -501,10 +498,22 @@ std::vector<GameObject*> Scene::GetCulledMeshes(const FrustumPlanes& planes, con
 	return meshes;
 }
 
-std::vector<GameObject*> Scene::GetCulledShadowCasters(const FrustumPlanes& planes) {
+std::vector<GameObject*> Scene::GetStaticCulledShadowCasters(const FrustumPlanes& planes) {
 	std::vector<GameObject*> meshes;
 
 	for (GameObject* go : staticShadowCasters) {
+		if (InsideFrustumPlanes(planes, go)) {
+			meshes.push_back(go);
+		}
+	}
+
+	return meshes;
+}
+
+std::vector<GameObject*> Scene::GetDynamicCulledShadowCasters(const FrustumPlanes& planes) {
+	std::vector<GameObject*> meshes;
+
+	for (GameObject* go : dynamicShadowCasters) {
 		if (InsideFrustumPlanes(planes, go)) {
 			meshes.push_back(go);
 		}
@@ -536,8 +545,7 @@ void Scene::RemoveStaticShadowCaster(const GameObject* go) {
 
 	staticShadowCasters.erase(it);
 
-	App->renderer->lightFrustum.Invalidate();
-
+	App->renderer->lightFrustumStatic.Invalidate();
 }
 
 void Scene::AddStaticShadowCaster(GameObject* go) {
@@ -547,7 +555,7 @@ void Scene::AddStaticShadowCaster(GameObject* go) {
 
 	staticShadowCasters.push_back(go);
 
-	App->renderer->lightFrustum.Invalidate();
+	App->renderer->lightFrustumStatic.Invalidate();
 }
 
 void Scene::RemoveDynamicShadowCaster(const GameObject* go) {
@@ -557,7 +565,7 @@ void Scene::RemoveDynamicShadowCaster(const GameObject* go) {
 
 	dynamicShadowCasters.erase(it);
 
-	App->renderer->lightFrustum.Invalidate();
+	App->renderer->lightFrustumDynamic.Invalidate();
 }
 
 void Scene::AddDynamicShadowCaster(GameObject* go) {
@@ -567,7 +575,7 @@ void Scene::AddDynamicShadowCaster(GameObject* go) {
 
 	dynamicShadowCasters.push_back(go);
 
-	App->renderer->lightFrustum.Invalidate();
+	App->renderer->lightFrustumDynamic.Invalidate();
 }
 
 void Scene::SetCursor(UID cursor) {

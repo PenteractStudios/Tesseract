@@ -77,6 +77,14 @@ void ResourceMaterial::Load() {
 
 	renderingMode = (RenderingMode)(int) jMaterial[JSON_TAG_RENDERING_MODE];
 
+	// Cast shadows
+	castShadows = static_cast<bool>(jMaterial[JSON_TAG_CAST_SHADOW]);
+	shadowCasterType = static_cast<ShadowCasterType>(static_cast<int>(jMaterial[JSON_TAG_SHADOW_TYPE]));
+
+	if (castShadows) {
+		UpdateMask(MaskToChange::SHADOW);
+	}
+
 	diffuseColor = float4(jMaterial[JSON_TAG_DIFFUSE_COLOR][0], jMaterial[JSON_TAG_DIFFUSE_COLOR][1], jMaterial[JSON_TAG_DIFFUSE_COLOR][2], jMaterial[JSON_TAG_DIFFUSE_COLOR][3]);
 	diffuseMapId = jMaterial[JSON_TAG_DIFFUSE_MAP];
 	App->resources->IncreaseReferenceCount(diffuseMapId);
@@ -144,9 +152,12 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	JsonValue jMaterial(document, document);
 
 	// Save JSON values
-	jMaterial[JSON_TAG_SHADER] = (int) shaderType;
+	jMaterial[JSON_TAG_SHADER] = static_cast<int>(shaderType);
 
-	jMaterial[JSON_TAG_RENDERING_MODE] = (int) renderingMode;
+	jMaterial[JSON_TAG_RENDERING_MODE] = static_cast<int>(renderingMode);
+
+	jMaterial[JSON_TAG_CAST_SHADOW] = castShadows;
+	jMaterial[JSON_TAG_SHADOW_TYPE] = static_cast<int>(shadowCasterType);
 
 	JsonValue jDiffuseColor = jMaterial[JSON_TAG_DIFFUSE_COLOR];
 	jDiffuseColor[0] = diffuseColor.x;
@@ -216,7 +227,7 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	LOG("Material saved in %ums", timeMs);
 }
 
-void ResourceMaterial::UpdateMask(MaskToChange maskToChange, bool forceDelete) {
+void ResourceMaterial::UpdateMask(MaskToChange maskToChange, bool forceDeleteShadows) {
 	for (GameObject& gameObject : App->scene->scene->gameObjects) {
 		ComponentMeshRenderer* meshRenderer = gameObject.GetComponent<ComponentMeshRenderer>();
 		if (meshRenderer && meshRenderer->materialId == GetId()) {
@@ -231,7 +242,7 @@ void ResourceMaterial::UpdateMask(MaskToChange maskToChange, bool forceDelete) {
 					break;
 				case MaskToChange::SHADOW:
 
-					if (!forceDelete) {
+					if (!forceDeleteShadows) {
 						gameObject.AddMask(MaskType::CAST_SHADOWS);
 
 						if (shadowCasterType == ShadowCasterType::STATIC) {
@@ -298,6 +309,8 @@ void ResourceMaterial::OnEditorUpdate() {
 
 	ImGui::NewLine();
 
+	// Cast Shadows
+
 	bool checkboxClicked = ImGui::Checkbox("CastShadows", &castShadows);
 
 	const char* shadowCasterTypes[] = {"Static", "Dynamic"};
@@ -318,6 +331,8 @@ void ResourceMaterial::OnEditorUpdate() {
 				}
 			}
 			ImGui::EndCombo();
+		} else if (checkboxClicked) {
+			UpdateMask(MaskToChange::SHADOW);
 		}
 	} 
 

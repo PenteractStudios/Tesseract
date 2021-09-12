@@ -124,8 +124,12 @@ ProgramStandard::ProgramStandard(unsigned program_)
 	viewLocation = glGetUniformLocation(program, "view");
 	projLocation = glGetUniformLocation(program, "proj");
 
-	viewOrtoLightsLocation = glGetUniformLocation(program, "viewOrtoLights");
-	projOrtoLightsLocation = glGetUniformLocation(program, "projOrtoLights");
+	viewOrtoLightsStaticLocation = glGetUniformLocation(program, "viewOrtoLightsStatic");
+	projOrtoLightsStaticLocation = glGetUniformLocation(program, "projOrtoLightsStatic");
+	
+	viewOrtoLightsDynamicLocation = glGetUniformLocation(program, "viewOrtoLightsDynamic");
+	projOrtoLightsDynamicLocation = glGetUniformLocation(program, "projOrtoLightsDynamic");
+
 	shadowCascadesCounterLocation = glGetUniformLocation(program, "shadowCascadesCounter");
 
 	for (unsigned int i = 0; i < CASCADE_FRUSTUMS; ++i) {
@@ -372,8 +376,11 @@ ProgramTrail::ProgramTrail(unsigned program_)
 DepthMapsUniforms::DepthMapsUniforms() {}
 
 DepthMapsUniforms::DepthMapsUniforms(unsigned program, unsigned number) {
-	depthMapLocation = glGetUniformLocation(program, (std::string("depthMapTextures[") + std::to_string(number) + "]").c_str());
-	farPlaneLocation = glGetUniformLocation(program, (std::string("farPlaneDistances[") + std::to_string(number) + "]").c_str());
+	depthMapLocationStatic = glGetUniformLocation(program, (std::string("depthMapTexturesStatic[") + std::to_string(number) + "]").c_str());
+	farPlaneLocationStatic = glGetUniformLocation(program, (std::string("farPlaneDistancesStatic[") + std::to_string(number) + "]").c_str());
+
+	depthMapLocationDynamic = glGetUniformLocation(program, (std::string("depthMapTexturesDynamic[") + std::to_string(number) + "]").c_str());
+	farPlaneLocationDynamic = glGetUniformLocation(program, (std::string("farPlaneDistancesDynamic[") + std::to_string(number) + "]").c_str());
 }
 
 ProgramStandardDissolve::ProgramStandardDissolve(unsigned program)

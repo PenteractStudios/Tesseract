@@ -2,6 +2,7 @@
 
 #include "Utils/UID.h"
 #include "Resources/Resource.h"
+#include "Rendering/LightFrustum.h"
 
 #include "Math/float4.h"
 #include "Math/float2.h"
@@ -21,11 +22,6 @@ enum class RenderingMode {
 	TRANSPARENT
 };
 
-enum class ShadowCasterType {
-	STATIC,
-	DYNAMIC
-};
-
 enum class MaskToChange {
 	RENDERING,
 	SHADOW
@@ -41,7 +37,7 @@ public:
 
 	void SaveToFile(const char* filePath);
 
-	void UpdateMask(MaskToChange maskToChange, bool forceDelete = false);
+	void UpdateMask(MaskToChange maskToChange, bool forceDeleteShadows = false);
 
 public:
 	// Material shader

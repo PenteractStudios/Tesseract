@@ -72,7 +72,7 @@ void LightFrustum::UpdateFrustums() {
 
 }
 
-void LightFrustum::ReconstructFrustum() {
+void LightFrustum::ReconstructFrustum(ShadowCasterType shadowCasterType) {
 	if (!dirty) return;
 
 	UpdateFrustums();
@@ -90,7 +90,9 @@ void LightFrustum::ReconstructFrustum() {
 		AABB lightAABB;
 		lightAABB.SetNegativeInfinity();
 
-		for (GameObject* go : App->scene->scene->GetCulledShadowCasters(subFrustums[i].planes)) {
+		std::vector<GameObject*> gameObjects = (shadowCasterType == ShadowCasterType::STATIC) ? App->scene->scene->GetStaticCulledShadowCasters(subFrustums[i].planes) : App->scene->scene->GetDynamicCulledShadowCasters(subFrustums[i].planes);
+
+		for (GameObject* go : gameObjects) {
 			ComponentBoundingBox* componentBBox = go->GetComponent<ComponentBoundingBox>();
 			if (componentBBox) {
 				AABB boundingBox = componentBBox->GetWorldAABB();

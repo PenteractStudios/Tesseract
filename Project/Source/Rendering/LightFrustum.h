@@ -11,6 +11,11 @@ enum class CascadeMode {
 	FitToCascade = 1
 };
 
+enum class ShadowCasterType {
+	STATIC,
+	DYNAMIC
+};
+
 class LightFrustum {
 public:
 	struct FrustumInformation {
@@ -25,7 +30,7 @@ public:
 	~LightFrustum() {}
 
 	void UpdateFrustums();
-	void ReconstructFrustum();
+	void ReconstructFrustum(ShadowCasterType shadowCasterType);
 
 	void DrawGizmos();
 

@@ -15,8 +15,11 @@ uniform mat4 view;
 uniform mat4 proj;
 
 uniform unsigned int shadowCascadesCounter;
-uniform mat4 viewOrtoLights[MAX_CASCADES];
-uniform mat4 projOrtoLights[MAX_CASCADES];
+uniform mat4 viewOrtoLightsStatic[MAX_CASCADES];
+uniform mat4 projOrtoLightsStatic[MAX_CASCADES];
+
+uniform mat4 viewOrtoLightsDynamic[MAX_CASCADES];
+uniform mat4 projOrtoLightsDynamic[MAX_CASCADES];
 
 out vec3 fragNormal;
 out mat3 TBN;
@@ -24,7 +27,8 @@ out vec3 fragPos;
 out vec2 uv;
 
 out unsigned int cascadesCount;
-out vec4 fragPosLight[MAX_CASCADES];
+out vec4 fragPosLightStatic[MAX_CASCADES];
+out vec4 fragPosLightDynamic[MAX_CASCADES];
 
 uniform mat4 palette[MAX_BONES];
 uniform bool hasBones;
@@ -51,7 +55,8 @@ void main()
     uv = uvs;
     
     for(unsigned int i = 0; i < shadowCascadesCounter; ++i){
-        fragPosLight[i] = projOrtoLights[i] * viewOrtoLights[i] * model * position;
+        fragPosLightStatic[i] = projOrtoLightsStatic[i] * viewOrtoLightsStatic[i] * model * position;
+        fragPosLightDynamic[i] = projOrtoLightsDynamic[i] * viewOrtoLightsDynamic[i] * model * position;
     }
 
     cascadesCount = shadowCascadesCounter;
@@ -86,7 +91,8 @@ void main()
     uv = uvs;
 
     for(unsigned int i = 0; i < shadowCascadesCounter; ++i){
-        fragPosLight[i] = projOrtoLights[i] * viewOrtoLights[i] * model * position;
+        fragPosLightStatic[i] = projOrtoLightsStatic[i] * viewOrtoLightsStatic[i] * model * position;
+        fragPosLightDynamic[i] = projOrtoLightsDynamic[i] * viewOrtoLightsDynamic[i] * model * position;
     }
 
     cascadesCount = shadowCascadesCounter;
