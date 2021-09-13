@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Scripting/Script.h"
+#include "Components/UI/ComponentVideo.h"
+#include "GameObject.h"
+#include "Utils/UID.h"
 
 class TestMSAA : public Script
 {
@@ -11,5 +14,9 @@ public:
 	void Start() override;
 	void Update() override;
 
+public:
+	UID videoID = 0;
+	GameObject* video = nullptr;
+	ComponentVideo* videoComp = nullptr;
 };
 

@@ -262,9 +262,18 @@ ProgramBlur::ProgramBlur(unsigned program_)
 	horizontalLocation = glGetUniformLocation(program, "horizontal");
 }
 
+ProgramBloomCombine::ProgramBloomCombine(unsigned program_)
+	: Program(program_) {
+	brightTextureLocation = glGetUniformLocation(program, "brightTexture");
+	bloomTextureLocation = glGetUniformLocation(program, "bloomTexture");
+	brightLevelLocation = glGetUniformLocation(program, "brightLevel");
+	bloomLevelLocation = glGetUniformLocation(program, "bloomLevel");
+	bloomWeightLocation = glGetUniformLocation(program, "bloomWeight");
+}
+
 ProgramPostprocess::ProgramPostprocess(unsigned program_)
 	: Program(program_) {
-	textureSceneLocation = glGetUniformLocation(program, "sceneTexture");
+	sceneTextureLocation = glGetUniformLocation(program, "sceneTexture");
 	bloomThresholdLocation = glGetUniformLocation(program, "bloomThreshold");
 	samplesNumberLocation = glGetUniformLocation(program, "samplesNumber");
 	bloomActiveLocation = glGetUniformLocation(program, "bloomActive");
@@ -272,18 +281,10 @@ ProgramPostprocess::ProgramPostprocess(unsigned program_)
 
 ProgramColorCorrection::ProgramColorCorrection(unsigned program_)
 	: Program(program_) {
-	textureSceneLocation = glGetUniformLocation(program, "scene");
-	bloomBlurLocation = glGetUniformLocation(program, "bloomBlur");
-	hasBloomBlurLocation = glGetUniformLocation(program, "hasBloomBlur");
+	sceneTextureLocation = glGetUniformLocation(program, "sceneTexture");
+	bloomTextureLocation = glGetUniformLocation(program, "bloomTexture");
+	hasBloomLocation = glGetUniformLocation(program, "hasBloom");
 	bloomIntensityLocation = glGetUniformLocation(program, "bloomIntensity");
-
-	smallWeightLocation = glGetUniformLocation(program, "smallWeight");
-	mediumWeightLocation = glGetUniformLocation(program, "mediumWeight");
-	largeWeightLocation = glGetUniformLocation(program, "largeWeight");
-
-	smallMipLevelLocation = glGetUniformLocation(program, "smallMipLevel");
-	mediumMipLevelLocation = glGetUniformLocation(program, "mediumMipLevel");
-	largeMipLevelLocation = glGetUniformLocation(program, "largeMipLevel");
 
 	hasChromaticAberrationLocation = glGetUniformLocation(program, "hasChromaticAberration");
 	chromaticAberrationStrengthLocation = glGetUniformLocation(program, "chromaticAberrationStrength");
