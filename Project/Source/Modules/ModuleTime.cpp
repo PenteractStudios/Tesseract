@@ -168,7 +168,7 @@ void ModuleTime::StartGame() {
 	App->scene->SaveScene(TEMP_SCENE_FILE_NAME);
 #endif // !GAME
 
-	App->scene->GetCurrentScene()->StartScene();
+	App->scene->GetCurrentScene()->Start();
 }
 
 void ModuleTime::StopGame() {

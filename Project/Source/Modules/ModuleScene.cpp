@@ -172,7 +172,7 @@ void ModuleScene::ReceiveEvent(TesseractEvent& e) {
 		App->renderer->ambientColor = scene->ambientColor;
 
 		if (App->time->HasGameStarted()) {
-			scene->StartScene();
+			scene->Start();
 		}
 		break;
 	}

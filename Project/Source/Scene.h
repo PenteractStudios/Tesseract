@@ -47,7 +47,8 @@ public:
 	void RebuildQuadtree(); // Recalculates the Quadtree hierarchy with all the GameObjects in the scene.
 	void ClearQuadtree();	// Resets the Quadrtee as empty, and removes all GameObjects from it.
 
-	void StartScene();
+	void Init();
+	void Start();
 
 	void Load(JsonValue jScene);
 	void Save(JsonValue jScene) const;

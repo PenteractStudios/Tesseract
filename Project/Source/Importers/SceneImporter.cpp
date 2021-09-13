@@ -84,7 +84,7 @@ Scene* SceneImporter::LoadScene(const char* filePath) {
 
 	Scene* scene = new Scene(10000);
 	scene->Load(jScene);
-	scene->root->Init();
+	scene->Init();
 	return scene;
 }
 

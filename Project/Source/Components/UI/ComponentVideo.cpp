@@ -65,7 +65,7 @@ void ComponentVideo::Start() {
 void ComponentVideo::Update() {
 	if (videoID != 0) {
 		if (isPlaying) {
-			elapsedVideoTime += App->time->GetDeltaTime();
+			elapsedVideoTime += App->time->GetRealTimeDeltaTime();
 			if (elapsedVideoTime > videoFrameTime) {
 				ReadVideoFrame();
 			}

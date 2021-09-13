@@ -23,9 +23,9 @@
 #define JSON_TAG_GAME_CAMERA "GameCamera"
 #define JSON_TAG_AMBIENTLIGHT "AmbientLight"
 #define JSON_TAG_NAVMESH "NavMesh"
-#define JSON_TAG_CURSOR "Cursor"
 #define JSON_TAG_CURSOR_WIDTH "CursorWidth"
 #define JSON_TAG_CURSOR_HEIGHT "CursorHeight"
+#define JSON_TAG_CURSOR "Cursor"
 
 Scene::Scene(unsigned numGameObjects) {
 	gameObjects.Allocate(numGameObjects);
@@ -100,7 +100,14 @@ void Scene::ClearQuadtree() {
 	}
 }
 
-void Scene::StartScene() {
+void Scene::Init() {
+	App->resources->IncreaseReferenceCount(navMeshId);
+	App->resources->IncreaseReferenceCount(cursorId);
+
+	root->Init();
+}
+
+void Scene::Start() {
 	if (App->camera->GetGameCamera()) {
 		// Set the Game Camera as active
 		App->camera->ChangeActiveCamera(App->camera->GetGameCamera(), true);
@@ -108,6 +115,9 @@ void Scene::StartScene() {
 	} else {
 		// TODO: Modal window. Warning - camera not set.
 	}
+
+	App->window->SetCursor(cursorId, widthCursor, heightCursor);
+	App->window->ActivateCursor(true);
 
 	root->Start();
 }
@@ -136,12 +146,12 @@ void Scene::Load(JsonValue jScene) {
 	ambientColor = {ambientLight[0], ambientLight[1], ambientLight[2]};
 
 	// NavMesh
-	SetNavMesh(jScene[JSON_TAG_NAVMESH]);
+	navMeshId = jScene[JSON_TAG_NAVMESH];
 
 	// Cursor
-	SetCursor(jScene[JSON_TAG_CURSOR]);
-	SetCursorHeight(jScene[JSON_TAG_CURSOR_HEIGHT]);
-	SetCursorWidth(jScene[JSON_TAG_CURSOR_WIDTH]);
+	heightCursor = jScene[JSON_TAG_CURSOR_HEIGHT];
+	widthCursor = jScene[JSON_TAG_CURSOR_WIDTH];
+	cursorId = jScene[JSON_TAG_CURSOR];
 }
 
 void Scene::Save(JsonValue jScene) const {
@@ -166,9 +176,9 @@ void Scene::Save(JsonValue jScene) const {
 	jScene[JSON_TAG_NAVMESH] = navMeshId;
 
 	// Cursor
-	jScene[JSON_TAG_CURSOR] = cursorId;
 	jScene[JSON_TAG_CURSOR_HEIGHT] = heightCursor;
 	jScene[JSON_TAG_CURSOR_WIDTH] = widthCursor;
+	jScene[JSON_TAG_CURSOR] = cursorId;
 
 	// Save GameObjects
 	JsonValue jRoot = jScene[JSON_TAG_ROOT];

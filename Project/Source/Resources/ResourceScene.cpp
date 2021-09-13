@@ -42,7 +42,7 @@ void ResourceScene::Load() {
 }
 
 void ResourceScene::FinishLoading() {
-	scene->root->Init();
+	scene->Init();
 }
 
 void ResourceScene::Unload() {
