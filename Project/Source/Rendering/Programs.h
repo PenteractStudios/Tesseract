@@ -288,7 +288,7 @@ struct ProgramBloomCombine : Program {
 	int bloomTextureLocation = -1;
 	int brightLevelLocation = -1;
 	int bloomLevelLocation = -1;
-	float bloomWeightLocation = -1;
+	int bloomWeightLocation = -1;
 };
 
 struct ProgramPostprocess : Program {
