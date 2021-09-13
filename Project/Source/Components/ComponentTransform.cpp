@@ -80,7 +80,7 @@ void ComponentTransform::InvalidateHierarchy() {
 
 		for (GameObject* child : GetOwner().GetChildren()) {
 			if ((child->GetMask().bitMask & static_cast<int>(MaskType::CAST_SHADOWS)) != 0) {
-				// TODO: Check if the static are also necessary
+				App->renderer->lightFrustumStatic.Invalidate();
 				App->renderer->lightFrustumDynamic.Invalidate();
 			}
 			ComponentTransform* childTransform = child->GetComponent<ComponentTransform>();
