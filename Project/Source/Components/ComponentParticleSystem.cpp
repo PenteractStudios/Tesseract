@@ -238,13 +238,12 @@ void ComponentParticleSystem::Init() {
 
 void ComponentParticleSystem::Start() {
 	if (subEmitters.size() > 0) {
-		int pos = 0;
-		for (SubEmitter* subEmitter : subEmitters) {
-			GameObject* gameObject = App->scene->scene->GetGameObject(subEmitter->gameObjectUID);
+		for (int pos = 0; pos < subEmitters.size(); ++pos) {
+			GameObject* gameObject = App->scene->scene->GetGameObject(subEmitters[pos]->gameObjectUID);
 			if (gameObject != nullptr) {
 				ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
 				if (particleSystem != nullptr) {
-					subEmitter->particleSystem = particleSystem;
+					subEmitters[pos]->particleSystem = particleSystem;
 				} else {
 					subEmitters.erase(subEmitters.begin() + pos);
 				}
@@ -254,6 +253,7 @@ void ComponentParticleSystem::Start() {
 			pos += 1;
 		}
 	}
+
 	if (lightGameObjectUID != 0) {
 		GameObject* gameObject = App->scene->scene->GetGameObject(lightGameObjectUID);
 		if (gameObject != nullptr) {
@@ -629,7 +629,6 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			}
 
 			ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, std::numeric_limits<int>::max(), "%d", ImGuiSliderFlags_AlwaysClamp);
-
 
 			ImGui::Unindent();
 		}
