@@ -1751,8 +1751,8 @@ void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) 
 }
 
 void ComponentParticleSystem::UpdateSubEmitters() {
-	int pos = 0;
-	for (GameObject* gameObject : subEmittersGO) {
+	for (int pos = 0; pos < subEmittersGO.size(); ++pos) {
+		GameObject* gameObject = subEmittersGO[pos];
 		ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
 		if (particleSystem) {
 			if (particleSystem->subEmittersGO.size() == 0) {
@@ -1764,7 +1764,6 @@ void ComponentParticleSystem::UpdateSubEmitters() {
 				}
 			}
 		}
-		pos += 1;
 	}
 }
 
