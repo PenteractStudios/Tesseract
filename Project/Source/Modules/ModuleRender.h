@@ -161,8 +161,6 @@ private:
 	void DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb);			  // Draws the quadrtee nodes if 'drawQuadtree' is set to true.
 	void ClassifyGameObjects();																		  // Classify Game Objects from Scene taking into account Frustum Culling, Shadows and Rendering Mode
 	void ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::Node& node, const AABB2D& aabb); // Classify Game Objects from Scene taking into account Frustum Culling, Quadtree, Shadows and Rendering Mode
-	//TODO: Remove
-	//bool CheckIfInsideFrustum(const AABB& aabb, const OBB& obb);									  // ??
 	void DrawGameObject(GameObject* gameObject);													  // ??
 	void DrawGameObjectDepthPrepass(GameObject* gameObject);
 	void DrawGameObjectShadowPass(GameObject* gameObject, unsigned int i, ShadowCasterType lightFrustumType);

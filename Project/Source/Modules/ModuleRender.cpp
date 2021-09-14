@@ -221,10 +221,8 @@ bool ModuleRender::Init() {
 	glGenTextures(1, &depthsTexture);
 	glGenTextures(1, &positionsTexture);
 	glGenTextures(1, &normalsTexture);
-	for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
-		glGenTextures(1, &depthMapStaticTextures[i]);
-		glGenTextures(1, &depthMapDynamicTextures[i]);
-	}
+	glGenTextures(NUM_CASCADES_FRUSTUM, depthMapStaticTextures);
+	glGenTextures(NUM_CASCADES_FRUSTUM, depthMapDynamicTextures);
 	glGenTextures(1, &ssaoTexture);
 	glGenTextures(1, &auxBlurTexture);
 	glGenTextures(2, colorTextures);
@@ -234,10 +232,8 @@ bool ModuleRender::Init() {
 	glGenFramebuffers(1, &renderPassBuffer);
 	glGenFramebuffers(1, &depthPrepassBuffer);
 	glGenFramebuffers(1, &depthPrepassTextureConversionBuffer);
-	for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
-		glGenFramebuffers(1, &depthMapStaticTextureBuffers[i]);
-		glGenFramebuffers(1, &depthMapDynamicTextureBuffers[i]);
-	}
+	glGenFramebuffers(NUM_CASCADES_FRUSTUM, depthMapStaticTextureBuffers);
+	glGenFramebuffers(NUM_CASCADES_FRUSTUM, depthMapDynamicTextureBuffers);
 	glGenFramebuffers(1, &ssaoTextureBuffer);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferH);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferV);
@@ -919,10 +915,8 @@ bool ModuleRender::CleanUp() {
 	glDeleteTextures(1, &depthsTexture);
 	glDeleteTextures(1, &positionsTexture);
 	glDeleteTextures(1, &normalsTexture);
-	for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
-		glDeleteTextures(1, &depthMapStaticTextures[i]);
-		glDeleteTextures(1, &depthMapDynamicTextures[i]);
-	}
+	glDeleteTextures(NUM_CASCADES_FRUSTUM, depthMapStaticTextures);
+	glDeleteTextures(NUM_CASCADES_FRUSTUM, depthMapDynamicTextures);
 	glDeleteTextures(1, &ssaoTexture);
 	glDeleteTextures(1, &auxBlurTexture);
 	glDeleteTextures(2, colorTextures);
@@ -932,10 +926,8 @@ bool ModuleRender::CleanUp() {
 	glDeleteFramebuffers(1, &renderPassBuffer);
 	glDeleteFramebuffers(1, &depthPrepassBuffer);
 	glDeleteFramebuffers(1, &depthPrepassTextureConversionBuffer);
-	for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
-		glDeleteFramebuffers(1, &depthMapStaticTextureBuffers[i]);
-		glDeleteFramebuffers(1, &depthMapDynamicTextureBuffers[i]);
-	}
+	glDeleteFramebuffers(NUM_CASCADES_FRUSTUM, depthMapStaticTextureBuffers);
+	glDeleteFramebuffers(NUM_CASCADES_FRUSTUM, depthMapDynamicTextureBuffers);
 	glDeleteFramebuffers(1, &ssaoTextureBuffer);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferH);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferV);

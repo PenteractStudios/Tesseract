@@ -112,7 +112,6 @@ void ComponentProgressBar::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_FILL_DIRECTION] = dirIndex;
 	JsonValue jFillDir = jComponent[JSON_TAG_FILL_DIRECTION];
 	jFillDir = static_cast<int>(dir);
-	jFillDir = (int) dir;
 	jComponent[JSON_TAG_FILL_IMAGE] = fill ? fill->GetID() : 0;
 	jComponent[JSON_TAG_BACKGROUND_IMAGE] = background ? background->GetID() : 0;
 	JsonValue jPosition = jComponent[JSON_TAG_BACKGROUND_POSITION];
