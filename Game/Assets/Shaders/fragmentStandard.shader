@@ -209,7 +209,7 @@ float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMa
 	}
 
     float currentDepth = projCoords.z;
-	float bias = max(0.05 * (1 - dot(normal, lightDirection)), 0.005);
+	float bias = min(0.05 * (1 - dot(normal, lightDirection)), 0.005);
 
 	float shadow = 0.0;
 
@@ -217,7 +217,7 @@ float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMa
 	for(int x = -1; x <= 1; ++x){
 		for(int y = -1; y <= 1; ++y){
 			float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x,y) * texelSize).r;
-			shadow += currentDepth > pcfDepth ? 1.0 : 0.0;
+			shadow += currentDepth > pcfDepth + bias ? 1.0 : 0.0;
 		}
 	}
 
