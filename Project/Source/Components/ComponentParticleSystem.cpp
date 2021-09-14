@@ -237,23 +237,22 @@ void ComponentParticleSystem::Init() {
 }
 
 void ComponentParticleSystem::Start() {
-	if (subEmitters.size() > 0) {
-		int pos = 0;
-		for (SubEmitter* subEmitter : subEmitters) {
-			GameObject* gameObject = App->scene->scene->GetGameObject(subEmitter->gameObjectUID);
-			if (gameObject != nullptr) {
-				ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
-				if (particleSystem != nullptr) {
-					subEmitter->particleSystem = particleSystem;
-				} else {
-					subEmitters.erase(subEmitters.begin() + pos);
-				}
+	for (SubEmitter* subEmitter : subEmitters) {
+		GameObject* gameObject = App->scene->scene->GetGameObject(subEmitter->gameObjectUID);
+		if (gameObject != nullptr) {
+			ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
+			if (particleSystem != nullptr) {
+				subEmitter->particleSystem = particleSystem;
 			} else {
-				subEmitters.erase(subEmitters.begin() + pos);
+				subEmitter->gameObjectUID = 0;
+				subEmitter->particleSystem = nullptr;
 			}
-			pos += 1;
+		} else {
+			subEmitter->gameObjectUID = 0;
+			subEmitter->particleSystem = nullptr;
 		}
 	}
+
 	if (lightGameObjectUID != 0) {
 		GameObject* gameObject = App->scene->scene->GetGameObject(lightGameObjectUID);
 		if (gameObject != nullptr) {
@@ -630,7 +629,6 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 			ImGui::DragInt("Texture Repeats", &nTextures, 1.0f, 1, std::numeric_limits<int>::max(), "%d", ImGuiSliderFlags_AlwaysClamp);
 
-
 			ImGui::Unindent();
 		}
 	}
@@ -663,6 +661,9 @@ void ComponentParticleSystem::OnEditorUpdate() {
 							subEmitter->particleSystem = particleSystem;
 							subEmitter->particleSystem->active = false;
 						}
+					} else {
+						subEmitter->gameObjectUID = 0;
+						subEmitter->particleSystem = nullptr;
 					}
 				}
 			}
@@ -1504,8 +1505,8 @@ void ComponentParticleSystem::InitStartRate() {
 
 void ComponentParticleSystem::InitSubEmitter(Particle* currentParticle, SubEmitterType subEmitterType) {
 	for (SubEmitter* subEmitter : subEmitters) {
-		if (subEmitter->subEmitterType != subEmitterType) return;
-		if (!IsProbably(subEmitter->emitProbability)) return;
+		if (subEmitter->subEmitterType != subEmitterType) continue;
+		if (!IsProbably(subEmitter->emitProbability)) continue;
 		if (subEmitter->particleSystem != nullptr) {
 			GameObject& parent = GetOwner();
 			Scene* scene = parent.scene;
@@ -1751,8 +1752,8 @@ void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) 
 }
 
 void ComponentParticleSystem::UpdateSubEmitters() {
-	int pos = 0;
-	for (GameObject* gameObject : subEmittersGO) {
+	for (int pos = 0; pos < subEmittersGO.size(); ++pos) {
+		GameObject* gameObject = subEmittersGO[pos];
 		ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
 		if (particleSystem) {
 			if (particleSystem->subEmittersGO.size() == 0) {
@@ -1764,7 +1765,6 @@ void ComponentParticleSystem::UpdateSubEmitters() {
 				}
 			}
 		}
-		pos += 1;
 	}
 }
 
