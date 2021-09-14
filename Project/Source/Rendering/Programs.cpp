@@ -124,8 +124,17 @@ ProgramStandard::ProgramStandard(unsigned program_)
 	viewLocation = glGetUniformLocation(program, "view");
 	projLocation = glGetUniformLocation(program, "proj");
 
-	viewLightLocation = glGetUniformLocation(program, "viewLight");
-	projLightLocation = glGetUniformLocation(program, "projLight");
+	viewOrtoLightsStaticLocation = glGetUniformLocation(program, "viewOrtoLightsStatic");
+	projOrtoLightsStaticLocation = glGetUniformLocation(program, "projOrtoLightsStatic");
+	
+	viewOrtoLightsDynamicLocation = glGetUniformLocation(program, "viewOrtoLightsDynamic");
+	projOrtoLightsDynamicLocation = glGetUniformLocation(program, "projOrtoLightsDynamic");
+
+	shadowCascadesCounterLocation = glGetUniformLocation(program, "shadowCascadesCounter");
+
+	for (unsigned int i = 0; i < CASCADE_FRUSTUMS; ++i) {
+		depthMaps[i] = DepthMapsUniforms(program, i);
+	}
 
 	paletteLocation = glGetUniformLocation(program, "palette");
 	hasBonesLocation = glGetUniformLocation(program, "hasBones");
@@ -149,8 +158,6 @@ ProgramStandard::ProgramStandard(unsigned program_)
 
 	ambientOcclusionMapLocation = glGetUniformLocation(program, "ambientOcclusionMap");
 	hasAmbientOcclusionMapLocation = glGetUniformLocation(program, "hasAmbientOcclusionMap");
-
-	depthMapTextureLocation = glGetUniformLocation(program, "depthMapTexture");
 
 	ssaoTextureLocation = glGetUniformLocation(program, "ssaoTexture");
 	ssaoDirectLightingStrengthLocation = glGetUniformLocation(program, "ssaoDirectLightingStrength");
@@ -365,6 +372,16 @@ ProgramTrail::ProgramTrail(unsigned program_)
 
 	xFlipLocation = glGetUniformLocation(program, "flipX");
 	yFlipLocation = glGetUniformLocation(program, "flipY");
+}
+
+DepthMapsUniforms::DepthMapsUniforms() {}
+
+DepthMapsUniforms::DepthMapsUniforms(unsigned program, unsigned number) {
+	depthMapLocationStatic = glGetUniformLocation(program, (std::string("depthMapTexturesStatic[") + std::to_string(number) + "]").c_str());
+	farPlaneLocationStatic = glGetUniformLocation(program, (std::string("farPlaneDistancesStatic[") + std::to_string(number) + "]").c_str());
+
+	depthMapLocationDynamic = glGetUniformLocation(program, (std::string("depthMapTexturesDynamic[") + std::to_string(number) + "]").c_str());
+	farPlaneLocationDynamic = glGetUniformLocation(program, (std::string("farPlaneDistancesDynamic[") + std::to_string(number) + "]").c_str());
 }
 
 ProgramStandardDissolve::ProgramStandardDissolve(unsigned program)

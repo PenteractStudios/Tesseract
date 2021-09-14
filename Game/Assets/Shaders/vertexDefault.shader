@@ -1,6 +1,7 @@
 --- vertVarCommon
 
 #define MAX_BONES 100
+#define MAX_CASCADES 10
 
 in layout(location=0) vec3 pos;
 in layout(location=1) vec3 norm;
@@ -13,14 +14,21 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
 
-uniform mat4 viewLight;
-uniform mat4 projLight;
+uniform unsigned int shadowCascadesCounter;
+uniform mat4 viewOrtoLightsStatic[MAX_CASCADES];
+uniform mat4 projOrtoLightsStatic[MAX_CASCADES];
+
+uniform mat4 viewOrtoLightsDynamic[MAX_CASCADES];
+uniform mat4 projOrtoLightsDynamic[MAX_CASCADES];
 
 out vec3 fragNormal;
 out mat3 TBN;
 out vec3 fragPos;
 out vec2 uv;
-out vec4 fragPosLight;
+
+out unsigned int cascadesCount;
+out vec4 fragPosLightStatic[MAX_CASCADES];
+out vec4 fragPosLightDynamic[MAX_CASCADES];
 
 uniform mat4 palette[MAX_BONES];
 uniform bool hasBones;
@@ -45,7 +53,14 @@ void main()
     fragPos = vec3(model * position);
     fragNormal = normalize(transpose(inverse(mat3(model))) * normal.xyz);
     uv = uvs;
-    fragPosLight = projLight * viewLight * model * position;
+    
+    for(unsigned int i = 0; i < shadowCascadesCounter; ++i){
+        fragPosLightStatic[i] = projOrtoLightsStatic[i] * viewOrtoLightsStatic[i] * model * position;
+        fragPosLightDynamic[i] = projOrtoLightsDynamic[i] * viewOrtoLightsDynamic[i] * model * position;
+    }
+
+    cascadesCount = shadowCascadesCounter;
+
 }
 
 --- vertMainNormal
@@ -74,5 +89,11 @@ void main()
     fragNormal = N;
     TBN = mat3(T, B, N);
     uv = uvs;
-    fragPosLight = projLight * viewLight * model * position;
+
+    for(unsigned int i = 0; i < shadowCascadesCounter; ++i){
+        fragPosLightStatic[i] = projOrtoLightsStatic[i] * viewOrtoLightsStatic[i] * model * position;
+        fragPosLightDynamic[i] = projOrtoLightsDynamic[i] * viewOrtoLightsDynamic[i] * model * position;
+    }
+
+    cascadesCount = shadowCascadesCounter;
 }

@@ -9,6 +9,7 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleScene.h"
+#include "Modules/ModuleRender.h"
 #include "ResourceTexture.h"
 #include "Utils/FileDialog.h"
 #include "Utils/Logging.h"
@@ -51,6 +52,9 @@
 #define JSON_TAG_DISSOLVE_DURATION "DissolveDuration"
 #define JSON_TAG_DISSOLVE_EDGE_SIZE "DissolveEdgeSize"
 
+#define JSON_TAG_CAST_SHADOW "CastShadows"
+#define JSON_TAG_SHADOW_TYPE "ShadowType"
+
 void ResourceMaterial::Load() {
 	// Timer to measure loading a material
 	MSTimer timer;
@@ -72,6 +76,14 @@ void ResourceMaterial::Load() {
 	shaderType = (MaterialShader)(int) jMaterial[JSON_TAG_SHADER];
 
 	renderingMode = (RenderingMode)(int) jMaterial[JSON_TAG_RENDERING_MODE];
+
+	// Cast shadows
+	castShadows = static_cast<bool>(jMaterial[JSON_TAG_CAST_SHADOW]);
+	shadowCasterType = static_cast<ShadowCasterType>(static_cast<int>(jMaterial[JSON_TAG_SHADOW_TYPE]));
+
+	if (castShadows) {
+		UpdateMask(MaskToChange::SHADOW);
+	}
 
 	diffuseColor = float4(jMaterial[JSON_TAG_DIFFUSE_COLOR][0], jMaterial[JSON_TAG_DIFFUSE_COLOR][1], jMaterial[JSON_TAG_DIFFUSE_COLOR][2], jMaterial[JSON_TAG_DIFFUSE_COLOR][3]);
 	diffuseMapId = jMaterial[JSON_TAG_DIFFUSE_MAP];
@@ -140,9 +152,12 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	JsonValue jMaterial(document, document);
 
 	// Save JSON values
-	jMaterial[JSON_TAG_SHADER] = (int) shaderType;
+	jMaterial[JSON_TAG_SHADER] = static_cast<int>(shaderType);
 
-	jMaterial[JSON_TAG_RENDERING_MODE] = (int) renderingMode;
+	jMaterial[JSON_TAG_RENDERING_MODE] = static_cast<int>(renderingMode);
+
+	jMaterial[JSON_TAG_CAST_SHADOW] = castShadows;
+	jMaterial[JSON_TAG_SHADOW_TYPE] = static_cast<int>(shadowCasterType);
 
 	JsonValue jDiffuseColor = jMaterial[JSON_TAG_DIFFUSE_COLOR];
 	jDiffuseColor[0] = diffuseColor.x;
@@ -212,14 +227,37 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	LOG("Material saved in %ums", timeMs);
 }
 
-void ResourceMaterial::UpdateMask() {
+void ResourceMaterial::UpdateMask(MaskToChange maskToChange, bool forceDeleteShadows) {
 	for (GameObject& gameObject : App->scene->scene->gameObjects) {
 		ComponentMeshRenderer* meshRenderer = gameObject.GetComponent<ComponentMeshRenderer>();
 		if (meshRenderer && meshRenderer->materialId == GetId()) {
-			if (renderingMode == RenderingMode::TRANSPARENT) {
-				gameObject.AddMask(MaskType::TRANSPARENT);
-			} else {
-				gameObject.DeleteMask(MaskType::TRANSPARENT);
+
+			switch (maskToChange) {
+				case MaskToChange::RENDERING:
+					if (renderingMode == RenderingMode::TRANSPARENT) {
+						gameObject.AddMask(MaskType::TRANSPARENT);
+					} else {
+						gameObject.DeleteMask(MaskType::TRANSPARENT);
+					}
+					break;
+				case MaskToChange::SHADOW:
+
+					if (!forceDeleteShadows) {
+						gameObject.AddMask(MaskType::CAST_SHADOWS);
+
+						if (shadowCasterType == ShadowCasterType::STATIC) {
+							App->scene->scene->RemoveDynamicShadowCaster(&gameObject);
+							App->scene->scene->AddStaticShadowCaster(&gameObject);
+						} else {
+							App->scene->scene->RemoveStaticShadowCaster(&gameObject);
+							App->scene->scene->AddDynamicShadowCaster(&gameObject);
+						}
+					} else {
+						gameObject.DeleteMask(MaskType::CAST_SHADOWS);
+						App->scene->scene->RemoveDynamicShadowCaster(&gameObject);
+						App->scene->scene->RemoveStaticShadowCaster(&gameObject);
+					}
+					break;
 			}
 		}
 	}
@@ -260,7 +298,7 @@ void ResourceMaterial::OnEditorUpdate() {
 			bool isSelected = (renderingModeCurrent == renderingModes[n]);
 			if (ImGui::Selectable(renderingModes[n], isSelected)) {
 				renderingMode = (RenderingMode) n;
-				UpdateMask();
+				UpdateMask(MaskToChange::RENDERING);
 			}
 			if (isSelected) {
 				ImGui::SetItemDefaultFocus();
@@ -268,6 +306,40 @@ void ResourceMaterial::OnEditorUpdate() {
 		}
 		ImGui::EndCombo();
 	}
+
+	ImGui::NewLine();
+
+	// Cast Shadows
+
+	bool checkboxClicked = ImGui::Checkbox("CastShadows", &castShadows);
+
+	const char* shadowCasterTypes[] = {"Static", "Dynamic"};
+	const char* shadowCasterTypeCurrent = shadowCasterTypes[static_cast<int>(shadowCasterType)];
+
+	if (castShadows) {
+	
+		if (ImGui::BeginCombo("Shadow Caster Type", shadowCasterTypeCurrent)) {
+			for (int n = 0; n < IM_ARRAYSIZE(shadowCasterTypes); ++n) {
+				bool isSelected = (shadowCasterTypeCurrent == shadowCasterTypes[n]);
+				if (ImGui::Selectable(shadowCasterTypes[n], isSelected)) {
+					shadowCasterType = static_cast<ShadowCasterType>(n);
+					UpdateMask(MaskToChange::SHADOW);
+				}
+
+				if (isSelected) {
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		} else if (checkboxClicked) {
+			UpdateMask(MaskToChange::SHADOW);
+		}
+	} 
+
+	if (checkboxClicked && !castShadows) {
+		UpdateMask(MaskToChange::SHADOW, true);
+	}
+
 	ImGui::NewLine();
 
 	if (shaderType == MaterialShader::VOLUMETRIC_LIGHT) {

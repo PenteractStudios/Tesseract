@@ -1,6 +1,6 @@
 #pragma once
-#include "State.h"
-#include "Transition.h"
+#include "Animation/State.h"
+#include "Animation/Transition.h"
 #include "Resources/ResourceType.h"
 #include "Resources/Resource.h"
 #include "Utils/UID.h"
