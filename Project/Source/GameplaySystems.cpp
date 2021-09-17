@@ -404,6 +404,19 @@ void Physics::RemoveRigidbody(Component* collider)
 	}
 }
 
+void Physics::CreateParticleRigidbody(ComponentParticleSystem::Particle* currentParticle) {
+	App->physics->CreateParticleRigidbody(currentParticle);
+}
+
+void Physics::RemoveParticleRigidbody(ComponentParticleSystem::Particle* currentParticle) {
+	App->physics->RemoveParticleRigidbody(currentParticle);
+}
+
+void Physics::UpdateParticleRigidbody(ComponentParticleSystem::Particle* currentParticle) {
+	App->physics->UpdateParticleRigidbody(currentParticle);
+}
+
+
 float3 Colors::Red() {
 	return dd::colors::Red;
 }
