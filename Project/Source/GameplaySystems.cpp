@@ -20,6 +20,7 @@
 #include "Resources/ResourceMaterial.h"
 #include "Resources/ResourceClip.h"
 #include "Resources/ResourceScene.h"
+#include "Scripting/PropertyMap.h"
 #include "Importers/SceneImporter.h"
 #include "Utils/Logging.h"
 #include "TesseractEvent.h"
@@ -64,6 +65,46 @@ template TESSERACT_ENGINE_API ResourceScene* GameplaySystems::GetResource<Resour
 bool GameplaySystems::HaveResourcesFinishedLoading() {
 	return App->resources->HaveResourcesFinishedLoading();
 }
+
+template<typename T>
+T GameplaySystems::GetGlobalVariable(const char* name, const T& defaultValue) {
+	return App->project->GetGameState()->Get<T>(name, defaultValue);
+}
+
+template TESSERACT_ENGINE_API bool GameplaySystems::GetGlobalVariable<bool>(const char* name, const bool& defaultValue);
+template TESSERACT_ENGINE_API char GameplaySystems::GetGlobalVariable<char>(const char* name, const char& defaultValue);
+template TESSERACT_ENGINE_API unsigned char GameplaySystems::GetGlobalVariable<unsigned char>(const char* name, const unsigned char& defaultValue);
+template TESSERACT_ENGINE_API short GameplaySystems::GetGlobalVariable<short>(const char* name, const short& defaultValue);
+template TESSERACT_ENGINE_API unsigned short GameplaySystems::GetGlobalVariable<unsigned short>(const char* name, const unsigned short& defaultValue);
+template TESSERACT_ENGINE_API int GameplaySystems::GetGlobalVariable<int>(const char* name, const int& defaultValue);
+template TESSERACT_ENGINE_API unsigned int GameplaySystems::GetGlobalVariable<unsigned int>(const char* name, const unsigned int& defaultValue);
+template TESSERACT_ENGINE_API long long GameplaySystems::GetGlobalVariable<long long>(const char* name, const long long& defaultValue);
+template TESSERACT_ENGINE_API unsigned long long GameplaySystems::GetGlobalVariable<unsigned long long>(const char* name, const unsigned long long& defaultValue);
+template TESSERACT_ENGINE_API float GameplaySystems::GetGlobalVariable<float>(const char* name, const float& defaultValue);
+template TESSERACT_ENGINE_API double GameplaySystems::GetGlobalVariable<double>(const char* name, const double& defaultValue);
+template TESSERACT_ENGINE_API std::string GameplaySystems::GetGlobalVariable<std::string>(const char* name, const std::string& defaultValue);
+template TESSERACT_ENGINE_API float2 GameplaySystems::GetGlobalVariable<float2>(const char* name, const float2& defaultValue);
+template TESSERACT_ENGINE_API float3 GameplaySystems::GetGlobalVariable<float3>(const char* name, const float3& defaultValue);
+
+template<typename T>
+void GameplaySystems::SetGlobalVariable(const char* name, const T& value) {
+	App->project->GetGameState()->Set<T>(name, value);
+}
+
+template TESSERACT_ENGINE_API void GameplaySystems::SetGlobalVariable<bool>(const char* name, const bool& value);
+template TESSERACT_ENGINE_API void GameplaySystems::SetGlobalVariable<char>(const char* name, const char& value);
+template TESSERACT_ENGINE_API void GameplaySystems::SetGlobalVariable<unsigned char>(const char* name, const unsigned char& value);
+template TESSERACT_ENGINE_API void GameplaySystems::SetGlobalVariable<short>(const char* name, const short& value);
+template TESSERACT_ENGINE_API void GameplaySystems::SetGlobalVariable<unsigned short>(const char* name, const unsigned short& value);
+template TESSERACT_ENGINE_API void GameplaySystems::SetGlobalVariable<int>(const char* name, const int& value);
+template TESSERACT_ENGINE_API void GameplaySystems::SetGlobalVariable<unsigned int>(const char* name, const unsigned int& value);
+template TESSERACT_ENGINE_API void GameplaySystems::SetGlobalVariable<long long>(const char* name, const long long& value);
+template TESSERACT_ENGINE_API void GameplaySystems::SetGlobalVariable<unsigned long long>(const char* name, const unsigned long long& value);
+template TESSERACT_ENGINE_API void GameplaySystems::SetGlobalVariable<float>(const char* name, const float& value);
+template TESSERACT_ENGINE_API void GameplaySystems::SetGlobalVariable<double>(const char* name, const double& value);
+template TESSERACT_ENGINE_API void GameplaySystems::SetGlobalVariable<std::string>(const char* name, const std::string& value);
+template TESSERACT_ENGINE_API void GameplaySystems::SetGlobalVariable<float2>(const char* name, const float2& value);
+template TESSERACT_ENGINE_API void GameplaySystems::SetGlobalVariable<float3>(const char* name, const float3& value);
 
 void GameplaySystems::SetRenderCamera(ComponentCamera* camera) {
 	App->camera->ChangeActiveCamera(camera, true);
@@ -370,6 +411,19 @@ void Physics::RemoveRigidbody(Component* collider)
 		break;
 	}
 }
+
+void Physics::CreateParticleRigidbody(ComponentParticleSystem::Particle* currentParticle) {
+	App->physics->CreateParticleRigidbody(currentParticle);
+}
+
+void Physics::RemoveParticleRigidbody(ComponentParticleSystem::Particle* currentParticle) {
+	App->physics->RemoveParticleRigidbody(currentParticle);
+}
+
+void Physics::UpdateParticleRigidbody(ComponentParticleSystem::Particle* currentParticle) {
+	App->physics->UpdateParticleRigidbody(currentParticle);
+}
+
 
 float3 Colors::Red() {
 	return dd::colors::Red;

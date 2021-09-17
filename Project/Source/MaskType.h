@@ -12,8 +12,8 @@ struct Mask {
 	int bitMask = static_cast<int>(MaskType::NONE);
 
 	// Only to Show in PanelInspector
-	const char* maskNames[3] = {"ENEMY", "PLAYER", "CAST SHADOWS"};
-	bool maskValues[3] = {false, false, false};
+	const char* maskNames[2] = {"ENEMY", "PLAYER"};
+	bool maskValues[2] = {false, false};
 };
 
 const char* GetMaskTypeName(MaskType type);

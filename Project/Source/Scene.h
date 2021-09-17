@@ -3,6 +3,7 @@
 #include "Utils/PoolMap.h"
 #include "Utils/Quadtree.h"
 #include "Utils/UID.h"
+#include "Rendering/FrustumPlanes.h"
 #include "Components/ComponentTransform.h"
 #include "Components/ComponentMeshRenderer.h"
 #include "Components/ComponentBoundingBox.h"
@@ -71,6 +72,20 @@ public:
 	std::vector<int> GetTriangles();  // Gets all the triangles from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
 	std::vector<float> GetNormals();
 
+	std::vector<GameObject*> GetCulledMeshes(const FrustumPlanes& planes, const int mask); // Gets all the game objects inside the given frustum
+	std::vector<GameObject*> GetStaticCulledShadowCasters(const FrustumPlanes& planes); // Gets all the shadow casters game objects inside the given frustum
+	std::vector<GameObject*> GetDynamicCulledShadowCasters(const FrustumPlanes& planes);	   // Gets all the shadow casters game objects inside the given frustum
+
+
+	void RemoveStaticShadowCaster(const GameObject* go);
+	void AddStaticShadowCaster(GameObject* go);
+
+	void RemoveDynamicShadowCaster(const GameObject* go);
+	void AddDynamicShadowCaster(GameObject* go);
+	
+	const std::vector<GameObject*>& GetStaticShadowCasters() const; 
+	const std::vector<GameObject*>& GetDynamicShadowCasters() const;
+
 	void SetNavMesh(UID id);
 	NavMesh* GetNavMesh();
 
@@ -137,10 +152,18 @@ public:
 
 	// ---- Nav Mesh ID parameters ---- //
 	UID navMeshId = 0;
+
 	// ---- Cursor parameters ---- //
 	UID cursorId = 0;
 	int widthCursor = 30;
 	int heightCursor = 30;
+
+private:
+	bool InsideFrustumPlanes(const FrustumPlanes& planes, const GameObject* go); 
+
+private:
+	std::vector<GameObject*> staticShadowCasters;
+	std::vector<GameObject*> dynamicShadowCasters;
 };
 
 template<class T>

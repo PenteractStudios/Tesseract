@@ -2,14 +2,18 @@
 
 #include "GameObject.h"
 #include "Application.h"
+#include "Modules/ModuleTime.h"
 #include "Modules/ModuleEditor.h"
-#include "Modules/ModuleResources.h"
+#include "Modules/ModuleRender.h"
 #include "Modules/ModulePhysics.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleRender.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleWindow.h"
+#include "Modules/ModuleProject.h"
+#include "Modules/ModuleResources.h"
+#include "Scripting/PropertyMap.h"
 #include "Resources/ResourceMesh.h"
 #include "Resources/ResourceNavMesh.h"
 #include "Utils/Logging.h"
@@ -77,6 +81,9 @@ void Scene::ClearScene() {
 
 	assert(gameObjects.Count() == 0); // There should be no GameObjects outside the scene hierarchy
 	gameObjects.Clear();			  // This looks redundant, but it resets the free list so that GameObject order is mantained when saving/loading
+
+	staticShadowCasters.clear();
+	dynamicShadowCasters.clear();
 }
 
 void Scene::RebuildQuadtree() {
@@ -108,6 +115,8 @@ void Scene::Init() {
 }
 
 void Scene::Start() {
+	App->project->GetGameState()->Clear();
+
 	if (App->camera->GetGameCamera()) {
 		// Set the Game Camera as active
 		App->camera->ChangeActiveCamera(App->camera->GetGameCamera(), true);
@@ -558,6 +567,107 @@ std::vector<float> Scene::GetNormals() {
 	}
 
 	return result;
+}
+
+const std::vector<GameObject*>& Scene::GetStaticShadowCasters() const {
+	return staticShadowCasters;
+}
+
+const std::vector<GameObject*>& Scene::GetDynamicShadowCasters() const {
+	return dynamicShadowCasters;
+}
+
+bool Scene::InsideFrustumPlanes(const FrustumPlanes& planes, const GameObject* go) {
+	
+	ComponentBoundingBox* boundingBox = go->GetComponent<ComponentBoundingBox>();
+	if (boundingBox && planes.CheckIfInsideFrustumPlanes(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB())) {
+		return true;
+	}
+	return false;
+}
+
+std::vector<GameObject*> Scene::GetCulledMeshes(const FrustumPlanes& planes, const int mask) {
+	std::vector<GameObject*> meshes;
+
+	for (ComponentMeshRenderer componentMR : meshRendererComponents) {
+
+		GameObject *go = &componentMR.GetOwner();
+
+		Mask& maskGo = go->GetMask();
+
+		if ((maskGo.bitMask & mask) != 0) {
+			if (InsideFrustumPlanes(planes, go)) {
+				meshes.push_back(go);
+			}
+		}
+
+	}
+
+	return meshes;
+}
+
+std::vector<GameObject*> Scene::GetStaticCulledShadowCasters(const FrustumPlanes& planes) {
+	std::vector<GameObject*> meshes;
+
+	for (GameObject* go : staticShadowCasters) {
+		if (InsideFrustumPlanes(planes, go)) {
+			meshes.push_back(go);
+		}
+	}
+
+	return meshes;
+}
+
+std::vector<GameObject*> Scene::GetDynamicCulledShadowCasters(const FrustumPlanes& planes) {
+	std::vector<GameObject*> meshes;
+
+	for (GameObject* go : dynamicShadowCasters) {
+		if (InsideFrustumPlanes(planes, go)) {
+			meshes.push_back(go);
+		}
+	}
+
+	return meshes;
+}
+
+void Scene::RemoveStaticShadowCaster(const GameObject* go) {
+	auto it = std::find(staticShadowCasters.begin(), staticShadowCasters.end(), go);
+
+	if (it == staticShadowCasters.end()) return;
+
+	staticShadowCasters.erase(it);
+
+	App->renderer->lightFrustumStatic.Invalidate();
+}
+
+void Scene::AddStaticShadowCaster(GameObject* go) {
+	auto it = std::find(staticShadowCasters.begin(), staticShadowCasters.end(), go);
+
+	if (it != staticShadowCasters.end()) return;
+
+	staticShadowCasters.push_back(go);
+
+	App->renderer->lightFrustumStatic.Invalidate();
+}
+
+void Scene::RemoveDynamicShadowCaster(const GameObject* go) {
+	auto it = std::find(dynamicShadowCasters.begin(), dynamicShadowCasters.end(), go);
+
+	if (it == dynamicShadowCasters.end()) return;
+
+	dynamicShadowCasters.erase(it);
+
+	App->renderer->lightFrustumDynamic.Invalidate();
+}
+
+void Scene::AddDynamicShadowCaster(GameObject* go) {
+	auto it = std::find(dynamicShadowCasters.begin(), dynamicShadowCasters.end(), go);
+
+	if (it != dynamicShadowCasters.end()) return;
+
+	dynamicShadowCasters.push_back(go);
+
+	App->renderer->lightFrustumDynamic.Invalidate();
 }
 
 void Scene::SetNavMesh(UID id) {

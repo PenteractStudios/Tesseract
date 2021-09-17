@@ -2,10 +2,11 @@
 
 #include "Module.h"
 #include "Utils/Quadtree.h"
-#include "LightFrustum.h"
+#include "Rendering/LightFrustum.h"
 
 #include "MathGeoLibFwd.h"
 #include "Math/float3.h"
+
 #include <map>
 
 #define SSAO_KERNEL_SIZE 64
@@ -53,8 +54,8 @@ public:
 
 	void UpdateShadingMode(const char* shadingMode);
 
-	float4x4 GetLightViewMatrix() const;
-	float4x4 GetLightProjectionMatrix() const;
+	float4x4 GetLightViewMatrix(unsigned int i, ShadowCasterType lightFrustumType) const;
+	float4x4 GetLightProjectionMatrix(unsigned int i, ShadowCasterType lightFrustumType) const;
 
 	int GetCulledTriangles() const;
 	const float2 GetViewportSize();
@@ -76,7 +77,8 @@ public:
 	unsigned depthsTexture = 0;
 	unsigned positionsTexture = 0;
 	unsigned normalsTexture = 0;
-	unsigned depthMapTexture = 0;
+	unsigned depthMapStaticTextures[NUM_CASCADES_FRUSTUM] = {0, 0, 0, 0};
+	unsigned depthMapDynamicTextures[NUM_CASCADES_FRUSTUM] = {0, 0, 0, 0};
 	unsigned ssaoTexture = 0;
 	unsigned auxBlurTexture = 0;
 	unsigned colorTextures[2] = {0, 0}; // position 0: scene render texture; position 1: bloom texture to be blurred
@@ -86,7 +88,8 @@ public:
 	unsigned renderPassBuffer = 0;
 	unsigned depthPrepassBuffer = 0;
 	unsigned depthPrepassTextureConversionBuffer = 0;
-	unsigned depthMapTextureBuffer = 0;
+	unsigned depthMapStaticTextureBuffers[NUM_CASCADES_FRUSTUM] = {0, 0, 0, 0};
+	unsigned depthMapDynamicTextureBuffers[NUM_CASCADES_FRUSTUM] = {0, 0, 0, 0};
 	unsigned ssaoTextureBuffer = 0;
 	unsigned ssaoBlurTextureBufferH = 0;
 	unsigned ssaoBlurTextureBufferV = 0;
@@ -151,16 +154,16 @@ public:
 	bool chromaticAberrationActive = false;
 	float chromaticAberrationStrength = 1.0f;
 
-	LightFrustum lightFrustum;
+	LightFrustum lightFrustumStatic;
+	LightFrustum lightFrustumDynamic;
 
 private:
 	void DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb);			  // Draws the quadrtee nodes if 'drawQuadtree' is set to true.
 	void ClassifyGameObjects();																		  // Classify Game Objects from Scene taking into account Frustum Culling, Shadows and Rendering Mode
 	void ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::Node& node, const AABB2D& aabb); // Classify Game Objects from Scene taking into account Frustum Culling, Quadtree, Shadows and Rendering Mode
-	bool CheckIfInsideFrustum(const AABB& aabb, const OBB& obb);									  // ??
 	void DrawGameObject(GameObject* gameObject);													  // ??
 	void DrawGameObjectDepthPrepass(GameObject* gameObject);
-	void DrawGameObjectShadowPass(GameObject* gameObject);
+	void DrawGameObjectShadowPass(GameObject* gameObject, unsigned int i, ShadowCasterType lightFrustumType);
 	void DrawAnimation(const GameObject* gameObject, bool hasAnimation = false);
 	void RenderUI();
 	void SetOrtographicRender();
@@ -180,12 +183,13 @@ private:
 private:
 	// ------- Viewport Size ------- //
 	float2 viewportSize = float2::zero;
+	unsigned int indexDepthMapTexture = -1;
+	ShadowCasterType shadowCasterType;
 	bool drawDepthMapTexture = false;
 	bool drawSSAOTexture = false;
 	bool drawNormalsTexture = false;
 	bool drawPositionsTexture = false;
 
-	std::vector<GameObject*> shadowGameObjects;			 // Vector of Shadow Casted GameObjects
 	std::vector<GameObject*> opaqueGameObjects;			 // Vector of Opaque GameObjects
 	std::map<float, GameObject*> transparentGameObjects; // Map with Transparent GameObjects
 

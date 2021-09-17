@@ -9,6 +9,7 @@
 #include "Modules/ModuleRender.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleTime.h"
+#include "Modules/ModuleScene.h"
 #include "Resources/ResourceMaterial.h"
 #include "Resources/ResourceMesh.h"
 #include "Resources/ResourceTexture.h"
@@ -113,6 +114,18 @@ void ComponentMeshRenderer::Init() {
 
 void ComponentMeshRenderer::Start() {
 	ResetDissolveValues();
+
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+	if (material == nullptr) return;
+
+	if (material->castShadows) {
+		GameObject* owner = &GetOwner();
+		if (material->shadowCasterType == ShadowCasterType::STATIC) {
+			owner->scene->AddStaticShadowCaster(owner);
+		} else {
+			owner->scene->AddDynamicShadowCaster(owner);
+		}
+	}
 }
 
 void ComponentMeshRenderer::Update() {
@@ -660,16 +673,36 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	float4x4 viewMatrix = App->camera->GetViewMatrix();
 	float4x4 projMatrix = App->camera->GetProjectionMatrix();
 
-	// Light frustum
-	float4x4 viewLight = App->renderer->GetLightViewMatrix();
-	float4x4 projLight = App->renderer->GetLightProjectionMatrix();
+	// Light frustums
+
+	const std::vector<LightFrustum::FrustumInformation>& subsFrustumsStatic = App->renderer->lightFrustumStatic.GetSubFrustums();
+	const std::vector<LightFrustum::FrustumInformation>& subsFrustumsDynamic = App->renderer->lightFrustumDynamic.GetSubFrustums();
+
+	std::vector<float4x4> viewOrtoLightsStatic;
+	std::vector<float4x4> viewOrtoLightsDynamic;
+	std::vector<float4x4> projOrtoLightsStatic;
+	std::vector<float4x4> projOrtoLightsDynamic;
+	std::vector<float> farPlaneDistancesStatic;
+	std::vector<float> farPlaneDistancesDynamic;
+
+	// Static shadow casters
+	for (unsigned int i = 0; i < subsFrustumsStatic.size(); ++i) {
+		viewOrtoLightsStatic.push_back(subsFrustumsStatic[i].orthographicFrustum.ViewMatrix());
+		projOrtoLightsStatic.push_back(subsFrustumsStatic[i].orthographicFrustum.ProjectionMatrix());
+		farPlaneDistancesStatic.push_back(subsFrustumsStatic[i].orthographicFrustum.FarPlaneDistance());
+	}
+
+	// Dynamic shadow casters
+	for (unsigned int i = 0; i < subsFrustumsDynamic.size(); ++i) {
+		viewOrtoLightsDynamic.push_back(subsFrustumsDynamic[i].orthographicFrustum.ViewMatrix());
+		projOrtoLightsDynamic.push_back(subsFrustumsDynamic[i].orthographicFrustum.ProjectionMatrix());
+		farPlaneDistancesDynamic.push_back(subsFrustumsDynamic[i].orthographicFrustum.FarPlaneDistance());
+	}
 
 	unsigned glTextureDiffuse = 0;
 	ResourceTexture* diffuse = App->resources->GetResource<ResourceTexture>(material->diffuseMapId);
 	glTextureDiffuse = diffuse ? diffuse->glTexture : 0;
 	int hasDiffuseMap = diffuse ? 1 : 0;
-
-	unsigned gldepthMapTexture = App->renderer->depthMapTexture;
 
 	unsigned glSSAOTexture = App->renderer->ssaoTexture;
 
@@ -688,8 +721,25 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniformMatrix4fv(standardProgram->viewLocation, 1, GL_TRUE, viewMatrix.ptr());
 	glUniformMatrix4fv(standardProgram->projLocation, 1, GL_TRUE, projMatrix.ptr());
 
-	glUniformMatrix4fv(standardProgram->viewLightLocation, 1, GL_TRUE, viewLight.ptr());
-	glUniformMatrix4fv(standardProgram->projLightLocation, 1, GL_TRUE, projLight.ptr());
+	// Shadows uniform settings
+	if (subsFrustumsDynamic.size() > 0) {
+		glUniformMatrix4fv(standardProgram->viewOrtoLightsDynamicLocation, viewOrtoLightsDynamic.size(), GL_TRUE, viewOrtoLightsDynamic[0].ptr());
+		glUniformMatrix4fv(standardProgram->projOrtoLightsDynamicLocation, projOrtoLightsDynamic.size(), GL_TRUE, projOrtoLightsDynamic[0].ptr());
+	}
+
+	if (subsFrustumsStatic.size() > 0) {
+		glUniformMatrix4fv(standardProgram->viewOrtoLightsStaticLocation, viewOrtoLightsStatic.size(), GL_TRUE, viewOrtoLightsStatic[0].ptr());
+		glUniformMatrix4fv(standardProgram->projOrtoLightsStaticLocation, projOrtoLightsStatic.size(), GL_TRUE, projOrtoLightsStatic[0].ptr());
+	}
+
+	for (unsigned int i = 0; i < farPlaneDistancesStatic.size(); ++i) {
+		glUniform1f(standardProgram->depthMaps[i].farPlaneLocationStatic, farPlaneDistancesStatic[i]);
+		glUniform1f(standardProgram->depthMaps[i].farPlaneLocationDynamic, farPlaneDistancesDynamic[i]);
+	}
+
+	glUniform1ui(standardProgram->shadowCascadesCounterLocation, subsFrustumsDynamic.size());
+
+	// Skinning uniform settings
 
 	if (palette.size() > 0) {
 		glUniformMatrix4fv(standardProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
@@ -731,14 +781,9 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, glTextureAmbientOcclusion);
 
-	// Depth Map
-	glUniform1i(standardProgram->depthMapTextureLocation, 5);
-	glActiveTexture(GL_TEXTURE5);
-	glBindTexture(GL_TEXTURE_2D, gldepthMapTexture);
-
 	// SSAO texture
-	glUniform1i(standardProgram->ssaoTextureLocation, 6);
-	glActiveTexture(GL_TEXTURE6);
+	glUniform1i(standardProgram->ssaoTextureLocation, 5);
+	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_2D, glSSAOTexture);
 	glUniform1f(standardProgram->ssaoDirectLightingStrengthLocation, App->renderer->ssaoDirectLightingStrength);
 
@@ -755,17 +800,17 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 		if (skyboxResource != nullptr) {
 			hasIBL = true;
-
-			glUniform1i(standardProgram->diffuseIBLLocation, 7);
-			glActiveTexture(GL_TEXTURE7);
+			
+			glUniform1i(standardProgram->diffuseIBLLocation, 6);
+			glActiveTexture(GL_TEXTURE6);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxResource->GetGlIrradianceMap());
 
-			glUniform1i(standardProgram->prefilteredIBLLocation, 8);
-			glActiveTexture(GL_TEXTURE8);
+			glUniform1i(standardProgram->prefilteredIBLLocation, 7);
+			glActiveTexture(GL_TEXTURE7);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxResource->GetGlPreFilteredMap());
 
-			glUniform1i(standardProgram->environmentBRDFLocation, 9);
-			glActiveTexture(GL_TEXTURE9);
+			glUniform1i(standardProgram->environmentBRDFLocation, 8);
+			glActiveTexture(GL_TEXTURE8);
 			glBindTexture(GL_TEXTURE_2D, skyboxResource->GetGlEnvironmentBRDF());
 
 			glUniform1i(standardProgram->prefilteredIBLNumLevelsLocation, skyboxResource->GetPreFilteredMapNumLevels());
@@ -774,6 +819,23 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		}
 	}
 	glUniform1i(standardProgram->hasIBLLocation, hasIBL ? 1 : 0);
+
+	unsigned int total = 9;
+	for (unsigned int i = 0; i < subsFrustumsStatic.size() * 2 && total < 32; i += 2, total += 2) {
+		
+		unsigned int gldepthMapTexture = App->renderer->depthMapStaticTextures[i];
+
+		glUniform1i(standardProgram->depthMaps[i].depthMapLocationStatic, total);
+		glActiveTexture(GL_TEXTURE9 + i);
+		glBindTexture(GL_TEXTURE_2D, gldepthMapTexture);
+
+		gldepthMapTexture = App->renderer->depthMapDynamicTextures[i];
+
+		glUniform1i(standardProgram->depthMaps[i].depthMapLocationDynamic, total + 1);
+		glActiveTexture(GL_TEXTURE9 + i + 1);
+		glBindTexture(GL_TEXTURE_2D, gldepthMapTexture);
+
+	}
 
 	// Lights uniforms settings
 	glUniform3fv(standardProgram->lightAmbientColorLocation, 1, App->renderer->ambientColor.ptr());
@@ -878,7 +940,7 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	glBindVertexArray(0);
 }
 
-void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix) const {
+void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix, unsigned int i, ShadowCasterType lightFrustumType) const {
 	if (!IsActive()) return;
 
 	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
@@ -886,8 +948,8 @@ void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix) const {
 	if (mesh == nullptr || material == nullptr) return;
 
 	unsigned program = App->programs->shadowMap;
-	float4x4 viewMatrix = App->renderer->GetLightViewMatrix();
-	float4x4 projMatrix = App->renderer->GetLightProjectionMatrix();
+	float4x4 viewMatrix = App->renderer->GetLightViewMatrix(i, lightFrustumType);
+	float4x4 projMatrix = App->renderer->GetLightProjectionMatrix(i, lightFrustumType);
 
 	unsigned glTextureDiffuse = 0;
 	ResourceTexture* diffuse = App->resources->GetResource<ResourceTexture>(material->diffuseMapId);

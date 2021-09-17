@@ -8,6 +8,7 @@
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleTime.h"
 #include "Components/ComponentScript.h"
+#include "Scripting/PropertyMap.h"
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
 #include "Utils/FileDialog.h"
@@ -390,6 +391,8 @@ namespace Tesseract {
 bool ModuleProject::Init() {
 	Factory::CreateContext();
 
+	gameState = new PropertyMap();
+
 #if GAME
 	UnloadGameCodeDLL();
 	if (!LoadGameCodeDLL("Penteract.dll")) {
@@ -419,6 +422,7 @@ UpdateStatus ModuleProject::Update() {
 bool ModuleProject::CleanUp() {
 	UnloadGameCodeDLL();
 	Factory::DestroyContext();
+	RELEASE(gameState);
 	return true;
 }
 
@@ -659,6 +663,10 @@ void ModuleProject::CompileProject(Configuration config) {
 
 bool ModuleProject::IsGameLoaded() const {
 	return gameCodeDLL != nullptr;
+}
+
+PropertyMap* ModuleProject::GetGameState() const {
+	return gameState;
 }
 
 bool ModuleProject::LoadGameCodeDLL(const char* path) {

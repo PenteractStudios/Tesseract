@@ -2,6 +2,8 @@
 
 #include "Component.h"
 
+#include "Modules/ModuleRender.h"
+
 #include "Math/float2.h"
 #include "Math/float4x4.h"
 #include <unordered_map>
@@ -23,7 +25,7 @@ public:
 
 	void Draw(const float4x4& modelMatrix) const;
 	void DrawDepthPrepass(const float4x4& modelMatrix) const;
-	void DrawShadow(const float4x4& modelMatrix) const;
+	void DrawShadow(const float4x4& modelMatrix, unsigned int i, ShadowCasterType lightFrustumType) const;
 
 	void AddRenderingModeMask();
 	void DeleteRenderingModeMask();

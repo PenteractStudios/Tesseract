@@ -4,7 +4,7 @@
 #include "Creator.h"
 #include "Member.h"
 #include "TesseractEvent.h"
-#include "StateMachineEnum.h"
+#include "Animation/StateMachineEnum.h"
 
 #include <vector>
 

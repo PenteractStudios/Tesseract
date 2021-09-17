@@ -5,10 +5,12 @@
 #include "GameObject.h"
 #include "Utils/Logging.h"
 #include "Importers/SceneImporter.h"
+#include "Scripting/PropertyMap.h"
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleEvents.h"
+#include "Modules/ModuleProject.h"
 #include "Modules/ModuleAudio.h"
 #include "Modules/ModuleRender.h"
 #include "Modules/ModulePhysics.h"
@@ -177,6 +179,8 @@ void ModuleTime::StopGame() {
 	gameStarted = false;
 	gameRunning = false;
 	timeLastMs = 0;
+
+	App->project->GetGameState()->Clear();
 
 	// Stop all audio sources
 	App->audio->StopAllSources();
