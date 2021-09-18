@@ -470,14 +470,14 @@ void ModuleResources::UpdateImportAsync() {
 		App->events->AddEvent(updateAssetCacheEv);
 #endif
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BETWEEN_RESOURCE_UPDATES_MS));
+		std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BETWEEN_RESOURCE_IMPORT_UPDATES_MS));
 	}
 }
 
 void ModuleResources::UpdateLoadingAsync() {
 	while (!stopLoadingThread) {
 		// Load resources
-		while (!resourcesToLoad.empty()) {
+		if (!resourcesToLoad.empty()) {
 			Resource* resource = nullptr;
 			if (!resourcesToLoad.try_pop(resource)) break;
 			if (resource == nullptr) continue;
@@ -485,6 +485,8 @@ void ModuleResources::UpdateLoadingAsync() {
 			resource->Load();
 			resourcesToFinishLoading.push(resource);
 		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BETWEEN_RESOURCE_LOADING_UPDATES_MS));	
 	}
 }
 

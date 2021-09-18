@@ -11,10 +11,6 @@
 #include "Modules/ModuleTime.h"
 #include "ImporterCommon.h"
 
-#include "IL/il.h"
-#include "IL/ilu.h"
-#include "GL/glew.h"
-
 #include "Utils/Leaks.h"
 
 bool ShaderImporter::ImportShader(const char* filePath, JsonValue jMeta) {
