@@ -103,29 +103,15 @@ static const char* spotLightStrings[SPOT_LIGHTS][SPOT_LIGHT_MEMBERS] = {
 ComponentMeshRenderer::~ComponentMeshRenderer() {
 	App->resources->DecreaseReferenceCount(meshId);
 	App->resources->DecreaseReferenceCount(materialId);
-	DeleteRenderingModeMask();
 }
 
 void ComponentMeshRenderer::Init() {
 	App->resources->IncreaseReferenceCount(meshId);
 	App->resources->IncreaseReferenceCount(materialId);
-	AddRenderingModeMask();
 }
 
 void ComponentMeshRenderer::Start() {
 	ResetDissolveValues();
-
-	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
-	if (material == nullptr) return;
-
-	if (material->castShadows) {
-		GameObject* owner = &GetOwner();
-		if (material->shadowCasterType == ShadowCasterType::STATIC) {
-			owner->scene->AddStaticShadowCaster(owner);
-		} else {
-			owner->scene->AddDynamicShadowCaster(owner);
-		}
-	}
 }
 
 void ComponentMeshRenderer::Update() {
@@ -206,15 +192,9 @@ void ComponentMeshRenderer::OnEditorUpdate() {
 	}
 	ImGui::Separator();
 
-	ImGui::ResourceSlot<ResourceMaterial>(
-		"Material",
-		&materialId,
-		[this]() { DeleteRenderingModeMask(); },
-		[this]() { AddRenderingModeMask(); });
-
+	ImGui::ResourceSlot<ResourceMaterial>("Material", &materialId);
 	if (ImGui::Button("Remove##material")) {
 		if (materialId != 0) {
-			DeleteRenderingModeMask();
 			App->resources->DecreaseReferenceCount(materialId);
 			materialId = 0;
 		}
@@ -983,26 +963,6 @@ void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix, unsigned int
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
-}
-
-void ComponentMeshRenderer::AddRenderingModeMask() {
-	if (materialId == 0) return;
-
-	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
-	if (material && material->renderingMode == RenderingMode::TRANSPARENT) {
-		GameObject& gameObject = GetOwner();
-		gameObject.AddMask(MaskType::TRANSPARENT);
-	}
-}
-
-void ComponentMeshRenderer::DeleteRenderingModeMask() {
-	if (materialId == 0) return;
-
-	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
-	if (material && material->renderingMode == RenderingMode::TRANSPARENT) {
-		GameObject& gameObject = GetOwner();
-		gameObject.DeleteMask(MaskType::TRANSPARENT);
-	}
 }
 
 UID ComponentMeshRenderer::GetMeshID() const {

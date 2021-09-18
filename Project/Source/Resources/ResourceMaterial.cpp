@@ -129,10 +129,6 @@ void ResourceMaterial::FinishLoading() {
 	App->resources->IncreaseReferenceCount(normalMapId);
 	App->resources->IncreaseReferenceCount(emissiveMapId);
 	App->resources->IncreaseReferenceCount(ambientOcclusionMapId);
-
-	if (castShadows) {
-		UpdateMask(MaskToChange::SHADOW);
-	}
 }
 
 void ResourceMaterial::Unload() {
@@ -237,41 +233,6 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	LOG("Material saved in %ums", timeMs);
 }
 
-void ResourceMaterial::UpdateMask(MaskToChange maskToChange, bool forceDeleteShadows) {
-	Scene* scene = App->scene->GetCurrentScene();
-	for (GameObject& gameObject : scene->gameObjects) {
-		ComponentMeshRenderer* meshRenderer = gameObject.GetComponent<ComponentMeshRenderer>();
-		if (meshRenderer == nullptr || meshRenderer->GetMaterialID() != GetId()) continue;
-
-		switch (maskToChange) {
-		case MaskToChange::RENDERING:
-			if (renderingMode == RenderingMode::TRANSPARENT) {
-				gameObject.AddMask(MaskType::TRANSPARENT);
-			} else {
-				gameObject.DeleteMask(MaskType::TRANSPARENT);
-			}
-			break;
-		case MaskToChange::SHADOW:
-			if (!forceDeleteShadows) {
-				gameObject.AddMask(MaskType::CAST_SHADOWS);
-
-				if (shadowCasterType == ShadowCasterType::STATIC) {
-					scene->RemoveDynamicShadowCaster(&gameObject);
-					scene->AddStaticShadowCaster(&gameObject);
-				} else {
-					scene->RemoveStaticShadowCaster(&gameObject);
-					scene->AddDynamicShadowCaster(&gameObject);
-				}
-			} else {
-				gameObject.DeleteMask(MaskType::CAST_SHADOWS);
-				scene->RemoveDynamicShadowCaster(&gameObject);
-				scene->RemoveStaticShadowCaster(&gameObject);
-			}
-			break;
-		}
-	}
-}
-
 void ResourceMaterial::OnEditorUpdate() {
 	// Save Material
 	if (PathUtils::GetFileExtension(GetAssetFilePath().c_str()) == MATERIAL_EXTENSION) {
@@ -307,7 +268,6 @@ void ResourceMaterial::OnEditorUpdate() {
 			bool isSelected = (renderingModeCurrent == renderingModes[n]);
 			if (ImGui::Selectable(renderingModes[n], isSelected)) {
 				renderingMode = (RenderingMode) n;
-				UpdateMask(MaskToChange::RENDERING);
 			}
 			if (isSelected) {
 				ImGui::SetItemDefaultFocus();
@@ -320,7 +280,7 @@ void ResourceMaterial::OnEditorUpdate() {
 
 	// Cast Shadows
 
-	bool checkboxClicked = ImGui::Checkbox("CastShadows", &castShadows);
+	ImGui::Checkbox("CastShadows", &castShadows);
 
 	const char* shadowCasterTypes[] = {"Static", "Dynamic"};
 	const char* shadowCasterTypeCurrent = shadowCasterTypes[static_cast<int>(shadowCasterType)];
@@ -331,7 +291,6 @@ void ResourceMaterial::OnEditorUpdate() {
 				bool isSelected = (shadowCasterTypeCurrent == shadowCasterTypes[n]);
 				if (ImGui::Selectable(shadowCasterTypes[n], isSelected)) {
 					shadowCasterType = static_cast<ShadowCasterType>(n);
-					UpdateMask(MaskToChange::SHADOW);
 				}
 
 				if (isSelected) {
@@ -339,13 +298,7 @@ void ResourceMaterial::OnEditorUpdate() {
 				}
 			}
 			ImGui::EndCombo();
-		} else if (checkboxClicked) {
-			UpdateMask(MaskToChange::SHADOW);
 		}
-	}
-
-	if (checkboxClicked && !castShadows) {
-		UpdateMask(MaskToChange::SHADOW, true);
 	}
 
 	ImGui::NewLine();

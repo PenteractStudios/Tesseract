@@ -174,12 +174,6 @@ void GameObject::AddMask(MaskType mask_) {
 	case MaskType::PLAYER:
 		mask.bitMask |= static_cast<int>(mask_);
 		break;
-	case MaskType::CAST_SHADOWS:
-		mask.bitMask |= static_cast<int>(mask_);
-		break;
-	case MaskType::TRANSPARENT:
-		mask.bitMask |= static_cast<int>(mask_);
-		break;
 	default:
 		LOG("The solicitated mask doesn't exist");
 		break;
@@ -197,12 +191,6 @@ void GameObject::DeleteMask(MaskType mask_) {
 		mask.bitMask ^= static_cast<int>(mask_);
 		break;
 	case MaskType::PLAYER:
-		mask.bitMask ^= static_cast<int>(mask_);
-		break;
-	case MaskType::CAST_SHADOWS:
-		mask.bitMask ^= static_cast<int>(mask_);
-		break;
-	case MaskType::TRANSPARENT:
 		mask.bitMask ^= static_cast<int>(mask_);
 		break;
 	default:

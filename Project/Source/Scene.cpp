@@ -15,6 +15,7 @@
 #include "Modules/ModuleResources.h"
 #include "Scripting/PropertyMap.h"
 #include "Resources/ResourceMesh.h"
+#include "Resources/ResourceMaterial.h"
 #include "Resources/ResourceNavMesh.h"
 #include "Utils/Logging.h"
 
@@ -636,8 +637,6 @@ void Scene::RemoveStaticShadowCaster(const GameObject* go) {
 	if (it == staticShadowCasters.end()) return;
 
 	staticShadowCasters.erase(it);
-
-	App->renderer->lightFrustumStatic.Invalidate();
 }
 
 void Scene::AddStaticShadowCaster(GameObject* go) {
@@ -646,8 +645,6 @@ void Scene::AddStaticShadowCaster(GameObject* go) {
 	if (it != staticShadowCasters.end()) return;
 
 	staticShadowCasters.push_back(go);
-
-	App->renderer->lightFrustumStatic.Invalidate();
 }
 
 void Scene::RemoveDynamicShadowCaster(const GameObject* go) {
@@ -656,8 +653,6 @@ void Scene::RemoveDynamicShadowCaster(const GameObject* go) {
 	if (it == dynamicShadowCasters.end()) return;
 
 	dynamicShadowCasters.erase(it);
-
-	App->renderer->lightFrustumDynamic.Invalidate();
 }
 
 void Scene::AddDynamicShadowCaster(GameObject* go) {
@@ -666,8 +661,6 @@ void Scene::AddDynamicShadowCaster(GameObject* go) {
 	if (it != dynamicShadowCasters.end()) return;
 
 	dynamicShadowCasters.push_back(go);
-
-	App->renderer->lightFrustumDynamic.Invalidate();
 }
 
 void Scene::SetNavMesh(UID id) {

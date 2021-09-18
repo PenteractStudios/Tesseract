@@ -24,6 +24,7 @@
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleNavigation.h"
 #include "Resources/ResourceMesh.h"
+#include "Resources/ResourceMaterial.h"
 #include "Utils/Logging.h"
 #include "Utils/Random.h"
 #include "TesseractEvent.h"
@@ -309,14 +310,20 @@ void ModuleRender::ClassifyGameObjects() {
 
 		const AABB& gameObjectAABB = boundingBox.GetWorldAABB();
 		const OBB& gameObjectOBB = boundingBox.GetWorldOBB();
-		if (App->camera->GetFrustumPlanes().CheckIfInsideFrustumPlanes(gameObjectAABB, gameObjectOBB)) {
-			if ((gameObject.GetMask().bitMask & static_cast<int>(MaskType::TRANSPARENT)) == 0) {
-				opaqueGameObjects.push_back(&gameObject);
-			} else {
-				ComponentTransform* transform = gameObject.GetComponent<ComponentTransform>();
-				float dist = Length(cameraPos - transform->GetGlobalPosition());
-				transparentGameObjects[dist] = &gameObject;
-			}
+		if (!App->camera->GetFrustumPlanes().CheckIfInsideFrustumPlanes(gameObjectAABB, gameObjectOBB)) continue;
+
+		ComponentMeshRenderer* meshRenderer = gameObject.GetComponent<ComponentMeshRenderer>();
+		if (meshRenderer == nullptr) continue;
+
+		ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(meshRenderer->GetMaterialID());
+		if (material == nullptr) continue;
+
+		if (material->renderingMode == RenderingMode::OPAQUE) {
+			opaqueGameObjects.push_back(&gameObject);
+		} else {
+			ComponentTransform* transform = gameObject.GetComponent<ComponentTransform>();
+			float dist = Length(cameraPos - transform->GetGlobalPosition());
+			transparentGameObjects[dist] = &gameObject;
 		}
 	}
 	if (scene->quadtree.IsOperative()) {
@@ -492,11 +499,11 @@ bool ModuleRender::Start() {
 UpdateStatus ModuleRender::PreUpdate() {
 	BROFILER_CATEGORY("ModuleRender - PreUpdate", Profiler::Color::Green)
 
-	lightFrustumStatic.UpdateFrustums();
-	lightFrustumStatic.ReconstructFrustum(ShadowCasterType::STATIC);
+	lightFrustumStatic.UpdateCameraFrustum();
+	lightFrustumStatic.UpdateLightFrustum(ShadowCasterType::STATIC);
 
-	lightFrustumDynamic.UpdateFrustums();
-	lightFrustumDynamic.ReconstructFrustum(ShadowCasterType::DYNAMIC);
+	lightFrustumDynamic.UpdateCameraFrustum();
+	lightFrustumDynamic.UpdateLightFrustum(ShadowCasterType::DYNAMIC);
 
 #if GAME
 	App->camera->ViewportResized(App->window->GetWidth(), App->window->GetHeight());
@@ -523,13 +530,12 @@ UpdateStatus ModuleRender::Update() {
 		glDepthMask(GL_TRUE);
 		glDepthFunc(GL_LESS);
 		glClear(GL_DEPTH_BUFFER_BIT);
-	
+
 		for (GameObject* gameObject : scene->GetStaticShadowCasters()) {
 			DrawGameObjectShadowPass(gameObject, i, ShadowCasterType::STATIC);
 		}
-	
 	}
-	
+
 	// Shadow Pass Dynamic
 	for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapDynamicTextureBuffers[i]);
@@ -542,9 +548,7 @@ UpdateStatus ModuleRender::Update() {
 		for (GameObject* gameObject : scene->GetDynamicShadowCasters()) {
 			DrawGameObjectShadowPass(gameObject, i, ShadowCasterType::DYNAMIC);
 		}
-
 	}
-	
 
 	// Depth Prepass
 	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassBuffer);
@@ -639,8 +643,11 @@ UpdateStatus ModuleRender::Update() {
 	if (drawDepthMapTexture) {
 		assert(drawDepthMapTexture && indexDepthMapTexture < NUM_CASCADES_FRUSTUM);
 
-		if (shadowCasterType == ShadowCasterType::STATIC) DrawTexture(depthMapStaticTextures[indexDepthMapTexture]);
-		else DrawTexture(depthMapDynamicTextures[indexDepthMapTexture]);
+		if (shadowCasterType == ShadowCasterType::STATIC) {
+			DrawTexture(depthMapStaticTextures[indexDepthMapTexture]);
+		} else {
+			DrawTexture(depthMapDynamicTextures[indexDepthMapTexture]);
+		}
 
 		// Render to screen
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, renderPassBuffer);
@@ -870,7 +877,6 @@ UpdateStatus ModuleRender::Update() {
 
 			horizontal = !horizontal;
 		}
-
 	}
 
 	// Color correction
@@ -1009,9 +1015,8 @@ void ModuleRender::UpdateFramebuffers() {
 	// Shadow buffer
 
 	for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
-
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapStaticTextureBuffers[i]);
-		
+
 		glBindTexture(GL_TEXTURE_2D, depthMapStaticTextures[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, static_cast<int>(viewportSize.x * lightFrustumStatic.GetSubFrustums()[i].multiplier), static_cast<int>(viewportSize.y * lightFrustumStatic.GetSubFrustums()[i].multiplier), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -1019,7 +1024,6 @@ void ModuleRender::UpdateFramebuffers() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapStaticTextures[i], 0);
-
 
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapDynamicTextureBuffers[i]);
 
@@ -1030,7 +1034,6 @@ void ModuleRender::UpdateFramebuffers() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapDynamicTextures[i], 0);
-
 	}
 
 	glDrawBuffer(GL_NONE);
@@ -1365,12 +1368,18 @@ void ModuleRender::ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::N
 					const OBB& gameObjectOBB = boundingBox->GetWorldOBB();
 
 					if (App->camera->GetFrustumPlanes().CheckIfInsideFrustumPlanes(gameObjectAABB, gameObjectOBB)) {
-						if ((gameObject->GetMask().bitMask & static_cast<int>(MaskType::TRANSPARENT)) == 0) {
-							opaqueGameObjects.push_back(gameObject);
-						} else {
-							ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
-							float dist = Length(cameraPos - transform->GetGlobalPosition());
-							transparentGameObjects[dist] = gameObject;
+						ComponentMeshRenderer* meshRenderer = gameObject->GetComponent<ComponentMeshRenderer>();
+						if (meshRenderer != nullptr) {
+							ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(meshRenderer->GetMaterialID());
+							if (material != nullptr) {
+								if (material->renderingMode == RenderingMode::OPAQUE) {
+									opaqueGameObjects.push_back(gameObject);
+								} else {
+									ComponentTransform* transform = gameObject->GetComponent<ComponentTransform>();
+									float dist = Length(cameraPos - transform->GetGlobalPosition());
+									transparentGameObjects[dist] = gameObject;
+								}
+							}
 						}
 					}
 

@@ -34,12 +34,11 @@ LightFrustum::LightFrustum() {
 
 }
 
-void LightFrustum::UpdateFrustums() {
+void LightFrustum::UpdateCameraFrustum() {
+	ComponentCamera* camera = App->camera->GetCullingCamera();
+	if (!camera) return;
 
-	ComponentCamera* gameCamera = App->camera->GetGameCamera();
-	if (!gameCamera) return;
-
-	Frustum *gameFrustum = gameCamera->GetFrustum();
+	Frustum* cameraFrustum = camera->GetFrustum();
 
 	float farDistance = MINIMUM_FAR_DISTANE; //*0.3f;
 
@@ -47,11 +46,11 @@ void LightFrustum::UpdateFrustums() {
 		
 		for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; i++, farDistance *= 2.f) {
 			subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
-			subFrustums[i].perspectiveFrustum.SetHorizontalFovAndAspectRatio(gameFrustum->HorizontalFov(), gameFrustum->AspectRatio());
-			subFrustums[i].perspectiveFrustum.SetPos(gameFrustum->Pos());
-			subFrustums[i].perspectiveFrustum.SetUp(gameFrustum->Up());
-			subFrustums[i].perspectiveFrustum.SetFront(gameFrustum->Front());
-			subFrustums[i].perspectiveFrustum.SetViewPlaneDistances(gameFrustum->NearPlaneDistance(), farDistance);
+			subFrustums[i].perspectiveFrustum.SetHorizontalFovAndAspectRatio(cameraFrustum->HorizontalFov(), cameraFrustum->AspectRatio());
+			subFrustums[i].perspectiveFrustum.SetPos(cameraFrustum->Pos());
+			subFrustums[i].perspectiveFrustum.SetUp(cameraFrustum->Up());
+			subFrustums[i].perspectiveFrustum.SetFront(cameraFrustum->Front());
+			subFrustums[i].perspectiveFrustum.SetViewPlaneDistances(cameraFrustum->NearPlaneDistance(), farDistance);
 			subFrustums[i].planes.CalculateFrustumPlanes(subFrustums[i].perspectiveFrustum);
 		}
 
@@ -61,10 +60,10 @@ void LightFrustum::UpdateFrustums() {
 
 		for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; i++, nearDistance = farDistance, farDistance *= 2.f) {
 			subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
-			subFrustums[i].perspectiveFrustum.SetHorizontalFovAndAspectRatio(gameFrustum->HorizontalFov(), gameFrustum->AspectRatio());
-			subFrustums[i].perspectiveFrustum.SetPos(gameFrustum->Pos());
-			subFrustums[i].perspectiveFrustum.SetUp(gameFrustum->Up());
-			subFrustums[i].perspectiveFrustum.SetFront(gameFrustum->Front());
+			subFrustums[i].perspectiveFrustum.SetHorizontalFovAndAspectRatio(cameraFrustum->HorizontalFov(), cameraFrustum->AspectRatio());
+			subFrustums[i].perspectiveFrustum.SetPos(cameraFrustum->Pos());
+			subFrustums[i].perspectiveFrustum.SetUp(cameraFrustum->Up());
+			subFrustums[i].perspectiveFrustum.SetFront(cameraFrustum->Front());
 			subFrustums[i].perspectiveFrustum.SetViewPlaneDistances(nearDistance, farDistance);
 			subFrustums[i].planes.CalculateFrustumPlanes(subFrustums[i].perspectiveFrustum);
 		}
@@ -72,12 +71,30 @@ void LightFrustum::UpdateFrustums() {
 
 }
 
-void LightFrustum::ReconstructFrustum(ShadowCasterType shadowCasterType) {
-	if (!dirty) return;
+void LightFrustum::UpdateLightFrustum(ShadowCasterType shadowCasterType) {
+	Scene* scene = App->scene->GetCurrentScene();
+	for (GameObject& gameObject : scene->gameObjects) {
+		ComponentMeshRenderer* meshRenderer = gameObject.GetComponent<ComponentMeshRenderer>();
+		if (meshRenderer == nullptr) continue;
 
-	UpdateFrustums();
+		ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(meshRenderer->GetMaterialID());
+		if (material == nullptr) continue;
 
-	GameObject* light = App->scene->GetCurrentScene()->directionalLight;
+		if (material->castShadows) {
+			if (material->shadowCasterType == ShadowCasterType::STATIC) {
+				scene->RemoveDynamicShadowCaster(&gameObject);
+				scene->AddStaticShadowCaster(&gameObject);
+			} else {
+				scene->RemoveStaticShadowCaster(&gameObject);
+				scene->AddDynamicShadowCaster(&gameObject);
+			}
+		} else {
+			scene->RemoveDynamicShadowCaster(&gameObject);
+			scene->RemoveStaticShadowCaster(&gameObject);
+		}
+	}
+
+	GameObject* light = scene->directionalLight;
 	if (!light) return;
 
 	ComponentTransform* transform = light->GetComponent<ComponentTransform>();
@@ -111,8 +128,6 @@ void LightFrustum::ReconstructFrustum(ShadowCasterType shadowCasterType) {
 		subFrustums[i].orthographicFrustum.SetPos(position);
 		subFrustums[i].orthographicFrustum.SetViewPlaneDistances(0.0f, (maxPoint.z - minPoint.z));
 	}
-
-	dirty = false;
 }
 
 void LightFrustum::DrawGizmos() {
@@ -140,8 +155,4 @@ LightFrustum::FrustumInformation& LightFrustum::operator[](int i) {
 
 	return subFrustums[i];
 
-}
-
-void LightFrustum::Invalidate() {
-	dirty = true;
 }
