@@ -124,14 +124,17 @@ UpdateStatus ModuleResources::Update() {
 	}
 
 	// Finish resource loading
-	while (!resourcesToFinishLoading.empty()) {
+	MSTimer timer;
+	timer.Start();
+	while (!resourcesToFinishLoading.empty() && timer.Read() < MAX_RESOURCE_LOADING_DURATION_PER_FRAME_MS) {
 		Resource* resource = nullptr;
-		if (!resourcesToFinishLoading.try_pop(resource)) break;
-		if (resource == nullptr) continue;
-
-		resource->FinishLoading();
-		resource->SetLoaded(true);
-		numResourcesLoading -= 1;
+		if (resourcesToFinishLoading.try_pop(resource)) {
+			if (resource != nullptr) {
+				resource->FinishLoading();
+				resource->SetLoaded(true);
+				numResourcesLoading -= 1;
+			}
+		}
 	}
 
 	return UpdateStatus::CONTINUE;
@@ -485,8 +488,6 @@ void ModuleResources::UpdateLoadingAsync() {
 			resource->Load();
 			resourcesToFinishLoading.push(resource);
 		}
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BETWEEN_RESOURCE_LOADING_UPDATES_MS));	
 	}
 }
 
