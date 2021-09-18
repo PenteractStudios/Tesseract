@@ -46,9 +46,4 @@ private:
 	void UpdateMinFilter(TextureMinFilter filter);
 	void UpdateMagFilter(TextureMagFilter filter);
 	void UpdateWrap(TextureWrap wrap);
-
-private:
-	unsigned char* imageData = nullptr;
-	unsigned width = 0;
-	unsigned height = 0;
 };

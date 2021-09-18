@@ -60,6 +60,10 @@ static void RenderToCubemap(unsigned cubemap, int resolution, ProgramCubemapRend
 }
 
 void ResourceSkybox::Load() {
+
+}
+
+void ResourceSkybox::FinishLoading() {
 	std::string filePath = GetResourceFilePath();
 	LOG("Loading skybox from path: \"%s\".", filePath.c_str());
 
@@ -96,24 +100,6 @@ void ResourceSkybox::Load() {
 		iluFlipImage();
 	}
 
-	// Get data
-	width = ilGetInteger(IL_IMAGE_WIDTH);
-	height = ilGetInteger(IL_IMAGE_HEIGHT);
-	unsigned bpp = ilGetInteger(IL_IMAGE_BYTES_PER_PIXEL);
-	unsigned dataSize = width * height * bpp;
-	imageData = new unsigned char[dataSize];
-	memcpy(imageData, ilGetData(), dataSize);
-
-	unsigned timeMs = timer.Stop();
-	LOG("Skybox loaded in %ums.", timeMs);
-}
-
-void ResourceSkybox::FinishLoading() {
-	if (imageData == nullptr) return;
-	DEFER {
-		RELEASE(imageData);
-	};
-
 	// Get shaders
 	ProgramHDRToCubemap* hdrToCubemapProgram = App->programs->hdrToCubemap;
 	ProgramIrradiance* irradianceProgram = App->programs->irradiance;
@@ -133,7 +119,7 @@ void ResourceSkybox::FinishLoading() {
 
 	// Load HDR texture from image
 	glBindTexture(GL_TEXTURE_2D, hdrTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, imageData);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGB, GL_FLOAT, ilGetData());
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -253,11 +239,12 @@ void ResourceSkybox::FinishLoading() {
 	glViewport(0, 0, ENVIRONMENT_BRDF_RESOLUTION, ENVIRONMENT_BRDF_RESOLUTION);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, glEnvironmentBRDF, 0);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	unsigned timeMs = timer.Stop();
+	LOG("Skybox loaded in %ums.", timeMs);
 }
 
 void ResourceSkybox::Unload() {
-	RELEASE(imageData);
-
 	if (glCubeMap) {
 		glDeleteTextures(1, &glCubeMap);
 		glCubeMap = 0;
