@@ -112,6 +112,7 @@ inline int	btGetVersion()
 	#endif//_MSC_VER
 #else
 		#define btAssert(x)
+		#define btAssertConst(x)
 #endif
 		//btFullAssert is optional, slows down a lot
 		#define btFullAssert(x)
