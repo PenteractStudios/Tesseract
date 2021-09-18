@@ -72,29 +72,7 @@ void LightFrustum::UpdateCameraFrustum() {
 }
 
 void LightFrustum::UpdateLightFrustum(ShadowCasterType shadowCasterType) {
-	Scene* scene = App->scene->GetCurrentScene();
-	for (GameObject& gameObject : scene->gameObjects) {
-		ComponentMeshRenderer* meshRenderer = gameObject.GetComponent<ComponentMeshRenderer>();
-		if (meshRenderer == nullptr) continue;
-
-		ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(meshRenderer->GetMaterialID());
-		if (material == nullptr) continue;
-
-		if (material->castShadows) {
-			if (material->shadowCasterType == ShadowCasterType::STATIC) {
-				scene->RemoveDynamicShadowCaster(&gameObject);
-				scene->AddStaticShadowCaster(&gameObject);
-			} else {
-				scene->RemoveStaticShadowCaster(&gameObject);
-				scene->AddDynamicShadowCaster(&gameObject);
-			}
-		} else {
-			scene->RemoveDynamicShadowCaster(&gameObject);
-			scene->RemoveStaticShadowCaster(&gameObject);
-		}
-	}
-
-	GameObject* light = scene->directionalLight;
+	GameObject* light = App->scene->GetCurrentScene()->directionalLight;
 	if (!light) return;
 
 	ComponentTransform* transform = light->GetComponent<ComponentTransform>();
@@ -107,7 +85,7 @@ void LightFrustum::UpdateLightFrustum(ShadowCasterType shadowCasterType) {
 		AABB lightAABB;
 		lightAABB.SetNegativeInfinity();
 
-		std::vector<GameObject*> gameObjects = (shadowCasterType == ShadowCasterType::STATIC) ? App->scene->GetCurrentScene()->GetStaticCulledShadowCasters(subFrustums[i].planes) : App->scene->GetCurrentScene()->GetDynamicCulledShadowCasters(subFrustums[i].planes);
+		std::vector<GameObject*> gameObjects = (shadowCasterType == ShadowCasterType::STATIC) ? App->renderer->GetStaticCulledShadowCasters(subFrustums[i].planes) : App->renderer->GetDynamicCulledShadowCasters(subFrustums[i].planes);
 
 		for (GameObject* go : gameObjects) {
 			ComponentBoundingBox* componentBBox = go->GetComponent<ComponentBoundingBox>();

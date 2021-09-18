@@ -300,6 +300,9 @@ void ModuleRender::ClassifyGameObjects() {
 	opaqueGameObjects.clear();
 	transparentGameObjects.clear();
 
+	staticShadowCasters.clear();
+	dynamicShadowCasters.clear();
+
 	App->camera->CalculateFrustumPlanes();
 	float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
 	Scene* scene = App->scene->GetCurrentScene();
@@ -324,6 +327,14 @@ void ModuleRender::ClassifyGameObjects() {
 			ComponentTransform* transform = gameObject.GetComponent<ComponentTransform>();
 			float dist = Length(cameraPos - transform->GetGlobalPosition());
 			transparentGameObjects[dist] = &gameObject;
+		}
+
+		if (material->castShadows) {
+			if (material->shadowCasterType == ShadowCasterType::STATIC) {
+				staticShadowCasters.push_back(&gameObject);
+			} else {
+				dynamicShadowCasters.push_back(&gameObject);
+			}
 		}
 	}
 	if (scene->quadtree.IsOperative()) {
@@ -499,12 +510,6 @@ bool ModuleRender::Start() {
 UpdateStatus ModuleRender::PreUpdate() {
 	BROFILER_CATEGORY("ModuleRender - PreUpdate", Profiler::Color::Green)
 
-	lightFrustumStatic.UpdateCameraFrustum();
-	lightFrustumStatic.UpdateLightFrustum(ShadowCasterType::STATIC);
-
-	lightFrustumDynamic.UpdateCameraFrustum();
-	lightFrustumDynamic.UpdateLightFrustum(ShadowCasterType::DYNAMIC);
-
 #if GAME
 	App->camera->ViewportResized(App->window->GetWidth(), App->window->GetHeight());
 #endif
@@ -522,6 +527,12 @@ UpdateStatus ModuleRender::Update() {
 
 	ClassifyGameObjects();
 
+	lightFrustumStatic.UpdateCameraFrustum();
+	lightFrustumStatic.UpdateLightFrustum(ShadowCasterType::STATIC);
+
+	lightFrustumDynamic.UpdateCameraFrustum();
+	lightFrustumDynamic.UpdateLightFrustum(ShadowCasterType::DYNAMIC);
+
 	// Shadow Pass Static
 	for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapStaticTextureBuffers[i]);
@@ -531,7 +542,7 @@ UpdateStatus ModuleRender::Update() {
 		glDepthFunc(GL_LESS);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
-		for (GameObject* gameObject : scene->GetStaticShadowCasters()) {
+		for (GameObject* gameObject : staticShadowCasters) {
 			DrawGameObjectShadowPass(gameObject, i, ShadowCasterType::STATIC);
 		}
 	}
@@ -545,7 +556,7 @@ UpdateStatus ModuleRender::Update() {
 		glDepthFunc(GL_LESS);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
-		for (GameObject* gameObject : scene->GetDynamicShadowCasters()) {
+		for (GameObject* gameObject : dynamicShadowCasters) {
 			DrawGameObjectShadowPass(gameObject, i, ShadowCasterType::DYNAMIC);
 		}
 	}
@@ -1297,6 +1308,48 @@ float4x4 ModuleRender::GetLightProjectionMatrix(unsigned int i, ShadowCasterType
 	return (lightFrustumType == ShadowCasterType::STATIC) ? lightFrustumStatic.GetOrthographicFrustum(i).ProjectionMatrix() : lightFrustumDynamic.GetOrthographicFrustum(i).ProjectionMatrix();
 }
 
+std::vector<GameObject*> ModuleRender::GetDynamicCulledShadowCasters(const FrustumPlanes& planes) const {
+	std::vector<GameObject*> meshes;
+
+	for (GameObject* go : dynamicShadowCasters) {
+		if (InsideFrustumPlanes(planes, go)) {
+			meshes.push_back(go);
+		}
+	}
+
+	return meshes;
+}
+
+std::vector<GameObject*> ModuleRender::GetCulledMeshes(const FrustumPlanes& planes, const int mask) {
+	std::vector<GameObject*> meshes;
+
+	for (ComponentMeshRenderer componentMR : App->scene->GetCurrentScene()->meshRendererComponents) {
+		GameObject* go = &componentMR.GetOwner();
+
+		Mask& maskGo = go->GetMask();
+
+		if ((maskGo.bitMask & mask) != 0) {
+			if (InsideFrustumPlanes(planes, go)) {
+				meshes.push_back(go);
+			}
+		}
+	}
+
+	return meshes;
+}
+
+std::vector<GameObject*> ModuleRender::GetStaticCulledShadowCasters(const FrustumPlanes& planes) const {
+	std::vector<GameObject*> meshes;
+
+	for (GameObject* go : staticShadowCasters) {
+		if (InsideFrustumPlanes(planes, go)) {
+			meshes.push_back(go);
+		}
+	}
+
+	return meshes;
+}
+
 int ModuleRender::GetCulledTriangles() const {
 	return culledTriangles;
 }
@@ -1379,6 +1432,14 @@ void ModuleRender::ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::N
 									float dist = Length(cameraPos - transform->GetGlobalPosition());
 									transparentGameObjects[dist] = gameObject;
 								}
+
+								if (material->castShadows) {
+									if (material->shadowCasterType == ShadowCasterType::STATIC) {
+										staticShadowCasters.push_back(gameObject);
+									} else {
+										dynamicShadowCasters.push_back(gameObject);
+									}
+								}
 							}
 						}
 					}
@@ -1458,6 +1519,14 @@ void ModuleRender::SetPerspectiveRender() {
 	glLoadIdentity();
 	glOrtho(-1, 1, -1, 1, -1, 1);
 	glMatrixMode(GL_MODELVIEW);
+}
+
+bool ModuleRender::InsideFrustumPlanes(const FrustumPlanes& planes, const GameObject* go) const {
+	ComponentBoundingBox* boundingBox = go->GetComponent<ComponentBoundingBox>();
+	if (boundingBox && planes.CheckIfInsideFrustumPlanes(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB())) {
+		return true;
+	}
+	return false;
 }
 
 const float2 ModuleRender::GetViewportSize() {
