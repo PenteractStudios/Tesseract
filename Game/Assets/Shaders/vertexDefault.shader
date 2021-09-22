@@ -56,7 +56,12 @@ void main()
     
     for(unsigned int i = 0; i < shadowCascadesCounter; ++i){
         fragPosLightStatic[i] = projOrtoLightsStatic[i] * viewOrtoLightsStatic[i] * model * position;
+        fragPosLightStatic[i] /= fragPosLightStatic[i].w;
+        fragPosLightStatic[i].xy = fragPosLightStatic[i].xy * 0.5 + 0.5;
+
         fragPosLightDynamic[i] = projOrtoLightsDynamic[i] * viewOrtoLightsDynamic[i] * model * position;
+        fragPosLightDynamic[i] /= fragPosLightDynamic[i].w;
+        fragPosLightDynamic[i].xy = fragPosLightDynamic[i].xy * 0.5 + 0.5;
     }
 
     cascadesCount = shadowCascadesCounter;
@@ -92,7 +97,12 @@ void main()
 
     for(unsigned int i = 0; i < shadowCascadesCounter; ++i){
         fragPosLightStatic[i] = projOrtoLightsStatic[i] * viewOrtoLightsStatic[i] * model * position;
+        fragPosLightStatic[i] /= fragPosLightStatic[i].w;
+        fragPosLightStatic[i].xy = fragPosLightStatic[i].xy * 0.5 + 0.5;
+
         fragPosLightDynamic[i] = projOrtoLightsDynamic[i] * viewOrtoLightsDynamic[i] * model * position;
+        fragPosLightDynamic[i] /= fragPosLightDynamic[i].w;
+        fragPosLightDynamic[i].xy = fragPosLightDynamic[i].xy * 0.5 + 0.5;
     }
 
     cascadesCount = shadowCascadesCounter;

@@ -115,10 +115,24 @@ void LightFrustum::ReconstructFrustum(ShadowCasterType shadowCasterType) {
 	dirty = false;
 }
 
-void LightFrustum::DrawGizmos() {
-	for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
-		dd::frustum(subFrustums[i].orthographicFrustum.ViewProjMatrix().Inverted(), subFrustums[i].color);
-		dd::frustum(subFrustums[i].perspectiveFrustum.ViewProjMatrix().Inverted(), subFrustums[i].color);
+void LightFrustum::DrawOrthographicGizmos(int idx) {
+	
+	if (idx == INT_MAX) {
+		for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
+			dd::frustum(subFrustums[i].orthographicFrustum.ViewProjMatrix().Inverted(), subFrustums[i].color);
+		}
+	} else if (idx >= 0 && idx < NUM_CASCADES_FRUSTUM) {
+		dd::frustum(subFrustums[idx].orthographicFrustum.ViewProjMatrix().Inverted(), subFrustums[idx].color);
+	}
+}
+
+void LightFrustum::DrawPerspectiveGizmos(int idx) {
+	if (idx == INT_MAX) {
+		for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
+			dd::frustum(subFrustums[i].perspectiveFrustum.ViewProjMatrix().Inverted(), subFrustums[i].color);
+		}
+	} else if (idx >= 0 && idx < NUM_CASCADES_FRUSTUM) {
+		dd::frustum(subFrustums[idx].perspectiveFrustum.ViewProjMatrix().Inverted(), subFrustums[idx].color);
 	}
 }
 

@@ -517,13 +517,17 @@ UpdateStatus ModuleRender::Update() {
 
 	// Shadow Pass Static
 	for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+		
+		glViewport(0, 0, static_cast<int>(viewportSize.x * lightFrustumStatic.GetSubFrustums()[i].multiplier), static_cast<int>(viewportSize.y * lightFrustumStatic.GetSubFrustums()[i].multiplier));
+		
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapStaticTextureBuffers[i]);
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
 		glDepthFunc(GL_LESS);
 		glClear(GL_DEPTH_BUFFER_BIT);
-	
+
+		
 		for (GameObject* gameObject : App->scene->scene->GetStaticShadowCasters()) {
 			DrawGameObjectShadowPass(gameObject, i, ShadowCasterType::STATIC);
 		}
@@ -532,6 +536,9 @@ UpdateStatus ModuleRender::Update() {
 	
 	// Shadow Pass Dynamic
 	for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+		
+		glViewport(0, 0, static_cast<int>(viewportSize.x * lightFrustumDynamic.GetSubFrustums()[i].multiplier), static_cast<int>(viewportSize.y * lightFrustumDynamic.GetSubFrustums()[i].multiplier));
+
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapDynamicTextureBuffers[i]);
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glEnable(GL_DEPTH_TEST);
@@ -539,12 +546,18 @@ UpdateStatus ModuleRender::Update() {
 		glDepthFunc(GL_LESS);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
+
 		for (GameObject* gameObject : App->scene->scene->GetDynamicShadowCasters()) {
 			DrawGameObjectShadowPass(gameObject, i, ShadowCasterType::DYNAMIC);
 		}
 
 	}
 	
+#if GAME
+	App->camera->ViewportResized(App->window->GetWidth(), App->window->GetHeight());
+#endif
+	glViewport(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
+
 
 	// Depth Prepass
 	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassBuffer);
@@ -745,9 +758,22 @@ UpdateStatus ModuleRender::Update() {
 		}
 
 		// Draw debug draw Light Frustum
-		if (drawLightFrustumGizmo) {
-			lightFrustumStatic.DrawGizmos();
+		if (drawStaticLightFrustumOrtographicGizmo) {
+			lightFrustumStatic.DrawOrthographicGizmos(indexStaticOrtographic);
 		}
+
+		if (drawDynamicLightFrustumOrtographicGizmo) {
+			lightFrustumDynamic.DrawOrthographicGizmos(indexDynamicOrtographic);
+		}
+
+		if (drawStaticLightFrustumPerspectiveGizmo) {
+			lightFrustumStatic.DrawPerspectiveGizmos(indexStaticPerspective);
+		}
+
+		if (drawDynamicLightFrustumPerspectiveGizmo) {
+			lightFrustumStatic.DrawPerspectiveGizmos(indexDynamicPerspective);
+		}
+
 	}
 
 	// Render UI
@@ -1014,6 +1040,7 @@ void ModuleRender::UpdateFramebuffers() {
 		
 		glBindTexture(GL_TEXTURE_2D, depthMapStaticTextures[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, static_cast<int>(viewportSize.x * lightFrustumStatic.GetSubFrustums()[i].multiplier), static_cast<int>(viewportSize.y * lightFrustumStatic.GetSubFrustums()[i].multiplier), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -1025,6 +1052,7 @@ void ModuleRender::UpdateFramebuffers() {
 
 		glBindTexture(GL_TEXTURE_2D, depthMapDynamicTextures[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, static_cast<int>(viewportSize.x * lightFrustumDynamic.GetSubFrustums()[i].multiplier), static_cast<int>(viewportSize.y * lightFrustumDynamic.GetSubFrustums()[i].multiplier), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -1241,10 +1269,6 @@ void ModuleRender::ToggleDrawLightGizmos() {
 
 void ModuleRender::ToggleDrawParticleGizmos() {
 	drawParticleGizmos = !drawParticleGizmos;
-}
-
-void ModuleRender::ToggleDrawLightFrustumGizmo() {
-	drawLightFrustumGizmo = !drawLightFrustumGizmo;
 }
 
 void ModuleRender::UpdateShadingMode(const char* shadingMode) {

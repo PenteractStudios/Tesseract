@@ -153,10 +153,6 @@ void Debug::ToggleDrawParticleGizmos() {
 	App->renderer->ToggleDrawParticleGizmos();
 }
 
-void Debug::ToggleDrawLightFrustumGizmo() {
-	App->renderer->ToggleDrawLightFrustumGizmo();
-}
-
 void Debug::UpdateShadingMode(const char* shadingMode) {
 	App->renderer->UpdateShadingMode(shadingMode);
 }

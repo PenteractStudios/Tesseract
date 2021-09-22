@@ -13,7 +13,8 @@ enum class CascadeMode {
 
 enum class ShadowCasterType {
 	STATIC,
-	DYNAMIC
+	DYNAMIC,
+	NONE
 };
 
 class LightFrustum {
@@ -32,7 +33,9 @@ public:
 	void UpdateFrustums();
 	void ReconstructFrustum(ShadowCasterType shadowCasterType);
 
-	void DrawGizmos();
+	void DrawOrthographicGizmos(int idx);
+	void DrawPerspectiveGizmos(int idx);
+
 
 	Frustum GetOrthographicFrustum(unsigned int i) const;
 	Frustum GetPersepectiveFrustum(unsigned int i) const;

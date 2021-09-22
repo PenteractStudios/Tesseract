@@ -19,8 +19,8 @@ flat in unsigned int cascadesCount;
 out vec4 outColor;
 
 // Depth Map
-uniform sampler2D depthMapTexturesStatic[MAX_CASCADES];
-uniform sampler2D depthMapTexturesDynamic[MAX_CASCADES];
+uniform sampler2DShadow depthMapTexturesStatic[MAX_CASCADES];
+uniform sampler2DShadow depthMapTexturesDynamic[MAX_CASCADES];
 uniform float farPlaneDistancesStatic[MAX_CASCADES];
 uniform float farPlaneDistancesDynamic[MAX_CASCADES];
 
@@ -192,32 +192,24 @@ unsigned int DepthMapIndexDynamic(){
 
 }
 
-float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMap) {
+float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2DShadow shadowMap) {
 
-	vec3 projCoords;
-	//projCoords = lightPos.xyz / lightPos.w; // If perspective, we need to apply perspective division
-	projCoords = lightPos.xyz;
-	projCoords = projCoords * 0.5 + 0.5;
-
-	float closestDepth = texture(shadowMap, projCoords.xy).r;
-
-	if(	projCoords.x < 0.0 || projCoords.x > 1.0 ||
-		projCoords.y < 0.0 || projCoords.y > 1.0 ||
-		closestDepth == 1.0
+	if(	lightPos.x < 0.0 || lightPos.x > 1.0 ||
+		lightPos.y < 0.0 || lightPos.y > 1.0
 	) {
-		return 0.0;
+		return 1.0;
 	}
 
-    float currentDepth = projCoords.z;
-	float bias = min(0.05 * (1 - dot(normal, lightDirection)), 0.005);
-
+	//float bias = min(0.05 * (1 - dot(normal, lightDirection)), 0.005);
+	float bias = 0.001;
 	float shadow = 0.0;
 
 	vec2 texelSize = 1.0/textureSize(shadowMap, 0);
+	
 	for(int x = -1; x <= 1; ++x){
 		for(int y = -1; y <= 1; ++y){
-			float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x,y) * texelSize).r;
-			shadow += currentDepth > pcfDepth + bias ? 1.0 : 0.0;
+			vec3 coord = vec3(lightPos.xy + vec2(x, y) * texelSize, lightPos.z - bias);
+			shadow += texture(shadowMap, coord);
 		}
 	}
 
@@ -371,19 +363,25 @@ void main()
 	// Directional Light
 	if (light.directional.isActive == 1)
 	{
-		colorAccumulative += (1 - shadow) * ProcessDirectionalLight(light.directional, normal, viewDir, Cd, F0, roughness);
+		colorAccumulative += shadow * ProcessDirectionalLight(light.directional, normal, viewDir, Cd, F0, roughness);
+	}
+
+	float shadowFake = 1.0;
+
+	if(shadow < 1.0){
+		shadowFake = shadow + (1.0 - shadow) * 0.35;
 	}
 
 	// Point Light
 	for (int i = 0; i < light.numPoints; i++)
 	{
-    	colorAccumulative += ProcessPointLight(light.points[i], normal, viewDir, Cd, F0, roughness);
+    	colorAccumulative += shadowFake * ProcessPointLight(light.points[i], normal, viewDir, Cd, F0, roughness);
 	}
 
 	// Spot Light
 	for (int i = 0; i < light.numSpots; i++)
 	{
-    	colorAccumulative += ProcessSpotLight(light.spots[i], normal, viewDir, Cd, F0, roughness);
+    	colorAccumulative += shadowFake * ProcessSpotLight(light.spots[i], normal, viewDir, Cd, F0, roughness);
 	}
 
     // Emission
@@ -427,19 +425,26 @@ void main()
     // Directional Light
     if (light.directional.isActive == 1)
     {
-        colorAccumulative += (1 - shadow) * ProcessDirectionalLight(light.directional, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+        colorAccumulative += shadow * ProcessDirectionalLight(light.directional, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
     }
+
+	float shadowFake = 1.0;
+
+	if(shadow < 1.0){
+		shadowFake = shadow + (1.0 - shadow) * 0.35;
+	}
+
 
 	// Point Light
     for(int i = 0; i < light.numPoints; i++)
     {
-        colorAccumulative += ProcessPointLight(light.points[i], normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+        colorAccumulative += shadowFake * ProcessPointLight(light.points[i], normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
     }
 
     // Spot Light
     for(int i = 0; i < light.numSpots; i++)
     {
-        colorAccumulative += ProcessSpotLight(light.spots[i], normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+        colorAccumulative += shadowFake * ProcessSpotLight(light.spots[i], normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
     }
 
     // Emission
