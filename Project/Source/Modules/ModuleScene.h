@@ -22,6 +22,8 @@ public:
 	void ChangeScene(UID sceneId);
 	Scene* GetCurrentScene();
 
+	void BuildPrefab(UID prefabId, GameObject* parent);
+
 	void LoadScene(const char* filePath);
 	void SaveScene(const char* filePath);
 
@@ -44,4 +46,8 @@ private:
 
 	bool shouldSaveScene = false;
 	std::string sceneToSavePath = "";
+
+	bool shouldBuildPrefab = false;
+	UID buildingPrefabId = 0;
+	UID buildingPrefabParentId = 0;
 };
