@@ -2163,7 +2163,7 @@ void ComponentParticleSystem::SetParticlesPerSecondChild(float2 particlesPerSeco
 	SetParticlesPerSecond(particlesPerSecond);
 	for (GameObject* currentChild : GetOwner().GetChildren()) {
 		if (currentChild->GetComponent<ComponentParticleSystem>()) {
-			currentChild->GetComponent<ComponentParticleSystem>()->SetParticlesPerSecond(particlesPerSecond);
+			currentChild->GetComponent<ComponentParticleSystem>()->SetParticlesPerSecondChild(particlesPerSecond);
 		}
 	}
 }
