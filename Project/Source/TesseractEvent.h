@@ -10,6 +10,7 @@
 class GameObject;
 class Component;
 class Resource;
+class Scene;
 
 struct AssetCache;
 
@@ -71,9 +72,10 @@ struct DestroyResourceStruct {
 };
 
 struct DestroyGameObjectStruct {
+	Scene* scene = nullptr;
 	GameObject* gameObject = nullptr;
-	DestroyGameObjectStruct(GameObject* gameObject_)
-		: gameObject(gameObject_) {}
+	DestroyGameObjectStruct(Scene* scene_, GameObject* gameObject_)
+		: scene(scene_), gameObject(gameObject_) {}
 };
 
 struct UpdateAssetCacheStruct {

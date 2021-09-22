@@ -170,6 +170,8 @@ bool ModuleScene::CleanUp() {
 void ModuleScene::ReceiveEvent(TesseractEvent& e) {
 	switch (e.type) {
 	case TesseractEventType::GAMEOBJECT_DESTROYED:
+		if (e.Get<DestroyGameObjectStruct>().scene != scene) break;
+
 		scene->DestroyGameObject(e.Get<DestroyGameObjectStruct>().gameObject);
 		break;
 	case TesseractEventType::CHANGE_SCENE: {
@@ -297,7 +299,7 @@ void ModuleScene::DestroyGameObjectDeferred(GameObject* gameObject) {
 		DestroyGameObjectDeferred(child);
 	}
 	TesseractEvent e(TesseractEventType::GAMEOBJECT_DESTROYED);
-	e.Set<DestroyGameObjectStruct>(gameObject);
+	e.Set<DestroyGameObjectStruct>(gameObject->scene, gameObject);
 
 	App->events->AddEvent(e);
 }

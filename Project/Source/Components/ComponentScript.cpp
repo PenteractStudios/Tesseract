@@ -370,6 +370,7 @@ void ComponentScript::CreateScriptInstance() {
 	if (scriptName == nullptr) return;
 
 	scriptInstance.reset(Factory::Create(scriptName, &GetOwner()));
+	if (scriptInstance == nullptr) return;
 
 	const std::vector<Member>& members = scriptInstance->GetMembers();
 	for (const Member& member : members) {
