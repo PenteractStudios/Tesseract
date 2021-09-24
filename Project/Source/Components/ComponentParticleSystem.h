@@ -147,6 +147,7 @@ public:
 	void InitLight(Particle* currentParticle);
 
 	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
+	void UpdateVelocity(Particle* currentParticle);
 	void UpdateRotation(Particle* currentParticle);
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
@@ -382,6 +383,20 @@ private:
 	bool randomConeRadiusUp = false;
 	// -- Box
 	BoxEmitterFrom boxEmitterFrom = BoxEmitterFrom::VOLUME;
+
+	// Velocity over Lifetime
+	bool velocityOverLifetime = false;
+	RandomMode velocityLinearRM = RandomMode::CONST;
+	float2 velocityLinearX = {0.0f, 0.0f};
+	ImVec2 velocityLinearXCurve[CURVE_SIZE];
+	float2 velocityLinearY = {0.0f, 0.0f};
+	ImVec2 velocityLinearYCurve[CURVE_SIZE];
+	float2 velocityLinearZ = {0.0f, 0.0f};
+	ImVec2 velocityLinearZCurve[CURVE_SIZE];
+	bool velocityLinearSpace = false; // False: world, true: local
+	RandomMode velocitySpeedModifierRM = RandomMode::CONST;
+	float2 velocitySpeedModifier = {1.0f, 1.0f};
+	ImVec2 velocitySpeedModifierCurve[CURVE_SIZE];
 
 	// Rotation over Lifetime
 	bool rotationOverLifetime = false;

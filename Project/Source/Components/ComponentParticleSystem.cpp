@@ -84,6 +84,20 @@
 // -- Box
 #define JSON_TAG_BOX_EMITTER_FROM "BoxEmitterFrom"
 
+// Velocity over Lifetime
+#define JSON_TAG_VELOCITY_OVER_LIFETIME "VelocityOverLifetime"
+#define JSON_TAG_VELOCITY_LINEAR_RM "VelocityLinearRM"
+#define JSON_TAG_VELOCITY_LINEAR_X "VelocityLinearX"
+#define JSON_TAG_VELOCITY_LINEAR_X_CURVE "VelocityLinearXCurve"
+#define JSON_TAG_VELOCITY_LINEAR_Y "VelocityLinearY"
+#define JSON_TAG_VELOCITY_LINEAR_Y_CURVE "VelocityLinearYCurve"
+#define JSON_TAG_VELOCITY_LINEAR_Z "VelocityLinearZ"
+#define JSON_TAG_VELOCITY_LINEAR_Z_CURVE "VelocityLinearZCurve"
+#define JSON_TAG_VELOCITY_LINEAR_SPACE "VelocityLinearSpace"
+#define JSON_TAG_VELOCITY_SPEED_MODIFIER_RM "VelocitySpeedModifierRM"
+#define JSON_TAG_VELOCITY_SPEED_MODIFIER "VelocitySpeedModifier"
+#define JSON_TAG_VELOCITY_SPEED_MODIFIER_CURVE "VelocitySpeedModifierCurve"
+
 // Rotation over Lifetime
 #define JSON_TAG_ROTATION_OVER_LIFETIME "RotationOverLifetime"
 #define JSON_TAG_ROTATION_FACTOR_RM "RotationFactorRM"
@@ -230,6 +244,10 @@ void ComponentParticleSystem::Init() {
 	InitCurveValues(scaleCurve);
 	InitCurveValues(reverseDistanceCurve);
 	InitCurveValues(gravityFactorCurve);
+	InitCurveValues(velocityLinearXCurve);
+	InitCurveValues(velocityLinearYCurve);
+	InitCurveValues(velocityLinearZCurve);
+	InitCurveValues(velocitySpeedModifierCurve);
 	InitCurveValues(rotationFactorCurve);
 	InitCurveValues(scaleFactorCurve);
 	InitCurveValues(intensityMultiplierCurve);
@@ -416,6 +434,33 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			ImGui::PushItemWidth(ITEM_SIZE);
 		}
 		ImGui::Unindent();
+	}
+
+	// Velocity over Lifetime
+	if (ImGui::CollapsingHeader("Velocity over Lifetime")) {
+		ImGui::Checkbox("##vel_over_lifetime", &velocityOverLifetime);
+		if (velocityOverLifetime) {
+			ImGuiRandomMenu("Linear X", velocityLinearRM, velocityLinearX, velocityLinearXCurve, false, App->editor->dragSpeed1f, -inf, inf);
+			ImGuiRandomMenu("Linear Y", velocityLinearRM, velocityLinearY, velocityLinearXCurve, false, App->editor->dragSpeed1f, -inf, inf);
+			ImGuiRandomMenu("Linear Z", velocityLinearRM, velocityLinearZ, velocityLinearXCurve, false, App->editor->dragSpeed1f, -inf, inf);
+			ImGui::Indent();
+			const char* velocitySpaceCombo[] = {"World", "Local"};
+			const char* velocitySpaceComboCurrent = velocitySpaceCombo[(int) billboardType];
+			if (ImGui::BeginCombo("Space##", velocitySpaceComboCurrent)) {
+				for (int n = 0; n < IM_ARRAYSIZE(velocitySpaceCombo); ++n) {
+					bool isSelected = (velocitySpaceComboCurrent == velocitySpaceCombo[n]);
+					if (ImGui::Selectable(velocitySpaceCombo[n], isSelected)) {
+						velocityLinearSpace = n;
+					}
+					if (isSelected) {
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::Unindent();
+			ImGuiRandomMenu("Speed Modifier", velocitySpeedModifierRM, velocitySpeedModifier, velocitySpeedModifierCurve, false, App->editor->dragSpeed1f, -inf, inf);
+		}
 	}
 
 	// Rotation over Lifetime
@@ -1690,8 +1735,28 @@ void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
 		if (gravityEffect) {
 			UpdateGravityDirection(currentParticle);
 		}
-		currentParticle->position += currentParticle->direction * currentParticle->speed * App->time->GetDeltaTimeOrRealDeltaTime();
+		if (velocityOverLifetime) {
+			UpdateVelocity(currentParticle);
+		} else {
+			currentParticle->position += currentParticle->direction * currentParticle->speed * App->time->GetDeltaTimeOrRealDeltaTime();
+		}
 	}
+}
+
+void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
+	float linearX = ObtainRandomValueFloat(velocityLinearRM, velocityLinearX, velocityLinearXCurve, ParticleLifeNormalized(currentParticle));
+	float linearY = ObtainRandomValueFloat(velocityLinearRM, velocityLinearY, velocityLinearYCurve, ParticleLifeNormalized(currentParticle));
+	float linearZ = ObtainRandomValueFloat(velocityLinearRM, velocityLinearZ, velocityLinearZCurve, ParticleLifeNormalized(currentParticle));
+
+	float speed = ObtainRandomValueFloat(velocitySpeedModifierRM, velocitySpeedModifier, velocitySpeedModifierCurve, ParticleLifeNormalized(currentParticle));
+
+	float3 direction;
+	if (velocityLinearSpace) {
+		direction  = float3x3::RotateFromTo(float3::unitY, currentParticle->direction) * float3(linearX, linearY, linearZ);
+	} else {
+		direction = float3(linearX, linearY, linearZ);
+	}
+	currentParticle->position += (currentParticle->direction + direction).Normalized() * currentParticle->speed * speed * App->time->GetDeltaTimeOrRealDeltaTime();
 }
 
 void ComponentParticleSystem::UpdateRotation(Particle* currentParticle) {
