@@ -1118,7 +1118,8 @@ void ModuleRender::UpdateFramebuffers() {
 
 	// Light tiles
 	lightTilesPerRow = CeilInt(viewportSize.x / LIGHT_TILE_SIZE);
-	lightTiles.resize(lightTilesPerRow * CeilInt(viewportSize.y / LIGHT_TILE_SIZE));
+	lightTilesPerColumn = CeilInt(viewportSize.y / LIGHT_TILE_SIZE);
+	lightTiles.resize(lightTilesPerRow * lightTilesPerColumn);
 
 	// Render buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
@@ -1586,61 +1587,73 @@ void ModuleRender::FillLightTiles() {
 	float4x4 projection = App->camera->GetProjectionMatrix();
 	for (ComponentLight& light : scene->lightComponents) {
 		if (light.lightType == LightType::DIRECTIONAL) continue;
-		if (light.IsActive()) {
-			// Calculate light screen AABB
-			float3 lightPosition = light.GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
-			AABB lightAABB = Sphere(lightPosition, light.radius).MinimalEnclosingAABB();
+		if (!light.IsActive()) continue;
+
+		// Calculate light screen AABB
+		float3 lightPosition = light.GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+		AABB lightAABB = Sphere(lightPosition, light.radius).MinimalEnclosingAABB();
+		if (!App->camera->GetFrustumPlanes().CheckIfInsideFrustumPlanes(lightAABB, OBB(lightAABB))) continue;
+
+		int minTileX = 0;
+		int maxTileX = lightTilesPerRow - 1;
+		int minTileY = 0;
+		int maxTileY = lightTilesPerColumn - 1;
+
+		if (!lightAABB.Contains(App->camera->GetPosition())) {
 			float3 cornerPoints[8];
 			lightAABB.GetCornerPoints(cornerPoints);
 
-			int minScreenX = INT_MAX;
-			int minScreenY = INT_MAX;
-			int maxScreenX = INT_MIN;
-			int maxScreenY = INT_MIN;
+			float minScreenX = FLT_MAX;
+			float minScreenY = FLT_MAX;
+			float minScreenZ = FLT_MAX;
+			float maxScreenX = -FLT_MAX;
+			float maxScreenY = -FLT_MAX;
+			float maxScreenZ = -FLT_MAX;
 			for (float3& point : cornerPoints) {
 				float4 screenPoint = projection * view * float4(point, 1.0);
-				screenPoint /= screenPoint.w;
-				screenPoint.x = (screenPoint.x + 1.0f) * 0.5f * viewportSize.x;
-				screenPoint.y = (screenPoint.y + 1.0f) * 0.5f * viewportSize.y;
+				screenPoint /= abs(screenPoint.w);
 				if (screenPoint.x < minScreenX) minScreenX = screenPoint.x;
 				if (screenPoint.x > maxScreenX) maxScreenX = screenPoint.x;
 				if (screenPoint.y < minScreenY) minScreenY = screenPoint.y;
 				if (screenPoint.y > maxScreenY) maxScreenY = screenPoint.y;
+				if (screenPoint.z < minScreenZ) minScreenZ = screenPoint.z;
+				if (screenPoint.z > maxScreenZ) maxScreenZ = screenPoint.z;
 			}
 
 			// Cull lights outside the screen
-			if (minScreenX >= static_cast<int>(viewportSize.x) || minScreenY >= static_cast<int>(viewportSize.y) || maxScreenX < 0 || maxScreenY < 0) continue;
+			if (minScreenX >= 1.0f || minScreenY >= 1.0f || minScreenZ > 1.0f || maxScreenX < -1.0f || maxScreenY < -1.0f || maxScreenZ < 0.0f) continue;
 
 			// Fill tiles
-			int minTileX = Clamp(minScreenX, 0, static_cast<int>(viewportSize.x) - 1) / LIGHT_TILE_SIZE;
-			int maxTileX = Clamp(maxScreenX, 0, static_cast<int>(viewportSize.x) - 1) / LIGHT_TILE_SIZE;
-			int minTileY = Clamp(minScreenY, 0, static_cast<int>(viewportSize.y) - 1) / LIGHT_TILE_SIZE;
-			int maxTileY = Clamp(maxScreenY, 0, static_cast<int>(viewportSize.y) - 1) / LIGHT_TILE_SIZE;
-			for (int i = minTileX; i <= maxTileX; ++i) {
-				for (int j = minTileY; j <= maxTileY; ++j) {
-					LightTile& tile = lightTiles[i + j * lightTilesPerRow];
-					if (light.lightType == LightType::POINT) {
-						if (tile.pointCount == POINT_LIGHTS) continue;
-						PointLight& lightStruct = tile.pointLights[tile.pointCount++];
-						lightStruct.pos = light.pos;
-						lightStruct.color = light.color;
-						lightStruct.intensity = light.intensity;
-						lightStruct.radius = light.radius;
-						lightStruct.useCustomFalloff = light.useCustomFalloff;
-						lightStruct.falloffExponent = light.falloffExponent;
-					} else if (light.lightType == LightType::SPOT) {
-						if (tile.spotCount == SPOT_LIGHTS) continue;
-						SpotLight& lightStruct = tile.spotLights[tile.spotCount++];
-						lightStruct.pos = light.pos;
-						lightStruct.direction = light.direction;
-						lightStruct.color = light.color;
-						lightStruct.intensity = light.intensity;
-						lightStruct.radius = light.radius;
-						lightStruct.useCustomFalloff = light.useCustomFalloff;
-						lightStruct.falloffExponent = light.falloffExponent;
-						lightStruct.innerAngle = light.innerAngle;
-						lightStruct.outerAngle = light.outerAngle;
-					}
+			minTileX = Clamp(static_cast<int>((minScreenX + 1.0f) * 0.5f * lightTilesPerRow), 0, lightTilesPerRow - 1);
+			maxTileX = Clamp(static_cast<int>((maxScreenX + 1.0f) * 0.5f * lightTilesPerRow), 0, lightTilesPerRow - 1);
+			minTileY = Clamp(static_cast<int>((minScreenY + 1.0f) * 0.5f * lightTilesPerColumn), 0, lightTilesPerColumn - 1);
+			maxTileY = Clamp(static_cast<int>((maxScreenY + 1.0f) * 0.5f * lightTilesPerColumn), 0, lightTilesPerColumn - 1);
+		}
+
+		for (int i = minTileX; i <= maxTileX; ++i) {
+			for (int j = minTileY; j <= maxTileY; ++j) {
+				LightTile& tile = lightTiles[i + j * lightTilesPerRow];
+				if (light.lightType == LightType::POINT) {
+					if (tile.pointCount == POINT_LIGHTS) continue;
+					PointLight& lightStruct = tile.pointLights[tile.pointCount++];
+					lightStruct.pos = light.pos;
+					lightStruct.color = light.color;
+					lightStruct.intensity = light.intensity;
+					lightStruct.radius = light.radius;
+					lightStruct.useCustomFalloff = light.useCustomFalloff;
+					lightStruct.falloffExponent = light.falloffExponent;
+				} else if (light.lightType == LightType::SPOT) {
+					if (tile.spotCount == SPOT_LIGHTS) continue;
+					SpotLight& lightStruct = tile.spotLights[tile.spotCount++];
+					lightStruct.pos = light.pos;
+					lightStruct.direction = light.direction;
+					lightStruct.color = light.color;
+					lightStruct.intensity = light.intensity;
+					lightStruct.radius = light.radius;
+					lightStruct.useCustomFalloff = light.useCustomFalloff;
+					lightStruct.falloffExponent = light.falloffExponent;
+					lightStruct.innerAngle = light.innerAngle;
+					lightStruct.outerAngle = light.outerAngle;
 				}
 			}
 		}

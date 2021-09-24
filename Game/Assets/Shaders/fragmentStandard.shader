@@ -179,9 +179,9 @@ float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMa
 
 --- fragVarLights
 
-#define POINT_LIGHTS 32
-#define SPOT_LIGHTS 8
-#define LIGHT_TILE_SIZE 32
+#define POINT_LIGHTS 64
+#define SPOT_LIGHTS 16
+#define LIGHT_TILE_SIZE 16
 
 struct DirLight
 {

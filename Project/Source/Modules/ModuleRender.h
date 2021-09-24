@@ -233,6 +233,7 @@ private:
 	float2 viewportSize = float2::zero;
 	float2 updatedViewportSize = float2::zero;
 	int lightTilesPerRow = 0;
+	int lightTilesPerColumn = 0;
 
 	unsigned int indexDepthMapTexture = -1;
 	ShadowCasterType shadowCasterType;
