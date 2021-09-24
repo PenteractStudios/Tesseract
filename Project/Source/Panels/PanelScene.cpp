@@ -31,7 +31,7 @@
 
 #include "Utils/Leaks.h"
 
-constexpr char* shadingMode[5] = {"Shaded", "Wireframe", "Ambient Occlusion", "Normals", "Positions"};
+constexpr char* shadingMode[6] = {"Shaded", "Wireframe", "Ambient Occlusion", "Normals", "Positions", "Light Tiles"};
 
 PanelScene::PanelScene()
 	: Panel("Scene", true) {}

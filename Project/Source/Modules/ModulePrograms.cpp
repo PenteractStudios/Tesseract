@@ -102,15 +102,15 @@ void ModulePrograms::LoadShaders() {
 	volumetricLight = new ProgramVolumetricLight(CreateProgram(filePath, "vertVolumetricLight", "gammaCorrection fragVolumetricLight"));
 
 	// General shaders
-	phongNotNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarSpecular fragMainPhong"));
-	phongNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarSpecular fragMainPhong"));
-	standardNotNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragFunctionEmptyDissolve fragMainMetallic"));
-	standardNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragFunctionEmptyDissolve fragMainMetallic"));
-	specularNotNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
-	specularNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
+	phongNotNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarLights fragVarStandard fragVarSpecular fragMainPhong"));
+	phongNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarLights fragVarStandard fragVarSpecular fragMainPhong"));
+	standardNotNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarLights fragVarStandard fragVarMetallic fragFunctionLight fragFunctionEmptyDissolve fragMainMetallic"));
+	standardNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarLights fragVarStandard fragVarMetallic fragFunctionLight fragFunctionEmptyDissolve fragMainMetallic"));
+	specularNotNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarLights fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
+	specularNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarLights fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
 
 	// Dissolve shaders. Maybe another one for Normals
-	dissolveStandard = new ProgramStandardDissolve(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragFunctionDissolveCommon fragFunctionDissolveFunction fragMainMetallic"));
+	dissolveStandard = new ProgramStandardDissolve(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarLights fragVarStandard fragVarMetallic fragFunctionLight fragFunctionDissolveCommon fragFunctionDissolveFunction fragMainMetallic"));
 	dissolveUnlit = new ProgramUnlitDissolve(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragFunctionDissolveCommon fragFunctionDissolveFunction fragUnlit"));
 
 	// Depth Prepass Shaders
@@ -141,6 +141,7 @@ void ModulePrograms::LoadShaders() {
 
 	// Engine Shaders
 	drawTexture = new ProgramDrawTexture(CreateProgram(filePath, "vertScreen", "fragDrawTexture"));
+	drawLightTiles = new ProgramDrawLightTiles(CreateProgram(filePath, "vertScreen", "fragVarLights fragDrawLightTiles"));
 
 	// Particle Shaders
 	billboard = new ProgramBillboard(CreateProgram(filePath, "billboardVertex", "gammaCorrection billboardFragment"));
@@ -192,6 +193,7 @@ void ModulePrograms::UnloadShaders() {
 	RELEASE(imageUI);
 
 	RELEASE(drawTexture);
+	RELEASE(drawLightTiles);
 
 	RELEASE(billboard);
 	RELEASE(trail);

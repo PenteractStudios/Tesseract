@@ -69,6 +69,7 @@ enum class UpdateStatus {
 #define GLSL_VERSION "#version 460"
 #define POINT_LIGHTS 32
 #define SPOT_LIGHTS 8
+#define LIGHT_TILE_SIZE 32
 #define CASCADE_FRUSTUMS 10
 
 // Timers

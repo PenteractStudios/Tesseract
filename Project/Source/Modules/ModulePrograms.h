@@ -66,6 +66,7 @@ public:
 
 	// Engine Shaders
 	ProgramDrawTexture* drawTexture = nullptr;
+	ProgramDrawLightTiles* drawLightTiles = nullptr;
 
 	// UI Shaders
 	ProgramTextUI* textUI = nullptr;

@@ -32,6 +32,7 @@
 #include "Geometry/AABB.h"
 #include "Geometry/AABB2D.h"
 #include "Geometry/OBB.h"
+#include "Geometry/Sphere.h"
 #include "debugdraw.h"
 #include "GL/glew.h"
 #include "SDL.h"
@@ -213,6 +214,8 @@ bool ModuleRender::Init() {
 	glDebugMessageCallback(&OurOpenGLErrorFunction, nullptr);
 	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 #endif
+
+	glGenBuffers(1, &lightTilesStorageBuffer);
 
 	glGenTextures(1, &renderTexture);
 	glGenTextures(1, &outputTexture);
@@ -487,6 +490,20 @@ void ModuleRender::DrawTexture(unsigned texture) {
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
+void ModuleRender::DrawLightTiles() {
+	ProgramDrawLightTiles* drawLightTilesProgram = App->programs->drawLightTiles;
+	if (drawLightTilesProgram == nullptr) return;
+
+	glUseProgram(drawLightTilesProgram->program);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightTilesStorageBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, lightTilesStorageBuffer);
+
+	glUniform1i(drawLightTilesProgram->tilesPerRowLocation, CeilInt(viewportSize.x / LIGHT_TILE_SIZE));
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
 void ModuleRender::DrawScene() {
 	ProgramPostprocess* drawScene = App->programs->postprocess;
 	if (drawScene == nullptr) return;
@@ -509,6 +526,13 @@ bool ModuleRender::Start() {
 
 UpdateStatus ModuleRender::PreUpdate() {
 	BROFILER_CATEGORY("ModuleRender - PreUpdate", Profiler::Color::Green)
+
+	if (viewportUpdated) {
+		viewportSize = updatedViewportSize;
+		viewportUpdated = false;
+
+		UpdateFramebuffers();
+	}
 
 #if GAME
 	App->camera->ViewportResized(App->window->GetWidth(), App->window->GetHeight());
@@ -615,6 +639,9 @@ UpdateStatus ModuleRender::Update() {
 		BlurSSAOTexture(false);
 	}
 
+	// Light tiles construction
+	FillLightTiles();
+
 	// Render pass
 	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
 	glClearColor(gammaClearColor.x, gammaClearColor.y, gammaClearColor.z, 1.0f);
@@ -665,6 +692,15 @@ UpdateStatus ModuleRender::Update() {
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, colorCorrectionBuffer);
 		glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		return UpdateStatus::CONTINUE;
+	}
+	if (drawLightTiles) {
+		DrawLightTiles();
+
+		// Render to screen
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, renderPassBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, colorCorrectionBuffer);
+		glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		
 	}
 
 	// Draw SkyBox (Always first element)
@@ -910,11 +946,6 @@ UpdateStatus ModuleRender::Update() {
 UpdateStatus ModuleRender::PostUpdate() {
 	BROFILER_CATEGORY("ModuleRender - PostUpdate", Profiler::Color::Green)
 
-	if (viewportUpdated) {
-		UpdateFramebuffers();
-		viewportUpdated = false;
-	}
-
 	SDL_GL_SwapWindow(App->window->window);
 
 	return UpdateStatus::CONTINUE;
@@ -923,6 +954,8 @@ UpdateStatus ModuleRender::PostUpdate() {
 bool ModuleRender::CleanUp() {
 	glDeleteVertexArrays(1, &cubeVAO);
 	glDeleteBuffers(1, &cubeVBO);
+
+	glDeleteBuffers(1, &lightTilesStorageBuffer);
 
 	glDeleteTextures(1, &renderTexture);
 	glDeleteTextures(1, &outputTexture);
@@ -957,8 +990,8 @@ bool ModuleRender::CleanUp() {
 }
 
 void ModuleRender::ViewportResized(int width, int height) {
-	viewportSize.x = static_cast<float>(width);
-	viewportSize.y = static_cast<float>(height);
+	updatedViewportSize.x = static_cast<float>(width);
+	updatedViewportSize.y = static_cast<float>(height);
 
 	viewportUpdated = true;
 }
@@ -1082,6 +1115,9 @@ void ModuleRender::UpdateFramebuffers() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoTexture, 0);
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+	// Light tiles
+	lightTiles.resize(CeilInt(viewportSize.x / LIGHT_TILE_SIZE) * CeilInt(viewportSize.y / LIGHT_TILE_SIZE));
 
 	// Render buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
@@ -1266,6 +1302,7 @@ void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 	drawSSAOTexture = false;
 	drawNormalsTexture = false;
 	drawPositionsTexture = false;
+	drawLightTiles = false;
 
 	std::string strShadingMode = shadingMode;
 
@@ -1279,6 +1316,8 @@ void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 		drawNormalsTexture = true;
 	} else if (strcmp(shadingMode, "Positions") == 0) {
 		drawPositionsTexture = true;
+	} else if (strcmp(shadingMode, "Light Tiles") == 0) {
+		drawLightTiles = true;
 	} else if (strShadingMode.find("StaticDepth") != std::string::npos) {
 		for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
 			std::string str = "StaticDepth " + std::to_string(i);
@@ -1527,6 +1566,84 @@ bool ModuleRender::InsideFrustumPlanes(const FrustumPlanes& planes, const GameOb
 		return true;
 	}
 	return false;
+}
+
+void ModuleRender::FillLightTiles() {
+	// Clear tiles
+	for (LightTile& tile : lightTiles) {
+		tile.pointCount = 0;
+		tile.spotCount = 0;
+	}
+
+	// Add lights to the corresponding tile
+	Scene* scene = App->scene->GetCurrentScene();
+	float4x4 view = App->camera->GetViewMatrix();
+	float4x4 projection = App->camera->GetProjectionMatrix();
+	for (ComponentLight& light : scene->lightComponents) {
+		if (light.lightType == LightType::DIRECTIONAL) continue;
+		if (light.IsActive()) {
+			// Calculate light screen AABB
+			float3 lightPosition = light.GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+			AABB lightAABB = Sphere(lightPosition, light.radius).MinimalEnclosingAABB();
+			float3 cornerPoints[8];
+			lightAABB.GetCornerPoints(cornerPoints);
+
+			int minScreenX = INT_MAX;
+			int minScreenY = INT_MAX;
+			int maxScreenX = INT_MIN;
+			int maxScreenY = INT_MIN;
+			for (float3& point : cornerPoints) {
+				float4 screenPoint = projection * view * float4(point, 1.0);
+				screenPoint /= screenPoint.w;
+				screenPoint.x = (screenPoint.x + 1.0f) * 0.5f * viewportSize.x;
+				screenPoint.y = (screenPoint.y + 1.0f) * 0.5f * viewportSize.y;
+				if (screenPoint.x < minScreenX) minScreenX = screenPoint.x;
+				if (screenPoint.x > maxScreenX) maxScreenX = screenPoint.x;
+				if (screenPoint.y < minScreenY) minScreenY = screenPoint.y;
+				if (screenPoint.y > maxScreenY) maxScreenY = screenPoint.y;
+			}
+
+			// Cull lights outside the screen
+			if (minScreenX >= static_cast<int>(viewportSize.x) || minScreenY >= static_cast<int>(viewportSize.y) || maxScreenX < 0 || maxScreenY < 0) continue;
+
+			// Fill tiles
+			int minTileX = Clamp(minScreenX, 0, static_cast<int>(viewportSize.x) - 1) / LIGHT_TILE_SIZE;
+			int maxTileX = Clamp(maxScreenX, 0, static_cast<int>(viewportSize.x) - 1) / LIGHT_TILE_SIZE;
+			int minTileY = Clamp(minScreenY, 0, static_cast<int>(viewportSize.y) - 1) / LIGHT_TILE_SIZE;
+			int maxTileY = Clamp(maxScreenY, 0, static_cast<int>(viewportSize.y) - 1) / LIGHT_TILE_SIZE;
+			for (int i = minTileX; i <= maxTileX; ++i) {
+				for (int j = minTileY; j <= maxTileY; ++j) {
+					LightTile& tile = lightTiles[i + j * CeilInt(viewportSize.x / LIGHT_TILE_SIZE)];
+					if (light.lightType == LightType::POINT) {
+						if (tile.pointCount == POINT_LIGHTS) continue;
+						PointLight& lightStruct = tile.pointLights[tile.pointCount++];
+						lightStruct.pos = light.pos;
+						lightStruct.color = light.color;
+						lightStruct.intensity = light.intensity;
+						lightStruct.radius = light.radius;
+						lightStruct.useCustomFalloff = light.useCustomFalloff;
+						lightStruct.falloffExponent = light.falloffExponent;
+					} else if (light.lightType == LightType::SPOT) {
+						if (tile.spotCount == SPOT_LIGHTS) continue;
+						SpotLight& lightStruct = tile.spotLights[tile.spotCount++];
+						lightStruct.pos = light.pos;
+						lightStruct.direction = light.direction;
+						lightStruct.color = light.color;
+						lightStruct.intensity = light.intensity;
+						lightStruct.radius = light.radius;
+						lightStruct.useCustomFalloff = light.useCustomFalloff;
+						lightStruct.falloffExponent = light.falloffExponent;
+						lightStruct.innerAngle = light.innerAngle;
+						lightStruct.outerAngle = light.outerAngle;
+					}
+				}
+			}
+		}
+	}
+
+	// Rewrite storage buffer
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightTilesStorageBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, lightTiles.size() * sizeof(LightTile), lightTiles.data(), GL_DYNAMIC_DRAW);
 }
 
 const float2 ModuleRender::GetViewportSize() {

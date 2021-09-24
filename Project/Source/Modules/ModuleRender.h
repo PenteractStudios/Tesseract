@@ -14,6 +14,7 @@
 #define RANDOM_TANGENTS_COLS 4
 
 class GameObject;
+class ComponentLight;
 
 enum class TESSERACT_ENGINE_API MSAA_SAMPLES_TYPE {
 	MSAA_X2,
@@ -21,6 +22,42 @@ enum class TESSERACT_ENGINE_API MSAA_SAMPLES_TYPE {
 	MSAA_X8,
 	COUNT
 };
+
+struct PointLight {
+	float3 pos = float3::zero;
+	int padding1_ = 0;
+	float3 color = float3::zero;
+	int padding2_ = 0;
+	float intensity = 0.0f;
+	float radius = 0.0f;
+	int useCustomFalloff = 0;
+	float falloffExponent = 0.0f;
+};
+
+struct SpotLight {
+	float3 pos = float3::zero;
+	int padding1_ = 0;
+	float3 direction = float3::zero;
+	int padding2_ = 0;
+	float3 color = float3::zero;
+	int padding3_ = 0;
+	float intensity = 0.0f;
+	float radius = 0.0f;
+	int useCustomFalloff = 0;
+	float falloffExponent = 0.0f;
+	float innerAngle = 0.0f;
+	float outerAngle = -FLT_MAX;
+	int padding4_[2] = {0, 0};
+};
+
+struct LightTile {
+	PointLight pointLights[POINT_LIGHTS];
+	SpotLight spotLights[SPOT_LIGHTS];
+	int pointCount = 0;
+	int spotCount = 0;
+	int padding_[2] = {0, -1};
+};
+
 
 class ModuleRender : public Module {
 public:
@@ -73,6 +110,8 @@ public:
 	unsigned cubeVAO = 0;
 	unsigned cubeVBO = 0;
 
+	unsigned lightTilesStorageBuffer = 0;
+
 	unsigned renderTexture = 0;
 	unsigned outputTexture = 0;
 	unsigned depthsMSTexture = 0;
@@ -101,9 +140,6 @@ public:
 	unsigned hdrFramebuffer = 0;
 	unsigned bloomBlurFramebuffers[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // Ping-pong buffers to blur bloom horizontally and vertically
 	unsigned bloomCombineFramebuffers[5] = {0, 0, 0, 0, 0};
-
-	// ------- Viewport Updated ------- //
-	bool viewportUpdated = true;
 
 	// -- Debugging Tools Toggles -- //
 	bool debugMode = false; // Flag to activate DrawOptions only ingame (not use in the engine)
@@ -175,6 +211,8 @@ private:
 
 	bool InsideFrustumPlanes(const FrustumPlanes& planes, const GameObject* go) const;
 
+	void FillLightTiles();
+
 	void ConvertDepthPrepassTextures();
 	void ComputeSSAOTexture();
 	void BlurSSAOTexture(bool horizontal);
@@ -184,23 +222,30 @@ private:
 	void ExecuteColorCorrection();
 
 	void DrawTexture(unsigned texture);
+	void DrawLightTiles();
 	void DrawScene();
 
 private:
-	// ------- Viewport Size ------- //
+	// ------- Viewport ------- //
+	bool viewportUpdated = true;
 	float2 viewportSize = float2::zero;
+	float2 updatedViewportSize = float2::zero;
+
 	unsigned int indexDepthMapTexture = -1;
 	ShadowCasterType shadowCasterType;
 	bool drawDepthMapTexture = false;
 	bool drawSSAOTexture = false;
 	bool drawNormalsTexture = false;
 	bool drawPositionsTexture = false;
+	bool drawLightTiles = false;
 
 	std::vector<GameObject*> opaqueGameObjects;			 // Vector of Opaque GameObjects
 	std::map<float, GameObject*> transparentGameObjects; // Map with Transparent GameObjects
 
 	std::vector<GameObject*> staticShadowCasters;
 	std::vector<GameObject*> dynamicShadowCasters;
+
+	std::vector<LightTile> lightTiles;
 
 	// ------- Kernels ------- //
 	std::vector<float> ssaoGaussKernel;
