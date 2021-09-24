@@ -1117,7 +1117,8 @@ void ModuleRender::UpdateFramebuffers() {
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
 	// Light tiles
-	lightTiles.resize(CeilInt(viewportSize.x / LIGHT_TILE_SIZE) * CeilInt(viewportSize.y / LIGHT_TILE_SIZE));
+	lightTilesPerRow = CeilInt(viewportSize.x / LIGHT_TILE_SIZE);
+	lightTiles.resize(lightTilesPerRow * CeilInt(viewportSize.y / LIGHT_TILE_SIZE));
 
 	// Render buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, renderPassBuffer);
@@ -1357,6 +1358,10 @@ std::vector<GameObject*> ModuleRender::GetDynamicCulledShadowCasters(const Frust
 	}
 
 	return meshes;
+}
+
+int ModuleRender::GetLightTilesPerRow() const {
+	return lightTilesPerRow;
 }
 
 std::vector<GameObject*> ModuleRender::GetCulledMeshes(const FrustumPlanes& planes, const int mask) {
@@ -1613,7 +1618,7 @@ void ModuleRender::FillLightTiles() {
 			int maxTileY = Clamp(maxScreenY, 0, static_cast<int>(viewportSize.y) - 1) / LIGHT_TILE_SIZE;
 			for (int i = minTileX; i <= maxTileX; ++i) {
 				for (int j = minTileY; j <= maxTileY; ++j) {
-					LightTile& tile = lightTiles[i + j * CeilInt(viewportSize.x / LIGHT_TILE_SIZE)];
+					LightTile& tile = lightTiles[i + j * lightTilesPerRow];
 					if (light.lightType == LightType::POINT) {
 						if (tile.pointCount == POINT_LIGHTS) continue;
 						PointLight& lightStruct = tile.pointLights[tile.pointCount++];

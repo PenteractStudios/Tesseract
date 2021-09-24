@@ -98,6 +98,8 @@ public:
 	std::vector<GameObject*> GetStaticCulledShadowCasters(const FrustumPlanes& planes) const;
 	std::vector<GameObject*> GetDynamicCulledShadowCasters(const FrustumPlanes& planes) const;
 
+	int GetLightTilesPerRow() const;
+
 	int GetCulledTriangles() const;
 	const float2 GetViewportSize();
 
@@ -230,6 +232,7 @@ private:
 	bool viewportUpdated = true;
 	float2 viewportSize = float2::zero;
 	float2 updatedViewportSize = float2::zero;
+	int lightTilesPerRow = 0;
 
 	unsigned int indexDepthMapTexture = -1;
 	ShadowCasterType shadowCasterType;

@@ -724,7 +724,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	}
 	glUniform1i(standardProgram->dirLightIsActiveLocation, directionalLight ? 1 : 0);
 
-	glUniform1i(standardProgram->tilesPerRowLocation, CeilInt(App->renderer->GetViewportSize().x / LIGHT_TILE_SIZE));
+	glUniform1i(standardProgram->tilesPerRowLocation, App->renderer->GetLightTilesPerRow());
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, App->renderer->lightTilesStorageBuffer);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, App->renderer->lightTilesStorageBuffer);
