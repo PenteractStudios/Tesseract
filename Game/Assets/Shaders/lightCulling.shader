@@ -157,11 +157,6 @@ bool SphereInsideTileFrustum(vec3 spherePosition, float sphereRadius, TileFrustu
     return isInsideFrustum;
 }
 
-float LinearizeDepth(float depth, float near, float far)
-{
-    return 2.0 * near * far / (far + near - (2.0 * depth - 1.0) * (far - near));
-}
-
 layout(local_size_x = LIGHT_TILE_SIZE, local_size_y = LIGHT_TILE_SIZE, local_size_z = 1) in;
 void main()
 {
