@@ -62,10 +62,10 @@ void main()
 
     // Build the frustum plane normals
     TileFrustum tileFrustum;
-    tileFrustum.planeNormals[0] = normalize(cross(tileRectsVS[2], tileRectsVS[0])); // Left
-    tileFrustum.planeNormals[1] = normalize(cross(tileRectsVS[1], tileRectsVS[3])); // Right
-    tileFrustum.planeNormals[2] = normalize(cross(tileRectsVS[0], tileRectsVS[1])); // Top
-    tileFrustum.planeNormals[3] = normalize(cross(tileRectsVS[3], tileRectsVS[2])); // Bottom
+    tileFrustum.planeNormals[0] = normalize(cross(tileRectsVS[0], tileRectsVS[2])); // Left
+    tileFrustum.planeNormals[1] = normalize(cross(tileRectsVS[3], tileRectsVS[1])); // Right
+    tileFrustum.planeNormals[2] = normalize(cross(tileRectsVS[1], tileRectsVS[0])); // Top
+    tileFrustum.planeNormals[3] = normalize(cross(tileRectsVS[2], tileRectsVS[3])); // Bottom
 
     // Store the frustum
     if (gl_GlobalInvocationID.x < numThreads.x && gl_GlobalInvocationID.y < numThreads.y)
