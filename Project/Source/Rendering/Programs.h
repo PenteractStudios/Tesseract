@@ -86,6 +86,25 @@ struct ProgramSkybox : Program {
 	int cubemapLocation = -1;
 };
 
+struct ProgramGridFrustumsCompute : Program {
+	ProgramGridFrustumsCompute(unsigned program);
+
+	int invProjLocation = -1;
+	int screenSizeLocation = -1;
+	int numThreadsLocation = -1;
+};
+
+struct ProgramLightCullingCompute : Program {
+	ProgramLightCullingCompute(unsigned program);
+
+	int invProjLocation = -1;
+	int viewLocation = -1;
+	int screenSizeLocation = -1;
+	int lightCountLocation = -1;
+
+	int depthsLocation = -1;
+};
+
 struct ProgramUnlit : public Program {
 	ProgramUnlit(unsigned program);
 
@@ -334,6 +353,8 @@ struct ProgramDrawLightTiles : Program {
 	ProgramDrawLightTiles(unsigned program);
 
 	int tilesPerRowLocation = -1;
+
+	int sceneTextureLocation = -1;
 };
 
 struct ProgramImageUI : Program {

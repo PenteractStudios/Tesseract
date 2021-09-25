@@ -12,6 +12,7 @@ public:
 	void LoadShaders();
 	void UnloadShaders();
 	unsigned CreateProgram(const char* shaderFile, const char* vertexSnippets = "vertex", const char* fragmentSnippets = "fragment");
+	unsigned CreateComputeProgram(const char* shaderFile, const char* computeSnippets = "compute");
 	void DeleteProgram(unsigned int idProgram);
 
 public:
@@ -23,6 +24,10 @@ public:
 	ProgramPreFilteredMap* preFilteredMap = nullptr;
 	ProgramEnvironmentBRDF* environmentBRDF = nullptr;
 	ProgramSkybox* skybox = nullptr;
+
+	// Light culling shaders
+	ProgramGridFrustumsCompute* gridFrustumsCompute = nullptr;
+	ProgramLightCullingCompute* lightCullingCompute = nullptr;
 
 	// Unlit Shader
 	ProgramUnlit* unlit = nullptr;

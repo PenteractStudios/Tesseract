@@ -3,31 +3,6 @@
 #include "GL/glew.h"
 #include <string>
 
-PointLightUniforms::PointLightUniforms() {}
-
-PointLightUniforms::PointLightUniforms(unsigned program, unsigned number) {
-	posLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].pos").c_str());
-	colorLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].color").c_str());
-	intensityLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].intensity").c_str());
-	radiusLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].radius").c_str());
-	useCustomFalloffLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].useCustomFalloff").c_str());
-	falloffExponentLocation = glGetUniformLocation(program, (std::string("light.points[") + std::to_string(number) + "].falloffExponent").c_str());
-}
-
-SpotLightUniforms::SpotLightUniforms() {}
-
-SpotLightUniforms::SpotLightUniforms(unsigned program, unsigned number) {
-	posLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].pos").c_str());
-	directionLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].direction").c_str());
-	colorLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].color").c_str());
-	intensityLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].intensity").c_str());
-	radiusLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].radius").c_str());
-	useCustomFalloffLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].useCustomFalloff").c_str());
-	falloffExponentLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].falloffExponent").c_str());
-	innerAngleLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].innerAngle").c_str());
-	outerAngleLocation = glGetUniformLocation(program, (std::string("light.spots[") + std::to_string(number) + "].outerAngle").c_str());
-}
-
 Program::Program(unsigned program_)
 	: program(program_) {}
 
@@ -68,6 +43,25 @@ ProgramSkybox::ProgramSkybox(unsigned program_)
 	projLocation = glGetUniformLocation(program, "proj");
 
 	cubemapLocation = glGetUniformLocation(program, "cubemap");
+}
+
+ProgramGridFrustumsCompute::ProgramGridFrustumsCompute(unsigned program_)
+	: Program(program_) {
+	invProjLocation = glGetUniformLocation(program, "invProj");
+
+	screenSizeLocation = glGetUniformLocation(program, "screenSize");
+	numThreadsLocation = glGetUniformLocation(program, "numThreads");
+}
+
+ProgramLightCullingCompute::ProgramLightCullingCompute(unsigned program_)
+	: Program(program_) {
+	invProjLocation = glGetUniformLocation(program, "invProj");
+	viewLocation = glGetUniformLocation(program, "view");
+
+	screenSizeLocation = glGetUniformLocation(program, "screenSize");
+	lightCountLocation = glGetUniformLocation(program, "lightCount");
+
+	depthsLocation = glGetUniformLocation(program, "depths");
 }
 
 ProgramUnlit::ProgramUnlit(unsigned program_)
@@ -305,6 +299,8 @@ ProgramDrawTexture::ProgramDrawTexture(unsigned program_)
 ProgramDrawLightTiles::ProgramDrawLightTiles(unsigned program_)
 	: Program(program_) {
 	tilesPerRowLocation = glGetUniformLocation(program, "tilesPerRow");
+
+	sceneTextureLocation = glGetUniformLocation(program, "sceneTexture");
 }
 
 ProgramImageUI::ProgramImageUI(unsigned program_)

@@ -57,6 +57,18 @@ uniform sampler2D environmentBRDF;
 uniform int prefilteredIBLNumLevels;
 uniform float strengthIBL;
 
+// Lights
+struct DirLight
+{
+	vec3 direction;
+	vec3 color;
+	float intensity;
+	int isActive;
+};
+
+uniform vec3 ambientColor;
+uniform DirLight dirLight;
+
 float Pow2(float a)
 {
 	return a * a;
@@ -179,64 +191,22 @@ float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMa
 
 --- fragVarLights
 
-#define POINT_LIGHTS 64
-#define SPOT_LIGHTS 16
-#define LIGHT_TILE_SIZE 16
-
-struct DirLight
+layout(std430, binding = 0) readonly buffer LightBuffer
 {
-	vec3 direction;
-	vec3 color;
-	float intensity;
-	int isActive;
-};
+	Light data[];
+} lightBuffer;
 
-struct PointLight
+layout(std430, binding = 1) readonly buffer LightIndicesBuffer
 {
-	vec3 pos;
-	int padding1_;
-	vec3 color;
-	int padding2_;
-	float intensity;
-	float radius;
-	int useCustomFalloff;
-	float falloffExponent;
-};
+	int data[];
+} lightIndicesBuffer;
 
-struct SpotLight
-{
-	vec3 pos;
-	int padding1_;
-	vec3 direction;
-	int padding2_;
-	vec3 color;
-	int padding3_;
-	float intensity;
-	float radius;
-	int useCustomFalloff;
-	float falloffExponent;
-	float innerAngle;
-	float outerAngle;
-	int padding4_[2];
-};
-
-struct LightTile
-{
-	PointLight points[POINT_LIGHTS];
-	SpotLight spots[SPOT_LIGHTS];
-	int numPoints;
-	int numSpots;
-	int padding_[2];
-};
-
-uniform vec3 ambientColor;
-uniform DirLight dirLight;
-uniform int tilesPerRow;
-
-layout(std430, binding = 0) readonly buffer LightTiles
+layout(std430, binding = 2) readonly buffer LightTilesBuffer
 {
 	LightTile data[];
-} lightTiles;
+} lightTilesBuffer;
+
+uniform int tilesPerRow;
 
 int GetTileIndex()
 {
@@ -291,7 +261,7 @@ vec3 ProcessDirectionalLight(DirLight directional, vec3 fragNormal, vec3 viewDir
 	return (Cd * (1 - F0) + 0.25 * Fn * V * NDF) * directional.color * directional.intensity * NL;
 }
 
-vec3 ProcessPointLight(PointLight point, vec3 fragNormal, vec3 viewDir, vec3 Cd, vec3 F0, float roughness)
+vec3 ProcessPointLight(Light point, vec3 fragNormal, vec3 viewDir, vec3 Cd, vec3 F0, float roughness)
 {
 	float pointDistance = length(point.pos - fragPos);
 	float falloffExponent = point.useCustomFalloff * point.falloffExponent + (1 - point.useCustomFalloff) * 4.0;
@@ -314,7 +284,7 @@ vec3 ProcessPointLight(PointLight point, vec3 fragNormal, vec3 viewDir, vec3 Cd,
 	return (Cd * (1 - F0) + 0.25 * Fn * V * NDF) * point.color * point.intensity * distAttenuation * NL;
 }
 
-vec3 ProcessSpotLight(SpotLight spot, vec3 fragNormal, vec3 viewDir, vec3 Cd, vec3 F0, float roughness)
+vec3 ProcessSpotLight(Light spot, vec3 fragNormal, vec3 viewDir, vec3 Cd, vec3 F0, float roughness)
 {
 	float spotDistance = length(spot.pos - fragPos);
 	float falloffExponent = spot.useCustomFalloff * spot.falloffExponent + (1 - spot.useCustomFalloff) * 4.0;
@@ -390,19 +360,22 @@ void main()
 	{
 		colorAccumulative += (1 - shadow) * ProcessDirectionalLight(dirLight, normal, viewDir, Cd, F0, roughness);
 	}
-
+	
+	// Lights
 	int tileIndex = GetTileIndex();
-
-	// Point Light
-	for (int i = 0; i < lightTiles.data[tileIndex].numPoints; i++)
-	{
-    	colorAccumulative += ProcessPointLight(lightTiles.data[tileIndex].points[i], normal, viewDir, Cd, F0, roughness);
-	}
-
-	// Spot Light
-	for (int i = 0; i < lightTiles.data[tileIndex].numSpots; i++)
-	{
-    	colorAccumulative += ProcessSpotLight(lightTiles.data[tileIndex].spots[i], normal, viewDir, Cd, F0, roughness);
+	LightTile lightTile = lightTilesBuffer.data[tileIndex];
+	for (uint i = 0; i < lightTile.count; i++ )
+    {
+		uint lightIndex = lightIndicesBuffer.data[lightTile.offset + i];
+		Light light = lightBuffer.data[lightIndex];
+		if (light.isSpotLight == 1)
+		{
+    		colorAccumulative += ProcessSpotLight(light, normal, viewDir, Cd, F0, roughness);
+		}
+		else
+		{
+    		colorAccumulative += ProcessPointLight(light, normal, viewDir, Cd, F0, roughness);
+		}
 	}
 
     // Emission
@@ -449,19 +422,22 @@ void main()
         colorAccumulative += (1 - shadow) * ProcessDirectionalLight(dirLight, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
     }
 	
+	// Lights
 	int tileIndex = GetTileIndex();
-
-	// Point Light
-    for(int i = 0; i < lightTiles.data[tileIndex].numPoints; i++)
+	LightTile lightTile = lightTilesBuffer.data[tileIndex];
+	for (uint i = 0; i < lightTile.count; i++ )
     {
-        colorAccumulative += ProcessPointLight(lightTiles.data[tileIndex].points[i], normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
-    }
-
-    // Spot Light
-    for(int i = 0; i < lightTiles.data[tileIndex].numSpots; i++)
-    {
-        colorAccumulative += ProcessSpotLight(lightTiles.data[tileIndex].spots[i], normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
-    }
+		uint lightIndex = lightIndicesBuffer.data[lightTile.offset + i];
+		Light light = lightBuffer.data[lightIndex];
+		if (light.isSpotLight == 1)
+		{
+    		colorAccumulative += ProcessSpotLight(light, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+		}
+		else
+		{
+    		colorAccumulative += ProcessPointLight(light, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+		}
+	}
 
     // Emission
     colorAccumulative += GetEmissive(tiledUV).rgb;

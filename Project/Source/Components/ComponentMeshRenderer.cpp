@@ -31,75 +31,6 @@
 #define JSON_TAG_MESH_ID "MeshID"
 #define JSON_TAG_MATERIAL_ID "MaterialID"
 
-#define POINT_LIGHT_MEMBERS 6
-#define POINT_LIGHT_STRING(number)                 \
-	{                                              \
-		"light.points["##number "].pos",           \
-			"light.points["##number "].color",     \
-			"light.points["##number "].intensity", \
-			"light.points["##number "].kc",        \
-			"light.points["##number "].kl",        \
-			"light.points["##number "].kq"         \
-	}
-
-#define SPOT_LIGHT_MEMBERS 9
-#define SPOT_LIGHT_STRING(number)                  \
-	{                                              \
-		"light.spots["##number "].pos",            \
-			"light.spots["##number "].direction",  \
-			"light.spots["##number "].color",      \
-			"light.spots["##number "].intensity",  \
-			"light.spots["##number "].kc",         \
-			"light.spots["##number "].kl",         \
-			"light.spots["##number "].kq",         \
-			"light.spots["##number "].innerAngle", \
-			"light.spots["##number "].outerAngle"  \
-	}
-
-static const char* pointLightStrings[POINT_LIGHTS][POINT_LIGHT_MEMBERS] = {
-	POINT_LIGHT_STRING("0"),
-	POINT_LIGHT_STRING("1"),
-	POINT_LIGHT_STRING("2"),
-	POINT_LIGHT_STRING("3"),
-	POINT_LIGHT_STRING("4"),
-	POINT_LIGHT_STRING("5"),
-	POINT_LIGHT_STRING("6"),
-	POINT_LIGHT_STRING("7"),
-	POINT_LIGHT_STRING("8"),
-	POINT_LIGHT_STRING("9"),
-	POINT_LIGHT_STRING("10"),
-	POINT_LIGHT_STRING("11"),
-	POINT_LIGHT_STRING("12"),
-	POINT_LIGHT_STRING("13"),
-	POINT_LIGHT_STRING("14"),
-	POINT_LIGHT_STRING("15"),
-	POINT_LIGHT_STRING("16"),
-	POINT_LIGHT_STRING("17"),
-	POINT_LIGHT_STRING("18"),
-	POINT_LIGHT_STRING("19"),
-	POINT_LIGHT_STRING("20"),
-	POINT_LIGHT_STRING("21"),
-	POINT_LIGHT_STRING("22"),
-	POINT_LIGHT_STRING("23"),
-	POINT_LIGHT_STRING("24"),
-	POINT_LIGHT_STRING("25"),
-	POINT_LIGHT_STRING("26"),
-	POINT_LIGHT_STRING("27"),
-	POINT_LIGHT_STRING("28"),
-	POINT_LIGHT_STRING("29"),
-	POINT_LIGHT_STRING("30"),
-	POINT_LIGHT_STRING("31")};
-
-static const char* spotLightStrings[SPOT_LIGHTS][SPOT_LIGHT_MEMBERS] = {
-	SPOT_LIGHT_STRING("0"),
-	SPOT_LIGHT_STRING("1"),
-	SPOT_LIGHT_STRING("2"),
-	SPOT_LIGHT_STRING("3"),
-	SPOT_LIGHT_STRING("4"),
-	SPOT_LIGHT_STRING("5"),
-	SPOT_LIGHT_STRING("6"),
-	SPOT_LIGHT_STRING("7")};
-
 ComponentMeshRenderer::~ComponentMeshRenderer() {
 	App->resources->DecreaseReferenceCount(meshId);
 	App->resources->DecreaseReferenceCount(materialId);
@@ -726,8 +657,9 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 	glUniform1i(standardProgram->tilesPerRowLocation, App->renderer->GetLightTilesPerRow());
 
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, App->renderer->lightTilesStorageBuffer);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, App->renderer->lightTilesStorageBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, App->renderer->lightsStorageBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, App->renderer->lightIndicesStorageBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, App->renderer->lightTilesStorageBuffer);
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);

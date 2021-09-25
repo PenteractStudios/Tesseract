@@ -23,41 +23,27 @@ enum class TESSERACT_ENGINE_API MSAA_SAMPLES_TYPE {
 	COUNT
 };
 
-struct PointLight {
+struct Light {
 	float3 pos = float3::zero;
-	int padding1_ = 0;
-	float3 color = float3::zero;
-	int padding2_ = 0;
-	float intensity = 0.0f;
-	float radius = 0.0f;
-	int useCustomFalloff = 0;
-	float falloffExponent = 0.0f;
-};
-
-struct SpotLight {
-	float3 pos = float3::zero;
-	int padding1_ = 0;
+	int isSpotLight = 0;
 	float3 direction = float3::zero;
-	int padding2_ = 0;
-	float3 color = float3::zero;
-	int padding3_ = 0;
 	float intensity = 0.0f;
+	float3 color = float3::zero;
 	float radius = 0.0f;
 	int useCustomFalloff = 0;
 	float falloffExponent = 0.0f;
 	float innerAngle = 0.0f;
-	float outerAngle = -FLT_MAX;
-	int padding4_[2] = {0, 0};
+	float outerAngle = 400.0f;
 };
 
 struct LightTile {
-	PointLight pointLights[POINT_LIGHTS];
-	SpotLight spotLights[SPOT_LIGHTS];
-	int pointCount = 0;
-	int spotCount = 0;
-	int padding_[2] = {0, -1};
+	unsigned count = 0;
+	unsigned offset = 0;
 };
 
+struct TileFrustum {
+	float4 planeNormals[4];
+};
 
 class ModuleRender : public Module {
 public:
@@ -74,6 +60,7 @@ public:
 	void ViewportResized(int width, int height); // Updates the viewport aspect ratio with the new one given by parameters. It will set 'viewportUpdated' to true, to regenerate the framebuffer to its new size using UpdateFramebuffers().
 	void UpdateFramebuffers();					 // Generates the rendering framebuffer on Init(). If 'viewportUpdated' was set to true, it will be also called at PostUpdate().
 	void ComputeBloomGaussianKernel();
+	void ComputeLightTileFrustums();
 
 	void SetVSync(bool vsync);
 
@@ -112,6 +99,10 @@ public:
 	unsigned cubeVAO = 0;
 	unsigned cubeVBO = 0;
 
+	unsigned lightTileFrustumsStorageBuffer = 0;
+	unsigned lightsStorageBuffer = 0;
+	unsigned lightIndicesCountStorageBuffer = 0;
+	unsigned lightIndicesStorageBuffer = 0;
 	unsigned lightTilesStorageBuffer = 0;
 
 	unsigned renderTexture = 0;
@@ -232,8 +223,10 @@ private:
 	bool viewportUpdated = true;
 	float2 viewportSize = float2::zero;
 	float2 updatedViewportSize = float2::zero;
+
 	int lightTilesPerRow = 0;
 	int lightTilesPerColumn = 0;
+	bool lightTilesComputed = false;
 
 	unsigned int indexDepthMapTexture = -1;
 	ShadowCasterType shadowCasterType;
@@ -249,7 +242,7 @@ private:
 	std::vector<GameObject*> staticShadowCasters;
 	std::vector<GameObject*> dynamicShadowCasters;
 
-	std::vector<LightTile> lightTiles;
+	std::vector<Light> lights;
 
 	// ------- Kernels ------- //
 	std::vector<float> ssaoGaussKernel;
