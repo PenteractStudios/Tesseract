@@ -353,8 +353,6 @@ struct ProgramDrawLightTiles : Program {
 	ProgramDrawLightTiles(unsigned program);
 
 	int tilesPerRowLocation = -1;
-
-	int sceneTextureLocation = -1;
 };
 
 struct ProgramImageUI : Program {

@@ -250,8 +250,12 @@ bool ModuleRender::Init() {
 	glGenFramebuffers(12, bloomBlurFramebuffers);
 	glGenFramebuffers(5, bloomCombineFramebuffers);
 
-	ViewportResized(App->window->GetWidth(), App->window->GetHeight());
-	UpdateFramebuffers();
+	// Initialize light storage buffers
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsStorageBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, MAX_LIGHTS * sizeof(Light), nullptr, GL_DYNAMIC_DRAW);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightIndicesCountStorageBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(unsigned), nullptr, GL_DYNAMIC_DRAW);
 
 	// Create Unit Cube VAO
 	glGenVertexArrays(1, &cubeVAO);
@@ -299,6 +303,10 @@ bool ModuleRender::Init() {
 		tangent.Normalize();
 		randomTangents[i] = tangent;
 	}
+
+	// Update viewport
+	ViewportResized(App->window->GetWidth(), App->window->GetHeight());
+	UpdateFramebuffers();
 
 	return true;
 }
@@ -1616,30 +1624,37 @@ bool ModuleRender::InsideFrustumPlanes(const FrustumPlanes& planes, const GameOb
 }
 
 void ModuleRender::FillLightTiles() {
-	// Update lights
 	Scene* scene = App->scene->GetCurrentScene();
-	lights.clear();
-	lights.reserve(scene->lightComponents.Count());
+
+	// Update lights
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsStorageBuffer);
+	unsigned lightCount = 0;
 	for (ComponentLight& light : scene->lightComponents) {
+		if (lightCount >= MAX_LIGHTS) {
+			LOG("Light limit reached (%i). Consider increasing the limit or reducing the amount of lights.", MAX_LIGHTS);
+			break;
+		}
+
 		if (light.lightType == LightType::DIRECTIONAL) continue;
 		if (!light.IsActive()) continue;
 
-		Light lightStruct;
-		lightStruct.pos = light.pos;
-		lightStruct.isSpotLight = light.lightType == LightType::SPOT ? 1 : 0;
-		lightStruct.direction = light.direction;
-		lightStruct.intensity = light.intensity;
-		lightStruct.color = light.color;
-		lightStruct.radius = light.radius;
-		lightStruct.useCustomFalloff = light.useCustomFalloff;
-		lightStruct.falloffExponent = light.falloffExponent;
-		lightStruct.innerAngle = light.innerAngle;
-		lightStruct.outerAngle = light.outerAngle;
-		lights.push_back(lightStruct);
-	}
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsStorageBuffer);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, lights.size() * sizeof(Light), lights.data(), GL_DYNAMIC_READ);
+		Light* lightStruct = (Light*) glMapBufferRange(GL_SHADER_STORAGE_BUFFER, lightCount * sizeof(Light), sizeof(Light), GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+		lightStruct->pos = light.pos;
+		lightStruct->isSpotLight = light.lightType == LightType::SPOT ? 1 : 0;
+		lightStruct->direction = light.direction;
+		lightStruct->intensity = light.intensity;
+		lightStruct->color = light.color;
+		lightStruct->radius = light.radius;
+		lightStruct->useCustomFalloff = light.useCustomFalloff;
+		lightStruct->falloffExponent = light.falloffExponent;
+		lightStruct->innerAngle = light.innerAngle;
+		lightStruct->outerAngle = light.outerAngle;
+		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
+		lightCount += 1;
+	}
+
+	
 	unsigned auxCount = 0;
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightIndicesCountStorageBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(unsigned), &auxCount, GL_DYNAMIC_COPY);
@@ -1662,7 +1677,7 @@ void ModuleRender::FillLightTiles() {
 	glUniformMatrix4fv(lightCullingCompute->viewLocation, 1, GL_TRUE, view.ptr());
 
 	glUniform2fv(lightCullingCompute->screenSizeLocation, 1, viewportSize.ptr());
-	glUniform1i(lightCullingCompute->lightCountLocation, lights.size());
+	glUniform1i(lightCullingCompute->lightCountLocation, lightCount);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, depthsTexture);

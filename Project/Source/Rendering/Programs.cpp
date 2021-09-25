@@ -299,8 +299,6 @@ ProgramDrawTexture::ProgramDrawTexture(unsigned program_)
 ProgramDrawLightTiles::ProgramDrawLightTiles(unsigned program_)
 	: Program(program_) {
 	tilesPerRowLocation = glGetUniformLocation(program, "tilesPerRow");
-
-	sceneTextureLocation = glGetUniformLocation(program, "sceneTexture");
 }
 
 ProgramImageUI::ProgramImageUI(unsigned program_)
