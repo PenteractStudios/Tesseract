@@ -38,6 +38,10 @@ void ComponentAnimation::Init() {
 	App->resources->IncreaseReferenceCount(stateMachineResourceUIDSecondary);
 }
 
+void ComponentAnimation::Start() {
+	LoadStateMachines();
+}
+
 void ComponentAnimation::Update() {
 	if (!App->time->IsGameRunning() || !IsActive()) {
 		return;

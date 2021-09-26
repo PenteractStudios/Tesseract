@@ -79,9 +79,6 @@ bool ModuleScene::Init() {
 
 bool ModuleScene::Start() {
 	App->events->AddObserverToEvent(TesseractEventType::GAMEOBJECT_DESTROYED, this);
-	App->events->AddObserverToEvent(TesseractEventType::CHANGE_SCENE, this);
-	App->events->AddObserverToEvent(TesseractEventType::LOAD_SCENE, this);
-	App->events->AddObserverToEvent(TesseractEventType::SAVE_SCENE, this);
 	App->events->AddObserverToEvent(TesseractEventType::COMPILATION_FINISHED, this);
 	App->events->AddObserverToEvent(TesseractEventType::PRESSED_PLAY, this);
 
@@ -97,11 +94,11 @@ bool ModuleScene::Start() {
 	App->files->CreateFolder(NAVMESH_PATH);
 #endif
 
-	App->scene->CreateEmptyScene();
+	CreateEmptyScene();
 
 #if GAME
 	App->events->AddEvent(TesseractEventType::PRESSED_PLAY);
-	App->scene->ChangeScene(startSceneId);
+	ChangeScene(startSceneId);
 
 	App->time->SetVSync(true);
 	App->time->limitFramerate = false;
@@ -116,24 +113,54 @@ UpdateStatus ModuleScene::Update() {
 	// Update GameObjects
 	scene->root->Update();
 
+	return UpdateStatus::CONTINUE;
+}
+
+UpdateStatus ModuleScene::PostUpdate() {
 	// Check for scene events
 	if (App->resources->HaveResourcesFinishedLoading()) {
 		if (shouldChangeScene) {
-			TesseractEvent e(TesseractEventType::CHANGE_SCENE);
-			e.Set<ChangeSceneStruct>(loadingSceneId);
-			App->events->AddEvent(e);
+			ResourceScene* sceneResource = App->resources->GetResource<ResourceScene>(loadingSceneId);
+			if (sceneResource != nullptr) {
+				RELEASE(scene);
+				scene = sceneResource->TransferScene();
+				App->resources->DecreaseReferenceCount(loadingSceneId);
+				loadingSceneId = 0;
+
+				ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(scene->gameCameraId);
+				App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
+				App->camera->ChangeActiveCamera(nullptr, false);
+				App->camera->ChangeCullingCamera(nullptr, false);
+
+				App->renderer->ambientColor = scene->ambientColor;
+
+				if (App->time->HasGameStarted()) {
+					scene->Start();
+				}
+			}
 
 			shouldChangeScene = false;
 		} else if (shouldLoadScene) {
-			TesseractEvent e(TesseractEventType::LOAD_SCENE);
-			e.Set<LoadSceneStruct>(sceneToLoadPath.c_str());
-			App->events->AddEvent(e);
+			Scene* newScene = SceneImporter::LoadScene(sceneToLoadPath.c_str());
+			if (newScene != nullptr) {
+				RELEASE(scene);
+				scene = newScene;
+
+				ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(scene->gameCameraId);
+				App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
+				App->camera->ChangeActiveCamera(nullptr, false);
+				App->camera->ChangeCullingCamera(nullptr, false);
+
+				App->renderer->ambientColor = scene->ambientColor;
+
+				if (App->time->HasGameStarted()) {
+					scene->Start();
+				}
+			}
 
 			shouldLoadScene = false;
 		} else if (shouldSaveScene) {
-			TesseractEvent e(TesseractEventType::SAVE_SCENE);
-			e.Set<SaveSceneStruct>(sceneToSavePath.c_str());
-			App->events->AddEvent(e);
+			SceneImporter::SaveScene(scene, sceneToSavePath.c_str());
 
 			shouldSaveScene = false;
 		} else if (shouldBuildPrefab) {
@@ -174,37 +201,6 @@ void ModuleScene::ReceiveEvent(TesseractEvent& e) {
 
 		scene->DestroyGameObject(e.Get<DestroyGameObjectStruct>().gameObject);
 		break;
-	case TesseractEventType::CHANGE_SCENE: {
-		UID sceneId = e.Get<ChangeSceneStruct>().sceneId;
-		ResourceScene* sceneResource = App->resources->GetResource<ResourceScene>(sceneId);
-		if (sceneResource == nullptr) break;
-
-		RELEASE(scene);
-		scene = sceneResource->TransferScene();
-		App->resources->DecreaseReferenceCount(sceneId);
-		loadingSceneId = 0;
-
-		ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(scene->gameCameraId);
-		App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
-
-		App->renderer->ambientColor = scene->ambientColor;
-
-		if (App->time->HasGameStarted()) {
-			scene->Start();
-		}
-		break;
-	}
-	case TesseractEventType::LOAD_SCENE: {
-		Scene* newScene = SceneImporter::LoadScene(e.Get<LoadSceneStruct>().filePath.c_str());
-		if (newScene == nullptr) break;
-
-		RELEASE(scene);
-		scene = newScene;
-		break;
-	}
-	case TesseractEventType::SAVE_SCENE:
-		SceneImporter::SaveScene(scene, e.Get<SaveSceneStruct>().filePath.c_str());
-		break;
 	case TesseractEventType::COMPILATION_FINISHED:
 		for (ComponentScript& script : scene->scriptComponents) {
 			script.CreateScriptInstance();
@@ -241,6 +237,9 @@ void ModuleScene::CreateEmptyScene() {
 	ComponentAudioListener* audioListener = gameCamera->CreateComponent<ComponentAudioListener>();
 
 	root->Init();
+	if (App->time->HasGameStarted()) {
+		root->Start();
+	}
 }
 
 void ModuleScene::PreloadScene(UID newSceneId) {

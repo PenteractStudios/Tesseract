@@ -20,13 +20,23 @@ void PanelResource::Update() {
 	ImGui::SetNextWindowDockID(App->editor->dockRightId, ImGuiCond_FirstUseEver);
 	std::string windowName = std::string(ICON_FA_FILE " ") + name;
 	if (ImGui::Begin(windowName.c_str(), &enabled)) {
-		Resource* selected = App->resources->GetResource<Resource>(App->editor->selectedResource);
+		Resource* selected = App->resources->GetResourceUnloaded<Resource>(App->editor->selectedResource);
 		if (selected != nullptr) {
 			ImGui::TextUnformatted("Id:");
 			ImGui::SameLine();
 			ImGui::TextColored(App->editor->textColor, "%llu", selected->GetId());
 
 			ImGui::Separator();
+
+			// Load button
+			ImGui::TextColored(App->editor->titleColor, "Configuration");
+			if (ImGui::Button("Load")) {
+				App->resources->UnloadResource(selected);
+				App->resources->LoadResource(selected);
+			}
+
+			ImGui::Separator();
+
 			selected->OnEditorUpdate();
 		}
 	}

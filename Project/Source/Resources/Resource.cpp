@@ -11,7 +11,7 @@ Resource::Resource(ResourceType type_, UID id_, const char* name_, const char* a
 	, resourceFilePath(resourceFilePath_) {}
 
 Resource::~Resource() {
-	Unload();
+	if (loaded) Unload();
 }
 
 ResourceType Resource::GetType() const {
@@ -38,12 +38,20 @@ void Resource::SetName(const char* name_) {
 	name = name_;
 }
 
-bool Resource::IsLoaded() {
-	return isLoaded;
+bool Resource::IsLoading() {
+	return loading;
 }
 
-void Resource::SetLoaded(bool loaded) {
-	isLoaded = loaded;
+void Resource::SetLoading(bool loading_) {
+	loading = loading_;
+}
+
+bool Resource::IsLoaded() {
+	return loaded;
+}
+
+void Resource::SetLoaded(bool loaded_) {
+	loaded = loaded_;
 }
 
 void Resource::Load() {}

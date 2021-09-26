@@ -34,7 +34,8 @@ enum class Modal {
 	CREATE_SCRIPT,
 	CREATE_NAVMESH,
 	CANT_REMOVE_COMPONENT,
-	QUIT
+	QUIT,
+	LOADING
 };
 
 class ModuleEditor : public Module {
@@ -52,6 +53,9 @@ public:
 
 public:
 	Modal modalToOpen = Modal::NONE; // Used in the MenuBar to popup a Modal Window of the specific type.
+	bool loadingModalOpened = false;
+	float loadingModalTimer = 0.0f;
+
 	// ---------- Docking ----------
 	unsigned dockMainId = 0;
 	unsigned dockUpId = 0;

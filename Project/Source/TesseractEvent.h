@@ -20,9 +20,6 @@ struct AssetCache;
 	CreateResourceStruct,          \
 	DestroyResourceStruct,         \
 	UpdateAssetCacheStruct,        \
-	ChangeSceneStruct,             \
-	LoadSceneStruct,               \
-	SaveSceneStruct,               \
 	ViewportResizedStruct>
 
 /* Creating a new event type:
@@ -45,9 +42,6 @@ enum class TesseractEventType {
 	UPDATE_ASSET_CACHE,
 	MOUSE_CLICKED,
 	MOUSE_RELEASED,
-	CHANGE_SCENE,
-	LOAD_SCENE,
-	SAVE_SCENE,
 	COMPILATION_FINISHED,
 	SCREEN_RESIZED,
 	COUNT
@@ -83,24 +77,6 @@ struct UpdateAssetCacheStruct {
 	UpdateAssetCacheStruct(AssetCache* assetCache_)
 		: assetCache(assetCache_) {
 	}
-};
-
-struct ChangeSceneStruct {
-	UID sceneId = 0;
-	ChangeSceneStruct(UID sceneId_)
-		: sceneId(sceneId_) {}
-};
-
-struct LoadSceneStruct {
-	std::string filePath = "";
-	LoadSceneStruct(const char* filePath_)
-		: filePath(filePath_) {}
-};
-
-struct SaveSceneStruct {
-	std::string filePath = "";
-	SaveSceneStruct(const char* filePath_)
-		: filePath(filePath_) {}
 };
 
 struct ViewportResizedStruct {
