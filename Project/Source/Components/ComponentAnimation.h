@@ -24,6 +24,7 @@ public:
 	~ComponentAnimation();
 
 	void Init() override;
+	void Start() override;
 	void Update() override;
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;
