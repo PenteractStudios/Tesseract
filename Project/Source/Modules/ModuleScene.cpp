@@ -129,6 +129,8 @@ UpdateStatus ModuleScene::PostUpdate() {
 
 				ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(scene->gameCameraId);
 				App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
+				App->camera->ChangeActiveCamera(nullptr, false);
+				App->camera->ChangeCullingCamera(nullptr, false);
 
 				App->renderer->ambientColor = scene->ambientColor;
 
@@ -146,6 +148,8 @@ UpdateStatus ModuleScene::PostUpdate() {
 
 				ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(scene->gameCameraId);
 				App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
+				App->camera->ChangeActiveCamera(nullptr, false);
+				App->camera->ChangeCullingCamera(nullptr, false);
 
 				App->renderer->ambientColor = scene->ambientColor;
 
