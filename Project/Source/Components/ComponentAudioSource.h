@@ -73,6 +73,7 @@ private:
 	float gain = 1.f;
 	float pitch = 1.f;
 	bool playOnAwake = false;
+	bool isMusic = false;
 
 	int spatialBlend = 1;	  // 2D = 0; 3D = 1;
 	int sourceType = 0;		  // Omnidirectional = 0; Directional = 1;

@@ -105,3 +105,40 @@ void AudioImporter::EncondeWavToOgg(const char* infilename, const char* outfilen
 
 	return;
 }
+
+void AudioImporter::EncondeStereoToMono(const char* infilename, const char* outfilename) {
+	static double data[BUFFER_LEN];
+
+	SNDFILE *inFile, *outFile;
+	SF_INFO sfInfo;
+	int readCount;
+
+	if (!(inFile = sf_open(infilename, SFM_READ, &sfInfo))) {
+		printf("Error : could not open file : %s\n", infilename);
+		puts(sf_strerror(NULL));
+		exit(1);
+	}
+
+	sfInfo.channels = 1;
+
+	if (!sf_format_check(&sfInfo)) {
+		sf_close(inFile);
+		printf("Invalid encoding\n");
+		return;
+	};
+
+	if (!(outFile = sf_open(outfilename, SFM_WRITE, &sfInfo))) {
+		printf("Error : could not open file : %s\n", outfilename);
+		puts(sf_strerror(NULL));
+		exit(1);
+	};
+
+	while ((readCount = (int) sf_read_double(inFile, data, BUFFER_LEN))) {
+		sf_write_double(outFile, data, readCount);
+	}
+
+	sf_close(inFile);
+	sf_close(outFile);
+
+	return;
+}

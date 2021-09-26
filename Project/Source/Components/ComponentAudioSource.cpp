@@ -368,6 +368,10 @@ float ComponentAudioSource::GetMaxDistance() const {
 	return maxDistance;
 }
 
+TESSERACT_ENGINE_API float ComponentAudioSource::GetGainMultiplier() const {
+	return gainMultiplier;
+}
+
 // --- SETTERS ---
 
 void ComponentAudioSource::SetMute(bool _mute) {
@@ -420,4 +424,8 @@ void ComponentAudioSource::SetReferenceDistance(float _referenceDistance) {
 
 void ComponentAudioSource::SetMaxDistance(float _maxDistance) {
 	maxDistance = _maxDistance;
+}
+
+TESSERACT_ENGINE_API void ComponentAudioSource::SetGainMultiplier(float _gainMultiplier) {
+	gainMultiplier = _gainMultiplier;
 }
