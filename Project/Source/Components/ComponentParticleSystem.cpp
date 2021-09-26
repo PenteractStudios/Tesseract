@@ -1759,7 +1759,7 @@ void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) 
 }
 
 void ComponentParticleSystem::UpdateSubEmitters() {
-	for (int pos = 0; pos < subEmittersGO.size(); ++pos) {
+	for (unsigned pos = 0; pos < subEmittersGO.size(); ++pos) {
 		GameObject* gameObject = subEmittersGO[pos];
 		ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
 		if (particleSystem) {
@@ -2162,6 +2162,15 @@ void ComponentParticleSystem::StopChildParticles() {
 	for (GameObject* currentChild : GetOwner().GetChildren()) {
 		if (currentChild->GetComponent<ComponentParticleSystem>()) {
 			currentChild->GetComponent<ComponentParticleSystem>()->StopChildParticles();
+		}
+	}
+}
+
+void ComponentParticleSystem::SetParticlesPerSecondChild(float2 particlesPerSecond) {
+	SetParticlesPerSecond(particlesPerSecond);
+	for (GameObject* currentChild : GetOwner().GetChildren()) {
+		if (currentChild->GetComponent<ComponentParticleSystem>()) {
+			currentChild->GetComponent<ComponentParticleSystem>()->SetParticlesPerSecondChild(particlesPerSecond);
 		}
 	}
 }
