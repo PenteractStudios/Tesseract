@@ -244,7 +244,7 @@ void ComponentParticleSystem::Init() {
 
 void ComponentParticleSystem::Start() {
 	for (SubEmitter* subEmitter : subEmitters) {
-		GameObject* gameObject = App->scene->scene->GetGameObject(subEmitter->gameObjectUID);
+		GameObject* gameObject = GetOwner().scene->GetGameObject(subEmitter->gameObjectUID);
 		if (gameObject != nullptr) {
 			ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
 			if (particleSystem != nullptr) {
@@ -260,7 +260,7 @@ void ComponentParticleSystem::Start() {
 	}
 
 	if (lightGameObjectUID != 0) {
-		GameObject* gameObject = App->scene->scene->GetGameObject(lightGameObjectUID);
+		GameObject* gameObject = GetOwner().scene->GetGameObject(lightGameObjectUID);
 		if (gameObject != nullptr) {
 			ComponentLight* light = gameObject->GetComponent<ComponentLight>();
 			if (light == nullptr || light->lightType != LightType::POINT) {
@@ -658,7 +658,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			{
 				ImGui::GameObjectSlot("", &subEmitter->gameObjectUID);
 				if (oldUI != subEmitter->gameObjectUID) {
-					GameObject* gameObject = App->scene->scene->GetGameObject(subEmitter->gameObjectUID);
+					GameObject* gameObject = GetOwner().scene->GetGameObject(subEmitter->gameObjectUID);
 					if (gameObject != nullptr) {
 						ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
 						if (particleSystem == nullptr) {
@@ -721,7 +721,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			UID oldUID = lightGameObjectUID;
 			ImGui::GameObjectSlot("Point Light", &lightGameObjectUID);
 			if (oldUID != lightGameObjectUID) {
-				GameObject* gameObject = App->scene->scene->GetGameObject(lightGameObjectUID);
+				GameObject* gameObject = GetOwner().scene->GetGameObject(lightGameObjectUID);
 				if (gameObject != nullptr) {
 					ComponentLight* light = gameObject->GetComponent<ComponentLight>();
 					if (light == nullptr || light->lightType != LightType::POINT) {

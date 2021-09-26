@@ -116,7 +116,6 @@ public:
 	bool drawColliders = false;
 	int culledTriangles = 0;
 
-	float3 ambientColor = {0.25f, 0.25f, 0.25f}; // Color of ambient Light
 	float3 clearColor = {0.1f, 0.1f, 0.1f};		 // Color of the viewport between frames
 
 	// SSAO

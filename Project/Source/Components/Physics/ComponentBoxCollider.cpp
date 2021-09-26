@@ -185,11 +185,11 @@ void ComponentBoxCollider::Load(JsonValue jComponent) {
 }
 
 void ComponentBoxCollider::OnEnable() {
-	if (!rigidBody && App->time->HasGameStarted() && App->scene->scene == GetOwner().scene) App->physics->CreateBoxRigidbody(this);
+	if (!rigidBody && App->time->HasGameStarted() && GetOwner().scene == GetOwner().scene) App->physics->CreateBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::OnDisable() {
-	if (rigidBody && App->time->HasGameStarted() && App->scene->scene == GetOwner().scene) App->physics->RemoveBoxRigidbody(this);
+	if (rigidBody && App->time->HasGameStarted() && GetOwner().scene == GetOwner().scene) App->physics->RemoveBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance, ComponentParticleSystem::Particle* p) {

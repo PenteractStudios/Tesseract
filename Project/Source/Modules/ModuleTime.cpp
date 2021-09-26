@@ -47,7 +47,7 @@ UpdateStatus ModuleTime::PreUpdate() {
 
 	unsigned int autoSaveDeltaMs = realTime - lastAutoSave;
 	if (!HasGameStarted() && autoSaveDeltaMs >= TIME_BETWEEN_AUTOSAVES_MS) {
-		SceneImporter::SaveScene(TEMP_SCENE_FILE_NAME);
+		App->scene->SaveScene(TEMP_SCENE_FILE_NAME);
 		lastAutoSave = realTime;
 	}
 
@@ -166,8 +166,7 @@ void ModuleTime::StartGame() {
 	gameRunning = true;
 
 #if !GAME
-	SceneImporter::SaveScene(TEMP_SCENE_FILE_NAME);
-	App->scene->scene->sceneLoaded = false;
+	SceneImporter::SaveScene(App->scene->scene, TEMP_SCENE_FILE_NAME);
 #endif // !GAME
 
 	App->scene->scene->Start();
@@ -186,7 +185,7 @@ void ModuleTime::StopGame() {
 	App->audio->StopAllSources();
 
 #if !GAME
-	SceneImporter::LoadScene(TEMP_SCENE_FILE_NAME);
+	App->scene->LoadScene(TEMP_SCENE_FILE_NAME);
 #endif
 	App->camera->ChangeActiveCamera(nullptr, false);
 	App->camera->ChangeCullingCamera(nullptr, false);

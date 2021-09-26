@@ -2,39 +2,18 @@
 
 #include "Application.h"
 #include "GameObject.h"
-#include "Utils/Logging.h"
 #include "Utils/FileDialog.h"
-#include "FileSystem/TextureImporter.h"
-#include "Resources/ResourceScene.h"
-#include "Components/ComponentTransform.h"
-#include "Components/ComponentBoundingBox.h"
-#include "Components/ComponentMeshRenderer.h"
-#include "Components/ComponentScript.h"
+#include "Utils/Logging.h"
 #include "Modules/ModuleFiles.h"
-#include "Modules/ModuleResources.h"
-#include "Modules/ModuleEditor.h"
-#include "Modules/ModuleCamera.h"
-#include "Modules/ModuleScene.h"
 #include "Modules/ModuleTime.h"
-#include "Modules/ModuleRender.h"
-#include "Scripting/Script.h"
+#include "Resources/ResourceScene.h"
 #include "ImporterCommon.h"
+#include "Scene.h"
 
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/error/en.h"
 
 #include "Utils/Leaks.h"
-
-#define JSON_TAG_ROOT "Root"
-#define JSON_TAG_QUADTREE_BOUNDS "QuadtreeBounds"
-#define JSON_TAG_QUADTREE_MAX_DEPTH "QuadtreeMaxDepth"
-#define JSON_TAG_QUADTREE_ELEMENTS_PER_NODE "QuadtreeElementsPerNode"
-#define JSON_TAG_GAME_CAMERA "GameCamera"
-#define JSON_TAG_AMBIENTLIGHT "AmbientLight"
-#define JSON_TAG_NAVMESH "NavMesh"
-#define JSON_TAG_CURSOR "Cursor"
-#define JSON_TAG_CURSOR_WIDTH "CursorWidth"
-#define JSON_TAG_CURSOR_HEIGHT "CursorHeight"
 
 bool SceneImporter::ImportScene(const char* filePath, JsonValue jMeta) {
 	// Timer to measure importing a scene
@@ -88,104 +67,34 @@ bool SceneImporter::ImportScene(const char* filePath, JsonValue jMeta) {
 	return true;
 }
 
-void SceneImporter::LoadScene(const char* filePath) {
-	// Clear scene
-	Scene* scene = App->scene->scene;
-	scene->ClearScene();
-	scene->sceneLoaded = false;
-	App->editor->selectedGameObject = nullptr;
-
-	// Timer to measure loading a scene
-	MSTimer timer;
-	timer.Start();
-	LOG("Loading scene from path: \"%s\".", filePath);
-
+Scene* SceneImporter::LoadScene(const char* filePath) {
 	// Read from file
 	Buffer<char> buffer = App->files->Load(filePath);
 
-	if (buffer.Size() == 0) return;
+	if (buffer.Size() == 0) return nullptr;
 
 	// Parse document from file
 	rapidjson::Document document;
 	document.ParseInsitu<rapidjson::kParseNanAndInfFlag>(buffer.Data());
 	if (document.HasParseError()) {
 		LOG("Error parsing JSON: %s (offset: %u)", rapidjson::GetParseError_En(document.GetParseError()), document.GetErrorOffset());
-		return;
+		return nullptr;
 	}
 	JsonValue jScene(document, document);
 
-	// Quadtree generation
-	JsonValue jQuadtreeBounds = jScene[JSON_TAG_QUADTREE_BOUNDS];
-	scene->quadtreeBounds = {{jQuadtreeBounds[0], jQuadtreeBounds[1]}, {jQuadtreeBounds[2], jQuadtreeBounds[3]}};
-	scene->quadtreeMaxDepth = jScene[JSON_TAG_QUADTREE_MAX_DEPTH];
-	scene->quadtreeElementsPerNode = jScene[JSON_TAG_QUADTREE_ELEMENTS_PER_NODE];
-	scene->RebuildQuadtree();
-
-	ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(jScene[JSON_TAG_GAME_CAMERA]);
-	App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
-
-	JsonValue ambientLight = jScene[JSON_TAG_AMBIENTLIGHT];
-	App->renderer->ambientColor = {ambientLight[0], ambientLight[1], ambientLight[2]};
-
-	// NavMesh
-	scene->SetNavMesh(jScene[JSON_TAG_NAVMESH]);
-
-	// Cursor
-	scene->SetCursorHeight(jScene[JSON_TAG_CURSOR_HEIGHT]);
-	scene->SetCursorWidth(jScene[JSON_TAG_CURSOR_WIDTH]);
-	scene->SetCursor(jScene[JSON_TAG_CURSOR]);
-
-	// Load GameObjects
-	JsonValue jRoot = jScene[JSON_TAG_ROOT];
-	GameObject* root = scene->gameObjects.Obtain(0);
-	scene->root = root;
-	root->scene = scene;
-	root->Load(jRoot);
-
-	unsigned timeMs = timer.Stop();
-	LOG("Scene loaded in %ums.", timeMs);
-
+	Scene* scene = new Scene(10000);
+	scene->Load(jScene);
 	scene->Init();
-	if (App->time->HasGameStarted()) {
-		scene->Start();
-	}
+	return scene;
 }
 
-bool SceneImporter::SaveScene(const char* filePath) {
+bool SceneImporter::SaveScene(Scene* scene, const char* filePath) {
 	// Create document
 	rapidjson::Document document;
 	document.SetObject();
 	JsonValue jScene(document, document);
 
-	// Save scene information
-	Scene* scene = App->scene->scene;
-	JsonValue jQuadtreeBounds = jScene[JSON_TAG_QUADTREE_BOUNDS];
-	jQuadtreeBounds[0] = scene->quadtreeBounds.minPoint.x;
-	jQuadtreeBounds[1] = scene->quadtreeBounds.minPoint.y;
-	jQuadtreeBounds[2] = scene->quadtreeBounds.maxPoint.x;
-	jQuadtreeBounds[3] = scene->quadtreeBounds.maxPoint.y;
-	jScene[JSON_TAG_QUADTREE_MAX_DEPTH] = scene->quadtreeMaxDepth;
-	jScene[JSON_TAG_QUADTREE_ELEMENTS_PER_NODE] = scene->quadtreeElementsPerNode;
-
-	ComponentCamera* gameCamera = App->camera->GetGameCamera();
-	jScene[JSON_TAG_GAME_CAMERA] = gameCamera ? gameCamera->GetID() : 0;
-
-	JsonValue ambientLight = jScene[JSON_TAG_AMBIENTLIGHT];
-	ambientLight[0] = App->renderer->ambientColor.x;
-	ambientLight[1] = App->renderer->ambientColor.y;
-	ambientLight[2] = App->renderer->ambientColor.z;
-
-	// NavMesh
-	jScene[JSON_TAG_NAVMESH] = scene->navMeshId;
-
-	// Cursor
-	jScene[JSON_TAG_CURSOR] = scene->cursorId;
-	jScene[JSON_TAG_CURSOR_HEIGHT] = scene->heightCursor;
-	jScene[JSON_TAG_CURSOR_WIDTH] = scene->widthCursor;
-
-	// Save GameObjects
-	JsonValue jRoot = jScene[JSON_TAG_ROOT];
-	scene->root->Save(jRoot);
+	scene->Save(jScene);
 
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;

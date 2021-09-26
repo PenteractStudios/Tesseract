@@ -33,6 +33,7 @@
 #include "Resources/ResourceTexture.h"
 #include "Resources/ResourceSkybox.h"
 #include "Resources/ResourceScene.h"
+#include "Resources/ResourcePrefab.h"
 #include "Panels/PanelHierarchy.h"
 #include "Scripting/Script.h"
 
@@ -122,6 +123,49 @@ UpdateStatus ModuleScene::Update() {
 	return UpdateStatus::CONTINUE;
 }
 
+UpdateStatus ModuleScene::PostUpdate() {
+	// Check for scene events
+	if (shouldLoadScene) {
+		Scene* newScene = SceneImporter::LoadScene(sceneToLoadPath.c_str());
+		if (newScene != nullptr) {
+			RELEASE(scene);
+			scene = newScene;
+
+			ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(scene->gameCameraId);
+			App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
+			App->camera->ChangeActiveCamera(nullptr, false);
+			App->camera->ChangeCullingCamera(nullptr, false);
+
+			if (App->time->HasGameStarted()) {
+				scene->Start();
+			}
+		}
+
+		shouldLoadScene = false;
+	} else if (shouldSaveScene) {
+		SceneImporter::SaveScene(scene, sceneToSavePath.c_str());
+
+		shouldSaveScene = false;
+	} else if (shouldBuildPrefab) {
+		ResourcePrefab* prefabResource = App->resources->GetResource<ResourcePrefab>(buildingPrefabId);
+		if (prefabResource != nullptr) {
+			GameObject* parent = scene->GetGameObject(buildingPrefabParentId);
+			if (parent != nullptr) {
+				UID gameObjectId = prefabResource->BuildPrefab(parent);
+				App->editor->selectedGameObject = scene->GetGameObject(gameObjectId);
+			}
+		}
+
+		App->resources->DecreaseReferenceCount(buildingPrefabId);
+		buildingPrefabId = 0;
+		buildingPrefabParentId = 0;
+
+		shouldBuildPrefab = false;
+	}
+
+	return UpdateStatus::CONTINUE;
+}
+
 bool ModuleScene::CleanUp() {
 	RELEASE(scene);
 
@@ -196,6 +240,30 @@ void ModuleScene::CreateEmptyScene() {
 	if (App->time->HasGameStarted()) {
 		scene->Start();
 	}
+}
+
+void ModuleScene::BuildPrefab(UID prefabId, GameObject* parent) {
+	if (prefabId == 0) return;
+	if (parent == nullptr) return;
+
+	shouldBuildPrefab = true;
+
+	if (buildingPrefabId != prefabId && buildingPrefabParentId != parent->GetID()) {
+		App->resources->DecreaseReferenceCount(buildingPrefabId);
+		buildingPrefabId = prefabId;
+		buildingPrefabParentId = parent->GetID();
+		App->resources->IncreaseReferenceCount(buildingPrefabId);
+	}
+}
+
+void ModuleScene::LoadScene(const char* filePath) {
+	shouldLoadScene = true;
+	sceneToLoadPath = filePath;
+}
+
+void ModuleScene::SaveScene(const char* filePath) {
+	shouldSaveScene = true;
+	sceneToSavePath = filePath;
 }
 
 void ModuleScene::DestroyGameObjectDeferred(GameObject* gameObject) {

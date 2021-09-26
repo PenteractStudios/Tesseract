@@ -233,11 +233,11 @@ void ComponentCapsuleCollider::Load(JsonValue jComponent) {
 }
 
 void ComponentCapsuleCollider::OnEnable() {
-	if (!rigidBody && App->time->HasGameStarted() && App->scene->scene == GetOwner().scene) App->physics->CreateCapsuleRigidbody(this);
+	if (!rigidBody && App->time->HasGameStarted() && GetOwner().scene == GetOwner().scene) App->physics->CreateCapsuleRigidbody(this);
 }
 
 void ComponentCapsuleCollider::OnDisable() {
-	if (rigidBody && App->time->HasGameStarted() && App->scene->scene == GetOwner().scene) App->physics->RemoveCapsuleRigidbody(this);
+	if (rigidBody && App->time->HasGameStarted() && GetOwner().scene == GetOwner().scene) App->physics->RemoveCapsuleRigidbody(this);
 }
 
 void ComponentCapsuleCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance, ComponentParticleSystem::Particle* p) {

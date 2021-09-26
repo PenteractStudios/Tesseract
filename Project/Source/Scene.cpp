@@ -17,6 +17,17 @@
 
 #include "Utils/Leaks.h"
 
+#define JSON_TAG_ROOT "Root"
+#define JSON_TAG_QUADTREE_BOUNDS "QuadtreeBounds"
+#define JSON_TAG_QUADTREE_MAX_DEPTH "QuadtreeMaxDepth"
+#define JSON_TAG_QUADTREE_ELEMENTS_PER_NODE "QuadtreeElementsPerNode"
+#define JSON_TAG_GAME_CAMERA "GameCamera"
+#define JSON_TAG_AMBIENTLIGHT "AmbientLight"
+#define JSON_TAG_NAVMESH "NavMesh"
+#define JSON_TAG_CURSOR_WIDTH "CursorWidth"
+#define JSON_TAG_CURSOR_HEIGHT "CursorHeight"
+#define JSON_TAG_CURSOR "Cursor"
+
 Scene::Scene(unsigned numGameObjects) {
 	gameObjects.Allocate(numGameObjects);
 
@@ -115,6 +126,69 @@ void Scene::Start() {
 	App->window->ActivateCursor(true);
 
 	root->Start();
+}
+
+
+void Scene::Load(JsonValue jScene) {
+	ClearScene();
+
+	// Load GameObjects
+	JsonValue jRoot = jScene[JSON_TAG_ROOT];
+	root = gameObjects.Obtain(0);
+	root->scene = this;
+	root->Load(jRoot);
+
+	// Quadtree generation
+	JsonValue jQuadtreeBounds = jScene[JSON_TAG_QUADTREE_BOUNDS];
+	quadtreeBounds = {{jQuadtreeBounds[0], jQuadtreeBounds[1]}, {jQuadtreeBounds[2], jQuadtreeBounds[3]}};
+	quadtreeMaxDepth = jScene[JSON_TAG_QUADTREE_MAX_DEPTH];
+	quadtreeElementsPerNode = jScene[JSON_TAG_QUADTREE_ELEMENTS_PER_NODE];
+	RebuildQuadtree();
+
+	// Game Camera
+	gameCameraId = jScene[JSON_TAG_GAME_CAMERA];
+
+	// Ambient Light
+	JsonValue ambientLight = jScene[JSON_TAG_AMBIENTLIGHT];
+	ambientColor = {ambientLight[0], ambientLight[1], ambientLight[2]};
+
+	// NavMesh
+	navMeshId = jScene[JSON_TAG_NAVMESH];
+
+	// Cursor
+	heightCursor = jScene[JSON_TAG_CURSOR_HEIGHT];
+	widthCursor = jScene[JSON_TAG_CURSOR_WIDTH];
+	cursorId = jScene[JSON_TAG_CURSOR];
+}
+
+void Scene::Save(JsonValue jScene) const {
+	// Save scene information
+	JsonValue jQuadtreeBounds = jScene[JSON_TAG_QUADTREE_BOUNDS];
+	jQuadtreeBounds[0] = quadtreeBounds.minPoint.x;
+	jQuadtreeBounds[1] = quadtreeBounds.minPoint.y;
+	jQuadtreeBounds[2] = quadtreeBounds.maxPoint.x;
+	jQuadtreeBounds[3] = quadtreeBounds.maxPoint.y;
+	jScene[JSON_TAG_QUADTREE_MAX_DEPTH] = quadtreeMaxDepth;
+	jScene[JSON_TAG_QUADTREE_ELEMENTS_PER_NODE] = quadtreeElementsPerNode;
+
+	jScene[JSON_TAG_GAME_CAMERA] = gameCameraId;
+
+	JsonValue ambientLight = jScene[JSON_TAG_AMBIENTLIGHT];
+	ambientLight[0] = ambientColor.x;
+	ambientLight[1] = ambientColor.y;
+	ambientLight[2] = ambientColor.z;
+
+	// NavMesh
+	jScene[JSON_TAG_NAVMESH] = navMeshId;
+
+	// Cursor
+	jScene[JSON_TAG_CURSOR_HEIGHT] = heightCursor;
+	jScene[JSON_TAG_CURSOR_WIDTH] = widthCursor;
+	jScene[JSON_TAG_CURSOR] = cursorId;
+
+	// Save GameObjects
+	JsonValue jRoot = jScene[JSON_TAG_ROOT];
+	root->Save(jRoot);
 }
 
 GameObject* Scene::CreateGameObject(GameObject* parent, UID id, const char* name) {

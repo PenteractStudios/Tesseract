@@ -163,7 +163,7 @@ void ComponentEventSystem::SetSelected(UID newSelectableComponentId) {
 
 void ComponentEventSystem::EnteredPointerOnSelectable(ComponentSelectable* newHoveredComponent) {
 	if (hoveredSelectableID != 0) {
-		ComponentSelectable* selectableToUnHover = App->scene->scene->selectableComponents.Find(hoveredSelectableID);
+		ComponentSelectable* selectableToUnHover = GetOwner().scene->selectableComponents.Find(hoveredSelectableID);
 		if (selectableToUnHover) selectableToUnHover->SetHovered(false);
 	}
 

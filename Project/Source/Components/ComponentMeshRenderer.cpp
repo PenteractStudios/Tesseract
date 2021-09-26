@@ -206,9 +206,9 @@ void ComponentMeshRenderer::Init() {
 	if (material->castShadows) {
 		GameObject* owner = &GetOwner();
 		if (material->shadowCasterType == ShadowCasterType::STATIC) {
-			App->scene->scene->AddStaticShadowCaster(owner);
+			GetOwner().scene->AddStaticShadowCaster(owner);
 		} else {
-			App->scene->scene->AddDynamicShadowCaster(owner);
+			GetOwner().scene->AddDynamicShadowCaster(owner);
 		}
 	}
 }
@@ -841,7 +841,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	}
 
 	// Lights uniforms settings
-	glUniform3fv(standardProgram->lightAmbientColorLocation, 1, App->renderer->ambientColor.ptr());
+	glUniform3fv(standardProgram->lightAmbientColorLocation, 1, GetOwner().scene->ambientColor.ptr());
 
 	if (directionalLight != nullptr) {
 		glUniform3fv(standardProgram->lightDirectionalDirectionLocation, 1, directionalLight->direction.ptr());

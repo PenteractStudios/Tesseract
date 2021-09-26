@@ -50,6 +50,9 @@ public:
 	void Init();
 	void Start();
 
+	void Load(JsonValue jScene);
+	void Save(JsonValue jScene) const;
+
 	// --- GameObject Management --- //
 	GameObject* CreateGameObject(GameObject* parent, UID id, const char* name);
 	void DestroyGameObject(GameObject* gameObject);
@@ -140,6 +143,12 @@ public:
 	AABB2D quadtreeBounds = {{-1000, -1000}, {1000, 1000}};
 	unsigned quadtreeMaxDepth = 4;
 	unsigned quadtreeElementsPerNode = 200;
+
+	// ---- Game Camera Parameters ---- //
+	UID gameCameraId = 0;
+
+	// ---- Ambient Light Parameters ---- //
+	float3 ambientColor = {0.25f, 0.25f, 0.25f};
 
 	// ---- Nav Mesh ID parameters ---- //
 	UID navMeshId = 0;
