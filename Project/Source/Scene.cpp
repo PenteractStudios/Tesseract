@@ -120,7 +120,7 @@ void Scene::Start() {
 		App->camera->ChangeActiveCamera(App->camera->GetGameCamera(), true);
 		App->camera->ChangeCullingCamera(App->camera->GetGameCamera(), true);
 	} else {
-		// TODO: Modal window. Warning - camera not set.
+		LOG("Error: Game camera not set.");
 	}
 
 	App->window->SetCursor(cursorId, widthCursor, heightCursor);

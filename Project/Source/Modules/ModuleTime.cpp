@@ -167,7 +167,7 @@ void ModuleTime::StartGame() {
 	gameRunning = true;
 
 #if !GAME
-	App->scene->SaveScene(TEMP_SCENE_FILE_NAME);
+	SceneImporter::SaveScene(App->scene->GetCurrentScene(), TEMP_SCENE_FILE_NAME);
 #endif // !GAME
 
 	App->scene->GetCurrentScene()->Start();

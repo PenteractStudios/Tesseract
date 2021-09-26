@@ -135,6 +135,7 @@ UpdateStatus ModuleResources::Update() {
 		if (resourcesToFinishLoading.try_pop(resource)) {
 			if (resource != nullptr) {
 				resource->FinishLoading();
+				resource->SetLoading(false);
 				resource->SetLoaded(true);
 				numResourcesLoading -= 1;
 			}
@@ -152,7 +153,10 @@ bool ModuleResources::CleanUp() {
 	importThread.join();
 
 	for (auto& entry : resources) {
-		entry.second->Unload();
+		Resource* resource = entry.second.get();
+		if (resource != nullptr) {
+			UnloadResource(resource);
+		}
 	}
 	resources.clear();
 
@@ -177,7 +181,10 @@ void ModuleResources::ReceiveEvent(TesseractEvent& e) {
 		resourcesMutex.lock();
 		auto& it = resources.find(id);
 		if (it != resources.end()) {
-			it->second->Unload();
+			Resource* resource = it->second.get();
+			if (resource != nullptr) {
+				UnloadResource(resource);
+			}
 			resources.erase(it);
 		}
 		resourcesMutex.unlock();
@@ -312,18 +319,6 @@ std::list<UID> ModuleResources::ImportAssetResources(const char* filePath, bool 
 	return resources;
 }
 
-ResourceType ModuleResources::GetResourceType(UID id) {
-	Resource* resource = GetResourceInternal<Resource>(id);
-	if (resource == nullptr) return ResourceType::UNKNOWN;
-	return resource->GetType();
-}
-
-const char* ModuleResources::GetResourceName(UID id) {
-	Resource* resource = GetResourceInternal<Resource>(id);
-	if (resource == nullptr) return nullptr;
-	return resource->GetName().c_str();
-}
-
 AssetCache* ModuleResources::GetAssetCache() const {
 	return assetCache.get();
 }
@@ -351,8 +346,7 @@ void ModuleResources::DecreaseReferenceCount(UID id) {
 			referenceCounts.erase(id);
 			Resource* resource = GetResourceInternal<Resource>(id);
 			if (resource != nullptr) {
-				resource->Unload();
-				resource->SetLoaded(false);
+				UnloadResource(resource);
 			}
 		}
 	}
@@ -365,8 +359,7 @@ void ModuleResources::ResetReferenceCount(UID id) {
 		referenceCounts.erase(id);
 		Resource* resource = GetResourceInternal<Resource>(id);
 		if (resource != nullptr) {
-			resource->SetLoaded(false);
-			resource->Unload();
+			UnloadResource(resource);
 		}
 	}
 }
@@ -389,6 +382,51 @@ std::string ModuleResources::GenerateResourcePath(UID id) const {
 	}
 
 	return metaFolder + "/" + strId;
+}
+
+void ModuleResources::LoadResource(Resource* resource) {
+	if (resource->IsLoaded() || resource->IsLoading()) return;
+
+	numResourcesLoading += 1;
+
+	// Read resource meta file
+	bool resourceMetaLoaded = true;
+	std::string resourceMetaFile = resource->GetResourceFilePath() + META_EXTENSION;
+	Buffer<char> buffer = App->files->Load(resourceMetaFile.c_str());
+	if (buffer.Size() == 0) {
+		LOG("Error loading meta file path %s", resourceMetaFile);
+		resourceMetaLoaded = false;
+	}
+
+	// Parse document from file
+	rapidjson::Document document;
+	if (resourceMetaLoaded) {
+		document.ParseInsitu<rapidjson::kParseNanAndInfFlag>(buffer.Data());
+		if (document.HasParseError()) {
+			LOG("Error parsing JSON: %s (offset: %u)", rapidjson::GetParseError_En(document.GetParseError()), document.GetErrorOffset());
+			resourceMetaLoaded = false;
+		}
+	}
+
+	// Load resource meta
+	if (resourceMetaLoaded) {
+		JsonValue jResourceMeta(document, document);
+		std::string resourceName = jResourceMeta[JSON_TAG_NAME];
+		resource->SetName(resourceName.c_str());
+		resource->LoadResourceMeta(jResourceMeta);
+	}
+
+	// Load resource
+	resourcesToLoad.push(resource);
+
+	resource->SetLoading(true);
+}
+
+void ModuleResources::UnloadResource(Resource* resource) {
+	if (!resource->IsLoaded() || resource->IsLoading()) return;
+
+	resource->Unload();
+	resource->SetLoaded(false);
 }
 
 void ModuleResources::UpdateImportAsync() {
@@ -628,40 +666,6 @@ void ModuleResources::DestroyResource(UID id) {
 	TesseractEvent destroyResourceEvent(TesseractEventType::DESTROY_RESOURCE);
 	destroyResourceEvent.Set<DestroyResourceStruct>(id);
 	App->events->AddEvent(destroyResourceEvent);
-}
-
-void ModuleResources::LoadResource(Resource* resource) {
-	numResourcesLoading += 1;
-
-	// Read resource meta file
-	bool resourceMetaLoaded = true;
-	std::string resourceMetaFile = resource->GetResourceFilePath() + META_EXTENSION;
-	Buffer<char> buffer = App->files->Load(resourceMetaFile.c_str());
-	if (buffer.Size() == 0) {
-		LOG("Error loading meta file path %s", resourceMetaFile);
-		resourceMetaLoaded = false;
-	}
-
-	// Parse document from file
-	rapidjson::Document document;
-	if (resourceMetaLoaded) {
-		document.ParseInsitu<rapidjson::kParseNanAndInfFlag>(buffer.Data());
-		if (document.HasParseError()) {
-			LOG("Error parsing JSON: %s (offset: %u)", rapidjson::GetParseError_En(document.GetParseError()), document.GetErrorOffset());
-			resourceMetaLoaded = false;
-		}
-	}
-
-	// Load resource meta
-	if (resourceMetaLoaded) {
-		JsonValue jResourceMeta(document, document);
-		std::string resourceName = jResourceMeta[JSON_TAG_NAME];
-		resource->SetName(resourceName.c_str());
-		resource->LoadResourceMeta(jResourceMeta);
-	}
-
-	// Load resource
-	resourcesToLoad.push(resource);
 }
 
 void ModuleResources::LoadImportOptions(std::unique_ptr<ImportOptions>& importOptions, const char* filePath) {

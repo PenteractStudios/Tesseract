@@ -203,11 +203,7 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 		std::string prafabPayloadType = std::string("_RESOURCE_") + GetResourceTypeName(ResourceType::PREFAB);
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(prafabPayloadType.c_str())) {
 			UID prefabId = *(UID*) payload->Data;
-			ResourcePrefab* prefab = App->resources->GetResource<ResourcePrefab>(prefabId);
-			if (prefab != nullptr) {
-				UID newGameObjectId = prefab->BuildPrefab(gameObject);
-				App->editor->selectedGameObject = App->scene->GetCurrentScene()->GetGameObject(newGameObjectId);
-			}
+			App->scene->BuildPrefab(prefabId, gameObject);
 		}
 		ImGui::EndDragDropTarget();
 	}

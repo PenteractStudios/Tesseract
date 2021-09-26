@@ -240,9 +240,8 @@ void ComponentParticleSystem::Init() {
 	InitCurveValues(scaleFactorCurve);
 	InitCurveValues(intensityMultiplierCurve);
 	InitCurveValues(rangeMultiplierCurve);
-}
 
-void ComponentParticleSystem::Start() {
+	// Init subemitters
 	for (SubEmitter* subEmitter : subEmitters) {
 		GameObject* gameObject = GetOwner().scene->GetGameObject(subEmitter->gameObjectUID);
 		if (gameObject != nullptr) {
@@ -259,6 +258,7 @@ void ComponentParticleSystem::Start() {
 		}
 	}
 
+	// Init light
 	if (lightGameObjectUID != 0) {
 		GameObject* gameObject = GetOwner().scene->GetGameObject(lightGameObjectUID);
 		if (gameObject != nullptr) {
@@ -1517,21 +1517,25 @@ void ComponentParticleSystem::InitSubEmitter(Particle* currentParticle, SubEmitt
 			newGameObject->id = gameObjectId;
 			newGameObject->name = "SubEmitter (Temp)";
 			newGameObject->SetParent(&parent);
+
 			ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 			float3x3 rotationMatrix = float3x3::RotateFromTo(float3::unitY, currentParticle->direction);
 			transform->SetGlobalPosition(currentParticle->position);
 			transform->SetGlobalRotation(rotationMatrix.ToEulerXYZ());
 			transform->SetGlobalScale(float3::one);
-			newGameObject->Init();
 
 			ComponentParticleSystem* newParticleSystem = newGameObject->CreateComponent<ComponentParticleSystem>();
 			rapidjson::Document resourceMetaDocument;
 			JsonValue jResourceMeta(resourceMetaDocument, resourceMetaDocument);
 			subEmitter->particleSystem->Save(jResourceMeta);
 			newParticleSystem->Load(jResourceMeta);
-			newParticleSystem->Start();
 			newParticleSystem->SetIsSubEmitter(true);
 			newParticleSystem->Play();
+
+			newGameObject->Init();
+			if (App->time->HasGameStarted()) {
+				newGameObject->Start();
+			}
 
 			subEmittersGO.push_back(newGameObject);
 		}
@@ -1549,13 +1553,13 @@ void ComponentParticleSystem::InitLight(Particle* currentParticle) {
 	newGameObject->id = gameObjectId;
 	newGameObject->name = "Light (Temp)";
 	newGameObject->SetParent(&parent);
+
 	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform* transformPS = GetOwner().GetComponent<ComponentTransform>();
 	float3 globalOffset = transformPS->GetGlobalMatrix().RotatePart() * lightOffset;
 	transform->SetGlobalPosition(currentParticle->position + globalOffset);
 	transform->SetGlobalRotation(float3::zero);
 	transform->SetGlobalScale(float3::one);
-	newGameObject->Init();
 
 	ComponentLight* newLight = newGameObject->CreateComponent<ComponentLight>();
 	rapidjson::Document resourceMetaDocument;
@@ -1578,6 +1582,11 @@ void ComponentParticleSystem::InitLight(Particle* currentParticle) {
 	}
 	currentParticle->lightGO = newGameObject;
 	lightsSpawned++;
+
+	newGameObject->Init();
+	if (App->time->HasGameStarted()) {
+		newGameObject->Start();
+	}
 }
 
 void ComponentParticleSystem::Update() {

@@ -366,7 +366,10 @@ void ComponentScript::Load(JsonValue jComponent) {
 void ComponentScript::CreateScriptInstance() {
 	if (scriptInstance != nullptr) return;
 
-	scriptInstance.reset(Factory::Create(App->resources->GetResourceName(scriptId), &GetOwner()));
+	const char* scriptName = App->resources->GetResourceUnloaded<ResourceScript>(scriptId)->GetName().c_str();
+	if (scriptName == nullptr) return;
+
+	scriptInstance.reset(Factory::Create(scriptName, &GetOwner()));
 	if (scriptInstance == nullptr) return;
 
 	const std::vector<Member>& members = scriptInstance->GetMembers();
@@ -457,5 +460,5 @@ Script* ComponentScript::GetScriptInstance() const {
 }
 
 const char* ComponentScript::GetScriptName() const {
-	return App->resources->GetResourceName(scriptId);
+	return App->resources->GetResourceUnloaded<ResourceScript>(scriptId)->GetName().c_str();
 }

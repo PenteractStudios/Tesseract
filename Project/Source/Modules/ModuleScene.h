@@ -14,6 +14,7 @@ public:
 	bool Init() override;
 	bool Start() override;
 	UpdateStatus Update() override;
+	UpdateStatus PostUpdate() override;
 	bool CleanUp() override;
 	void ReceiveEvent(TesseractEvent& e) override;
 
@@ -21,6 +22,8 @@ public:
 	void PreloadScene(UID sceneId);
 	void ChangeScene(UID sceneId);
 	Scene* GetCurrentScene();
+
+	void BuildPrefab(UID prefabId, GameObject* parent);
 
 	void LoadScene(const char* filePath);
 	void SaveScene(const char* filePath);
@@ -35,6 +38,7 @@ public:
 
 private:
 	Scene* scene = nullptr;
+	bool sceneIsLoading = false;
 
 	bool shouldChangeScene = false;
 	UID loadingSceneId = 0;
@@ -44,4 +48,8 @@ private:
 
 	bool shouldSaveScene = false;
 	std::string sceneToSavePath = "";
+
+	bool shouldBuildPrefab = false;
+	UID buildingPrefabId = 0;
+	UID buildingPrefabParentId = 0;
 };
