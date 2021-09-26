@@ -14,6 +14,7 @@ public:
 	bool Init() override;
 	bool Start() override;
 	UpdateStatus Update() override;
+	UpdateStatus PostUpdate() override;
 	bool CleanUp() override;
 	void ReceiveEvent(TesseractEvent& e) override;
 
@@ -37,6 +38,7 @@ public:
 
 private:
 	Scene* scene = nullptr;
+	bool sceneIsLoading = false;
 
 	bool shouldChangeScene = false;
 	UID loadingSceneId = 0;
