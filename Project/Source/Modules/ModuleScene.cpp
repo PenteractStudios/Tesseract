@@ -237,6 +237,9 @@ void ModuleScene::CreateEmptyScene() {
 	ComponentAudioListener* audioListener = gameCamera->CreateComponent<ComponentAudioListener>();
 
 	root->Init();
+	if (App->time->HasGameStarted()) {
+		root->Start();
+	}
 }
 
 void ModuleScene::PreloadScene(UID newSceneId) {
