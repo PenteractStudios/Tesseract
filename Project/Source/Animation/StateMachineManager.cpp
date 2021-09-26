@@ -60,7 +60,7 @@ void StateMachineManager::SendTrigger(const std::string& trigger, StateMachineEn
 
 			(*currentState) = transition->target;
 		} else {
-			std::string name = StateMachineEnum::PRINCIPAL ? "principal" : "secondary";
+			std::string name = isPrincipal ? "principal" : "secondary";
 			LOG("Warning:%s transition target from %s to %s, and current state is %s ", name.c_str(), transition->source.name.c_str(), transition->target.name.c_str(), (*currentState).name.c_str());
 		}
 	}

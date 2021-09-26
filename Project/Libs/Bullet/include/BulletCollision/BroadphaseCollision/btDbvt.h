@@ -469,28 +469,44 @@ DBVT_INLINE bool		btDbvtAabbMm::Contain(const btDbvtAabbMm& a) const
 //
 DBVT_INLINE int		btDbvtAabbMm::Classify(const btVector3& n,btScalar o,int s) const
 {
-	btVector3			pi,px;
+	btVector3			pi_,px;
 	switch(s)
 	{
-	case	(0+0+0):	px=btVector3(mi.x(),mi.y(),mi.z());
-		pi=btVector3(mx.x(),mx.y(),mx.z());break;
-	case	(1+0+0):	px=btVector3(mx.x(),mi.y(),mi.z());
-		pi=btVector3(mi.x(),mx.y(),mx.z());break;
-	case	(0+2+0):	px=btVector3(mi.x(),mx.y(),mi.z());
-		pi=btVector3(mx.x(),mi.y(),mx.z());break;
-	case	(1+2+0):	px=btVector3(mx.x(),mx.y(),mi.z());
-		pi=btVector3(mi.x(),mi.y(),mx.z());break;
-	case	(0+0+4):	px=btVector3(mi.x(),mi.y(),mx.z());
-		pi=btVector3(mx.x(),mx.y(),mi.z());break;
-	case	(1+0+4):	px=btVector3(mx.x(),mi.y(),mx.z());
-		pi=btVector3(mi.x(),mx.y(),mi.z());break;
-	case	(0+2+4):	px=btVector3(mi.x(),mx.y(),mx.z());
-		pi=btVector3(mx.x(),mi.y(),mi.z());break;
-	case	(1+2+4):	px=btVector3(mx.x(),mx.y(),mx.z());
-		pi=btVector3(mi.x(),mi.y(),mi.z());break;
+	case	(0+0+0):
+		px=btVector3(mi.x(),mi.y(),mi.z());
+		pi_ = btVector3(mx.x(), mx.y(), mx.z());
+		break;
+	case	(1+0+0):
+		px=btVector3(mx.x(),mi.y(),mi.z());
+		pi_ = btVector3(mi.x(), mx.y(), mx.z());
+		break;
+	case	(0+2+0):
+		px=btVector3(mi.x(),mx.y(),mi.z());
+		pi_ = btVector3(mx.x(), mi.y(), mx.z());
+		break;
+	case	(1+2+0):
+		px=btVector3(mx.x(),mx.y(),mi.z());
+		pi_ = btVector3(mi.x(), mi.y(), mx.z());
+		break;
+	case	(0+0+4):
+		px=btVector3(mi.x(),mi.y(),mx.z());
+		pi_ = btVector3(mx.x(), mx.y(), mi.z());
+		break;
+	case	(1+0+4):
+		px=btVector3(mx.x(),mi.y(),mx.z());
+		pi_ = btVector3(mi.x(), mx.y(), mi.z());
+		break;
+	case	(0+2+4):
+		px=btVector3(mi.x(),mx.y(),mx.z());
+		pi_ = btVector3(mx.x(), mi.y(), mi.z());
+		break;
+	case	(1+2+4):
+		px=btVector3(mx.x(),mx.y(),mx.z());
+		pi_ = btVector3(mi.x(), mi.y(), mi.z());
+		break;
 	}
 	if((btDot(n,px)+o)<0)		return(-1);
-	if((btDot(n,pi)+o)>=0)	return(+1);
+	if ((btDot(n, pi_) + o) >= 0) return (+1);
 	return(0);
 }
 
