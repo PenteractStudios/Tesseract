@@ -111,7 +111,10 @@ void PanelProject::UpdateResources() {
 	AssetFile* assetFile = it->second;
 
 	for (UID resourceId : assetFile->resourceIds) {
-		ResourceType resourceType = App->resources->GetResourceUnloaded<Resource>(resourceId)->GetType();
+		Resource* resource = App->resources->GetResourceUnloaded<Resource>(resourceId);
+		if (resource == nullptr) continue;
+
+		ResourceType resourceType = resource->GetType();
 		if (resourceType == ResourceType::UNKNOWN) continue;
 
 		std::string resourceName = std::to_string(resourceId);

@@ -366,7 +366,10 @@ void ComponentScript::Load(JsonValue jComponent) {
 void ComponentScript::CreateScriptInstance() {
 	if (scriptInstance != nullptr) return;
 
-	const char* scriptName = App->resources->GetResourceUnloaded<ResourceScript>(scriptId)->GetName().c_str();
+	ResourceScript* scriptResource = App->resources->GetResourceUnloaded<ResourceScript>(scriptId);
+	if (scriptResource == nullptr) return;
+
+	const char* scriptName = scriptResource->GetName().c_str();
 	if (scriptName == nullptr) return;
 
 	scriptInstance.reset(Factory::Create(scriptName, &GetOwner()));
@@ -460,5 +463,6 @@ Script* ComponentScript::GetScriptInstance() const {
 }
 
 const char* ComponentScript::GetScriptName() const {
-	return App->resources->GetResourceUnloaded<ResourceScript>(scriptId)->GetName().c_str();
+	ResourceScript* scriptResource = App->resources->GetResourceUnloaded<ResourceScript>(scriptId);
+	return scriptResource ? scriptResource->GetName().c_str() : nullptr;
 }

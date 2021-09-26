@@ -54,8 +54,11 @@ void ComponentVideo::Init() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	// Load video
-	const char* filePath = App->resources->GetResourceUnloaded<ResourceVideo>(videoID)->GetResourceFilePath().c_str();
-	OpenVideoReader(filePath);
+	ResourceVideo* videoResource = App->resources->GetResourceUnloaded<ResourceVideo>(videoID);
+	if (videoResource) {
+		const char* filePath = videoResource->GetResourceFilePath().c_str();
+		OpenVideoReader(filePath);
+	}
 }
 
 void ComponentVideo::Start() {
@@ -94,8 +97,11 @@ void ComponentVideo::OnEditorUpdate() {
 		&videoID,
 		[this]() { RemoveVideoResource(); },
 		[this]() {
-			const char* filePath = App->resources->GetResourceUnloaded<ResourceVideo>(videoID)->GetResourceFilePath().c_str();
-			OpenVideoReader(filePath);
+			ResourceVideo* videoResource = App->resources->GetResourceUnloaded<ResourceVideo>(videoID);
+			if (videoResource) {
+				const char* filePath = videoResource->GetResourceFilePath().c_str();
+				OpenVideoReader(filePath);
+			}
 		});
 
 	std::string removeButton = std::string(ICON_FA_TIMES "##") + "video";
