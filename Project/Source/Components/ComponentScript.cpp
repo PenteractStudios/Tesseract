@@ -26,10 +26,24 @@
 
 ComponentScript::~ComponentScript() {
 	App->resources->DecreaseReferenceCount(scriptId);
+
+	for (auto& entry : changedValues) {
+		if (entry.second.first == MemberType::PREFAB_RESOURCE_UID) {
+			UID prefabId = std::get<UID>(entry.second.second);
+			App->resources->DecreaseReferenceCount(prefabId);
+		}
+	}
 }
 
 void ComponentScript::Init() {
 	App->resources->IncreaseReferenceCount(scriptId);
+
+	for (auto& entry : changedValues) {
+		if (entry.second.first == MemberType::PREFAB_RESOURCE_UID) {
+			UID prefabId = std::get<UID>(entry.second.second);
+			App->resources->IncreaseReferenceCount(prefabId);
+		}
+	}
 
 	if (App->project->IsGameLoaded()) {
 		CreateScriptInstance();
