@@ -52,13 +52,12 @@ void ComponentVideo::Init() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// Load video
+	OpenVideoReader(App->resources->GetResourceResourceFilePath(videoID));
 }
 
 void ComponentVideo::Start() {
-	Resource* videoResource = App->resources->GetResource<ResourceVideo>(videoID);
-	if (videoResource == nullptr) return;
-
-	OpenVideoReader(videoResource->GetResourceFilePath().c_str());
 	if (playOnAwake) isPlaying = true;
 }
 

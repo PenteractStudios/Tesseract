@@ -320,6 +320,12 @@ const char* ModuleResources::GetResourceName(UID id) {
 	return resource->GetName().c_str();
 }
 
+const char* ModuleResources::GetResourceResourceFilePath(UID id) {
+	Resource* resource = GetResourceInternal<Resource>(id);
+	if (resource == nullptr) return nullptr;
+	return resource->GetResourceFilePath().c_str();
+}
+
 AssetCache* ModuleResources::GetAssetCache() const {
 	return assetCache.get();
 }

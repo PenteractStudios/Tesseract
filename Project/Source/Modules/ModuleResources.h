@@ -33,6 +33,7 @@ public:
 	template<typename T> T* GetResource(UID id);
 	ResourceType GetResourceType(UID id);
 	const char* GetResourceName(UID id);
+	const char* GetResourceResourceFilePath(UID id);
 	AssetCache* GetAssetCache() const;
 
 	void IncreaseReferenceCount(UID id);
