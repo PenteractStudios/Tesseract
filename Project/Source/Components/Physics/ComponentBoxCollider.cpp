@@ -4,6 +4,7 @@
 #include "GameObject.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleTime.h"
+#include "Modules/ModuleScene.h"
 #include "Components/ComponentBoundingBox.h"
 
 #include "debugdraw.h"
@@ -16,6 +17,10 @@
 #define JSON_TAG_FREEZE_ROTATION "freezeRotation"
 #define JSON_TAG_COLLIDER_TYPE "colliderType"
 #define JSON_TAG_LAYER_TYPE "layerType"
+
+ComponentBoxCollider::~ComponentBoxCollider() {
+	if (rigidBody) App->physics->RemoveBoxRigidbody(this);
+}
 
 void ComponentBoxCollider::Init() {
 	if (!centerOffset.IsFinite()) {
@@ -30,7 +35,7 @@ void ComponentBoxCollider::Init() {
 
 	localAABB.SetFromCenterAndSize(centerOffset, size);
 
-	if (App->time->HasGameStarted() && !rigidBody) App->physics->CreateBoxRigidbody(this);
+	if (App->time->HasGameStarted() && !rigidBody && IsActive()) App->physics->CreateBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::DrawGizmos() {
@@ -180,11 +185,11 @@ void ComponentBoxCollider::Load(JsonValue jComponent) {
 }
 
 void ComponentBoxCollider::OnEnable() {
-	if (!rigidBody && App->time->HasGameStarted()) App->physics->CreateBoxRigidbody(this);
+	if (!rigidBody && App->time->HasGameStarted() && App->scene->scene == GetOwner().scene) App->physics->CreateBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::OnDisable() {
-	if (rigidBody && App->time->HasGameStarted()) App->physics->RemoveBoxRigidbody(this);
+	if (rigidBody && App->time->HasGameStarted() && App->scene->scene == GetOwner().scene) App->physics->RemoveBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance, ComponentParticleSystem::Particle* p) {

@@ -7,9 +7,12 @@
 #include "Modules/ModuleRender.h"
 #include "Modules/ModulePhysics.h"
 #include "Modules/ModuleTime.h"
+#include "Modules/ModuleCamera.h"
 #include "Modules/ModuleWindow.h"
-#include "Resources/ResourceMesh.h"
+#include "Modules/ModuleProject.h"
 #include "Modules/ModuleResources.h"
+#include "Scripting/PropertyMap.h"
+#include "Resources/ResourceMesh.h"
 #include "Utils/Logging.h"
 
 #include "Utils/Leaks.h"
@@ -51,6 +54,10 @@ Scene::Scene(unsigned numGameObjects) {
 	videoComponents.Allocate(numGameObjects);
 }
 
+Scene::~Scene() {
+	ClearScene();
+}
+
 void Scene::ClearScene() {
 	DestroyGameObject(root);
 	root = nullptr;
@@ -84,6 +91,30 @@ void Scene::ClearQuadtree() {
 	for (GameObject& gameObject : gameObjects) {
 		gameObject.isInQuadtree = false;
 	}
+}
+
+void Scene::Init() {
+	App->resources->IncreaseReferenceCount(navMeshId);
+	App->resources->IncreaseReferenceCount(cursorId);
+
+	root->Init();
+}
+
+void Scene::Start() {
+	App->project->GetGameState()->Clear();
+
+	if (App->camera->GetGameCamera()) {
+		// Set the Game Camera as active
+		App->camera->ChangeActiveCamera(App->camera->GetGameCamera(), true);
+		App->camera->ChangeCullingCamera(App->camera->GetGameCamera(), true);
+	} else {
+		LOG("Error: Game camera not set.");
+	}
+
+	App->window->SetCursor(cursorId, widthCursor, heightCursor);
+	App->window->ActivateCursor(true);
+
+	root->Start();
 }
 
 GameObject* Scene::CreateGameObject(GameObject* parent, UID id, const char* name) {
@@ -549,24 +580,24 @@ void Scene::RemoveStaticShadowCaster(const GameObject* go) {
 }
 
 void Scene::AddStaticShadowCaster(GameObject* go) {
-	auto it = std::find(staticShadowCasters.begin(), staticShadowCasters.end(), go);
+		auto it = std::find(staticShadowCasters.begin(), staticShadowCasters.end(), go);
 
-	if (it != staticShadowCasters.end()) return;
+		if (it != staticShadowCasters.end()) return;
 
-	staticShadowCasters.push_back(go);
+		staticShadowCasters.push_back(go);
 
-	App->renderer->lightFrustumStatic.Invalidate();
-}
+		App->renderer->lightFrustumStatic.Invalidate();
+	}
 
-void Scene::RemoveDynamicShadowCaster(const GameObject* go) {
-	auto it = std::find(dynamicShadowCasters.begin(), dynamicShadowCasters.end(), go);
+	void Scene::RemoveDynamicShadowCaster(const GameObject* go) {
+		auto it = std::find(dynamicShadowCasters.begin(), dynamicShadowCasters.end(), go);
 
-	if (it == dynamicShadowCasters.end()) return;
+		if (it == dynamicShadowCasters.end()) return;
 
-	dynamicShadowCasters.erase(it);
+		dynamicShadowCasters.erase(it);
 
-	App->renderer->lightFrustumDynamic.Invalidate();
-}
+		App->renderer->lightFrustumDynamic.Invalidate();
+	}
 
 void Scene::AddDynamicShadowCaster(GameObject* go) {
 	auto it = std::find(dynamicShadowCasters.begin(), dynamicShadowCasters.end(), go);

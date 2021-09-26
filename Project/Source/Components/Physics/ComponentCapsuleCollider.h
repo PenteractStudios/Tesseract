@@ -18,6 +18,7 @@ enum class CapsuleType {
 class ComponentCapsuleCollider : public Component {
 public:
 	REGISTER_COMPONENT(ComponentCapsuleCollider, ComponentType::CAPSULE_COLLIDER, false); // Refer to ComponentType for the Constructor
+	~ComponentCapsuleCollider();
 
 	// ------- Core Functions ------ //
 	void Init() override;

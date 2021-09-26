@@ -114,14 +114,6 @@ void SceneImporter::LoadScene(const char* filePath) {
 	}
 	JsonValue jScene(document, document);
 
-	// Load GameObjects
-	JsonValue jRoot = jScene[JSON_TAG_ROOT];
-	GameObject* root = scene->gameObjects.Obtain(0);
-	scene->root = root;
-	root->scene = scene;
-	root->Load(jRoot);
-	root->Start();
-
 	// Quadtree generation
 	JsonValue jQuadtreeBounds = jScene[JSON_TAG_QUADTREE_BOUNDS];
 	scene->quadtreeBounds = {{jQuadtreeBounds[0], jQuadtreeBounds[1]}, {jQuadtreeBounds[2], jQuadtreeBounds[3]}};
@@ -131,7 +123,6 @@ void SceneImporter::LoadScene(const char* filePath) {
 
 	ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(jScene[JSON_TAG_GAME_CAMERA]);
 	App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
-	if(App->time->HasGameStarted()) App->camera->ChangeActiveCamera(gameCamera, gameCamera != nullptr);
 
 	JsonValue ambientLight = jScene[JSON_TAG_AMBIENTLIGHT];
 	App->renderer->ambientColor = {ambientLight[0], ambientLight[1], ambientLight[2]};
@@ -144,8 +135,20 @@ void SceneImporter::LoadScene(const char* filePath) {
 	scene->SetCursorWidth(jScene[JSON_TAG_CURSOR_WIDTH]);
 	scene->SetCursor(jScene[JSON_TAG_CURSOR]);
 
+	// Load GameObjects
+	JsonValue jRoot = jScene[JSON_TAG_ROOT];
+	GameObject* root = scene->gameObjects.Obtain(0);
+	scene->root = root;
+	root->scene = scene;
+	root->Load(jRoot);
+
 	unsigned timeMs = timer.Stop();
 	LOG("Scene loaded in %ums.", timeMs);
+
+	scene->Init();
+	if (App->time->HasGameStarted()) {
+		scene->Start();
+	}
 }
 
 bool SceneImporter::SaveScene(const char* filePath) {
@@ -190,7 +193,5 @@ bool SceneImporter::SaveScene(const char* filePath) {
 	document.Accept(writer);
 
 	// Save to file
-	App->files->Save(filePath, stringBuffer.GetString(), stringBuffer.GetSize());
-
-	return true;
+	return App->files->Save(filePath, stringBuffer.GetString(), stringBuffer.GetSize());
 }

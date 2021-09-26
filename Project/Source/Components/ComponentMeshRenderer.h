@@ -13,6 +13,7 @@ struct aiMesh;
 class ComponentMeshRenderer : public Component {
 public:
 	REGISTER_COMPONENT(ComponentMeshRenderer, ComponentType::MESH_RENDERER, true);
+	~ComponentMeshRenderer();
 
 	void OnEditorUpdate() override;
 	void Init() override;

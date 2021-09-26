@@ -11,6 +11,7 @@ class btRigidBody;
 class ComponentSphereCollider : public Component {
 public:
 	REGISTER_COMPONENT(ComponentSphereCollider, ComponentType::SPHERE_COLLIDER, false); // Refer to ComponentType for the Constructor
+	~ComponentSphereCollider();
 
 	// ------- Core Functions ------ //
 	void Init() override;

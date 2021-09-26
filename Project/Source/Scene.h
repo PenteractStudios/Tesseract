@@ -41,10 +41,14 @@ class GameObject;
 class Scene {
 public:
 	Scene(unsigned numGameObjects);
+	~Scene();
 
 	void ClearScene();		// Removes and clears every GameObject from the scene.
 	void RebuildQuadtree(); // Recalculates the Quadtree hierarchy with all the GameObjects in the scene.
 	void ClearQuadtree();	// Resets the Quadrtee as empty, and removes all GameObjects from it.
+
+	void Init();
+	void Start();
 
 	// --- GameObject Management --- //
 	GameObject* CreateGameObject(GameObject* parent, UID id, const char* name);
@@ -76,8 +80,8 @@ public:
 
 	void RemoveDynamicShadowCaster(const GameObject* go);
 	void AddDynamicShadowCaster(GameObject* go);
-	
-	const std::vector<GameObject*>& GetStaticShadowCasters() const; 
+
+	const std::vector<GameObject*>& GetStaticShadowCasters() const;
 	const std::vector<GameObject*>& GetDynamicShadowCasters() const;
 
 	void SetCursor(UID cursor);
@@ -146,7 +150,7 @@ public:
 	int heightCursor = 30;
 
 private:
-	bool InsideFrustumPlanes(const FrustumPlanes& planes, const GameObject* go); 
+	bool InsideFrustumPlanes(const FrustumPlanes& planes, const GameObject* go);
 
 private:
 	std::vector<GameObject*> staticShadowCasters;

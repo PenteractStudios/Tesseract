@@ -21,7 +21,10 @@ class ResourceTransition;
 class ComponentAnimation : public Component {
 public:
 	REGISTER_COMPONENT(ComponentAnimation, ComponentType::ANIMATION, false); // Refer to ComponentType for the Constructor
+	~ComponentAnimation();
 
+	void Init() override;
+	void Start() override;
 	void Update() override;
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;
@@ -33,7 +36,7 @@ public:
 	TESSERACT_ENGINE_API void SendTriggerSecondary(const std::string& trigger); // Method to trigger the change of state
 
 	TESSERACT_ENGINE_API State* GetCurrentState() {
-		if (!loadedResourceStateMachine || currentStatePrincipal.id == 0) return nullptr;
+		if (!loadedResourceStateMachine) return nullptr;
 		return &currentStatePrincipal;
 	}
 	TESSERACT_ENGINE_API void SetCurrentState(State* mCurrentState) {
@@ -41,7 +44,7 @@ public:
 	}
 
 	TESSERACT_ENGINE_API State* GetCurrentStateSecondary() {
-		if (!loadedResourceStateMachineSecondary || currentStateSecondary.id == 0) return nullptr;
+		if (!loadedResourceStateMachineSecondary) return nullptr;
 		return &currentStateSecondary;
 	}
 	TESSERACT_ENGINE_API void SetCurrentStateSecondary(State* mCurrentState) {
@@ -62,8 +65,7 @@ public:
 
 private:
 	void UpdateAnimations(GameObject* gameObject);
-	void LoadResourceStateMachine(UID stateMachineResourceUid, StateMachineEnum stateMachineEnum);
-	void InitCurrentTimeStates(UID stateMachineResourceUid, StateMachineEnum stateMachineEnum);
+	void LoadStateMachines();
 	bool loadedResourceStateMachine = false;
 	bool loadedResourceStateMachineSecondary = false;
 

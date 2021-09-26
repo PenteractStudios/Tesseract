@@ -38,6 +38,8 @@
 
 ComponentBillboard::~ComponentBillboard() {
 	RELEASE(gradient);
+
+	App->resources->DecreaseReferenceCount(textureID);
 }
 
 void ComponentBillboard::OnEditorUpdate() {
@@ -131,9 +133,6 @@ void ComponentBillboard::Load(JsonValue jComponent) {
 	billboardType = (BillboardType)(int) jComponent[JSON_TAG_BILLBOARD_TYPE];
 
 	textureID = jComponent[JSON_TAG_TEXTURE_TEXTUREID];
-	if (textureID != 0) {
-		App->resources->IncreaseReferenceCount(textureID);
-	}
 
 	Ytiles = jComponent[JSON_TAG_YTILES];
 	Xtiles = jComponent[JSON_TAG_XTILES];
@@ -186,6 +185,8 @@ void ComponentBillboard::Save(JsonValue jComponent) const {
 }
 
 void ComponentBillboard::Init() {
+	App->resources->IncreaseReferenceCount(textureID);
+
 	if (!gradient) gradient = new ImGradient();
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 	initPos = transform->GetGlobalPosition();

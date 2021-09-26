@@ -100,6 +100,11 @@ static const char* spotLightStrings[SPOT_LIGHTS][SPOT_LIGHT_MEMBERS] = {
 	SPOT_LIGHT_STRING("6"),
 	SPOT_LIGHT_STRING("7")};
 
+ComponentMeshRenderer::~ComponentMeshRenderer() {
+	App->resources->DecreaseReferenceCount(meshId);
+	App->resources->DecreaseReferenceCount(materialId);
+}
+
 void ComponentMeshRenderer::OnEditorUpdate() {
 	if (ImGui::Checkbox("Active", &active)) {
 		if (GetOwner().IsActive()) {
@@ -191,12 +196,20 @@ void ComponentMeshRenderer::OnEditorUpdate() {
 }
 
 void ComponentMeshRenderer::Init() {
-	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
-	if (!mesh) return;
+	App->resources->IncreaseReferenceCount(meshId);
+	App->resources->IncreaseReferenceCount(materialId);
 
-	palette.resize(mesh->numBones);
-	for (unsigned i = 0; i < mesh->numBones; ++i) {
-		palette[i] = float4x4::identity;
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+
+	if (material == nullptr) return;
+
+	if (material->castShadows) {
+		GameObject* owner = &GetOwner();
+		if (material->shadowCasterType == ShadowCasterType::STATIC) {
+			App->scene->scene->AddStaticShadowCaster(owner);
+		} else {
+			App->scene->scene->AddDynamicShadowCaster(owner);
+		}
 	}
 }
 
@@ -236,30 +249,15 @@ void ComponentMeshRenderer::Save(JsonValue jComponent) const {
 
 void ComponentMeshRenderer::Load(JsonValue jComponent) {
 	meshId = jComponent[JSON_TAG_MESH_ID];
-	if (meshId != 0) App->resources->IncreaseReferenceCount(meshId);
 	materialId = jComponent[JSON_TAG_MATERIAL_ID];
 	if (materialId != 0) {
 		AddRenderingModeMask();
 		App->resources->IncreaseReferenceCount(materialId);
 	}
-
-	ResetDissolveValues();
 }
 
 void ComponentMeshRenderer::Start() {
-
-	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
-
-	if (material == nullptr) return;
-
-	if (material->castShadows) {
-		GameObject* owner = &GetOwner();
-		if (material->shadowCasterType == ShadowCasterType::STATIC) {
-			App->scene->scene->AddStaticShadowCaster(owner);
-		} else {
-			App->scene->scene->AddDynamicShadowCaster(owner);
-		}
-	}
+	ResetDissolveValues();
 }
 
 void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {

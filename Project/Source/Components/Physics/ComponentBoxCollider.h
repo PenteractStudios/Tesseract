@@ -13,6 +13,7 @@ class btRigidBody;
 class ComponentBoxCollider : public Component {
 public:
 	REGISTER_COMPONENT(ComponentBoxCollider, ComponentType::BOX_COLLIDER, false); // Refer to ComponentType for the Constructor
+	~ComponentBoxCollider();
 
 	// ------- Core Functions ------ //
 	void Init() override;

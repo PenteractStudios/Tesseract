@@ -23,13 +23,13 @@ ComponentProgressBar::~ComponentProgressBar() {
 }
 
 void ComponentProgressBar::Init() {
-
+	fill = GetOwner().scene->GetGameObject(fillID);
+	background = GetOwner().scene->GetGameObject(backgroundID);
 }
 
 void ComponentProgressBar::Update() {
 	//The progress bar GameObject must have two image gameobjects as childs (for background and fill)
 	if (background == nullptr || fill == nullptr) {
-
 		//IMPORTANT: Background goes first then fill
 		for (std::vector<GameObject*>::const_iterator it = GetOwner().GetChildren().begin(); it != GetOwner().GetChildren().end(); ++it) {
 			if (it == GetOwner().GetChildren().begin()) {
@@ -38,12 +38,13 @@ void ComponentProgressBar::Update() {
 				fill = *it;
 			}
 		}
+	}
 
-		if (background != nullptr && fill != nullptr) {
-			rectBack = background->GetComponent<ComponentTransform2D>();
-			rectFill = fill->GetComponent<ComponentTransform2D>();
-		} else
-			return;
+	if (background != nullptr && fill != nullptr) {
+		rectBack = background->GetComponent<ComponentTransform2D>();
+		rectFill = fill->GetComponent<ComponentTransform2D>();
+	} else {
+		return;
 	}
 	backPos = rectBack->GetPosition();
 	backSize = rectBack->GetSize();
@@ -57,7 +58,7 @@ void ComponentProgressBar::Update() {
 	//The image is aligned to the left here, we will give the option to slide from left to right in the future
 	fillXPos = ((backSize.x - (backSize.x * percent)) / 2);
 
-	switch(dir) {
+	switch (dir) {
 	case FillDirection::LEFT_TO_RIGHT:
 		fillXPos = backPos.x - fillXPos;
 		rectFill->SetPosition(float3(fillXPos, backPos.y, backPos.z));
@@ -79,7 +80,6 @@ void ComponentProgressBar::Update() {
 		rectFill->SetPosition(float3(backPos.x, fillXPos, backPos.z));
 		break;
 	}
-
 }
 
 void ComponentProgressBar::OnEditorUpdate() {
