@@ -222,7 +222,7 @@ private:
 	int lightTilesPerColumn = 0;
 	bool lightTilesComputed = false;
 
-	unsigned int indexDepthMapTexture = -1;
+	unsigned int indexDepthMapTexture = UINT_MAX;
 	ShadowCasterType shadowCasterType;
 	bool drawDepthMapTexture = false;
 	bool drawSSAOTexture = false;

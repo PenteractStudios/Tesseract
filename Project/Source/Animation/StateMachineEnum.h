@@ -1,6 +1,6 @@
 #pragma once
 
-enum StateMachineEnum {
+enum class StateMachineEnum {
 	PRINCIPAL,
 	SECONDARY
 };
