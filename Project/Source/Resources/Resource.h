@@ -21,6 +21,9 @@ public:
 
 	void SetName(const char* name);
 
+	bool IsLoading();
+	void SetLoading(bool loading);
+
 	bool IsLoaded();
 	void SetLoaded(bool loaded);
 
@@ -40,5 +43,6 @@ private:
 	std::string assetFilePath = "";
 	std::string resourceFilePath = "";
 
-	bool isLoaded = false;
+	bool loading = false;
+	bool loaded = false;
 };

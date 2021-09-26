@@ -31,9 +31,7 @@ public:
 
 	template<typename T> T* GetImportOptions(const char* filePath, bool forceLoad = false);
 	template<typename T> T* GetResource(UID id);
-	ResourceType GetResourceType(UID id);
-	const char* GetResourceName(UID id);
-	const char* GetResourceResourceFilePath(UID id);
+	template<typename T> T* GetResourceUnloaded(UID id);
 	AssetCache* GetAssetCache() const;
 
 	void IncreaseReferenceCount(UID id);
@@ -46,6 +44,9 @@ public:
 
 	template<typename T> std::unique_ptr<T> CreateResource(const char* resourceName, const char* assetFilePath, UID id);
 	template<typename T> void SendCreateResourceEvent(std::unique_ptr<T>& resource);
+
+	void LoadResource(Resource* resource);
+	void UnloadResource(Resource* resource);
 
 private:
 	void UpdateImportAsync();
@@ -65,7 +66,6 @@ private:
 	bool ImportAssetByExtension(JsonValue jMeta, const char* filePath);
 	void ImportLibraryResource(const char* filePath);
 
-	void LoadResource(Resource* resource);
 	void LoadImportOptions(std::unique_ptr<ImportOptions>& importOptions, const char* filePath);
 
 public:
@@ -107,6 +107,11 @@ inline T* ModuleResources::GetResource(UID id) {
 	T* resource = GetResourceInternal<T>(id);
 	if (resource == nullptr || !resource->IsLoaded()) return nullptr;
 	return resource;
+}
+
+template<typename T>
+inline T* ModuleResources::GetResourceUnloaded(UID id) {
+	return GetResourceInternal<T>(id);
 }
 
 template<typename T>

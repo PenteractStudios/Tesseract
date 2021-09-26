@@ -54,7 +54,8 @@ void ComponentVideo::Init() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	// Load video
-	OpenVideoReader(App->resources->GetResourceResourceFilePath(videoID));
+	const char* filePath = App->resources->GetResourceUnloaded<ResourceVideo>(videoID)->GetResourceFilePath().c_str();
+	OpenVideoReader(filePath);
 }
 
 void ComponentVideo::Start() {
@@ -93,8 +94,8 @@ void ComponentVideo::OnEditorUpdate() {
 		&videoID,
 		[this]() { RemoveVideoResource(); },
 		[this]() {
-			ResourceVideo* video = App->resources->GetResource<ResourceVideo>(videoID);
-			if (video) OpenVideoReader(video->GetResourceFilePath().c_str());
+			const char* filePath = App->resources->GetResourceUnloaded<ResourceVideo>(videoID)->GetResourceFilePath().c_str();
+			OpenVideoReader(filePath);
 		});
 
 	std::string removeButton = std::string(ICON_FA_TIMES "##") + "video";
@@ -109,24 +110,21 @@ void ComponentVideo::OnEditorUpdate() {
 	ImGui::TextUnformatted("Remove Video");
 
 	if (videoID != 0) {
-		ResourceVideo* videoResource = App->resources->GetResource<ResourceVideo>(videoID);
-		if (videoResource != nullptr) {
-			ImGui::Separator();
-			if (ImGui::Button("Play")) {
-				Play();
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Pause")) {
-				Pause();
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Stop")) {
-				Stop();
-			}
-			ImGui::Checkbox("Play on Awake", &playOnAwake);
-			ImGui::Checkbox("Loop", &loopVideo);
-			ImGui::Checkbox("Flip Vertically", &verticalFlip);
+		ImGui::Separator();
+		if (ImGui::Button("Play")) {
+			Play();
 		}
+		ImGui::SameLine();
+		if (ImGui::Button("Pause")) {
+			Pause();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Stop")) {
+			Stop();
+		}
+		ImGui::Checkbox("Play on Awake", &playOnAwake);
+		ImGui::Checkbox("Loop", &loopVideo);
+		ImGui::Checkbox("Flip Vertically", &verticalFlip);
 	}
 }
 
