@@ -87,28 +87,22 @@ void ResourceMaterial::Load() {
 
 	diffuseColor = float4(jMaterial[JSON_TAG_DIFFUSE_COLOR][0], jMaterial[JSON_TAG_DIFFUSE_COLOR][1], jMaterial[JSON_TAG_DIFFUSE_COLOR][2], jMaterial[JSON_TAG_DIFFUSE_COLOR][3]);
 	diffuseMapId = jMaterial[JSON_TAG_DIFFUSE_MAP];
-	App->resources->IncreaseReferenceCount(diffuseMapId);
 
 	specularColor = float4(jMaterial[JSON_TAG_SPECULAR_COLOR][0], jMaterial[JSON_TAG_SPECULAR_COLOR][1], jMaterial[JSON_TAG_SPECULAR_COLOR][2], jMaterial[JSON_TAG_SPECULAR_COLOR][3]);
 	specularMapId = jMaterial[JSON_TAG_SPECULAR_MAP];
-	App->resources->IncreaseReferenceCount(specularMapId);
 
 	metallic = jMaterial[JSON_TAG_METALLIC];
 	metallicMapId = jMaterial[JSON_TAG_METALLIC_MAP];
-	App->resources->IncreaseReferenceCount(metallicMapId);
 
 	normalMapId = jMaterial[JSON_TAG_NORMAL_MAP];
-	App->resources->IncreaseReferenceCount(normalMapId);
 	normalStrength = jMaterial[JSON_TAG_NORMAL_STRENGTH];
 
 	emissiveColor = float4(jMaterial[JSON_TAG_EMISSIVE_COLOR][0], jMaterial[JSON_TAG_EMISSIVE_COLOR][1], jMaterial[JSON_TAG_EMISSIVE_COLOR][2], jMaterial[JSON_TAG_EMISSIVE_COLOR][3]);
 	emissiveMapId = jMaterial[JSON_TAG_EMISSIVE_MAP];
-	App->resources->IncreaseReferenceCount(emissiveMapId);
 
 	emissiveIntensity = jMaterial[JSON_TAG_EMISSIVE_INTENSITY];
 
 	ambientOcclusionMapId = jMaterial[JSON_TAG_AMBIENT_OCCLUSION_MAP];
-	App->resources->IncreaseReferenceCount(ambientOcclusionMapId);
 
 	smoothness = jMaterial[JSON_TAG_SMOOTHNESS];
 	hasSmoothnessInAlphaChannel = jMaterial[JSON_TAG_HAS_SMOOTHNESS_IN_ALPHA_CHANNEL];
@@ -128,6 +122,13 @@ void ResourceMaterial::Load() {
 	isSoft = jMaterial[JSON_TAG_IS_SOFT];
 	softRange = jMaterial[JSON_TAG_SOFT_RANGE];
 
+	App->resources->IncreaseReferenceCount(diffuseMapId);
+	App->resources->IncreaseReferenceCount(specularMapId);
+	App->resources->IncreaseReferenceCount(metallicMapId);
+	App->resources->IncreaseReferenceCount(normalMapId);
+	App->resources->IncreaseReferenceCount(emissiveMapId);
+	App->resources->IncreaseReferenceCount(ambientOcclusionMapId);
+
 	unsigned timeMs = timer.Stop();
 	LOG("Material loaded in %ums", timeMs);
 }
@@ -139,6 +140,13 @@ void ResourceMaterial::Unload() {
 	App->resources->DecreaseReferenceCount(normalMapId);
 	App->resources->DecreaseReferenceCount(emissiveMapId);
 	App->resources->DecreaseReferenceCount(ambientOcclusionMapId);
+
+	diffuseMapId = 0;
+	specularMapId = 0;
+	metallicMapId = 0;
+	normalMapId = 0;
+	emissiveMapId = 0;
+	ambientOcclusionMapId = 0;
 }
 
 void ResourceMaterial::SaveToFile(const char* filePath) {

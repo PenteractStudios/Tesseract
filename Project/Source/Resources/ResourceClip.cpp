@@ -54,7 +54,6 @@ void ResourceClip::Load() {
 
 	name = jStateMachine[JSON_TAG_NAME];
 	animationUID = jStateMachine[JSON_TAG_ANIMATION_UID];
-	App->resources->IncreaseReferenceCount(animationUID);
 	endIndex = jStateMachine[JSON_TAG_END_INDEX];
 	beginIndex = jStateMachine[JSON_TAG_BEGIN_INDEX];
 	loop = jStateMachine[JSON_TAG_LOOP];
@@ -73,6 +72,8 @@ void ResourceClip::Load() {
 	}
 
 	Init(name, animationUID, beginIndex, endIndex, loop, speed, 0);
+
+	App->resources->IncreaseReferenceCount(animationUID);
 
 	unsigned timeMs = timer.Stop();
 	LOG("Clip loaded in %ums", timeMs);
@@ -117,6 +118,8 @@ void ResourceClip::GetInfoJson() {
 
 void ResourceClip::Unload() {
 	App->resources->DecreaseReferenceCount(animationUID);
+
+	animationUID = 0;
 }
 
 void ResourceClip::OnEditorUpdate() {
@@ -135,7 +138,7 @@ void ResourceClip::OnEditorUpdate() {
 	ImGui::ResourceSlot<ResourceAnimation>("Animaton", &animationUID);
 
 	int maxFrames = 0;
-	ResourceAnimation* resourceAnimation = GetResourceAnimation();
+	ResourceAnimation* resourceAnimation = App->resources->GetResource<ResourceAnimation>(animationUID);
 	if (resourceAnimation != nullptr && resourceAnimation->keyFrames.size() != 0) {
 		maxFrames = resourceAnimation->keyFrames.size();
 	}
@@ -274,8 +277,4 @@ void ResourceClip::SetEndIndex(unsigned int index) {
 			duration = keyFramesSize * frameRate;
 		}
 	}
-}
-
-ResourceAnimation* ResourceClip::GetResourceAnimation() const {
-	return App->resources->GetResource<ResourceAnimation>(animationUID);
 }
