@@ -263,7 +263,6 @@
     <ClCompile Include="Source\FileSystem\ModelImporter.cpp" />
     <ClCompile Include="Source\FileSystem\ShaderImporter.cpp" />
     <ClCompile Include="Source\GameObject.cpp" />
-    <ClCompile Include="Source\AnimationController.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentToggle.cpp" />
     <ClCompile Include="Source\FileSystem\FontImporter.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentImage.cpp" />
@@ -493,7 +492,6 @@
     <ClInclude Include="Source\Resources\ResourceFont.h" />
     <ClInclude Include="Source\Scripting\Member.h" />
     <ClInclude Include="Source\Animation\StateMachineEnum.h" />
-    <ClInclude Include="Source\Components\ComponentBoundingBox2D.h" />
     <ClInclude Include="Source\UI\Interfaces\IMouseClickHandler.h" />
     <ClInclude Include="Source\UI\Interfaces\IPointerEnterHandler.h" />
     <ClInclude Include="Source\UI\Interfaces\IPointerExitHandler.h" />
