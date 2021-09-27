@@ -398,7 +398,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 			glUniformMatrix4fv(unlitProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 		}
 
-		glUniform1i(unlitProgram->hasBonesLocation, goBones.size());
+		glUniform1i(unlitProgram->hasBonesLocation, mesh->bones.size());
 
 		// Diffuse
 		unsigned glTextureDiffuse = 0;
@@ -453,7 +453,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 			glUniformMatrix4fv(unlitProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 		}
 
-		glUniform1i(unlitProgram->hasBonesLocation, goBones.size());
+		glUniform1i(unlitProgram->hasBonesLocation, mesh->bones.size());
 
 		// Diffuse
 		unsigned glTextureDiffuse = 0;
@@ -515,7 +515,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 			glUniformMatrix4fv(volumetricLightProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 		}
 
-		glUniform1i(volumetricLightProgram->hasBonesLocation, goBones.size());
+		glUniform1i(volumetricLightProgram->hasBonesLocation, mesh->bones.size());
 
 		glUniform3fv(volumetricLightProgram->viewPosLocation, 1, App->camera->GetPosition().ptr());
 
@@ -753,7 +753,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniformMatrix4fv(standardProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 	}
 
-	glUniform1i(standardProgram->hasBonesLocation, goBones.size());
+	glUniform1i(standardProgram->hasBonesLocation, mesh->bones.size());
 
 	glUniform3fv(standardProgram->viewPosLocation, 1, App->camera->GetPosition().ptr());
 
@@ -924,7 +924,7 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 		glUniformMatrix4fv(depthPrepassProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 	}
 
-	glUniform1i(depthPrepassProgram->hasBonesLocation, goBones.size());
+	glUniform1i(depthPrepassProgram->hasBonesLocation, mesh->bones.size());
 
 	// Diffuse
 	unsigned glTextureDiffuse = 0;
@@ -986,7 +986,7 @@ void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix, unsigned int
 		glUniformMatrix4fv(glGetUniformLocation(program, "palette"), palette.size(), GL_TRUE, palette[0].ptr());
 	}
 
-	glUniform1i(glGetUniformLocation(program, "hasBones"), goBones.size());
+	glUniform1i(glGetUniformLocation(program, "hasBones"), mesh->bones.size());
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
