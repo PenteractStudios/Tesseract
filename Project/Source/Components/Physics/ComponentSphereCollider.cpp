@@ -32,7 +32,10 @@ void ComponentSphereCollider::Init() {
 			centerOffset = float3::zero;
 		}
 	}
-	if (App->time->HasGameStarted() && !rigidBody && IsActive()) App->physics->CreateSphereRigidbody(this);
+}
+
+void ComponentSphereCollider::Start() {
+	if (!rigidBody && IsActive()) App->physics->CreateSphereRigidbody(this);
 }
 
 void ComponentSphereCollider::DrawGizmos() {

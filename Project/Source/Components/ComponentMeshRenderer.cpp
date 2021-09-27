@@ -1004,6 +1004,10 @@ void ComponentMeshRenderer::DeleteRenderingModeMask() {
 	}
 }
 
+void ComponentMeshRenderer::SetGameObjectBones(const std::unordered_map<std::string, GameObject*>& goBones_) {
+	goBones = goBones_;
+}
+
 void ComponentMeshRenderer::PlayDissolveAnimation(bool reverse) {
 	dissolveAnimationFinished = false;
 	dissolveAnimationReverse = reverse;

@@ -240,11 +240,10 @@ void ComponentParticleSystem::Init() {
 	InitCurveValues(scaleFactorCurve);
 	InitCurveValues(intensityMultiplierCurve);
 	InitCurveValues(rangeMultiplierCurve);
-}
 
-void ComponentParticleSystem::Start() {
+	// Init subemitters
 	for (SubEmitter* subEmitter : subEmitters) {
-		GameObject* gameObject = App->scene->scene->GetGameObject(subEmitter->gameObjectUID);
+		GameObject* gameObject = GetOwner().scene->GetGameObject(subEmitter->gameObjectUID);
 		if (gameObject != nullptr) {
 			ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
 			if (particleSystem != nullptr) {
@@ -259,8 +258,9 @@ void ComponentParticleSystem::Start() {
 		}
 	}
 
+	// Init light
 	if (lightGameObjectUID != 0) {
-		GameObject* gameObject = App->scene->scene->GetGameObject(lightGameObjectUID);
+		GameObject* gameObject = GetOwner().scene->GetGameObject(lightGameObjectUID);
 		if (gameObject != nullptr) {
 			ComponentLight* light = gameObject->GetComponent<ComponentLight>();
 			if (light == nullptr || light->lightType != LightType::POINT) {

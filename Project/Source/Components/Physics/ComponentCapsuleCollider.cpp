@@ -35,7 +35,10 @@ void ComponentCapsuleCollider::Init() {
 			centerOffset = float3::zero;
 		}
 	}
-	if (App->time->HasGameStarted() && !rigidBody && IsActive()) App->physics->CreateCapsuleRigidbody(this);
+}
+
+void ComponentCapsuleCollider::Start() {
+	if (!rigidBody && IsActive()) App->physics->CreateCapsuleRigidbody(this);
 }
 
 void ComponentCapsuleCollider::DrawGizmos() {

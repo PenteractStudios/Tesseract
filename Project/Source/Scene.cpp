@@ -580,24 +580,24 @@ void Scene::RemoveStaticShadowCaster(const GameObject* go) {
 }
 
 void Scene::AddStaticShadowCaster(GameObject* go) {
-		auto it = std::find(staticShadowCasters.begin(), staticShadowCasters.end(), go);
+	auto it = std::find(staticShadowCasters.begin(), staticShadowCasters.end(), go);
 
-		if (it != staticShadowCasters.end()) return;
+	if (it != staticShadowCasters.end()) return;
 
-		staticShadowCasters.push_back(go);
+	staticShadowCasters.push_back(go);
 
-		App->renderer->lightFrustumStatic.Invalidate();
-	}
+	App->renderer->lightFrustumStatic.Invalidate();
+}
 
-	void Scene::RemoveDynamicShadowCaster(const GameObject* go) {
-		auto it = std::find(dynamicShadowCasters.begin(), dynamicShadowCasters.end(), go);
+void Scene::RemoveDynamicShadowCaster(const GameObject* go) {
+	auto it = std::find(dynamicShadowCasters.begin(), dynamicShadowCasters.end(), go);
 
-		if (it == dynamicShadowCasters.end()) return;
+	if (it == dynamicShadowCasters.end()) return;
 
-		dynamicShadowCasters.erase(it);
+	dynamicShadowCasters.erase(it);
 
-		App->renderer->lightFrustumDynamic.Invalidate();
-	}
+	App->renderer->lightFrustumDynamic.Invalidate();
+}
 
 void Scene::AddDynamicShadowCaster(GameObject* go) {
 	auto it = std::find(dynamicShadowCasters.begin(), dynamicShadowCasters.end(), go);
