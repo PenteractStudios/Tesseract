@@ -34,8 +34,10 @@ void ComponentBoxCollider::Init() {
 	}
 
 	localAABB.SetFromCenterAndSize(centerOffset, size);
+}
 
-	if (App->time->HasGameStarted() && !rigidBody && IsActive()) App->physics->CreateBoxRigidbody(this);
+void ComponentBoxCollider::Start() {
+	if (!rigidBody && IsActive()) App->physics->CreateBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::DrawGizmos() {

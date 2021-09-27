@@ -29,6 +29,8 @@ public:
 	void AddRenderingModeMask();
 	void DeleteRenderingModeMask();
 
+	void SetGameObjectBones(const std::unordered_map<std::string, GameObject*>& goBones);
+
 	// Dissolve
 	TESSERACT_ENGINE_API void PlayDissolveAnimation(bool reverse = false);	// Plays Dissolve animation. If reverse is true, it will go from transparent to material's color, else it will go from color to transparent
 	TESSERACT_ENGINE_API void ResetDissolveValues();				// Resets current timer, dissolve threshold and reverse to false

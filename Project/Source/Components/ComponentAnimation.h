@@ -36,7 +36,7 @@ public:
 	TESSERACT_ENGINE_API void SendTriggerSecondary(const std::string& trigger); // Method to trigger the change of state
 
 	TESSERACT_ENGINE_API State* GetCurrentState() {
-		if (!loadedResourceStateMachine) return nullptr;
+		if (!loadedResourceStateMachine || currentStatePrincipal.id == 0) return nullptr;
 		return &currentStatePrincipal;
 	}
 	TESSERACT_ENGINE_API void SetCurrentState(State* mCurrentState) {
@@ -44,7 +44,7 @@ public:
 	}
 
 	TESSERACT_ENGINE_API State* GetCurrentStateSecondary() {
-		if (!loadedResourceStateMachineSecondary) return nullptr;
+		if (!loadedResourceStateMachineSecondary || currentStateSecondary.id == 0) return nullptr;
 		return &currentStateSecondary;
 	}
 	TESSERACT_ENGINE_API void SetCurrentStateSecondary(State* mCurrentState) {

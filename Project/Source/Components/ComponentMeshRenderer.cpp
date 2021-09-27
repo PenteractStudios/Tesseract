@@ -137,10 +137,10 @@ void ComponentMeshRenderer::OnEditorUpdate() {
 			ImGui::TextColored(App->editor->titleColor, "Geometry");
 			ImGui::TextWrapped("Num Vertices: ");
 			ImGui::SameLine();
-			ImGui::TextColored(App->editor->textColor, "%d", mesh->numVertices);
+			ImGui::TextColored(App->editor->textColor, "%d", mesh->vertices.size());
 			ImGui::TextWrapped("Num Triangles: ");
 			ImGui::SameLine();
-			ImGui::TextColored(App->editor->textColor, "%d", mesh->numIndices / 3);
+			ImGui::TextColored(App->editor->textColor, "%d", mesh->indices.size() / 3);
 			ImGui::Separator();
 			ImGui::TextColored(App->editor->titleColor, "Bounding Box");
 
@@ -199,8 +199,17 @@ void ComponentMeshRenderer::Init() {
 	App->resources->IncreaseReferenceCount(meshId);
 	App->resources->IncreaseReferenceCount(materialId);
 
-	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+	AddRenderingModeMask();
 
+	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
+	if (mesh == nullptr) return;
+
+	palette.resize(mesh->bones.size());
+	for (unsigned i = 0; i < mesh->bones.size(); ++i) {
+		palette[i] = float4x4::identity;
+	}
+
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
 	if (material == nullptr) return;
 
 	if (material->castShadows) {
@@ -218,8 +227,8 @@ void ComponentMeshRenderer::Update() {
 	if (!mesh) return;
 
 	if (palette.empty()) {
-		palette.resize(mesh->numBones);
-		for (unsigned i = 0; i < mesh->numBones; ++i) {
+		palette.resize(mesh->bones.size());
+		for (unsigned i = 0; i < mesh->bones.size(); ++i) {
 			palette[i] = float4x4::identity;
 		}
 	}
@@ -235,7 +244,7 @@ void ComponentMeshRenderer::Update() {
 		const float4x4& invertedRootBoneTransform = rootBoneParent ? rootBoneParent->GetComponent<ComponentTransform>()->GetGlobalMatrix().Inverted() : float4x4::identity;
 
 		const float4x4& localMatrix = GetOwner().GetComponent<ComponentTransform>()->GetLocalMatrix();
-		for (unsigned i = 0; i < mesh->numBones; ++i) {
+		for (unsigned i = 0; i < mesh->bones.size(); ++i) {
 			const GameObject* bone = goBones.at(mesh->bones[i].boneName);
 			palette[i] = localMatrix * invertedRootBoneTransform * bone->GetComponent<ComponentTransform>()->GetGlobalMatrix() * mesh->bones[i].transform;
 		}
@@ -250,10 +259,6 @@ void ComponentMeshRenderer::Save(JsonValue jComponent) const {
 void ComponentMeshRenderer::Load(JsonValue jComponent) {
 	meshId = jComponent[JSON_TAG_MESH_ID];
 	materialId = jComponent[JSON_TAG_MATERIAL_ID];
-	if (materialId != 0) {
-		AddRenderingModeMask();
-		App->resources->IncreaseReferenceCount(materialId);
-	}
 }
 
 void ComponentMeshRenderer::Start() {
@@ -393,7 +398,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 			glUniformMatrix4fv(unlitProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 		}
 
-		glUniform1i(unlitProgram->hasBonesLocation, goBones.size());
+		glUniform1i(unlitProgram->hasBonesLocation, mesh->bones.size());
 
 		// Diffuse
 		unsigned glTextureDiffuse = 0;
@@ -425,7 +430,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform2fv(unlitProgram->offsetLocation, 1, ChooseTextureOffset(material->offset).ptr());
 
 		glBindVertexArray(mesh->vao);
-		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
+		glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
 		glBindVertexArray(0);
 
 		break;
@@ -448,7 +453,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 			glUniformMatrix4fv(unlitProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 		}
 
-		glUniform1i(unlitProgram->hasBonesLocation, goBones.size());
+		glUniform1i(unlitProgram->hasBonesLocation, mesh->bones.size());
 
 		// Diffuse
 		unsigned glTextureDiffuse = 0;
@@ -487,7 +492,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform1f(unlitProgram->edgeSizeLocation, material->dissolveEdgeSize);
 
 		glBindVertexArray(mesh->vao);
-		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
+		glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
 		glBindVertexArray(0);
 
 		break;
@@ -510,7 +515,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 			glUniformMatrix4fv(volumetricLightProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 		}
 
-		glUniform1i(volumetricLightProgram->hasBonesLocation, goBones.size());
+		glUniform1i(volumetricLightProgram->hasBonesLocation, mesh->bones.size());
 
 		glUniform3fv(volumetricLightProgram->viewPosLocation, 1, App->camera->GetPosition().ptr());
 
@@ -539,7 +544,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform1f(volumetricLightProgram->softRangeLocation, material->softRange);
 
 		glBindVertexArray(mesh->vao);
-		glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
+		glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
 		glBindVertexArray(0);
 
 		break;
@@ -748,7 +753,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniformMatrix4fv(standardProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 	}
 
-	glUniform1i(standardProgram->hasBonesLocation, goBones.size());
+	glUniform1i(standardProgram->hasBonesLocation, mesh->bones.size());
 
 	glUniform3fv(standardProgram->viewPosLocation, 1, App->camera->GetPosition().ptr());
 
@@ -874,7 +879,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform1i(standardProgram->lightNumSpotsLocation, spotLightsArraySize);
 
 	glBindVertexArray(mesh->vao);
-	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
+	glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 }
 
@@ -919,7 +924,7 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 		glUniformMatrix4fv(depthPrepassProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 	}
 
-	glUniform1i(depthPrepassProgram->hasBonesLocation, goBones.size());
+	glUniform1i(depthPrepassProgram->hasBonesLocation, mesh->bones.size());
 
 	// Diffuse
 	unsigned glTextureDiffuse = 0;
@@ -939,7 +944,7 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	glUniform2fv(depthPrepassProgram->offsetLocation, 1, ChooseTextureOffset(material->offset).ptr());
 
 	glBindVertexArray(mesh->vao);
-	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
+	glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 }
 
@@ -981,10 +986,10 @@ void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix, unsigned int
 		glUniformMatrix4fv(glGetUniformLocation(program, "palette"), palette.size(), GL_TRUE, palette[0].ptr());
 	}
 
-	glUniform1i(glGetUniformLocation(program, "hasBones"), goBones.size());
+	glUniform1i(glGetUniformLocation(program, "hasBones"), mesh->bones.size());
 
 	glBindVertexArray(mesh->vao);
-	glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
+	glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 }
 
@@ -1002,6 +1007,10 @@ void ComponentMeshRenderer::DeleteRenderingModeMask() {
 		GameObject& gameObject = GetOwner();
 		gameObject.DeleteMask(MaskType::TRANSPARENT);
 	}
+}
+
+void ComponentMeshRenderer::SetGameObjectBones(const std::unordered_map<std::string, GameObject*>& goBones_) {
+	goBones = goBones_;
 }
 
 void ComponentMeshRenderer::PlayDissolveAnimation(bool reverse) {

@@ -11,7 +11,10 @@ Resource::Resource(ResourceType type_, UID id_, const char* name_, const char* a
 	, resourceFilePath(resourceFilePath_) {}
 
 Resource::~Resource() {
-	Unload();
+	if (loaded) {
+		Unload();
+		loaded = false;
+	}
 }
 
 ResourceType Resource::GetType() const {
