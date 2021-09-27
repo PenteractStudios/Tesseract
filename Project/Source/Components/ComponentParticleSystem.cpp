@@ -269,7 +269,6 @@ void ComponentParticleSystem::Start() {
 		}
 	}
 	float3x3 rotateMatrix = emitterModel.RotatePart();
-	rotateMatrix.RemoveScale();
 	obbEmitter = OBB(emitterModel.TranslatePart(), emitterModel.GetScale(), rotateMatrix.Col3(0), rotateMatrix.Col3(1), rotateMatrix.Col3(2));
 }
 
@@ -392,9 +391,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		// TODO: Fix BOX Emitter
 		if (emitterType != ParticleEmitterType::BOX) {
 			float3 position = emitterModel.TranslatePart();
-			float3x3 rotateMatrix = emitterModel.RotatePart();
-			rotateMatrix.RemoveScale();
-			float3 rotation = rotateMatrix.ToEulerXYZ() * RADTODEG;
+			float3 rotation = emitterModel.RotatePart().ToEulerXYZ() * RADTODEG;
 			float3 scale = emitterModel.GetScale();
 
 			ImGui::NewLine();
@@ -413,7 +410,6 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			if (modified) {
 				emitterModel = float4x4::FromTRS(position, Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD), scale);
 				float3x3 rotateMatrix = emitterModel.RotatePart();
-				rotateMatrix.RemoveScale();
 				obbEmitter = OBB(float3::zero, emitterModel.GetScale() / 2, rotateMatrix.Col3(0), rotateMatrix.Col3(1), rotateMatrix.Col3(2));
 			}
 			ImGui::PopItemWidth();
@@ -1137,9 +1133,7 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jEmitterPosition[0] = position[0];
 	jEmitterPosition[1] = position[1];
 	jEmitterPosition[2] = position[2];
-	float3x3 rotateMatrix = emitterModel.RotatePart();
-	rotateMatrix.RemoveScale();
-	float3 rotation = rotateMatrix.ToEulerXYZ();
+	float3 rotation = emitterModel.RotatePart().ToEulerXYZ();
 	JsonValue jEmitterRotation = jComponent[JSON_TAG_EMITTER_ROTATION];
 	jEmitterRotation[0] = rotation[0];
 	jEmitterRotation[1] = rotation[1];
@@ -1352,9 +1346,7 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 		float4x4 newModel;
 		ObtainEmitterGlobalMatrix(newModel);
 		currentParticle->emitterPosition = newModel.TranslatePart();
-		float3x3 rotateMatrix = newModel.RotatePart();
-		rotateMatrix.RemoveScale();
-		currentParticle->emitterRotation = rotateMatrix.ToQuat();
+		currentParticle->emitterRotation = newModel.RotatePart().ToQuat();
 
 		if (App->time->HasGameStarted() && collision) {
 			currentParticle->emitter = this;
@@ -1374,7 +1366,6 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 	float4x4 newModel;
 	ObtainEmitterGlobalMatrix(newModel);
-	newModel.Orthonormalize3();
 
 	float reverseDist = ObtainRandomValueFloat(reverseDistanceRM, reverseDistance, reverseDistanceCurve, emitterTime / duration);
 
@@ -1391,7 +1382,6 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 		}
 		point = point.Div(emitterModel.GetScale());
 		float3x3 rotateMatrix = newModel.RotatePart();
-		rotateMatrix.RemoveScale();
 		currentParticle->initialPosition = newModel.TranslatePart() + rotateMatrix * float3(point.x, point.y, point.z).Div(emitterModel.GetScale());
 		//float4x4 matrix = GetOwner().GetComponent<ComponentTransform>()->GetGlobalMatrix();
 		//float3 localPos = emitterModel.TranslatePart() + emitterModel.RotatePart() * float3(point.x, point.y, point.z);
@@ -1434,7 +1424,6 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 		}
 
 		float3x3 rotateMatrix = newModel.RotatePart();
-		rotateMatrix.RemoveScale();
 		currentParticle->initialPosition = newModel.TranslatePart() + rotateMatrix * localPos;
 		currentParticle->direction = (rotateMatrix * localDir).Normalized();
 	}
@@ -1561,9 +1550,7 @@ void ComponentParticleSystem::InitLight(Particle* currentParticle) {
 	newGameObject->SetParent(&parent);
 	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform* transformPS = GetOwner().GetComponent<ComponentTransform>();
-	float3x3 rotateMatrix = transformPS->GetGlobalMatrix().RotatePart();
-	rotateMatrix.RemoveScale();
-	float3 globalOffset = rotateMatrix * lightOffset;
+	float3 globalOffset = transformPS->GetGlobalMatrix().RotatePart() * lightOffset;
 	transform->SetGlobalPosition(currentParticle->position + globalOffset);
 	transform->SetGlobalRotation(float3::zero);
 	transform->SetGlobalScale(float3::one);
@@ -1664,9 +1651,7 @@ void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
 		float4x4 newModel;
 		ObtainEmitterGlobalMatrix(newModel);
 		float3 position = newModel.TranslatePart();
-		float3x3 rotateMatrix = newModel.RotatePart();
-		rotateMatrix.RemoveScale();
-		Quat rotation = rotateMatrix.ToQuat();
+		Quat rotation = newModel.RotatePart().ToQuat();
 
 		if (!currentParticle->emitterRotation.Equals(rotation)) {
 			// Update Particle direction
@@ -1800,9 +1785,7 @@ void ComponentParticleSystem::UpdateLight(Particle* currentParticle) {
 	float3 position = currentParticle->position;
 	ComponentTransform* transform = currentParticle->lightGO->GetComponent<ComponentTransform>();
 	ComponentTransform* transformPS = GetOwner().GetComponent<ComponentTransform>();
-	float3x3 rotateMatrix = transformPS->GetGlobalMatrix().RotatePart();
-	rotateMatrix.RemoveScale();
-	float3 globalOffset = rotateMatrix * lightOffset;
+	float3 globalOffset = transformPS->GetGlobalMatrix().RotatePart() * lightOffset;
 	transform->SetGlobalPosition(currentParticle->position + globalOffset);
 
 	if (useParticleColor && colorOverLifetime) {
@@ -1850,7 +1833,6 @@ void ComponentParticleSystem::DrawGizmos() {
 		float4x4 newModel;
 		ObtainEmitterGlobalMatrix(newModel);
 		float3x3 rotateMatrix = newModel.RotatePart();
-		rotateMatrix.RemoveScale();
 		if (emitterType == ParticleEmitterType::CONE) {
 			dd::cone(newModel.TranslatePart(), rotateMatrix * float3::unitY, dd::colors::White, coneRadiusUp, shapeRadius);
 			dd::circle(newModel.TranslatePart(), rotateMatrix * float3::unitY, dd::colors::White, shapeRadius * (1 - shapeRadiusThickness), 50.0f);
@@ -1952,9 +1934,7 @@ void ComponentParticleSystem::Draw() {
 				newModelMatrix = float4x4::LookAt(float3::unitZ, cameraDir, float3::unitY, float3::unitY);
 			}
 
-			float3x3 rotateMatrix = newModelMatrix.RotatePart();
-			rotateMatrix.RemoveScale();
-			float4x4 modelMatrix = float4x4::FromTRS(currentParticle.position, rotateMatrix * float3x3::FromQuat(currentParticle.rotation), currentParticle.scale);
+			float4x4 modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart() * float3x3::FromQuat(currentParticle.rotation), currentParticle.scale);
 			float4x4* view = &App->camera->GetViewMatrix();
 			float4x4* proj = &App->camera->GetProjectionMatrix();
 
@@ -2127,8 +2107,6 @@ float ComponentParticleSystem::ParticleLifeNormalized(Particle* currentParticle)
 
 void ComponentParticleSystem::ObtainEmitterGlobalMatrix(float4x4& matrix) {
 	float4x4 model = GetOwner().GetComponent<ComponentTransform>()->GetGlobalMatrix();
-	model.Orthogonalize3();
-	model.RemoveScale();
 	matrix = model * emitterModel;
 }
 

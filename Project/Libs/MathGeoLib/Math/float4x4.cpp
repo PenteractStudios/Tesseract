@@ -806,7 +806,9 @@ CONST_WIN32 float3 float4x4::TranslatePart() const
 
 CONST_WIN32 float3x3 float4x4::RotatePart() const
 {
-	return Float3x3Part();
+	float3x3 rotatePart = Float3x3Part();
+	rotatePart.RemoveScale();
+	return rotatePart;
 }
 
 float3 float4x4::WorldX() const

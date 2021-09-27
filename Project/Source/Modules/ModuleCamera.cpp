@@ -429,7 +429,8 @@ vec ModuleCamera::GetPosition() const {
 }
 
 float3 ModuleCamera::GetOrientation() const {
-	return activeCamera->GetFrustum()->ViewMatrix().RotatePart().ToEulerXYZ();
+	float3x3 rotatePart = activeCamera->GetFrustum()->ViewMatrix().RotatePart();
+	return rotatePart.ToEulerXYZ();
 }
 
 float ModuleCamera::GetFocusDistance() const {

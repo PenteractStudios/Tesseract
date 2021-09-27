@@ -14,7 +14,6 @@
 #include "Utils/Leaks.h"
 
 LightFrustum::LightFrustum() {
-
 	subFrustums.resize(NUM_CASCADES_FRUSTUM);
 
 	for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
@@ -31,20 +30,17 @@ LightFrustum::LightFrustum() {
 	subFrustums[1].multiplier = 1.0f;
 	subFrustums[2].multiplier = 1.0f;
 	subFrustums[3].multiplier = 1.0f;
-
 }
 
 void LightFrustum::UpdateFrustums() {
-
 	ComponentCamera* gameCamera = App->camera->GetGameCamera();
 	if (!gameCamera) return;
 
-	Frustum *gameFrustum = gameCamera->GetFrustum();
+	Frustum* gameFrustum = gameCamera->GetFrustum();
 
 	float farDistance = MINIMUM_FAR_DISTANE; //*0.3f;
 
 	if (mode == CascadeMode::FitToScene) {
-		
 		for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; i++, farDistance *= 2.f) {
 			subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
 			subFrustums[i].perspectiveFrustum.SetHorizontalFovAndAspectRatio(gameFrustum->HorizontalFov(), gameFrustum->AspectRatio());
@@ -56,7 +52,6 @@ void LightFrustum::UpdateFrustums() {
 		}
 
 	} else {
-
 		float nearDistance = 0.0f;
 
 		for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; i++, nearDistance = farDistance, farDistance *= 2.f) {
@@ -69,7 +64,6 @@ void LightFrustum::UpdateFrustums() {
 			subFrustums[i].planes.CalculateFrustumPlanes(subFrustums[i].perspectiveFrustum);
 		}
 	}
-
 }
 
 void LightFrustum::ReconstructFrustum(ShadowCasterType shadowCasterType) {
@@ -86,7 +80,7 @@ void LightFrustum::ReconstructFrustum(ShadowCasterType shadowCasterType) {
 	for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
 		float4x4 lightOrientation = transform->GetGlobalMatrix();
 		lightOrientation.SetTranslatePart(float3::zero);
-		
+
 		AABB lightAABB;
 		lightAABB.SetNegativeInfinity();
 
@@ -103,7 +97,8 @@ void LightFrustum::ReconstructFrustum(ShadowCasterType shadowCasterType) {
 
 		float3 minPoint = lightAABB.minPoint;
 		float3 maxPoint = lightAABB.maxPoint;
-		float3 position = lightOrientation.RotatePart() * float3((maxPoint.x + minPoint.x) * 0.5f, ((maxPoint.y + minPoint.y) * 0.5f), minPoint.z);
+		float3x3 rotatePart = lightOrientation.RotatePart();
+		float3 position = rotatePart * float3((maxPoint.x + minPoint.x) * 0.5f, ((maxPoint.y + minPoint.y) * 0.5f), minPoint.z);
 
 		subFrustums[i].orthographicFrustum.SetOrthographic((maxPoint.x - minPoint.x), (maxPoint.y - minPoint.y));
 		subFrustums[i].orthographicFrustum.SetUp(transform->GetUp());
@@ -135,11 +130,9 @@ const std::vector<LightFrustum::FrustumInformation>& LightFrustum::GetSubFrustum
 }
 
 LightFrustum::FrustumInformation& LightFrustum::operator[](int i) {
-	
 	assert(i < 0 || i > NUM_CASCADES_FRUSTUM && "Out of range");
 
 	return subFrustums[i];
-
 }
 
 void LightFrustum::Invalidate() {
