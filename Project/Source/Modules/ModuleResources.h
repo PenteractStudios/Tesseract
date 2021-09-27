@@ -58,6 +58,7 @@ private:
 	void ImportLibraryResource(const char* filePath);
 
 	void LoadResource(Resource* resource);
+	void UnloadResource(Resource* resource);
 	void LoadImportOptions(std::unique_ptr<ImportOptions>& importOptions, const char* filePath);
 
 public:

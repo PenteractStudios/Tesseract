@@ -142,7 +142,7 @@ void ModuleResources::ReceiveEvent(TesseractEvent& e) {
 		UID id = e.Get<DestroyResourceStruct>().resourceId;
 		auto& it = resources.find(id);
 		if (it != resources.end()) {
-			it->second->Unload();
+			UnloadResource(it->second.get());
 			resources.erase(it);
 		}
 	} else if (e.type == TesseractEventType::UPDATE_ASSET_CACHE) {
@@ -302,7 +302,7 @@ void ModuleResources::DecreaseReferenceCount(UID id) {
 		if (referenceCounts[id] <= 0) {
 			Resource* resource = GetResource<Resource>(id);
 			if (resource != nullptr) {
-				resource->Unload();
+				UnloadResource(resource);
 			}
 			referenceCounts.erase(id);
 		}
@@ -551,6 +551,8 @@ void ModuleResources::DestroyResource(UID id) {
 }
 
 void ModuleResources::LoadResource(Resource* resource) {
+	if (resource->loaded) return;
+
 	// Read resource meta file
 	bool resourceMetaLoaded = true;
 	std::string resourceMetaFile = resource->GetResourceFilePath() + META_EXTENSION;
@@ -580,6 +582,16 @@ void ModuleResources::LoadResource(Resource* resource) {
 
 	// Load resource
 	resource->Load();
+
+	resource->loaded = true;
+}
+
+void ModuleResources::UnloadResource(Resource* resource) {
+	if (!resource->loaded) return;
+
+	resource->Unload();
+
+	resource->loaded = false;
 }
 
 void ModuleResources::LoadImportOptions(std::unique_ptr<ImportOptions>& importOptions, const char* filePath) {
