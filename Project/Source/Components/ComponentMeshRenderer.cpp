@@ -199,6 +199,8 @@ void ComponentMeshRenderer::Init() {
 	App->resources->IncreaseReferenceCount(meshId);
 	App->resources->IncreaseReferenceCount(materialId);
 
+	AddRenderingModeMask();
+
 	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
 
 	if (material == nullptr) return;
@@ -250,10 +252,6 @@ void ComponentMeshRenderer::Save(JsonValue jComponent) const {
 void ComponentMeshRenderer::Load(JsonValue jComponent) {
 	meshId = jComponent[JSON_TAG_MESH_ID];
 	materialId = jComponent[JSON_TAG_MATERIAL_ID];
-	if (materialId != 0) {
-		AddRenderingModeMask();
-		App->resources->IncreaseReferenceCount(materialId);
-	}
 }
 
 void ComponentMeshRenderer::Start() {
