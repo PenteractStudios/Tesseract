@@ -183,7 +183,7 @@ private:
 private:
 	// ------- Viewport Size ------- //
 	float2 viewportSize = float2::zero;
-	unsigned int indexDepthMapTexture = -1;
+	unsigned int indexDepthMapTexture = UINT_MAX;
 	ShadowCasterType shadowCasterType;
 	bool drawDepthMapTexture = false;
 	bool drawSSAOTexture = false;
