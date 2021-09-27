@@ -513,6 +513,7 @@ void ModuleRender::DrawScene() {
 
 bool ModuleRender::Start() {
 	App->events->AddObserverToEvent(TesseractEventType::SCREEN_RESIZED, this);
+	App->events->AddObserverToEvent(TesseractEventType::PROJECTION_CHANGED, this);
 	return true;
 }
 
@@ -997,6 +998,9 @@ void ModuleRender::ReceiveEvent(TesseractEvent& ev) {
 	switch (ev.type) {
 	case TesseractEventType::SCREEN_RESIZED:
 		ViewportResized(ev.Get<ViewportResizedStruct>().newWidth, ev.Get<ViewportResizedStruct>().newHeight);
+		break;
+	case TesseractEventType::PROJECTION_CHANGED:
+		lightTilesComputed = false;
 		break;
 	default:
 		break;
