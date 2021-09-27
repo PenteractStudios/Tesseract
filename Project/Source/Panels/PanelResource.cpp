@@ -27,6 +27,16 @@ void PanelResource::Update() {
 			ImGui::TextColored(App->editor->textColor, "%llu", selected->GetId());
 
 			ImGui::Separator();
+
+			// Load button
+			ImGui::TextColored(App->editor->titleColor, "Configuration");
+			if (ImGui::Button("Load")) {
+				App->resources->UnloadResource(selected);
+				App->resources->LoadResource(selected);
+			}
+
+			ImGui::Separator();
+
 			selected->OnEditorUpdate();
 		}
 	}

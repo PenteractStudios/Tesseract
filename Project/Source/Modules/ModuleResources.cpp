@@ -286,11 +286,11 @@ void ModuleResources::IncreaseReferenceCount(UID id) {
 	if (referenceCounts.find(id) != referenceCounts.end()) {
 		referenceCounts[id] = referenceCounts[id] + 1;
 	} else {
+		referenceCounts[id] = 1;
 		Resource* resource = GetResource<Resource>(id);
 		if (resource != nullptr) {
 			LoadResource(resource);
 		}
-		referenceCounts[id] = 1;
 	}
 }
 
@@ -300,11 +300,11 @@ void ModuleResources::DecreaseReferenceCount(UID id) {
 	if (referenceCounts.find(id) != referenceCounts.end()) {
 		referenceCounts[id] = referenceCounts[id] - 1;
 		if (referenceCounts[id] <= 0) {
+			referenceCounts.erase(id);
 			Resource* resource = GetResource<Resource>(id);
 			if (resource != nullptr) {
 				UnloadResource(resource);
 			}
-			referenceCounts.erase(id);
 		}
 	}
 }
@@ -410,8 +410,6 @@ void ModuleResources::UpdateAsync() {
 		updateAssetCacheEv.Set<UpdateAssetCacheStruct>(newAssetCache);
 		App->events->AddEvent(updateAssetCacheEv);
 #endif
-
-		App->events->AddEvent(TesseractEventType::RESOURCES_LOADED);
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BETWEEN_RESOURCE_UPDATES_MS));
 	}

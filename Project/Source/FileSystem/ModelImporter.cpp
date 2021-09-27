@@ -461,8 +461,8 @@ static void ImportNode(const char* modelFilePath, JsonValue jMeta, const aiScene
 			aiMesh* assimpMesh = assimpScene->mMeshes[node->mMeshes[i]];
 
 			ComponentMeshRenderer* meshRenderer = gameObject->CreateComponent<ComponentMeshRenderer>();
-			meshRenderer->meshId = ImportMesh(modelFilePath, jMeta, assimpMesh, resourceIndex, bones);
-			meshRenderer->materialId = materialIds[assimpMesh->mMaterialIndex];
+			meshRenderer->SetMeshInternal(ImportMesh(modelFilePath, jMeta, assimpMesh, resourceIndex, bones));
+			meshRenderer->SetMaterialInternal(materialIds[assimpMesh->mMaterialIndex]);
 
 			// Update min and max points
 			for (unsigned int j = 0; j < assimpMesh->mNumVertices; ++j) {

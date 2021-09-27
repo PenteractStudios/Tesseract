@@ -31,6 +31,14 @@ public:
 
 	void SetGameObjectBones(const std::unordered_map<std::string, GameObject*>& goBones);
 
+	void SetMeshInternal(UID meshId);
+	void SetMaterialInternal(UID materialId);
+
+	TESSERACT_ENGINE_API UID GetMesh() const;
+	TESSERACT_ENGINE_API void SetMesh(UID meshId);
+	TESSERACT_ENGINE_API UID GetMaterial() const;
+	TESSERACT_ENGINE_API void SetMaterial(UID materialId);
+
 	// Dissolve
 	TESSERACT_ENGINE_API void PlayDissolveAnimation(bool reverse = false);	// Plays Dissolve animation. If reverse is true, it will go from transparent to material's color, else it will go from color to transparent
 	TESSERACT_ENGINE_API void ResetDissolveValues();				// Resets current timer, dissolve threshold and reverse to false
@@ -46,13 +54,6 @@ public:
 	TESSERACT_ENGINE_API void SetTextureTiling(float2 _tiling);
 	TESSERACT_ENGINE_API void SetTextureOffset(float2 _offset);
 
-public:
-	UID meshId = 0;
-	UID materialId = 0;
-	std::vector<float4x4> palette;
-
-	std::unordered_map<std::string, GameObject*> goBones;
-
 private:
 	void UpdateDissolveAnimation();
 	float GetDissolveValue() const;
@@ -62,6 +63,12 @@ private:
 
 private:
 	bool bbActive = false;
+
+	UID meshId = 0;
+	UID materialId = 0;
+	std::vector<float4x4> palette;
+
+	std::unordered_map<std::string, GameObject*> goBones;
 
 	// Dissolve variables
 	float currentTime = 0.0f;

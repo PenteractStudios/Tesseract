@@ -37,4 +37,5 @@ private:
 	float maxSpeed = 5.0f;
 	float maxAcceleration = 8.0f;
 	bool avoidingObstacle = true;
+	bool shouldAddAgentToCrowd = true;
 };

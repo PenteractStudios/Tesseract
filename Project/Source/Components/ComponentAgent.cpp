@@ -96,6 +96,8 @@ bool ComponentAgent::IsAvoidingObstacle() {
 }
 
 void ComponentAgent::AddAgentToCrowd() {
+	shouldAddAgentToCrowd = true;
+
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	if (!navMesh.IsGenerated() || agentId != -1) return;
 
@@ -122,9 +124,12 @@ void ComponentAgent::AddAgentToCrowd() {
 	ap.separationWeight = 2;
 
 	agentId = navMesh.GetCrowd()->addAgent(GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition().ptr(), &ap);
+
+	shouldAddAgentToCrowd = false;
 }
 
 void ComponentAgent::RemoveAgentFromCrowd() {
+	shouldAddAgentToCrowd = false;
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	if (!navMesh.IsGenerated() || agentId == -1) return;
 	navMesh.GetCrowd()->removeAgent(agentId);
@@ -151,9 +156,13 @@ void ComponentAgent::Update() {
 	if (!App->time->IsGameRunning()) return;
 
 	NavMesh& navMesh = App->navigation->GetNavMesh();
-	if (!navMesh.IsGenerated() || agentId == -1) return;
-	const dtCrowdAgent* ag = navMesh.GetCrowd()->getAgent(agentId);
+	if (!navMesh.IsGenerated()) return;
 
+	// Try to add the agent to the crowd
+	if (shouldAddAgentToCrowd) AddAgentToCrowd();
+	if (agentId == -1) return;
+
+	const dtCrowdAgent* ag = navMesh.GetCrowd()->getAgent(agentId);
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 	transform->SetGlobalPosition(float3(ag->npos));
 }

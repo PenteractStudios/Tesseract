@@ -1394,7 +1394,7 @@ void ModuleRender::DrawGameObject(GameObject* gameObject) {
 	for (ComponentMeshRenderer& mesh : meshes) {
 		mesh.Draw(transform->GetGlobalMatrix());
 
-		ResourceMesh* resourceMesh = App->resources->GetResource<ResourceMesh>(mesh.meshId);
+		ResourceMesh* resourceMesh = App->resources->GetResource<ResourceMesh>(mesh.GetMesh());
 		if (resourceMesh != nullptr) {
 			culledTriangles += resourceMesh->indices.size() / 3;
 		}

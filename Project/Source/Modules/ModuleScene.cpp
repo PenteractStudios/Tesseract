@@ -79,7 +79,6 @@ bool ModuleScene::Init() {
 bool ModuleScene::Start() {
 	App->events->AddObserverToEvent(TesseractEventType::GAMEOBJECT_DESTROYED, this);
 	App->events->AddObserverToEvent(TesseractEventType::CHANGE_SCENE, this);
-	App->events->AddObserverToEvent(TesseractEventType::RESOURCES_LOADED, this);
 	App->events->AddObserverToEvent(TesseractEventType::COMPILATION_FINISHED, this);
 	App->events->AddObserverToEvent(TesseractEventType::PRESSED_PLAY, this);
 
@@ -99,9 +98,9 @@ bool ModuleScene::Start() {
 	App->events->AddEvent(TesseractEventType::PRESSED_PLAY);
 	ResourceScene* startScene = App->resources->GetResource<ResourceScene>(startSceneId);
 	if (startScene != nullptr) {
-		SceneImporter::LoadScene(startScene->GetResourceFilePath().c_str());
+		App->scene->LoadScene(startScene->GetResourceFilePath().c_str());
 	}
-	if (App->scene->scene->root == nullptr) {
+	if (App->scene->scene == nullptr) {
 		App->scene->CreateEmptyScene();
 	}
 
@@ -179,27 +178,17 @@ bool ModuleScene::CleanUp() {
 void ModuleScene::ReceiveEvent(TesseractEvent& e) {
 	switch (e.type) {
 	case TesseractEventType::GAMEOBJECT_DESTROYED:
+		if (e.Get<DestroyGameObjectStruct>().scene != scene) break;
+
 		scene->DestroyGameObject(e.Get<DestroyGameObjectStruct>().gameObject);
 		break;
 	case TesseractEventType::CHANGE_SCENE: {
 		ResourceScene* newScene = App->resources->GetResource<ResourceScene>(e.Get<ChangeSceneStruct>().sceneId);
 		if (newScene != nullptr) {
-			SceneImporter::LoadScene(newScene->GetResourceFilePath().c_str());
+			App->scene->LoadScene(newScene->GetResourceFilePath().c_str());
 		}
 		break;
 	}
-	case TesseractEventType::RESOURCES_LOADED:
-		if (App->time->HasGameStarted() && !scene->sceneLoaded) {
-			scene->sceneLoaded = true;
-			for (ComponentScript& script : scene->scriptComponents) {
-				script.CreateScriptInstance();
-				Script* scriptInstance = script.GetScriptInstance();
-				if (scriptInstance != nullptr) {
-					scriptInstance->Start();
-				}
-			}
-		}
-		break;
 	case TesseractEventType::COMPILATION_FINISHED:
 		for (ComponentScript& script : scene->scriptComponents) {
 			script.CreateScriptInstance();
@@ -274,7 +263,7 @@ void ModuleScene::DestroyGameObjectDeferred(GameObject* gameObject) {
 		DestroyGameObjectDeferred(child);
 	}
 	TesseractEvent e(TesseractEventType::GAMEOBJECT_DESTROYED);
-	e.Set<DestroyGameObjectStruct>(gameObject);
+	e.Set<DestroyGameObjectStruct>(gameObject->scene, gameObject);
 
 	App->events->AddEvent(e);
 }

@@ -226,7 +226,7 @@ void ModuleCamera::CalculateFrustumNearestObject(float2 pos) {
 	float distance = 0;
 	for (GameObject* gameObject : intersectingObjects) {
 		for (ComponentMeshRenderer& mesh : gameObject->GetComponents<ComponentMeshRenderer>()) {
-			ResourceMesh* meshResource = App->resources->GetResource<ResourceMesh>(mesh.meshId);
+			ResourceMesh* meshResource = App->resources->GetResource<ResourceMesh>(mesh.GetMesh());
 			if (meshResource == nullptr) continue;
 
 			const float4x4& model = gameObject->GetComponent<ComponentTransform>()->GetGlobalMatrix();

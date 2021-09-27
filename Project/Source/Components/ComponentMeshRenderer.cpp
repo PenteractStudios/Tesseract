@@ -1013,6 +1013,34 @@ void ComponentMeshRenderer::SetGameObjectBones(const std::unordered_map<std::str
 	goBones = goBones_;
 }
 
+void ComponentMeshRenderer::SetMeshInternal(UID meshId_) {
+	meshId = meshId_;
+}
+
+void ComponentMeshRenderer::SetMaterialInternal(UID materialId_) {
+	materialId = materialId_;
+}
+
+UID ComponentMeshRenderer::GetMesh() const {
+	return meshId;
+}
+
+void ComponentMeshRenderer::SetMesh(UID meshId_) {
+	App->resources->DecreaseReferenceCount(meshId);
+	meshId = meshId_;
+	App->resources->IncreaseReferenceCount(meshId);
+}
+
+UID ComponentMeshRenderer::GetMaterial() const {
+	return materialId;
+}
+
+void ComponentMeshRenderer::SetMaterial(UID materialId_) {
+	App->resources->DecreaseReferenceCount(materialId);
+	materialId = materialId_;
+	App->resources->IncreaseReferenceCount(materialId);
+}
+
 void ComponentMeshRenderer::PlayDissolveAnimation(bool reverse) {
 	dissolveAnimationFinished = false;
 	dissolveAnimationReverse = reverse;
