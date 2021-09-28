@@ -1,4 +1,5 @@
 /* Copyright Jukka Jylänki
+/* Copyright Jukka Jylänki
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -806,7 +807,9 @@ CONST_WIN32 float3 float4x4::TranslatePart() const
 
 CONST_WIN32 float3x3 float4x4::RotatePart() const
 {
-	return Float3x3Part();
+	float3x3 rotatePart = Float3x3Part();
+	rotatePart.RemoveScale();
+	return rotatePart;
 }
 
 float3 float4x4::WorldX() const
@@ -2080,7 +2083,7 @@ void float4x4::Decompose(float3 &translate, float3x3 &rotate, float3 &scale) con
 	assume(this->IsColOrthogonal3());
 	
 	translate = Col3(3);
-	rotate = RotatePart();
+	rotate = Float3x3Part();
 	scale.x = rotate.Col3(0).Length();
 	scale.y = rotate.Col3(1).Length();
 	scale.z = rotate.Col3(2).Length();

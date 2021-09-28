@@ -31,8 +31,8 @@ void main()
     vec3 colorAccumulative = GetOccludedAmbientLight(R, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness, tiledUV);
 
     // Directional Light
-    if (light.directional.isActive == 1) {
-        vec3 directionalDir = normalize(light.directional.direction);
+    if (dirLight.isActive == 1) {
+        vec3 directionalDir = normalize(dirLight.direction);
         float NL = max(dot(normal, - directionalDir), 0.0);
 
         vec3 reflectDir = reflect(directionalDir, normal);
@@ -40,69 +40,77 @@ void main()
 
         vec3 Rf = Rf0 + (1 - Rf0) * pow(1 - NL, 5);
 
-        vec3 directionalColor = (colorDiffuse.rgb * (1 - Rf0) + (shininess + 2) / 2 * Rf * VRn) * light.directional.color * light.directional.intensity * NL;
+        vec3 directionalColor = (colorDiffuse.rgb * (1 - Rf0) + (shininess + 2) / 2 * Rf * VRn) * dirLight.color * dirLight.intensity * NL;
 
         unsigned int indexS = DepthMapIndexStatic();
         unsigned int indexD = DepthMapIndexDynamic();
-        float shadowS = Shadow(fragPosLightStatic[indexS], normal, normalize(light.directional.direction), depthMapTexturesStatic[indexS]);
-        float shadowD = Shadow(fragPosLightDynamic[indexD], normal, normalize(light.directional.direction), depthMapTexturesDynamic[indexD]);
+        float shadowS = Shadow(fragPosLightStatic[indexS], normal, normalize(dirLight.direction), depthMapTexturesStatic[indexS]);
+        float shadowD = Shadow(fragPosLightDynamic[indexD], normal, normalize(dirLight.direction), depthMapTexturesDynamic[indexD]);
         
         float shadow = max(min(shadowD, 1), shadowS);
 
         colorAccumulative += (1.0 - shadow) * directionalColor;
     }
 
-    // Point Light
-    for (int i = 0; i < light.numPoints; i++) {
-        float pointDistance = length(light.points[i].pos - fragPos);
-        float falloffExponent = light.points[i].useCustomFalloff * light.points[i].falloffExponent + (1 - light.points[i].useCustomFalloff) * 4.0;
-        float distAttenuation = clamp(1.0 - pow(pointDistance / light.points[i].radius, falloffExponent), 0.0, 1.0);
-        distAttenuation = light.points[i].useCustomFalloff * distAttenuation + (1 - light.points[i].useCustomFalloff) * distAttenuation * distAttenuation / (pointDistance * pointDistance + 1.0);
+	
+	// Lights
+	int tileIndex = GetTileIndex();
+	LightTile lightTile = lightTilesBuffer.data[tileIndex];
+	for (uint i = 0; i < lightTile.count; i++ )
+    {
+		uint lightIndex = lightIndicesBuffer.data[lightTile.offset + i];
+		Light light = lightBuffer.data[lightIndex];
+		if (light.isSpotLight == 1)
+		{
+            float spotDistance = length(light.pos - fragPos);
+            float falloffExponent = light.useCustomFalloff * light.falloffExponent + (1 - light.useCustomFalloff) * 4.0;
+            float distAttenuation = clamp(1.0 - pow(spotDistance / light.radius, falloffExponent), 0.0, 1.0);
+            distAttenuation = light.useCustomFalloff * distAttenuation + (1 - light.useCustomFalloff) * distAttenuation * distAttenuation / (spotDistance * spotDistance + 1.0);
+            
+            vec3 spotDir = normalize(fragPos - light.pos);
 
-        vec3 pointDir = normalize(fragPos - light.points[i].pos);
-        float NL = max(dot(normal, -pointDir), 0.0);
+            vec3 aimDir = normalize(light.direction);
+            float C = dot(aimDir, spotDir);
+            float cAttenuation = 0;
+            float cosInner = cos(light.innerAngle);
+            float cosOuter = cos(light.outerAngle);
+            if (C > cosInner) {
+                cAttenuation = 1;
+            } else if (cosInner > C && C > cosOuter) {
+                cAttenuation = (C - cosOuter) / (cosInner - cosOuter);
+            }
 
-        vec3 reflectDir = reflect(pointDir, normal);
-        float VRn = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+            float NL = max(dot(normal, -spotDir), 0.0);
 
-        vec3 Rf = Rf0 + (1 - Rf0) * pow(1 - NL, 5);
+            vec3 reflectDir = reflect(spotDir, normal);
+            float VRn = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
 
-        vec3 pointColor = (colorDiffuse.rgb * (1 - Rf0) + (shininess + 2) / 2 * Rf * VRn) * light.points[i].color * light.points[i].intensity * distAttenuation * NL;
+            vec3 Rf = Rf0 + (1 - Rf0) * pow(1 - NL, 5);
 
-        colorAccumulative += pointColor;
-    }
+            vec3 spotColor = (colorDiffuse.rgb * (1 - Rf0) + (shininess + 2) / 2 * Rf * VRn) * light.color * light.intensity * distAttenuation * cAttenuation * NL;
 
-    // Spot Light
-    for (int i = 0; i < light.numSpots; i++) {
-        float spotDistance = length(light.spots[i].pos - fragPos);
-        float falloffExponent = light.spots[i].useCustomFalloff * light.spots[i].falloffExponent + (1 - light.spots[i].useCustomFalloff) * 4.0;
-        float distAttenuation = clamp(1.0 - pow(spotDistance / light.spots[i].radius, falloffExponent), 0.0, 1.0);
-        distAttenuation = light.spots[i].useCustomFalloff * distAttenuation + (1 - light.spots[i].useCustomFalloff) * distAttenuation * distAttenuation / (spotDistance * spotDistance + 1.0);
-        
-        vec3 spotDir = normalize(fragPos - light.spots[i].pos);
+            colorAccumulative += spotColor;
+		}
+		else
+		{
+            float pointDistance = length(light.pos - fragPos);
+            float falloffExponent = light.useCustomFalloff * light.falloffExponent + (1 - light.useCustomFalloff) * 4.0;
+            float distAttenuation = clamp(1.0 - pow(pointDistance / light.radius, falloffExponent), 0.0, 1.0);
+            distAttenuation = light.useCustomFalloff * distAttenuation + (1 - light.useCustomFalloff) * distAttenuation * distAttenuation / (pointDistance * pointDistance + 1.0);
 
-        vec3 aimDir = normalize(light.spots[i].direction);
-        float C = dot(aimDir, spotDir);
-        float cAttenuation = 0;
-        float cosInner = cos(light.spots[i].innerAngle);
-        float cosOuter = cos(light.spots[i].outerAngle);
-        if (C > cosInner) {
-            cAttenuation = 1;
-        } else if (cosInner > C && C > cosOuter) {
-            cAttenuation = (C - cosOuter) / (cosInner - cosOuter);
-        }
+            vec3 pointDir = normalize(fragPos - light.pos);
+            float NL = max(dot(normal, -pointDir), 0.0);
 
-        float NL = max(dot(normal, -spotDir), 0.0);
+            vec3 reflectDir = reflect(pointDir, normal);
+            float VRn = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
 
-        vec3 reflectDir = reflect(spotDir, normal);
-        float VRn = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+            vec3 Rf = Rf0 + (1 - Rf0) * pow(1 - NL, 5);
 
-        vec3 Rf = Rf0 + (1 - Rf0) * pow(1 - NL, 5);
+            vec3 pointColor = (colorDiffuse.rgb * (1 - Rf0) + (shininess + 2) / 2 * Rf * VRn) * light.color * light.intensity * distAttenuation * NL;
 
-        vec3 spotColor = (colorDiffuse.rgb * (1 - Rf0) + (shininess + 2) / 2 * Rf * VRn) * light.spots[i].color * light.spots[i].intensity * distAttenuation * cAttenuation * NL;
-
-        colorAccumulative += spotColor;
-    }
+            colorAccumulative += pointColor;
+		}
+	}
 
     // Emission
     colorAccumulative += GetEmissive(tiledUV).rgb;

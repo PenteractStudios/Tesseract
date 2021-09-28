@@ -31,75 +31,6 @@
 #define JSON_TAG_MESH_ID "MeshID"
 #define JSON_TAG_MATERIAL_ID "MaterialID"
 
-#define POINT_LIGHT_MEMBERS 6
-#define POINT_LIGHT_STRING(number)                 \
-	{                                              \
-		"light.points["##number "].pos",           \
-			"light.points["##number "].color",     \
-			"light.points["##number "].intensity", \
-			"light.points["##number "].kc",        \
-			"light.points["##number "].kl",        \
-			"light.points["##number "].kq"         \
-	}
-
-#define SPOT_LIGHT_MEMBERS 9
-#define SPOT_LIGHT_STRING(number)                  \
-	{                                              \
-		"light.spots["##number "].pos",            \
-			"light.spots["##number "].direction",  \
-			"light.spots["##number "].color",      \
-			"light.spots["##number "].intensity",  \
-			"light.spots["##number "].kc",         \
-			"light.spots["##number "].kl",         \
-			"light.spots["##number "].kq",         \
-			"light.spots["##number "].innerAngle", \
-			"light.spots["##number "].outerAngle"  \
-	}
-
-static const char* pointLightStrings[POINT_LIGHTS][POINT_LIGHT_MEMBERS] = {
-	POINT_LIGHT_STRING("0"),
-	POINT_LIGHT_STRING("1"),
-	POINT_LIGHT_STRING("2"),
-	POINT_LIGHT_STRING("3"),
-	POINT_LIGHT_STRING("4"),
-	POINT_LIGHT_STRING("5"),
-	POINT_LIGHT_STRING("6"),
-	POINT_LIGHT_STRING("7"),
-	POINT_LIGHT_STRING("8"),
-	POINT_LIGHT_STRING("9"),
-	POINT_LIGHT_STRING("10"),
-	POINT_LIGHT_STRING("11"),
-	POINT_LIGHT_STRING("12"),
-	POINT_LIGHT_STRING("13"),
-	POINT_LIGHT_STRING("14"),
-	POINT_LIGHT_STRING("15"),
-	POINT_LIGHT_STRING("16"),
-	POINT_LIGHT_STRING("17"),
-	POINT_LIGHT_STRING("18"),
-	POINT_LIGHT_STRING("19"),
-	POINT_LIGHT_STRING("20"),
-	POINT_LIGHT_STRING("21"),
-	POINT_LIGHT_STRING("22"),
-	POINT_LIGHT_STRING("23"),
-	POINT_LIGHT_STRING("24"),
-	POINT_LIGHT_STRING("25"),
-	POINT_LIGHT_STRING("26"),
-	POINT_LIGHT_STRING("27"),
-	POINT_LIGHT_STRING("28"),
-	POINT_LIGHT_STRING("29"),
-	POINT_LIGHT_STRING("30"),
-	POINT_LIGHT_STRING("31")};
-
-static const char* spotLightStrings[SPOT_LIGHTS][SPOT_LIGHT_MEMBERS] = {
-	SPOT_LIGHT_STRING("0"),
-	SPOT_LIGHT_STRING("1"),
-	SPOT_LIGHT_STRING("2"),
-	SPOT_LIGHT_STRING("3"),
-	SPOT_LIGHT_STRING("4"),
-	SPOT_LIGHT_STRING("5"),
-	SPOT_LIGHT_STRING("6"),
-	SPOT_LIGHT_STRING("7")};
-
 void ComponentMeshRenderer::OnEditorUpdate() {
 	if (ImGui::Checkbox("Active", &active)) {
 		if (GetOwner().IsActive()) {
@@ -559,117 +490,14 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 	// Light settings
 	ComponentLight* directionalLight = nullptr;
-	ComponentLight* pointLightsArray[POINT_LIGHTS];
-	float pointDistancesArray[POINT_LIGHTS];
-	unsigned pointLightsArraySize = 0;
-	ComponentLight* spotLightsArray[SPOT_LIGHTS];
-	float spotDistancesArray[SPOT_LIGHTS];
-	unsigned spotLightsArraySize = 0;
-
-	float farPointDistance = 0;
-	ComponentLight* farPointLight = nullptr;
-	float farSpotDistance = 0;
-	ComponentLight* farSpotLight = nullptr;
 
 	Scene* scene = GetOwner().scene;
 	for (ComponentLight& light : scene->lightComponents) {
 		if (light.lightType == LightType::DIRECTIONAL) {
 			// It takes the first actived Directional Light inside the Pool
-			if (light.IsActive() && directionalLight == nullptr) {
+			if (light.IsActive()) {
 				directionalLight = &light;
-				continue;
-			}
-		} else if (light.lightType == LightType::POINT) {
-			if (light.IsActive()) {
-				float3 meshPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
-				const AABB& meshAABB = GetOwner().GetComponent<ComponentBoundingBox>()->GetWorldAABB();
-				float3 lightPosition = light.GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
-
-				float distance = Distance(meshPosition, lightPosition);
-				if (!meshAABB.Intersects(Sphere(lightPosition, light.radius))) continue;
-
-				if (pointLightsArraySize < POINT_LIGHTS) {
-					pointDistancesArray[pointLightsArraySize] = distance;
-					pointLightsArray[pointLightsArraySize] = &light;
-					pointLightsArraySize += 1;
-
-					if (distance > farPointDistance) {
-						farPointLight = &light;
-						farPointDistance = distance;
-					}
-				} else {
-					if (distance < farPointDistance) {
-						int count = 0;
-						int selected = -1;
-						for (float pointDistance : pointDistancesArray) {
-							if (pointDistance == farPointDistance) selected = count;
-							count += 1;
-						}
-
-						pointLightsArray[selected] = &light;
-						pointDistancesArray[selected] = distance;
-
-						count = 0;
-						selected = -1;
-						float maxDistance = 0;
-						for (float pointDistance : pointDistancesArray) {
-							if (pointDistance > maxDistance) {
-								maxDistance = pointDistance;
-								selected = count;
-							}
-							count += 1;
-						}
-
-						farPointDistance = maxDistance;
-						farPointLight = pointLightsArray[selected];
-					}
-				}
-			}
-		} else if (light.lightType == LightType::SPOT) {
-			if (light.IsActive()) {
-				float3 meshPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
-				const AABB& meshAABB = GetOwner().GetComponent<ComponentBoundingBox>()->GetWorldAABB();
-				float3 lightPosition = light.GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
-
-				float distance = Distance(meshPosition, lightPosition);
-				if (!meshAABB.Intersects(Sphere(lightPosition, light.radius))) continue;
-
-				if (spotLightsArraySize < SPOT_LIGHTS) {
-					spotDistancesArray[spotLightsArraySize] = distance;
-					spotLightsArray[spotLightsArraySize] = &light;
-					spotLightsArraySize += 1;
-
-					if (distance > farSpotDistance) {
-						farSpotLight = &light;
-						farSpotDistance = distance;
-					}
-				} else {
-					if (distance < farSpotDistance) {
-						int count = 0;
-						int selected = -1;
-						for (float spotDistance : spotDistancesArray) {
-							if (spotDistance == farSpotDistance) selected = count;
-							count += 1;
-						}
-
-						spotLightsArray[selected] = &light;
-						spotDistancesArray[selected] = distance;
-
-						count = 0;
-						selected = -1;
-						float maxDistance = 0;
-						for (float spotDistance : spotDistancesArray) {
-							if (spotDistance > maxDistance) {
-								maxDistance = spotDistance;
-								selected = count;
-							}
-							count += 1;
-						}
-
-						farSpotDistance = maxDistance;
-						farSpotLight = spotLightsArray[selected];
-					}
-				}
+				break;
 			}
 		}
 	}
@@ -843,37 +671,20 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	}
 
 	// Lights uniforms settings
-	glUniform3fv(standardProgram->lightAmbientColorLocation, 1, App->renderer->ambientColor.ptr());
+	glUniform3fv(standardProgram->ambientColorLocation, 1, App->renderer->ambientColor.ptr());
 
 	if (directionalLight != nullptr) {
-		glUniform3fv(standardProgram->lightDirectionalDirectionLocation, 1, directionalLight->direction.ptr());
-		glUniform3fv(standardProgram->lightDirectionalColorLocation, 1, directionalLight->color.ptr());
-		glUniform1f(standardProgram->lightDirectionalIntensityLocation, directionalLight->intensity);
+		glUniform3fv(standardProgram->dirLightDirectionLocation, 1, directionalLight->direction.ptr());
+		glUniform3fv(standardProgram->dirLightColorLocation, 1, directionalLight->color.ptr());
+		glUniform1f(standardProgram->dirLightIntensityLocation, directionalLight->intensity);
 	}
-	glUniform1i(standardProgram->lightDirectionalIsActiveLocation, directionalLight ? 1 : 0);
+	glUniform1i(standardProgram->dirLightIsActiveLocation, directionalLight ? 1 : 0);
 
-	for (unsigned i = 0; i < pointLightsArraySize; ++i) {
-		glUniform3fv(standardProgram->lightPoints[i].posLocation, 1, pointLightsArray[i]->pos.ptr());
-		glUniform3fv(standardProgram->lightPoints[i].colorLocation, 1, pointLightsArray[i]->color.ptr());
-		glUniform1f(standardProgram->lightPoints[i].intensityLocation, pointLightsArray[i]->intensity);
-		glUniform1f(standardProgram->lightPoints[i].radiusLocation, pointLightsArray[i]->radius);
-		glUniform1i(standardProgram->lightPoints[i].useCustomFalloffLocation, pointLightsArray[i]->useCustomFalloff);
-		glUniform1f(standardProgram->lightPoints[i].falloffExponentLocation, pointLightsArray[i]->falloffExponent);
-	}
-	glUniform1i(standardProgram->lightNumPointsLocation, pointLightsArraySize);
+	glUniform1i(standardProgram->tilesPerRowLocation, App->renderer->GetLightTilesPerRow());
 
-	for (unsigned i = 0; i < spotLightsArraySize; ++i) {
-		glUniform3fv(standardProgram->lightSpots[i].posLocation, 1, spotLightsArray[i]->pos.ptr());
-		glUniform3fv(standardProgram->lightSpots[i].directionLocation, 1, spotLightsArray[i]->direction.ptr());
-		glUniform3fv(standardProgram->lightSpots[i].colorLocation, 1, spotLightsArray[i]->color.ptr());
-		glUniform1f(standardProgram->lightSpots[i].intensityLocation, spotLightsArray[i]->intensity);
-		glUniform1f(standardProgram->lightSpots[i].radiusLocation, spotLightsArray[i]->radius);
-		glUniform1i(standardProgram->lightSpots[i].useCustomFalloffLocation, spotLightsArray[i]->useCustomFalloff);
-		glUniform1f(standardProgram->lightSpots[i].falloffExponentLocation, spotLightsArray[i]->falloffExponent);
-		glUniform1f(standardProgram->lightSpots[i].innerAngleLocation, spotLightsArray[i]->innerAngle);
-		glUniform1f(standardProgram->lightSpots[i].outerAngleLocation, spotLightsArray[i]->outerAngle);
-	}
-	glUniform1i(standardProgram->lightNumSpotsLocation, spotLightsArraySize);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, App->renderer->lightsStorageBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, App->renderer->lightIndicesStorageBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, App->renderer->lightTilesStorageBuffer);
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
