@@ -86,6 +86,25 @@ struct ProgramSkybox : Program {
 	int cubemapLocation = -1;
 };
 
+struct ProgramGridFrustumsCompute : Program {
+	ProgramGridFrustumsCompute(unsigned program);
+
+	int invProjLocation = -1;
+	int screenSizeLocation = -1;
+	int numThreadsLocation = -1;
+};
+
+struct ProgramLightCullingCompute : Program {
+	ProgramLightCullingCompute(unsigned program);
+
+	int invProjLocation = -1;
+	int viewLocation = -1;
+	int screenSizeLocation = -1;
+	int lightCountLocation = -1;
+
+	int depthsLocation = -1;
+};
+
 struct ProgramUnlit : public Program {
 	ProgramUnlit(unsigned program);
 
@@ -188,18 +207,14 @@ struct ProgramStandard : public Program {
 	int prefilteredIBLNumLevelsLocation = -1;
 	int strengthIBLLocation = -1;
 
-	int lightAmbientColorLocation = -1;
+	int ambientColorLocation = -1;
 
-	int lightDirectionalDirectionLocation = -1;
-	int lightDirectionalColorLocation = -1;
-	int lightDirectionalIntensityLocation = -1;
-	int lightDirectionalIsActiveLocation = -1;
+	int dirLightDirectionLocation = -1;
+	int dirLightColorLocation = -1;
+	int dirLightIntensityLocation = -1;
+	int dirLightIsActiveLocation = -1;
 
-	PointLightUniforms lightPoints[POINT_LIGHTS];
-	int lightNumPointsLocation = -1;
-
-	SpotLightUniforms lightSpots[POINT_LIGHTS];
-	int lightNumSpotsLocation = -1;
+	int tilesPerRowLocation = -1;
 };
 
 struct ProgramStandardPhong : ProgramStandard {
@@ -332,6 +347,12 @@ struct ProgramDrawTexture : Program {
 	ProgramDrawTexture(unsigned program);
 
 	int textureToDrawLocation = -1;
+};
+
+struct ProgramDrawLightTiles : Program {
+	ProgramDrawLightTiles(unsigned program);
+
+	int tilesPerRowLocation = -1;
 };
 
 struct ProgramImageUI : Program {

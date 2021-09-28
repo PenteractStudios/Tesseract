@@ -95,6 +95,10 @@ void ModulePrograms::LoadShaders() {
 	environmentBRDF = new ProgramEnvironmentBRDF(CreateProgram(filePath, "vertScreen", "fragFunctionIBL fragEnvironmentBRDF"));
 	skybox = new ProgramSkybox(CreateProgram(filePath, "vertCube", "gammaCorrection fragSkybox"));
 
+	// Light culling shaders
+	gridFrustumsCompute = new ProgramGridFrustumsCompute(CreateComputeProgram(filePath, "varLights compGridFrustums"));
+	lightCullingCompute = new ProgramLightCullingCompute(CreateComputeProgram(filePath, "varLights compLightCulling"));
+
 	// Unlit Shader
 	unlit = new ProgramUnlit(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragFunctionEmptyDissolve fragUnlit"));
 
@@ -102,15 +106,15 @@ void ModulePrograms::LoadShaders() {
 	volumetricLight = new ProgramVolumetricLight(CreateProgram(filePath, "vertVolumetricLight", "gammaCorrection fragVolumetricLight"));
 
 	// General shaders
-	phongNotNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarSpecular fragMainPhong"));
-	phongNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarSpecular fragMainPhong"));
-	standardNotNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragFunctionEmptyDissolve fragMainMetallic"));
-	standardNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragFunctionEmptyDissolve fragMainMetallic"));
-	specularNotNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
-	specularNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarSpecular fragFunctionLight fragMainSpecular"));
+	phongNotNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection varLights fragVarStandard fragVarLights fragVarSpecular fragMainPhong"));
+	phongNormal = new ProgramStandardPhong(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection varLights fragVarStandard fragVarLights fragVarSpecular fragMainPhong"));
+	standardNotNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection varLights fragVarStandard fragVarLights fragVarMetallic fragFunctionLight fragFunctionEmptyDissolve fragMainMetallic"));
+	standardNormal = new ProgramStandardMetallic(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection varLights fragVarStandard fragVarLights fragVarMetallic fragFunctionLight fragFunctionEmptyDissolve fragMainMetallic"));
+	specularNotNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainCommon", "gammaCorrection varLights fragVarStandard fragVarLights fragVarSpecular fragFunctionLight fragMainSpecular"));
+	specularNormal = new ProgramStandardSpecular(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection varLights fragVarStandard fragVarLights fragVarSpecular fragFunctionLight fragMainSpecular"));
 
 	// Dissolve shaders. Maybe another one for Normals
-	dissolveStandard = new ProgramStandardDissolve(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection fragVarStandard fragVarMetallic fragFunctionLight fragFunctionDissolveCommon fragFunctionDissolveFunction fragMainMetallic"));
+	dissolveStandard = new ProgramStandardDissolve(CreateProgram(filePath, "vertVarCommon vertMainNormal", "gammaCorrection varLights fragVarStandard fragVarLights fragVarMetallic fragFunctionLight fragFunctionDissolveCommon fragFunctionDissolveFunction fragMainMetallic"));
 	dissolveUnlit = new ProgramUnlitDissolve(CreateProgram(filePath, "vertUnlit", "gammaCorrection fragFunctionDissolveCommon fragFunctionDissolveFunction fragUnlit"));
 
 	// Depth Prepass Shaders
@@ -141,6 +145,7 @@ void ModulePrograms::LoadShaders() {
 
 	// Engine Shaders
 	drawTexture = new ProgramDrawTexture(CreateProgram(filePath, "vertScreen", "fragDrawTexture"));
+	drawLightTiles = new ProgramDrawLightTiles(CreateProgram(filePath, "vertScreen", "varLights fragDrawLightTiles"));
 
 	// Particle Shaders
 	billboard = new ProgramBillboard(CreateProgram(filePath, "billboardVertex", "gammaCorrection billboardFragment"));
@@ -156,6 +161,9 @@ void ModulePrograms::UnloadShaders() {
 	RELEASE(preFilteredMap);
 	RELEASE(environmentBRDF);
 	RELEASE(skybox);
+
+	RELEASE(gridFrustumsCompute);
+	RELEASE(lightCullingCompute);
 
 	RELEASE(unlit);
 
@@ -192,6 +200,7 @@ void ModulePrograms::UnloadShaders() {
 	RELEASE(imageUI);
 
 	RELEASE(drawTexture);
+	RELEASE(drawLightTiles);
 
 	RELEASE(billboard);
 	RELEASE(trail);
@@ -216,6 +225,41 @@ unsigned ModulePrograms::CreateProgram(const char* shaderFile, const char* verte
 	unsigned programId = glCreateProgram();
 	glAttachShader(programId, vertexShader);
 	glAttachShader(programId, fragmentShader);
+	glLinkProgram(programId);
+	int res = GL_FALSE;
+	glGetProgramiv(programId, GL_LINK_STATUS, &res);
+	if (res == GL_FALSE) {
+		int len = 0;
+		glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &len);
+		if (len > 0) {
+			int written = 0;
+			Buffer<char> info = Buffer<char>(len);
+			glGetProgramInfoLog(programId, len, &written, info.Data());
+			LOG("Program Log Info: %s", info.Data());
+		}
+
+		LOG("Error linking program.");
+	} else {
+		LOG("Program linked.");
+	}
+
+	return programId;
+}
+
+unsigned ModulePrograms::CreateComputeProgram(const char* shaderFile, const char* computeSnippets) {
+	LOG("Creating program...");
+
+	// Compile the shaders and delete them at the end
+	LOG("Compiling shaders...");
+	unsigned computeShader = CompileShader(GL_COMPUTE_SHADER, shaderFile, computeSnippets);
+	DEFER {
+		glDeleteShader(computeShader);
+	};
+
+	// Link the program
+	LOG("Linking program...");
+	unsigned programId = glCreateProgram();
+	glAttachShader(programId, computeShader);
 	glLinkProgram(programId);
 	int res = GL_FALSE;
 	glGetProgramiv(programId, GL_LINK_STATUS, &res);
