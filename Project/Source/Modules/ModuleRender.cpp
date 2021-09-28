@@ -195,6 +195,10 @@ static void __stdcall OurOpenGLErrorFunction(GLenum source, GLenum type, GLuint 
 bool ModuleRender::Init() {
 	LOG("Creating Renderer context");
 
+#if GAME
+	drawDebugDraw = false;
+#endif
+
 	context = SDL_GL_CreateContext(App->window->window);
 
 	GLenum err = glewInit();

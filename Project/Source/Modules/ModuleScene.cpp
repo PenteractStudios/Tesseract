@@ -94,20 +94,17 @@ bool ModuleScene::Start() {
 	App->files->CreateFolder(NAVMESH_PATH);
 #endif
 
+	CreateEmptyScene();
+
 #if GAME
 	App->events->AddEvent(TesseractEventType::PRESSED_PLAY);
 	ResourceScene* startScene = App->resources->GetResource<ResourceScene>(startSceneId);
 	if (startScene != nullptr) {
 		App->scene->LoadScene(startScene->GetResourceFilePath().c_str());
 	}
-	if (App->scene->scene == nullptr) {
-		App->scene->CreateEmptyScene();
-	}
 
 	App->time->SetVSync(true);
 	App->time->limitFramerate = false;
-#else
-	CreateEmptyScene();
 #endif
 
 	return true;
