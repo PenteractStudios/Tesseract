@@ -18,6 +18,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <thread>
+#include <mutex>
 
 class ModuleResources : public Module {
 public:
@@ -64,6 +65,7 @@ public:
 	concurrency::concurrent_queue<std::string> assetsToReimport;
 
 private:
+	std::mutex resourcesMutex;
 	std::unordered_map<std::string, std::unique_ptr<ImportOptions>> assetImportOptions;
 	std::unordered_map<UID, std::unique_ptr<Resource>> resources;
 	std::unordered_map<UID, unsigned> referenceCounts;
@@ -88,8 +90,10 @@ inline T* ModuleResources::GetImportOptions(const char* filePath, bool forceLoad
 
 template<typename T>
 inline T* ModuleResources::GetResource(UID id) {
+	resourcesMutex.lock();
 	auto it = resources.find(id);
 	T* resource = it != resources.end() ? static_cast<T*>(it->second.get()) : nullptr;
+	resourcesMutex.unlock();
 	return resource;
 }
 
