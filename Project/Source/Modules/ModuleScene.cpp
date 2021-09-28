@@ -105,6 +105,7 @@ bool ModuleScene::Start() {
 
 	App->time->SetVSync(true);
 	App->time->limitFramerate = false;
+	App->renderer->drawDebugDraw = false;
 #endif
 
 	return true;
