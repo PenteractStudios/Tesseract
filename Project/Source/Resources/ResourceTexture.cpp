@@ -18,9 +18,10 @@
 #include "GL/glew.h"
 #include "imgui.h"
 
+#define JSON_TAG_COMPRESSION "Compression"
+#define JSON_TAG_WRAP "Wrap"
 #define JSON_TAG_MINFILTER "MinFilter"
 #define JSON_TAG_MAGFILTER "MagFilter"
-#define JSON_TAG_WRAP "Wrap"
 
 void ResourceTexture::Load() {
 	std::string filePath = GetResourceFilePath();
@@ -38,17 +39,113 @@ void ResourceTexture::Load() {
 	};
 
 	// Load image
+	ILenum type = IL_TGA;
+	switch (compression) {
+	case TextureCompression::DXT1:
+		type = IL_DDS;
+		break;
+	case TextureCompression::DXT3:
+		type = IL_DDS;
+		break;
+	case TextureCompression::DXT5:
+		type = IL_DDS;
+		break;
+	default:
+		break;
+	}
 	ilBindImage(image);
-	bool imageLoaded = ilLoad(IL_RAW, filePath.c_str());
+	bool imageLoaded = ilLoad(type, filePath.c_str());
 	if (!imageLoaded) {
 		LOG("Failed to load image.");
+		return;
+	}
+
+	ILenum format = ilGetInteger(IL_IMAGE_BYTES_PER_PIXEL) == 4 ? IL_RGBA : IL_RGB;
+	switch (compression) {
+	case TextureCompression::DXT3:
+	case TextureCompression::DXT5:
+		format = IL_RGBA;
+		break;
+	default:
+		break;
+	}
+
+	// Convert image
+	bool imageConverted = ilConvertImage(format, IL_UNSIGNED_BYTE);
+	if (!imageConverted) {
+		LOG("Failed to convert image.");
+		return;
+	}
+	unsigned width = ilGetInteger(IL_IMAGE_WIDTH);
+	unsigned height = ilGetInteger(IL_IMAGE_HEIGHT);
+	unsigned bpp = ilGetInteger(IL_IMAGE_BYTES_PER_PIXEL);
+	unsigned dataSize = width * height * bpp;
+	unsigned char* imageData = nullptr;
+	DEFER {
+		RELEASE(imageData);
+	};
+
+	switch (compression) {
+	case TextureCompression::NONE: {
+		dataSize = width * height * bpp;
+		imageData = new unsigned char[dataSize];
+		memcpy(imageData, ilGetData(), dataSize);
+		break;
+	}
+	case TextureCompression::DXT1: {
+		iluFlipImage();
+		dataSize = ilGetDXTCData(nullptr, 0, IL_DXT1);
+		imageData = new unsigned char[dataSize];
+		ilGetDXTCData(imageData, dataSize, IL_DXT1);
+		break;
+	}
+	case TextureCompression::DXT3: {
+		iluFlipImage();
+		dataSize = ilGetDXTCData(nullptr, 0, IL_DXT3);
+		imageData = new unsigned char[dataSize];
+		ilGetDXTCData(imageData, dataSize, IL_DXT3);
+		break;
+	}
+	case TextureCompression::DXT5: {
+		iluFlipImage();
+		dataSize = ilGetDXTCData(nullptr, 0, IL_DXT5);
+		imageData = new unsigned char[dataSize];
+		ilGetDXTCData(imageData, dataSize, IL_DXT5);
+		break;
+	}
+	default:
+		LOG("Unknown compression.");
 		return;
 	}
 
 	// Generate texture from image
 	glGenTextures(1, &glTexture);
 	glBindTexture(GL_TEXTURE_2D, glTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, ilGetData());
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	switch (compression) {
+	case TextureCompression::NONE: {
+		int internalFormat = bpp == 4 ? GL_RGBA8 : GL_RGB8;
+		int format = bpp == 4 ? GL_RGBA : GL_RGB;
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, imageData);
+		break;
+	}
+	case TextureCompression::DXT1: {
+		int internalFormat = bpp == 4 ? GL_COMPRESSED_RGBA_S3TC_DXT1_EXT : GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+		glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataSize, imageData);
+		break;
+	}
+	case TextureCompression::DXT3: {
+		int internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+		glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataSize, imageData);
+		break;
+	}
+	case TextureCompression::DXT5: {
+		int internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+		glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataSize, imageData);
+		break;
+	}
+	}
 
 	// Generate mipmaps and set filtering and wrapping
 	glGenerateMipmap(GL_TEXTURE_2D);
@@ -68,12 +165,14 @@ void ResourceTexture::Unload() {
 }
 
 void ResourceTexture::LoadResourceMeta(JsonValue jResourceMeta) {
+	compression = (TextureCompression)(int) jResourceMeta[JSON_TAG_COMPRESSION];
 	wrap = (TextureWrap)(int) jResourceMeta[JSON_TAG_WRAP];
 	minFilter = (TextureMinFilter)(int) jResourceMeta[JSON_TAG_MINFILTER];
 	magFilter = (TextureMagFilter)(int) jResourceMeta[JSON_TAG_MAGFILTER];
 }
 
 void ResourceTexture::SaveResourceMeta(JsonValue jResourceMeta) {
+	jResourceMeta[JSON_TAG_COMPRESSION] = (int) compression;
 	jResourceMeta[JSON_TAG_WRAP] = (int) wrap;
 	jResourceMeta[JSON_TAG_MINFILTER] = (int) minFilter;
 	jResourceMeta[JSON_TAG_MAGFILTER] = (int) magFilter;
