@@ -80,6 +80,7 @@ bool ModuleCamera::Start() {
 	SetPosition(vec(2, 3, -5));
 	LookAt(0, 0, 0);
 	App->events->AddObserverToEvent(TesseractEventType::SCREEN_RESIZED, this);
+	App->events->AddEvent(TesseractEventType::PROJECTION_CHANGED);
 
 	return true;
 }
@@ -361,18 +362,22 @@ void ModuleCamera::ViewportResized(int width, int height) {
 		camera.frustum.SetVerticalFovAndAspectRatio(camera.frustum.VerticalFov(), width / (float) height);
 	}
 	engineCamera.GetFrustum()->SetVerticalFovAndAspectRatio(engineCamera.GetFrustum()->VerticalFov(), width / (float) height);
+	App->events->AddEvent(TesseractEventType::PROJECTION_CHANGED);
 }
 
 void ModuleCamera::SetFOV(float hFov) {
 	activeCamera->GetFrustum()->SetHorizontalFovAndAspectRatio(hFov, activeCamera->GetFrustum()->AspectRatio());
+	App->events->AddEvent(TesseractEventType::PROJECTION_CHANGED);
 }
 
 void ModuleCamera::SetAspectRatio(float aspectRatio) {
 	activeCamera->GetFrustum()->SetVerticalFovAndAspectRatio(activeCamera->GetFrustum()->VerticalFov(), aspectRatio);
+	App->events->AddEvent(TesseractEventType::PROJECTION_CHANGED);
 }
 
 void ModuleCamera::SetPlaneDistances(float nearPlane, float farPlane) {
 	activeCamera->GetFrustum()->SetViewPlaneDistances(nearPlane, farPlane);
+	App->events->AddEvent(TesseractEventType::PROJECTION_CHANGED);
 }
 
 void ModuleCamera::SetPosition(const vec& position) {
@@ -394,6 +399,7 @@ void ModuleCamera::ChangeActiveCamera(ComponentCamera* camera, bool change) {
 	} else {
 		activeCamera = &engineCamera;
 	}
+	App->events->AddEvent(TesseractEventType::PROJECTION_CHANGED);
 }
 
 void ModuleCamera::ChangeCullingCamera(ComponentCamera* camera, bool change) {
@@ -482,6 +488,7 @@ const FrustumPlanes& ModuleCamera::GetFrustumPlanes() const {
 
 void ModuleCamera::EnableOrtographic() {
 	activeCamera->GetFrustum()->SetOrthographic((float) App->renderer->GetViewportSize().x, (float) App->renderer->GetViewportSize().y);
+	App->events->AddEvent(TesseractEventType::PROJECTION_CHANGED);
 }
 
 void ModuleCamera::EnablePerspective() {

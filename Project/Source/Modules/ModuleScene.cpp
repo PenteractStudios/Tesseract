@@ -65,7 +65,7 @@ static void AssimpLogCallback(const char* message, char* user) {
 }
 
 bool ModuleScene::Init() {
-	scene = new Scene(10000);
+	scene = new Scene(MAX_SCENE_COMPONENTS);
 
 #ifdef _DEBUG
 	logStream.callback = AssimpLogCallback;
