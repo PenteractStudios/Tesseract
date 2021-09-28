@@ -169,6 +169,8 @@ void ModuleTime::StartGame() {
 	SceneImporter::SaveScene(App->scene->scene, TEMP_SCENE_FILE_NAME);
 #endif // !GAME
 
+	App->project->GetGameState()->Clear();
+
 	App->scene->scene->Start();
 }
 

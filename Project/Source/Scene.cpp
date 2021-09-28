@@ -112,8 +112,6 @@ void Scene::Init() {
 }
 
 void Scene::Start() {
-	App->project->GetGameState()->Clear();
-
 	if (App->camera->GetGameCamera()) {
 		// Set the Game Camera as active
 		App->camera->ChangeActiveCamera(App->camera->GetGameCamera(), true);
