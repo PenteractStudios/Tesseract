@@ -128,6 +128,14 @@ UpdateStatus ModuleResources::Update() {
 bool ModuleResources::CleanUp() {
 	stopImportThread = true;
 	importThread.join();
+
+	for (auto& entry : resources) {
+		Resource* resource = entry.second.get();
+		if (resource != nullptr) {
+			resource->Unload();
+		}
+	}
+	resources.clear();
 	return true;
 }
 
@@ -136,7 +144,9 @@ void ModuleResources::ReceiveEvent(TesseractEvent& e) {
 		CreateResourceStruct& createResourceStruct = e.Get<CreateResourceStruct>();
 		Resource* resource = CreateResourceByType(createResourceStruct.type, createResourceStruct.resourceName.c_str(), createResourceStruct.assetFilePath.c_str(), createResourceStruct.resourceId);
 		UID id = resource->GetId();
+		resourcesMutex.lock();
 		resources[id].reset(resource);
+		resourcesMutex.unlock();
 
 		if (GetReferenceCount(id) > 0) {
 			LoadResource(resource);
@@ -144,11 +154,13 @@ void ModuleResources::ReceiveEvent(TesseractEvent& e) {
 
 	} else if (e.type == TesseractEventType::DESTROY_RESOURCE) {
 		UID id = e.Get<DestroyResourceStruct>().resourceId;
+		resourcesMutex.lock();
 		auto& it = resources.find(id);
 		if (it != resources.end()) {
 			UnloadResource(it->second.get());
 			resources.erase(it);
 		}
+		resourcesMutex.unlock();
 	} else if (e.type == TesseractEventType::UPDATE_ASSET_CACHE) {
 		AssetCache* newAssetCache = e.Get<UpdateAssetCacheStruct>().assetCache;
 		assetCache.reset(newAssetCache);

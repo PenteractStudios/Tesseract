@@ -67,8 +67,11 @@ enum class UpdateStatus {
 
 // Configuration -----------
 #define GLSL_VERSION "#version 460"
-#define POINT_LIGHTS 32
-#define SPOT_LIGHTS 8
+#define MAX_SCENE_COMPONENTS 10000
+#define MAX_LIGHTS 1000
+#define GRID_FRUSTUM_WORK_GROUP_SIZE 16
+#define LIGHT_TILE_SIZE 16
+#define MAX_LIGHTS_PER_TILE 1024
 #define CASCADE_FRUSTUMS 10
 
 // Threads

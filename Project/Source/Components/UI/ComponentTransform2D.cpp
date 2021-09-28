@@ -305,10 +305,7 @@ const float4x4 ComponentTransform2D::GetGlobalScaledMatrix() {
 
 Quat ComponentTransform2D::GetGlobalRotation() {
 	CalculateGlobalMatrix();
-	float4x4 newTransform_ = globalMatrix;
-	newTransform_.Orthogonalize3();
-	newTransform_.Orthonormalize3();
-	return Quat(newTransform_.SubMatrix(3, 3));
+	return Quat(globalMatrix.RotatePart());
 }
 
 float3 ComponentTransform2D::GetGlobalPosition() {
