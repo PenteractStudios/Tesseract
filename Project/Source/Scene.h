@@ -75,9 +75,6 @@ public:
 	std::vector<GameObject*> GetStaticCulledShadowCasters(const FrustumPlanes& planes); // Gets all the shadow casters game objects inside the given frustum
 	std::vector<GameObject*> GetDynamicCulledShadowCasters(const FrustumPlanes& planes);	   // Gets all the shadow casters game objects inside the given frustum
 
-	void SetNavMesh(UID navMesh);
-	UID GetNavMesh();
-
 	void RemoveStaticShadowCaster(const GameObject* go);
 	void AddStaticShadowCaster(GameObject* go);
 

@@ -416,8 +416,6 @@ void DrawObstacles(duDebugDraw* dd, const dtTileCache* tc) {
 
 NavMesh::NavMesh() {
 	navMeshDrawFlags = DU_DRAWNAVMESH_OFFMESHCONS | DU_DRAWNAVMESH_CLOSEDLIST;
-	navQuery = dtAllocNavMeshQuery();
-	crowd = dtAllocCrowd();
 
 	ctx = new BuildContext();
 	talloc = new LinearAllocator(32000);
@@ -428,10 +426,6 @@ NavMesh::NavMesh() {
 NavMesh::~NavMesh() {
 	CleanUp();
 
-	dtFreeCrowd(crowd);
-	crowd = nullptr;
-	dtFreeNavMeshQuery(navQuery);
-	navQuery = nullptr;
 	RELEASE(ctx);
 }
 
@@ -564,6 +558,7 @@ bool NavMesh::Build(Scene* scene) {
 		return false;
 	}
 
+	navQuery = dtAllocNavMeshQuery();
 	status = navQuery->init(navMesh, 2048);
 	if (dtStatusFailed(status)) {
 		LOG("buildTiledNavigation: Could not init Detour navmesh query");
@@ -775,6 +770,7 @@ void NavMesh::Load(Buffer<char>& buffer) {
 		if (tile) tileCache->buildNavMeshTile(tile, navMesh);
 	}
 
+	navQuery = dtAllocNavMeshQuery();
 	status = navQuery->init(navMesh, 2048);
 	if (dtStatusFailed(status)) {
 		LOG("Could not init Detour navmesh query");
@@ -785,6 +781,12 @@ void NavMesh::Load(Buffer<char>& buffer) {
 }
 
 void NavMesh::CleanUp() {
+	dtFreeCrowd(crowd);
+	crowd = nullptr;
+
+	dtFreeNavMeshQuery(navQuery);
+	navQuery = nullptr;
+
 	dtFreeNavMesh(navMesh);
 	navMesh = nullptr;
 
@@ -867,6 +869,7 @@ dtTileCache* NavMesh::GetTileCache() {
 }
 
 void NavMesh::InitCrowd() {
+	crowd = dtAllocCrowd();
 	crowd->init(MAX_AGENTS, agentRadius, navMesh);
 
 	// Make polygons with 'disabled' flag invalid.

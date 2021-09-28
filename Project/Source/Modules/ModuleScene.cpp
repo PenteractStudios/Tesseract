@@ -27,6 +27,7 @@
 #include "Modules/ModuleFiles.h"
 #include "Modules/ModuleRender.h"
 #include "Modules/ModuleEditor.h"
+#include "Modules/ModuleNavigation.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleEvents.h"
 #include "Modules/ModuleTime.h"
@@ -132,6 +133,8 @@ UpdateStatus ModuleScene::PostUpdate() {
 			App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
 			App->camera->ChangeActiveCamera(nullptr, false);
 			App->camera->ChangeCullingCamera(nullptr, false);
+
+			App->navigation->ChangeNavMesh(scene->navMeshId);
 
 			if (App->time->HasGameStarted()) {
 				scene->Start();

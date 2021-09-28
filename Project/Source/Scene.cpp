@@ -70,11 +70,11 @@ Scene::~Scene() {
 }
 
 void Scene::ClearScene() {
+	App->resources->DecreaseReferenceCount(cursorId);
+
 	DestroyGameObject(root);
 	root = nullptr;
 	quadtree.Clear();
-	SetNavMesh(0);
-	SetCursor(0);
 
 	assert(gameObjects.Count() == 0); // There should be no GameObjects outside the scene hierarchy
 	gameObjects.Clear();			  // This looks redundant, but it resets the free list so that GameObject order is mantained when saving/loading
@@ -105,7 +105,6 @@ void Scene::ClearQuadtree() {
 }
 
 void Scene::Init() {
-	App->resources->IncreaseReferenceCount(navMeshId);
 	App->resources->IncreaseReferenceCount(cursorId);
 
 	root->Init();
@@ -620,22 +619,6 @@ std::vector<GameObject*> Scene::GetDynamicCulledShadowCasters(const FrustumPlane
 	}
 
 	return meshes;
-}
-
-void Scene::SetNavMesh(UID navMesh) {
-	if (navMeshId != 0) {
-		App->resources->DecreaseReferenceCount(navMeshId);
-	}
-
-	navMeshId = navMesh;
-
-	if (navMesh != 0) {
-		App->resources->IncreaseReferenceCount(navMesh);
-	}
-}
-
-UID Scene::GetNavMesh() {
-	return navMeshId;
 }
 
 void Scene::RemoveStaticShadowCaster(const GameObject* go) {

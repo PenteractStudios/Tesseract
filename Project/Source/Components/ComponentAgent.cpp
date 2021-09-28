@@ -5,6 +5,7 @@
 #include "Modules/ModuleNavigation.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleEditor.h"
+#include "Modules/ModuleScene.h"
 #include "Components/ComponentTransform.h"
 
 #include "Utils/Leaks.h"
@@ -14,6 +15,7 @@
 #define JSON_TAG_AVOIDINGOBSTACLE "AvoidingObstacle"
 
 void ComponentAgent::SetMoveTarget(float3 newTargetPosition, bool usePathfinding) {
+	if (App->scene->scene != GetOwner().scene) return;
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	if (!navMesh.IsGenerated() || agentId == -1) return;
 
@@ -47,6 +49,8 @@ void ComponentAgent::SetMoveTarget(float3 newTargetPosition, bool usePathfinding
 
 void ComponentAgent::SetMaxSpeed(float newSpeed) {
 	maxSpeed = newSpeed;
+
+	if (App->scene->scene != GetOwner().scene) return;
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	dtCrowdAgent* ag = navMesh.GetCrowd()->getEditableAgent(agentId);
 	if (ag == nullptr) {
@@ -57,6 +61,8 @@ void ComponentAgent::SetMaxSpeed(float newSpeed) {
 
 void ComponentAgent::SetMaxAcceleration(float newAcceleration) {
 	maxAcceleration = newAcceleration;
+
+	if (App->scene->scene != GetOwner().scene) return;
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	dtCrowdAgent* ag = navMesh.GetCrowd()->getEditableAgent(agentId);
 	if (ag == nullptr) {
@@ -67,6 +73,8 @@ void ComponentAgent::SetMaxAcceleration(float newAcceleration) {
 
 void ComponentAgent::SetAgentObstacleAvoidance(bool avoidanceActive) {
 	avoidingObstacle = avoidanceActive;
+
+	if (App->scene->scene != GetOwner().scene) return;
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	dtCrowdAgent* ag = navMesh.GetCrowd()->getEditableAgent(agentId);
 	if (ag == nullptr) {
@@ -98,6 +106,7 @@ bool ComponentAgent::IsAvoidingObstacle() {
 void ComponentAgent::AddAgentToCrowd() {
 	shouldAddAgentToCrowd = true;
 
+	if (App->scene->scene != GetOwner().scene) return;
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	if (!navMesh.IsGenerated() || agentId != -1) return;
 
@@ -130,13 +139,17 @@ void ComponentAgent::AddAgentToCrowd() {
 
 void ComponentAgent::RemoveAgentFromCrowd() {
 	shouldAddAgentToCrowd = false;
+
+	if (App->scene->scene != GetOwner().scene) return;
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	if (!navMesh.IsGenerated() || agentId == -1) return;
+
 	navMesh.GetCrowd()->removeAgent(agentId);
 	agentId = -1;
 }
 
 float3 ComponentAgent::GetVelocity() const {
+	if (App->scene->scene != GetOwner().scene) return float3::zero;
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	if (!navMesh.IsGenerated() || agentId == -1) return float3::zero;
 
@@ -155,6 +168,7 @@ ComponentAgent::~ComponentAgent() {
 void ComponentAgent::Update() {
 	if (!App->time->IsGameRunning()) return;
 
+	if (App->scene->scene != GetOwner().scene) return;
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	if (!navMesh.IsGenerated()) return;
 

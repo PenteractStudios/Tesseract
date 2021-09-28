@@ -46,6 +46,12 @@ void ModuleNavigation::ReceiveEvent(TesseractEvent& e) {
 	}
 }
 
+void ModuleNavigation::ChangeNavMesh(UID navMeshId_) {
+	App->resources->DecreaseReferenceCount(navMeshId);
+	navMeshId = navMeshId_;
+	App->resources->IncreaseReferenceCount(navMeshId);
+}
+
 void ModuleNavigation::BakeNavMesh() {
 	MSTimer timer;
 	timer.Start();
