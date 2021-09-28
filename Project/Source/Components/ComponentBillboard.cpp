@@ -223,8 +223,7 @@ void ComponentBillboard::Init() {
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 	initPos = transform->GetGlobalPosition();
 	previousPos = transform->GetGlobalRotation() * float3::unitY;
-	float3x3 newRotation = float3x3::FromEulerXYZ(0.f, 0.f, -pi / 2);
-	modelStretch = transform->GetGlobalMatrix() * newRotation;
+	modelStretch = float3x3::FromEulerXYZ(0.f, 0.f, -pi / 2);
 }
 
 void ComponentBillboard::Update() {
@@ -292,7 +291,7 @@ void ComponentBillboard::Draw() {
 		newRotation.SetCol(1, direction);
 		newRotation.SetCol(2, newCameraDir);
 
-		newModelMatrix = float4x4::FromTRS(position, newRotation * modelStretch.RotatePart(), scale);
+		newModelMatrix = float4x4::FromTRS(position, newRotation * modelStretch, scale);
 
 	} else if (billboardType == BillboardType::HORIZONTAL) {
 		if (isHorizontalOrientation) {
@@ -316,6 +315,7 @@ void ComponentBillboard::Draw() {
 		float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
 		float3 cameraDir = (float3(cameraPos.x, position.y, cameraPos.z) - position).Normalized();
 		newModelMatrix = float4x4::LookAt(float3::unitZ, cameraDir, float3::unitY, float3::unitY);
+		newModelMatrix = float4x4::FromTRS(position, newModelMatrix.RotatePart(), scale);
 	}
 
 	glUniformMatrix4fv(program->modelLocation, 1, GL_TRUE, newModelMatrix.ptr());
