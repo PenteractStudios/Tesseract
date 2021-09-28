@@ -221,8 +221,7 @@ float3 ComponentTransform::GetGlobalPosition() {
 
 Quat ComponentTransform::GetGlobalRotation() {
 	CalculateGlobalMatrix();
-	float3x3 globalRotation = globalMatrix.RotatePart();
-	return globalRotation.ToQuat();
+	return Quat(globalMatrix.RotatePart());
 }
 
 float3 ComponentTransform::GetGlobalScale() {
