@@ -754,7 +754,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 				ImGui::PushItemWidth(ITEM_SIZE);
 				ImGui::NewLine();
 			}
-			ImGui::DragInt("Max Lights", &maxLights, 1.0f, 0, 10, "%d", ImGuiSliderFlags_AlwaysClamp);
+			ImGui::DragInt("Max Lights", &maxLights, 1.0f, 0, INT_MAX, "%d", ImGuiSliderFlags_AlwaysClamp);
 
 			ImGui::NewLine();
 			ImGui::SetNextItemWidth(200);
