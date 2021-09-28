@@ -23,7 +23,11 @@
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_BILLBOARD_TYPE "BillboardType"
+#define JSON_TAG_IS_HORIZONTAL_ORIENTATION "IsHorizontalOrientation"
+#define JSON_TAG_RENDER_MODE "RenderMode"
 #define JSON_TAG_TEXTURE_TEXTUREID "TextureId"
+#define JSON_TAG_TEXTURE_INTENSITY "TextureIntensity"
+#define JSON_TAG_FLIP_TEXTURE "FlipTexture"
 
 #define JSON_TAG_YTILES "Ytiles"
 #define JSON_TAG_XTILES "Xtiles"
@@ -33,8 +37,6 @@
 #define JSON_TAG_COLOR_LIFETIME "ColorLifeTime"
 #define JSON_TAG_NUMBER_COLORS "NumberColors"
 #define JSON_TAG_GRADIENT_COLORS "GradientColors"
-
-#define JSON_TAG_FLIP_TEXTURE "FlipTexture"
 
 ComponentBillboard::~ComponentBillboard() {
 	RELEASE(gradient);
@@ -51,71 +53,54 @@ void ComponentBillboard::OnEditorUpdate() {
 		}
 	}
 	ImGui::Separator();
+	ImGui::Indent();
 
-	const char* billboardTypeCombo[] = {"LookAt", "Stretch", "Horitzontal"};
-	const char* billboardTypeComboCurrent = billboardTypeCombo[(int) billboardType];
-	ImGui::TextColored(App->editor->textColor, "Type:");
-	if (ImGui::BeginCombo("##Type", billboardTypeComboCurrent)) {
-		for (int n = 0; n < IM_ARRAYSIZE(billboardTypeCombo); ++n) {
-			bool isSelected = (billboardTypeComboCurrent == billboardTypeCombo[n]);
-			if (ImGui::Selectable(billboardTypeCombo[n], isSelected)) {
-				billboardType = (BillboardType) n;
+	// Render
+	if (ImGui::CollapsingHeader("Render")) {
+		const char* billboardTypeCombo[] = {"LookAt", "Stretch", "Horitzontal", "Vertical"};
+		const char* billboardTypeComboCurrent = billboardTypeCombo[(int) billboardType];
+		ImGui::TextColored(App->editor->textColor, "Type:");
+		if (ImGui::BeginCombo("##Type", billboardTypeComboCurrent)) {
+			for (int n = 0; n < IM_ARRAYSIZE(billboardTypeCombo); ++n) {
+				bool isSelected = (billboardTypeComboCurrent == billboardTypeCombo[n]);
+				if (ImGui::Selectable(billboardTypeCombo[n], isSelected)) {
+					billboardType = (BillboardType) n;
+				}
+				if (isSelected) {
+					ImGui::SetItemDefaultFocus();
+				}
 			}
-			if (isSelected) {
-				ImGui::SetItemDefaultFocus();
-			}
-		}
-		ImGui::EndCombo();
-	}
-	ImGui::Separator();
-
-	ImGui::TextColored(App->editor->textColor, "Texture Settings");
-	ImGui::Separator();
-
-	ImGui::Checkbox("Random Frame", &isRandomFrame);
-
-	UID oldID = textureID;
-	ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
-
-	ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
-
-	if (textureResource != nullptr) {
-		int width;
-		int height;
-		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
-		glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
-
-		if (oldID != textureID) {
-			ComponentTransform2D* transform2D = GetOwner().GetComponent<ComponentTransform2D>();
-			if (transform2D != nullptr) {
-				transform2D->SetSize(float2(static_cast<float>(width), static_cast<float>(height)));
-			}
+			ImGui::EndCombo();
 		}
 
+		if (billboardType == BillboardType::HORIZONTAL) {
+			ImGui::Indent();
+			ImGui::Checkbox("Orientate to direction", &isHorizontalOrientation);
+			ImGui::Unindent();
+		}
 		ImGui::NewLine();
-		ImGui::Separator();
-		ImGui::TextColored(App->editor->titleColor, "Texture Preview");
-		ImGui::TextWrapped("Size:");
-		ImGui::SameLine();
-		ImGui::TextWrapped("%i x %i", width, height);
-		ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
 
-		ImGui::NewLine();
-		ImGui::TextColored(App->editor->titleColor, "Texture Sheet Animation");
-		ImGui::DragScalar("Xtiles", ImGuiDataType_U32, &Xtiles);
-		ImGui::DragScalar("Ytiles", ImGuiDataType_U32, &Ytiles);
-		ImGui::DragFloat("Animation Speed", &animationSpeed, App->editor->dragSpeed2f, -inf, inf);
-
-		ImGui::NewLine();
-		ImGui::TextColored(App->editor->titleColor, "Color over Lifetime");
-		ImGui::Checkbox("##color_over_lifetime", &colorOverLifetime);
-		if (colorOverLifetime) {
-			ImGui::SameLine();
-			ImGui::GradientEditor(gradient, draggingGradient, selectedGradient);
-			ImGui::DragFloat("Color Lifetime", &colorLifetime, App->editor->dragSpeed2f, 0, inf);
-			if (ImGui::Button("Reset Color")) {
-				ResetColor();
+		const char* renderModeCombo[] = {"Additive", "Transparent"};
+		const char* renderModeComboCurrent = renderModeCombo[(int) renderMode];
+		if (ImGui::BeginCombo("Render Mode##", renderModeComboCurrent)) {
+			for (int n = 0; n < IM_ARRAYSIZE(renderModeCombo); ++n) {
+				bool isSelected = (renderModeComboCurrent == renderModeCombo[n]);
+				if (ImGui::Selectable(renderModeCombo[n], isSelected)) {
+					renderMode = (ParticleRenderMode) n;
+				}
+				if (isSelected) {
+					ImGui::SetItemDefaultFocus();
+				}
 			}
+			ImGui::EndCombo();
+		}
+		ImGui::NewLine();
+
+		ImGui::ResourceSlot<ResourceTexture>("texture", &textureID);
+		if (textureID) {
+			ImGui::Indent();
+			ImGui::DragFloat3("Intensity (RGB)", textureIntensity.ptr(), App->editor->dragSpeed2f, 0.0f, inf);
+			ImGui::Unindent();
 		}
 
 		ImGui::NewLine();
@@ -125,15 +110,63 @@ void ComponentBillboard::OnEditorUpdate() {
 		ImGui::SameLine();
 		ImGui::Checkbox("Y", &flipTexture[1]);
 	}
+
+	// Texture Sheet Animation
+	if (ImGui::CollapsingHeader("Texture Sheet Animation")) {
+		ImGui::DragScalar("Xtiles", ImGuiDataType_U32, &Xtiles);
+		ImGui::DragScalar("Ytiles", ImGuiDataType_U32, &Ytiles);
+		ImGui::DragFloat("Animation Speed", &animationSpeed, App->editor->dragSpeed2f, -inf, inf);
+	}
+
+	// Color Over Lifetime
+	if (ImGui::CollapsingHeader("Color over lifetime")) {
+		ImGui::Checkbox("##color_over_lifetime", &colorOverLifetime);
+		if (colorOverLifetime) {
+			ImGui::SameLine();
+			ImGui::GradientEditor(gradient, draggingGradient, selectedGradient);
+			ImGui::DragFloat("Color Lifetime", &colorLifetime, App->editor->dragSpeed2f, 0, inf);
+			if (ImGui::Button("Reset Color")) {
+				ResetColor();
+			}
+		}
+	}
+
+	// Texture Preview
+	if (ImGui::CollapsingHeader("Texture Preview")) {
+		ResourceTexture* textureResource = App->resources->GetResource<ResourceTexture>(textureID);
+		if (textureResource != nullptr) {
+			int width;
+			int height;
+			glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_WIDTH, &width);
+			glGetTextureLevelParameteriv(textureResource->glTexture, 0, GL_TEXTURE_HEIGHT, &height);
+			ImGui::TextColored(App->editor->titleColor, "Billboard Texture");
+			ImGui::TextWrapped("Size:");
+			ImGui::SameLine();
+			ImGui::TextWrapped("%i x %i", width, height);
+			ImGui::Image((void*) textureResource->glTexture, ImVec2(200, 200));
+			ImGui::NewLine();
+		}
+	}
+
+	ImGui::Unindent();
+	ImGui::NewLine();
 }
 
 void ComponentBillboard::Load(JsonValue jComponent) {
 	billboardType = (BillboardType)(int) jComponent[JSON_TAG_BILLBOARD_TYPE];
-
+	isHorizontalOrientation = jComponent[JSON_TAG_IS_HORIZONTAL_ORIENTATION];
+	renderMode = (ParticleRenderMode)(int) jComponent[JSON_TAG_RENDER_MODE];
 	textureID = jComponent[JSON_TAG_TEXTURE_TEXTUREID];
 	if (textureID != 0) {
 		App->resources->IncreaseReferenceCount(textureID);
 	}
+	JsonValue jTextureIntensity = jComponent[JSON_TAG_TEXTURE_INTENSITY];
+	textureIntensity[0] = jTextureIntensity[0];
+	textureIntensity[1] = jTextureIntensity[1];
+	textureIntensity[2] = jTextureIntensity[2];
+	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
+	flipTexture[0] = jFlip[0];
+	flipTexture[1] = jFlip[1];
 
 	Ytiles = jComponent[JSON_TAG_YTILES];
 	Xtiles = jComponent[JSON_TAG_XTILES];
@@ -149,16 +182,20 @@ void ComponentBillboard::Load(JsonValue jComponent) {
 		JsonValue jMark = jColor[i];
 		gradient->addMark(jMark[4], ImColor((float) jMark[0], (float) jMark[1], (float) jMark[2], (float) jMark[3]));
 	}
-
-	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
-	flipTexture[0] = jFlip[0];
-	flipTexture[1] = jFlip[1];
 }
 
 void ComponentBillboard::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_BILLBOARD_TYPE] = (int) billboardType;
-
+	jComponent[JSON_TAG_IS_HORIZONTAL_ORIENTATION] = isHorizontalOrientation;
+	jComponent[JSON_TAG_RENDER_MODE] = (int) renderMode;
 	jComponent[JSON_TAG_TEXTURE_TEXTUREID] = textureID;
+	JsonValue jTextureIntensity = jComponent[JSON_TAG_TEXTURE_INTENSITY];
+	jTextureIntensity[0] = textureIntensity[0];
+	jTextureIntensity[1] = textureIntensity[1];
+	jTextureIntensity[2] = textureIntensity[2];
+	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
+	jFlip[0] = flipTexture[0];
+	jFlip[1] = flipTexture[1];
 
 	jComponent[JSON_TAG_YTILES] = Ytiles;
 	jComponent[JSON_TAG_XTILES] = Xtiles;
@@ -179,10 +216,6 @@ void ComponentBillboard::Save(JsonValue jComponent) const {
 		color++;
 	}
 	jComponent[JSON_TAG_NUMBER_COLORS] = gradient->getMarks().size();
-
-	JsonValue jFlip = jComponent[JSON_TAG_FLIP_TEXTURE];
-	jFlip[0] = flipTexture[0];
-	jFlip[1] = flipTexture[1];
 }
 
 void ComponentBillboard::Init() {
@@ -190,8 +223,7 @@ void ComponentBillboard::Init() {
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 	initPos = transform->GetGlobalPosition();
 	previousPos = transform->GetGlobalRotation() * float3::unitY;
-	float3x3 newRotation = float3x3::FromEulerXYZ(0.f, 0.f, -pi / 2);
-	modelStretch = transform->GetGlobalMatrix() * newRotation;
+	modelStretch = float3x3::FromEulerXYZ(0.f, 0.f, -pi / 2);
 }
 
 void ComponentBillboard::Update() {
@@ -219,7 +251,11 @@ void ComponentBillboard::Draw() {
 	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
-	glBlendFunc(GL_ONE, GL_ONE);
+	if (renderMode == ParticleRenderMode::ADDITIVE) {
+		glBlendFunc(GL_ONE, GL_ONE);
+	} else {
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, App->userInterface->GetQuadVBO());
 	glEnableVertexAttribArray(0);
@@ -255,15 +291,31 @@ void ComponentBillboard::Draw() {
 		newRotation.SetCol(1, direction);
 		newRotation.SetCol(2, newCameraDir);
 
-		newModelMatrix = float4x4::FromTRS(position, newRotation * modelStretch.RotatePart(), scale);
+		newModelMatrix = float4x4::FromTRS(position, newRotation * modelStretch, scale);
 
 	} else if (billboardType == BillboardType::HORIZONTAL) {
-		newModelMatrix = modelMatrix.LookAt(rotatePart.Col(2), float3::unitY, rotatePart.Col(1), float3::unitY);
-		newModelMatrix = float4x4::FromTRS(position, newModelMatrix.RotatePart() * rotatePart, scale);
+		if (isHorizontalOrientation) {
+			float3 direction = transform->GetGlobalRotation().WorldZ();
+			float3 projection = position + direction - direction.y * float3::unitY;
+			direction = (projection - position).Normalized();
+			float3 right = Cross(float3::unitY, direction);
+
+			float3x3 newRotation;
+			newRotation.SetCol(1, right);
+			newRotation.SetCol(2, float3::unitY);
+			newRotation.SetCol(0, direction);
+
+			newModelMatrix = float4x4::FromTRS(position, newRotation, scale);
+		} else {
+			newModelMatrix = float4x4::LookAt(float3::unitZ, float3::unitY, float3::unitY, float3::unitY);
+			newModelMatrix = float4x4::FromTRS(position, newModelMatrix.RotatePart(), scale);
+		}
 
 	} else if (billboardType == BillboardType::VERTICAL) {
-		// TODO: Implement it
-		modelMatrix = modelMatrix;
+		float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
+		float3 cameraDir = (float3(cameraPos.x, position.y, cameraPos.z) - position).Normalized();
+		newModelMatrix = float4x4::LookAt(float3::unitZ, cameraDir, float3::unitY, float3::unitY);
+		newModelMatrix = float4x4::FromTRS(position, newModelMatrix.RotatePart(), scale);
 	}
 
 	glUniformMatrix4fv(program->modelLocation, 1, GL_TRUE, newModelMatrix.ptr());
@@ -279,6 +331,7 @@ void ComponentBillboard::Draw() {
 	glUniform1i(program->diffuseMapLocation, 0);
 	glUniform1i(program->hasDiffuseLocation, hasDiffuseMap);
 	glUniform4fv(program->inputColorLocation, 1, color.ptr());
+	glUniform3fv(program->intensityLocation, 1, textureIntensity.ptr());
 
 	glUniform1f(program->currentFrameLocation, currentFrame);
 
@@ -291,7 +344,6 @@ void ComponentBillboard::Draw() {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, glTexture);
 
-	//TODO: implement drawarrays
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -302,4 +354,30 @@ void ComponentBillboard::Draw() {
 
 void ComponentBillboard::ResetColor() {
 	colorFrame = 0.0f;
+}
+
+// Getters
+float ComponentBillboard::GetCurrentFrame() const {
+	return currentFrame;
+}
+
+float3 ComponentBillboard::GetTextureIntensity() const {
+	return textureIntensity;
+}
+
+float ComponentBillboard::GetAnimationSpeed() const {
+	return animationSpeed;
+}
+
+// Setters
+void ComponentBillboard::SetCurrentFrame(float _currentFrame) {
+	currentFrame = _currentFrame;
+}
+
+void ComponentBillboard::SetIntensity(float3 _textureIntensity) {
+	textureIntensity = _textureIntensity;
+}
+
+void ComponentBillboard::SetAnimationSpeed(float _animationSpeed) {
+	animationSpeed = _animationSpeed;
 }
