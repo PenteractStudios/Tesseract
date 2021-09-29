@@ -18,6 +18,7 @@
 #include "imgui.h"
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
+
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_CLIP_ID "ClipId"
@@ -73,10 +74,12 @@ void ResourceClip::Load() {
 
 	Init(name, animationUID, beginIndex, endIndex, loop, speed, 0);
 
-	App->resources->IncreaseReferenceCount(animationUID);
-
 	unsigned timeMs = timer.Stop();
 	LOG("Clip loaded in %ums", timeMs);
+}
+
+void ResourceClip::FinishLoading() {
+	App->resources->IncreaseReferenceCount(animationUID);
 }
 
 void ResourceClip::GetInfoJson() {

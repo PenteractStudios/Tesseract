@@ -53,7 +53,7 @@ void ComponentVideo::Init() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	ResourceVideo* videoResource = App->resources->GetResource<ResourceVideo>(videoID);
+	ResourceVideo* videoResource = App->resources->GetResourceInternal<ResourceVideo>(videoID);
 	if (videoResource) {
 		const char* filePath = videoResource->GetResourceFilePath().c_str();
 		OpenVideoReader(filePath);
@@ -96,7 +96,7 @@ void ComponentVideo::OnEditorUpdate() {
 		&videoID,
 		[this]() { RemoveVideoResource(); },
 		[this]() {
-			ResourceVideo* videoResource = App->resources->GetResource<ResourceVideo>(videoID);
+			ResourceVideo* videoResource = App->resources->GetResourceInternal<ResourceVideo>(videoID);
 			if (videoResource) {
 				const char* filePath = videoResource->GetResourceFilePath().c_str();
 				OpenVideoReader(filePath);

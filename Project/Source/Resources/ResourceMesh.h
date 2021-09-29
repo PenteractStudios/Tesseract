@@ -35,6 +35,7 @@ public:
 	REGISTER_RESOURCE(ResourceMesh, ResourceType::MESH);
 
 	void Load() override;
+	void FinishLoading() override;
 	void Unload() override;
 
 	std::vector<Triangle> ExtractTriangles(const float4x4& modelMatrix) const;

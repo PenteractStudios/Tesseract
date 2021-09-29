@@ -19,6 +19,8 @@ public:
 	void ReceiveEvent(TesseractEvent& e) override;
 
 	void CreateEmptyScene(); // Crates a new scene with a default game camera and directional light.
+	void PreloadScene(UID sceneId);
+	void ChangeScene(UID sceneId);
 
 	void BuildPrefab(UID prefabId, GameObject* parent);
 
@@ -36,6 +38,11 @@ public:
 	bool godModeOn = false;
 
 private:
+	bool sceneIsLoading = false;
+
+	bool shouldChangeScene = false;
+	UID loadingSceneId = 0;
+
 	bool shouldLoadScene = false;
 	std::string sceneToLoadPath = "";
 

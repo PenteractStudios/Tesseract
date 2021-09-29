@@ -8,7 +8,7 @@ class ResourceAudioClip : public Resource {
 public:
 	REGISTER_RESOURCE(ResourceAudioClip, ResourceType::AUDIO);
 
-	void Load() override;
+	void FinishLoading() override;
 	void Unload() override;
 
 public:

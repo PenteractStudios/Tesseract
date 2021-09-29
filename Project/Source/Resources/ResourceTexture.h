@@ -36,6 +36,7 @@ public:
 	REGISTER_RESOURCE(ResourceTexture, ResourceType::TEXTURE);
 
 	void Load() override;
+	void FinishLoading() override;
 	void Unload() override;
 
 	void LoadResourceMeta(JsonValue jResourceMeta) override;
@@ -53,4 +54,11 @@ private:
 	void UpdateMinFilter(TextureMinFilter filter);
 	void UpdateMagFilter(TextureMagFilter filter);
 	void UpdateWrap(TextureWrap wrap);
+
+private:
+	unsigned char* imageData = nullptr;
+	unsigned width = 0;
+	unsigned height = 0;
+	unsigned bpp = 0;
+	unsigned dataSize = 0;
 };

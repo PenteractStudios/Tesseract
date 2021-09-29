@@ -79,7 +79,6 @@ bool ModuleScene::Init() {
 
 bool ModuleScene::Start() {
 	App->events->AddObserverToEvent(TesseractEventType::GAMEOBJECT_DESTROYED, this);
-	App->events->AddObserverToEvent(TesseractEventType::CHANGE_SCENE, this);
 	App->events->AddObserverToEvent(TesseractEventType::COMPILATION_FINISHED, this);
 	App->events->AddObserverToEvent(TesseractEventType::PRESSED_PLAY, this);
 
@@ -99,10 +98,7 @@ bool ModuleScene::Start() {
 
 #if GAME
 	App->events->AddEvent(TesseractEventType::PRESSED_PLAY);
-	ResourceScene* startScene = App->resources->GetResource<ResourceScene>(startSceneId);
-	if (startScene != nullptr) {
-		App->scene->LoadScene(startScene->GetResourceFilePath().c_str());
-	}
+	ChangeScene(startSceneId);
 
 	App->time->SetVSync(true);
 	App->time->limitFramerate = false;
@@ -123,44 +119,67 @@ UpdateStatus ModuleScene::Update() {
 
 UpdateStatus ModuleScene::PostUpdate() {
 	// Check for scene events
-	if (shouldLoadScene) {
-		Scene* newScene = SceneImporter::LoadScene(sceneToLoadPath.c_str());
-		if (newScene != nullptr) {
-			RELEASE(scene);
-			scene = newScene;
+	if (App->resources->HaveResourcesFinishedLoading()) {
+		if (shouldChangeScene) {
+			ResourceScene* sceneResource = App->resources->GetResource<ResourceScene>(loadingSceneId);
+			if (sceneResource != nullptr) {
+				RELEASE(scene);
+				scene = sceneResource->TransferScene();
+				App->resources->DecreaseReferenceCount(loadingSceneId);
+				loadingSceneId = 0;
 
-			ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(scene->gameCameraId);
-			App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
-			App->camera->ChangeActiveCamera(nullptr, false);
-			App->camera->ChangeCullingCamera(nullptr, false);
+				ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(scene->gameCameraId);
+				App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
+				App->camera->ChangeActiveCamera(nullptr, false);
+				App->camera->ChangeCullingCamera(nullptr, false);
 
-			App->navigation->ChangeNavMesh(scene->navMeshId);
+				App->navigation->ChangeNavMesh(scene->navMeshId);
 
-			if (App->time->HasGameStarted()) {
-				scene->Start();
+				if (App->time->HasGameStarted()) {
+					scene->Start();
+				}
 			}
-		}
 
-		shouldLoadScene = false;
-	} else if (shouldSaveScene) {
-		SceneImporter::SaveScene(scene, sceneToSavePath.c_str());
+			shouldChangeScene = false;
+		} else if (shouldLoadScene) {
+			Scene* newScene = SceneImporter::LoadScene(sceneToLoadPath.c_str());
+			if (newScene != nullptr) {
+				RELEASE(scene);
+				scene = newScene;
 
-		shouldSaveScene = false;
-	} else if (shouldBuildPrefab) {
-		ResourcePrefab* prefabResource = App->resources->GetResource<ResourcePrefab>(buildingPrefabId);
-		if (prefabResource != nullptr) {
-			GameObject* parent = scene->GetGameObject(buildingPrefabParentId);
-			if (parent != nullptr) {
-				UID gameObjectId = prefabResource->BuildPrefab(parent);
-				App->editor->selectedGameObject = scene->GetGameObject(gameObjectId);
+				ComponentCamera* gameCamera = scene->GetComponent<ComponentCamera>(scene->gameCameraId);
+				App->camera->ChangeGameCamera(gameCamera, gameCamera != nullptr);
+				App->camera->ChangeActiveCamera(nullptr, false);
+				App->camera->ChangeCullingCamera(nullptr, false);
+
+				App->navigation->ChangeNavMesh(scene->navMeshId);
+
+				if (App->time->HasGameStarted()) {
+					scene->Start();
+				}
 			}
+
+			shouldLoadScene = false;
+		} else if (shouldSaveScene) {
+			SceneImporter::SaveScene(scene, sceneToSavePath.c_str());
+
+			shouldSaveScene = false;
+		} else if (shouldBuildPrefab) {
+			ResourcePrefab* prefabResource = App->resources->GetResource<ResourcePrefab>(buildingPrefabId);
+			if (prefabResource != nullptr) {
+				GameObject* parent = scene->GetGameObject(buildingPrefabParentId);
+				if (parent != nullptr) {
+					UID gameObjectId = prefabResource->BuildPrefab(parent);
+					App->editor->selectedGameObject = scene->GetGameObject(gameObjectId);
+				}
+			}
+
+			App->resources->DecreaseReferenceCount(buildingPrefabId);
+			buildingPrefabId = 0;
+			buildingPrefabParentId = 0;
+
+			shouldBuildPrefab = false;
 		}
-
-		App->resources->DecreaseReferenceCount(buildingPrefabId);
-		buildingPrefabId = 0;
-		buildingPrefabParentId = 0;
-
-		shouldBuildPrefab = false;
 	}
 
 	return UpdateStatus::CONTINUE;
@@ -183,13 +202,6 @@ void ModuleScene::ReceiveEvent(TesseractEvent& e) {
 
 		scene->DestroyGameObject(e.Get<DestroyGameObjectStruct>().gameObject);
 		break;
-	case TesseractEventType::CHANGE_SCENE: {
-		ResourceScene* newScene = App->resources->GetResource<ResourceScene>(e.Get<ChangeSceneStruct>().sceneId);
-		if (newScene != nullptr) {
-			App->scene->LoadScene(newScene->GetResourceFilePath().c_str());
-		}
-		break;
-	}
 	case TesseractEventType::COMPILATION_FINISHED:
 		for (ComponentScript& script : scene->scriptComponents) {
 			script.CreateScriptInstance();
@@ -229,6 +241,26 @@ void ModuleScene::CreateEmptyScene() {
 	scene->Init();
 	if (App->time->HasGameStarted()) {
 		scene->Start();
+	}
+}
+
+void ModuleScene::PreloadScene(UID newSceneId) {
+	if (loadingSceneId != newSceneId) {
+		App->resources->DecreaseReferenceCount(loadingSceneId);
+		loadingSceneId = newSceneId;
+		App->resources->IncreaseReferenceCount(loadingSceneId);
+	}
+}
+
+void ModuleScene::ChangeScene(UID newSceneId) {
+	if (newSceneId == 0) return;
+
+	shouldChangeScene = true;
+
+	if (loadingSceneId != newSceneId) {
+		App->resources->DecreaseReferenceCount(loadingSceneId);
+		loadingSceneId = newSceneId;
+		App->resources->IncreaseReferenceCount(loadingSceneId);
 	}
 }
 

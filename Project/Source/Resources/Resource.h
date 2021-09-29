@@ -21,6 +21,7 @@ public:
 	void SetName(const char* name);
 
 	virtual void Load();
+	virtual void FinishLoading();
 	virtual void Unload();
 
 	virtual void LoadResourceMeta(JsonValue jResourceMeta);
@@ -29,6 +30,7 @@ public:
 
 public:
 	bool loaded = false;
+	bool loading = false;
 
 private:
 	ResourceType type = ResourceType::UNKNOWN;

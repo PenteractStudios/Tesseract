@@ -32,6 +32,7 @@ public:
 	REGISTER_RESOURCE(ResourceMaterial, ResourceType::MATERIAL);
 
 	void Load() override;
+	void FinishLoading() override;
 	void Unload() override;
 	void OnEditorUpdate() override;
 

@@ -11,6 +11,7 @@ public:
 	REGISTER_RESOURCE(ResourcePrefab, ResourceType::PREFAB);
 
 	void Load() override;
+	void FinishLoading() override;
 	void Unload() override;
 
 	TESSERACT_ENGINE_API UID BuildPrefab(GameObject* parent);

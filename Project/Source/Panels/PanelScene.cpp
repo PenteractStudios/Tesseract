@@ -211,20 +211,14 @@ void PanelScene::Update() {
 				std::string payloadTypePrefab = std::string("_RESOURCE_") + GetResourceTypeName(ResourceType::PREFAB);
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadTypePrefab.c_str())) {
 					UID prefabId = *(UID*) payload->Data;
-					ResourcePrefab* prefab = App->resources->GetResource<ResourcePrefab>(prefabId);
-					if (prefab != nullptr) {
-						App->scene->BuildPrefab(prefabId, App->scene->scene->root);
-					}
+					App->scene->BuildPrefab(prefabId, App->scene->scene->root);
 				}
 
 				// TODO: "Are you sure?" Popup to avoid losing the current scene
 				std::string payloadTypeScene = std::string("_RESOURCE_") + GetResourceTypeName(ResourceType::SCENE);
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadTypeScene.c_str())) {
 					UID sceneId = *(UID*) payload->Data;
-					ResourceScene* scene = App->resources->GetResource<ResourceScene>(sceneId);
-					if (scene != nullptr) {
-						scene->BuildScene();
-					}
+					App->scene->ChangeScene(sceneId);
 				}
 				ImGui::EndDragDropTarget();
 			}

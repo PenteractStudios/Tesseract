@@ -187,6 +187,11 @@ UpdateStatus ModuleEditor::Update() {
 	return UpdateStatus::CONTINUE;
 #endif
 
+	if (!loadingModalOpened && !App->resources->HaveResourcesFinishedLoading()) {
+		modalToOpen = Modal::LOADING;
+		loadingModalOpened = true;
+	}
+
 	// Main menu bar
 	ImGui::BeginMainMenuBar();
 	if (ImGui::BeginMenu("File")) {
@@ -267,6 +272,9 @@ UpdateStatus ModuleEditor::Update() {
 		break;
 	case Modal::QUIT:
 		ImGui::OpenPopup("Quit");
+		break;
+	case Modal::LOADING:
+		ImGui::OpenPopup("Loading");
 		break;
 	case Modal::COMPONENT_EXISTS:
 		ImGui::OpenPopup("Already existing Component");
@@ -389,6 +397,26 @@ UpdateStatus ModuleEditor::Update() {
 		ImGui::SameLine(ImGui::GetWindowWidth() - 60);
 		if (ImGui::Button("Cancel")) {
 			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+
+	ImGui::SetNextWindowSize(ImVec2(260, 60), ImGuiCond_FirstUseEver);
+	if (ImGui::BeginPopupModal("Loading", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar)) {
+		loadingModalTimer += App->time->GetRealTimeDeltaTime();
+		while (loadingModalTimer > 1.0f) loadingModalTimer -= 1.0f;
+		if (loadingModalTimer < 0.25f) {
+			ImGui::Text("Please wait");
+		} else if (loadingModalTimer < 0.5f) {
+			ImGui::Text("Please wait.");
+		} else if (loadingModalTimer < 0.75f) {
+			ImGui::Text("Please wait..");
+		} else {
+			ImGui::Text("Please wait...");
+		}
+		if (loadingModalOpened && App->resources->HaveResourcesFinishedLoading()) {
+			ImGui::CloseCurrentPopup();
+			loadingModalOpened = false;
 		}
 		ImGui::EndPopup();
 	}

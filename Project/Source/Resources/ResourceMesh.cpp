@@ -111,6 +111,11 @@ void ResourceMesh::Load() {
 		cursor += sizeof(unsigned);
 	}
 
+	unsigned timeMs = timer.Stop();
+	LOG("Mesh loaded in %ums", timeMs);
+}
+
+void ResourceMesh::FinishLoading() {
 	// Create VAO
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
@@ -143,9 +148,6 @@ void ResourceMesh::Load() {
 
 	// Unbind VAO
 	glBindVertexArray(0);
-
-	unsigned timeMs = timer.Stop();
-	LOG("Mesh loaded in %ums", timeMs);
 }
 
 void ResourceMesh::Unload() {

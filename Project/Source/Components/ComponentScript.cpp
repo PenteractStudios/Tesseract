@@ -304,7 +304,6 @@ void ComponentScript::Save(JsonValue jComponent) const {
 
 void ComponentScript::Load(JsonValue jComponent) {
 	scriptId = jComponent[JSON_TAG_SCRIPT];
-	if (scriptId != 0) App->resources->IncreaseReferenceCount(scriptId);
 	changedValues.clear();
 	JsonValue jValues = jComponent[JSON_TAG_VALUES];
 	for (unsigned i = 0; i < jValues.Size(); ++i) {
@@ -362,15 +361,12 @@ void ComponentScript::Load(JsonValue jComponent) {
 			break;
 		}
 	}
-	if (App->project->IsGameLoaded()) {
-		CreateScriptInstance();
-	}
 }
 
 void ComponentScript::CreateScriptInstance() {
 	if (scriptInstance != nullptr) return;
 
-	ResourceScript* scriptResource = App->resources->GetResource<ResourceScript>(scriptId);
+	ResourceScript* scriptResource = App->resources->GetResourceInternal<ResourceScript>(scriptId);
 	if (scriptResource == nullptr) return;
 
 	const char* scriptName = scriptResource->GetName().c_str();
@@ -467,6 +463,6 @@ Script* ComponentScript::GetScriptInstance() const {
 }
 
 const char* ComponentScript::GetScriptName() const {
-	ResourceScript* scriptResource = App->resources->GetResource<ResourceScript>(scriptId);
+	ResourceScript* scriptResource = App->resources->GetResourceInternal<ResourceScript>(scriptId);
 	return scriptResource ? scriptResource->GetName().c_str() : nullptr;
 }

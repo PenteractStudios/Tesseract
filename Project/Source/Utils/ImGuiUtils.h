@@ -52,7 +52,7 @@ inline void ImGui::ResourceSlot(const char* label, UID* target, std::function<vo
 		ImGui::TableNextColumn();
 
 		std::string resourceName = "None";
-		T* resource = App->resources->GetResource<T>(*target);
+		T* resource = App->resources->GetResourceInternal<T>(*target);
 		if (resource != nullptr) {
 			resourceName = resource->GetName();
 		}
@@ -166,7 +166,7 @@ inline void ImGui::ResourceSlot<ResourceScene>(const char* label, UID* target, s
 		ImGui::TableNextColumn();
 
 		std::string resourceName = "None";
-		ResourceScene* resource = App->resources->GetResource<ResourceScene>(*target);
+		ResourceScene* resource = App->resources->GetResourceInternal<ResourceScene>(*target);
 		if (resource != nullptr) {
 			resourceName = resource->GetName();
 		}

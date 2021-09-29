@@ -11,6 +11,8 @@
 
 #include "rapidjson/error/en.h"
 
+#include "Utils/Leaks.h"
+
 #define JSON_TAG_ROOT "Root"
 #define JSON_TAG_NAME "Name"
 #define JSON_TAG_PARENT_INDEX "ParentIndex"
@@ -52,7 +54,9 @@ void ResourcePrefab::Load() {
 
 	unsigned timeMs = timer.Stop();
 	LOG("Prefab loaded in %ums.", timeMs);
+}
 
+void ResourcePrefab::FinishLoading() {
 	prefabScene->root->Init();
 }
 

@@ -14,7 +14,7 @@ class Resource;
 
 struct AssetCache;
 
-#define EventVariant std::variant<int, DestroyGameObjectStruct, CreateResourceStruct, DestroyResourceStruct, UpdateAssetCacheStruct, ChangeSceneStruct, ViewportResizedStruct>
+#define EventVariant std::variant<int, DestroyGameObjectStruct, CreateResourceStruct, DestroyResourceStruct, UpdateAssetCacheStruct, ViewportResizedStruct>
 
 /* Creating a new event type:
 *    1. Add a new EventType for the new event (ALWAYS ABOVE COUNT)
@@ -36,7 +36,6 @@ enum class TesseractEventType {
 	UPDATE_ASSET_CACHE,
 	MOUSE_CLICKED,
 	MOUSE_RELEASED,
-	CHANGE_SCENE,
 	COMPILATION_FINISHED,
 	SCREEN_RESIZED,
 	PROJECTION_CHANGED,
@@ -74,12 +73,6 @@ struct UpdateAssetCacheStruct {
 	UpdateAssetCacheStruct(AssetCache* assetCache_)
 		: assetCache(assetCache_) {
 	}
-};
-
-struct ChangeSceneStruct {
-	UID sceneId = 0;
-	ChangeSceneStruct(UID sceneId_)
-		: sceneId(sceneId_) {}
 };
 
 struct ViewportResizedStruct {

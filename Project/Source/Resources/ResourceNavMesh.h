@@ -7,6 +7,6 @@ class ResourceNavMesh : public Resource {
 public:
 	REGISTER_RESOURCE(ResourceNavMesh, ResourceType::NAVMESH);
 
-	void Load() override;
+	void FinishLoading() override;
 	void Unload() override;
 };

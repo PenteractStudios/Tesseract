@@ -23,6 +23,7 @@
 
 #include "imgui.h"
 #include "imgui_internal.h"
+
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_SHADER "ShaderType"
@@ -81,10 +82,6 @@ void ResourceMaterial::Load() {
 	castShadows = static_cast<bool>(jMaterial[JSON_TAG_CAST_SHADOW]);
 	shadowCasterType = static_cast<ShadowCasterType>(static_cast<int>(jMaterial[JSON_TAG_SHADOW_TYPE]));
 
-	if (castShadows) {
-		UpdateMask(MaskToChange::SHADOW);
-	}
-
 	diffuseColor = float4(jMaterial[JSON_TAG_DIFFUSE_COLOR][0], jMaterial[JSON_TAG_DIFFUSE_COLOR][1], jMaterial[JSON_TAG_DIFFUSE_COLOR][2], jMaterial[JSON_TAG_DIFFUSE_COLOR][3]);
 	diffuseMapId = jMaterial[JSON_TAG_DIFFUSE_MAP];
 
@@ -122,15 +119,21 @@ void ResourceMaterial::Load() {
 	isSoft = jMaterial[JSON_TAG_IS_SOFT];
 	softRange = jMaterial[JSON_TAG_SOFT_RANGE];
 
+	unsigned timeMs = timer.Stop();
+	LOG("Material loaded in %ums", timeMs);
+}
+
+void ResourceMaterial::FinishLoading() {
+	if (castShadows) {
+		UpdateMask(MaskToChange::SHADOW);
+	}
+
 	App->resources->IncreaseReferenceCount(diffuseMapId);
 	App->resources->IncreaseReferenceCount(specularMapId);
 	App->resources->IncreaseReferenceCount(metallicMapId);
 	App->resources->IncreaseReferenceCount(normalMapId);
 	App->resources->IncreaseReferenceCount(emissiveMapId);
 	App->resources->IncreaseReferenceCount(ambientOcclusionMapId);
-
-	unsigned timeMs = timer.Stop();
-	LOG("Material loaded in %ums", timeMs);
 }
 
 void ResourceMaterial::Unload() {

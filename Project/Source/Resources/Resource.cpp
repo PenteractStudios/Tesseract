@@ -43,6 +43,8 @@ void Resource::SetName(const char* name_) {
 
 void Resource::Load() {}
 
+void Resource::FinishLoading() {}
+
 void Resource::Unload() {}
 
 void Resource::LoadResourceMeta(JsonValue jResourceMeta) {}

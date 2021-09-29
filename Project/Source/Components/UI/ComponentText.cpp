@@ -132,9 +132,10 @@ void ComponentText::Load(JsonValue jComponent) {
 }
 
 void ComponentText::Draw(ComponentTransform2D* transform) {
-	if (fontID == 0) {
-		return;
-	}
+	if (fontID == 0) return;
+
+	ResourceFont* fontResource = App->resources->GetResource<ResourceFont>(fontID);
+	if (fontResource == nullptr) return;
 
 	ProgramTextUI* textUIProgram = App->programs->textUI;
 	if (textUIProgram == nullptr) return;
@@ -171,7 +172,7 @@ void ComponentText::Draw(ComponentTransform2D* transform) {
 
 	for (size_t i = 0; i < text.size(); ++i) {
 		if (text.at(i) != '\n') {
-			Character character = App->userInterface->GetCharacter(fontID, text.at(i));
+			Character character = fontResource->characters[text.at(i)];
 
 			// render glyph texture over quad
 			glBindTexture(GL_TEXTURE_2D, character.textureID);
@@ -213,9 +214,8 @@ void ComponentText::RecalculateVertices() {
 		return;
 	}
 
-	if (fontID == 0) {
-		return;
-	}
+	ResourceFont* fontResource = App->resources->GetResource<ResourceFont>(fontID);
+	if (fontResource == nullptr) return;
 
 	verticesText.resize(text.size());
 
@@ -231,7 +231,7 @@ void ComponentText::RecalculateVertices() {
 	float scale = (fontSize / 48);
 
 	for (size_t i = 0; i < text.size(); ++i) {
-		Character character = App->userInterface->GetCharacter(fontID, text.at(i));
+		Character character = fontResource->characters[text.at(i)];
 
 		float xpos = x + character.bearing.x * scale;
 		float ypos = y - (character.size.y - character.bearing.y) * scale;
@@ -287,8 +287,11 @@ void ComponentText::Invalidate() {
 float ComponentText::SubstringWidth(const char* substring, float scale) {
 	float subWidth = 0.f;
 
+	ResourceFont* fontResource = App->resources->GetResource<ResourceFont>(fontID);
+	if (fontResource == nullptr) return subWidth;
+
 	for (int i = 0; substring[i] != '\0' && substring[i] != '\n'; ++i) {
-		Character c = App->userInterface->GetCharacter(fontID, substring[i]);
+		Character c = fontResource->characters[substring[i]];
 		subWidth += ((c.advance >> 6) + letterSpacing) * scale;
 	}
 	subWidth -= letterSpacing * scale;

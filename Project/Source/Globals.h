@@ -76,6 +76,7 @@ enum class UpdateStatus {
 
 // Threads
 #define TIME_BETWEEN_RESOURCE_UPDATES_MS 300
+#define MAX_RESOURCE_LOADING_DURATION_PER_FRAME_MS 10
 #define TIME_BETWEEN_AUTOSAVES_MS 300000 // 5 minutes
 
 // Delete helpers -----------

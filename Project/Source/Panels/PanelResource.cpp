@@ -20,7 +20,7 @@ void PanelResource::Update() {
 	ImGui::SetNextWindowDockID(App->editor->dockRightId, ImGuiCond_FirstUseEver);
 	std::string windowName = std::string(ICON_FA_FILE " ") + name;
 	if (ImGui::Begin(windowName.c_str(), &enabled)) {
-		Resource* selected = App->resources->GetResource<Resource>(App->editor->selectedResource);
+		Resource* selected = App->resources->GetResourceInternal<Resource>(App->editor->selectedResource);
 		if (selected != nullptr) {
 			ImGui::TextUnformatted("Id:");
 			ImGui::SameLine();

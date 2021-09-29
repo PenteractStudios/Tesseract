@@ -19,6 +19,7 @@
 #include "Resources/ResourcePrefab.h"
 #include "Resources/ResourceMaterial.h"
 #include "Resources/ResourceClip.h"
+#include "Resources/ResourceScene.h"
 #include "Scripting/PropertyMap.h"
 #include "FileSystem/SceneImporter.h"
 #include "Utils/Logging.h"
@@ -59,6 +60,11 @@ T* GameplaySystems::GetResource(UID id) {
 template TESSERACT_ENGINE_API ResourcePrefab* GameplaySystems::GetResource<ResourcePrefab>(UID id);
 template TESSERACT_ENGINE_API ResourceMaterial* GameplaySystems::GetResource<ResourceMaterial>(UID id);
 template TESSERACT_ENGINE_API ResourceClip* GameplaySystems::GetResource<ResourceClip>(UID id);
+template TESSERACT_ENGINE_API ResourceScene* GameplaySystems::GetResource<ResourceScene>(UID id);
+
+bool GameplaySystems::HaveResourcesFinishedLoading() {
+	return App->resources->HaveResourcesFinishedLoading();
+}
 
 template<typename T>
 T GameplaySystems::GetGlobalVariable(const char* name, const T& defaultValue) {
@@ -310,10 +316,12 @@ bool Input::IsGamepadConnected(int index) {
 
 // --------- SCENE MANAGER --------- //
 
+void SceneManager::PreloadScene(UID sceneId) {
+	App->scene->PreloadScene(sceneId);
+}
+
 void SceneManager::ChangeScene(UID sceneId) {
-	TesseractEvent e(TesseractEventType::CHANGE_SCENE);
-	e.Set<ChangeSceneStruct>(sceneId);
-	App->events->AddEvent(e);
+	App->scene->ChangeScene(sceneId);
 }
 
 void SceneManager::ExitGame() {

@@ -10,7 +10,7 @@
 
 #include "Utils/Leaks.h"
 
-void ResourceFont::Load() {
+void ResourceFont::FinishLoading() {
 	// Timer to measure loading a font
 	MSTimer timer;
 	timer.Start();

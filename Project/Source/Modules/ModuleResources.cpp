@@ -107,14 +107,17 @@ bool ModuleResources::Init() {
 
 bool ModuleResources::Start() {
 	stopImportThread = false;
+	importThread = std::thread(&ModuleResources::UpdateImportAsync, this);
 
-	importThread = std::thread(&ModuleResources::UpdateAsync, this);
+	stopLoadingThread = false;
+	loadingThread = std::thread(&ModuleResources::UpdateLoadingAsync, this);
 
 	return true;
 }
 
 UpdateStatus ModuleResources::Update() {
 	BROFILER_CATEGORY("ModuleResources - Update", Profiler::Color::Orange)
+
 	// Copy dropped file to assets folder
 	const char* droppedFilePath = App->input->GetDroppedFilePath();
 	if (droppedFilePath != nullptr) {
@@ -122,10 +125,29 @@ UpdateStatus ModuleResources::Update() {
 		FileDialog::Copy(droppedFilePath, newFilePath.c_str());
 		App->input->ReleaseDroppedFilePath();
 	}
+
+	// Finish resource loading
+	MSTimer timer;
+	timer.Start();
+	while (!resourcesToFinishLoading.empty() && timer.Read() < MAX_RESOURCE_LOADING_DURATION_PER_FRAME_MS) {
+		Resource* resource = nullptr;
+		if (resourcesToFinishLoading.try_pop(resource)) {
+			if (resource != nullptr) {
+				resource->FinishLoading();
+				resource->loading = false;
+				resource->loaded = true;
+				numResourcesLoading -= 1;
+			}
+		}
+	}
+
 	return UpdateStatus::CONTINUE;
 }
 
 bool ModuleResources::CleanUp() {
+	stopLoadingThread = true;
+	loadingThread.join();
+
 	stopImportThread = true;
 	importThread.join();
 
@@ -186,7 +208,7 @@ void ModuleResources::RecreateResources(JsonValue jMeta, const char* filePath) {
 	for (unsigned i = 0; i < jResources.Size(); ++i) {
 		JsonValue jResource = jResources[i];
 		UID id = jResource[JSON_TAG_ID];
-		if (GetResource<Resource>(id) == nullptr) {
+		if (GetResourceInternal<Resource>(id) == nullptr) {
 			std::string typeName = jResource[JSON_TAG_TYPE];
 			ResourceType type = GetResourceTypeFromName(typeName.c_str());
 			SendCreateResourceEventByType(type, "", filePath, id);
@@ -303,7 +325,7 @@ void ModuleResources::IncreaseReferenceCount(UID id) {
 		referenceCounts[id] = referenceCounts[id] + 1;
 	} else {
 		referenceCounts[id] = 1;
-		Resource* resource = GetResource<Resource>(id);
+		Resource* resource = GetResourceInternal<Resource>(id);
 		if (resource != nullptr) {
 			LoadResource(resource);
 		}
@@ -317,7 +339,7 @@ void ModuleResources::DecreaseReferenceCount(UID id) {
 		referenceCounts[id] = referenceCounts[id] - 1;
 		if (referenceCounts[id] <= 0) {
 			referenceCounts.erase(id);
-			Resource* resource = GetResource<Resource>(id);
+			Resource* resource = GetResourceInternal<Resource>(id);
 			if (resource != nullptr) {
 				UnloadResource(resource);
 			}
@@ -328,6 +350,10 @@ void ModuleResources::DecreaseReferenceCount(UID id) {
 unsigned ModuleResources::GetReferenceCount(UID id) const {
 	auto it = referenceCounts.find(id);
 	return it != referenceCounts.end() ? it->second : 0;
+}
+
+bool ModuleResources::HaveResourcesFinishedLoading() {
+	return numResourcesLoading == 0;
 }
 
 std::string ModuleResources::GenerateResourcePath(UID id) const {
@@ -341,7 +367,7 @@ std::string ModuleResources::GenerateResourcePath(UID id) const {
 	return metaFolder + "/" + strId;
 }
 
-void ModuleResources::UpdateAsync() {
+void ModuleResources::UpdateImportAsync() {
 	while (!stopImportThread) {
 #if !GAME
 		// Check if any asset file has been modified / deleted
@@ -428,6 +454,20 @@ void ModuleResources::UpdateAsync() {
 #endif
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BETWEEN_RESOURCE_UPDATES_MS));
+	}
+}
+
+void ModuleResources::UpdateLoadingAsync() {
+	while (!stopLoadingThread) {
+		// Load resources
+		if (!resourcesToLoad.empty()) {
+			Resource* resource = nullptr;
+			if (!resourcesToLoad.try_pop(resource)) break;
+			if (resource == nullptr) continue;
+
+			resource->Load();
+			resourcesToFinishLoading.push(resource);
+		}
 	}
 }
 
@@ -565,7 +605,9 @@ void ModuleResources::DestroyResource(UID id) {
 }
 
 void ModuleResources::LoadResource(Resource* resource) {
-	if (resource->loaded) return;
+	if (resource->loading || resource->loaded) return;
+
+	numResourcesLoading += 1;
 
 	// Read resource meta file
 	bool resourceMetaLoaded = true;
@@ -595,13 +637,13 @@ void ModuleResources::LoadResource(Resource* resource) {
 	}
 
 	// Load resource
-	resource->Load();
+	resourcesToLoad.push(resource);
 
-	resource->loaded = true;
+	resource->loading = true;
 }
 
 void ModuleResources::UnloadResource(Resource* resource) {
-	if (!resource->loaded) return;
+	if (!resource->loaded || resource->loading) return;
 
 	resource->Unload();
 

@@ -17,7 +17,7 @@
 
 #include "Utils/Leaks.h"
 
-void ResourceAudioClip::Load() {
+void ResourceAudioClip::FinishLoading() {
 	MSTimer timer;
 	timer.Start();
 	std::string filePath = GetResourceFilePath();

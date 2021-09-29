@@ -18,6 +18,8 @@
 #include "GL/glew.h"
 #include "imgui.h"
 
+#include "Utils/Leaks.h"
+
 #define JSON_TAG_COMPRESSION "Compression"
 #define JSON_TAG_WRAP "Wrap"
 #define JSON_TAG_MINFILTER "MinFilter"
@@ -76,14 +78,12 @@ void ResourceTexture::Load() {
 		LOG("Failed to convert image.");
 		return;
 	}
-	unsigned width = ilGetInteger(IL_IMAGE_WIDTH);
-	unsigned height = ilGetInteger(IL_IMAGE_HEIGHT);
-	unsigned bpp = ilGetInteger(IL_IMAGE_BYTES_PER_PIXEL);
-	unsigned dataSize = width * height * bpp;
-	unsigned char* imageData = nullptr;
-	DEFER {
-		RELEASE(imageData);
-	};
+
+	width = ilGetInteger(IL_IMAGE_WIDTH);
+	height = ilGetInteger(IL_IMAGE_HEIGHT);
+	bpp = ilGetInteger(IL_IMAGE_BYTES_PER_PIXEL);
+	dataSize = width * height * bpp;
+	imageData = nullptr;
 
 	switch (compression) {
 	case TextureCompression::NONE: {
@@ -117,6 +117,16 @@ void ResourceTexture::Load() {
 		LOG("Unknown compression.");
 		return;
 	}
+
+	unsigned timeMs = timer.Stop();
+	LOG("Texture loaded in %ums.", timeMs);
+}
+
+void ResourceTexture::FinishLoading() {
+	if (imageData == nullptr) return;
+	DEFER {
+		RELEASE(imageData);
+	};
 
 	// Generate texture from image
 	glGenTextures(1, &glTexture);
@@ -152,12 +162,11 @@ void ResourceTexture::Load() {
 	UpdateWrap(wrap);
 	UpdateMinFilter(minFilter);
 	UpdateMagFilter(magFilter);
-
-	unsigned timeMs = timer.Stop();
-	LOG("Texture loaded in %ums.", timeMs);
 }
 
 void ResourceTexture::Unload() {
+	RELEASE(imageData);
+
 	if (glTexture) {
 		glDeleteTextures(1, &glTexture);
 		glTexture = 0;

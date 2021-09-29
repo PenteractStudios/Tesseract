@@ -12,7 +12,7 @@
 
 #include "Utils/Leaks.h"
 
-void ResourceNavMesh::Load() {
+void ResourceNavMesh::FinishLoading() {
 	// Timer to measure loading a mesh
 	MSTimer timer;
 	timer.Start();

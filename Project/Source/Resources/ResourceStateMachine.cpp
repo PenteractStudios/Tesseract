@@ -19,6 +19,7 @@
 #include "imgui.h"
 #include "Utils/Logging.h"
 #include "Utils/Buffer.h"
+
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_CLIPS "Clips"
@@ -99,12 +100,14 @@ void ResourceStateMachine::Load() {
 		transitions.insert(std::make_pair(triggerName, transition));
 	}
 
+	unsigned timeMs = timer.Stop();
+	LOG("Material loaded in %ums", timeMs);
+}
+
+void ResourceStateMachine::FinishLoading() {
 	for (UID clipId : clipIds) {
 		App->resources->IncreaseReferenceCount(clipId);
 	}
-
-	unsigned timeMs = timer.Stop();
-	LOG("Material loaded in %ums", timeMs);
 }
 
 void ResourceStateMachine::Unload() {
