@@ -24,11 +24,17 @@ public:
 
 	void ResetColor();
 
+	// Getters
+	TESSERACT_ENGINE_API float GetCurrentFrame() const;
+	TESSERACT_ENGINE_API float3 GetTextureIntensity() const;
+	TESSERACT_ENGINE_API float GetAnimationSpeed() const;
+
+	// Setters
+	TESSERACT_ENGINE_API void SetCurrentFrame(float _currentFrame);
+	TESSERACT_ENGINE_API void SetIntensity(float3 _textureIntensity);
+	TESSERACT_ENGINE_API void SetAnimationSpeed(float _animationSpeed);
+
 private:
-	UID textureID = 0; // ID of the image
-
-	BillboardType billboardType = BillboardType::NORMAL;
-
 	float4x4 modelStretch = float4x4::identity;
 	float3 initPos = float3::zero;
 	float3 previousPos = float3::zero;
@@ -37,8 +43,14 @@ private:
 	float currentFrame = 0.0f;
 	float colorFrame = 0.0f;
 
-	// General Options
-	bool isRandomFrame = false;
+	// Render
+	BillboardType billboardType = BillboardType::NORMAL;
+	ParticleRenderMode renderMode = ParticleRenderMode::ADDITIVE;
+	UID textureID = 0; // ID of the image
+	float3 textureIntensity = {1.0f, 1.0f, 1.0f};
+
+	bool isHorizontalOrientation = false;
+	bool flipTexture[2] = {false, false};
 
 	// Texture Sheet Animation
 	unsigned Xtiles = 1;
@@ -51,7 +63,4 @@ private:
 	ImGradient* gradient = nullptr;
 	ImGradientMark* draggingGradient = nullptr;
 	ImGradientMark* selectedGradient = nullptr;
-
-	// Texture Options
-	bool flipTexture[2] = {false, false};
 };
