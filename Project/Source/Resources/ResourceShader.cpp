@@ -22,7 +22,10 @@ void ResourceShader::Load() {
 }
 
 void ResourceShader::Unload() {
-	App->programs->DeleteProgram(shaderProgram);
+	if (shaderProgram) {
+		App->programs->DeleteProgram(shaderProgram);
+		shaderProgram = 0;
+	}
 }
 
 unsigned ResourceShader::GetShaderProgram() {

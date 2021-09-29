@@ -158,7 +158,10 @@ void ResourceTexture::Load() {
 }
 
 void ResourceTexture::Unload() {
-	glDeleteTextures(1, &glTexture);
+	if (glTexture) {
+		glDeleteTextures(1, &glTexture);
+		glTexture = 0;
+	}
 }
 
 void ResourceTexture::LoadResourceMeta(JsonValue jResourceMeta) {

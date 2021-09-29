@@ -24,7 +24,7 @@ bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, c
 		return false;
 	}
 
-	ResourceAnimation* resourceAnimation = clip.GetResourceAnimation();
+	ResourceAnimation* resourceAnimation = App->resources->GetResource<ResourceAnimation>(clip.animationUID);
 	if (resourceAnimation == nullptr || resourceAnimation->keyFrames.size() == 0) return false;
 
 	//Resetting the events since it has been a loop only for one bone
