@@ -340,7 +340,11 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 	// Emission
 	if (ImGui::CollapsingHeader("Emission")) {
-		ImGui::Checkbox("Attach to Emitter", &attachEmitter);
+		if (ImGui::Checkbox("Attach to Emitter", &attachEmitter)) {
+			if (isPlaying) {
+				Restart();
+			}
+		}
 		if (ImGuiRandomMenu("Rate over Time", particlesPerSecondRM, particlesPerSecond, nullptr)) {
 			InitStartRate();
 		}
@@ -406,33 +410,31 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			shapeArc = arcDegree * DEGTORAD;
 		}
 
-		// TODO: Fix BOX Emitter
+		float3 position = emitterModel.TranslatePart();
+		float3 rotation = emitterModel.RotatePart().ToEulerXYZ() * RADTODEG;
+		float3 scale = emitterModel.GetScale();
+
+		ImGui::NewLine();
+		ImGui::PopItemWidth();
+		ImGui::PushItemWidth(200);
+
+		modified |= ImGui::DragFloat3("Position##local_pos", position.ptr(), App->editor->dragSpeed2f, -inf, inf);
+		modified |= ImGui::DragFloat3("Scale##local_pos", scale.ptr(), App->editor->dragSpeed2f, 0.0001f, inf, "%.3f", ImGuiSliderFlags_AlwaysClamp);
 		if (emitterType != ParticleEmitterType::BOX) {
-			float3 position = emitterModel.TranslatePart();
-			float3 rotation = emitterModel.RotatePart().ToEulerXYZ() * RADTODEG;
-			float3 scale = emitterModel.GetScale();
-
-			ImGui::NewLine();
-			ImGui::PopItemWidth();
-			ImGui::PushItemWidth(200);
-
-			modified |= ImGui::DragFloat3("Position##local_pos", position.ptr(), App->editor->dragSpeed2f, -inf, inf);
-			modified |= ImGui::DragFloat3("Scale##local_pos", scale.ptr(), App->editor->dragSpeed2f, 0.0001f, inf, "%.3f", ImGuiSliderFlags_AlwaysClamp);
-			if (emitterType != ParticleEmitterType::BOX) {
-				scale = float3(1.0, 1.0, 1.0);
-				ImGui::SameLine();
-				App->editor->HelpMarker("Scale works only with Box shape");
-			}
-			modified |= ImGui::DragFloat3("Rotation##local_pos", rotation.ptr(), App->editor->dragSpeed2f, -inf, inf);
-
-			if (modified) {
-				emitterModel = float4x4::FromTRS(position, Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD), scale);
-				float3x3 rotateMatrix = emitterModel.RotatePart();
-				obbEmitter = OBB(float3::zero, emitterModel.GetScale() / 2, rotateMatrix.Col3(0), rotateMatrix.Col3(1), rotateMatrix.Col3(2));
-			}
-			ImGui::PopItemWidth();
-			ImGui::PushItemWidth(ITEM_SIZE);
+			scale = float3(1.0, 1.0, 1.0);
+			ImGui::SameLine();
+			App->editor->HelpMarker("Scale works only with Box shape");
 		}
+		modified |= ImGui::DragFloat3("Rotation##local_pos", rotation.ptr(), App->editor->dragSpeed2f, -inf, inf);
+
+		if (modified) {
+			emitterModel = float4x4::FromTRS(position, Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD), scale);
+			float3x3 rotateMatrix = emitterModel.RotatePart();
+			obbEmitter = OBB(float3::zero, emitterModel.GetScale(), rotateMatrix.Col3(0), rotateMatrix.Col3(1), rotateMatrix.Col3(2));
+		}
+		ImGui::PopItemWidth();
+		ImGui::PushItemWidth(ITEM_SIZE);
+
 		ImGui::Unindent();
 	}
 
@@ -445,7 +447,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			ImGuiRandomMenu("Linear Z", velocityLinearRM, velocityLinearZ, velocityLinearXCurve, false, App->editor->dragSpeed1f, -inf, inf);
 			ImGui::Indent();
 			const char* velocitySpaceCombo[] = {"World", "Local"};
-			const char* velocitySpaceComboCurrent = velocitySpaceCombo[(int) billboardType];
+			const char* velocitySpaceComboCurrent = velocitySpaceCombo[velocityLinearSpace];
 			if (ImGui::BeginCombo("Space##", velocitySpaceComboCurrent)) {
 				for (int n = 0; n < IM_ARRAYSIZE(velocitySpaceCombo); ++n) {
 					bool isSelected = (velocitySpaceComboCurrent == velocitySpaceCombo[n]);
@@ -1388,11 +1390,6 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 			InitParticleTrail(currentParticle);
 		}
 
-		float4x4 newModel;
-		ObtainEmitterGlobalMatrix(newModel);
-		currentParticle->emitterPosition = newModel.TranslatePart();
-		currentParticle->emitterRotation = newModel.RotatePart().ToQuat();
-
 		if (App->time->HasGameStarted() && collision) {
 			currentParticle->emitter = this;
 			currentParticle->radius = radius;
@@ -1409,9 +1406,6 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 }
 
 void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
-	float4x4 newModel;
-	ObtainEmitterGlobalMatrix(newModel);
-
 	float reverseDist = ObtainRandomValueFloat(reverseDistanceRM, reverseDistance, reverseDistanceCurve, emitterTime / duration);
 
 	if (emitterType == ParticleEmitterType::BOX) {
@@ -1425,13 +1419,9 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 			int index = (int) floor(Random() * 12);
 			point = obbEmitter.PointOnEdge(index, Random());
 		}
-		point = point.Div(emitterModel.GetScale());
-		float3x3 rotateMatrix = newModel.RotatePart();
-		currentParticle->initialPosition = newModel.TranslatePart() + rotateMatrix * float3(point.x, point.y, point.z).Div(emitterModel.GetScale());
-		//float4x4 matrix = GetOwner().GetComponent<ComponentTransform>()->GetGlobalMatrix();
-		//float3 localPos = emitterModel.TranslatePart() + emitterModel.RotatePart() * float3(point.x, point.y, point.z);
-		//currentParticle->initialPosition = matrix.TranslatePart() + matrix.RotatePart() * localPos;
-		currentParticle->direction = (rotateMatrix * float3::unitY).Normalized();
+
+		currentParticle->initialPosition = float3(point.x, point.y, point.z);
+		currentParticle->direction = float3::unitY;
 
 	} else {
 		float x0 = 0, y0 = 0, z0 = 0, x1 = 0, y1 = 0, z1 = 0;
@@ -1468,9 +1458,16 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 			localPos = localPos + localDir * reverseDist;
 		}
 
+		currentParticle->initialPosition = localPos;
+		currentParticle->direction = localDir.Normalized();
+	}
+
+	if (!attachEmitter) {
+		float4x4 newModel;
+		ObtainEmitterGlobalMatrix(newModel);
 		float3x3 rotateMatrix = newModel.RotatePart();
-		currentParticle->initialPosition = newModel.TranslatePart() + rotateMatrix * localPos;
-		currentParticle->direction = (rotateMatrix * localDir).Normalized();
+		currentParticle->initialPosition = newModel.TranslatePart() + rotateMatrix * currentParticle->initialPosition;
+		currentParticle->direction = (rotateMatrix * currentParticle->direction).Normalized();
 	}
 
 	currentParticle->position = currentParticle->initialPosition;
@@ -1563,8 +1560,15 @@ void ComponentParticleSystem::InitSubEmitter(Particle* currentParticle, SubEmitt
 			newGameObject->SetParent(&parent);
 			ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 			float3x3 rotationMatrix = float3x3::RotateFromTo(float3::unitY, currentParticle->direction);
-			transform->SetGlobalPosition(currentParticle->position);
-			transform->SetGlobalRotation(rotationMatrix.ToEulerXYZ());
+			float4x4 particleModel = float4x4::FromTRS(currentParticle->position, rotationMatrix, float3::one);
+			if (attachEmitter) {
+				float4x4 emitterModel;
+				ObtainEmitterGlobalMatrix(emitterModel);
+				particleModel = emitterModel * particleModel;
+			}
+
+			transform->SetGlobalPosition(particleModel.TranslatePart());
+			transform->SetGlobalRotation(particleModel.RotatePart().ToQuat());
 			transform->SetGlobalScale(float3::one);
 			newGameObject->Init();
 
@@ -1595,10 +1599,13 @@ void ComponentParticleSystem::InitLight(Particle* currentParticle) {
 	newGameObject->SetParent(&parent);
 	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform* transformPS = GetOwner().GetComponent<ComponentTransform>();
-	float3 globalOffset = transformPS->GetGlobalMatrix().RotatePart() * lightOffset;
-	transform->SetGlobalPosition(currentParticle->position + globalOffset);
-	transform->SetGlobalRotation(float3::zero);
-	transform->SetGlobalScale(float3::one);
+
+	if (attachEmitter) {
+		transform->SetPosition(currentParticle->position + lightOffset);
+	} else {
+		float3 globalOffset = transformPS->GetGlobalMatrix().RotatePart() * lightOffset;
+		transform->SetGlobalPosition(currentParticle->position + globalOffset);
+	}
 	newGameObject->Init();
 
 	ComponentLight* newLight = newGameObject->CreateComponent<ComponentLight>();
@@ -1692,42 +1699,6 @@ void ComponentParticleSystem::Update() {
 }
 
 void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
-	if (attachEmitter) {
-		float4x4 newModel;
-		ObtainEmitterGlobalMatrix(newModel);
-		float3 position = newModel.TranslatePart();
-		Quat rotation = newModel.RotatePart().ToQuat();
-
-		if (!currentParticle->emitterRotation.Equals(rotation)) {
-			// Update Particle direction
-			float3 direction = (rotation * float3::unitY).Normalized();
-			float3 oldDirection = (currentParticle->emitterRotation * float3::unitY).Normalized();
-			float3 axisToRotate = Cross(oldDirection, direction).Normalized();
-			float angleToRotate = acos(Dot(oldDirection, direction));
-			float3x3 rotateMatrix = float3x3::RotateAxisAngle(axisToRotate, angleToRotate);
-			currentParticle->direction = rotateMatrix * currentParticle->direction;
-
-			// Update initialPoint using intersection between Plane that contains the point and axisToRotate
-			float dist = 0;
-			Plane planeInitPos = Plane(currentParticle->initialPosition, axisToRotate);
-			Line line = Line(currentParticle->emitterPosition, axisToRotate);
-			planeInitPos.Intersects(line, &dist);
-			float3 intersectPoint = line.GetPoint(dist);
-			float3 newInitialPosDirection = rotateMatrix * (currentParticle->initialPosition - intersectPoint).Normalized();
-			currentParticle->initialPosition = newInitialPosDirection * Length(currentParticle->initialPosition - intersectPoint) + intersectPoint;
-
-			currentParticle->position = currentParticle->direction * Length(currentParticle->position - currentParticle->initialPosition) + currentParticle->initialPosition;
-			currentParticle->emitterRotation = rotation;
-		}
-
-		if (!currentParticle->emitterPosition.Equals(position)) {
-			float3 directionLength = (position - currentParticle->emitterPosition).Normalized() * Length(position - currentParticle->emitterPosition);
-			currentParticle->initialPosition = directionLength + currentParticle->initialPosition;
-			currentParticle->position = directionLength + currentParticle->position;
-			currentParticle->emitterPosition = position;
-		}
-	}
-
 	if (reverseEffect) {
 		currentParticle->position -= currentParticle->direction * currentParticle->speed * App->time->GetDeltaTimeOrRealDeltaTime();
 	} else {
@@ -1751,7 +1722,7 @@ void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
 
 	float3 direction;
 	if (velocityLinearSpace) {
-		direction  = float3x3::RotateFromTo(float3::unitY, currentParticle->direction) * float3(linearX, linearY, linearZ);
+		direction = float3x3::RotateFromTo(float3::unitY, currentParticle->direction) * float3(linearX, linearY, linearZ);
 	} else {
 		direction = float3(linearX, linearY, linearZ);
 	}
@@ -1803,7 +1774,13 @@ void ComponentParticleSystem::UpdateLife(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::UpdateTrail(Particle* currentParticle) {
-	currentParticle->trail->Update(currentParticle->position);
+	float4x4 particleModel = float4x4::FromTRS(currentParticle->position, float3x3::identity, float3::one);
+	if (attachEmitter) {
+		float4x4 emitterModel;
+		ObtainEmitterGlobalMatrix(emitterModel);
+		particleModel = emitterModel * particleModel;
+	}
+	currentParticle->trail->Update(particleModel.TranslatePart());
 }
 
 void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) {
@@ -1847,11 +1824,15 @@ void ComponentParticleSystem::UpdateLight(Particle* currentParticle) {
 	ComponentLight* light = currentParticle->lightGO->GetComponent<ComponentLight>();
 	if (light == nullptr) return;
 
-	float3 position = currentParticle->position;
 	ComponentTransform* transform = currentParticle->lightGO->GetComponent<ComponentTransform>();
 	ComponentTransform* transformPS = GetOwner().GetComponent<ComponentTransform>();
-	float3 globalOffset = transformPS->GetGlobalMatrix().RotatePart() * lightOffset;
-	transform->SetGlobalPosition(currentParticle->position + globalOffset);
+
+	if (attachEmitter) {
+		transform->SetPosition(currentParticle->position + lightOffset);
+	} else {
+		float3 globalOffset = transformPS->GetGlobalMatrix().RotatePart() * lightOffset;
+		transform->SetGlobalPosition(currentParticle->position + globalOffset);
+	}
 
 	if (useParticleColor && colorOverLifetime) {
 		float4 color = float4::one;
@@ -1898,15 +1879,16 @@ void ComponentParticleSystem::DrawGizmos() {
 		float4x4 newModel;
 		ObtainEmitterGlobalMatrix(newModel);
 		float3x3 rotateMatrix = newModel.RotatePart();
+		float3 direction = (rotateMatrix * float3::unitY).Normalized();
 		if (emitterType == ParticleEmitterType::CONE) {
-			dd::cone(newModel.TranslatePart(), rotateMatrix * float3::unitY, dd::colors::White, coneRadiusUp, shapeRadius);
-			dd::circle(newModel.TranslatePart(), rotateMatrix * float3::unitY, dd::colors::White, shapeRadius * (1 - shapeRadiusThickness), 50.0f);
+			dd::cone(newModel.TranslatePart(), direction, dd::colors::White, coneRadiusUp, shapeRadius);
+			dd::circle(newModel.TranslatePart(), direction, dd::colors::White, shapeRadius * (1 - shapeRadiusThickness), 50.0f);
 		} else if (emitterType == ParticleEmitterType::SPHERE) {
 			dd::sphere(newModel.TranslatePart(), dd::colors::White, shapeRadius);
 			dd::sphere(newModel.TranslatePart(), dd::colors::White, shapeRadius * (1 - shapeRadiusThickness));
 		} else if (emitterType == ParticleEmitterType::CIRCLE) {
-			dd::circle(newModel.TranslatePart(), rotateMatrix * float3::unitY, dd::colors::White, shapeRadius, 50.0f);
-			dd::circle(newModel.TranslatePart(), rotateMatrix * float3::unitY, dd::colors::White, shapeRadius * (1 - shapeRadiusThickness), 50.0f);
+			dd::circle(newModel.TranslatePart(), direction, dd::colors::White, shapeRadius, 50.0f);
+			dd::circle(newModel.TranslatePart(), direction, dd::colors::White, shapeRadius * (1 - shapeRadiusThickness), 50.0f);
 		} else if (emitterType == ParticleEmitterType::BOX) {
 			float3 points[8];
 			OBB obbEmitter = OBB(newModel.TranslatePart(), emitterModel.GetScale(), rotateMatrix.Col3(0), rotateMatrix.Col3(1), rotateMatrix.Col3(2));
@@ -1950,6 +1932,14 @@ void ComponentParticleSystem::Draw() {
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*) (sizeof(float) * 6 * 3));
 
+			float4x4 particleModel = float4x4::FromTRS(currentParticle.position, float3x3::identity, float3::one);
+			if (attachEmitter) {
+				float4x4 emitterModel;
+				ObtainEmitterGlobalMatrix(emitterModel);
+				particleModel = emitterModel * particleModel;
+			}
+			float3 globalPosition = particleModel.TranslatePart();
+			float3 globalDirection = (particleModel.RotatePart() * currentParticle.direction).Normalized();
 			float4x4 newModelMatrix;
 			if (billboardType == BillboardType::NORMAL) {
 				if (renderAlignment == ParticleRenderAlignment::VIEW) {
@@ -1963,25 +1953,25 @@ void ComponentParticleSystem::Draw() {
 					newModelMatrix = float4x4::LookAt(float3::unitZ, -(transform->GetGlobalRotation() * float3::unitY), float3::unitY, float3::unitY);
 				} else if (renderAlignment == ParticleRenderAlignment::FACING) {
 					float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
-					newModelMatrix = float4x4::LookAt(float3::unitZ, cameraPos - currentParticle.position, float3::unitY, float3::unitY);
+					newModelMatrix = float4x4::LookAt(float3::unitZ, cameraPos - globalPosition, float3::unitY, float3::unitY);
 				} else { // Velocity
-					newModelMatrix = float4x4::LookAt(float3::unitZ, -currentParticle.direction, float3::unitY, float3::unitY);
+					newModelMatrix = float4x4::LookAt(float3::unitZ, -globalPosition, float3::unitY, float3::unitY);
 				}
 			} else if (billboardType == BillboardType::STRETCH) {
 				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
-				float3 cameraDir = (cameraPos - currentParticle.position).Normalized();
-				float3 upDir = Cross(currentParticle.direction, cameraDir);
-				float3 newCameraDir = Cross(currentParticle.direction, upDir);
+				float3 cameraDir = (cameraPos - globalPosition).Normalized();
+				float3 upDir = Cross(globalDirection, cameraDir);
+				float3 newCameraDir = Cross(globalDirection, upDir);
 
 				float3x3 newRotation;
 				newRotation.SetCol(0, upDir);
-				newRotation.SetCol(1, currentParticle.direction);
+				newRotation.SetCol(1, globalDirection);
 				newRotation.SetCol(2, newCameraDir);
 
 				newModelMatrix = float4x4::identity * newRotation;
 			} else if (billboardType == BillboardType::HORIZONTAL) {
 				if (isHorizontalOrientation) {
-					float3 right = Cross(float3::unitY, currentParticle.direction);
+					float3 right = Cross(float3::unitY, globalDirection);
 					float3 direction = Cross(right, float3::unitY);
 
 					float3x3 newRotation;
@@ -1995,11 +1985,11 @@ void ComponentParticleSystem::Draw() {
 				}
 			} else if (billboardType == BillboardType::VERTICAL) {
 				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
-				float3 cameraDir = (float3(cameraPos.x, currentParticle.position.y, cameraPos.z) - currentParticle.position).Normalized();
+				float3 cameraDir = (float3(cameraPos.x, globalPosition.y, cameraPos.z) - globalPosition).Normalized();
 				newModelMatrix = float4x4::LookAt(float3::unitZ, cameraDir, float3::unitY, float3::unitY);
 			}
 
-			float4x4 modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart() * float3x3::FromQuat(currentParticle.rotation), currentParticle.scale);
+			float4x4 modelMatrix = float4x4::FromTRS(globalPosition, newModelMatrix.RotatePart() * float3x3::FromQuat(currentParticle.rotation), currentParticle.scale);
 			float4x4* view = &App->camera->GetViewMatrix();
 			float4x4* proj = &App->camera->GetProjectionMatrix();
 
@@ -2052,7 +2042,7 @@ void ComponentParticleSystem::Draw() {
 				currentParticle.trail->Draw();
 			}
 			if (App->renderer->drawColliders) {
-				dd::sphere(currentParticle.position, dd::colors::LawnGreen, currentParticle.radius);
+				dd::sphere(modelMatrix.TranslatePart(), dd::colors::LawnGreen, currentParticle.radius);
 			}
 		}
 	}

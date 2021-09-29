@@ -91,9 +91,6 @@ public:
 		float animationSpeed = 1.0f;
 		float gravityTime = 0.0f;
 
-		float3 emitterPosition = float3::zero;
-		Quat emitterRotation = Quat::identity;
-
 		// Collider
 		bool hasCollided = false;
 		std::vector<GameObject*> collidedWith;
