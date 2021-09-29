@@ -12,21 +12,21 @@
 
 #include "Utils/Leaks.h"
 
-const int positionsSizeQuantity = 3;
-const int normalSizeQuantity = 3;
-const int tangentSizeQuantity = 3;
-const int uvSizeQuantity = 2;
-const int bonesIDSizeQuantity = 4;
-const int weightSizeQuantity = 4;
+constexpr int positionsSizeQuantity = 3;
+constexpr int normalSizeQuantity = 3;
+constexpr int tangentSizeQuantity = 3;
+constexpr int uvSizeQuantity = 2;
+constexpr int bonesIDSizeQuantity = 4;
+constexpr int weightSizeQuantity = 4;
 
-const unsigned positionSize = sizeof(float) * positionsSizeQuantity;
-const unsigned normalSize = sizeof(float) * normalSizeQuantity;
-const unsigned tangentSize = sizeof(float) * tangentSizeQuantity;
-const unsigned uvSize = sizeof(float) * uvSizeQuantity;
-const unsigned bonesIDSize = sizeof(unsigned) * bonesIDSizeQuantity;
-const unsigned weightsSize = sizeof(float) * weightSizeQuantity;
+constexpr unsigned positionSize = sizeof(float) * positionsSizeQuantity;
+constexpr unsigned normalSize = sizeof(float) * normalSizeQuantity;
+constexpr unsigned tangentSize = sizeof(float) * tangentSizeQuantity;
+constexpr unsigned uvSize = sizeof(float) * uvSizeQuantity;
+constexpr unsigned bonesIDSize = sizeof(unsigned) * bonesIDSizeQuantity;
+constexpr unsigned weightsSize = sizeof(float) * weightSizeQuantity;
 
-const unsigned nonPosVertexAttributesSize = normalSize + tangentSize + uvSize + bonesIDSize + weightsSize;
+constexpr unsigned nonPosVertexAttributesSize = normalSize + tangentSize + uvSize + bonesIDSize + weightsSize;
 
 void ResourceMesh::Load() {
 	// Timer to measure loading a mesh
