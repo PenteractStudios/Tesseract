@@ -282,6 +282,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		ProgramStandardMetallic* metallicProgram = hasNormalMap ? App->programs->standardNormal : App->programs->standardNotNormal;
 		if (metallicProgram == nullptr) return;
 
+		glDisable(GL_CULL_FACE);
+
 		ProgramStandardDissolve* dissolveProgram = App->programs->dissolveStandard;
 
 		glUseProgram(dissolveProgram->program);
@@ -300,6 +302,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glBindTexture(GL_TEXTURE_2D, glTextureMetallic);
 
 		// Dissolve settings
+		glUniform4fv(dissolveProgram->colorLocation, 1, material->dissolveColor.ptr());
+		glUniform1f(dissolveProgram->intensityLocation, material->dissolveIntensity);
 		glUniform1f(dissolveProgram->scaleLocation, material->dissolveScale);
 		glUniform1f(dissolveProgram->thresholdLocation, GetDissolveValue());
 		glUniform2fv(dissolveProgram->offsetLocation, 1, material->dissolveOffset.ptr());
@@ -369,6 +373,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 		glUseProgram(unlitProgram->program);
 
+		glDisable(GL_CULL_FACE);
+
 		// Matrices
 		float4x4 viewMatrix = App->camera->GetViewMatrix();
 		float4x4 projMatrix = App->camera->GetProjectionMatrix();
@@ -414,6 +420,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform2fv(unlitProgram->offsetLocation, 1, ChooseTextureOffset(material->offset).ptr());
 
 		// Dissolve settings
+		glUniform4fv(unlitProgram->colorLocation, 1, material->dissolveColor.ptr());
+		glUniform1f(unlitProgram->intensityLocation, material->dissolveIntensity);
 		glUniform1f(unlitProgram->scaleLocation, material->dissolveScale);
 		glUniform1f(unlitProgram->thresholdLocation, GetDissolveValue());
 		glUniform2fv(unlitProgram->offsetLocation, 1, material->dissolveOffset.ptr());
@@ -754,6 +762,8 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
+
+	glEnable(GL_CULL_FACE);
 }
 
 void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix, unsigned int i, ShadowCasterType lightFrustumType) const {

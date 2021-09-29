@@ -79,6 +79,8 @@ public:
 	float2 offset = {0.f, 0.f};
 
 	// Dissolve Values. TODO: All Material properties should be converted into a map of properties and stored as is
+	float4 dissolveColor = float4::one;
+	float dissolveIntensity = 1.0f;
 	float dissolveScale = 10.0f;
 	float2 dissolveOffset = float2::zero;
 	float dissolveDuration = 1.0f;

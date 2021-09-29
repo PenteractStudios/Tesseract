@@ -1,5 +1,7 @@
 --- fragFunctionDissolveCommon
 
+uniform vec4 dissolveColor;
+uniform float dissolveIntensity;
 uniform float dissolveScale;
 uniform float dissolveThreshold;
 uniform vec2 dissolveOffset;
@@ -81,7 +83,7 @@ float SimplexNoise(vec2 v) {
 
 --- fragFunctionDissolveFunction
 
-vec4 Dissolve(vec4 finalColor, vec2 tiledUV, bool isEmissive) {
+vec4 Dissolve(vec4 finalColor, vec2 tiledUV) {
     if (dissolveThreshold == 0) {
         return finalColor;
     }
@@ -90,12 +92,10 @@ vec4 Dissolve(vec4 finalColor, vec2 tiledUV, bool isEmissive) {
     vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
     color = vec3(SimplexNoise(transformedUV) * .5 + .5);
 
-    float stepValue = step(color.x, dissolveThreshold + edgeSize);
-    if (isEmissive) {
-        return finalColor * stepValue;
-    }
-    if (color.x > dissolveThreshold) {
+    if (color.x > dissolveThreshold * (1.0 + edgeSize)) {
         return vec4(finalColor.xyz, color.x);
+    } else if (color.x > dissolveThreshold) {
+        return vec4(finalColor.xyz, color.x) * dissolveColor * dissolveIntensity;
     }
 
     discard;
@@ -112,7 +112,7 @@ bool MustDissolve(vec2 tiledUV) {
     vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
     color = vec3(SimplexNoise(transformedUV) * .5 + .5);
 
-    if (color.x > dissolveThreshold) {
+    if (color.x > dissolveThreshold * (1.0 + edgeSize)) {
         return false;
     }
     return true;

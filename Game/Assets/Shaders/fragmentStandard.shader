@@ -379,7 +379,7 @@ void main()
 	}
 
     // Emission
-	colorAccumulative = Dissolve(vec4(colorAccumulative, 1.0), tiledUV, false).rgb + Dissolve(GetEmissive(tiledUV), tiledUV, true).rgb;
+	colorAccumulative = Dissolve(vec4(colorAccumulative, 1.0), tiledUV).rgb;
 
 	vec4 finalColor = vec4(colorAccumulative, colorDiffuse.a);
 

@@ -377,6 +377,8 @@ DepthMapsUniforms::DepthMapsUniforms(unsigned program, unsigned number) {
 
 ProgramStandardDissolve::ProgramStandardDissolve(unsigned program)
 	: ProgramStandardMetallic(program) {
+	colorLocation = glGetUniformLocation(program, "dissolveColor");
+	intensityLocation = glGetUniformLocation(program, "dissolveIntensity");
 	scaleLocation = glGetUniformLocation(program, "dissolveScale");
 	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
 	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
@@ -385,6 +387,8 @@ ProgramStandardDissolve::ProgramStandardDissolve(unsigned program)
 
 ProgramUnlitDissolve::ProgramUnlitDissolve(unsigned program)
 	: ProgramUnlit(program) {
+	colorLocation = glGetUniformLocation(program, "dissolveColor");
+	intensityLocation = glGetUniformLocation(program, "dissolveIntensity");
 	scaleLocation = glGetUniformLocation(program, "dissolveScale");
 	thresholdLocation = glGetUniformLocation(program, "dissolveThreshold");
 	offsetLocation = glGetUniformLocation(program, "dissolveOffset");
