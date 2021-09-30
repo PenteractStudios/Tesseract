@@ -226,7 +226,7 @@ void ComponentParticleSystem::Init() {
 	if (!gradientTrail) gradientTrail = new ImGradient();
 	if (!gradientLight) gradientLight = new ImGradient();
 	layer = WorldLayers(1 << layerIndex);
-	AllocateParticlesMemory();
+	particles.Allocate(maxParticles);
 	isStarted = false;
 
 	// Init Curves

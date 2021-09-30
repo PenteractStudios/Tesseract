@@ -155,9 +155,6 @@ void ComponentSphereCollider::Load(JsonValue jComponent) {
 
 	JsonValue jFreeze = jComponent[JSON_TAG_FREEZE_ROTATION];
 	freezeRotation = jFreeze;
-
-	if (rigidBody) App->physics->RemoveSphereRigidbody(this);
-	rigidBody = nullptr;
 }
 
 void ComponentSphereCollider::OnEnable() {

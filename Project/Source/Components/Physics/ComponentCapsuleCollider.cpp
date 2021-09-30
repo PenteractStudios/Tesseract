@@ -230,9 +230,6 @@ void ComponentCapsuleCollider::Load(JsonValue jComponent) {
 
 	JsonValue jFreeze = jComponent[JSON_TAG_FREEZE_ROTATION];
 	freezeRotation = jFreeze;
-
-	if (rigidBody) App->physics->RemoveCapsuleRigidbody(this);
-	rigidBody = nullptr;
 }
 
 void ComponentCapsuleCollider::OnEnable() {
