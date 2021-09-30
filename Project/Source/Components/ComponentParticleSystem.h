@@ -89,7 +89,6 @@ public:
 		float initialLife = 0.0f;
 		float currentFrame = 0.0f;
 		float animationSpeed = 1.0f;
-		float gravityTime = 0.0f;
 
 		// Random Overlifetime variables
 		float rotationOL = 0.0f;
@@ -98,6 +97,7 @@ public:
 		float velocityYOL = 0.0f;
 		float velocityZOL = 0.0f;
 		float speedMultiplierOL = 0.0f;
+		float gravityFactorOL = 0.0f;
 
 		// Collider
 		bool hasCollided = false;
@@ -143,6 +143,7 @@ public:
 	void InitParticleRotation(Particle* currentParticle);
 	void InitParticleScale(Particle* currentParticle);
 	void InitParticleSpeed(Particle* currentParticle);
+	void InitParticleGravity(Particle* currentParticle);
 	void InitParticleLife(Particle* currentParticle);
 	void InitParticleAnimationTexture(Particle* currentParticle);
 	void InitParticleTrail(Particle* currentParticle);

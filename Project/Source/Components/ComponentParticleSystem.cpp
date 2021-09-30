@@ -355,7 +355,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::Checkbox("##gravity_effect", &gravityEffect);
 		if (gravityEffect) {
 			ImGui::SameLine();
-			ImGuiRandomMenu("Gravity##gravity_factor", gravityFactorRM, gravityFactor, gravityFactorCurve);
+			ImGuiRandomMenu("Gravity##gravity_factor", gravityFactorRM, gravityFactor, gravityFactorCurve, false, App->editor->dragSpeed2f, -inf, inf);
 		}
 	}
 
@@ -1384,6 +1384,7 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 		InitParticleRotation(currentParticle);
 		InitParticleScale(currentParticle);
 		InitParticleSpeed(currentParticle);
+		InitParticleGravity(currentParticle);
 		InitParticleLife(currentParticle);
 		InitParticleAnimationTexture(currentParticle);
 		if (hasTrail && IsProbably(trailRatio)) {
@@ -1505,6 +1506,12 @@ void ComponentParticleSystem::InitParticleSpeed(Particle* currentParticle) {
 
 	if (velocityOverLifetime && velocitySpeedModifierRM == RandomMode::CONST_MULT) {
 		currentParticle->speedMultiplierOL = ObtainRandomValueFloat(velocitySpeedModifierRM, velocitySpeedModifier, velocitySpeedModifierCurve, ParticleLifeNormalized(currentParticle));
+	}
+}
+
+void ComponentParticleSystem::InitParticleGravity(Particle* currentParticle) {
+	if (gravityEffect && gravityFactorRM == RandomMode::CONST_MULT) {
+		currentParticle->gravityFactorOL = ObtainRandomValueFloat(gravityFactorRM, gravityFactor, gravityFactorCurve, ParticleLifeNormalized(currentParticle));
 	}
 }
 
@@ -1824,12 +1831,24 @@ void ComponentParticleSystem::UpdateTrail(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) {
-	float newGravityFactor = ObtainRandomValueFloat(gravityFactorRM, gravityFactor, gravityFactorCurve, ParticleLifeNormalized(currentParticle));
-	float x = currentParticle->direction.x;
-	float y = -(1 / newGravityFactor) * Pow(currentParticle->gravityTime, 2) + currentParticle->gravityTime;
-	float z = currentParticle->direction.z;
-	currentParticle->gravityTime += 10 * App->time->GetDeltaTimeOrRealDeltaTime();
-	currentParticle->direction = float3(x, y, z);
+	float newGravityFactor;
+	if (gravityFactorRM != RandomMode::CONST_MULT) {
+		newGravityFactor = ObtainRandomValueFloat(gravityFactorRM, gravityFactor, gravityFactorCurve, ParticleLifeNormalized(currentParticle));
+	} else {
+		newGravityFactor = currentParticle->gravityFactorOL;
+	}
+
+	float4x4 particleModel = float4x4::FromTRS(currentParticle->position, float3x3::identity, float3::one);
+	if (attachEmitter) {
+		float4x4 emitterModel;
+		ObtainEmitterGlobalMatrix(emitterModel);
+		particleModel = emitterModel * particleModel;
+	}
+
+	float time = App->time->GetDeltaTimeOrRealDeltaTime();
+	float3 gravityAxis = particleModel.RotatePart().Inverted() * float3(0.0f, newGravityFactor, 0.0f);
+	currentParticle->position += currentParticle->direction * currentParticle->speed * time + 0.5 * gravityAxis * time * time;
+	currentParticle->direction += gravityAxis * time;
 }
 
 void ComponentParticleSystem::UpdateSubEmitters() {
