@@ -91,6 +91,14 @@ public:
 		float animationSpeed = 1.0f;
 		float gravityTime = 0.0f;
 
+		// Random Overlifetime variables
+		float rotationOL = 0.0f;
+		float scaleOL = 0.0f;
+		float velocityXOL = 0.0f;
+		float velocityYOL = 0.0f;
+		float velocityZOL = 0.0f;
+		float speedMultiplierOL = 0.0f;
+
 		// Collider
 		bool hasCollided = false;
 		std::vector<GameObject*> collidedWith;

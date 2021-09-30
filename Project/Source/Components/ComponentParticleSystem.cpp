@@ -443,8 +443,8 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::Checkbox("##vel_over_lifetime", &velocityOverLifetime);
 		if (velocityOverLifetime) {
 			ImGuiRandomMenu("Linear X", velocityLinearRM, velocityLinearX, velocityLinearXCurve, false, App->editor->dragSpeed1f, -inf, inf);
-			ImGuiRandomMenu("Linear Y", velocityLinearRM, velocityLinearY, velocityLinearXCurve, false, App->editor->dragSpeed1f, -inf, inf);
-			ImGuiRandomMenu("Linear Z", velocityLinearRM, velocityLinearZ, velocityLinearXCurve, false, App->editor->dragSpeed1f, -inf, inf);
+			ImGuiRandomMenu("Linear Y", velocityLinearRM, velocityLinearY, velocityLinearYCurve, false, App->editor->dragSpeed1f, -inf, inf);
+			ImGuiRandomMenu("Linear Z", velocityLinearRM, velocityLinearZ, velocityLinearZCurve, false, App->editor->dragSpeed1f, -inf, inf);
 			ImGui::Indent();
 			const char* velocitySpaceCombo[] = {"World", "Local"};
 			const char* velocitySpaceComboCurrent = velocitySpaceCombo[velocityLinearSpace];
@@ -1471,6 +1471,12 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 	}
 
 	currentParticle->position = currentParticle->initialPosition;
+
+	if (velocityOverLifetime && velocityLinearRM == RandomMode::CONST_MULT) {
+		currentParticle->velocityXOL = ObtainRandomValueFloat(velocityLinearRM, velocityLinearX, velocityLinearXCurve, ParticleLifeNormalized(currentParticle));
+		currentParticle->velocityYOL = ObtainRandomValueFloat(velocityLinearRM, velocityLinearY, velocityLinearYCurve, ParticleLifeNormalized(currentParticle));
+		currentParticle->velocityZOL = ObtainRandomValueFloat(velocityLinearRM, velocityLinearZ, velocityLinearZCurve, ParticleLifeNormalized(currentParticle));
+	}
 }
 
 void ComponentParticleSystem::InitParticleRotation(Particle* currentParticle) {
@@ -1480,14 +1486,26 @@ void ComponentParticleSystem::InitParticleRotation(Particle* currentParticle) {
 		newRotation += pi / 2;
 	}
 	currentParticle->rotation = Quat::FromEulerXYZ(0.0f, 0.0f, newRotation);
+
+	if (rotationOverLifetime && rotationFactorRM == RandomMode::CONST_MULT) {
+		currentParticle->rotationOL = ObtainRandomValueFloat(rotationFactorRM, rotationFactor, rotationFactorCurve, ParticleLifeNormalized(currentParticle));
+	}
 }
 
 void ComponentParticleSystem::InitParticleScale(Particle* currentParticle) {
 	currentParticle->scale = float3(0.1f, 0.1f, 0.1f) * ObtainRandomValueFloat(scaleRM, scale, scaleCurve, emitterTime / duration);
+
+	if (sizeOverLifetime && scaleFactorRM == RandomMode::CONST_MULT) {
+		currentParticle->scaleOL = ObtainRandomValueFloat(scaleFactorRM, scaleFactor, scaleFactorCurve, ParticleLifeNormalized(currentParticle));
+	}
 }
 
 void ComponentParticleSystem::InitParticleSpeed(Particle* currentParticle) {
 	currentParticle->speed = ObtainRandomValueFloat(speedRM, speed, speedCurve, emitterTime / duration);
+
+	if (velocityOverLifetime && velocitySpeedModifierRM == RandomMode::CONST_MULT) {
+		currentParticle->speedMultiplierOL = ObtainRandomValueFloat(velocitySpeedModifierRM, velocitySpeedModifier, velocitySpeedModifierCurve, ParticleLifeNormalized(currentParticle));
+	}
 }
 
 void ComponentParticleSystem::InitParticleLife(Particle* currentParticle) {
@@ -1714,23 +1732,40 @@ void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
-	float linearX = ObtainRandomValueFloat(velocityLinearRM, velocityLinearX, velocityLinearXCurve, ParticleLifeNormalized(currentParticle));
-	float linearY = ObtainRandomValueFloat(velocityLinearRM, velocityLinearY, velocityLinearYCurve, ParticleLifeNormalized(currentParticle));
-	float linearZ = ObtainRandomValueFloat(velocityLinearRM, velocityLinearZ, velocityLinearZCurve, ParticleLifeNormalized(currentParticle));
+	float linearX, linearY, linearZ;
+	if (velocityLinearRM != RandomMode::CONST_MULT) {
+		linearX = ObtainRandomValueFloat(velocityLinearRM, velocityLinearX, velocityLinearXCurve, ParticleLifeNormalized(currentParticle));
+		linearY = ObtainRandomValueFloat(velocityLinearRM, velocityLinearY, velocityLinearYCurve, ParticleLifeNormalized(currentParticle));
+		linearZ = ObtainRandomValueFloat(velocityLinearRM, velocityLinearZ, velocityLinearZCurve, ParticleLifeNormalized(currentParticle));
+	} else {
+		linearX = currentParticle->velocityXOL;
+		linearY = currentParticle->velocityYOL;
+		linearZ = currentParticle->velocityZOL;
+	}
 
-	float speed = ObtainRandomValueFloat(velocitySpeedModifierRM, velocitySpeedModifier, velocitySpeedModifierCurve, ParticleLifeNormalized(currentParticle));
+	float speed;
+	if (velocitySpeedModifierRM != RandomMode::CONST_MULT) {
+		speed = ObtainRandomValueFloat(velocitySpeedModifierRM, velocitySpeedModifier, velocitySpeedModifierCurve, ParticleLifeNormalized(currentParticle));
+	} else {
+		speed = currentParticle->speedMultiplierOL;
+	}
 
 	float3 direction;
 	if (velocityLinearSpace) {
-		direction = float3x3::RotateFromTo(float3::unitY, currentParticle->direction) * float3(linearX, linearY, linearZ);
+		direction = GetOwner().GetComponent<ComponentTransform>()->GetRotation() * float3(linearX, linearY, linearZ);
 	} else {
 		direction = float3(linearX, linearY, linearZ);
 	}
-	currentParticle->position += (currentParticle->direction + direction).Normalized() * currentParticle->speed * speed * App->time->GetDeltaTimeOrRealDeltaTime();
+	currentParticle->position += (currentParticle->direction + direction) * currentParticle->speed * speed * App->time->GetDeltaTimeOrRealDeltaTime();
 }
 
 void ComponentParticleSystem::UpdateRotation(Particle* currentParticle) {
-	float newRotation = ObtainRandomValueFloat(rotationFactorRM, rotationFactor, rotationFactorCurve, ParticleLifeNormalized(currentParticle));
+	float newRotation;
+	if (rotationFactorRM != RandomMode::CONST_MULT) {
+		newRotation = ObtainRandomValueFloat(rotationFactorRM, rotationFactor, rotationFactorCurve, ParticleLifeNormalized(currentParticle));
+	} else {
+		newRotation = currentParticle->rotationOL;
+	}
 	float rotation = currentParticle->rotation.ToEulerXYZ().z;
 	rotation += newRotation * App->time->GetDeltaTimeOrRealDeltaTime();
 	currentParticle->rotation = Quat::FromEulerXYZ(0.0f, 0.0f, rotation);
@@ -1748,7 +1783,12 @@ void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
 		currentParticle->scale.z = newScale;
 
 	} else {
-		float newScale = ObtainRandomValueFloat(scaleFactorRM, scaleFactor);
+		float newScale;
+		if (scaleFactorRM == RandomMode::CONST) {
+			newScale = ObtainRandomValueFloat(scaleFactorRM, scaleFactor);
+		} else {
+			newScale = currentParticle->scaleOL;
+		}
 
 		currentParticle->radius *= 1 + newScale * App->time->GetDeltaTimeOrRealDeltaTime() / currentParticle->scale.x;
 		if (collision) App->physics->UpdateParticleRigidbody(currentParticle);
@@ -2030,7 +2070,6 @@ void ComponentParticleSystem::Draw() {
 			glUniform1i(program->isSoftLocation, isSoft ? 1 : 0);
 			glUniform1f(program->softRangeLocation, softRange);
 
-			//TODO: implement drawarrays
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
