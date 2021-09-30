@@ -4,7 +4,7 @@
 #define EPSILON 1e-5
 #define POINT_LIGHTS 32
 #define SPOT_LIGHTS 8
-#define MAX_CASCADES 10
+#define MAX_CASCADES 4
 
 in vec3 fragNormal;
 in mat3 TBN;
@@ -14,6 +14,10 @@ in vec2 uv;
 // Cascade Shadow Mapping
 in vec4 fragPosLightStatic[MAX_CASCADES];
 in vec4 fragPosLightDynamic[MAX_CASCADES];
+
+in vec3 viewFragPosStatic[MAX_CASCADES];
+in vec3 viewFragPosDynamic[MAX_CASCADES];
+
 flat in unsigned int cascadesCount;
 
 out vec4 outColor;
@@ -21,6 +25,7 @@ out vec4 outColor;
 // Depth Map
 uniform sampler2DShadow depthMapTexturesStatic[MAX_CASCADES];
 uniform sampler2DShadow depthMapTexturesDynamic[MAX_CASCADES];
+
 uniform float farPlaneDistancesStatic[MAX_CASCADES];
 uniform float farPlaneDistancesDynamic[MAX_CASCADES];
 
@@ -171,9 +176,7 @@ vec3 GetNormal(vec2 tiledUV)
 unsigned int DepthMapIndexStatic(){
 
 	for(unsigned int i = 0; i < cascadesCount; ++i){
-
-		if(fragPosLightStatic[i].z < farPlaneDistancesStatic[i]) return i;
-
+		if(-viewFragPosStatic[i].z < farPlaneDistancesStatic[i]) return i;
 	}
 
 	return cascadesCount - 1;
@@ -183,9 +186,7 @@ unsigned int DepthMapIndexStatic(){
 unsigned int DepthMapIndexDynamic(){
 
 	for(unsigned int i = 0; i < cascadesCount; ++i){
-
-		if(fragPosLightDynamic[i].z < farPlaneDistancesDynamic[i]) return i;
-
+		if(-viewFragPosDynamic[i].z < farPlaneDistancesDynamic[i]) return i;
 	}
 
 	return cascadesCount - 1;
@@ -201,7 +202,7 @@ float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2DShadow sh
 	}
 
 	//float bias = min(0.05 * (1 - dot(normal, lightDirection)), 0.005);
-	float bias = 0.001;
+	float bias = 0.0;
 	float shadow = 0.0;
 
 	vec2 texelSize = 1.0/textureSize(shadowMap, 0);

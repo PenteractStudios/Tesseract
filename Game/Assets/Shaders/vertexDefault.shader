@@ -1,7 +1,7 @@
 --- vertVarCommon
 
 #define MAX_BONES 100
-#define MAX_CASCADES 10
+#define MAX_CASCADES 4
 
 in layout(location=0) vec3 pos;
 in layout(location=1) vec3 norm;
@@ -30,6 +30,9 @@ out unsigned int cascadesCount;
 out vec4 fragPosLightStatic[MAX_CASCADES];
 out vec4 fragPosLightDynamic[MAX_CASCADES];
 
+out vec3 viewFragPosStatic[MAX_CASCADES];
+out vec3 viewFragPosDynamic[MAX_CASCADES];
+
 uniform mat4 palette[MAX_BONES];
 uniform bool hasBones;
 
@@ -55,13 +58,21 @@ void main()
     uv = uvs;
     
     for(unsigned int i = 0; i < shadowCascadesCounter; ++i){
+        
+        // Static 
+        viewFragPosStatic[i] = (viewOrtoLightsStatic[i] * model * position).xyz;
+
         fragPosLightStatic[i] = projOrtoLightsStatic[i] * viewOrtoLightsStatic[i] * model * position;
         fragPosLightStatic[i] /= fragPosLightStatic[i].w;
         fragPosLightStatic[i].xy = fragPosLightStatic[i].xy * 0.5 + 0.5;
 
+        // Dynamic
+        viewFragPosDynamic[i] = (viewOrtoLightsDynamic[i] * model * position).xyz;
+
         fragPosLightDynamic[i] = projOrtoLightsDynamic[i] * viewOrtoLightsDynamic[i] * model * position;
         fragPosLightDynamic[i] /= fragPosLightDynamic[i].w;
         fragPosLightDynamic[i].xy = fragPosLightDynamic[i].xy * 0.5 + 0.5;
+
     }
 
     cascadesCount = shadowCascadesCounter;
@@ -96,13 +107,21 @@ void main()
     uv = uvs;
 
     for(unsigned int i = 0; i < shadowCascadesCounter; ++i){
+        
+        // Static 
+        viewFragPosStatic[i] = (viewOrtoLightsStatic[i] * model * position).xyz;
+
         fragPosLightStatic[i] = projOrtoLightsStatic[i] * viewOrtoLightsStatic[i] * model * position;
         fragPosLightStatic[i] /= fragPosLightStatic[i].w;
         fragPosLightStatic[i].xy = fragPosLightStatic[i].xy * 0.5 + 0.5;
 
+        // Dynamic
+        viewFragPosDynamic[i] = (viewOrtoLightsDynamic[i] * model * position).xyz;
+
         fragPosLightDynamic[i] = projOrtoLightsDynamic[i] * viewOrtoLightsDynamic[i] * model * position;
         fragPosLightDynamic[i] /= fragPosLightDynamic[i].w;
         fragPosLightDynamic[i].xy = fragPosLightDynamic[i].xy * 0.5 + 0.5;
+
     }
 
     cascadesCount = shadowCascadesCounter;
