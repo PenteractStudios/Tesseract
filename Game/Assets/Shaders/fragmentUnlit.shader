@@ -33,6 +33,8 @@ vec4 GetEmissive(vec2 tiledUV)
 void main()
 {
     vec2 tiledUV = GetTiledUVs();
-    vec4 finalColor = Dissolve(GetDiffuse(tiledUV), tiledUV);
-    outColor = finalColor;
+    vec4 colorDiffuse = GetDiffuse(tiledUV);
+    vec3 colorAccumulative = colorDiffuse.rgb;
+    colorAccumulative += GetEmissive(tiledUV).rgb;
+	outColor = vec4(Dissolve(vec4(colorAccumulative, colorDiffuse.a), tiledUV).rgb, colorDiffuse.a);
 }

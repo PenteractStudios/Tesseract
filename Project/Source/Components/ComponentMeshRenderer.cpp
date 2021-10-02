@@ -282,8 +282,6 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		ProgramStandardMetallic* metallicProgram = hasNormalMap ? App->programs->standardNormal : App->programs->standardNotNormal;
 		if (metallicProgram == nullptr) return;
 
-		glDisable(GL_CULL_FACE);
-
 		ProgramStandardDissolve* dissolveProgram = App->programs->dissolveStandard;
 
 		glUseProgram(dissolveProgram->program);
@@ -372,8 +370,6 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		if (unlitProgram == nullptr) return;
 
 		glUseProgram(unlitProgram->program);
-
-		glDisable(GL_CULL_FACE);
 
 		// Matrices
 		float4x4 viewMatrix = App->camera->GetViewMatrix();
@@ -762,8 +758,6 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
-
-	glEnable(GL_CULL_FACE);
 }
 
 void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix, unsigned int i, ShadowCasterType lightFrustumType) const {

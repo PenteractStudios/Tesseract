@@ -95,7 +95,7 @@ vec4 Dissolve(vec4 finalColor, vec2 tiledUV) {
     if (color.x > dissolveThreshold * (1.0 + edgeSize)) {
         return vec4(finalColor.xyz, color.x);
     } else if (color.x > dissolveThreshold) {
-        return vec4(finalColor.xyz, color.x) * dissolveColor * dissolveIntensity;
+        return dissolveColor * dissolveIntensity;
     }
 
     discard;
