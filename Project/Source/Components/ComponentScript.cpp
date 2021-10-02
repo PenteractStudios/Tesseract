@@ -367,6 +367,18 @@ void ComponentScript::Load(JsonValue jComponent) {
 	}
 }
 
+void ComponentScript::OnDisable() {
+	if (scriptInstance && App->time->HasGameStarted() && App->scene->scene->sceneLoaded) {
+		scriptInstance->OnDisable();
+	}
+}
+
+void ComponentScript::OnEnable() {
+	if (scriptInstance && App->time->HasGameStarted() && App->scene->scene->sceneLoaded) {
+		scriptInstance->OnEnable();
+	}
+}
+
 void ComponentScript::CreateScriptInstance() {
 	if (scriptInstance != nullptr) return;
 

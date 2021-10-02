@@ -22,6 +22,9 @@ public:
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
 
+	void OnDisable() override;
+	void OnEnable() override;
+
 	void CreateScriptInstance();
 	void ReleaseScriptInstance();
 	TESSERACT_ENGINE_API Script* GetScriptInstance() const;
