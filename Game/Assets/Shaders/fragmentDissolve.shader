@@ -1,5 +1,8 @@
 --- fragFunctionDissolveCommon
 
+uniform int hasDissolveNoiseMap;
+uniform sampler2D dissolveNoiseMap;
+
 uniform vec4 dissolveColor;
 uniform float dissolveIntensity;
 uniform float dissolveScale;
@@ -89,8 +92,12 @@ vec4 Dissolve(vec4 finalColor, vec2 tiledUV) {
     }
 
     vec3 color = vec3(0.0);
-    vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
-    color = vec3(SimplexNoise(transformedUV) * .5 + .5);
+    if (hasDissolveNoiseMap == 1) {
+        color = vec3(texture2D(dissolveNoiseMap, tiledUV).r * .5 + .5);
+    } else {
+        vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
+        color = vec3(SimplexNoise(transformedUV) * .5 + .5);
+    }
 
     if (color.x > dissolveThreshold * (1.0 + edgeSize)) {
         return vec4(finalColor.xyz, color.x);
@@ -109,8 +116,12 @@ bool MustDissolve(vec2 tiledUV) {
     }
 
     vec3 color = vec3(0.0);
-    vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
-    color = vec3(SimplexNoise(transformedUV) * .5 + .5);
+    if (hasDissolveNoiseMap == 1) {
+        color = vec3(texture2D(dissolveNoiseMap, tiledUV).r * .5 + .5);
+    } else {
+        vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
+        color = vec3(SimplexNoise(transformedUV) * .5 + .5);
+    }
 
     if (color.x > dissolveThreshold * (1.0 + edgeSize)) {
         return false;
