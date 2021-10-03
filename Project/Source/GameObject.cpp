@@ -159,7 +159,6 @@ GameObject* GameObject::GetRootBone() const {
 
 void GameObject::AddMask(MaskType mask_) {
 	if ((mask.bitMask & static_cast<int>(mask_)) != 0) {
-		LOG("Mask already added");
 		return;
 	}
 
@@ -168,9 +167,6 @@ void GameObject::AddMask(MaskType mask_) {
 		mask.bitMask |= static_cast<int>(mask_);
 		break;
 	case MaskType::PLAYER:
-		mask.bitMask |= static_cast<int>(mask_);
-		break;
-	case MaskType::CAST_SHADOWS:
 		mask.bitMask |= static_cast<int>(mask_);
 		break;
 	case MaskType::TRANSPARENT:
@@ -184,7 +180,6 @@ void GameObject::AddMask(MaskType mask_) {
 
 void GameObject::DeleteMask(MaskType mask_) {
 	if ((mask.bitMask & static_cast<int>(mask_)) == 0) {
-		LOG("Mask already deleted");
 		return;
 	}
 
@@ -193,9 +188,6 @@ void GameObject::DeleteMask(MaskType mask_) {
 		mask.bitMask ^= static_cast<int>(mask_);
 		break;
 	case MaskType::PLAYER:
-		mask.bitMask ^= static_cast<int>(mask_);
-		break;
-	case MaskType::CAST_SHADOWS:
 		mask.bitMask ^= static_cast<int>(mask_);
 		break;
 	case MaskType::TRANSPARENT:
