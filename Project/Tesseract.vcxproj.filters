@@ -263,7 +263,6 @@
     <ClCompile Include="Source\FileSystem\ModelImporter.cpp" />
     <ClCompile Include="Source\FileSystem\ShaderImporter.cpp" />
     <ClCompile Include="Source\GameObject.cpp" />
-    <ClCompile Include="Source\AnimationController.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentToggle.cpp" />
     <ClCompile Include="Source\FileSystem\FontImporter.cpp" />
     <ClCompile Include="Source\Components\UI\ComponentImage.cpp" />
@@ -380,6 +379,7 @@
     <ClCompile Include="Source\Utils\Trail.cpp" />
     <ClCompile Include="Source\Components\ComponentFog.cpp" />
     <ClCompile Include="Source\Scripting\PropertyMap.cpp" />
+    <ClCompile Include="Libs\SOIL2\image_DXT.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Rendering\LightFrustum.h" />
@@ -493,7 +493,6 @@
     <ClInclude Include="Source\Resources\ResourceFont.h" />
     <ClInclude Include="Source\Scripting\Member.h" />
     <ClInclude Include="Source\Animation\StateMachineEnum.h" />
-    <ClInclude Include="Source\Components\ComponentBoundingBox2D.h" />
     <ClInclude Include="Source\UI\Interfaces\IMouseClickHandler.h" />
     <ClInclude Include="Source\UI\Interfaces\IPointerEnterHandler.h" />
     <ClInclude Include="Source\UI\Interfaces\IPointerExitHandler.h" />
@@ -746,6 +745,7 @@
     <ClInclude Include="Source\Utils\UID.h" />
     <ClInclude Include="Source\Utils\MSTimer.h" />
     <ClInclude Include="Source\Scripting\PropertyMap.h" />
+    <ClInclude Include="Libs\SOIL2\image_DXT.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />

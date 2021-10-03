@@ -15,6 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Libs\SOIL2\image_DXT.h" />
     <ClInclude Include="Source\Rendering\FrustumPlanes.h" />
     <ClInclude Include="Libs\imgui\curve_editor.h" />
     <ClInclude Include="Source\Scripting\PropertyMap.h" />
@@ -356,6 +357,7 @@
     <ClInclude Include="Source\FileSystem\VideoImporter.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Libs\SOIL2\image_DXT.cpp" />
     <ClCompile Include="Source\Scripting\PropertyMap.cpp" />
     <ClCompile Include="Source\Rendering\FrustumPlanes.cpp" />
     <ClCompile Include="Source\Components\ComponentFog.cpp" />
@@ -683,7 +685,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\libav\include;$(ProjectDir)/Libs\recastnavigation-1.5.1;$(ProjectDir)/Libs\Bullet/include;$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\SDL2_image/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\SOIL2;$(ProjectDir)/Libs\libav\include;$(ProjectDir)/Libs\recastnavigation-1.5.1;$(ProjectDir)/Libs\Bullet/include;$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\SDL2_image/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS; _MBCS; %(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -713,7 +715,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\libav\include;$(ProjectDir)/Libs\recastnavigation-1.5.1;$(ProjectDir)/Libs\Bullet/include;$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\SDL2_image/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\SOIL2;$(ProjectDir)/Libs\libav\include;$(ProjectDir)/Libs\recastnavigation-1.5.1;$(ProjectDir)/Libs\Bullet/include;$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\SDL2_image/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS; _MBCS; %(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -747,7 +749,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\libav\include;$(ProjectDir)/Libs\recastnavigation-1.5.1;$(ProjectDir)/Libs\Bullet/include;$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\SDL2_image/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Libs\SOIL2;$(ProjectDir)/Libs\libav\include;$(ProjectDir)/Libs\recastnavigation-1.5.1;$(ProjectDir)/Libs\Bullet/include;$(ProjectDir)/Libs\PhysicsFS;$(ProjectDir)/Libs\ImGuizmo;$(ProjectDir)/Libs\rapidjson/include;$(ProjectDir)/Libs\brofiler/include;$(ProjectDir)/Libs\assimp/include;$(ProjectDir)/Libs\DeviL/include;$(ProjectDir)/Libs\DebugDraw;$(ProjectDir)/Libs\imgui;$(ProjectDir)/Libs\MathGeoLib;$(ProjectDir)/Libs\SDL/include;$(ProjectDir)/Libs\SDL2_image/include;$(ProjectDir)/Libs\glew-2.1.0/include;$(ProjectDir)/Libs\OpenAL-soft/include;$(ProjectDir)/Libs\libsndfile/include;$(ProjectDir)/Libs\fmt-7.1.3\include;$(ProjectDir)/Source;$(ProjectDir)/Libs\freetype\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS; _MBCS;GAME; %(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

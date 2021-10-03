@@ -12,6 +12,7 @@
 #include "Utils/FileDialog.h"
 #include "ImporterCommon.h"
 
+#include "image_DXT.h"
 #include "IL/il.h"
 #include "IL/ilu.h"
 #include "GL/glew.h"
@@ -142,8 +143,12 @@ bool TextureImporter::ImportTexture(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
+	int width = ilGetInteger(IL_IMAGE_WIDTH);
+	int height = ilGetInteger(IL_IMAGE_HEIGHT);
+	int bpp = ilGetInteger(IL_IMAGE_BPP);
+
 	// Convert image
-	ILenum format = ilGetInteger(IL_IMAGE_BPP) == 4 ? IL_RGBA : IL_RGB;
+	ILenum format = bpp == 4 ? IL_RGBA : IL_RGB;
 	bool imageConverted = ilConvertImage(format, IL_UNSIGNED_BYTE);
 	if (!imageConverted) {
 		LOG("Failed to convert image.");
@@ -164,45 +169,104 @@ bool TextureImporter::ImportTexture(const char* filePath, JsonValue jMeta) {
 	texture->minFilter = importOptions->minFilter;
 	texture->magFilter = importOptions->magFilter;
 
-	ILenum type = IL_TGA;
-	switch (importOptions->compression) {
-	case TextureCompression::DXT1:
-		ilSetInteger(IL_DXTC_FORMAT, IL_DXT1);
-		type = IL_DDS;
-		break;
-	case TextureCompression::DXT3:
-		ilSetInteger(IL_DXTC_FORMAT, IL_DXT3);
-		type = IL_DDS;
-		break;
-	case TextureCompression::DXT5:
-		ilSetInteger(IL_DXTC_FORMAT, IL_DXT5);
-		type = IL_DDS;
-		break;
-	default:
-		break;
-	}
-
 	// Save import options to the meta file
 	importOptions->Save(jMeta);
-
-	// Save image
-	size_t size = ilSaveL(type, nullptr, 0);
-	if (size == 0) {
-		LOG("Failed to save image.");
-		return false;
-	}
-	Buffer<char> buffer = Buffer<char>(size);
-	size = ilSaveL(type, buffer.Data(), size);
-	if (size == 0) {
-		LOG("Failed to save image.");
-		return false;
-	}
 
 	// Save resource meta file
 	bool saved = ImporterCommon::SaveResourceMetaFile(texture.get());
 	if (!saved) {
 		LOG("Failed to save texture resource meta file.");
 		return false;
+	}
+
+	// Save image
+	Buffer<char> buffer;
+	switch (importOptions->compression) {
+	case TextureCompression::DXT1: {
+		int compressedSize = 0;
+		unsigned char* compressedData = convert_image_to_DXT1(ilGetData(), width, height, bpp, &compressedSize);
+		DEFER {
+			if (compressedData) free(compressedData);
+		};
+
+		buffer.Allocate(sizeof(DDS_header) + compressedSize);
+
+		char* cursor = buffer.Data();
+		DDS_header* header = (DDS_header*) cursor;
+		cursor += sizeof(DDS_header);
+
+		memset(header, 0, sizeof(DDS_header));
+		header->dwMagic = ('D' << 0) | ('D' << 8) | ('S' << 16) | (' ' << 24);
+		header->dwSize = 124;
+		header->dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT | DDSD_LINEARSIZE;
+		header->dwWidth = width;
+		header->dwHeight = height;
+		header->dwPitchOrLinearSize = compressedSize;
+		header->sPixelFormat.dwSize = 32;
+		header->sPixelFormat.dwFlags = DDPF_FOURCC;
+		header->sPixelFormat.dwFourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24);
+		header->sCaps.dwCaps1 = DDSCAPS_TEXTURE;
+
+		memcpy(cursor, compressedData, compressedSize);
+		break;
+	}
+	case TextureCompression::DXT3: {
+		ilSetInteger(IL_DXTC_FORMAT, IL_DXT3);
+		unsigned size = ilSaveL(IL_DDS, nullptr, 0);
+		if (size == 0) {
+			LOG("Failed to save image.");
+			return false;
+		};
+		buffer.Allocate(size);
+		size = ilSaveL(IL_DDS, buffer.Data(), size);
+		if (size == 0) {
+			LOG("Failed to save image.");
+			return false;
+		}
+		break;
+	}
+	case TextureCompression::DXT5: {
+		int compressedSize = 0;
+		unsigned char* compressedData = convert_image_to_DXT5(ilGetData(), width, height, bpp, &compressedSize);
+		DEFER {
+			if (compressedData) free(compressedData);
+		};
+
+		buffer.Allocate(sizeof(DDS_header) + compressedSize);
+
+		char* cursor = buffer.Data();
+		DDS_header* header = (DDS_header*) cursor;
+		cursor += sizeof(DDS_header);
+
+		memset(header, 0, sizeof(DDS_header));
+		header->dwMagic = ('D' << 0) | ('D' << 8) | ('S' << 16) | (' ' << 24);
+		header->dwSize = 124;
+		header->dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT | DDSD_LINEARSIZE;
+		header->dwWidth = width;
+		header->dwHeight = height;
+		header->dwPitchOrLinearSize = compressedSize;
+		header->sPixelFormat.dwSize = 32;
+		header->sPixelFormat.dwFlags = DDPF_FOURCC;
+		header->sPixelFormat.dwFourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('5' << 24);
+		header->sCaps.dwCaps1 = DDSCAPS_TEXTURE;
+
+		memcpy(cursor, compressedData, compressedSize);
+		break;
+	}
+	default: {
+		unsigned size = ilSaveL(IL_TGA, nullptr, 0);
+		if (size == 0) {
+			LOG("Failed to save image.");
+			return false;
+		};
+		buffer.Allocate(size);
+		size = ilSaveL(IL_TGA, buffer.Data(), size);
+		if (size == 0) {
+			LOG("Failed to save image.");
+			return false;
+		}
+		break;
+	}
 	}
 
 	// Save to file
