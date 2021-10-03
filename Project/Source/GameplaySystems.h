@@ -541,4 +541,5 @@ namespace UserInterface {
 
 namespace Navigation {
 	TESSERACT_ENGINE_API void Raycast(float3 startPosition, float3 targetPosition, bool& hitResult, float3& hitPosition);
+	TESSERACT_ENGINE_API void GetNavMeshHeightInPosition(const float3 position, float& height);
 }
