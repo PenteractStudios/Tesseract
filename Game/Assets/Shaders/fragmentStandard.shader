@@ -138,7 +138,7 @@ vec3 GetNormal(vec2 tiledUV)
 unsigned int DepthMapIndexStatic(){
 
 	for(unsigned int i = 0; i < cascadesCount; ++i){
-		if(-viewFragPosStatic[i].z < farPlaneDistancesStatic[i]) return i;
+		if(viewFragPosStatic[i].z < farPlaneDistancesStatic[i]) return i;
 	}
 
 	return cascadesCount - 1;
@@ -148,7 +148,7 @@ unsigned int DepthMapIndexStatic(){
 unsigned int DepthMapIndexDynamic(){
 
 	for(unsigned int i = 0; i < cascadesCount; ++i){
-		if(-viewFragPosDynamic[i].z < farPlaneDistancesDynamic[i]) return i;
+		if(viewFragPosDynamic[i].z < farPlaneDistancesDynamic[i]) return i;
 	}
 
 	return cascadesCount - 1;
