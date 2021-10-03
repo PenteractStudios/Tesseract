@@ -381,7 +381,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 				ImGui::Checkbox("Rand Dir##random_cone_radius_up", &randomConeRadiusUp);
 			}
 
-			ImGui::DragFloat("Radius", &shapeRadius, App->editor->dragSpeed2f, 0, inf);
+			ImGui::DragFloat("Radius##shape_radius", &shapeRadius, App->editor->dragSpeed2f, 0, inf);
 			ImGui::DragFloat("Radius Thickness", &shapeRadiusThickness, App->editor->dragSpeed2f, 0, 1, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 			float arcDegree = shapeArc * RADTODEG;
 			ImGui::DragFloat("Arc", &arcDegree, App->editor->dragSpeed2f, 0, 360, "%.2f", ImGuiSliderFlags_AlwaysClamp);
@@ -398,19 +398,19 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			ImGui::PopItemWidth();
 			ImGui::PushItemWidth(200);
 
-			modified |= ImGui::DragFloat3("Position", position.ptr(), App->editor->dragSpeed2f, -inf, inf);
-			modified |= ImGui::DragFloat3("Scale", scale.ptr(), App->editor->dragSpeed2f, 0.0001f, inf, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+			modified |= ImGui::DragFloat3("Position##local_pos", position.ptr(), App->editor->dragSpeed2f, -inf, inf);
+			modified |= ImGui::DragFloat3("Scale##local_pos", scale.ptr(), App->editor->dragSpeed2f, 0.0001f, inf, "%.3f", ImGuiSliderFlags_AlwaysClamp);
 			if (emitterType != ParticleEmitterType::BOX) {
 				scale = float3(1.0, 1.0, 1.0);
 				ImGui::SameLine();
 				App->editor->HelpMarker("Scale works only with Box shape");
 			}
-			modified |= ImGui::DragFloat3("Rotation", rotation.ptr(), App->editor->dragSpeed2f, -inf, inf);
+			modified |= ImGui::DragFloat3("Rotation##local_pos", rotation.ptr(), App->editor->dragSpeed2f, -inf, inf);
 
 			if (modified) {
 				emitterModel = float4x4::FromTRS(position, Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD), scale);
 				float3x3 rotateMatrix = emitterModel.RotatePart();
-				obbEmitter = OBB(float3::zero, emitterModel.GetScale() / 2, rotateMatrix.Col3(0).Normalized(), rotateMatrix.Col3(1).Normalized(), rotateMatrix.Col3(2).Normalized());
+				obbEmitter = OBB(float3::zero, emitterModel.GetScale() / 2, rotateMatrix.Col3(0), rotateMatrix.Col3(1), rotateMatrix.Col3(2));
 			}
 			ImGui::PopItemWidth();
 			ImGui::PushItemWidth(ITEM_SIZE);
@@ -754,7 +754,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 				ImGui::PushItemWidth(ITEM_SIZE);
 				ImGui::NewLine();
 			}
-			ImGui::DragInt("Max Lights", &maxLights, 1.0f, 0, 10, "%d", ImGuiSliderFlags_AlwaysClamp);
+			ImGui::DragInt("Max Lights", &maxLights, 1.0f, 0, INT_MAX, "%d", ImGuiSliderFlags_AlwaysClamp);
 
 			ImGui::NewLine();
 			ImGui::SetNextItemWidth(200);
@@ -1346,7 +1346,6 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 		float4x4 newModel;
 		ObtainEmitterGlobalMatrix(newModel);
 		currentParticle->emitterPosition = newModel.TranslatePart();
-		newModel.Orthonormalize3();
 		currentParticle->emitterRotation = newModel.RotatePart().ToQuat();
 
 		if (App->time->HasGameStarted() && collision) {
@@ -1367,7 +1366,6 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 	float4x4 newModel;
 	ObtainEmitterGlobalMatrix(newModel);
-	newModel.Orthonormalize3();
 
 	float reverseDist = ObtainRandomValueFloat(reverseDistanceRM, reverseDistance, reverseDistanceCurve, emitterTime / duration);
 
@@ -1383,11 +1381,12 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 			point = obbEmitter.PointOnEdge(index, Random());
 		}
 		point = point.Div(emitterModel.GetScale());
-		currentParticle->initialPosition = newModel.TranslatePart() + newModel.RotatePart() * float3(point.x, point.y, point.z).Div(emitterModel.GetScale());
+		float3x3 rotateMatrix = newModel.RotatePart();
+		currentParticle->initialPosition = newModel.TranslatePart() + rotateMatrix * float3(point.x, point.y, point.z).Div(emitterModel.GetScale());
 		//float4x4 matrix = GetOwner().GetComponent<ComponentTransform>()->GetGlobalMatrix();
 		//float3 localPos = emitterModel.TranslatePart() + emitterModel.RotatePart() * float3(point.x, point.y, point.z);
 		//currentParticle->initialPosition = matrix.TranslatePart() + matrix.RotatePart() * localPos;
-		currentParticle->direction = (newModel.RotatePart() * float3::unitY).Normalized();
+		currentParticle->direction = (rotateMatrix * float3::unitY).Normalized();
 
 	} else {
 		float x0 = 0, y0 = 0, z0 = 0, x1 = 0, y1 = 0, z1 = 0;
@@ -1424,8 +1423,9 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 			localPos = localPos + localDir * reverseDist;
 		}
 
-		currentParticle->initialPosition = newModel.TranslatePart() + newModel.RotatePart() * localPos;
-		currentParticle->direction = (newModel.RotatePart() * localDir).Normalized();
+		float3x3 rotateMatrix = newModel.RotatePart();
+		currentParticle->initialPosition = newModel.TranslatePart() + rotateMatrix * localPos;
+		currentParticle->direction = (rotateMatrix * localDir).Normalized();
 	}
 
 	currentParticle->position = currentParticle->initialPosition;
@@ -1651,7 +1651,6 @@ void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
 		float4x4 newModel;
 		ObtainEmitterGlobalMatrix(newModel);
 		float3 position = newModel.TranslatePart();
-		newModel.Orthonormalize3();
 		Quat rotation = newModel.RotatePart().ToQuat();
 
 		if (!currentParticle->emitterRotation.Equals(rotation)) {
@@ -1752,7 +1751,7 @@ void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) 
 }
 
 void ComponentParticleSystem::UpdateSubEmitters() {
-	for (int pos = 0; pos < subEmittersGO.size(); ++pos) {
+	for (unsigned pos = 0; pos < subEmittersGO.size(); ++pos) {
 		GameObject* gameObject = subEmittersGO[pos];
 		ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
 		if (particleSystem) {
@@ -1833,18 +1832,19 @@ void ComponentParticleSystem::DrawGizmos() {
 	if (IsActive() && drawGizmo) {
 		float4x4 newModel;
 		ObtainEmitterGlobalMatrix(newModel);
+		float3x3 rotateMatrix = newModel.RotatePart();
 		if (emitterType == ParticleEmitterType::CONE) {
-			dd::cone(newModel.TranslatePart(), newModel.RotatePart() * float3::unitY, dd::colors::White, coneRadiusUp, shapeRadius);
-			dd::circle(newModel.TranslatePart(), newModel.RotatePart() * float3::unitY, dd::colors::White, shapeRadius * (1 - shapeRadiusThickness), 50.0f);
+			dd::cone(newModel.TranslatePart(), rotateMatrix * float3::unitY, dd::colors::White, coneRadiusUp, shapeRadius);
+			dd::circle(newModel.TranslatePart(), rotateMatrix * float3::unitY, dd::colors::White, shapeRadius * (1 - shapeRadiusThickness), 50.0f);
 		} else if (emitterType == ParticleEmitterType::SPHERE) {
 			dd::sphere(newModel.TranslatePart(), dd::colors::White, shapeRadius);
 			dd::sphere(newModel.TranslatePart(), dd::colors::White, shapeRadius * (1 - shapeRadiusThickness));
 		} else if (emitterType == ParticleEmitterType::CIRCLE) {
-			dd::circle(newModel.TranslatePart(), newModel.RotatePart() * float3::unitY, dd::colors::White, shapeRadius, 50.0f);
-			dd::circle(newModel.TranslatePart(), newModel.RotatePart() * float3::unitY, dd::colors::White, shapeRadius * (1 - shapeRadiusThickness), 50.0f);
+			dd::circle(newModel.TranslatePart(), rotateMatrix * float3::unitY, dd::colors::White, shapeRadius, 50.0f);
+			dd::circle(newModel.TranslatePart(), rotateMatrix * float3::unitY, dd::colors::White, shapeRadius * (1 - shapeRadiusThickness), 50.0f);
 		} else if (emitterType == ParticleEmitterType::BOX) {
 			float3 points[8];
-			OBB obbEmitter = OBB(newModel.TranslatePart(), emitterModel.GetScale(), newModel.RotatePart().Col3(0), newModel.RotatePart().Col3(1), newModel.RotatePart().Col3(2));
+			OBB obbEmitter = OBB(newModel.TranslatePart(), emitterModel.GetScale(), rotateMatrix.Col3(0), rotateMatrix.Col3(1), rotateMatrix.Col3(2));
 			obbEmitter.GetCornerPoints(points);
 			// Reorder points for drawing
 			float3 aux;
@@ -2107,8 +2107,6 @@ float ComponentParticleSystem::ParticleLifeNormalized(Particle* currentParticle)
 
 void ComponentParticleSystem::ObtainEmitterGlobalMatrix(float4x4& matrix) {
 	float4x4 model = GetOwner().GetComponent<ComponentTransform>()->GetGlobalMatrix();
-	model.Orthogonalize3();
-	model.RemoveScale();
 	matrix = model * emitterModel;
 }
 
@@ -2155,6 +2153,15 @@ void ComponentParticleSystem::StopChildParticles() {
 	for (GameObject* currentChild : GetOwner().GetChildren()) {
 		if (currentChild->GetComponent<ComponentParticleSystem>()) {
 			currentChild->GetComponent<ComponentParticleSystem>()->StopChildParticles();
+		}
+	}
+}
+
+void ComponentParticleSystem::SetParticlesPerSecondChild(float2 particlesPerSecond) {
+	SetParticlesPerSecond(particlesPerSecond);
+	for (GameObject* currentChild : GetOwner().GetChildren()) {
+		if (currentChild->GetComponent<ComponentParticleSystem>()) {
+			currentChild->GetComponent<ComponentParticleSystem>()->SetParticlesPerSecondChild(particlesPerSecond);
 		}
 	}
 }

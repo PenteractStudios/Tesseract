@@ -2,6 +2,13 @@
 
 #include "Resource.h"
 
+enum class TextureCompression {
+	NONE,
+	DXT1,
+	DXT3,
+	DXT5
+};
+
 enum class TextureMinFilter {
 	NEAREST,
 	LINEAR,
@@ -37,6 +44,7 @@ public:
 public:
 	unsigned int glTexture = 0;
 
+	TextureCompression compression = TextureCompression::NONE;
 	TextureWrap wrap = TextureWrap::REPEAT;
 	TextureMinFilter minFilter = TextureMinFilter::LINEAR_MIPMAP_LINEAR;
 	TextureMagFilter magFilter = TextureMagFilter::LINEAR;

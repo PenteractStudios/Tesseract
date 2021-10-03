@@ -1645,7 +1645,7 @@ void float3x4::Decompose(float3 &translate, float3x3 &rotate, float3 &scale) con
 	assume(this->IsColOrthogonal());
 
 	translate = Col(3);
-	rotate = RotatePart();
+	rotate = Float3x3Part();
 	scale.x = rotate.Col(0).Length();
 	scale.y = rotate.Col(1).Length();
 	scale.z = rotate.Col(2).Length();

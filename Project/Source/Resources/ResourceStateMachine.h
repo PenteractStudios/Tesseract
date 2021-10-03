@@ -30,6 +30,6 @@ public:
 	std::set<std::string> bones;
 
 private:
-	std::list<UID> clipsUids;
+	std::list<UID> clipIds;
 	std::unordered_map<std::string, Transition> transitions;
 };
