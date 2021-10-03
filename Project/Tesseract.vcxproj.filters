@@ -379,7 +379,7 @@
     <ClCompile Include="Source\Utils\Trail.cpp" />
     <ClCompile Include="Source\Components\ComponentFog.cpp" />
     <ClCompile Include="Source\Scripting\PropertyMap.cpp" />
-    <ClCompile Include="Libs\SOIL2\image_DXT.cpp" />
+    <ClCompile Include="Source\Utils\FileUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Rendering\LightFrustum.h" />
@@ -745,7 +745,7 @@
     <ClInclude Include="Source\Utils\UID.h" />
     <ClInclude Include="Source\Utils\MSTimer.h" />
     <ClInclude Include="Source\Scripting\PropertyMap.h" />
-    <ClInclude Include="Libs\SOIL2\image_DXT.h" />
+    <ClInclude Include="Source\Utils\FileUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />

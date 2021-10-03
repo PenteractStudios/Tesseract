@@ -16,7 +16,7 @@ public:
 
 	Buffer(Buffer<T>&& buffer)
 		: size(buffer.size) {
-		char* oldData = data;
+		T* oldData = data;
 		data = buffer.data;
 		buffer.data = oldData;
 	}

@@ -10,9 +10,10 @@
 #include "Utils/Buffer.h"
 #include "Utils/MSTimer.h"
 #include "Utils/FileDialog.h"
+#include "Utils/FileUtils.h"
 #include "ImporterCommon.h"
 
-#include "image_DXT.h"
+#include "compressonator.h"
 #include "IL/il.h"
 #include "IL/ilu.h"
 #include "GL/glew.h"
@@ -26,12 +27,66 @@
 #define JSON_TAG_MIN_FILTER "MinFilter"
 #define JSON_TAG_MAG_FILTER "MagFilter"
 
+Buffer<unsigned char> CompressTexture(TextureCompression compression, int width, int height, const unsigned char* data) {
+	Buffer<unsigned char> compressedData;
+
+	if (compression == TextureCompression::NONE) {
+		compressedData.Allocate(width * height * 4);
+		memcpy(compressedData.Data(), data, compressedData.Size());
+		return compressedData;
+	}
+
+	CMP_Texture source = {0};
+	source.dwSize = sizeof(CMP_Texture);
+	source.dwWidth = width;
+	source.dwHeight = height;
+	source.dwPitch = width * 4;
+	source.format = CMP_FORMAT_RGBA_8888;
+	source.dwDataSize = width * height * 4;
+	source.pData = (CMP_BYTE*) data;
+
+	CMP_Texture destination = {0};
+	destination.dwSize = sizeof(CMP_Texture);
+	destination.dwWidth = width;
+	destination.dwHeight = height;
+	destination.dwPitch = width;
+	switch (compression) {
+	case TextureCompression::DXT1:
+		destination.format = CMP_FORMAT_BC1;
+		break;
+	case TextureCompression::DXT3:
+		destination.format = CMP_FORMAT_BC2;
+		break;
+	case TextureCompression::DXT5:
+		destination.format = CMP_FORMAT_BC3;
+		break;
+	case TextureCompression::BC7:
+		destination.format = CMP_FORMAT_BC7;
+		break;
+	}
+	destination.dwDataSize = CMP_CalculateBufferSize(&destination);
+	compressedData.Allocate(destination.dwDataSize);
+	destination.pData = compressedData.Data();
+
+	CMP_CompressOptions options = {0};
+	options.dwSize = sizeof(CMP_CompressOptions);
+	options.fquality = 1.0f;
+
+	CMP_ERROR error = CMP_ConvertTexture(&source, &destination, &options, nullptr);
+	if (error != CMP_OK) {
+		LOG("Error converting texture: %i", error);
+		return Buffer<unsigned char>();
+	}
+
+	return compressedData;
+}
+
 void TextureImportOptions::ShowImportOptions() {
 	// Flip
 	ImGui::Checkbox("Flip", &flip);
 
 	// Compression combo box
-	const char* compression_items[] = {"None", "DXT1", "DXT3", "DXT5"};
+	const char* compression_items[] = {"None", "DXT1", "DXT3", "DXT5", "BC7"};
 	const char* compression_item_current = compression_items[int(compression)];
 	if (ImGui::BeginCombo("Compression", compression_item_current)) {
 		for (int n = 0; n < IM_ARRAYSIZE(compression_items); ++n) {
@@ -145,11 +200,9 @@ bool TextureImporter::ImportTexture(const char* filePath, JsonValue jMeta) {
 
 	int width = ilGetInteger(IL_IMAGE_WIDTH);
 	int height = ilGetInteger(IL_IMAGE_HEIGHT);
-	int bpp = ilGetInteger(IL_IMAGE_BPP);
 
 	// Convert image
-	ILenum format = bpp == 4 ? IL_RGBA : IL_RGB;
-	bool imageConverted = ilConvertImage(format, IL_UNSIGNED_BYTE);
+	bool imageConverted = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
 	if (!imageConverted) {
 		LOG("Failed to convert image.");
 		return false;
@@ -179,78 +232,49 @@ bool TextureImporter::ImportTexture(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
-	// Save image
+	// Compress image
 	Buffer<char> buffer;
 	switch (importOptions->compression) {
-	case TextureCompression::DXT1: {
-		int compressedSize = 0;
-		unsigned char* compressedData = convert_image_to_DXT1(ilGetData(), width, height, bpp, &compressedSize);
-		DEFER {
-			if (compressedData) free(compressedData);
-		};
+	case TextureCompression::DXT1:
+	case TextureCompression::DXT3: 
+	case TextureCompression::DXT5:
+	case TextureCompression::BC7: {
+		iluFlipImage();
 
-		buffer.Allocate(sizeof(DDS_header) + compressedSize);
+		Buffer<unsigned char> compressedData = CompressTexture(importOptions->compression, width, height, ilGetData());
+
+		buffer.Allocate(sizeof(DDSHeader) + compressedData.Size());
 
 		char* cursor = buffer.Data();
-		DDS_header* header = (DDS_header*) cursor;
-		cursor += sizeof(DDS_header);
+		DDSHeader* header = (DDSHeader*) cursor;
+		cursor += sizeof(DDSHeader);
 
-		memset(header, 0, sizeof(DDS_header));
-		header->dwMagic = ('D' << 0) | ('D' << 8) | ('S' << 16) | (' ' << 24);
-		header->dwSize = 124;
-		header->dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT | DDSD_LINEARSIZE;
-		header->dwWidth = width;
-		header->dwHeight = height;
-		header->dwPitchOrLinearSize = compressedSize;
-		header->sPixelFormat.dwSize = 32;
-		header->sPixelFormat.dwFlags = DDPF_FOURCC;
-		header->sPixelFormat.dwFourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24);
-		header->sCaps.dwCaps1 = DDSCAPS_TEXTURE;
-
-		memcpy(cursor, compressedData, compressedSize);
-		break;
-	}
-	case TextureCompression::DXT3: {
-		ilSetInteger(IL_DXTC_FORMAT, IL_DXT3);
-		unsigned size = ilSaveL(IL_DDS, nullptr, 0);
-		if (size == 0) {
-			LOG("Failed to save image.");
-			return false;
-		};
-		buffer.Allocate(size);
-		size = ilSaveL(IL_DDS, buffer.Data(), size);
-		if (size == 0) {
-			LOG("Failed to save image.");
-			return false;
+		memset(header, 0, sizeof(DDSHeader));
+		header->magic = ('D' << 0) | ('D' << 8) | ('S' << 16) | (' ' << 24);
+		header->size = 124;
+		header->flags = DDSHeader::CAPS | DDSHeader::HEIGHT | DDSHeader::WIDTH | DDSHeader::PIXELFORMAT | DDSHeader::LINEARSIZE;
+		header->width = width;
+		header->height = height;
+		header->pitchOrLinearSize = compressedData.Size();
+		header->pixelFormat.size = 32;
+		header->pixelFormat.flags = DDSHeader::PixelFormat::FOURCC;
+		switch (importOptions->compression) {
+		case TextureCompression::DXT1:
+			header->pixelFormat.fourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24);
+			break;
+		case TextureCompression::DXT3:
+			header->pixelFormat.fourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('3' << 24);
+			break;
+		case TextureCompression::DXT5:
+			header->pixelFormat.fourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('5' << 24);
+			break;
+		case TextureCompression::BC7:
+			header->pixelFormat.fourCC = ('B' << 0) | ('C' << 8) | ('7' << 16) | (' ' << 24);
+			break;
 		}
-		break;
-	}
-	case TextureCompression::DXT5: {
-		int compressedSize = 0;
-		unsigned char* compressedData = convert_image_to_DXT5(ilGetData(), width, height, bpp, &compressedSize);
-		DEFER {
-			if (compressedData) free(compressedData);
-		};
+		header->caps.caps1 = DDSHeader::Caps::TEXTURE;
 
-		buffer.Allocate(sizeof(DDS_header) + compressedSize);
-
-		char* cursor = buffer.Data();
-		DDS_header* header = (DDS_header*) cursor;
-		cursor += sizeof(DDS_header);
-
-		memset(header, 0, sizeof(DDS_header));
-		header->dwMagic = ('D' << 0) | ('D' << 8) | ('S' << 16) | (' ' << 24);
-		header->dwSize = 124;
-		header->dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT | DDSD_LINEARSIZE;
-		header->dwWidth = width;
-		header->dwHeight = height;
-		header->dwPitchOrLinearSize = compressedSize;
-		header->sPixelFormat.dwSize = 32;
-		header->sPixelFormat.dwFlags = DDPF_FOURCC;
-		header->sPixelFormat.dwFourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('5' << 24);
-		header->sCaps.dwCaps1 = DDSCAPS_TEXTURE;
-
-		memcpy(cursor, compressedData, compressedSize);
+		memcpy(cursor, compressedData.Data(), compressedData.Size());
 		break;
 	}
 	default: {
