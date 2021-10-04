@@ -91,17 +91,17 @@ vec4 Dissolve(vec4 finalColor, vec2 tiledUV) {
         return finalColor;
     }
 
-    vec3 color = vec3(0.0);
+    float noiseValue = 0.0;
     if (hasDissolveNoiseMap == 1) {
-        color = vec3(texture2D(dissolveNoiseMap, tiledUV).r * .5 + .5);
+        noiseValue = texture2D(dissolveNoiseMap, tiledUV).r;
     } else {
         vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
-        color = vec3(SimplexNoise(transformedUV) * .5 + .5);
+        noiseValue = SimplexNoise(transformedUV) * .5 + .5;
     }
 
-    if (color.x > dissolveThreshold * (1.0 + edgeSize)) {
-        return vec4(finalColor.xyz, color.x);
-    } else if (color.x > dissolveThreshold) {
+    if (noiseValue > dissolveThreshold * (1.0 + edgeSize)) {
+        return finalColor;
+    } else if (noiseValue > dissolveThreshold) {
         return dissolveColor * dissolveIntensity;
     }
 
@@ -115,15 +115,15 @@ bool MustDissolve(vec2 tiledUV) {
         return false;
     }
 
-    vec3 color = vec3(0.0);
+    float noiseValue = 0.0;
     if (hasDissolveNoiseMap == 1) {
-        color = vec3(texture2D(dissolveNoiseMap, tiledUV).r * .5 + .5);
+        noiseValue = texture2D(dissolveNoiseMap, tiledUV).r;
     } else {
         vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
-        color = vec3(SimplexNoise(transformedUV) * .5 + .5);
+        noiseValue = SimplexNoise(transformedUV) * .5 + .5;
     }
 
-    if (color.x > dissolveThreshold * (1.0 + edgeSize)) {
+    if (noiseValue > dissolveThreshold) {
         return false;
     }
     return true;

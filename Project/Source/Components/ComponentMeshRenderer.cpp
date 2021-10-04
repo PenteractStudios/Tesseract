@@ -307,8 +307,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 		glUniform1i(dissolveProgram->hasNoiseMapLocation, hasDissolveNoiseMap);
 
-		glUniform1i(dissolveProgram->noiseMapLocation, 2);
-		glActiveTexture(GL_TEXTURE2);
+		glUniform1i(dissolveProgram->noiseMapLocation, 31);
+		glActiveTexture(GL_TEXTURE31);
 		glBindTexture(GL_TEXTURE_2D, glTextureDissolveNoise);
 
 		glUniform4fv(dissolveProgram->colorLocation, 1, material->dissolveColor.ptr());
