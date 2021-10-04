@@ -188,6 +188,7 @@ void PanelHierarchy::UpdateHierarchyNode(GameObject* gameObject) {
 					// If both objects are 3D objects.
 					payloadGameObject->SetParent(gameObject);
 					float4x4 childGlobalMatrix = transform->GetGlobalMatrix();
+					childGlobalMatrix.Orthogonalize3();
 					transform->SetGlobalTRS(childGlobalMatrix);
 				} else if (payloadGameObject->GetComponent<ComponentTransform2D>() && gameObject->GetComponent<ComponentTransform2D>()) {
 					// If both objects are 2D objects (with this we are also forcing that 2D elements are always inside a Canvas.

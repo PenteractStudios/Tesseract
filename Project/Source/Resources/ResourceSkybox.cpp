@@ -239,8 +239,23 @@ void ResourceSkybox::Load() {
 }
 
 void ResourceSkybox::Unload() {
-	if (glCubeMap) glDeleteTextures(1, &glCubeMap);
-	if (glIrradianceMap) glDeleteTextures(1, &glIrradianceMap);
-	if (glPreFilteredMap) glDeleteTextures(1, &glPreFilteredMap);
-	if (glEnvironmentBRDF) glDeleteTextures(1, &glEnvironmentBRDF);
+	if (glCubeMap) {
+		glDeleteTextures(1, &glCubeMap);
+		glCubeMap = 0;
+	}
+
+	if (glIrradianceMap) {
+		glDeleteTextures(1, &glIrradianceMap);
+		glIrradianceMap = 0;
+	}
+
+	if (glPreFilteredMap) {
+		glDeleteTextures(1, &glPreFilteredMap);
+		glPreFilteredMap = 0;
+	}
+
+	if (glEnvironmentBRDF) {
+		glDeleteTextures(1, &glEnvironmentBRDF);
+		glEnvironmentBRDF = 0;
+	}
 }

@@ -31,8 +31,6 @@ public:
 	void SetBeginIndex(unsigned int index);
 	void SetEndIndex(unsigned int index);
 
-	ResourceAnimation* GetResourceAnimation() const;
-
 public:
 	std::string name = "";
 	UID animationUID = 0;
