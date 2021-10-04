@@ -963,6 +963,28 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	// -- Box
 	boxEmitterFrom = (BoxEmitterFrom)(int) jComponent[JSON_TAG_BOX_EMITTER_FROM];
 
+	// Velocity over Lifetime
+	velocityOverLifetime = jComponent[JSON_TAG_VELOCITY_OVER_LIFETIME];
+	velocityLinearRM = (RandomMode)(int) jComponent[JSON_TAG_VELOCITY_LINEAR_RM];
+	JsonValue jVelocityLinearX = jComponent[JSON_TAG_VELOCITY_LINEAR_X];
+	velocityLinearX.Set(jVelocityLinearX[0], jVelocityLinearX[1]);
+	JsonValue jVelocityLinearXCurve = jComponent[JSON_TAG_VELOCITY_LINEAR_X_CURVE];
+	LoadCurveValues(jVelocityLinearXCurve, velocityLinearXCurve);
+	JsonValue jVelocityLinearY = jComponent[JSON_TAG_VELOCITY_LINEAR_Y];
+	velocityLinearY.Set(jVelocityLinearY[0], jVelocityLinearY[1]);
+	JsonValue jVelocityLinearYCurve = jComponent[JSON_TAG_VELOCITY_LINEAR_Y_CURVE];
+	LoadCurveValues(jVelocityLinearYCurve, velocityLinearYCurve);
+	JsonValue jVelocityLinearZ = jComponent[JSON_TAG_VELOCITY_LINEAR_Z];
+	velocityLinearZ.Set(jVelocityLinearZ[0], jVelocityLinearZ[1]);
+	JsonValue jVelocityLinearZCurve = jComponent[JSON_TAG_VELOCITY_LINEAR_Z_CURVE];
+	LoadCurveValues(jVelocityLinearZCurve, velocityLinearZCurve);
+	velocityLinearSpace = jComponent[JSON_TAG_VELOCITY_LINEAR_SPACE];
+	velocitySpeedModifierRM = (RandomMode)(int) jComponent[JSON_TAG_VELOCITY_SPEED_MODIFIER_RM];
+	JsonValue jVelocitySpeedModifier = jComponent[JSON_TAG_VELOCITY_SPEED_MODIFIER];
+	velocitySpeedModifier.Set(jVelocitySpeedModifier[0], jVelocitySpeedModifier[1]);
+	JsonValue jVelocitySpeedModifierCurve = jComponent[JSON_TAG_VELOCITY_SPEED_MODIFIER_CURVE];
+	LoadCurveValues(jVelocitySpeedModifierCurve, velocitySpeedModifierCurve);
+
 	// Rotation over Lifetime
 	rotationOverLifetime = jComponent[JSON_TAG_ROTATION_OVER_LIFETIME];
 	rotationFactorRM = (RandomMode)(int) jComponent[JSON_TAG_ROTATION_FACTOR_RM];
@@ -1195,6 +1217,32 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_RANDOM_CONE_RADIUS_UP] = randomConeRadiusUp;
 	// -- Box
 	jComponent[JSON_TAG_BOX_EMITTER_FROM] = (int) boxEmitterFrom;
+
+	// Velocity over Lifetime
+	jComponent[JSON_TAG_VELOCITY_OVER_LIFETIME] = velocityOverLifetime;
+	jComponent[JSON_TAG_VELOCITY_LINEAR_RM] = (int) velocityLinearRM;
+	JsonValue jVelocityLinearX = jComponent[JSON_TAG_VELOCITY_LINEAR_X];
+	jVelocityLinearX[0] = velocityLinearX[0];
+	jVelocityLinearX[1] = velocityLinearX[1];
+	JsonValue jVelocityLinearXCurve = jComponent[JSON_TAG_VELOCITY_LINEAR_X_CURVE];
+	SaveCurveValues(jVelocityLinearXCurve, velocityLinearXCurve);
+	JsonValue jVelocityLinearY = jComponent[JSON_TAG_VELOCITY_LINEAR_Y];
+	jVelocityLinearY[0] = velocityLinearY[0];
+	jVelocityLinearY[1] = velocityLinearY[1];
+	JsonValue jVelocityLinearYCurve = jComponent[JSON_TAG_VELOCITY_LINEAR_Y_CURVE];
+	SaveCurveValues(jVelocityLinearYCurve, velocityLinearYCurve);
+	JsonValue jVelocityLinearZ = jComponent[JSON_TAG_VELOCITY_LINEAR_Z];
+	jVelocityLinearZ[0] = velocityLinearZ[0];
+	jVelocityLinearZ[1] = velocityLinearZ[1];
+	JsonValue jVelocityLinearZCurve = jComponent[JSON_TAG_VELOCITY_LINEAR_Z_CURVE];
+	SaveCurveValues(jVelocityLinearZCurve, velocityLinearZCurve);
+	jComponent[JSON_TAG_VELOCITY_LINEAR_SPACE] = velocityLinearSpace;
+	jComponent[JSON_TAG_VELOCITY_SPEED_MODIFIER_RM] = (int) velocitySpeedModifierRM;
+	JsonValue jVelocitySpeedModifier = jComponent[JSON_TAG_VELOCITY_SPEED_MODIFIER];
+	jVelocitySpeedModifier[0] = velocitySpeedModifier[0];
+	jVelocitySpeedModifier[1] = velocitySpeedModifier[1];
+	JsonValue jVelocitySpeedModifierCurve = jComponent[JSON_TAG_VELOCITY_SPEED_MODIFIER_CURVE];
+	SaveCurveValues(jVelocitySpeedModifierCurve, velocitySpeedModifierCurve);
 
 	// Rotation over Lifetime
 	jComponent[JSON_TAG_ROTATION_OVER_LIFETIME] = rotationOverLifetime;
