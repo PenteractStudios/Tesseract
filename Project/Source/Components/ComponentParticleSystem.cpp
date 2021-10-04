@@ -252,6 +252,8 @@ void ComponentParticleSystem::Init() {
 	InitCurveValues(scaleFactorCurve);
 	InitCurveValues(intensityMultiplierCurve);
 	InitCurveValues(rangeMultiplierCurve);
+
+	obbEmitter = OBB(float3::zero, float3::one, float3::unitX, float3::unitY, float3::unitZ);
 }
 
 void ComponentParticleSystem::Start() {
@@ -429,12 +431,10 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 		if (modified) {
 			emitterModel = float4x4::FromTRS(position, Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD), scale);
-			float3x3 rotateMatrix = emitterModel.RotatePart();
-			obbEmitter = OBB(float3::zero, emitterModel.GetScale(), rotateMatrix.Col3(0), rotateMatrix.Col3(1), rotateMatrix.Col3(2));
 		}
+
 		ImGui::PopItemWidth();
 		ImGui::PushItemWidth(ITEM_SIZE);
-
 		ImGui::Unindent();
 	}
 
@@ -1466,7 +1466,11 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 	if (!attachEmitter) {
 		float4x4 newModel;
 		ObtainEmitterGlobalMatrix(newModel);
+		float3 scale = newModel.GetScale();
 		float3x3 rotateMatrix = newModel.RotatePart();
+		rotateMatrix.ScaleCol(0, scale.x);
+		rotateMatrix.ScaleCol(1, scale.y);
+		rotateMatrix.ScaleCol(2, scale.z);
 		currentParticle->initialPosition = newModel.TranslatePart() + rotateMatrix * currentParticle->initialPosition;
 		currentParticle->direction = (rotateMatrix * currentParticle->direction).Normalized();
 	}
@@ -1950,7 +1954,7 @@ void ComponentParticleSystem::DrawGizmos() {
 			dd::circle(newModel.TranslatePart(), direction, dd::colors::White, shapeRadius * (1 - shapeRadiusThickness), 50.0f);
 		} else if (emitterType == ParticleEmitterType::BOX) {
 			float3 points[8];
-			OBB obbEmitter = OBB(newModel.TranslatePart(), emitterModel.GetScale(), rotateMatrix.Col3(0), rotateMatrix.Col3(1), rotateMatrix.Col3(2));
+			OBB obbEmitter = OBB(newModel.TranslatePart(), newModel.GetScale(), rotateMatrix.Col3(0), rotateMatrix.Col3(1), rotateMatrix.Col3(2));
 			obbEmitter.GetCornerPoints(points);
 			// Reorder points for drawing
 			float3 aux;
