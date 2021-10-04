@@ -612,7 +612,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 				}
 				ImGui::EndCombo();
 			}
-			ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed2f, 0, inf);
+			ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed3f, 0, inf);
 			ImGui::Unindent();
 		}
 	}
@@ -1391,11 +1391,6 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 			InitParticleTrail(currentParticle);
 		}
 
-		if (App->time->HasGameStarted() && collision) {
-			currentParticle->emitter = this;
-			currentParticle->radius = radius;
-			App->physics->CreateParticleRigidbody(currentParticle);
-		}
 		InitSubEmitter(currentParticle, SubEmitterType::BIRTH);
 
 		if (hasLights && IsProbably(lightsRatio)) {
@@ -1498,10 +1493,22 @@ void ComponentParticleSystem::InitParticleRotation(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::InitParticleScale(Particle* currentParticle) {
+	currentParticle->emitter = this;
+	currentParticle->radius = radius;
+
 	currentParticle->scale = float3(0.1f, 0.1f, 0.1f) * ObtainRandomValueFloat(scaleRM, scale, scaleCurve, emitterTime / duration);
 
-	if (sizeOverLifetime && scaleFactorRM == RandomMode::CONST_MULT) {
-		currentParticle->scaleOL = ObtainRandomValueFloat(scaleFactorRM, scaleFactor, scaleFactorCurve, ParticleLifeNormalized(currentParticle));
+	if (sizeOverLifetime) {
+		float newScale = ObtainRandomValueFloat(scaleFactorRM, scaleFactor, scaleFactorCurve, ParticleLifeNormalized(currentParticle));
+		if (scaleFactorRM == RandomMode::CONST_MULT) {
+			currentParticle->scaleOL = newScale;
+		} else if (scaleFactorRM == RandomMode::CURVE) {
+			currentParticle->radius = radius * newScale;
+		}
+	}
+
+	if (collision) {
+		App->physics->CreateParticleRigidbody(currentParticle);
 	}
 }
 
@@ -1786,13 +1793,8 @@ void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
 	if (scaleFactorRM == RandomMode::CURVE) {
 		float newScale = ObtainRandomValueFloat(scaleFactorRM, scaleFactor, scaleFactorCurve, ParticleLifeNormalized(currentParticle));
 
-		currentParticle->radius *= 1 + newScale / currentParticle->scale.x;
-		if (collision) App->physics->UpdateParticleRigidbody(currentParticle);
-
-		currentParticle->scale.x = newScale;
-		currentParticle->scale.y = newScale;
-		currentParticle->scale.z = newScale;
-
+		currentParticle->scale = float3(newScale);
+		currentParticle->radius = radius * newScale;
 	} else {
 		float newScale;
 		if (scaleFactorRM == RandomMode::CONST) {
@@ -1801,23 +1803,16 @@ void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
 			newScale = currentParticle->scaleOL;
 		}
 
+		currentParticle->scale += float3(newScale) * App->time->GetDeltaTimeOrRealDeltaTime();
 		currentParticle->radius *= 1 + newScale * App->time->GetDeltaTimeOrRealDeltaTime() / currentParticle->scale.x;
-		if (collision) App->physics->UpdateParticleRigidbody(currentParticle);
-
-		currentParticle->scale.x += newScale * App->time->GetDeltaTimeOrRealDeltaTime();
-		currentParticle->scale.y += newScale * App->time->GetDeltaTimeOrRealDeltaTime();
-		currentParticle->scale.z += newScale * App->time->GetDeltaTimeOrRealDeltaTime();
 	}
 
-	if (currentParticle->scale.x < 0) {
-		currentParticle->scale.x = 0;
+	if (currentParticle->scale.x < 0 || currentParticle->scale.y < 0 || currentParticle->scale.z < 0) {
+		currentParticle->scale = float3::zero;
+		currentParticle->radius = 0;
 	}
-	if (currentParticle->scale.y < 0) {
-		currentParticle->scale.y = 0;
-	}
-	if (currentParticle->scale.z < 0) {
-		currentParticle->scale.z = 0;
-	}
+
+	if (collision) App->physics->UpdateParticleRigidbody(currentParticle);
 }
 
 void ComponentParticleSystem::UpdateLife(Particle* currentParticle) {
@@ -2103,7 +2098,7 @@ void ComponentParticleSystem::Draw() {
 			if (currentParticle.trail != nullptr) {
 				currentParticle.trail->Draw();
 			}
-			if (App->renderer->drawColliders) {
+			if (collision && App->renderer->drawColliders) {
 				dd::sphere(modelMatrix.TranslatePart(), dd::colors::LawnGreen, currentParticle.radius);
 			}
 		}
