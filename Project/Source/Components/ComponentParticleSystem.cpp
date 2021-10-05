@@ -1555,7 +1555,7 @@ void ComponentParticleSystem::InitParticleScale(Particle* currentParticle) {
 		}
 	}
 
-	if (collision) {
+	if (App->time->HasGameStarted() && collision) {
 		App->physics->CreateParticleRigidbody(currentParticle);
 	}
 }
@@ -1860,7 +1860,9 @@ void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
 		currentParticle->radius = 0;
 	}
 
-	if (collision) App->physics->UpdateParticleRigidbody(currentParticle);
+	if (App->time->HasGameStarted() && collision) {
+		App->physics->UpdateParticleRigidbody(currentParticle);
+	}
 }
 
 void ComponentParticleSystem::UpdateLife(Particle* currentParticle) {
