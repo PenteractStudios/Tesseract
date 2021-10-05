@@ -37,6 +37,7 @@ bool AudioImporter::ImportAudio(const char* filePath, JsonValue jMeta) {
 	//}
 
 	// Read from file
+
 	EncondeStereoToMono(filePath);
 
 	Buffer<char> buffer = App->files->Load(filePath);
@@ -108,6 +109,7 @@ void AudioImporter::EncondeWavToOgg(const char* infilename, const char* outfilen
 	return;
 }
 
+//Checks if a file is stereo and in that case makes a mono copy of it
 void AudioImporter::EncondeStereoToMono(const char* infilename) {
 	static double data[BUFFER_LEN];
 
@@ -123,6 +125,7 @@ void AudioImporter::EncondeStereoToMono(const char* infilename) {
 
 	if (sfInfo.channels == 2) {
 		sfInfo.channels = 1;
+		sfInfo.samplerate = sfInfo.samplerate * 2;
 
 		std::string fileName = FileDialog::GetFileNameAndExtension(infilename);
 		std::string fileNameMono = "mono_" + fileName;
