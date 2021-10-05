@@ -8,5 +8,5 @@ namespace AudioImporter {
 	bool ImportAudio(const char* filePath, JsonValue jMeta);
 
 	void EncondeWavToOgg(const char* infilename, const char* outfilename);
-	void EncondeStereoToMono(const char* infilename, const char* outfilename);
+	void EncondeStereoToMono(const char* infilename);
 };
