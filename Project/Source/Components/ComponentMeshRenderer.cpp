@@ -300,6 +300,19 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glBindTexture(GL_TEXTURE_2D, glTextureMetallic);
 
 		// Dissolve settings
+		unsigned glTextureDissolveNoise = 0;
+		ResourceTexture* dissolveNoise = App->resources->GetResource<ResourceTexture>(material->dissolveNoiseMapId);
+		glTextureDissolveNoise = dissolveNoise ? dissolveNoise->glTexture : 0;
+		int hasDissolveNoiseMap = glTextureDissolveNoise ? 1 : 0;
+
+		glUniform1i(dissolveProgram->hasNoiseMapLocation, hasDissolveNoiseMap);
+
+		glUniform1i(dissolveProgram->noiseMapLocation, 31);
+		glActiveTexture(GL_TEXTURE31);
+		glBindTexture(GL_TEXTURE_2D, glTextureDissolveNoise);
+
+		glUniform4fv(dissolveProgram->colorLocation, 1, material->dissolveColor.ptr());
+		glUniform1f(dissolveProgram->intensityLocation, material->dissolveIntensity);
 		glUniform1f(dissolveProgram->scaleLocation, material->dissolveScale);
 		glUniform1f(dissolveProgram->thresholdLocation, GetDissolveValue());
 		glUniform2fv(dissolveProgram->offsetLocation, 1, material->dissolveOffset.ptr());
@@ -414,6 +427,19 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform2fv(unlitProgram->offsetLocation, 1, ChooseTextureOffset(material->offset).ptr());
 
 		// Dissolve settings
+		unsigned glTextureDissolveNoise = 0;
+		ResourceTexture* dissolveNoise = App->resources->GetResource<ResourceTexture>(material->dissolveNoiseMapId);
+		glTextureDissolveNoise = dissolveNoise ? dissolveNoise->glTexture : 0;
+		int hasDissolveNoiseMap = glTextureDissolveNoise ? 1 : 0;
+
+		glUniform1i(unlitProgram->hasNoiseMapLocation, hasDissolveNoiseMap);
+
+		glUniform1i(unlitProgram->noiseMapLocation, 2);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, glTextureDissolveNoise);
+
+		glUniform4fv(unlitProgram->colorLocation, 1, material->dissolveColor.ptr());
+		glUniform1f(unlitProgram->intensityLocation, material->dissolveIntensity);
 		glUniform1f(unlitProgram->scaleLocation, material->dissolveScale);
 		glUniform1f(unlitProgram->thresholdLocation, GetDissolveValue());
 		glUniform2fv(unlitProgram->offsetLocation, 1, material->dissolveOffset.ptr());
@@ -710,6 +736,17 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 		depthPrepassProgram = depthPrepassProgramDissolve;
 
 		glUseProgram(depthPrepassProgram->program);
+
+		unsigned glTextureDissolveNoise = 0;
+		ResourceTexture* dissolveNoise = App->resources->GetResource<ResourceTexture>(material->dissolveNoiseMapId);
+		glTextureDissolveNoise = dissolveNoise ? dissolveNoise->glTexture : 0;
+		int hasDissolveNoiseMap = glTextureDissolveNoise ? 1 : 0;
+
+		glUniform1i(depthPrepassProgramDissolve->hasNoiseMapLocation, hasDissolveNoiseMap);
+
+		glUniform1i(depthPrepassProgramDissolve->noiseMapLocation, 1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, glTextureDissolveNoise);
 
 		glUniform1f(depthPrepassProgramDissolve->scaleLocation, material->dissolveScale);
 		glUniform1f(depthPrepassProgramDissolve->thresholdLocation, GetDissolveValue());
