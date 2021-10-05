@@ -29,30 +29,27 @@ void PanelAudioMixer::Update() {
 		Pool<ComponentAudioSource>::Iterator audioSources = App->scene->scene->audioSourceComponents.begin();
 
 		float gain = (*audioListener).GetAudioVolume();
-		float gainSource = 1.0f;
-		float gainMusic = 1.0f;
-		float gainFX = 1.0f;
 
-		ImGui::TextColored(App->editor->titleColor, "Output Volume");
+		ImGui::TextColored(App->editor->titleColor, "Listener Volume");
 		if (ImGui::SliderFloat("##out_volume", &gain, 0.f, 1.f)) {
 			(*audioListener).SetAudioVolume(gain);
 		}
-		ImGui::TextColored(App->editor->titleColor, "Source Volume");
-		if (ImGui::SliderFloat("##out_volume", &gainSource, 0.f, 1.f)) {
-			for (audioSources; audioSources != App->scene->scene->audioSourceComponents.end(); audioSources++) {
-				(*audioSources).SetGain((*audioSources).GetGain() * gainSource);
-			}
-		}
 		ImGui::TextColored(App->editor->titleColor, "Music Volume");
-		if (ImGui::SliderFloat("##out_volume", &gainSource, 0.f, 1.f)) {
-			for (audioSources; audioSources != App->scene->scene->audioSourceComponents.end(); audioSources++) {
-				(*audioSources).SetGain((*audioSources).GetGain() * gainSource);
+		if (ImGui::SliderFloat("##music_volume", &gainMusic, 0.f, 1.f)) {
+			for (audioSources = App->scene->scene->audioSourceComponents.begin(); audioSources != App->scene->scene->audioSourceComponents.end(); ++audioSources) {
+				if ((*audioSources).GetIsMusic()) {
+					(*audioSources).SetGainMultiplier(gainMusic);
+					(*audioSources).UpdateSourceParameters();
+				}
 			}
 		}
 		ImGui::TextColored(App->editor->titleColor, "FX Volume");
-		if (ImGui::SliderFloat("##out_volume", &gainSource, 0.f, 1.f)) {
-			for (audioSources; audioSources != App->scene->scene->audioSourceComponents.end(); audioSources++) {
-				(*audioSources).SetGain((*audioSources).GetGain() * gainSource);
+		if (ImGui::SliderFloat("##fx_volume", &gainFX, 0.f, 1.f)) {
+			for (audioSources = App->scene->scene->audioSourceComponents.begin(); audioSources != App->scene->scene->audioSourceComponents.end(); ++audioSources) {
+				if (!(*audioSources).GetIsMusic()) {
+					(*audioSources).SetGainMultiplier(gainFX);
+					(*audioSources).UpdateSourceParameters();
+				}
 			}
 		}
 	}

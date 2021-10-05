@@ -29,6 +29,7 @@
 #define JSON_TAG_ROLLOFF_FACTOR "RolloffFactor"
 #define JSON_TAG_REFERENCE_DISTANCE "ReferenceDistance"
 #define JSON_TAG_MAX_DISTANCE "MaxDistance"
+#define JSON_TAG_MUSIC "IsMusic"
 
 ComponentAudioSource::~ComponentAudioSource() {
 	Stop();
@@ -101,15 +102,15 @@ void ComponentAudioSource::OnEditorUpdate() {
 		if (mute) {
 			alSourcef(sourceId, AL_GAIN, 0.0f);
 		} else {
-			alSourcef(sourceId, AL_GAIN, gain);
+			alSourcef(sourceId, AL_GAIN, gain*gainMultiplier);
 		}
 	}
-
+	ImGui::Checkbox("Music", &isMusic);
 	if (ImGui::Checkbox("Loop", &loop)) {
 		alSourcef(sourceId, AL_LOOPING, loop);
 	}
 	if (ImGui::DragFloat("Gain", &gain, App->editor->dragSpeed3f, 0, 1)) {
-		alSourcef(sourceId, AL_GAIN, gain);
+		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
 	}
 	if (ImGui::DragFloat("Pitch", &pitch, App->editor->dragSpeed3f, 0.5, 2)) {
 		alSourcef(sourceId, AL_PITCH, pitch);
@@ -224,7 +225,7 @@ void ComponentAudioSource::UpdateSourceParameters() {
 	if (mute) {
 		alSourcef(sourceId, AL_GAIN, 0.0f);
 	} else {
-		alSourcef(sourceId, AL_GAIN, gain);
+		alSourcef(sourceId, AL_GAIN, gain*gainMultiplier);
 	}
 	alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFactor);
 	alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
@@ -291,6 +292,7 @@ void ComponentAudioSource::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_ROLLOFF_FACTOR] = rollOffFactor;
 	jComponent[JSON_TAG_REFERENCE_DISTANCE] = referenceDistance;
 	jComponent[JSON_TAG_MAX_DISTANCE] = maxDistance;
+	jComponent[JSON_TAG_MUSIC] = isMusic;
 }
 
 void ComponentAudioSource::Load(JsonValue jComponent) {
@@ -308,6 +310,7 @@ void ComponentAudioSource::Load(JsonValue jComponent) {
 	rollOffFactor = jComponent[JSON_TAG_ROLLOFF_FACTOR];
 	referenceDistance = jComponent[JSON_TAG_REFERENCE_DISTANCE];
 	maxDistance = jComponent[JSON_TAG_MAX_DISTANCE];
+	isMusic = jComponent[JSON_TAG_MUSIC];
 
 	if (audioClipId) {
 		App->resources->IncreaseReferenceCount(audioClipId);
@@ -372,6 +375,10 @@ TESSERACT_ENGINE_API float ComponentAudioSource::GetGainMultiplier() const {
 	return gainMultiplier;
 }
 
+TESSERACT_ENGINE_API float ComponentAudioSource::GetIsMusic() const {
+	return isMusic;
+}
+
 // --- SETTERS ---
 
 void ComponentAudioSource::SetMute(bool _mute) {
@@ -428,4 +435,8 @@ void ComponentAudioSource::SetMaxDistance(float _maxDistance) {
 
 TESSERACT_ENGINE_API void ComponentAudioSource::SetGainMultiplier(float _gainMultiplier) {
 	gainMultiplier = _gainMultiplier;
+}
+
+TESSERACT_ENGINE_API void ComponentAudioSource::SetIsMusic(float _isMusic) {
+	isMusic = _isMusic;
 }

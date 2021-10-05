@@ -7,4 +7,9 @@ public:
 	PanelAudioMixer();
 
 	void Update() override;
+
+	
+private:
+	float gainMusic = 1.0f;
+	float gainFX = 1.0f;
 };
