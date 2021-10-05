@@ -70,7 +70,16 @@ Buffer<unsigned char> CompressTexture(TextureCompression compression, int width,
 
 	CMP_CompressOptions options = {0};
 	options.dwSize = sizeof(CMP_CompressOptions);
-	options.fquality = 1.0f;
+	switch (compression) {
+	case TextureCompression::DXT1:
+	case TextureCompression::DXT3:
+	case TextureCompression::DXT5:
+		options.fquality = 1.0f;
+		break;
+	case TextureCompression::BC7:
+		options.fquality = 0.05f;
+		break;
+	}
 
 	CMP_ERROR error = CMP_ConvertTexture(&source, &destination, &options, nullptr);
 	if (error != CMP_OK) {
