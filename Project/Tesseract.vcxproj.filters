@@ -379,7 +379,6 @@
     <ClCompile Include="Source\Utils\Trail.cpp" />
     <ClCompile Include="Source\Components\ComponentFog.cpp" />
     <ClCompile Include="Source\Scripting\PropertyMap.cpp" />
-    <ClCompile Include="Source\Utils\FileUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Rendering\LightFrustum.h" />

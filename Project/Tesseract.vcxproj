@@ -357,7 +357,6 @@
     <ClInclude Include="Source\FileSystem\VideoImporter.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Utils\FileUtils.cpp" />
     <ClCompile Include="Source\Scripting\PropertyMap.cpp" />
     <ClCompile Include="Source\Rendering\FrustumPlanes.cpp" />
     <ClCompile Include="Source\Components\ComponentFog.cpp" />
