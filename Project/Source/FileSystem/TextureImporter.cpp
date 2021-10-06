@@ -10,8 +10,10 @@
 #include "Utils/Buffer.h"
 #include "Utils/MSTimer.h"
 #include "Utils/FileDialog.h"
+#include "Utils/FileUtils.h"
 #include "ImporterCommon.h"
 
+#include "compressonator.h"
 #include "IL/il.h"
 #include "IL/ilu.h"
 #include "GL/glew.h"
@@ -25,12 +27,75 @@
 #define JSON_TAG_MIN_FILTER "MinFilter"
 #define JSON_TAG_MAG_FILTER "MagFilter"
 
+Buffer<unsigned char> CompressTexture(TextureCompression compression, int width, int height, const unsigned char* data) {
+	Buffer<unsigned char> compressedData;
+
+	if (compression == TextureCompression::NONE) {
+		compressedData.Allocate(width * height * 4);
+		memcpy(compressedData.Data(), data, compressedData.Size());
+		return compressedData;
+	}
+
+	CMP_Texture source = {0};
+	source.dwSize = sizeof(CMP_Texture);
+	source.dwWidth = width;
+	source.dwHeight = height;
+	source.dwPitch = width * 4;
+	source.format = CMP_FORMAT_RGBA_8888;
+	source.dwDataSize = width * height * 4;
+	source.pData = (CMP_BYTE*) data;
+
+	CMP_Texture destination = {0};
+	destination.dwSize = sizeof(CMP_Texture);
+	destination.dwWidth = width;
+	destination.dwHeight = height;
+	destination.dwPitch = width;
+	switch (compression) {
+	case TextureCompression::DXT1:
+		destination.format = CMP_FORMAT_BC1;
+		break;
+	case TextureCompression::DXT3:
+		destination.format = CMP_FORMAT_BC2;
+		break;
+	case TextureCompression::DXT5:
+		destination.format = CMP_FORMAT_BC3;
+		break;
+	case TextureCompression::BC7:
+		destination.format = CMP_FORMAT_BC7;
+		break;
+	}
+	destination.dwDataSize = CMP_CalculateBufferSize(&destination);
+	compressedData.Allocate(destination.dwDataSize);
+	destination.pData = compressedData.Data();
+
+	CMP_CompressOptions options = {0};
+	options.dwSize = sizeof(CMP_CompressOptions);
+	switch (compression) {
+	case TextureCompression::DXT1:
+	case TextureCompression::DXT3:
+	case TextureCompression::DXT5:
+		options.fquality = 1.0f;
+		break;
+	case TextureCompression::BC7:
+		options.fquality = 0.05f;
+		break;
+	}
+
+	CMP_ERROR error = CMP_ConvertTexture(&source, &destination, &options, nullptr);
+	if (error != CMP_OK) {
+		LOG("Error converting texture: %i", error);
+		return Buffer<unsigned char>();
+	}
+
+	return compressedData;
+}
+
 void TextureImportOptions::ShowImportOptions() {
 	// Flip
 	ImGui::Checkbox("Flip", &flip);
 
 	// Compression combo box
-	const char* compression_items[] = {"None", "DXT1", "DXT3", "DXT5"};
+	const char* compression_items[] = {"None", "DXT1", "DXT3", "DXT5", "BC7"};
 	const char* compression_item_current = compression_items[int(compression)];
 	if (ImGui::BeginCombo("Compression", compression_item_current)) {
 		for (int n = 0; n < IM_ARRAYSIZE(compression_items); ++n) {
@@ -142,9 +207,11 @@ bool TextureImporter::ImportTexture(const char* filePath, JsonValue jMeta) {
 		return false;
 	}
 
+	int width = ilGetInteger(IL_IMAGE_WIDTH);
+	int height = ilGetInteger(IL_IMAGE_HEIGHT);
+
 	// Convert image
-	ILenum format = ilGetInteger(IL_IMAGE_BPP) == 4 ? IL_RGBA : IL_RGB;
-	bool imageConverted = ilConvertImage(format, IL_UNSIGNED_BYTE);
+	bool imageConverted = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
 	if (!imageConverted) {
 		LOG("Failed to convert image.");
 		return false;
@@ -164,45 +231,75 @@ bool TextureImporter::ImportTexture(const char* filePath, JsonValue jMeta) {
 	texture->minFilter = importOptions->minFilter;
 	texture->magFilter = importOptions->magFilter;
 
-	ILenum type = IL_TGA;
-	switch (importOptions->compression) {
-	case TextureCompression::DXT1:
-		ilSetInteger(IL_DXTC_FORMAT, IL_DXT1);
-		type = IL_DDS;
-		break;
-	case TextureCompression::DXT3:
-		ilSetInteger(IL_DXTC_FORMAT, IL_DXT3);
-		type = IL_DDS;
-		break;
-	case TextureCompression::DXT5:
-		ilSetInteger(IL_DXTC_FORMAT, IL_DXT5);
-		type = IL_DDS;
-		break;
-	default:
-		break;
-	}
-
 	// Save import options to the meta file
 	importOptions->Save(jMeta);
-
-	// Save image
-	size_t size = ilSaveL(type, nullptr, 0);
-	if (size == 0) {
-		LOG("Failed to save image.");
-		return false;
-	}
-	Buffer<char> buffer = Buffer<char>(size);
-	size = ilSaveL(type, buffer.Data(), size);
-	if (size == 0) {
-		LOG("Failed to save image.");
-		return false;
-	}
 
 	// Save resource meta file
 	bool saved = ImporterCommon::SaveResourceMetaFile(texture.get());
 	if (!saved) {
 		LOG("Failed to save texture resource meta file.");
 		return false;
+	}
+
+	// Compress image
+	Buffer<char> buffer;
+	switch (importOptions->compression) {
+	case TextureCompression::DXT1:
+	case TextureCompression::DXT3: 
+	case TextureCompression::DXT5:
+	case TextureCompression::BC7: {
+		iluFlipImage();
+
+		Buffer<unsigned char> compressedData = CompressTexture(importOptions->compression, width, height, ilGetData());
+
+		buffer.Allocate(sizeof(DDSHeader) + compressedData.Size());
+
+		char* cursor = buffer.Data();
+		DDSHeader* header = (DDSHeader*) cursor;
+		cursor += sizeof(DDSHeader);
+
+		memset(header, 0, sizeof(DDSHeader));
+		header->magic = ('D' << 0) | ('D' << 8) | ('S' << 16) | (' ' << 24);
+		header->size = 124;
+		header->flags = DDSHeader::CAPS | DDSHeader::HEIGHT | DDSHeader::WIDTH | DDSHeader::PIXELFORMAT | DDSHeader::LINEARSIZE;
+		header->width = width;
+		header->height = height;
+		header->pitchOrLinearSize = compressedData.Size();
+		header->pixelFormat.size = 32;
+		header->pixelFormat.flags = DDSHeader::PixelFormat::FOURCC;
+		switch (importOptions->compression) {
+		case TextureCompression::DXT1:
+			header->pixelFormat.fourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24);
+			break;
+		case TextureCompression::DXT3:
+			header->pixelFormat.fourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('3' << 24);
+			break;
+		case TextureCompression::DXT5:
+			header->pixelFormat.fourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('5' << 24);
+			break;
+		case TextureCompression::BC7:
+			header->pixelFormat.fourCC = ('B' << 0) | ('C' << 8) | ('7' << 16) | (' ' << 24);
+			break;
+		}
+		header->caps.caps1 = DDSHeader::Caps::TEXTURE;
+
+		memcpy(cursor, compressedData.Data(), compressedData.Size());
+		break;
+	}
+	default: {
+		unsigned size = ilSaveL(IL_TGA, nullptr, 0);
+		if (size == 0) {
+			LOG("Failed to save image.");
+			return false;
+		};
+		buffer.Allocate(size);
+		size = ilSaveL(IL_TGA, buffer.Data(), size);
+		if (size == 0) {
+			LOG("Failed to save image.");
+			return false;
+		}
+		break;
+	}
 	}
 
 	// Save to file

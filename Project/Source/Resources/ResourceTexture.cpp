@@ -6,6 +6,7 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleEditor.h"
 #include "Utils/MSTimer.h"
+#include "Utils/FileUtils.h"
 
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
@@ -31,91 +32,70 @@ void ResourceTexture::Load() {
 	MSTimer timer;
 	timer.Start();
 
-	// Generate image handler
-	unsigned image;
-	ilGenImages(1, &image);
-	DEFER {
-		ilDeleteImages(1, &image);
-	};
-
 	// Load image
-	ILenum type = IL_TGA;
-	switch (compression) {
-	case TextureCompression::DXT1:
-		type = IL_DDS;
-		break;
-	case TextureCompression::DXT3:
-		type = IL_DDS;
-		break;
-	case TextureCompression::DXT5:
-		type = IL_DDS;
-		break;
-	default:
-		break;
-	}
-	ilBindImage(image);
-	bool imageLoaded = ilLoad(type, filePath.c_str());
-	if (!imageLoaded) {
-		LOG("Failed to load image.");
-		return;
-	}
-
-	ILenum format = ilGetInteger(IL_IMAGE_BYTES_PER_PIXEL) == 4 ? IL_RGBA : IL_RGB;
-	switch (compression) {
-	case TextureCompression::DXT3:
-	case TextureCompression::DXT5:
-		format = IL_RGBA;
-		break;
-	default:
-		break;
-	}
-
-	// Convert image
-	bool imageConverted = ilConvertImage(format, IL_UNSIGNED_BYTE);
-	if (!imageConverted) {
-		LOG("Failed to convert image.");
-		return;
-	}
-	unsigned width = ilGetInteger(IL_IMAGE_WIDTH);
-	unsigned height = ilGetInteger(IL_IMAGE_HEIGHT);
-	unsigned bpp = ilGetInteger(IL_IMAGE_BYTES_PER_PIXEL);
-	unsigned dataSize = width * height * bpp;
+	unsigned width = 0;
+	unsigned height = 0;
+	unsigned bpp = 0;
+	unsigned dataSize = 0;
 	unsigned char* imageData = nullptr;
 	DEFER {
 		RELEASE(imageData);
 	};
 
 	switch (compression) {
-	case TextureCompression::NONE: {
+	case TextureCompression::DXT1:
+	case TextureCompression::DXT3:
+	case TextureCompression::DXT5:
+	case TextureCompression::BC7: {
+		Buffer<char> buffer = App->files->Load(filePath.c_str());
+
+		unsigned char* cursor = (unsigned char*) buffer.Data();
+		DDSHeader* header = (DDSHeader*) cursor;
+		cursor += sizeof(DDSHeader);
+
+		width = header->width;
+		height = header->height;
+		bpp = header->pixelFormat.size / 8;
+		dataSize = header->pitchOrLinearSize;
+
+		imageData = new unsigned char[dataSize];
+		memcpy(imageData, cursor, dataSize);
+		break;
+	}
+	default: {
+		// Generate image handler
+		unsigned image;
+		ilGenImages(1, &image);
+		DEFER {
+			ilDeleteImages(1, &image);
+		};
+
+		ilBindImage(image);
+		bool imageLoaded = ilLoad(IL_TGA, filePath.c_str());
+		if (!imageLoaded) {
+			LOG("Failed to load image.");
+			return;
+		}
+
+		width = ilGetInteger(IL_IMAGE_WIDTH);
+		height = ilGetInteger(IL_IMAGE_HEIGHT);
+		bpp = ilGetInteger(IL_IMAGE_BYTES_PER_PIXEL);
+
+		ILenum format = bpp == 4 ? IL_RGBA : IL_RGB;
+
+		// Convert image
+		bool imageConverted = ilConvertImage(format, IL_UNSIGNED_BYTE);
+		if (!imageConverted) {
+			LOG("Failed to convert image.");
+			return;
+		}
+
 		dataSize = width * height * bpp;
 		imageData = new unsigned char[dataSize];
 		memcpy(imageData, ilGetData(), dataSize);
+
 		break;
 	}
-	case TextureCompression::DXT1: {
-		iluFlipImage();
-		dataSize = ilGetDXTCData(nullptr, 0, IL_DXT1);
-		imageData = new unsigned char[dataSize];
-		ilGetDXTCData(imageData, dataSize, IL_DXT1);
-		break;
-	}
-	case TextureCompression::DXT3: {
-		iluFlipImage();
-		dataSize = ilGetDXTCData(nullptr, 0, IL_DXT3);
-		imageData = new unsigned char[dataSize];
-		ilGetDXTCData(imageData, dataSize, IL_DXT3);
-		break;
-	}
-	case TextureCompression::DXT5: {
-		iluFlipImage();
-		dataSize = ilGetDXTCData(nullptr, 0, IL_DXT5);
-		imageData = new unsigned char[dataSize];
-		ilGetDXTCData(imageData, dataSize, IL_DXT5);
-		break;
-	}
-	default:
-		LOG("Unknown compression.");
-		return;
 	}
 
 	// Generate texture from image
@@ -142,6 +122,11 @@ void ResourceTexture::Load() {
 	}
 	case TextureCompression::DXT5: {
 		int internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+		glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataSize, imageData);
+		break;
+	}
+	case TextureCompression::BC7: {
+		int internalFormat = GL_COMPRESSED_RGBA_BPTC_UNORM_EXT;
 		glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataSize, imageData);
 		break;
 	}
