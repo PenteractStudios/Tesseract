@@ -8,8 +8,16 @@ public:
 
 	void Update() override;
 
-	
+	float GetGainMainChannel() const;
+	float GetGainMusicChannel() const;
+	float GetGainSFXChannel() const;
+
+	void GetGainMainChannel(float _gainMainChannel);
+	void SetGainMusicChannel(float _gainMusicChannel);
+	void SetGainSFXChannel(float _gainSFXChannel);
+
 private:
-	float gainMusic = 1.0f;
-	float gainFX = 1.0f;
+	float gainMainChannel = 1.0f;
+	float gainMusicChannel = 1.0f;
+	float gainSFXChannel = 1.0f;
 };

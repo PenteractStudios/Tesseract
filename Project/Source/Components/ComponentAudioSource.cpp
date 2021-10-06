@@ -7,6 +7,7 @@
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleTime.h"
 #include "Resources/ResourceAudioClip.h"
+#include "Panels/PanelAudioMixer.h"
 #include "Utils/ImGuiUtils.h"
 
 #include "AL/al.h"
@@ -94,18 +95,30 @@ void ComponentAudioSource::OnEditorUpdate() {
 	ImGui::Separator();
 	ImGui::Checkbox("Draw Gizmos", &drawGizmos);
 	ImGui::Separator();
+	ImGui::TextColored(App->editor->titleColor, "Channel Settings");
+	int channel = isMusic;
+	if (ImGui::RadioButton("Music", &channel, 1)) {
+		isMusic = true;
+		gainMultiplier = App->editor->panelAudioMixer.GetGainMusicChannel();
+		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+	}
+	ImGui::SameLine();
+	if (ImGui::RadioButton("SFX", &channel, 0)) {
+		isMusic = false;
+		gainMultiplier = App->editor->panelAudioMixer.GetGainSFXChannel();
+		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+	}
+	ImGui::Separator();
 	ImGui::TextColored(App->editor->titleColor, "General Settings");
-
 	ImGui::ResourceSlot<ResourceAudioClip>("AudioClip", &audioClipId, [this]() { Stop(); });
 
 	if (ImGui::Checkbox("Mute", &mute)) {
 		if (mute) {
 			alSourcef(sourceId, AL_GAIN, 0.0f);
 		} else {
-			alSourcef(sourceId, AL_GAIN, gain*gainMultiplier);
+			alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
 		}
 	}
-	ImGui::Checkbox("Music", &isMusic);
 	if (ImGui::Checkbox("Loop", &loop)) {
 		alSourcef(sourceId, AL_LOOPING, loop);
 	}
@@ -224,7 +237,7 @@ void ComponentAudioSource::UpdateSourceParameters() {
 	if (mute) {
 		alSourcef(sourceId, AL_GAIN, 0.0f);
 	} else {
-		alSourcef(sourceId, AL_GAIN, gain*gainMultiplier);
+		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
 	}
 	alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFactor);
 	alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
@@ -429,6 +442,7 @@ void ComponentAudioSource::SetMaxDistance(float _maxDistance) {
 
 TESSERACT_ENGINE_API void ComponentAudioSource::SetGainMultiplier(float _gainMultiplier) {
 	gainMultiplier = _gainMultiplier;
+	alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
 }
 
 TESSERACT_ENGINE_API void ComponentAudioSource::SetIsMusic(float _isMusic) {
