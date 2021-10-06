@@ -128,7 +128,6 @@ public:
 	~ComponentParticleSystem();
 
 	void Init() override;
-	void Start() override;
 	void Update() override;
 	void DrawGizmos() override;
 	void OnEditorUpdate() override;

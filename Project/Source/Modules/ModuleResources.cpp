@@ -427,8 +427,6 @@ void ModuleResources::UpdateAsync() {
 		App->events->AddEvent(updateAssetCacheEv);
 #endif
 
-		App->events->AddEvent(TesseractEventType::RESOURCES_LOADED);
-
 		std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BETWEEN_RESOURCE_UPDATES_MS));
 	}
 }

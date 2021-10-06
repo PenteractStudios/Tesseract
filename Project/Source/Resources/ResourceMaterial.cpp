@@ -251,7 +251,7 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 void ResourceMaterial::UpdateMask(MaskToChange maskToChange, bool forceDeleteShadows) {
 	for (GameObject& gameObject : App->scene->scene->gameObjects) {
 		ComponentMeshRenderer* meshRenderer = gameObject.GetComponent<ComponentMeshRenderer>();
-		if (meshRenderer && meshRenderer->materialId == GetId()) {
+		if (meshRenderer && meshRenderer->GetMaterial() == GetId()) {
 
 			switch (maskToChange) {
 				case MaskToChange::RENDERING:

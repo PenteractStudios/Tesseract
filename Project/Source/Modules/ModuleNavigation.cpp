@@ -46,18 +46,21 @@ void ModuleNavigation::ReceiveEvent(TesseractEvent& e) {
 	}
 }
 
+void ModuleNavigation::ChangeNavMesh(UID navMeshId_) {
+	App->resources->DecreaseReferenceCount(navMeshId);
+	navMeshId = navMeshId_;
+	App->resources->IncreaseReferenceCount(navMeshId);
+}
+
 void ModuleNavigation::BakeNavMesh() {
 	MSTimer timer;
 	timer.Start();
 	LOG("Loading NavMesh");
-	bool generated = navMesh.Build();
+	bool generated = navMesh.Build(App->scene->scene);
 	unsigned timeMs = timer.Stop();
 	if (generated) {
 		navMesh.GetTileCache()->update(App->time->GetDeltaTime(), navMesh.GetNavMesh());
 		navMesh.GetCrowd()->update(App->time->GetDeltaTime(), nullptr);
-
-		navMesh.RescanCrowd();
-		navMesh.RescanObstacles();
 
 		LOG("NavMesh successfully baked in %ums", timeMs);
 	} else {
@@ -66,7 +69,7 @@ void ModuleNavigation::BakeNavMesh() {
 }
 
 void ModuleNavigation::DrawGizmos() {
-	navMesh.DrawGizmos();
+	navMesh.DrawGizmos(App->scene->scene);
 }
 
 NavMesh& ModuleNavigation::GetNavMesh() {

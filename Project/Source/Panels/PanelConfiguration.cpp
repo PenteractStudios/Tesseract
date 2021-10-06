@@ -278,10 +278,11 @@ void PanelConfiguration::Update() {
 
 		// Scene
 		if (ImGui::CollapsingHeader("Scene")) {
-			ImGui::TextColored(App->editor->titleColor, "Ambient color");
-			ImGui::ColorEdit3("Ambient Color", App->renderer->ambientColor.ptr());
-
 			Scene* scene = App->scene->scene;
+
+			ImGui::TextColored(App->editor->titleColor, "Ambient color");
+			ImGui::ColorEdit3("Ambient Color", scene->ambientColor.ptr());
+
 			ImGui::TextColored(App->editor->titleColor, "Quadtree");
 			ImGui::InputFloat2("Min Point", scene->quadtreeBounds.minPoint.ptr());
 			ImGui::InputFloat2("Max Point", scene->quadtreeBounds.maxPoint.ptr());

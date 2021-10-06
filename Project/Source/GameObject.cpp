@@ -35,6 +35,10 @@ void GameObject::Init() {
 	for (Component* component : components) {
 		component->Init();
 	}
+
+	for (GameObject* child : children) {
+		child->Init();
+	}
 }
 
 void GameObject::Start() {
@@ -331,7 +335,6 @@ void GameObject::Load(JsonValue jGameObject) {
 			}
 		} 
 	}
-	Init();
 
 	JsonValue jChildren = jGameObject[JSON_TAG_CHILDREN];
 	for (unsigned i = 0; i < jChildren.Size(); ++i) {
@@ -405,7 +408,6 @@ void GameObject::LoadPrefab(JsonValue jGameObject) {
 		components.push_back(component);
 		component->Load(jComponent);
 	}
-	Init();
 
 	JsonValue jChildren = jGameObject[JSON_TAG_CHILDREN];
 	for (unsigned i = 0; i < jChildren.Size(); ++i) {

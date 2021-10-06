@@ -48,6 +48,8 @@
 
 ComponentBillboard::~ComponentBillboard() {
 	RELEASE(gradient);
+
+	App->resources->DecreaseReferenceCount(textureID);
 }
 
 void ComponentBillboard::OnEditorUpdate() {
@@ -182,9 +184,6 @@ void ComponentBillboard::Load(JsonValue jComponent) {
 	isHorizontalOrientation = jComponent[JSON_TAG_IS_HORIZONTAL_ORIENTATION];
 	renderMode = (ParticleRenderMode)(int) jComponent[JSON_TAG_RENDER_MODE];
 	textureID = jComponent[JSON_TAG_TEXTURE_TEXTUREID];
-	if (textureID != 0) {
-		App->resources->IncreaseReferenceCount(textureID);
-	}
 	JsonValue jTextureIntensity = jComponent[JSON_TAG_TEXTURE_INTENSITY];
 	textureIntensity[0] = jTextureIntensity[0];
 	textureIntensity[1] = jTextureIntensity[1];
@@ -251,6 +250,8 @@ void ComponentBillboard::Save(JsonValue jComponent) const {
 }
 
 void ComponentBillboard::Init() {
+	App->resources->IncreaseReferenceCount(textureID);
+
 	if (!gradient) gradient = new ImGradient();
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 	initPos = transform->GetGlobalPosition();

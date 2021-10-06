@@ -227,9 +227,15 @@ ComponentParticleSystem::~ComponentParticleSystem() {
 	}
 	subEmitters.clear();
 	subEmittersGO.clear();
+
+	App->resources->DecreaseReferenceCount(textureID);
+	App->resources->DecreaseReferenceCount(textureTrailID);
 }
 
 void ComponentParticleSystem::Init() {
+	App->resources->IncreaseReferenceCount(textureID);
+	App->resources->IncreaseReferenceCount(textureTrailID);
+
 	if (!gradient) gradient = new ImGradient();
 	if (!gradientTrail) gradientTrail = new ImGradient();
 	if (!gradientLight) gradientLight = new ImGradient();
@@ -253,12 +259,9 @@ void ComponentParticleSystem::Init() {
 	InitCurveValues(intensityMultiplierCurve);
 	InitCurveValues(rangeMultiplierCurve);
 
-	obbEmitter = OBB(float3::zero, float3::one, float3::unitX, float3::unitY, float3::unitZ);
-}
-
-void ComponentParticleSystem::Start() {
+	// Init subemitters
 	for (SubEmitter* subEmitter : subEmitters) {
-		GameObject* gameObject = App->scene->scene->GetGameObject(subEmitter->gameObjectUID);
+		GameObject* gameObject = GetOwner().scene->GetGameObject(subEmitter->gameObjectUID);
 		if (gameObject != nullptr) {
 			ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
 			if (particleSystem != nullptr) {
@@ -273,8 +276,9 @@ void ComponentParticleSystem::Start() {
 		}
 	}
 
+	// Init light
 	if (lightGameObjectUID != 0) {
-		GameObject* gameObject = App->scene->scene->GetGameObject(lightGameObjectUID);
+		GameObject* gameObject = GetOwner().scene->GetGameObject(lightGameObjectUID);
 		if (gameObject != nullptr) {
 			ComponentLight* light = gameObject->GetComponent<ComponentLight>();
 			if (light == nullptr || light->lightType != LightType::POINT) {
@@ -699,7 +703,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			{
 				ImGui::GameObjectSlot("", &subEmitter->gameObjectUID);
 				if (oldUI != subEmitter->gameObjectUID) {
-					GameObject* gameObject = App->scene->scene->GetGameObject(subEmitter->gameObjectUID);
+					GameObject* gameObject = GetOwner().scene->GetGameObject(subEmitter->gameObjectUID);
 					if (gameObject != nullptr) {
 						ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
 						if (particleSystem == nullptr) {
@@ -762,7 +766,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			UID oldUID = lightGameObjectUID;
 			ImGui::GameObjectSlot("Point Light", &lightGameObjectUID);
 			if (oldUID != lightGameObjectUID) {
-				GameObject* gameObject = App->scene->scene->GetGameObject(lightGameObjectUID);
+				GameObject* gameObject = GetOwner().scene->GetGameObject(lightGameObjectUID);
 				if (gameObject != nullptr) {
 					ComponentLight* light = gameObject->GetComponent<ComponentLight>();
 					if (light == nullptr || light->lightType != LightType::POINT) {
@@ -1024,9 +1028,6 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 
 	// Render
 	textureID = jComponent[JSON_TAG_TEXTURE_TEXTURE_ID];
-	if (textureID != 0) {
-		App->resources->IncreaseReferenceCount(textureID);
-	}
 	JsonValue jTextureIntensity = jComponent[JSON_TAG_TEXTURE_INTENSITY];
 	textureIntensity[0] = jTextureIntensity[0];
 	textureIntensity[1] = jTextureIntensity[1];
@@ -1065,9 +1066,6 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	quadLife[1] = jQuadLife[1];
 
 	textureTrailID = jComponent[JSON_TAG_TRAIL_TEXTURE_TEXTUREID];
-	if (textureTrailID != 0) {
-		App->resources->IncreaseReferenceCount(textureTrailID);
-	}
 	JsonValue jTrailFlip = jComponent[JSON_TAG_TRAIL_FLIP_TEXTURE];
 	flipTrailTexture[0] = jTrailFlip[0];
 	flipTrailTexture[1] = jTrailFlip[1];
@@ -1126,8 +1124,6 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	}
 
 	maxLights = jComponent[JSON_TAG_LIGHTS_MAX_LIGHTS];
-
-	AllocateParticlesMemory();
 }
 
 void ComponentParticleSystem::Save(JsonValue jComponent) const {
@@ -1642,6 +1638,7 @@ void ComponentParticleSystem::InitSubEmitter(Particle* currentParticle, SubEmitt
 			newGameObject->id = gameObjectId;
 			newGameObject->name = "SubEmitter (Temp)";
 			newGameObject->SetParent(&parent);
+
 			ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 			float3x3 rotationMatrix = float3x3::RotateFromTo(float3::unitY, currentParticle->direction);
 			float4x4 particleModel = float4x4::FromTRS(currentParticle->position, rotationMatrix, float3::one);
@@ -1654,16 +1651,19 @@ void ComponentParticleSystem::InitSubEmitter(Particle* currentParticle, SubEmitt
 			transform->SetGlobalPosition(particleModel.TranslatePart());
 			transform->SetGlobalRotation(particleModel.RotatePart().ToQuat());
 			transform->SetGlobalScale(float3::one);
-			newGameObject->Init();
 
 			ComponentParticleSystem* newParticleSystem = newGameObject->CreateComponent<ComponentParticleSystem>();
 			rapidjson::Document resourceMetaDocument;
 			JsonValue jResourceMeta(resourceMetaDocument, resourceMetaDocument);
 			subEmitter->particleSystem->Save(jResourceMeta);
 			newParticleSystem->Load(jResourceMeta);
-			newParticleSystem->Start();
 			newParticleSystem->SetIsSubEmitter(true);
 			newParticleSystem->Play();
+
+			newGameObject->Init();
+			if (App->time->HasGameStarted()) {
+				newGameObject->Start();
+			}
 
 			subEmittersGO.push_back(newGameObject);
 		}
@@ -1681,6 +1681,7 @@ void ComponentParticleSystem::InitLight(Particle* currentParticle) {
 	newGameObject->id = gameObjectId;
 	newGameObject->name = "Light (Temp)";
 	newGameObject->SetParent(&parent);
+
 	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform* transformPS = GetOwner().GetComponent<ComponentTransform>();
 
@@ -1690,7 +1691,8 @@ void ComponentParticleSystem::InitLight(Particle* currentParticle) {
 		float3 globalOffset = transformPS->GetGlobalMatrix().RotatePart() * lightOffset;
 		transform->SetGlobalPosition(currentParticle->position + globalOffset);
 	}
-	newGameObject->Init();
+	transform->SetGlobalRotation(float3::zero);
+	transform->SetGlobalScale(float3::one);
 
 	ComponentLight* newLight = newGameObject->CreateComponent<ComponentLight>();
 	rapidjson::Document resourceMetaDocument;
@@ -1713,6 +1715,11 @@ void ComponentParticleSystem::InitLight(Particle* currentParticle) {
 	}
 	currentParticle->lightGO = newGameObject;
 	lightsSpawned++;
+
+	newGameObject->Init();
+	if (App->time->HasGameStarted()) {
+		newGameObject->Start();
+	}
 }
 
 void ComponentParticleSystem::Update() {
@@ -1966,7 +1973,7 @@ void ComponentParticleSystem::UndertakerParticle(bool force) {
 		}
 	}
 	for (Particle* currentParticle : deadParticles) {
-		if (App->time->IsGameRunning()) App->physics->RemoveParticleRigidbody(currentParticle);
+		if (currentParticle->rigidBody) App->physics->RemoveParticleRigidbody(currentParticle);
 		if (currentParticle->motionState) {
 			RELEASE(currentParticle->motionState);
 		}
