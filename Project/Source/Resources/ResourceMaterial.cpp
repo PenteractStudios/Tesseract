@@ -47,6 +47,9 @@
 #define JSON_TAG_SOFT_RANGE "SoftRange"
 #define JSON_TAG_TILING "Tiling"
 #define JSON_TAG_OFFSET "Offset"
+#define JSON_TAG_DISSOLVE_NOISE_MAP "DissolveNoiseMap"
+#define JSON_TAG_DISSOLVE_COLOR "DissolveColor"
+#define JSON_TAG_DISSOLVE_INTENSITY "DissolveIntensity"
 #define JSON_TAG_DISSOLVE_SCALE "DissolveScale"
 #define JSON_TAG_DISSOLVE_OFFSET "DissolveOffset"
 #define JSON_TAG_DISSOLVE_DURATION "DissolveDuration"
@@ -111,6 +114,9 @@ void ResourceMaterial::Load() {
 	offset = float2(jMaterial[JSON_TAG_OFFSET][0], jMaterial[JSON_TAG_OFFSET][1]);
 
 	// Dissolve values
+	dissolveNoiseMapId = jMaterial[JSON_TAG_DISSOLVE_NOISE_MAP];
+	dissolveColor = float4(jMaterial[JSON_TAG_DISSOLVE_COLOR][0], jMaterial[JSON_TAG_DISSOLVE_COLOR][1], jMaterial[JSON_TAG_DISSOLVE_COLOR][2], jMaterial[JSON_TAG_DISSOLVE_COLOR][3]);
+	dissolveIntensity = jMaterial[JSON_TAG_DISSOLVE_INTENSITY];
 	dissolveScale = jMaterial[JSON_TAG_DISSOLVE_SCALE];
 	dissolveOffset = float2(jMaterial[JSON_TAG_DISSOLVE_OFFSET][0], jMaterial[JSON_TAG_DISSOLVE_OFFSET][1]);
 	dissolveDuration = jMaterial[JSON_TAG_DISSOLVE_DURATION];
@@ -206,6 +212,13 @@ void ResourceMaterial::SaveToFile(const char* filePath) {
 	jOffset[1] = offset.y;
 
 	// Dissolve values
+	jMaterial[JSON_TAG_DISSOLVE_NOISE_MAP] = dissolveNoiseMapId;
+	JsonValue jDissolveColor = jMaterial[JSON_TAG_DISSOLVE_COLOR];
+	jDissolveColor[0] = dissolveColor.x;
+	jDissolveColor[1] = dissolveColor.y;
+	jDissolveColor[2] = dissolveColor.z;
+	jDissolveColor[3] = dissolveColor.w;
+	jMaterial[JSON_TAG_DISSOLVE_INTENSITY] = dissolveIntensity;
 	jMaterial[JSON_TAG_DISSOLVE_SCALE] = dissolveScale;
 	JsonValue jDissolveOffset = jMaterial[JSON_TAG_DISSOLVE_OFFSET];
 	jDissolveOffset[0] = dissolveOffset.x;
@@ -542,6 +555,9 @@ void ResourceMaterial::OnEditorUpdate() {
 	if (shaderType == MaterialShader::STANDARD_DISSOLVE || shaderType == MaterialShader::UNLIT_DISSOLVE) {
 		ImGui::NewLine();
 		ImGui::Text("Dissolve");
+		ImGui::ResourceSlot<ResourceTexture>("Noise Map", &dissolveNoiseMapId);
+		ImGui::ColorEdit4("Color##dissolveColor", dissolveColor.ptr(), ImGuiColorEditFlags_NoInputs);
+		ImGui::DragFloat("Intensity##dissolveIntensity", &dissolveIntensity, App->editor->dragSpeed2f, 0, inf);
 		ImGui::DragFloat("Scale##dissolveScale", &dissolveScale, App->editor->dragSpeed2f, 0, inf);
 		ImGui::DragFloat2("Offset##dissolveOffset", dissolveOffset.ptr(), App->editor->dragSpeed2f, -inf, inf);
 		ImGui::DragFloat("Duration##dissolveScale", &dissolveDuration, App->editor->dragSpeed2f, 0, inf);
