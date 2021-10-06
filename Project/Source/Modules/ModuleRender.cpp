@@ -215,9 +215,12 @@ bool ModuleRender::Init() {
 
 	glGenBuffers(1, &lightTileFrustumsStorageBuffer);
 	glGenBuffers(1, &lightsStorageBuffer);
-	glGenBuffers(1, &lightIndicesCountStorageBuffer);
-	glGenBuffers(1, &lightIndicesStorageBuffer);
-	glGenBuffers(1, &lightTilesStorageBuffer);
+	glGenBuffers(1, &lightIndicesCountStorageBufferOpaque);
+	glGenBuffers(1, &lightIndicesStorageBufferOpaque);
+	glGenBuffers(1, &lightTilesStorageBufferOpaque);
+	glGenBuffers(1, &lightIndicesCountStorageBufferTransparent);
+	glGenBuffers(1, &lightIndicesStorageBufferTransparent);
+	glGenBuffers(1, &lightTilesStorageBufferTransparent);
 
 	glGenTextures(1, &renderTexture);
 	glGenTextures(1, &outputTexture);
@@ -252,7 +255,10 @@ bool ModuleRender::Init() {
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsStorageBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, MAX_LIGHTS * sizeof(Light), nullptr, GL_DYNAMIC_DRAW);
 
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightIndicesCountStorageBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightIndicesCountStorageBufferOpaque);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(unsigned), nullptr, GL_DYNAMIC_DRAW);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightIndicesCountStorageBufferTransparent);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(unsigned), nullptr, GL_DYNAMIC_DRAW);
 
 	// Create Unit Cube VAO
@@ -483,13 +489,13 @@ void ModuleRender::DrawTexture(unsigned texture) {
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
-void ModuleRender::DrawLightTiles() {
+void ModuleRender::DrawLightTiles(bool opaque) {
 	ProgramDrawLightTiles* drawLightTilesProgram = App->programs->drawLightTiles;
 	if (drawLightTilesProgram == nullptr) return;
 
 	glUseProgram(drawLightTilesProgram->program);
 
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, lightTilesStorageBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, opaque ? lightTilesStorageBufferOpaque : lightTilesStorageBufferTransparent);
 
 	glUniform1i(drawLightTilesProgram->tilesPerRowLocation, CeilInt(viewportSize.x / LIGHT_TILE_SIZE));
 
@@ -687,8 +693,16 @@ UpdateStatus ModuleRender::Update() {
 		glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		return UpdateStatus::CONTINUE;
 	}
-	if (drawLightTiles) {
-		DrawLightTiles();
+	if (drawLightTilesOpaque) {
+		DrawLightTiles(true);
+
+		// Render to screen
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, renderPassBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, colorCorrectionBuffer);
+		glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	}
+	if (drawLightTilesTransparent) {
+		DrawLightTiles(false);
 
 		// Render to screen
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, renderPassBuffer);
@@ -951,9 +965,12 @@ bool ModuleRender::CleanUp() {
 
 	glDeleteBuffers(1, &lightTileFrustumsStorageBuffer);
 	glDeleteBuffers(1, &lightsStorageBuffer);
-	glDeleteBuffers(1, &lightIndicesCountStorageBuffer);
-	glDeleteBuffers(1, &lightIndicesStorageBuffer);
-	glDeleteBuffers(1, &lightTilesStorageBuffer);
+	glDeleteBuffers(1, &lightIndicesCountStorageBufferOpaque);
+	glDeleteBuffers(1, &lightIndicesStorageBufferOpaque);
+	glDeleteBuffers(1, &lightTilesStorageBufferOpaque);
+	glDeleteBuffers(1, &lightIndicesCountStorageBufferTransparent);
+	glDeleteBuffers(1, &lightIndicesStorageBufferTransparent);
+	glDeleteBuffers(1, &lightTilesStorageBufferTransparent);
 
 	glDeleteTextures(1, &renderTexture);
 	glDeleteTextures(1, &outputTexture);
@@ -1268,10 +1285,16 @@ void ModuleRender::ComputeLightTileFrustums() {
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightTileFrustumsStorageBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, lightTilesPerRow * lightTilesPerColumn * sizeof(TileFrustum), nullptr, GL_DYNAMIC_DRAW);
 
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightIndicesStorageBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightIndicesStorageBufferOpaque);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, lightTilesPerRow * lightTilesPerColumn * MAX_LIGHTS_PER_TILE * sizeof(unsigned), nullptr, GL_DYNAMIC_DRAW);
 
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightTilesStorageBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightTilesStorageBufferOpaque);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, lightTilesPerRow * lightTilesPerColumn * sizeof(LightTile), nullptr, GL_DYNAMIC_DRAW);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightIndicesStorageBufferTransparent);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, lightTilesPerRow * lightTilesPerColumn * MAX_LIGHTS_PER_TILE * sizeof(unsigned), nullptr, GL_DYNAMIC_DRAW);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightTilesStorageBufferTransparent);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, lightTilesPerRow * lightTilesPerColumn * sizeof(LightTile), nullptr, GL_DYNAMIC_DRAW);
 
 	ProgramGridFrustumsCompute* gridFrustumsCompute = App->programs->gridFrustumsCompute;
@@ -1341,7 +1364,8 @@ void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 	drawSSAOTexture = false;
 	drawNormalsTexture = false;
 	drawPositionsTexture = false;
-	drawLightTiles = false;
+	drawLightTilesOpaque = false;
+	drawLightTilesTransparent = false;
 
 	std::string strShadingMode = shadingMode;
 
@@ -1355,8 +1379,10 @@ void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 		drawNormalsTexture = true;
 	} else if (strcmp(shadingMode, "Positions") == 0) {
 		drawPositionsTexture = true;
-	} else if (strcmp(shadingMode, "Light Tiles") == 0) {
-		drawLightTiles = true;
+	} else if (strcmp(shadingMode, "Light Tiles (Opaque)") == 0) {
+		drawLightTilesOpaque = true;
+	} else if (strcmp(shadingMode, "Light Tiles (Transparent)") == 0) {
+		drawLightTilesTransparent = true;
 	} else if (strShadingMode.find("StaticDepth") != std::string::npos) {
 		for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
 			std::string str = "StaticDepth " + std::to_string(i);
@@ -1579,7 +1605,11 @@ void ModuleRender::FillLightTiles() {
 	}
 
 	unsigned auxCount = 0;
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightIndicesCountStorageBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightIndicesCountStorageBufferOpaque);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(unsigned), &auxCount, GL_DYNAMIC_COPY);
+
+	auxCount = 0;
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightIndicesCountStorageBufferTransparent);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(unsigned), &auxCount, GL_DYNAMIC_COPY);
 
 	// Update tiles
@@ -1588,9 +1618,12 @@ void ModuleRender::FillLightTiles() {
 
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, lightTileFrustumsStorageBuffer);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightsStorageBuffer);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, lightIndicesCountStorageBuffer);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, lightIndicesStorageBuffer);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, lightTilesStorageBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, lightIndicesCountStorageBufferOpaque);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, lightIndicesStorageBufferOpaque);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, lightTilesStorageBufferOpaque);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, lightIndicesCountStorageBufferTransparent);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, lightIndicesStorageBufferTransparent);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, lightTilesStorageBufferTransparent);
 
 	float4x4 invProj = App->camera->GetProjectionMatrix();
 	invProj.Inverse();

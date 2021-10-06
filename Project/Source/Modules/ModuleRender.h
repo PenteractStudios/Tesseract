@@ -97,9 +97,12 @@ public:
 
 	unsigned lightTileFrustumsStorageBuffer = 0;
 	unsigned lightsStorageBuffer = 0;
-	unsigned lightIndicesCountStorageBuffer = 0;
-	unsigned lightIndicesStorageBuffer = 0;
-	unsigned lightTilesStorageBuffer = 0;
+	unsigned lightIndicesCountStorageBufferOpaque = 0;
+	unsigned lightIndicesStorageBufferOpaque = 0;
+	unsigned lightTilesStorageBufferOpaque = 0;
+	unsigned lightIndicesCountStorageBufferTransparent = 0;
+	unsigned lightIndicesStorageBufferTransparent = 0;
+	unsigned lightTilesStorageBufferTransparent = 0;
 
 	unsigned renderTexture = 0;
 	unsigned outputTexture = 0;
@@ -208,7 +211,7 @@ private:
 	void ExecuteColorCorrection();
 
 	void DrawTexture(unsigned texture);
-	void DrawLightTiles();
+	void DrawLightTiles(bool opaque);
 	void DrawScene();
 
 private:
@@ -227,7 +230,8 @@ private:
 	bool drawSSAOTexture = false;
 	bool drawNormalsTexture = false;
 	bool drawPositionsTexture = false;
-	bool drawLightTiles = false;
+	bool drawLightTilesOpaque = false;
+	bool drawLightTilesTransparent = false;
 
 	std::vector<GameObject*> opaqueGameObjects;			 // Vector of Opaque GameObjects
 	std::map<float, GameObject*> transparentGameObjects; // Map with Transparent GameObjects

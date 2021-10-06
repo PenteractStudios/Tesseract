@@ -118,6 +118,8 @@ ProgramStandard::ProgramStandard(unsigned program_)
 	viewLocation = glGetUniformLocation(program, "view");
 	projLocation = glGetUniformLocation(program, "proj");
 
+	isOpaqueLocation = glGetUniformLocation(program, "isOpaque");
+
 	viewOrtoLightsStaticLocation = glGetUniformLocation(program, "viewOrtoLightsStatic");
 	projOrtoLightsStaticLocation = glGetUniformLocation(program, "projOrtoLightsStatic");
 	
