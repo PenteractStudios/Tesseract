@@ -616,6 +616,9 @@ void ModuleResources::LoadImportOptions(std::unique_ptr<ImportOptions>& importOp
 		if (extension == JPG_TEXTURE_EXTENSION || extension == PNG_TEXTURE_EXTENSION || extension == TIF_TEXTURE_EXTENSION || extension == DDS_TEXTURE_EXTENSION || extension == TGA_TEXTURE_EXTENSION) {
 			// Texture files
 			importOptions.reset(new TextureImportOptions());
+		} else if (extension == WAV_AUDIO_EXTENSION || extension == OGG_AUDIO_EXTENSION) {
+			// Audio files
+			importOptions.reset(new AudioImportOptions());
 		} else {
 			return;
 		}
