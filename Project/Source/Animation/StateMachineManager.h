@@ -1,8 +1,9 @@
 #pragma once
-#include <AnimationInterpolation.h>
+
 #include "Utils/UID.h"
-#include "StateMachineEnum.h"
 #include "Resources/ResourceClip.h"
+#include "Animation/StateMachineEnum.h"
+#include "Animation/AnimationInterpolation.h"
 
 #include <Math/float3.h>
 #include <Math/Quat.h>

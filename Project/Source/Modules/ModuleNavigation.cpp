@@ -117,3 +117,26 @@ void ModuleNavigation::Raycast(float3 startPosition, float3 targetPosition, bool
 		}
 	}
 }
+
+void ModuleNavigation::GetNavMeshHeightInPosition(const float3 position, float& height) {
+	if (!navMesh.IsGenerated()) return;
+
+	dtNavMeshQuery* navQuery = navMesh.GetNavMeshQuery();
+	if (navQuery == nullptr) return;
+
+	float3 polyPickExt = float3(2, 4, 2);
+	dtQueryFilter filter;
+	filter.setIncludeFlags(0xffff ^ 0x10); // SAMPLE_POLYFLAGS_ALL ^ SAMPLE_POLYFLAGS_DISABLED
+	filter.setExcludeFlags(0);
+	filter.setAreaCost(0, 1.0f);	// SAMPLE_POLYAREA_GROUND
+	filter.setAreaCost(1, 10.0f);	// SAMPLE_POLYAREA_WATER
+	filter.setAreaCost(2, 1.0f);	// SAMPLE_POLYAREA_ROAD
+	filter.setAreaCost(3, 1.0f);	// SAMPLE_POLYAREA_DOOR
+	filter.setAreaCost(4, 2.0f);	// SAMPLE_POLYAREA_GRASS
+	filter.setAreaCost(5, 1.5f);	// SAMPLE_POLYAREA_JUMP
+
+	dtPolyRef startRef;
+	navQuery->findNearestPoly(position.ptr(), polyPickExt.ptr(), &filter, &startRef, 0);
+
+	if (startRef) navQuery->getPolyHeight(startRef, position.ptr(), &height);
+}

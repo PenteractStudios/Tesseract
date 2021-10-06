@@ -2,10 +2,11 @@
 
 #include "Module.h"
 #include "Utils/Quadtree.h"
-#include "LightFrustum.h"
+#include "Rendering/LightFrustum.h"
 
 #include "MathGeoLibFwd.h"
 #include "Math/float3.h"
+
 #include <map>
 
 #define SSAO_KERNEL_SIZE 64
@@ -13,12 +14,35 @@
 #define RANDOM_TANGENTS_COLS 4
 
 class GameObject;
+class ComponentLight;
 
 enum class TESSERACT_ENGINE_API MSAA_SAMPLES_TYPE {
 	MSAA_X2,
 	MSAA_X4,
 	MSAA_X8,
 	COUNT
+};
+
+struct Light {
+	float3 pos = float3::zero;
+	int isSpotLight = 0;
+	float3 direction = float3::zero;
+	float intensity = 0.0f;
+	float3 color = float3::zero;
+	float radius = 0.0f;
+	int useCustomFalloff = 0;
+	float falloffExponent = 0.0f;
+	float innerAngle = 0.0f;
+	float outerAngle = 400.0f;
+};
+
+struct LightTile {
+	unsigned count = 0;
+	unsigned offset = 0;
+};
+
+struct TileFrustum {
+	float4 planeNormals[4];
 };
 
 class ModuleRender : public Module {
@@ -36,6 +60,7 @@ public:
 	void ViewportResized(int width, int height); // Updates the viewport aspect ratio with the new one given by parameters. It will set 'viewportUpdated' to true, to regenerate the framebuffer to its new size using UpdateFramebuffers().
 	void UpdateFramebuffers();					 // Generates the rendering framebuffer on Init(). If 'viewportUpdated' was set to true, it will be also called at PostUpdate().
 	void ComputeBloomGaussianKernel();
+	void ComputeLightTileFrustums();
 
 	void SetVSync(bool vsync);
 
@@ -53,8 +78,10 @@ public:
 
 	void UpdateShadingMode(const char* shadingMode);
 
-	float4x4 GetLightViewMatrix() const;
-	float4x4 GetLightProjectionMatrix() const;
+	float4x4 GetLightViewMatrix(unsigned int i, ShadowCasterType lightFrustumType) const;
+	float4x4 GetLightProjectionMatrix(unsigned int i, ShadowCasterType lightFrustumType) const;
+
+	int GetLightTilesPerRow() const;
 
 	int GetCulledTriangles() const;
 	const float2 GetViewportSize();
@@ -68,6 +95,12 @@ public:
 	unsigned cubeVAO = 0;
 	unsigned cubeVBO = 0;
 
+	unsigned lightTileFrustumsStorageBuffer = 0;
+	unsigned lightsStorageBuffer = 0;
+	unsigned lightIndicesCountStorageBuffer = 0;
+	unsigned lightIndicesStorageBuffer = 0;
+	unsigned lightTilesStorageBuffer = 0;
+
 	unsigned renderTexture = 0;
 	unsigned outputTexture = 0;
 	unsigned depthsMSTexture = 0;
@@ -76,7 +109,8 @@ public:
 	unsigned depthsTexture = 0;
 	unsigned positionsTexture = 0;
 	unsigned normalsTexture = 0;
-	unsigned depthMapTexture = 0;
+	unsigned depthMapStaticTextures[NUM_CASCADES_FRUSTUM] = {0, 0, 0, 0};
+	unsigned depthMapDynamicTextures[NUM_CASCADES_FRUSTUM] = {0, 0, 0, 0};
 	unsigned ssaoTexture = 0;
 	unsigned auxBlurTexture = 0;
 	unsigned colorTextures[2] = {0, 0}; // position 0: scene render texture; position 1: bloom texture to be blurred
@@ -86,7 +120,8 @@ public:
 	unsigned renderPassBuffer = 0;
 	unsigned depthPrepassBuffer = 0;
 	unsigned depthPrepassTextureConversionBuffer = 0;
-	unsigned depthMapTextureBuffer = 0;
+	unsigned depthMapStaticTextureBuffers[NUM_CASCADES_FRUSTUM] = {0, 0, 0, 0};
+	unsigned depthMapDynamicTextureBuffers[NUM_CASCADES_FRUSTUM] = {0, 0, 0, 0};
 	unsigned ssaoTextureBuffer = 0;
 	unsigned ssaoBlurTextureBufferH = 0;
 	unsigned ssaoBlurTextureBufferV = 0;
@@ -94,9 +129,6 @@ public:
 	unsigned hdrFramebuffer = 0;
 	unsigned bloomBlurFramebuffers[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // Ping-pong buffers to blur bloom horizontally and vertically
 	unsigned bloomCombineFramebuffers[5] = {0, 0, 0, 0, 0};
-
-	// ------- Viewport Updated ------- //
-	bool viewportUpdated = true;
 
 	// -- Debugging Tools Toggles -- //
 	bool debugMode = false; // Flag to activate DrawOptions only ingame (not use in the engine)
@@ -151,20 +183,22 @@ public:
 	bool chromaticAberrationActive = false;
 	float chromaticAberrationStrength = 1.0f;
 
-	LightFrustum lightFrustum;
+	LightFrustum lightFrustumStatic;
+	LightFrustum lightFrustumDynamic;
 
 private:
 	void DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb);			  // Draws the quadrtee nodes if 'drawQuadtree' is set to true.
 	void ClassifyGameObjects();																		  // Classify Game Objects from Scene taking into account Frustum Culling, Shadows and Rendering Mode
 	void ClassifyGameObjectsFromQuadtree(const Quadtree<GameObject>::Node& node, const AABB2D& aabb); // Classify Game Objects from Scene taking into account Frustum Culling, Quadtree, Shadows and Rendering Mode
-	bool CheckIfInsideFrustum(const AABB& aabb, const OBB& obb);									  // ??
 	void DrawGameObject(GameObject* gameObject);													  // ??
 	void DrawGameObjectDepthPrepass(GameObject* gameObject);
-	void DrawGameObjectShadowPass(GameObject* gameObject);
+	void DrawGameObjectShadowPass(GameObject* gameObject, unsigned int i, ShadowCasterType lightFrustumType);
 	void DrawAnimation(const GameObject* gameObject, bool hasAnimation = false);
 	void RenderUI();
 	void SetOrtographicRender();
 	void SetPerspectiveRender();
+
+	void FillLightTiles();
 
 	void ConvertDepthPrepassTextures();
 	void ComputeSSAOTexture();
@@ -175,17 +209,27 @@ private:
 	void ExecuteColorCorrection();
 
 	void DrawTexture(unsigned texture);
+	void DrawLightTiles();
 	void DrawScene();
 
 private:
-	// ------- Viewport Size ------- //
+	// ------- Viewport ------- //
+	bool viewportUpdated = true;
 	float2 viewportSize = float2::zero;
+	float2 updatedViewportSize = float2::zero;
+
+	int lightTilesPerRow = 0;
+	int lightTilesPerColumn = 0;
+	bool lightTilesComputed = false;
+
+	unsigned int indexDepthMapTexture = UINT_MAX;
+	ShadowCasterType shadowCasterType;
 	bool drawDepthMapTexture = false;
 	bool drawSSAOTexture = false;
 	bool drawNormalsTexture = false;
 	bool drawPositionsTexture = false;
+	bool drawLightTiles = false;
 
-	std::vector<GameObject*> shadowGameObjects;			 // Vector of Shadow Casted GameObjects
 	std::vector<GameObject*> opaqueGameObjects;			 // Vector of Opaque GameObjects
 	std::map<float, GameObject*> transparentGameObjects; // Map with Transparent GameObjects
 

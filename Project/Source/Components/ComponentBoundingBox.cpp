@@ -103,6 +103,7 @@ const float3 ComponentBoundingBox::GetLocalMinPointAABB() {
 	CalculateWorldBoundingBox();
 	return localAABB.minPoint;
 }
+
 const float3 ComponentBoundingBox::GetLocalMaxPointAABB() {
 	CalculateWorldBoundingBox();
 	return localAABB.maxPoint;

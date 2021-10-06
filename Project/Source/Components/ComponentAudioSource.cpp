@@ -202,7 +202,6 @@ void ComponentAudioSource::UpdateSourceParameters() {
 	alSourcef(sourceId, AL_PITCH, pitch);
 	alSourcei(sourceId, AL_LOOPING, loop);
 	alSourcei(sourceId, AL_BUFFER, audioResource->ALbuffer); // buffer here
-	audioResource->AddSource(this);
 
 	if (!spatialBlend) {
 		alSourcei(sourceId, AL_SOURCE_RELATIVE, AL_TRUE);
@@ -244,11 +243,6 @@ void ComponentAudioSource::Stop() {
 	if (sourceId) {
 		alSourceStop(sourceId);
 		alSourcei(sourceId, AL_BUFFER, NULL);
-
-		ResourceAudioClip* audioResource = App->resources->GetResource<ResourceAudioClip>(audioClipId);
-		if (audioResource != nullptr) {
-			audioResource->RemoveSource(this);
-		}
 		sourceId = 0;
 	}
 }

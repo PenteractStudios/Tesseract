@@ -15,11 +15,8 @@
 
 
 int AnimationController::GetCurrentSample(const ResourceClip& clip, float& currentTime) {
-	float currentSample = (currentTime * (clip.keyFramesSize)) / clip.duration;
-	currentSample += clip.beginIndex;
-	int intPart = (int) currentSample;
-
-	return intPart;
+	unsigned currentSample = clip.beginIndex + static_cast<unsigned>((currentTime * (clip.keyFramesSize)) / clip.duration);
+	return Clamp(currentSample, clip.beginIndex, clip.endIndex);
 }
 
 bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, const char* name, float3& pos, Quat& quat, ComponentAnimation &componentAnimation) {
@@ -27,8 +24,8 @@ bool AnimationController::GetTransform(ResourceClip& clip, float& currentTime, c
 		return false;
 	}
 
-	ResourceAnimation* resourceAnimation = clip.GetResourceAnimation();
-	if (resourceAnimation == nullptr && resourceAnimation->keyFrames.size() != 0) return false;
+	ResourceAnimation* resourceAnimation = App->resources->GetResource<ResourceAnimation>(clip.animationUID);
+	if (resourceAnimation == nullptr || resourceAnimation->keyFrames.size() == 0) return false;
 
 	//Resetting the events since it has been a loop only for one bone
 	if (  currentTime >= clip.duration) {

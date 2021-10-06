@@ -11,6 +11,7 @@
 #include "Components/UI/ComponentSelectable.h"
 #include "FileSystem/ModelImporter.h"
 #include "Modules/ModuleInput.h"
+#include "Modules/ModuleScene.h"
 #include "Utils/Logging.h"
 
 #include "Math/myassert.h"
@@ -328,7 +329,7 @@ void GameObject::Load(JsonValue jGameObject) {
 			if (light && light->lightType == LightType::DIRECTIONAL) {
 				scene->directionalLight = this;
 			}
-		}
+		} 
 	}
 	Init();
 

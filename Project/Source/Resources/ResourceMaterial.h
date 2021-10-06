@@ -2,6 +2,7 @@
 
 #include "Utils/UID.h"
 #include "Resources/Resource.h"
+#include "Rendering/LightFrustum.h"
 
 #include "Math/float4.h"
 #include "Math/float2.h"
@@ -21,6 +22,11 @@ enum class RenderingMode {
 	TRANSPARENT
 };
 
+enum class MaskToChange {
+	RENDERING,
+	SHADOW
+};
+
 class ResourceMaterial : public Resource {
 public:
 	REGISTER_RESOURCE(ResourceMaterial, ResourceType::MATERIAL);
@@ -31,7 +37,7 @@ public:
 
 	void SaveToFile(const char* filePath);
 
-	void UpdateMask();
+	void UpdateMask(MaskToChange maskToChange, bool forceDeleteShadows = false);
 
 public:
 	// Material shader
@@ -73,6 +79,9 @@ public:
 	float2 offset = {0.f, 0.f};
 
 	// Dissolve Values. TODO: All Material properties should be converted into a map of properties and stored as is
+	UID dissolveNoiseMapId = 0;
+	float4 dissolveColor = float4::one;
+	float dissolveIntensity = 1.0f;
 	float dissolveScale = 10.0f;
 	float2 dissolveOffset = float2::zero;
 	float dissolveDuration = 1.0f;
@@ -85,4 +94,8 @@ public:
 	// Softness (transparency when near other meshes)
 	bool isSoft = false;
 	float softRange = 1.0f;
+
+	//Shadows
+	ShadowCasterType shadowCasterType = ShadowCasterType::STATIC;
+	bool castShadows = false;
 };

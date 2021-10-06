@@ -29,6 +29,16 @@ struct SpotLightUniforms {
 	int outerAngleLocation = -1;
 };
 
+struct DepthMapsUniforms {
+	DepthMapsUniforms();
+	DepthMapsUniforms(unsigned program, unsigned number);
+
+	int depthMapLocationStatic = -1;
+	int farPlaneLocationStatic = -1;
+	int depthMapLocationDynamic = -1;
+	int farPlaneLocationDynamic = -1;
+};
+
 struct Program {
 	Program(unsigned program);
 	virtual ~Program();
@@ -74,6 +84,25 @@ struct ProgramSkybox : Program {
 	int projLocation = -1;
 
 	int cubemapLocation = -1;
+};
+
+struct ProgramGridFrustumsCompute : Program {
+	ProgramGridFrustumsCompute(unsigned program);
+
+	int invProjLocation = -1;
+	int screenSizeLocation = -1;
+	int numThreadsLocation = -1;
+};
+
+struct ProgramLightCullingCompute : Program {
+	ProgramLightCullingCompute(unsigned program);
+
+	int invProjLocation = -1;
+	int viewLocation = -1;
+	int screenSizeLocation = -1;
+	int lightCountLocation = -1;
+
+	int depthsLocation = -1;
 };
 
 struct ProgramUnlit : public Program {
@@ -133,8 +162,14 @@ struct ProgramStandard : public Program {
 	int viewLocation = -1;
 	int projLocation = -1;
 
-	int viewLightLocation = -1;
-	int projLightLocation = -1;
+	int viewOrtoLightsStaticLocation = -1;
+	int projOrtoLightsStaticLocation = -1;
+
+	int viewOrtoLightsDynamicLocation = -1;
+	int projOrtoLightsDynamicLocation = -1;
+
+	int shadowCascadesCounterLocation = -1;
+	DepthMapsUniforms depthMaps[CASCADE_FRUSTUMS];
 
 	int paletteLocation = -1;
 	int hasBonesLocation = -1;
@@ -159,8 +194,6 @@ struct ProgramStandard : public Program {
 	int ambientOcclusionMapLocation = -1;
 	int hasAmbientOcclusionMapLocation = -1;
 
-	int depthMapTextureLocation = -1;
-
 	int ssaoTextureLocation = -1;
 	int ssaoDirectLightingStrengthLocation = -1;
 
@@ -174,18 +207,14 @@ struct ProgramStandard : public Program {
 	int prefilteredIBLNumLevelsLocation = -1;
 	int strengthIBLLocation = -1;
 
-	int lightAmbientColorLocation = -1;
+	int ambientColorLocation = -1;
 
-	int lightDirectionalDirectionLocation = -1;
-	int lightDirectionalColorLocation = -1;
-	int lightDirectionalIntensityLocation = -1;
-	int lightDirectionalIsActiveLocation = -1;
+	int dirLightDirectionLocation = -1;
+	int dirLightColorLocation = -1;
+	int dirLightIntensityLocation = -1;
+	int dirLightIsActiveLocation = -1;
 
-	PointLightUniforms lightPoints[POINT_LIGHTS];
-	int lightNumPointsLocation = -1;
-
-	SpotLightUniforms lightSpots[POINT_LIGHTS];
-	int lightNumSpotsLocation = -1;
+	int tilesPerRowLocation = -1;
 };
 
 struct ProgramStandardPhong : ProgramStandard {
@@ -274,7 +303,7 @@ struct ProgramBloomCombine : Program {
 	int bloomTextureLocation = -1;
 	int brightLevelLocation = -1;
 	int bloomLevelLocation = -1;
-	float bloomWeightLocation = -1;
+	int bloomWeightLocation = -1;
 };
 
 struct ProgramPostprocess : Program {
@@ -318,6 +347,12 @@ struct ProgramDrawTexture : Program {
 	ProgramDrawTexture(unsigned program);
 
 	int textureToDrawLocation = -1;
+};
+
+struct ProgramDrawLightTiles : Program {
+	ProgramDrawLightTiles(unsigned program);
+
+	int tilesPerRowLocation = -1;
 };
 
 struct ProgramImageUI : Program {
@@ -390,6 +425,10 @@ struct ProgramTrail : Program {
 struct ProgramStandardDissolve : ProgramStandardMetallic {
 	ProgramStandardDissolve(unsigned program);
 
+	int hasNoiseMapLocation = -1;
+	int noiseMapLocation = -1;
+	int colorLocation = -1;
+	int intensityLocation = -1;
 	int scaleLocation = -1;
 	int thresholdLocation = -1;
 	int offsetLocation = -1;
@@ -399,6 +438,10 @@ struct ProgramStandardDissolve : ProgramStandardMetallic {
 struct ProgramUnlitDissolve : ProgramUnlit {
 	ProgramUnlitDissolve(unsigned program);
 
+	int hasNoiseMapLocation = -1;
+	int noiseMapLocation = -1;
+	int colorLocation = -1;
+	int intensityLocation = -1;
 	int scaleLocation = -1;
 	int thresholdLocation = -1;
 	int offsetLocation = -1;
@@ -408,6 +451,8 @@ struct ProgramUnlitDissolve : ProgramUnlit {
 struct ProgramDepthPrepassDissolve : ProgramDepthPrepass {
 	ProgramDepthPrepassDissolve(unsigned program);
 
+	int hasNoiseMapLocation = -1;
+	int noiseMapLocation = -1;
 	int scaleLocation = -1;
 	int thresholdLocation = -1;
 	int offsetLocation = -1;

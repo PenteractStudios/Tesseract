@@ -5,6 +5,7 @@
 #include "GameObject.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleCamera.h"
+#include "Modules/ModuleRender.h"
 #include "Components/ComponentTransform.h"
 
 #include "debugdraw.h"

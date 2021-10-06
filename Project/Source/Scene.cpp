@@ -2,12 +2,14 @@
 
 #include "GameObject.h"
 #include "Application.h"
+#include "Modules/ModuleTime.h"
 #include "Modules/ModuleEditor.h"
-#include "Modules/ModuleResources.h"
+#include "Modules/ModuleRender.h"
 #include "Modules/ModulePhysics.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleWindow.h"
 #include "Resources/ResourceMesh.h"
+#include "Modules/ModuleResources.h"
 #include "Utils/Logging.h"
 
 #include "Utils/Leaks.h"
@@ -58,6 +60,9 @@ void Scene::ClearScene() {
 
 	assert(gameObjects.Count() == 0); // There should be no GameObjects outside the scene hierarchy
 	gameObjects.Clear();			  // This looks redundant, but it resets the free list so that GameObject order is mantained when saving/loading
+
+	staticShadowCasters.clear();
+	dynamicShadowCasters.clear();
 }
 
 void Scene::RebuildQuadtree() {
@@ -378,7 +383,7 @@ int Scene::GetTotalTriangles() const {
 	for (const ComponentMeshRenderer& meshComponent : meshRendererComponents) {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshComponent.meshId);
 		if (mesh != nullptr) {
-			triangles += mesh->numIndices / 3;
+			triangles += mesh->indices.size() / 3;
 		}
 	}
 	return triangles;
@@ -391,8 +396,8 @@ std::vector<float> Scene::GetVertices() {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
 		ComponentTransform* transform = meshRenderer.GetOwner().GetComponent<ComponentTransform>();
 		if (mesh != nullptr && transform->GetOwner().IsStatic()) {
-			for (size_t i = 0; i < mesh->meshVertices.size(); i += 3) {
-				float4 transformedVertex = transform->GetGlobalMatrix() * float4(mesh->meshVertices[i], mesh->meshVertices[i + 1], mesh->meshVertices[i + 2], 1);
+			for (const ResourceMesh::Vertex& vertex : mesh->vertices) {
+				float4 transformedVertex = transform->GetGlobalMatrix() * float4(vertex.position, 1.0f);
 				result.push_back(transformedVertex.x);
 				result.push_back(transformedVertex.y);
 				result.push_back(transformedVertex.z);
@@ -410,8 +415,8 @@ std::vector<int> Scene::GetTriangles() {
 	for (ComponentMeshRenderer& meshRenderer : meshRendererComponents) {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
 		if (mesh != nullptr && meshRenderer.GetOwner().IsStatic()) {
-			triangles += mesh->numIndices / 3;
-			maxVertMesh.push_back(mesh->numVertices);
+			triangles += mesh->indices.size() / 3;
+			maxVertMesh.push_back(mesh->vertices.size());
 		}
 	}
 	std::vector<int> result(triangles * 3);
@@ -424,10 +429,10 @@ std::vector<int> Scene::GetTriangles() {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
 		if (mesh != nullptr && meshRenderer.GetOwner().IsStatic()) {
 			vertOverload += maxVertMesh[i];
-			for (unsigned j = 0; j < mesh->meshIndices.size(); j += 3) {
-				result[currentGlobalTri] = mesh->meshIndices[j] + vertOverload;
-				result[currentGlobalTri + 1] = mesh->meshIndices[j + 1] + vertOverload;
-				result[currentGlobalTri + 2] = mesh->meshIndices[j + 2] + vertOverload;
+			for (unsigned j = 0; j < mesh->indices.size(); j += 3) {
+				result[currentGlobalTri] = mesh->indices[j] + vertOverload;
+				result[currentGlobalTri + 1] = mesh->indices[j + 1] + vertOverload;
+				result[currentGlobalTri + 2] = mesh->indices[j + 2] + vertOverload;
 				currentGlobalTri += 3;
 			}
 			i++;
@@ -444,8 +449,8 @@ std::vector<float> Scene::GetNormals() {
 		ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshRenderer.meshId);
 		ComponentTransform* transform = meshRenderer.GetOwner().GetComponent<ComponentTransform>();
 		if (mesh != nullptr && transform->GetOwner().IsStatic()) {
-			for (size_t i = 0; i < mesh->meshNormals.size(); i += 3) {
-				float4 transformedVertex = transform->GetGlobalMatrix() * float4(mesh->meshNormals[i], mesh->meshNormals[i + 1], mesh->meshNormals[i + 2], 1);
+			for (const ResourceMesh::Vertex& vertex : mesh->vertices) {
+				float4 transformedVertex = transform->GetGlobalMatrix() * float4(vertex.normal, 1.0f);
 				result.push_back(transformedVertex.x);
 				result.push_back(transformedVertex.y);
 				result.push_back(transformedVertex.z);
@@ -454,6 +459,64 @@ std::vector<float> Scene::GetNormals() {
 	}
 
 	return result;
+}
+
+const std::vector<GameObject*>& Scene::GetStaticShadowCasters() const {
+	return staticShadowCasters;
+}
+
+const std::vector<GameObject*>& Scene::GetDynamicShadowCasters() const {
+	return dynamicShadowCasters;
+}
+
+bool Scene::InsideFrustumPlanes(const FrustumPlanes& planes, const GameObject* go) {
+	ComponentBoundingBox* boundingBox = go->GetComponent<ComponentBoundingBox>();
+	if (boundingBox && planes.CheckIfInsideFrustumPlanes(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB())) {
+		return true;
+	}
+	return false;
+}
+
+std::vector<GameObject*> Scene::GetCulledMeshes(const FrustumPlanes& planes, const int mask) {
+	std::vector<GameObject*> meshes;
+
+	for (ComponentMeshRenderer componentMR : meshRendererComponents) {
+		GameObject* go = &componentMR.GetOwner();
+
+		Mask& maskGo = go->GetMask();
+
+		if ((maskGo.bitMask & mask) != 0) {
+			if (InsideFrustumPlanes(planes, go)) {
+				meshes.push_back(go);
+			}
+		}
+	}
+
+	return meshes;
+}
+
+std::vector<GameObject*> Scene::GetStaticCulledShadowCasters(const FrustumPlanes& planes) {
+	std::vector<GameObject*> meshes;
+
+	for (GameObject* go : staticShadowCasters) {
+		if (InsideFrustumPlanes(planes, go)) {
+			meshes.push_back(go);
+		}
+	}
+
+	return meshes;
+}
+
+std::vector<GameObject*> Scene::GetDynamicCulledShadowCasters(const FrustumPlanes& planes) {
+	std::vector<GameObject*> meshes;
+
+	for (GameObject* go : dynamicShadowCasters) {
+		if (InsideFrustumPlanes(planes, go)) {
+			meshes.push_back(go);
+		}
+	}
+
+	return meshes;
 }
 
 void Scene::SetNavMesh(UID navMesh) {
@@ -470,6 +533,46 @@ void Scene::SetNavMesh(UID navMesh) {
 
 UID Scene::GetNavMesh() {
 	return navMeshId;
+}
+
+void Scene::RemoveStaticShadowCaster(const GameObject* go) {
+	auto it = std::find(staticShadowCasters.begin(), staticShadowCasters.end(), go);
+
+	if (it == staticShadowCasters.end()) return;
+
+	staticShadowCasters.erase(it);
+
+	App->renderer->lightFrustumStatic.Invalidate();
+}
+
+void Scene::AddStaticShadowCaster(GameObject* go) {
+	auto it = std::find(staticShadowCasters.begin(), staticShadowCasters.end(), go);
+
+	if (it != staticShadowCasters.end()) return;
+
+	staticShadowCasters.push_back(go);
+
+	App->renderer->lightFrustumStatic.Invalidate();
+}
+
+void Scene::RemoveDynamicShadowCaster(const GameObject* go) {
+	auto it = std::find(dynamicShadowCasters.begin(), dynamicShadowCasters.end(), go);
+
+	if (it == dynamicShadowCasters.end()) return;
+
+	dynamicShadowCasters.erase(it);
+
+	App->renderer->lightFrustumDynamic.Invalidate();
+}
+
+void Scene::AddDynamicShadowCaster(GameObject* go) {
+	auto it = std::find(dynamicShadowCasters.begin(), dynamicShadowCasters.end(), go);
+
+	if (it != dynamicShadowCasters.end()) return;
+
+	dynamicShadowCasters.push_back(go);
+
+	App->renderer->lightFrustumDynamic.Invalidate();
 }
 
 void Scene::SetCursor(UID cursor) {

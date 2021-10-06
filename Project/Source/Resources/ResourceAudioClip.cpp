@@ -83,20 +83,8 @@ void ResourceAudioClip::Load() {
 }
 
 void ResourceAudioClip::Unload() {
-	while (!componentAudioSources.empty()) {
-		componentAudioSources.back()->Stop();
-	}
-	alDeleteBuffers(1, &ALbuffer);
-	ALbuffer = 0;
-}
-
-void ResourceAudioClip::AddSource(ComponentAudioSource* component) {
-	componentAudioSources.push_back(component);
-}
-
-void ResourceAudioClip::RemoveSource(ComponentAudioSource* component) {
-	auto it = find(componentAudioSources.begin(), componentAudioSources.end(), component);
-	if (it != componentAudioSources.end()) {
-		componentAudioSources.erase(it);
+	if (ALbuffer) {
+		alDeleteBuffers(1, &ALbuffer);
+		ALbuffer = 0;
 	}
 }

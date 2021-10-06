@@ -1,16 +1,17 @@
 #include "StateMachineManager.h"
-#include <Application.h>
-#include <Modules/ModuleResources.h>
+
+#include "Animation/Transition.h"
+#include "Application.h"
 #include "Modules/ModuleTime.h"
-#include <Resources/ResourceStateMachine.h>
-#include "Transition.h"
-#include <Utils/UID.h>
-#include <Utils/Logging.h>
+#include "Modules/ModuleResources.h"
+#include "Resources/ResourceStateMachine.h"
+#include "Utils/UID.h"
+#include "Utils/Logging.h"
 #include "GameObject.h"
 #include "Components/ComponentAnimation.h"
 
 bool StateMachineManager::Contains(std::list<AnimationInterpolation>& animationInterpolations, const UID& id) {
-	for (const auto element : animationInterpolations) {
+	for (const auto &element : animationInterpolations) {
 		if (element.state->id == id) return true;
 	}
 	return false;
@@ -59,7 +60,7 @@ void StateMachineManager::SendTrigger(const std::string& trigger, StateMachineEn
 
 			(*currentState) = transition->target;
 		} else {
-			std::string name = StateMachineEnum::PRINCIPAL ? "principal" : "secondary";
+			std::string name = isPrincipal ? "principal" : "secondary";
 			LOG("Warning:%s transition target from %s to %s, and current state is %s ", name.c_str(), transition->source.name.c_str(), transition->target.name.c_str(), (*currentState).name.c_str());
 		}
 	}
@@ -122,35 +123,13 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 		return result;
 	}
 
-	ResourceClip* clip = App->resources->GetResource<ResourceClip>(currentState.clipUid);	
+	ResourceClip* clip = App->resources->GetResource<ResourceClip>(currentState.clipUid);
 	if (!clip) {
 		return result;
 	}
 	int currentSample = AnimationController::GetCurrentSample(*clip, (*currentTimeStates)[currentState.id]);
+
 	
-	//Checking for transition between states
-	if ((*animationInterpolations).size() > 1) {
-		result = AnimationController::InterpolateTransitions((*animationInterpolations).begin(), (*animationInterpolations), *owner.GetRootBone(), *gameObject, position, rotation, componentAnimation);
-
-		//Updating times
-		if (gameObject->name == (*resourceStateMachine->bones.begin())) { // Only udate currentTime for the rootBone
-			bool finishedTransition = AnimationController::UpdateTransitions((*animationInterpolations), (*currentTimeStates), App->time->GetDeltaTime());
-			//Comparing the state principal with state secondary & set variable for setting secondary state as "empty" State
-			if (finishedTransition && principalEqualSecondary) {
-				resetSecondaryStatemachine = true;
-			}
-		}
-
-	} else {
-		if (currentState.id != 0) {
-			if (principalEqualSecondary) {
-				resetSecondaryStatemachine = true;
-			}
-
-			result = AnimationController::GetTransform(*clip, (*currentTimeStates)[currentState.id], gameObject->name.c_str(), position, rotation, componentAnimation);
-		}
-	}
-
 	if (gameObject->name == (*resourceStateMachine->bones.begin())) {
 		//Sending Event on Finished
 		if (!clip->loop) {
@@ -198,6 +177,30 @@ bool StateMachineManager::CalculateAnimation(GameObject* gameObject, const GameO
 			componentAnimation.listClipsCurrentEventKeyFrames[currentState.clipUid] = currentSample;
 		}
 	}
+
+	//Checking for transition between states
+	if ((*animationInterpolations).size() > 1) {
+		result = AnimationController::InterpolateTransitions((*animationInterpolations).begin(), (*animationInterpolations), *owner.GetRootBone(), *gameObject, position, rotation, componentAnimation);
+
+		//Updating times
+		if (gameObject->name == (*resourceStateMachine->bones.begin())) { // Only udate currentTime for the rootBone
+			bool finishedTransition = AnimationController::UpdateTransitions((*animationInterpolations), (*currentTimeStates), App->time->GetDeltaTime());
+			//Comparing the state principal with state secondary & set variable for setting secondary state as "empty" State
+			if (finishedTransition && principalEqualSecondary) {
+				resetSecondaryStatemachine = true;
+			}
+		}
+
+	} else {
+		if (currentState.id != 0) {
+			if (principalEqualSecondary) {
+				resetSecondaryStatemachine = true;
+			}
+
+			result = AnimationController::GetTransform(*clip, (*currentTimeStates)[currentState.id], gameObject->name.c_str(), position, rotation, componentAnimation);
+		}
+	}
+
 
 	return result;
 }

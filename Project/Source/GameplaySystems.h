@@ -6,6 +6,7 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleWindow.h"
 #include "Modules/ModuleRender.h"
+#include "Modules/ModuleProject.h"
 #include "Components/ComponentCamera.h"
 #include "Components/ComponentScript.h"
 #include "Utils/Logging.h"
@@ -30,6 +31,8 @@ namespace GameplaySystems {
 	TESSERACT_ENGINE_API GameObject* GetGameObject(const char* name);
 	TESSERACT_ENGINE_API GameObject* GetGameObject(UID id);
 	template<typename T> TESSERACT_ENGINE_API T* GetResource(UID id);
+	template<typename T> TESSERACT_ENGINE_API T GetGlobalVariable(const char* name, const T& defaultValue);
+	template<typename T> TESSERACT_ENGINE_API void SetGlobalVariable(const char* name, const T& value);
 	TESSERACT_ENGINE_API void SetRenderCamera(ComponentCamera* camera);
 	TESSERACT_ENGINE_API void DestroyGameObject(GameObject* gameObject);
 
@@ -46,6 +49,7 @@ namespace GameplaySystems {
 
 		return nullptr;
 	}
+
 }; // namespace GameplaySystems
 
 namespace Debug {
@@ -509,8 +513,11 @@ namespace Physics {
 	TESSERACT_ENGINE_API void CreateRigidbody(Component* collider);
 	TESSERACT_ENGINE_API void UpdateRigidbody(Component* collider);
 	TESSERACT_ENGINE_API void RemoveRigidbody(Component* collider);
+	TESSERACT_ENGINE_API void CreateParticleRigidbody(ComponentParticleSystem::Particle* currentParticle);
+	TESSERACT_ENGINE_API void UpdateParticleRigidbody(ComponentParticleSystem::Particle* currentParticle);
+	TESSERACT_ENGINE_API void RemoveParticleRigidbody(ComponentParticleSystem::Particle* currentParticle);
 
-}
+} // namespace Physics
 
 namespace Colors {
 	TESSERACT_ENGINE_API float3 Red();
@@ -534,4 +541,5 @@ namespace UserInterface {
 
 namespace Navigation {
 	TESSERACT_ENGINE_API void Raycast(float3 startPosition, float3 targetPosition, bool& hitResult, float3& hitPosition);
+	TESSERACT_ENGINE_API void GetNavMeshHeightInPosition(const float3 position, float& height);
 }

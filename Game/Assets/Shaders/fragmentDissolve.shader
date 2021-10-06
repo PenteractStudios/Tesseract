@@ -1,5 +1,10 @@
 --- fragFunctionDissolveCommon
 
+uniform int hasDissolveNoiseMap;
+uniform sampler2D dissolveNoiseMap;
+
+uniform vec4 dissolveColor;
+uniform float dissolveIntensity;
 uniform float dissolveScale;
 uniform float dissolveThreshold;
 uniform vec2 dissolveOffset;
@@ -81,21 +86,23 @@ float SimplexNoise(vec2 v) {
 
 --- fragFunctionDissolveFunction
 
-vec4 Dissolve(vec4 finalColor, vec2 tiledUV, bool isEmissive) {
+vec4 Dissolve(vec4 finalColor, vec2 tiledUV) {
     if (dissolveThreshold == 0) {
         return finalColor;
     }
 
-    vec3 color = vec3(0.0);
-    vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
-    color = vec3(SimplexNoise(transformedUV) * .5 + .5);
-
-    float stepValue = step(color.x, dissolveThreshold + edgeSize);
-    if (isEmissive) {
-        return finalColor * stepValue;
+    float noiseValue = 0.0;
+    if (hasDissolveNoiseMap == 1) {
+        noiseValue = texture2D(dissolveNoiseMap, tiledUV).r;
+    } else {
+        vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
+        noiseValue = SimplexNoise(transformedUV) * .5 + .5;
     }
-    if (color.x > dissolveThreshold) {
-        return vec4(finalColor.xyz, color.x);
+
+    if (noiseValue > dissolveThreshold * (1.0 + edgeSize)) {
+        return finalColor;
+    } else if (noiseValue > dissolveThreshold) {
+        return dissolveColor * dissolveIntensity;
     }
 
     discard;
@@ -108,11 +115,15 @@ bool MustDissolve(vec2 tiledUV) {
         return false;
     }
 
-    vec3 color = vec3(0.0);
-    vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
-    color = vec3(SimplexNoise(transformedUV) * .5 + .5);
+    float noiseValue = 0.0;
+    if (hasDissolveNoiseMap == 1) {
+        noiseValue = texture2D(dissolveNoiseMap, tiledUV).r;
+    } else {
+        vec2 transformedUV = (tiledUV * dissolveScale) + dissolveOffset;
+        noiseValue = SimplexNoise(transformedUV) * .5 + .5;
+    }
 
-    if (color.x > dissolveThreshold) {
+    if (noiseValue > dissolveThreshold) {
         return false;
     }
     return true;

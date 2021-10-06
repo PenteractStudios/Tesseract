@@ -4,7 +4,7 @@
 #include "Creator.h"
 #include "Member.h"
 #include "TesseractEvent.h"
-#include "StateMachineEnum.h"
+#include "Animation/StateMachineEnum.h"
 
 #include <vector>
 
@@ -36,17 +36,19 @@ public:
 		return *owner;
 	}
 
-	virtual void ReceiveEvent(TesseractEvent& e) {}
+	virtual void ReceiveEvent(TesseractEvent& /* e */) {}
 
 	virtual void Update() = 0;
 	virtual void Start() = 0;
 	virtual void OnButtonClick() {}
-	virtual void OnToggled(bool val) {}
+	virtual void OnToggled(bool /* val */) {}
 	virtual void OnValueChanged() {}
 	virtual void OnAnimationFinished() {}
 	virtual void OnAnimationSecondaryFinished() {}
-	virtual void OnAnimationEvent(StateMachineEnum stateMachineEnum, const char* eventName) {}
-	virtual void OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance, void* particle = nullptr) {}
+	virtual void OnAnimationEvent(StateMachineEnum /* stateMachineEnum */, const char* /* eventName */) {}
+	virtual void OnCollision(GameObject& /* collidedWith */, float3 /* collisionNormal */, float3 /* penetrationDistance */, void* /* particle = nullptr */) {}
+	virtual void OnEnable() {}
+	virtual void OnDisable() {}
 
 private:
 	GameObject* owner = nullptr;

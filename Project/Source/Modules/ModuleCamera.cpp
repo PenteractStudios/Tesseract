@@ -80,6 +80,7 @@ bool ModuleCamera::Start() {
 	SetPosition(vec(2, 3, -5));
 	LookAt(0, 0, 0);
 	App->events->AddObserverToEvent(TesseractEventType::SCREEN_RESIZED, this);
+	App->events->AddEvent(TesseractEventType::PROJECTION_CHANGED);
 
 	return true;
 }
@@ -248,39 +249,10 @@ void ModuleCamera::CalculateFrustumNearestObject(float2 pos) {
 	LOG("Ray Tracing in %ums", timer.Stop());
 }
 
+
 void ModuleCamera::CalculateFrustumPlanes() {
 	Frustum* cullingFrustum = cullingCamera->GetFrustum();
-	float3 pos = cullingFrustum->Pos();
-	float3 up = cullingFrustum->Up().Normalized();
-	float3 front = cullingFrustum->Front();
-	float3 right = cullingFrustum->WorldRight().Normalized();
-	float farDistance = cullingFrustum->FarPlaneDistance();
-	float nearDistance = cullingFrustum->NearPlaneDistance();
-	float aspectRatio = cullingFrustum->AspectRatio();
-	float vFov = cullingFrustum->VerticalFov();
-
-	float hFar = 2 * tan(vFov / 2) * farDistance;
-	float wFar = hFar * aspectRatio;
-	float hNear = 2 * tan(vFov / 2) * nearDistance;
-	float wNear = hNear * aspectRatio;
-	float3 farCenter = pos + front * farDistance;
-	float3 nearCenter = pos + front * nearDistance;
-
-	frustumPlanes.points[0] = farCenter + (up * hFar / 2) - (right * wFar / 2);
-	frustumPlanes.points[1] = farCenter + (up * hFar / 2) + (right * wFar / 2);
-	frustumPlanes.points[2] = farCenter - (up * hFar / 2) - (right * wFar / 2);
-	frustumPlanes.points[3] = farCenter - (up * hFar / 2) + (right * wFar / 2);
-	frustumPlanes.points[4] = nearCenter + (up * hNear / 2) - (right * wNear / 2);
-	frustumPlanes.points[5] = nearCenter + (up * hNear / 2) + (right * wNear / 2);
-	frustumPlanes.points[6] = nearCenter - (up * hNear / 2) - (right * wNear / 2);
-	frustumPlanes.points[7] = nearCenter - (up * hNear / 2) + (right * wNear / 2);
-
-	frustumPlanes.planes[0] = cullingFrustum->LeftPlane();
-	frustumPlanes.planes[1] = cullingFrustum->RightPlane();
-	frustumPlanes.planes[2] = cullingFrustum->TopPlane();
-	frustumPlanes.planes[3] = cullingFrustum->BottomPlane();
-	frustumPlanes.planes[4] = cullingFrustum->FarPlane();
-	frustumPlanes.planes[5] = cullingFrustum->NearPlane();
+	frustumPlanes.CalculateFrustumPlanes(*cullingFrustum);
 }
 
 bool ModuleCamera::IsEngineCameraActive() const {
@@ -390,18 +362,22 @@ void ModuleCamera::ViewportResized(int width, int height) {
 		camera.frustum.SetVerticalFovAndAspectRatio(camera.frustum.VerticalFov(), width / (float) height);
 	}
 	engineCamera.GetFrustum()->SetVerticalFovAndAspectRatio(engineCamera.GetFrustum()->VerticalFov(), width / (float) height);
+	App->events->AddEvent(TesseractEventType::PROJECTION_CHANGED);
 }
 
 void ModuleCamera::SetFOV(float hFov) {
 	activeCamera->GetFrustum()->SetHorizontalFovAndAspectRatio(hFov, activeCamera->GetFrustum()->AspectRatio());
+	App->events->AddEvent(TesseractEventType::PROJECTION_CHANGED);
 }
 
 void ModuleCamera::SetAspectRatio(float aspectRatio) {
 	activeCamera->GetFrustum()->SetVerticalFovAndAspectRatio(activeCamera->GetFrustum()->VerticalFov(), aspectRatio);
+	App->events->AddEvent(TesseractEventType::PROJECTION_CHANGED);
 }
 
 void ModuleCamera::SetPlaneDistances(float nearPlane, float farPlane) {
 	activeCamera->GetFrustum()->SetViewPlaneDistances(nearPlane, farPlane);
+	App->events->AddEvent(TesseractEventType::PROJECTION_CHANGED);
 }
 
 void ModuleCamera::SetPosition(const vec& position) {
@@ -423,6 +399,7 @@ void ModuleCamera::ChangeActiveCamera(ComponentCamera* camera, bool change) {
 	} else {
 		activeCamera = &engineCamera;
 	}
+	App->events->AddEvent(TesseractEventType::PROJECTION_CHANGED);
 }
 
 void ModuleCamera::ChangeCullingCamera(ComponentCamera* camera, bool change) {
@@ -511,6 +488,7 @@ const FrustumPlanes& ModuleCamera::GetFrustumPlanes() const {
 
 void ModuleCamera::EnableOrtographic() {
 	activeCamera->GetFrustum()->SetOrthographic((float) App->renderer->GetViewportSize().x, (float) App->renderer->GetViewportSize().y);
+	App->events->AddEvent(TesseractEventType::PROJECTION_CHANGED);
 }
 
 void ModuleCamera::EnablePerspective() {
