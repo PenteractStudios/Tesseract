@@ -222,9 +222,9 @@ void ComponentAudioSource::OnEditorUpdate() {
 	ImGui::PopItemWidth();
 }
 
-void ComponentAudioSource::UpdateSourceParameters() {
+bool ComponentAudioSource::UpdateSourceParameters() {
 	ResourceAudioClip* audioResource = App->resources->GetResource<ResourceAudioClip>(audioClipId);
-	if (audioResource == nullptr) return;
+	if (audioResource == nullptr) return false;
 
 	// EDIT HERE - check if resource exists, else get buffer
 
@@ -258,6 +258,8 @@ void ComponentAudioSource::UpdateSourceParameters() {
 	alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFactor);
 	alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
 	alSourcef(sourceId, AL_MAX_DISTANCE, maxDistance);
+
+	return true;
 }
 
 void ComponentAudioSource::Play() {
@@ -265,8 +267,7 @@ void ComponentAudioSource::Play() {
 		if (!IsPlaying() && !IsPaused()) {
 			sourceId = App->audio->GetAvailableSource();
 		}
-		UpdateSourceParameters();
-		alSourcePlay(sourceId);
+		if (UpdateSourceParameters()) alSourcePlay(sourceId);
 	}
 }
 
@@ -285,18 +286,21 @@ void ComponentAudioSource::Pause() const {
 }
 
 bool ComponentAudioSource::IsPlaying() const {
+	if (!sourceId) return false;
 	ALint state;
 	alGetSourcei(sourceId, AL_SOURCE_STATE, &state);
 	return (state == AL_PLAYING);
 }
 
 bool ComponentAudioSource::IsPaused() const {
+	if (!sourceId) return false;
 	ALint state;
 	alGetSourcei(sourceId, AL_SOURCE_STATE, &state);
 	return (state == AL_PAUSED);
 }
 
 bool ComponentAudioSource::IsStopped() const {
+	if (!sourceId) return true;
 	ALint state;
 	alGetSourcei(sourceId, AL_SOURCE_STATE, &state);
 	return (state == AL_STOPPED || state == AL_INITIAL);

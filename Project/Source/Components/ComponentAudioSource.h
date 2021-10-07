@@ -19,7 +19,7 @@ public:
 	void Load(JsonValue jComponent) override;
 
 	void UpdateAudioSource();
-	void UpdateSourceParameters();
+	bool UpdateSourceParameters();
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Stop();
 	TESSERACT_ENGINE_API void Pause() const;
