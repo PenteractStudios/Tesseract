@@ -2,7 +2,7 @@
 
 #include "Module.h"
 
-#define NUM_SOURCES 16
+#define NUM_SOURCES 32
 
 #if defined(TESSERACT_ENGINE_API)
 /* do nothing. */

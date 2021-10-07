@@ -13,6 +13,7 @@
 #include "AL/al.h"
 #include "debugdraw.h"
 #include "Math/float3.h"
+#include "IconsFontAwesome5.h"
 
 #include "Utils/Leaks.h"
 
@@ -95,20 +96,44 @@ void ComponentAudioSource::OnEditorUpdate() {
 	ImGui::Separator();
 	ImGui::Checkbox("Draw Gizmos", &drawGizmos);
 	ImGui::Separator();
+	ImGui::PushItemWidth(200);
+
+	ImGui::TextColored(App->editor->titleColor, "Player");
+	std::string play = std::string(" " ICON_FA_PLAY " ");
+	std::string pause = std::string(" " ICON_FA_PAUSE " ");
+	std::string stop = std::string(" " ICON_FA_STOP " ");
+	if (ImGui::Button(play.c_str())) {
+		Play();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button(pause.c_str())) {
+		Pause();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button(stop.c_str())) {
+		Stop();
+	}
+	ImGui::NewLine();
+
 	ImGui::TextColored(App->editor->titleColor, "Channel Settings");
 	int channel = isMusic;
 	if (ImGui::RadioButton("Music", &channel, 1)) {
 		isMusic = true;
 		gainMultiplier = App->editor->panelAudioMixer.GetGainMusicChannel();
-		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+		if (!mute) {
+			alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+		}
 	}
 	ImGui::SameLine();
 	if (ImGui::RadioButton("SFX", &channel, 0)) {
 		isMusic = false;
 		gainMultiplier = App->editor->panelAudioMixer.GetGainSFXChannel();
-		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+		if (!mute) {
+			alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+		}
 	}
-	ImGui::Separator();
+	ImGui::NewLine();
+
 	ImGui::TextColored(App->editor->titleColor, "General Settings");
 	ImGui::ResourceSlot<ResourceAudioClip>("AudioClip", &audioClipId, [this]() { Stop(); });
 
@@ -123,13 +148,15 @@ void ComponentAudioSource::OnEditorUpdate() {
 		alSourcef(sourceId, AL_LOOPING, loop);
 	}
 	if (ImGui::DragFloat("Gain", &gain, App->editor->dragSpeed3f, 0, 1)) {
-		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+		if (!mute) {
+			alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+		}
 	}
 	if (ImGui::DragFloat("Pitch", &pitch, App->editor->dragSpeed3f, 0.5, 2)) {
 		alSourcef(sourceId, AL_PITCH, pitch);
 	}
 	ImGui::Checkbox("Play On Awake", &playOnAwake);
-	ImGui::Separator();
+	ImGui::NewLine();
 
 	ImGui::TextColored(App->editor->titleColor, "Position Settings");
 	ImGui::Text("Spatial Blend");
@@ -191,19 +218,8 @@ void ComponentAudioSource::OnEditorUpdate() {
 		}
 	}
 
-	ImGui::Separator();
-
-	if (ImGui::Button("Play")) {
-		Play();
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Pause")) {
-		Pause();
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Stop")) {
-		Stop();
-	}
+	ImGui::NewLine();
+	ImGui::PopItemWidth();
 }
 
 void ComponentAudioSource::UpdateSourceParameters() {
@@ -246,7 +262,9 @@ void ComponentAudioSource::UpdateSourceParameters() {
 
 void ComponentAudioSource::Play() {
 	if (IsActive()) {
-		sourceId = App->audio->GetAvailableSource();
+		if (!IsPlaying() && !IsPaused()) {
+			sourceId = App->audio->GetAvailableSource();
+		}
 		UpdateSourceParameters();
 		alSourcePlay(sourceId);
 	}
@@ -378,11 +396,11 @@ float ComponentAudioSource::GetMaxDistance() const {
 	return maxDistance;
 }
 
-TESSERACT_ENGINE_API float ComponentAudioSource::GetGainMultiplier() const {
+float ComponentAudioSource::GetGainMultiplier() const {
 	return gainMultiplier;
 }
 
-TESSERACT_ENGINE_API float ComponentAudioSource::GetIsMusic() const {
+float ComponentAudioSource::GetIsMusic() const {
 	return isMusic;
 }
 
@@ -390,18 +408,28 @@ TESSERACT_ENGINE_API float ComponentAudioSource::GetIsMusic() const {
 
 void ComponentAudioSource::SetMute(bool _mute) {
 	mute = _mute;
+	if (mute) {
+		alSourcef(sourceId, AL_GAIN, 0.0f);
+	} else {
+		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+	}
 }
 
 void ComponentAudioSource::SetLoop(bool _loop) {
 	loop = _loop;
+	alSourcei(sourceId, AL_LOOPING, loop);
 }
 
 void ComponentAudioSource::SetGain(float _gain) {
 	gain = _gain;
+	if (!mute) {
+		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+	}
 }
 
 void ComponentAudioSource::SetPitch(float _pitch) {
 	pitch = _pitch;
+	alSourcef(sourceId, AL_PITCH, pitch);
 }
 
 void ComponentAudioSource::SetPlayOnAwake(bool _playOnAwake) {
@@ -418,33 +446,49 @@ void ComponentAudioSource::SetSourceType(int _sourceType) {
 
 void ComponentAudioSource::SetInnerAngle(float _innerAngle) {
 	innerAngle = _innerAngle;
+	alSourcef(sourceId, AL_CONE_INNER_ANGLE, innerAngle);
 }
 
 void ComponentAudioSource::SetOuterAngle(float _outerAngle) {
 	outerAngle = _outerAngle;
+	alSourcef(sourceId, AL_CONE_OUTER_ANGLE, outerAngle);
 }
 
 void ComponentAudioSource::SetOuterGain(float _outerGain) {
 	outerGain = _outerGain;
+	alSourcef(sourceId, AL_CONE_OUTER_GAIN, outerGain);
 }
 
 void ComponentAudioSource::SetRollOffFactor(float _rollOffFactor) {
 	rollOffFactor = _rollOffFactor;
+	alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFactor);
 }
 
 void ComponentAudioSource::SetReferenceDistance(float _referenceDistance) {
 	referenceDistance = _referenceDistance;
+	alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
 }
 
 void ComponentAudioSource::SetMaxDistance(float _maxDistance) {
 	maxDistance = _maxDistance;
+	alSourcef(sourceId, AL_MAX_DISTANCE, maxDistance);
 }
 
-TESSERACT_ENGINE_API void ComponentAudioSource::SetGainMultiplier(float _gainMultiplier) {
+void ComponentAudioSource::SetGainMultiplier(float _gainMultiplier) {
 	gainMultiplier = _gainMultiplier;
-	alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+	if (!mute) {
+		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+	}
 }
 
-TESSERACT_ENGINE_API void ComponentAudioSource::SetIsMusic(float _isMusic) {
+void ComponentAudioSource::SetIsMusic(float _isMusic) {
 	isMusic = _isMusic;
+	if (isMusic) {
+		gainMultiplier = App->editor->panelAudioMixer.GetGainMusicChannel();
+	} else {
+		gainMultiplier = App->editor->panelAudioMixer.GetGainSFXChannel();
+	}
+	if (!mute) {
+		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+	}
 }

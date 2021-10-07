@@ -90,7 +90,7 @@ void ModuleAudio::StopAllSources() {
 }
 
 bool ModuleAudio::CleanUp() {
-	alCall(alDeleteSources, 16, sources);
+	alCall(alDeleteSources, NUM_SOURCES, sources);
 	alcCall(alcMakeContextCurrent, contextMadeCurrent, openALDevice, nullptr);
 	alcCall(alcDestroyContext, openALDevice, openALContext);
 	alcCloseDevice(openALDevice);
