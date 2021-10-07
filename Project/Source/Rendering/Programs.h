@@ -425,6 +425,10 @@ struct ProgramTrail : Program {
 struct ProgramStandardDissolve : ProgramStandardMetallic {
 	ProgramStandardDissolve(unsigned program);
 
+	int hasNoiseMapLocation = -1;
+	int noiseMapLocation = -1;
+	int colorLocation = -1;
+	int intensityLocation = -1;
 	int scaleLocation = -1;
 	int thresholdLocation = -1;
 	int offsetLocation = -1;
@@ -434,6 +438,10 @@ struct ProgramStandardDissolve : ProgramStandardMetallic {
 struct ProgramUnlitDissolve : ProgramUnlit {
 	ProgramUnlitDissolve(unsigned program);
 
+	int hasNoiseMapLocation = -1;
+	int noiseMapLocation = -1;
+	int colorLocation = -1;
+	int intensityLocation = -1;
 	int scaleLocation = -1;
 	int thresholdLocation = -1;
 	int offsetLocation = -1;
@@ -443,6 +451,8 @@ struct ProgramUnlitDissolve : ProgramUnlit {
 struct ProgramDepthPrepassDissolve : ProgramDepthPrepass {
 	ProgramDepthPrepassDissolve(unsigned program);
 
+	int hasNoiseMapLocation = -1;
+	int noiseMapLocation = -1;
 	int scaleLocation = -1;
 	int thresholdLocation = -1;
 	int offsetLocation = -1;

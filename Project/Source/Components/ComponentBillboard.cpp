@@ -21,6 +21,10 @@
 #include "GL/glew.h"
 
 #include "Utils/Leaks.h"
+#include <cmath>
+
+#define JSON_TAG_PLAY_ON_AWAKE "PlayOnAwake"
+#define JSON_TAG_BILLBOARD_LIFETIME "BillboardLifetime"
 
 #define JSON_TAG_BILLBOARD_TYPE "BillboardType"
 #define JSON_TAG_IS_HORIZONTAL_ORIENTATION "IsHorizontalOrientation"
@@ -31,15 +35,21 @@
 
 #define JSON_TAG_YTILES "Ytiles"
 #define JSON_TAG_XTILES "Xtiles"
-#define JSON_TAG_ANIMATION_SPEED "AnimationSpeed"
+#define JSON_TAG_ANIMATION_CYCLES "AnimationCycles"
+#define JSON_TAG_ANIMATION_LOOP "AnimationLoop"
 
 #define JSON_TAG_COLOR_OVER_LIFETIME "ColorOverLifetime"
-#define JSON_TAG_COLOR_LIFETIME "ColorLifeTime"
+#define JSON_TAG_COLOR_CYCLES "ColorCycles"
+#define JSON_TAG_COLOR_LOOP "ColorLoop"
 #define JSON_TAG_NUMBER_COLORS "NumberColors"
 #define JSON_TAG_GRADIENT_COLORS "GradientColors"
 
+#define ITEM_SIZE 150
+
 ComponentBillboard::~ComponentBillboard() {
 	RELEASE(gradient);
+
+	App->resources->DecreaseReferenceCount(textureID);
 }
 
 void ComponentBillboard::OnEditorUpdate() {
@@ -54,6 +64,17 @@ void ComponentBillboard::OnEditorUpdate() {
 	}
 	ImGui::Separator();
 	ImGui::Indent();
+	ImGui::PushItemWidth(ITEM_SIZE);
+
+	if (ImGui::Button("Play")) {
+		Play();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Stop")) {
+		Stop();
+	}
+	ImGui::DragFloat("Duration", &billboardLifetime, App->editor->dragSpeed2f, 0, inf);
+	ImGui::Checkbox("Play On Awake", &playOnAwake);
 
 	// Render
 	if (ImGui::CollapsingHeader("Render")) {
@@ -115,7 +136,8 @@ void ComponentBillboard::OnEditorUpdate() {
 	if (ImGui::CollapsingHeader("Texture Sheet Animation")) {
 		ImGui::DragScalar("Xtiles", ImGuiDataType_U32, &Xtiles);
 		ImGui::DragScalar("Ytiles", ImGuiDataType_U32, &Ytiles);
-		ImGui::DragFloat("Animation Speed", &animationSpeed, App->editor->dragSpeed2f, -inf, inf);
+		ImGui::DragFloat("Cycles##animation_cycles", &animationCycles, App->editor->dragSpeed2f, 1, inf);
+		ImGui::Checkbox("Loop##animation_loop", &animationLoop);
 	}
 
 	// Color Over Lifetime
@@ -123,11 +145,12 @@ void ComponentBillboard::OnEditorUpdate() {
 		ImGui::Checkbox("##color_over_lifetime", &colorOverLifetime);
 		if (colorOverLifetime) {
 			ImGui::SameLine();
+			ImGui::PushItemWidth(200);
 			ImGui::GradientEditor(gradient, draggingGradient, selectedGradient);
-			ImGui::DragFloat("Color Lifetime", &colorLifetime, App->editor->dragSpeed2f, 0, inf);
-			if (ImGui::Button("Reset Color")) {
-				ResetColor();
-			}
+			ImGui::PushItemWidth(ITEM_SIZE);
+			ImGui::NewLine();
+			ImGui::DragFloat("Cycles##color_cycles", &colorCycles, App->editor->dragSpeed2f, 1, inf);
+			ImGui::Checkbox("Loop##color_loop", &colorLoop);
 		}
 	}
 
@@ -149,17 +172,18 @@ void ComponentBillboard::OnEditorUpdate() {
 	}
 
 	ImGui::Unindent();
+	ImGui::PopItemWidth();
 	ImGui::NewLine();
 }
 
 void ComponentBillboard::Load(JsonValue jComponent) {
+	playOnAwake = jComponent[JSON_TAG_PLAY_ON_AWAKE];
+	billboardLifetime = jComponent[JSON_TAG_BILLBOARD_LIFETIME];
+
 	billboardType = (BillboardType)(int) jComponent[JSON_TAG_BILLBOARD_TYPE];
 	isHorizontalOrientation = jComponent[JSON_TAG_IS_HORIZONTAL_ORIENTATION];
 	renderMode = (ParticleRenderMode)(int) jComponent[JSON_TAG_RENDER_MODE];
 	textureID = jComponent[JSON_TAG_TEXTURE_TEXTUREID];
-	if (textureID != 0) {
-		App->resources->IncreaseReferenceCount(textureID);
-	}
 	JsonValue jTextureIntensity = jComponent[JSON_TAG_TEXTURE_INTENSITY];
 	textureIntensity[0] = jTextureIntensity[0];
 	textureIntensity[1] = jTextureIntensity[1];
@@ -170,10 +194,12 @@ void ComponentBillboard::Load(JsonValue jComponent) {
 
 	Ytiles = jComponent[JSON_TAG_YTILES];
 	Xtiles = jComponent[JSON_TAG_XTILES];
-	animationSpeed = jComponent[JSON_TAG_ANIMATION_SPEED];
+	animationCycles = jComponent[JSON_TAG_ANIMATION_CYCLES];
+	animationLoop = jComponent[JSON_TAG_ANIMATION_LOOP];
 
 	colorOverLifetime = jComponent[JSON_TAG_COLOR_OVER_LIFETIME];
-	colorLifetime = jComponent[JSON_TAG_COLOR_LIFETIME];
+	colorCycles = jComponent[JSON_TAG_COLOR_CYCLES];
+	colorLoop = jComponent[JSON_TAG_COLOR_LOOP];
 	int numberColors = jComponent[JSON_TAG_NUMBER_COLORS];
 	if (!gradient) gradient = new ImGradient();
 	gradient->clearList();
@@ -185,6 +211,9 @@ void ComponentBillboard::Load(JsonValue jComponent) {
 }
 
 void ComponentBillboard::Save(JsonValue jComponent) const {
+	jComponent[JSON_TAG_PLAY_ON_AWAKE] = playOnAwake;
+	jComponent[JSON_TAG_BILLBOARD_LIFETIME] = billboardLifetime;
+
 	jComponent[JSON_TAG_BILLBOARD_TYPE] = (int) billboardType;
 	jComponent[JSON_TAG_IS_HORIZONTAL_ORIENTATION] = isHorizontalOrientation;
 	jComponent[JSON_TAG_RENDER_MODE] = (int) renderMode;
@@ -199,10 +228,12 @@ void ComponentBillboard::Save(JsonValue jComponent) const {
 
 	jComponent[JSON_TAG_YTILES] = Ytiles;
 	jComponent[JSON_TAG_XTILES] = Xtiles;
-	jComponent[JSON_TAG_ANIMATION_SPEED] = animationSpeed;
+	jComponent[JSON_TAG_ANIMATION_CYCLES] = animationCycles;
+	jComponent[JSON_TAG_ANIMATION_LOOP] = animationLoop;
 
 	jComponent[JSON_TAG_COLOR_OVER_LIFETIME] = colorOverLifetime;
-	jComponent[JSON_TAG_COLOR_LIFETIME] = colorLifetime;
+	jComponent[JSON_TAG_COLOR_CYCLES] = colorCycles;
+	jComponent[JSON_TAG_COLOR_LOOP] = colorLoop;
 	int color = 0;
 	JsonValue jColor = jComponent[JSON_TAG_GRADIENT_COLORS];
 	for (ImGradientMark* mark : gradient->getMarks()) {
@@ -219,6 +250,8 @@ void ComponentBillboard::Save(JsonValue jComponent) const {
 }
 
 void ComponentBillboard::Init() {
+	App->resources->IncreaseReferenceCount(textureID);
+
 	if (!gradient) gradient = new ImGradient();
 	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 	initPos = transform->GetGlobalPosition();
@@ -227,16 +260,41 @@ void ComponentBillboard::Init() {
 }
 
 void ComponentBillboard::Update() {
-	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
+	// Play On Awake activation in Game
+	if (!isStarted && App->time->HasGameStarted() && playOnAwake) {
+		Play();
+		isStarted = true;
+	}
 
+	if (time > billboardLifetime && !animationLoop && !colorLoop) {
+		isPlaying = false;
+	}
+
+	if (isPlaying) {
+		time += App->time->GetDeltaTimeOrRealDeltaTime();
+
+		if (colorOverLifetime) {
+			float timeMod = fmod(time, billboardLifetime / colorCycles);
+			colorFrame = timeMod / billboardLifetime * colorCycles;
+			if (!colorLoop && time > billboardLifetime) {
+				colorFrame = 1.0;
+			}
+		}
+
+		int totalTiles = Xtiles * Ytiles;
+		currentFrame = time / billboardLifetime * animationCycles * totalTiles;
+		if (!animationLoop && time > billboardLifetime) {
+			currentFrame = (float) totalTiles;
+		}
+	}
+
+	// Direction for Stretch
+	ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
 	float3 position = transform->GetGlobalPosition();
 	if (!previousPos.Equals(position)) {
 		direction = (position - previousPos).Normalized();
 	}
 	previousPos = position;
-
-	colorFrame += App->time->GetDeltaTimeOrRealDeltaTime();
-	currentFrame += animationSpeed * App->time->GetDeltaTimeOrRealDeltaTime();
 }
 
 void ComponentBillboard::Draw() {
@@ -324,8 +382,7 @@ void ComponentBillboard::Draw() {
 
 	float4 color = float4::one;
 	if (colorOverLifetime) {
-		float factor = colorFrame / colorLifetime;
-		gradient->getColorAt(factor, color.ptr());
+		gradient->getColorAt(colorFrame, color.ptr());
 	}
 
 	glUniform1i(program->diffuseMapLocation, 0);
@@ -352,11 +409,24 @@ void ComponentBillboard::Draw() {
 	glDepthMask(GL_TRUE);
 }
 
-void ComponentBillboard::ResetColor() {
-	colorFrame = 0.0f;
+void ComponentBillboard::Play() {
+	isPlaying = true;
+	time = 0.0f;
+}
+
+void ComponentBillboard::Stop() {
+	isPlaying = false;
 }
 
 // Getters
+float ComponentBillboard::GetBillboardLifetime() const {
+	return billboardLifetime;
+}
+
+bool ComponentBillboard::GetPlayOnAwake() const {
+	return playOnAwake;
+}
+
 float ComponentBillboard::GetCurrentFrame() const {
 	return currentFrame;
 }
@@ -365,19 +435,51 @@ float3 ComponentBillboard::GetTextureIntensity() const {
 	return textureIntensity;
 }
 
-float ComponentBillboard::GetAnimationSpeed() const {
-	return animationSpeed;
+float ComponentBillboard::GetAnimationCycles() const {
+	return animationCycles;
+}
+
+bool ComponentBillboard::GetAnimationLoop() const {
+	return animationLoop;
+}
+
+float ComponentBillboard::GetColorCycles() const {
+	return colorCycles;
+}
+
+bool ComponentBillboard::GetColorLoop() const {
+	return colorLoop;
 }
 
 // Setters
+void ComponentBillboard::SetBillboardLifetime(float _billboardLifetime) {
+	billboardLifetime = _billboardLifetime;
+}
+
+void ComponentBillboard::SetPlayOnAwake(bool _playOnAwake) {
+	playOnAwake = _playOnAwake;
+}
+
 void ComponentBillboard::SetCurrentFrame(float _currentFrame) {
 	currentFrame = _currentFrame;
 }
 
-void ComponentBillboard::SetIntensity(float3 _textureIntensity) {
+void ComponentBillboard::SetTextureIntensity(float3 _textureIntensity) {
 	textureIntensity = _textureIntensity;
 }
 
-void ComponentBillboard::SetAnimationSpeed(float _animationSpeed) {
-	animationSpeed = _animationSpeed;
+void ComponentBillboard::SetAnimationCycles(float _animationCycles) {
+	animationCycles = _animationCycles;
+}
+
+void ComponentBillboard::SetAnimationLoop(bool _animationLoop) {
+	animationLoop = _animationLoop;
+}
+
+void ComponentBillboard::SetColorCycles(float _colorCycles) {
+	colorCycles = _colorCycles;
+}
+
+void ComponentBillboard::SetColorLoop(bool _colorLoop) {
+	colorLoop = _colorLoop;
 }

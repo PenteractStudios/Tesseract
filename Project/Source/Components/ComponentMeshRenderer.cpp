@@ -31,6 +31,11 @@
 #define JSON_TAG_MESH_ID "MeshID"
 #define JSON_TAG_MATERIAL_ID "MaterialID"
 
+ComponentMeshRenderer::~ComponentMeshRenderer() {
+	App->resources->DecreaseReferenceCount(meshId);
+	App->resources->DecreaseReferenceCount(materialId);
+}
+
 void ComponentMeshRenderer::OnEditorUpdate() {
 	if (ImGui::Checkbox("Active", &active)) {
 		if (GetOwner().IsActive()) {
@@ -122,12 +127,29 @@ void ComponentMeshRenderer::OnEditorUpdate() {
 }
 
 void ComponentMeshRenderer::Init() {
+	App->resources->IncreaseReferenceCount(meshId);
+	App->resources->IncreaseReferenceCount(materialId);
+
+	AddRenderingModeMask();
+
 	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
-	if (!mesh) return;
+	if (mesh == nullptr) return;
 
 	palette.resize(mesh->bones.size());
 	for (unsigned i = 0; i < mesh->bones.size(); ++i) {
 		palette[i] = float4x4::identity;
+	}
+
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+	if (material == nullptr) return;
+
+	if (material->castShadows) {
+		GameObject* owner = &GetOwner();
+		if (material->shadowCasterType == ShadowCasterType::STATIC) {
+			GetOwner().scene->AddStaticShadowCaster(owner);
+		} else {
+			GetOwner().scene->AddDynamicShadowCaster(owner);
+		}
 	}
 }
 
@@ -167,30 +189,11 @@ void ComponentMeshRenderer::Save(JsonValue jComponent) const {
 
 void ComponentMeshRenderer::Load(JsonValue jComponent) {
 	meshId = jComponent[JSON_TAG_MESH_ID];
-	if (meshId != 0) App->resources->IncreaseReferenceCount(meshId);
 	materialId = jComponent[JSON_TAG_MATERIAL_ID];
-	if (materialId != 0) {
-		AddRenderingModeMask();
-		App->resources->IncreaseReferenceCount(materialId);
-	}
-
-	ResetDissolveValues();
 }
 
 void ComponentMeshRenderer::Start() {
-
-	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
-
-	if (material == nullptr) return;
-
-	if (material->castShadows) {
-		GameObject* owner = &GetOwner();
-		if (material->shadowCasterType == ShadowCasterType::STATIC) {
-			App->scene->scene->AddStaticShadowCaster(owner);
-		} else {
-			App->scene->scene->AddDynamicShadowCaster(owner);
-		}
-	}
+	ResetDissolveValues();
 }
 
 void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
@@ -300,6 +303,19 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glBindTexture(GL_TEXTURE_2D, glTextureMetallic);
 
 		// Dissolve settings
+		unsigned glTextureDissolveNoise = 0;
+		ResourceTexture* dissolveNoise = App->resources->GetResource<ResourceTexture>(material->dissolveNoiseMapId);
+		glTextureDissolveNoise = dissolveNoise ? dissolveNoise->glTexture : 0;
+		int hasDissolveNoiseMap = glTextureDissolveNoise ? 1 : 0;
+
+		glUniform1i(dissolveProgram->hasNoiseMapLocation, hasDissolveNoiseMap);
+
+		glUniform1i(dissolveProgram->noiseMapLocation, 31);
+		glActiveTexture(GL_TEXTURE31);
+		glBindTexture(GL_TEXTURE_2D, glTextureDissolveNoise);
+
+		glUniform4fv(dissolveProgram->colorLocation, 1, material->dissolveColor.ptr());
+		glUniform1f(dissolveProgram->intensityLocation, material->dissolveIntensity);
 		glUniform1f(dissolveProgram->scaleLocation, material->dissolveScale);
 		glUniform1f(dissolveProgram->thresholdLocation, GetDissolveValue());
 		glUniform2fv(dissolveProgram->offsetLocation, 1, material->dissolveOffset.ptr());
@@ -326,7 +342,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 			glUniformMatrix4fv(unlitProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 		}
 
-		glUniform1i(unlitProgram->hasBonesLocation, goBones.size());
+		glUniform1i(unlitProgram->hasBonesLocation, mesh->bones.size());
 
 		// Diffuse
 		unsigned glTextureDiffuse = 0;
@@ -381,7 +397,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 			glUniformMatrix4fv(unlitProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 		}
 
-		glUniform1i(unlitProgram->hasBonesLocation, goBones.size());
+		glUniform1i(unlitProgram->hasBonesLocation, mesh->bones.size());
 
 		// Diffuse
 		unsigned glTextureDiffuse = 0;
@@ -414,6 +430,19 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniform2fv(unlitProgram->offsetLocation, 1, ChooseTextureOffset(material->offset).ptr());
 
 		// Dissolve settings
+		unsigned glTextureDissolveNoise = 0;
+		ResourceTexture* dissolveNoise = App->resources->GetResource<ResourceTexture>(material->dissolveNoiseMapId);
+		glTextureDissolveNoise = dissolveNoise ? dissolveNoise->glTexture : 0;
+		int hasDissolveNoiseMap = glTextureDissolveNoise ? 1 : 0;
+
+		glUniform1i(unlitProgram->hasNoiseMapLocation, hasDissolveNoiseMap);
+
+		glUniform1i(unlitProgram->noiseMapLocation, 2);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, glTextureDissolveNoise);
+
+		glUniform4fv(unlitProgram->colorLocation, 1, material->dissolveColor.ptr());
+		glUniform1f(unlitProgram->intensityLocation, material->dissolveIntensity);
 		glUniform1f(unlitProgram->scaleLocation, material->dissolveScale);
 		glUniform1f(unlitProgram->thresholdLocation, GetDissolveValue());
 		glUniform2fv(unlitProgram->offsetLocation, 1, material->dissolveOffset.ptr());
@@ -443,7 +472,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 			glUniformMatrix4fv(volumetricLightProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 		}
 
-		glUniform1i(volumetricLightProgram->hasBonesLocation, goBones.size());
+		glUniform1i(volumetricLightProgram->hasBonesLocation, mesh->bones.size());
 
 		glUniform3fv(volumetricLightProgram->viewPosLocation, 1, App->camera->GetPosition().ptr());
 
@@ -578,7 +607,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glUniformMatrix4fv(standardProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 	}
 
-	glUniform1i(standardProgram->hasBonesLocation, goBones.size());
+	glUniform1i(standardProgram->hasBonesLocation, mesh->bones.size());
 
 	glUniform3fv(standardProgram->viewPosLocation, 1, App->camera->GetPosition().ptr());
 
@@ -671,7 +700,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	}
 
 	// Lights uniforms settings
-	glUniform3fv(standardProgram->ambientColorLocation, 1, App->renderer->ambientColor.ptr());
+	glUniform3fv(standardProgram->ambientColorLocation, 1, GetOwner().scene->ambientColor.ptr());
 
 	if (directionalLight != nullptr) {
 		glUniform3fv(standardProgram->dirLightDirectionLocation, 1, directionalLight->direction.ptr());
@@ -711,6 +740,17 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 
 		glUseProgram(depthPrepassProgram->program);
 
+		unsigned glTextureDissolveNoise = 0;
+		ResourceTexture* dissolveNoise = App->resources->GetResource<ResourceTexture>(material->dissolveNoiseMapId);
+		glTextureDissolveNoise = dissolveNoise ? dissolveNoise->glTexture : 0;
+		int hasDissolveNoiseMap = glTextureDissolveNoise ? 1 : 0;
+
+		glUniform1i(depthPrepassProgramDissolve->hasNoiseMapLocation, hasDissolveNoiseMap);
+
+		glUniform1i(depthPrepassProgramDissolve->noiseMapLocation, 1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, glTextureDissolveNoise);
+
 		glUniform1f(depthPrepassProgramDissolve->scaleLocation, material->dissolveScale);
 		glUniform1f(depthPrepassProgramDissolve->thresholdLocation, GetDissolveValue());
 		glUniform2fv(depthPrepassProgramDissolve->offsetLocation, 1, material->dissolveOffset.ptr());
@@ -732,7 +772,7 @@ void ComponentMeshRenderer::DrawDepthPrepass(const float4x4& modelMatrix) const 
 		glUniformMatrix4fv(depthPrepassProgram->paletteLocation, palette.size(), GL_TRUE, palette[0].ptr());
 	}
 
-	glUniform1i(depthPrepassProgram->hasBonesLocation, goBones.size());
+	glUniform1i(depthPrepassProgram->hasBonesLocation, mesh->bones.size());
 
 	// Diffuse
 	unsigned glTextureDiffuse = 0;
@@ -794,7 +834,7 @@ void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix, unsigned int
 		glUniformMatrix4fv(glGetUniformLocation(program, "palette"), palette.size(), GL_TRUE, palette[0].ptr());
 	}
 
-	glUniform1i(glGetUniformLocation(program, "hasBones"), goBones.size());
+	glUniform1i(glGetUniformLocation(program, "hasBones"), mesh->bones.size());
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
@@ -815,6 +855,38 @@ void ComponentMeshRenderer::DeleteRenderingModeMask() {
 		GameObject& gameObject = GetOwner();
 		gameObject.DeleteMask(MaskType::TRANSPARENT);
 	}
+}
+
+void ComponentMeshRenderer::SetGameObjectBones(const std::unordered_map<std::string, GameObject*>& goBones_) {
+	goBones = goBones_;
+}
+
+void ComponentMeshRenderer::SetMeshInternal(UID meshId_) {
+	meshId = meshId_;
+}
+
+void ComponentMeshRenderer::SetMaterialInternal(UID materialId_) {
+	materialId = materialId_;
+}
+
+UID ComponentMeshRenderer::GetMesh() const {
+	return meshId;
+}
+
+void ComponentMeshRenderer::SetMesh(UID meshId_) {
+	App->resources->DecreaseReferenceCount(meshId);
+	meshId = meshId_;
+	App->resources->IncreaseReferenceCount(meshId);
+}
+
+UID ComponentMeshRenderer::GetMaterial() const {
+	return materialId;
+}
+
+void ComponentMeshRenderer::SetMaterial(UID materialId_) {
+	App->resources->DecreaseReferenceCount(materialId);
+	materialId = materialId_;
+	App->resources->IncreaseReferenceCount(materialId);
 }
 
 void ComponentMeshRenderer::PlayDissolveAnimation(bool reverse) {

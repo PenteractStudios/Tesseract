@@ -46,18 +46,21 @@ void ModuleNavigation::ReceiveEvent(TesseractEvent& e) {
 	}
 }
 
+void ModuleNavigation::ChangeNavMesh(UID navMeshId_) {
+	App->resources->DecreaseReferenceCount(navMeshId);
+	navMeshId = navMeshId_;
+	App->resources->IncreaseReferenceCount(navMeshId);
+}
+
 void ModuleNavigation::BakeNavMesh() {
 	MSTimer timer;
 	timer.Start();
 	LOG("Loading NavMesh");
-	bool generated = navMesh.Build();
+	bool generated = navMesh.Build(App->scene->scene);
 	unsigned timeMs = timer.Stop();
 	if (generated) {
 		navMesh.GetTileCache()->update(App->time->GetDeltaTime(), navMesh.GetNavMesh());
 		navMesh.GetCrowd()->update(App->time->GetDeltaTime(), nullptr);
-
-		navMesh.RescanCrowd();
-		navMesh.RescanObstacles();
 
 		LOG("NavMesh successfully baked in %ums", timeMs);
 	} else {
@@ -66,7 +69,7 @@ void ModuleNavigation::BakeNavMesh() {
 }
 
 void ModuleNavigation::DrawGizmos() {
-	navMesh.DrawGizmos();
+	navMesh.DrawGizmos(App->scene->scene);
 }
 
 NavMesh& ModuleNavigation::GetNavMesh() {
@@ -116,4 +119,27 @@ void ModuleNavigation::Raycast(float3 startPosition, float3 targetPosition, bool
 			hitResult = true;
 		}
 	}
+}
+
+void ModuleNavigation::GetNavMeshHeightInPosition(const float3 position, float& height) {
+	if (!navMesh.IsGenerated()) return;
+
+	dtNavMeshQuery* navQuery = navMesh.GetNavMeshQuery();
+	if (navQuery == nullptr) return;
+
+	float3 polyPickExt = float3(2, 4, 2);
+	dtQueryFilter filter;
+	filter.setIncludeFlags(0xffff ^ 0x10); // SAMPLE_POLYFLAGS_ALL ^ SAMPLE_POLYFLAGS_DISABLED
+	filter.setExcludeFlags(0);
+	filter.setAreaCost(0, 1.0f);	// SAMPLE_POLYAREA_GROUND
+	filter.setAreaCost(1, 10.0f);	// SAMPLE_POLYAREA_WATER
+	filter.setAreaCost(2, 1.0f);	// SAMPLE_POLYAREA_ROAD
+	filter.setAreaCost(3, 1.0f);	// SAMPLE_POLYAREA_DOOR
+	filter.setAreaCost(4, 2.0f);	// SAMPLE_POLYAREA_GRASS
+	filter.setAreaCost(5, 1.5f);	// SAMPLE_POLYAREA_JUMP
+
+	dtPolyRef startRef;
+	navQuery->findNearestPoly(position.ptr(), polyPickExt.ptr(), &filter, &startRef, 0);
+
+	if (startRef) navQuery->getPolyHeight(startRef, position.ptr(), &height);
 }

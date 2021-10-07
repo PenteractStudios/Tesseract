@@ -21,7 +21,10 @@ class ResourceTransition;
 class ComponentAnimation : public Component {
 public:
 	REGISTER_COMPONENT(ComponentAnimation, ComponentType::ANIMATION, false); // Refer to ComponentType for the Constructor
+	~ComponentAnimation();
 
+	void Init() override;
+	void Start() override;
 	void Update() override;
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;
@@ -62,8 +65,7 @@ public:
 
 private:
 	void UpdateAnimations(GameObject* gameObject);
-	void LoadResourceStateMachine(UID stateMachineResourceUid, StateMachineEnum stateMachineEnum);
-	void InitCurrentTimeStates(UID stateMachineResourceUid, StateMachineEnum stateMachineEnum);
+	void LoadStateMachines();
 	bool loadedResourceStateMachine = false;
 	bool loadedResourceStateMachineSecondary = false;
 

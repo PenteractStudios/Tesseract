@@ -156,11 +156,15 @@ void ModuleResources::ReceiveEvent(TesseractEvent& e) {
 		UID id = e.Get<DestroyResourceStruct>().resourceId;
 		resourcesMutex.lock();
 		auto& it = resources.find(id);
+		std::unique_ptr<Resource> resource = nullptr;
 		if (it != resources.end()) {
-			UnloadResource(it->second.get());
+			resource.swap(it->second);
 			resources.erase(it);
 		}
 		resourcesMutex.unlock();
+		if (resource.get() != nullptr) {
+			UnloadResource(resource.get());
+		}
 	} else if (e.type == TesseractEventType::UPDATE_ASSET_CACHE) {
 		AssetCache* newAssetCache = e.Get<UpdateAssetCacheStruct>().assetCache;
 		assetCache.reset(newAssetCache);
@@ -426,8 +430,6 @@ void ModuleResources::UpdateAsync() {
 		updateAssetCacheEv.Set<UpdateAssetCacheStruct>(newAssetCache);
 		App->events->AddEvent(updateAssetCacheEv);
 #endif
-
-		App->events->AddEvent(TesseractEventType::RESOURCES_LOADED);
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BETWEEN_RESOURCE_UPDATES_MS));
 	}

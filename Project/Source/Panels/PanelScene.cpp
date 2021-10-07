@@ -251,8 +251,7 @@ void PanelScene::Update() {
 					UID prefabId = *(UID*) payload->Data;
 					ResourcePrefab* prefab = App->resources->GetResource<ResourcePrefab>(prefabId);
 					if (prefab != nullptr) {
-						UID gameObjectId = prefab->BuildPrefab(App->scene->scene->root);
-						App->editor->selectedGameObject = App->scene->scene->GetGameObject(gameObjectId);
+						App->scene->BuildPrefab(prefabId, App->scene->scene->root);
 					}
 				}
 

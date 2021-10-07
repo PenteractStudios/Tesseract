@@ -6,7 +6,8 @@ enum class TextureCompression {
 	NONE,
 	DXT1,
 	DXT3,
-	DXT5
+	DXT5,
+	BC7
 };
 
 enum class TextureMinFilter {
