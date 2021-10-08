@@ -25,7 +25,7 @@ void AudioImportOptions::ShowImportOptions() {
 	ImGui::NewLine();
 	ImGui::Checkbox("Force To Mono", &isMono);
 	ImGui::NewLine();
-	const char* audioFormatItems[] = {"PCM (.wav)", "Vorbis (.ogg)"};
+	const char* audioFormatItems[] = {"PCM (.wav)", "Vorbis (.ogg) (Not working)"};
 	const char* currentAudioFormatItems = audioFormatItems[int(audioFormat)];
 	if (ImGui::BeginCombo("Compression Format", currentAudioFormatItems)) {
 		for (int n = 0; n < IM_ARRAYSIZE(audioFormatItems); ++n) {
@@ -117,48 +117,74 @@ bool AudioImporter::ImportAudio(const char* filePath, JsonValue jMeta) {
 }
 
 bool AudioImporter::ConvertAudio(const char* filePath, const char* convertedFilePath, const AudioImportOptions* audioImportOptions) {
-	static double data[BUFFER_LEN];
-
 	SNDFILE *inFile, *outFile;
 	SF_INFO sfInfo;
-	int readCount;
+	short *audioDataIn, *audioDataOut;
 
+	// Open Read file
 	if (!(inFile = sf_open(filePath, SFM_READ, &sfInfo))) {
 		LOG("Error : could not open file %s", filePath);
-		sf_close(inFile);
 		return false;
 	}
+	DEFER {
+		sf_close(inFile);
+	};
+
+	// Input data
+	audioDataIn = static_cast<short*>(malloc((size_t)(sfInfo.frames * sfInfo.channels) * sizeof(short)));
+	DEFER {
+		free(audioDataIn);
+	};
+
+	sf_count_t numFrames = sf_readf_short(inFile, audioDataIn, sfInfo.frames);
+
+	// Output data
+	audioDataOut = static_cast<short*>(malloc((size_t)(sfInfo.frames) * sizeof(short)));
+	DEFER {
+		free(audioDataOut);
+	};
 
 	// Mono conversion
-	if (sfInfo.channels == 2 && audioImportOptions->isMono) {
+	bool convertToMono = (sfInfo.channels == 2 && audioImportOptions->isMono);
+	if (convertToMono) {
+		// mixdown
+		int channels = (int) sfInfo.channels;
+		for (int i = 0; i < sfInfo.frames; ++i) {
+			float data = 0;
+			for (int j = 0; j < channels; j++)
+				data += audioDataIn[i * channels + j];
+			audioDataOut[i] = (short) (data / channels);
+		}
 		sfInfo.channels = 1;
-		sfInfo.samplerate = sfInfo.samplerate * 2;
 	}
 
 	// Format conversion
 	if (audioImportOptions->audioFormat == AudioFormat::OGG) {
-		sfInfo.format = SF_FORMAT_OGG | SF_FORMAT_VORBIS;
+		//sfInfo.format = SF_FORMAT_OGG | SF_FORMAT_VORBIS;
+		sfInfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_32;
 	} else {
+		sfInfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_32;
 	}
-
 	if (!sf_format_check(&sfInfo)) {
 		LOG("Invalid encoding format");
-		sf_close(inFile);
 		return false;
 	};
 
+	// Open write file
 	if (!(outFile = sf_open(convertedFilePath, SFM_WRITE, &sfInfo))) {
 		LOG("Error : could not open file %s", convertedFilePath);
-		sf_close(inFile);
 		return false;
 	};
+	DEFER {
+		sf_close(outFile);
+	};
 
-	while ((readCount = (int) sf_read_double(inFile, data, BUFFER_LEN))) {
-		sf_write_double(outFile, data, readCount);
+	sfInfo.frames = numFrames;
+	if (convertToMono) {
+		sf_count_t numFramess = sf_writef_short(outFile, audioDataOut, sfInfo.frames);
+	} else {
+		sf_count_t numFramess = sf_writef_short(outFile, audioDataIn, sfInfo.frames);
 	}
-
-	sf_close(inFile);
-	sf_close(outFile);
 
 	return true;
 }
