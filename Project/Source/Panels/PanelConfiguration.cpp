@@ -11,13 +11,13 @@
 #include "Modules/ModuleCamera.h"
 #include "Modules/ModuleResources.h"
 #include "Modules/ModulePhysics.h"
+#include "Modules/ModuleAudio.h"
 #include "Modules/ModuleConfiguration.h"
 #include "Resources/ResourceScene.h"
 #include "Resources/ResourceNavMesh.h"
 #include "Resources/ResourceTexture.h"
 #include "Scene.h"
 #include "Utils/ImGuiUtils.h"
-
 
 #include "GL/glew.h"
 #include "imgui.h"
@@ -304,13 +304,32 @@ void PanelConfiguration::Update() {
 			ImGui::Separator();
 			ImGui::ResourceSlot<ResourceTexture>("Cursor Texture", &scene->cursorId);
 
-			int widthCursor = scene->widthCursor;			
+			int widthCursor = scene->widthCursor;
 			if (ImGui::DragInt("Width Cursor", &widthCursor, 1, 10, 100)) {
 				scene->widthCursor = widthCursor;
 			}
 			int heightCursor = scene->heightCursor;
 			if (ImGui::DragInt("Height Cursor", &heightCursor, 1, 10, 100)) {
 				scene->heightCursor = heightCursor;
+			}
+		}
+
+		// Sound
+		if (ImGui::CollapsingHeader("Sound")) {
+			std::string currentDevice = App->audio->GetCurrentDevice();
+			if (ImGui::BeginCombo("Output Device", currentDevice.c_str())) {
+				std::vector<std::string> devices;
+				App->audio->GetSoundDevices(devices);
+				for (int n = 0; n < devices.size(); ++n) {
+					bool isSelected = (currentDevice.c_str() == devices[n].c_str());
+					if (ImGui::Selectable(devices[n].c_str(), isSelected)) {
+						App->audio->SetSoundDevice(n);
+					}
+					if (isSelected) {
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+				ImGui::EndCombo();
 			}
 		}
 	}

@@ -17,6 +17,9 @@
 
 #include "Utils/Leaks.h"
 
+#define JSON_TAG_IS_MONO "IsMono"
+#define JSON_TAG_AUDIO_FORMAT "AudioFormat"
+
 void ResourceAudioClip::Load() {
 	MSTimer timer;
 	timer.Start();
@@ -37,7 +40,6 @@ void ResourceAudioClip::Load() {
 		return;
 	}
 	DEFER {
-		free(audioData);
 		sf_close(sndfile);
 	};
 
@@ -58,8 +60,10 @@ void ResourceAudioClip::Load() {
 	}
 
 	// Decode the whole audio file to a buffer
-
 	audioData = static_cast<short*>(malloc((size_t)(sfinfo.frames * sfinfo.channels) * sizeof(short)));
+	DEFER {
+		free(audioData);
+	};
 	numFrames = sf_readf_short(sndfile, audioData, sfinfo.frames);
 	if (numFrames < 1) {
 		LOG("Failed to read samples in %s (%" PRId64 ")", filePath, numFrames);
@@ -87,4 +91,14 @@ void ResourceAudioClip::Unload() {
 		alDeleteBuffers(1, &ALbuffer);
 		ALbuffer = 0;
 	}
+}
+
+void ResourceAudioClip::LoadResourceMeta(JsonValue jResourceMeta) {
+	isMono = jResourceMeta[JSON_TAG_IS_MONO];
+	audioFormat = (AudioFormat)(int) jResourceMeta[JSON_TAG_AUDIO_FORMAT];
+}
+
+void ResourceAudioClip::SaveResourceMeta(JsonValue jResourceMeta) {
+	jResourceMeta[JSON_TAG_IS_MONO] = isMono;
+	jResourceMeta[JSON_TAG_AUDIO_FORMAT] = (int) audioFormat;
 }

@@ -9,18 +9,21 @@
 #include "Utils/Leaks.h"
 
 #define JSON_TAG_GAIN "Gain"
+#define JSON_TAG_IS_CUSTOM_POS "IsCustomPos"
 #define JSON_TAG_MODEL_INDEX "ModelIndex"
 #define JSON_TAG_CLAMPED "Clamped"
 #define JSON_TAG_DISTANCE_MODEL "DistanceModel"
+#define JSON_TAG_DOPPLER_FACTOR "DopplerFactor"
 
 void ComponentAudioListener::Init() {
 	alListenerf(AL_GAIN, gain);
-	UpdateAudioListener();
+	alDopplerFactor(dopplerFactor);
+	if (!isCustomPos) UpdateAudioListener();
 	UpdateDistanceModel();
 }
 
 void ComponentAudioListener::Update() {
-	UpdateAudioListener();
+	if (!isCustomPos) UpdateAudioListener();
 }
 
 void ComponentAudioListener::OnEditorUpdate() {
@@ -34,7 +37,14 @@ void ComponentAudioListener::OnEditorUpdate() {
 		}
 	}
 	ImGui::Separator();
-
+	ImGui::Checkbox("Custom Position", &isCustomPos);
+	if (isCustomPos) {
+		ImGui::SameLine();
+		App->editor->HelpMarker("Set position and direction from script");
+	}
+	if (ImGui::DragFloat("Doppler factor", &dopplerFactor, App->editor->dragSpeed2f, 0.0f, 1.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp)) {
+		alDopplerFactor(dopplerFactor);
+	}
 	if (ImGui::Combo("Distance Model", &model, distanceModels, IM_ARRAYSIZE(distanceModels))) {
 		UpdateDistanceModel();
 	}
@@ -46,20 +56,24 @@ void ComponentAudioListener::OnEditorUpdate() {
 	ImGui::Separator();
 }
 
-void ComponentAudioListener::Save(JsonValue jComponent) const {
-	jComponent[JSON_TAG_GAIN] = gain;
-	jComponent[JSON_TAG_MODEL_INDEX] = model;
-	JsonValue jDistanceModel = jComponent[JSON_TAG_DISTANCE_MODEL];
-	jDistanceModel = (int) distanceModel;
-	jComponent[JSON_TAG_CLAMPED] = clamped;
-}
-
 void ComponentAudioListener::Load(JsonValue jComponent) {
 	gain = jComponent[JSON_TAG_GAIN];
+	isCustomPos = jComponent[JSON_TAG_IS_CUSTOM_POS];
 	JsonValue jDistanceModel = jComponent[JSON_TAG_DISTANCE_MODEL];
 	distanceModel = (DistanceModel)(int) jDistanceModel;
 	model = (int) distanceModel;
 	clamped = jComponent[JSON_TAG_CLAMPED];
+	dopplerFactor = jComponent[JSON_TAG_DOPPLER_FACTOR];
+}
+
+void ComponentAudioListener::Save(JsonValue jComponent) const {
+	jComponent[JSON_TAG_GAIN] = gain;
+	jComponent[JSON_TAG_IS_CUSTOM_POS] = isCustomPos;
+	jComponent[JSON_TAG_MODEL_INDEX] = model;
+	JsonValue jDistanceModel = jComponent[JSON_TAG_DISTANCE_MODEL];
+	jDistanceModel = (int) distanceModel;
+	jComponent[JSON_TAG_CLAMPED] = clamped;
+	jComponent[JSON_TAG_DOPPLER_FACTOR] = dopplerFactor;
 }
 
 void ComponentAudioListener::OnEnable() {
@@ -71,29 +85,25 @@ void ComponentAudioListener::OnDisable() {
 }
 
 void ComponentAudioListener::UpdateAudioListener() {
-	// For now, the AudioListener will follow the direction / position of the Camera attached to the GameObject
+	float3 position;
+	float3 front;
+	float3 up;
+
 	ComponentCamera* camera = GetOwner().GetComponent<ComponentCamera>();
-	if (camera == nullptr) {
-		LOG("Warning: AudioListener has to be attached to a GameObject with a Camera Component");
-		alListener3f(AL_POSITION, 0.0f, 0.0f, 0.0f);
-		alListener3f(AL_ORIENTATION, 0.0f, 0.0f, 0.0f);
-		return;
+	if (camera) {
+		Frustum* frustum = camera->GetFrustum();
+		position = frustum->Pos();
+		front = frustum->Front();
+		up = frustum->Up();
+	} else {
+		ComponentTransform* transform = GetOwner().GetComponent<ComponentTransform>();
+		position = transform->GetGlobalPosition();
+		front = transform->GetGlobalRotation() * float3::unitZ;
+		up = transform->GetGlobalRotation() * float3::unitY;
 	}
 
-	Frustum* frustum = camera->GetFrustum();
-	float3 position = frustum->Pos();
-	float3 front = frustum->Front();
-	float3 up = frustum->Up();
-	float orientation[6] {
-		front[0],
-		front[1],
-		front[2],
-		up[0],
-		up[1],
-		up[2],
-	};
-	alListenerfv(AL_POSITION, position.ptr());
-	alListenerfv(AL_ORIENTATION, orientation);
+	SetPosition(position);
+	SetDirection(front, up);
 }
 
 void ComponentAudioListener::UpdateDistanceModel() {
@@ -129,6 +139,21 @@ float ComponentAudioListener::GetAudioVolume() const {
 
 void ComponentAudioListener::SetAudioVolume(float volume) {
 	gain = volume;
-	alListenerf(AL_GAIN, (ALfloat) volume);
-	UpdateAudioListener();
+	alListenerf(AL_GAIN, gain);
+}
+
+void ComponentAudioListener::SetPosition(float3 position) {
+	alListenerfv(AL_POSITION, position.ptr());
+}
+
+void ComponentAudioListener::SetDirection(float3 front, float3 up) {
+	float orientation[6] {
+		front[0],
+		front[1],
+		front[2],
+		up[0],
+		up[1],
+		up[2],
+	};
+	alListenerfv(AL_ORIENTATION, orientation);
 }

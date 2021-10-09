@@ -19,7 +19,7 @@ public:
 	void Load(JsonValue jComponent) override;
 
 	void UpdateAudioSource();
-	void UpdateSourceParameters();
+	bool UpdateSourceParameters();
 	TESSERACT_ENGINE_API void Play();
 	TESSERACT_ENGINE_API void Stop();
 	TESSERACT_ENGINE_API void Pause() const;
@@ -42,6 +42,8 @@ public:
 	TESSERACT_ENGINE_API float GetRollOffFactor() const;
 	TESSERACT_ENGINE_API float GetReferenceDistance() const;
 	TESSERACT_ENGINE_API float GetMaxDistance() const;
+	TESSERACT_ENGINE_API float GetGainMultiplier() const;
+	TESSERACT_ENGINE_API float GetIsMusic() const;
 
 	// --- SETTERS ---
 
@@ -58,6 +60,8 @@ public:
 	TESSERACT_ENGINE_API void SetRollOffFactor(float _rollOffFactor);
 	TESSERACT_ENGINE_API void SetReferenceDistance(float _referenceDistance);
 	TESSERACT_ENGINE_API void SetMaxDistance(float _maxDistance);
+	TESSERACT_ENGINE_API void SetGainMultiplier(float _gainMultiplier);
+	TESSERACT_ENGINE_API void SetIsMusic(float _isMusic);
 
 private:
 	bool drawGizmos = true;
@@ -73,6 +77,7 @@ private:
 	float gain = 1.f;
 	float pitch = 1.f;
 	bool playOnAwake = false;
+	bool isMusic = false;
 
 	int spatialBlend = 1;	  // 2D = 0; 3D = 1;
 	int sourceType = 0;		  // Omnidirectional = 0; Directional = 1;
@@ -82,4 +87,5 @@ private:
 	float rollOffFactor = 1.0f;
 	float referenceDistance = 10.0f;
 	float maxDistance = 30.0f;
+	float gainMultiplier = 1.0f;
 };

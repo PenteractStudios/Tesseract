@@ -26,12 +26,54 @@ void PanelAudioMixer::Update() {
 			return;
 		}
 		Pool<ComponentAudioListener>::Iterator audioListener = App->scene->scene->audioListenerComponents.begin();
-		float gain = (*audioListener).GetAudioVolume();
+		gainMainChannel = (*audioListener).GetAudioVolume();
 
-		ImGui::TextColored(App->editor->titleColor, "Output Volume");
-		if (ImGui::SliderFloat("##out_volume", &gain, 0.f, 1.f)) {
-			(*audioListener).SetAudioVolume(gain);
+		ImGui::TextColored(App->editor->titleColor, "Main Volume");
+		if (ImGui::SliderFloat("##main_volume", &gainMainChannel, 0.f, 1.f)) {
+			(*audioListener).SetAudioVolume(gainMainChannel);
+		}
+		ImGui::Separator();
+		ImGui::NewLine();
+		ImGui::TextColored(App->editor->titleColor, "Music Volume");
+		if (ImGui::SliderFloat("##music_volume", &gainMusicChannel, 0.f, 1.f)) {
+			for (ComponentAudioSource& audioSource : App->scene->scene->audioSourceComponents) {
+				if (audioSource.GetIsMusic()) {
+					audioSource.SetGainMultiplier(gainMusicChannel);
+				}
+			}
+		}
+		ImGui::TextColored(App->editor->titleColor, "SFX Volume");
+		if (ImGui::SliderFloat("##sfx_volume", &gainSFXChannel, 0.f, 1.f)) {
+			for (ComponentAudioSource& audioSource : App->scene->scene->audioSourceComponents) {
+				if (!audioSource.GetIsMusic()) {
+					audioSource.SetGainMultiplier(gainSFXChannel);
+				}
+			}
 		}
 	}
 	ImGui::End();
+}
+
+float PanelAudioMixer::GetGainMainChannel() const {
+	return gainMainChannel;
+}
+
+float PanelAudioMixer::GetGainMusicChannel() const {
+	return gainMusicChannel;
+}
+
+float PanelAudioMixer::GetGainSFXChannel() const {
+	return gainSFXChannel;
+}
+
+void PanelAudioMixer::GetGainMainChannel(float _gainMainChannel) {
+	gainMainChannel = _gainMainChannel;
+}
+
+void PanelAudioMixer::SetGainMusicChannel(float _gainMusicChannel) {
+	gainMusicChannel = _gainMusicChannel;
+}
+
+void PanelAudioMixer::SetGainSFXChannel(float _gainSFXChannel) {
+	gainSFXChannel = _gainSFXChannel;
 }
