@@ -23,7 +23,7 @@ public:
 	TESSERACT_ENGINE_API void SetRotation(Quat rotation);
 	TESSERACT_ENGINE_API void SetRotation(float3 rotation);
 	TESSERACT_ENGINE_API void SetScale(float3 scale);
-	TESSERACT_ENGINE_API void SetTRS(float4x4& newTransform);
+	TESSERACT_ENGINE_API void SetTRS(const float4x4& newTransform);
 	TESSERACT_ENGINE_API void SetGlobalPosition(float3 position);
 	TESSERACT_ENGINE_API void SetGlobalRotation(Quat rotation);
 	TESSERACT_ENGINE_API void SetGlobalRotation(float3 rotation);

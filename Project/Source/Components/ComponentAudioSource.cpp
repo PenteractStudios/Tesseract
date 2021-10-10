@@ -7,11 +7,13 @@
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleTime.h"
 #include "Resources/ResourceAudioClip.h"
+#include "Panels/PanelAudioMixer.h"
 #include "Utils/ImGuiUtils.h"
 
 #include "AL/al.h"
 #include "debugdraw.h"
 #include "Math/float3.h"
+#include "IconsFontAwesome5.h"
 
 #include "Utils/Leaks.h"
 
@@ -29,6 +31,7 @@
 #define JSON_TAG_ROLLOFF_FACTOR "RolloffFactor"
 #define JSON_TAG_REFERENCE_DISTANCE "ReferenceDistance"
 #define JSON_TAG_MAX_DISTANCE "MaxDistance"
+#define JSON_TAG_MUSIC "IsMusic"
 
 ComponentAudioSource::~ComponentAudioSource() {
 	Stop();
@@ -93,29 +96,67 @@ void ComponentAudioSource::OnEditorUpdate() {
 	ImGui::Separator();
 	ImGui::Checkbox("Draw Gizmos", &drawGizmos);
 	ImGui::Separator();
-	ImGui::TextColored(App->editor->titleColor, "General Settings");
+	ImGui::PushItemWidth(200);
 
+	ImGui::TextColored(App->editor->titleColor, "Player");
+	std::string play = std::string(" " ICON_FA_PLAY " ");
+	std::string pause = std::string(" " ICON_FA_PAUSE " ");
+	std::string stop = std::string(" " ICON_FA_STOP " ");
+	if (ImGui::Button(play.c_str())) {
+		Play();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button(pause.c_str())) {
+		Pause();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button(stop.c_str())) {
+		Stop();
+	}
+	ImGui::NewLine();
+
+	ImGui::TextColored(App->editor->titleColor, "Channel Settings");
+	int channel = isMusic;
+	if (ImGui::RadioButton("Music", &channel, 1)) {
+		isMusic = true;
+		gainMultiplier = App->editor->panelAudioMixer.GetGainMusicChannel();
+		if (!mute) {
+			alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+		}
+	}
+	ImGui::SameLine();
+	if (ImGui::RadioButton("SFX", &channel, 0)) {
+		isMusic = false;
+		gainMultiplier = App->editor->panelAudioMixer.GetGainSFXChannel();
+		if (!mute) {
+			alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+		}
+	}
+	ImGui::NewLine();
+
+	ImGui::TextColored(App->editor->titleColor, "General Settings");
 	ImGui::ResourceSlot<ResourceAudioClip>("AudioClip", &audioClipId, [this]() { Stop(); });
 
 	if (ImGui::Checkbox("Mute", &mute)) {
 		if (mute) {
 			alSourcef(sourceId, AL_GAIN, 0.0f);
 		} else {
-			alSourcef(sourceId, AL_GAIN, gain);
+			alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
 		}
 	}
-
 	if (ImGui::Checkbox("Loop", &loop)) {
 		alSourcef(sourceId, AL_LOOPING, loop);
 	}
 	if (ImGui::DragFloat("Gain", &gain, App->editor->dragSpeed3f, 0, 1)) {
-		alSourcef(sourceId, AL_GAIN, gain);
+		if (!mute) {
+			alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+		}
 	}
 	if (ImGui::DragFloat("Pitch", &pitch, App->editor->dragSpeed3f, 0.5, 2)) {
 		alSourcef(sourceId, AL_PITCH, pitch);
 	}
 	ImGui::Checkbox("Play On Awake", &playOnAwake);
-	ImGui::Separator();
+	ImGui::NewLine();
 
 	ImGui::TextColored(App->editor->titleColor, "Position Settings");
 	ImGui::Text("Spatial Blend");
@@ -177,31 +218,19 @@ void ComponentAudioSource::OnEditorUpdate() {
 		}
 	}
 
-	ImGui::Separator();
-
-	if (ImGui::Button("Play")) {
-		Play();
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Pause")) {
-		Pause();
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Stop")) {
-		Stop();
-	}
+	ImGui::NewLine();
+	ImGui::PopItemWidth();
 }
 
-void ComponentAudioSource::UpdateSourceParameters() {
+bool ComponentAudioSource::UpdateSourceParameters() {
 	ResourceAudioClip* audioResource = App->resources->GetResource<ResourceAudioClip>(audioClipId);
-	if (audioResource == nullptr) return;
+	if (audioResource == nullptr) return false;
 
 	// EDIT HERE - check if resource exists, else get buffer
 
 	alSourcef(sourceId, AL_PITCH, pitch);
 	alSourcei(sourceId, AL_LOOPING, loop);
 	alSourcei(sourceId, AL_BUFFER, audioResource->ALbuffer); // buffer here
-	audioResource->AddSource(this);
 
 	if (!spatialBlend) {
 		alSourcei(sourceId, AL_SOURCE_RELATIVE, AL_TRUE);
@@ -224,18 +253,21 @@ void ComponentAudioSource::UpdateSourceParameters() {
 	if (mute) {
 		alSourcef(sourceId, AL_GAIN, 0.0f);
 	} else {
-		alSourcef(sourceId, AL_GAIN, gain);
+		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
 	}
 	alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFactor);
 	alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
 	alSourcef(sourceId, AL_MAX_DISTANCE, maxDistance);
+
+	return true;
 }
 
 void ComponentAudioSource::Play() {
 	if (IsActive()) {
-		sourceId = App->audio->GetAvailableSource();
-		UpdateSourceParameters();
-		alSourcePlay(sourceId);
+		if (!IsPlaying() && !IsPaused()) {
+			sourceId = App->audio->GetAvailableSource();
+		}
+		if (UpdateSourceParameters()) alSourcePlay(sourceId);
 	}
 }
 
@@ -243,11 +275,6 @@ void ComponentAudioSource::Stop() {
 	if (sourceId) {
 		alSourceStop(sourceId);
 		alSourcei(sourceId, AL_BUFFER, NULL);
-
-		ResourceAudioClip* audioResource = App->resources->GetResource<ResourceAudioClip>(audioClipId);
-		if (audioResource != nullptr) {
-			audioResource->RemoveSource(this);
-		}
 		sourceId = 0;
 	}
 }
@@ -259,18 +286,21 @@ void ComponentAudioSource::Pause() const {
 }
 
 bool ComponentAudioSource::IsPlaying() const {
+	if (!sourceId) return false;
 	ALint state;
 	alGetSourcei(sourceId, AL_SOURCE_STATE, &state);
 	return (state == AL_PLAYING);
 }
 
 bool ComponentAudioSource::IsPaused() const {
+	if (!sourceId) return false;
 	ALint state;
 	alGetSourcei(sourceId, AL_SOURCE_STATE, &state);
 	return (state == AL_PAUSED);
 }
 
 bool ComponentAudioSource::IsStopped() const {
+	if (!sourceId) return true;
 	ALint state;
 	alGetSourcei(sourceId, AL_SOURCE_STATE, &state);
 	return (state == AL_STOPPED || state == AL_INITIAL);
@@ -291,6 +321,7 @@ void ComponentAudioSource::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_ROLLOFF_FACTOR] = rollOffFactor;
 	jComponent[JSON_TAG_REFERENCE_DISTANCE] = referenceDistance;
 	jComponent[JSON_TAG_MAX_DISTANCE] = maxDistance;
+	jComponent[JSON_TAG_MUSIC] = isMusic;
 }
 
 void ComponentAudioSource::Load(JsonValue jComponent) {
@@ -308,6 +339,7 @@ void ComponentAudioSource::Load(JsonValue jComponent) {
 	rollOffFactor = jComponent[JSON_TAG_ROLLOFF_FACTOR];
 	referenceDistance = jComponent[JSON_TAG_REFERENCE_DISTANCE];
 	maxDistance = jComponent[JSON_TAG_MAX_DISTANCE];
+	isMusic = jComponent[JSON_TAG_MUSIC];
 
 	if (audioClipId) {
 		App->resources->IncreaseReferenceCount(audioClipId);
@@ -368,22 +400,40 @@ float ComponentAudioSource::GetMaxDistance() const {
 	return maxDistance;
 }
 
+float ComponentAudioSource::GetGainMultiplier() const {
+	return gainMultiplier;
+}
+
+float ComponentAudioSource::GetIsMusic() const {
+	return isMusic;
+}
+
 // --- SETTERS ---
 
 void ComponentAudioSource::SetMute(bool _mute) {
 	mute = _mute;
+	if (mute) {
+		alSourcef(sourceId, AL_GAIN, 0.0f);
+	} else {
+		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+	}
 }
 
 void ComponentAudioSource::SetLoop(bool _loop) {
 	loop = _loop;
+	alSourcei(sourceId, AL_LOOPING, loop);
 }
 
 void ComponentAudioSource::SetGain(float _gain) {
 	gain = _gain;
+	if (!mute) {
+		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+	}
 }
 
 void ComponentAudioSource::SetPitch(float _pitch) {
 	pitch = _pitch;
+	alSourcef(sourceId, AL_PITCH, pitch);
 }
 
 void ComponentAudioSource::SetPlayOnAwake(bool _playOnAwake) {
@@ -400,24 +450,49 @@ void ComponentAudioSource::SetSourceType(int _sourceType) {
 
 void ComponentAudioSource::SetInnerAngle(float _innerAngle) {
 	innerAngle = _innerAngle;
+	alSourcef(sourceId, AL_CONE_INNER_ANGLE, innerAngle);
 }
 
 void ComponentAudioSource::SetOuterAngle(float _outerAngle) {
 	outerAngle = _outerAngle;
+	alSourcef(sourceId, AL_CONE_OUTER_ANGLE, outerAngle);
 }
 
 void ComponentAudioSource::SetOuterGain(float _outerGain) {
 	outerGain = _outerGain;
+	alSourcef(sourceId, AL_CONE_OUTER_GAIN, outerGain);
 }
 
 void ComponentAudioSource::SetRollOffFactor(float _rollOffFactor) {
 	rollOffFactor = _rollOffFactor;
+	alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFactor);
 }
 
 void ComponentAudioSource::SetReferenceDistance(float _referenceDistance) {
 	referenceDistance = _referenceDistance;
+	alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
 }
 
 void ComponentAudioSource::SetMaxDistance(float _maxDistance) {
 	maxDistance = _maxDistance;
+	alSourcef(sourceId, AL_MAX_DISTANCE, maxDistance);
+}
+
+void ComponentAudioSource::SetGainMultiplier(float _gainMultiplier) {
+	gainMultiplier = _gainMultiplier;
+	if (!mute) {
+		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+	}
+}
+
+void ComponentAudioSource::SetIsMusic(float _isMusic) {
+	isMusic = _isMusic;
+	if (isMusic) {
+		gainMultiplier = App->editor->panelAudioMixer.GetGainMusicChannel();
+	} else {
+		gainMultiplier = App->editor->panelAudioMixer.GetGainSFXChannel();
+	}
+	if (!mute) {
+		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+	}
 }

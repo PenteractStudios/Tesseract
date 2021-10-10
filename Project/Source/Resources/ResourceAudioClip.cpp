@@ -17,6 +17,9 @@
 
 #include "Utils/Leaks.h"
 
+#define JSON_TAG_IS_MONO "IsMono"
+#define JSON_TAG_AUDIO_FORMAT "AudioFormat"
+
 void ResourceAudioClip::Load() {
 	MSTimer timer;
 	timer.Start();
@@ -37,7 +40,6 @@ void ResourceAudioClip::Load() {
 		return;
 	}
 	DEFER {
-		free(audioData);
 		sf_close(sndfile);
 	};
 
@@ -58,8 +60,10 @@ void ResourceAudioClip::Load() {
 	}
 
 	// Decode the whole audio file to a buffer
-
 	audioData = static_cast<short*>(malloc((size_t)(sfinfo.frames * sfinfo.channels) * sizeof(short)));
+	DEFER {
+		free(audioData);
+	};
 	numFrames = sf_readf_short(sndfile, audioData, sfinfo.frames);
 	if (numFrames < 1) {
 		LOG("Failed to read samples in %s (%" PRId64 ")", filePath, numFrames);
@@ -83,20 +87,18 @@ void ResourceAudioClip::Load() {
 }
 
 void ResourceAudioClip::Unload() {
-	while (!componentAudioSources.empty()) {
-		componentAudioSources.back()->Stop();
+	if (ALbuffer) {
+		alDeleteBuffers(1, &ALbuffer);
+		ALbuffer = 0;
 	}
-	alDeleteBuffers(1, &ALbuffer);
-	ALbuffer = 0;
 }
 
-void ResourceAudioClip::AddSource(ComponentAudioSource* component) {
-	componentAudioSources.push_back(component);
+void ResourceAudioClip::LoadResourceMeta(JsonValue jResourceMeta) {
+	isMono = jResourceMeta[JSON_TAG_IS_MONO];
+	audioFormat = (AudioFormat)(int) jResourceMeta[JSON_TAG_AUDIO_FORMAT];
 }
 
-void ResourceAudioClip::RemoveSource(ComponentAudioSource* component) {
-	auto it = find(componentAudioSources.begin(), componentAudioSources.end(), component);
-	if (it != componentAudioSources.end()) {
-		componentAudioSources.erase(it);
-	}
+void ResourceAudioClip::SaveResourceMeta(JsonValue jResourceMeta) {
+	jResourceMeta[JSON_TAG_IS_MONO] = isMono;
+	jResourceMeta[JSON_TAG_AUDIO_FORMAT] = (int) audioFormat;
 }

@@ -47,6 +47,8 @@ public:
 	virtual void OnAnimationSecondaryFinished() {}
 	virtual void OnAnimationEvent(StateMachineEnum /* stateMachineEnum */, const char* /* eventName */) {}
 	virtual void OnCollision(GameObject& /* collidedWith */, float3 /* collisionNormal */, float3 /* penetrationDistance */, void* /* particle = nullptr */) {}
+	virtual void OnEnable() {}
+	virtual void OnDisable() {}
 
 private:
 	GameObject* owner = nullptr;

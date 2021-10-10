@@ -7,6 +7,7 @@
 #include <string>
 #include <variant>
 
+class Scene;
 class GameObject;
 class Component;
 class Resource;
@@ -36,9 +37,9 @@ enum class TesseractEventType {
 	MOUSE_CLICKED,
 	MOUSE_RELEASED,
 	CHANGE_SCENE,
-	RESOURCES_LOADED,
 	COMPILATION_FINISHED,
 	SCREEN_RESIZED,
+	PROJECTION_CHANGED,
 	COUNT
 };
 
@@ -61,9 +62,11 @@ struct DestroyResourceStruct {
 };
 
 struct DestroyGameObjectStruct {
+	Scene* scene = nullptr;
 	GameObject* gameObject = nullptr;
-	DestroyGameObjectStruct(GameObject* gameObject_)
-		: gameObject(gameObject_) {}
+	DestroyGameObjectStruct(Scene* scene_, GameObject* gameObject_)
+		: scene(scene_)
+		, gameObject(gameObject_) {}
 };
 
 struct UpdateAssetCacheStruct {

@@ -13,12 +13,17 @@
 class ComponentScript : public Component {
 public:
 	REGISTER_COMPONENT(ComponentScript, ComponentType::SCRIPT, true);
+	~ComponentScript();
 
+	void Init() override;
 	void Start() override;
 
 	void OnEditorUpdate() override;
 	void Save(JsonValue jComponent) const override;
 	void Load(JsonValue jComponent) override;
+
+	void OnDisable() override;
+	void OnEnable() override;
 
 	void CreateScriptInstance();
 	void ReleaseScriptInstance();

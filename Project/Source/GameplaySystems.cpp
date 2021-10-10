@@ -566,3 +566,9 @@ void Navigation::Raycast(float3 startPosition, float3 targetPosition, bool& hitR
 		App->navigation->Raycast(startPosition, targetPosition, hitResult, hitPosition);
 	}
 }
+
+void Navigation::GetNavMeshHeightInPosition(const float3 position, float& height) {
+	if (App->navigation != nullptr) {
+		App->navigation->GetNavMeshHeightInPosition(position, height);
+	}
+}

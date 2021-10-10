@@ -90,6 +90,10 @@ static void SaveJSON(const char* filePath, rapidjson::Document& document) {
 bool ModuleResources::Init() {
 	ilInit();
 	iluInit();
+	ilEnable(IL_KEEP_DXTC_DATA);
+	ilEnable(IL_ORIGIN_SET);
+	ilSetInteger(IL_ORIGIN_MODE, IL_ORIGIN_UPPER_LEFT);
+
 	App->events->AddObserverToEvent(TesseractEventType::CREATE_RESOURCE, this);
 	App->events->AddObserverToEvent(TesseractEventType::DESTROY_RESOURCE, this);
 	App->events->AddObserverToEvent(TesseractEventType::UPDATE_ASSET_CACHE, this);
@@ -124,6 +128,14 @@ UpdateStatus ModuleResources::Update() {
 bool ModuleResources::CleanUp() {
 	stopImportThread = true;
 	importThread.join();
+
+	for (auto& entry : resources) {
+		Resource* resource = entry.second.get();
+		if (resource != nullptr) {
+			resource->Unload();
+		}
+	}
+	resources.clear();
 	return true;
 }
 
@@ -132,7 +144,9 @@ void ModuleResources::ReceiveEvent(TesseractEvent& e) {
 		CreateResourceStruct& createResourceStruct = e.Get<CreateResourceStruct>();
 		Resource* resource = CreateResourceByType(createResourceStruct.type, createResourceStruct.resourceName.c_str(), createResourceStruct.assetFilePath.c_str(), createResourceStruct.resourceId);
 		UID id = resource->GetId();
+		resourcesMutex.lock();
 		resources[id].reset(resource);
+		resourcesMutex.unlock();
 
 		if (GetReferenceCount(id) > 0) {
 			LoadResource(resource);
@@ -140,10 +154,16 @@ void ModuleResources::ReceiveEvent(TesseractEvent& e) {
 
 	} else if (e.type == TesseractEventType::DESTROY_RESOURCE) {
 		UID id = e.Get<DestroyResourceStruct>().resourceId;
+		resourcesMutex.lock();
 		auto& it = resources.find(id);
+		std::unique_ptr<Resource> resource = nullptr;
 		if (it != resources.end()) {
-			it->second->Unload();
+			resource.swap(it->second);
 			resources.erase(it);
+		}
+		resourcesMutex.unlock();
+		if (resource.get() != nullptr) {
+			UnloadResource(resource.get());
 		}
 	} else if (e.type == TesseractEventType::UPDATE_ASSET_CACHE) {
 		AssetCache* newAssetCache = e.Get<UpdateAssetCacheStruct>().assetCache;
@@ -286,11 +306,11 @@ void ModuleResources::IncreaseReferenceCount(UID id) {
 	if (referenceCounts.find(id) != referenceCounts.end()) {
 		referenceCounts[id] = referenceCounts[id] + 1;
 	} else {
+		referenceCounts[id] = 1;
 		Resource* resource = GetResource<Resource>(id);
 		if (resource != nullptr) {
 			LoadResource(resource);
 		}
-		referenceCounts[id] = 1;
 	}
 }
 
@@ -300,11 +320,11 @@ void ModuleResources::DecreaseReferenceCount(UID id) {
 	if (referenceCounts.find(id) != referenceCounts.end()) {
 		referenceCounts[id] = referenceCounts[id] - 1;
 		if (referenceCounts[id] <= 0) {
+			referenceCounts.erase(id);
 			Resource* resource = GetResource<Resource>(id);
 			if (resource != nullptr) {
-				resource->Unload();
+				UnloadResource(resource);
 			}
-			referenceCounts.erase(id);
 		}
 	}
 }
@@ -410,8 +430,6 @@ void ModuleResources::UpdateAsync() {
 		updateAssetCacheEv.Set<UpdateAssetCacheStruct>(newAssetCache);
 		App->events->AddEvent(updateAssetCacheEv);
 #endif
-
-		App->events->AddEvent(TesseractEventType::RESOURCES_LOADED);
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BETWEEN_RESOURCE_UPDATES_MS));
 	}
@@ -551,6 +569,8 @@ void ModuleResources::DestroyResource(UID id) {
 }
 
 void ModuleResources::LoadResource(Resource* resource) {
+	if (resource->loaded) return;
+
 	// Read resource meta file
 	bool resourceMetaLoaded = true;
 	std::string resourceMetaFile = resource->GetResourceFilePath() + META_EXTENSION;
@@ -580,6 +600,16 @@ void ModuleResources::LoadResource(Resource* resource) {
 
 	// Load resource
 	resource->Load();
+
+	resource->loaded = true;
+}
+
+void ModuleResources::UnloadResource(Resource* resource) {
+	if (!resource->loaded) return;
+
+	resource->Unload();
+
+	resource->loaded = false;
 }
 
 void ModuleResources::LoadImportOptions(std::unique_ptr<ImportOptions>& importOptions, const char* filePath) {
@@ -588,6 +618,9 @@ void ModuleResources::LoadImportOptions(std::unique_ptr<ImportOptions>& importOp
 		if (extension == JPG_TEXTURE_EXTENSION || extension == PNG_TEXTURE_EXTENSION || extension == TIF_TEXTURE_EXTENSION || extension == DDS_TEXTURE_EXTENSION || extension == TGA_TEXTURE_EXTENSION) {
 			// Texture files
 			importOptions.reset(new TextureImportOptions());
+		} else if (extension == WAV_AUDIO_EXTENSION || extension == OGG_AUDIO_EXTENSION) {
+			// Audio files
+			importOptions.reset(new AudioImportOptions());
 		} else {
 			return;
 		}

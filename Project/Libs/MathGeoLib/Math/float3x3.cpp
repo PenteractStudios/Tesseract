@@ -1081,25 +1081,21 @@ void float3x3::Orthonormalize(int c0, int c1, int c2)
 	SetCol(c2, v2);
 }
 
-void float3x3::RemoveScale()
-{
-	assume(IsFinite());
-#ifdef MATH_COLMAJOR_MATRICES
-	float3 row0 = Row(0);
-	float3 row1 = Row(1);
-	float3 row2 = Row(2);
-	float x = row0.Normalize();
-	float y = row1.Normalize();
-	float z = row2.Normalize();
-#else
-	float x = Row(0).Normalize();
-	float y = Row(1).Normalize();
-	float z = Row(2).Normalize();
-#endif
-	assume(x != 0 && y != 0 && z != 0 && "float3x3::RemoveScale failed!");
-	MARK_UNUSED(x);
-	MARK_UNUSED(y);
-	MARK_UNUSED(z);
+void float3x3::RemoveScale() {
+	
+	float3 scale;
+	scale.x = Col(0).Length();
+	scale.y = Col(1).Length();
+	scale.z = Col(2).Length();
+	assume(!EqualAbs(scale.x, 0));
+	assume(!EqualAbs(scale.y, 0));
+	assume(!EqualAbs(scale.z, 0));
+	ScaleCol(0, 1.f / scale.x);
+	ScaleCol(1, 1.f / scale.y);
+	ScaleCol(2, 1.f / scale.z);
+
+	// Test that composing back yields the original float3x3.
+	assume(float3x3::FromRS(*this, scale).Equals(*this, 0.1f));
 }
 
 float3 float3x3::Transform(const float3 &vector) const

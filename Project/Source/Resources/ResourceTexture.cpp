@@ -6,6 +6,7 @@
 #include "Modules/ModuleResources.h"
 #include "Modules/ModuleEditor.h"
 #include "Utils/MSTimer.h"
+#include "Utils/FileUtils.h"
 
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
@@ -18,9 +19,10 @@
 #include "GL/glew.h"
 #include "imgui.h"
 
+#define JSON_TAG_COMPRESSION "Compression"
+#define JSON_TAG_WRAP "Wrap"
 #define JSON_TAG_MINFILTER "MinFilter"
 #define JSON_TAG_MAGFILTER "MagFilter"
-#define JSON_TAG_WRAP "Wrap"
 
 void ResourceTexture::Load() {
 	std::string filePath = GetResourceFilePath();
@@ -30,25 +32,105 @@ void ResourceTexture::Load() {
 	MSTimer timer;
 	timer.Start();
 
-	// Generate image handler
-	unsigned image;
-	ilGenImages(1, &image);
+	// Load image
+	unsigned width = 0;
+	unsigned height = 0;
+	unsigned bpp = 0;
+	unsigned dataSize = 0;
+	unsigned char* imageData = nullptr;
 	DEFER {
-		ilDeleteImages(1, &image);
+		RELEASE(imageData);
 	};
 
-	// Load image
-	ilBindImage(image);
-	bool imageLoaded = ilLoad(IL_RAW, filePath.c_str());
-	if (!imageLoaded) {
-		LOG("Failed to load image.");
-		return;
+	switch (compression) {
+	case TextureCompression::DXT1:
+	case TextureCompression::DXT3:
+	case TextureCompression::DXT5:
+	case TextureCompression::BC7: {
+		Buffer<char> buffer = App->files->Load(filePath.c_str());
+
+		unsigned char* cursor = (unsigned char*) buffer.Data();
+		DDSHeader* header = (DDSHeader*) cursor;
+		cursor += sizeof(DDSHeader);
+
+		width = header->width;
+		height = header->height;
+		bpp = header->pixelFormat.size / 8;
+		dataSize = header->pitchOrLinearSize;
+
+		imageData = new unsigned char[dataSize];
+		memcpy(imageData, cursor, dataSize);
+		break;
+	}
+	default: {
+		// Generate image handler
+		unsigned image;
+		ilGenImages(1, &image);
+		DEFER {
+			ilDeleteImages(1, &image);
+		};
+
+		ilBindImage(image);
+		bool imageLoaded = ilLoad(IL_TGA, filePath.c_str());
+		if (!imageLoaded) {
+			LOG("Failed to load image.");
+			return;
+		}
+
+		width = ilGetInteger(IL_IMAGE_WIDTH);
+		height = ilGetInteger(IL_IMAGE_HEIGHT);
+		bpp = ilGetInteger(IL_IMAGE_BYTES_PER_PIXEL);
+
+		ILenum format = bpp == 4 ? IL_RGBA : IL_RGB;
+
+		// Convert image
+		bool imageConverted = ilConvertImage(format, IL_UNSIGNED_BYTE);
+		if (!imageConverted) {
+			LOG("Failed to convert image.");
+			return;
+		}
+
+		dataSize = width * height * bpp;
+		imageData = new unsigned char[dataSize];
+		memcpy(imageData, ilGetData(), dataSize);
+
+		break;
+	}
 	}
 
 	// Generate texture from image
 	glGenTextures(1, &glTexture);
 	glBindTexture(GL_TEXTURE_2D, glTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, ilGetData());
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	switch (compression) {
+	case TextureCompression::NONE: {
+		int internalFormat = bpp == 4 ? GL_RGBA8 : GL_RGB8;
+		int format = bpp == 4 ? GL_RGBA : GL_RGB;
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, imageData);
+		break;
+	}
+	case TextureCompression::DXT1: {
+		int internalFormat = bpp == 4 ? GL_COMPRESSED_RGBA_S3TC_DXT1_EXT : GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+		glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataSize, imageData);
+		break;
+	}
+	case TextureCompression::DXT3: {
+		int internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+		glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataSize, imageData);
+		break;
+	}
+	case TextureCompression::DXT5: {
+		int internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+		glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataSize, imageData);
+		break;
+	}
+	case TextureCompression::BC7: {
+		int internalFormat = GL_COMPRESSED_RGBA_BPTC_UNORM_EXT;
+		glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataSize, imageData);
+		break;
+	}
+	}
 
 	// Generate mipmaps and set filtering and wrapping
 	glGenerateMipmap(GL_TEXTURE_2D);
@@ -61,16 +143,21 @@ void ResourceTexture::Load() {
 }
 
 void ResourceTexture::Unload() {
-	glDeleteTextures(1, &glTexture);
+	if (glTexture) {
+		glDeleteTextures(1, &glTexture);
+		glTexture = 0;
+	}
 }
 
 void ResourceTexture::LoadResourceMeta(JsonValue jResourceMeta) {
+	compression = (TextureCompression)(int) jResourceMeta[JSON_TAG_COMPRESSION];
 	wrap = (TextureWrap)(int) jResourceMeta[JSON_TAG_WRAP];
 	minFilter = (TextureMinFilter)(int) jResourceMeta[JSON_TAG_MINFILTER];
 	magFilter = (TextureMagFilter)(int) jResourceMeta[JSON_TAG_MAGFILTER];
 }
 
 void ResourceTexture::SaveResourceMeta(JsonValue jResourceMeta) {
+	jResourceMeta[JSON_TAG_COMPRESSION] = (int) compression;
 	jResourceMeta[JSON_TAG_WRAP] = (int) wrap;
 	jResourceMeta[JSON_TAG_MINFILTER] = (int) minFilter;
 	jResourceMeta[JSON_TAG_MAGFILTER] = (int) magFilter;

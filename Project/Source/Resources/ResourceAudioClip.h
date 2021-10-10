@@ -1,8 +1,13 @@
 #pragma once
 
 #include "Resource.h"
-#include "Components/ComponentAudioSource.h"
+
 #include <vector>
+
+enum class AudioFormat {
+	WAV,
+	OGG
+};
 
 class ResourceAudioClip : public Resource {
 public:
@@ -11,10 +16,12 @@ public:
 	void Load() override;
 	void Unload() override;
 
-	void AddSource(ComponentAudioSource* component);
-	void RemoveSource(ComponentAudioSource* component);
+	void LoadResourceMeta(JsonValue jResourceMeta) override;
+	void SaveResourceMeta(JsonValue jResourceMeta) override;
 
 public:
 	unsigned int ALbuffer = 0;
-	std::vector<ComponentAudioSource*> componentAudioSources;
+
+	bool isMono = false;
+	AudioFormat audioFormat = AudioFormat::WAV;
 };

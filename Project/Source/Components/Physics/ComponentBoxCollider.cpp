@@ -4,6 +4,7 @@
 #include "GameObject.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleTime.h"
+#include "Modules/ModuleScene.h"
 #include "Components/ComponentBoundingBox.h"
 
 #include "debugdraw.h"
@@ -17,29 +18,35 @@
 #define JSON_TAG_COLLIDER_TYPE "colliderType"
 #define JSON_TAG_LAYER_TYPE "layerType"
 
+ComponentBoxCollider::~ComponentBoxCollider() {
+	if (rigidBody) App->physics->RemoveBoxRigidbody(this);
+}
+
 void ComponentBoxCollider::Init() {
 	if (!centerOffset.IsFinite()) {
 		ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();
 		if (boundingBox) {
-			size = boundingBox->GetLocalAABB().Size();
-			centerOffset = boundingBox->GetLocalAABB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
+			size = boundingBox->GetWorldOBB().Size();
+			centerOffset = boundingBox->GetWorldOBB().CenterPoint() - GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
 		} else {
 			centerOffset = float3::zero;
 		}
 	}
+}
 
-	localAABB.SetFromCenterAndSize(centerOffset, size);
-
-	if (App->time->HasGameStarted() && !rigidBody) App->physics->CreateBoxRigidbody(this);
+void ComponentBoxCollider::Start() {
+	if (!rigidBody && IsActive()) App->physics->CreateBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::DrawGizmos() {
 	if (IsActive()) {
 		if (drawGizmo) {
 			float3 points[8];
-			// TODO: dirty{
-			CalculateWorldBoundingBox();
-			//}
+			localAABB.SetFromCenterAndSize(float3::zero, size);
+			worldOBB.SetFrom(localAABB);
+			ComponentTransform* ownerTransform = GetOwner().GetComponent<ComponentTransform>();
+			worldOBB.Transform(ownerTransform->GetGlobalRotation());
+			worldOBB.Translate(ownerTransform->GetGlobalPosition() + ownerTransform->GetGlobalRotation() * centerOffset);
 			worldOBB.GetCornerPoints(points);
 
 			float3 aux;
@@ -112,9 +119,8 @@ void ComponentBoxCollider::OnEditorUpdate() {
 
 	if (ImGui::DragFloat3("Size", size.ptr(), App->editor->dragSpeed3f, 0.0f, inf)) {
 		if (App->time->HasGameStarted()) {
-			((btBoxShape*) rigidBody->getCollisionShape())->setLocalScaling(btVector3(size.x, size.y, size.z));
+			App->physics->UpdateBoxRigidbody(this);
 		}
-		localAABB.SetFromCenterAndSize(centerOffset, size);
 	}
 
 	if (ImGui::DragFloat3("Center Offset", centerOffset.ptr(), App->editor->dragSpeed2f, -inf, inf)) {
@@ -123,7 +129,6 @@ void ComponentBoxCollider::OnEditorUpdate() {
 			Quat rotation = GetOwner().GetComponent<ComponentTransform>()->GetGlobalRotation();
 			rigidBody->setCenterOfMassTransform(btTransform(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w), btVector3(position.x, position.y, position.z)) * btTransform(btQuaternion::getIdentity(), btVector3(centerOffset.x, centerOffset.y, centerOffset.z)));
 		}
-		localAABB.SetFromCenterAndSize(centerOffset, size);
 	}
 
 	if (ImGui::Checkbox("Freeze rotation", &freezeRotation) && App->time->HasGameStarted()) {
@@ -180,11 +185,11 @@ void ComponentBoxCollider::Load(JsonValue jComponent) {
 }
 
 void ComponentBoxCollider::OnEnable() {
-	if (!rigidBody && App->time->HasGameStarted()) App->physics->CreateBoxRigidbody(this);
+	if (!rigidBody && App->time->HasGameStarted() && GetOwner().scene == GetOwner().scene) App->physics->CreateBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::OnDisable() {
-	if (rigidBody && App->time->HasGameStarted()) App->physics->RemoveBoxRigidbody(this);
+	if (rigidBody && App->time->HasGameStarted() && GetOwner().scene == GetOwner().scene) App->physics->RemoveBoxRigidbody(this);
 }
 
 void ComponentBoxCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance, ComponentParticleSystem::Particle* p) {

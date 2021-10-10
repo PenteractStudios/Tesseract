@@ -84,6 +84,20 @@
 // -- Box
 #define JSON_TAG_BOX_EMITTER_FROM "BoxEmitterFrom"
 
+// Velocity over Lifetime
+#define JSON_TAG_VELOCITY_OVER_LIFETIME "VelocityOverLifetime"
+#define JSON_TAG_VELOCITY_LINEAR_RM "VelocityLinearRM"
+#define JSON_TAG_VELOCITY_LINEAR_X "VelocityLinearX"
+#define JSON_TAG_VELOCITY_LINEAR_X_CURVE "VelocityLinearXCurve"
+#define JSON_TAG_VELOCITY_LINEAR_Y "VelocityLinearY"
+#define JSON_TAG_VELOCITY_LINEAR_Y_CURVE "VelocityLinearYCurve"
+#define JSON_TAG_VELOCITY_LINEAR_Z "VelocityLinearZ"
+#define JSON_TAG_VELOCITY_LINEAR_Z_CURVE "VelocityLinearZCurve"
+#define JSON_TAG_VELOCITY_LINEAR_SPACE "VelocityLinearSpace"
+#define JSON_TAG_VELOCITY_SPEED_MODIFIER_RM "VelocitySpeedModifierRM"
+#define JSON_TAG_VELOCITY_SPEED_MODIFIER "VelocitySpeedModifier"
+#define JSON_TAG_VELOCITY_SPEED_MODIFIER_CURVE "VelocitySpeedModifierCurve"
+
 // Rotation over Lifetime
 #define JSON_TAG_ROTATION_OVER_LIFETIME "RotationOverLifetime"
 #define JSON_TAG_ROTATION_FACTOR_RM "RotationFactorRM"
@@ -213,9 +227,15 @@ ComponentParticleSystem::~ComponentParticleSystem() {
 	}
 	subEmitters.clear();
 	subEmittersGO.clear();
+
+	App->resources->DecreaseReferenceCount(textureID);
+	App->resources->DecreaseReferenceCount(textureTrailID);
 }
 
 void ComponentParticleSystem::Init() {
+	App->resources->IncreaseReferenceCount(textureID);
+	App->resources->IncreaseReferenceCount(textureTrailID);
+
 	if (!gradient) gradient = new ImGradient();
 	if (!gradientTrail) gradientTrail = new ImGradient();
 	if (!gradientLight) gradientLight = new ImGradient();
@@ -230,15 +250,18 @@ void ComponentParticleSystem::Init() {
 	InitCurveValues(scaleCurve);
 	InitCurveValues(reverseDistanceCurve);
 	InitCurveValues(gravityFactorCurve);
+	InitCurveValues(velocityLinearXCurve);
+	InitCurveValues(velocityLinearYCurve);
+	InitCurveValues(velocityLinearZCurve);
+	InitCurveValues(velocitySpeedModifierCurve);
 	InitCurveValues(rotationFactorCurve);
 	InitCurveValues(scaleFactorCurve);
 	InitCurveValues(intensityMultiplierCurve);
 	InitCurveValues(rangeMultiplierCurve);
-}
 
-void ComponentParticleSystem::Start() {
+	// Init subemitters
 	for (SubEmitter* subEmitter : subEmitters) {
-		GameObject* gameObject = App->scene->scene->GetGameObject(subEmitter->gameObjectUID);
+		GameObject* gameObject = GetOwner().scene->GetGameObject(subEmitter->gameObjectUID);
 		if (gameObject != nullptr) {
 			ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
 			if (particleSystem != nullptr) {
@@ -253,8 +276,9 @@ void ComponentParticleSystem::Start() {
 		}
 	}
 
+	// Init light
 	if (lightGameObjectUID != 0) {
-		GameObject* gameObject = App->scene->scene->GetGameObject(lightGameObjectUID);
+		GameObject* gameObject = GetOwner().scene->GetGameObject(lightGameObjectUID);
 		if (gameObject != nullptr) {
 			ComponentLight* light = gameObject->GetComponent<ComponentLight>();
 			if (light == nullptr || light->lightType != LightType::POINT) {
@@ -322,7 +346,11 @@ void ComponentParticleSystem::OnEditorUpdate() {
 
 	// Emission
 	if (ImGui::CollapsingHeader("Emission")) {
-		ImGui::Checkbox("Attach to Emitter", &attachEmitter);
+		if (ImGui::Checkbox("Attach to Emitter", &attachEmitter)) {
+			if (isPlaying) {
+				Restart();
+			}
+		}
 		if (ImGuiRandomMenu("Rate over Time", particlesPerSecondRM, particlesPerSecond, nullptr)) {
 			InitStartRate();
 		}
@@ -333,7 +361,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 		ImGui::Checkbox("##gravity_effect", &gravityEffect);
 		if (gravityEffect) {
 			ImGui::SameLine();
-			ImGuiRandomMenu("Gravity##gravity_factor", gravityFactorRM, gravityFactor, gravityFactorCurve);
+			ImGuiRandomMenu("Gravity##gravity_factor", gravityFactorRM, gravityFactor, gravityFactorCurve, false, App->editor->dragSpeed2f, -inf, inf);
 		}
 	}
 
@@ -381,41 +409,64 @@ void ComponentParticleSystem::OnEditorUpdate() {
 				ImGui::Checkbox("Rand Dir##random_cone_radius_up", &randomConeRadiusUp);
 			}
 
-			ImGui::DragFloat("Radius", &shapeRadius, App->editor->dragSpeed2f, 0, inf);
+			ImGui::DragFloat("Radius##shape_radius", &shapeRadius, App->editor->dragSpeed2f, 0, inf);
 			ImGui::DragFloat("Radius Thickness", &shapeRadiusThickness, App->editor->dragSpeed2f, 0, 1, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 			float arcDegree = shapeArc * RADTODEG;
 			ImGui::DragFloat("Arc", &arcDegree, App->editor->dragSpeed2f, 0, 360, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 			shapeArc = arcDegree * DEGTORAD;
 		}
 
-		// TODO: Fix BOX Emitter
+		float3 position = emitterModel.TranslatePart();
+		float3 rotation = emitterModel.RotatePart().ToEulerXYZ() * RADTODEG;
+		float3 scale = emitterModel.GetScale();
+
+		ImGui::NewLine();
+		ImGui::PopItemWidth();
+		ImGui::PushItemWidth(200);
+
+		modified |= ImGui::DragFloat3("Position##local_pos", position.ptr(), App->editor->dragSpeed2f, -inf, inf);
+		modified |= ImGui::DragFloat3("Scale##local_pos", scale.ptr(), App->editor->dragSpeed2f, 0.0001f, inf, "%.3f", ImGuiSliderFlags_AlwaysClamp);
 		if (emitterType != ParticleEmitterType::BOX) {
-			float3 position = emitterModel.TranslatePart();
-			float3 rotation = emitterModel.RotatePart().ToEulerXYZ() * RADTODEG;
-			float3 scale = emitterModel.GetScale();
-
-			ImGui::NewLine();
-			ImGui::PopItemWidth();
-			ImGui::PushItemWidth(200);
-
-			modified |= ImGui::DragFloat3("Position", position.ptr(), App->editor->dragSpeed2f, -inf, inf);
-			modified |= ImGui::DragFloat3("Scale", scale.ptr(), App->editor->dragSpeed2f, 0.0001f, inf, "%.3f", ImGuiSliderFlags_AlwaysClamp);
-			if (emitterType != ParticleEmitterType::BOX) {
-				scale = float3(1.0, 1.0, 1.0);
-				ImGui::SameLine();
-				App->editor->HelpMarker("Scale works only with Box shape");
-			}
-			modified |= ImGui::DragFloat3("Rotation", rotation.ptr(), App->editor->dragSpeed2f, -inf, inf);
-
-			if (modified) {
-				emitterModel = float4x4::FromTRS(position, Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD), scale);
-				float3x3 rotateMatrix = emitterModel.RotatePart();
-				obbEmitter = OBB(float3::zero, emitterModel.GetScale() / 2, rotateMatrix.Col3(0).Normalized(), rotateMatrix.Col3(1).Normalized(), rotateMatrix.Col3(2).Normalized());
-			}
-			ImGui::PopItemWidth();
-			ImGui::PushItemWidth(ITEM_SIZE);
+			scale = float3(1.0, 1.0, 1.0);
+			ImGui::SameLine();
+			App->editor->HelpMarker("Scale works only with Box shape");
 		}
+		modified |= ImGui::DragFloat3("Rotation##local_pos", rotation.ptr(), App->editor->dragSpeed2f, -inf, inf);
+
+		if (modified) {
+			emitterModel = float4x4::FromTRS(position, Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD), scale);
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::PushItemWidth(ITEM_SIZE);
 		ImGui::Unindent();
+	}
+
+	// Velocity over Lifetime
+	if (ImGui::CollapsingHeader("Velocity over Lifetime")) {
+		ImGui::Checkbox("##vel_over_lifetime", &velocityOverLifetime);
+		if (velocityOverLifetime) {
+			ImGuiRandomMenu("Linear X", velocityLinearRM, velocityLinearX, velocityLinearXCurve, false, App->editor->dragSpeed1f, -inf, inf);
+			ImGuiRandomMenu("Linear Y", velocityLinearRM, velocityLinearY, velocityLinearYCurve, false, App->editor->dragSpeed1f, -inf, inf);
+			ImGuiRandomMenu("Linear Z", velocityLinearRM, velocityLinearZ, velocityLinearZCurve, false, App->editor->dragSpeed1f, -inf, inf);
+			ImGui::Indent();
+			const char* velocitySpaceCombo[] = {"World", "Local"};
+			const char* velocitySpaceComboCurrent = velocitySpaceCombo[velocityLinearSpace];
+			if (ImGui::BeginCombo("Space##", velocitySpaceComboCurrent)) {
+				for (int n = 0; n < IM_ARRAYSIZE(velocitySpaceCombo); ++n) {
+					bool isSelected = (velocitySpaceComboCurrent == velocitySpaceCombo[n]);
+					if (ImGui::Selectable(velocitySpaceCombo[n], isSelected)) {
+						velocityLinearSpace = n;
+					}
+					if (isSelected) {
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::Unindent();
+			ImGuiRandomMenu("Speed Modifier", velocitySpeedModifierRM, velocitySpeedModifier, velocitySpeedModifierCurve, false, App->editor->dragSpeed1f, -inf, inf);
+		}
 	}
 
 	// Rotation over Lifetime
@@ -565,7 +616,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 				}
 				ImGui::EndCombo();
 			}
-			ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed2f, 0, inf);
+			ImGui::DragFloat("Radius", &radius, App->editor->dragSpeed3f, 0, inf);
 			ImGui::Unindent();
 		}
 	}
@@ -652,7 +703,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			{
 				ImGui::GameObjectSlot("", &subEmitter->gameObjectUID);
 				if (oldUI != subEmitter->gameObjectUID) {
-					GameObject* gameObject = App->scene->scene->GetGameObject(subEmitter->gameObjectUID);
+					GameObject* gameObject = GetOwner().scene->GetGameObject(subEmitter->gameObjectUID);
 					if (gameObject != nullptr) {
 						ComponentParticleSystem* particleSystem = gameObject->GetComponent<ComponentParticleSystem>();
 						if (particleSystem == nullptr) {
@@ -715,7 +766,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 			UID oldUID = lightGameObjectUID;
 			ImGui::GameObjectSlot("Point Light", &lightGameObjectUID);
 			if (oldUID != lightGameObjectUID) {
-				GameObject* gameObject = App->scene->scene->GetGameObject(lightGameObjectUID);
+				GameObject* gameObject = GetOwner().scene->GetGameObject(lightGameObjectUID);
 				if (gameObject != nullptr) {
 					ComponentLight* light = gameObject->GetComponent<ComponentLight>();
 					if (light == nullptr || light->lightType != LightType::POINT) {
@@ -754,7 +805,7 @@ void ComponentParticleSystem::OnEditorUpdate() {
 				ImGui::PushItemWidth(ITEM_SIZE);
 				ImGui::NewLine();
 			}
-			ImGui::DragInt("Max Lights", &maxLights, 1.0f, 0, 10, "%d", ImGuiSliderFlags_AlwaysClamp);
+			ImGui::DragInt("Max Lights", &maxLights, 1.0f, 0, INT_MAX, "%d", ImGuiSliderFlags_AlwaysClamp);
 
 			ImGui::NewLine();
 			ImGui::SetNextItemWidth(200);
@@ -916,6 +967,28 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	// -- Box
 	boxEmitterFrom = (BoxEmitterFrom)(int) jComponent[JSON_TAG_BOX_EMITTER_FROM];
 
+	// Velocity over Lifetime
+	velocityOverLifetime = jComponent[JSON_TAG_VELOCITY_OVER_LIFETIME];
+	velocityLinearRM = (RandomMode)(int) jComponent[JSON_TAG_VELOCITY_LINEAR_RM];
+	JsonValue jVelocityLinearX = jComponent[JSON_TAG_VELOCITY_LINEAR_X];
+	velocityLinearX.Set(jVelocityLinearX[0], jVelocityLinearX[1]);
+	JsonValue jVelocityLinearXCurve = jComponent[JSON_TAG_VELOCITY_LINEAR_X_CURVE];
+	LoadCurveValues(jVelocityLinearXCurve, velocityLinearXCurve);
+	JsonValue jVelocityLinearY = jComponent[JSON_TAG_VELOCITY_LINEAR_Y];
+	velocityLinearY.Set(jVelocityLinearY[0], jVelocityLinearY[1]);
+	JsonValue jVelocityLinearYCurve = jComponent[JSON_TAG_VELOCITY_LINEAR_Y_CURVE];
+	LoadCurveValues(jVelocityLinearYCurve, velocityLinearYCurve);
+	JsonValue jVelocityLinearZ = jComponent[JSON_TAG_VELOCITY_LINEAR_Z];
+	velocityLinearZ.Set(jVelocityLinearZ[0], jVelocityLinearZ[1]);
+	JsonValue jVelocityLinearZCurve = jComponent[JSON_TAG_VELOCITY_LINEAR_Z_CURVE];
+	LoadCurveValues(jVelocityLinearZCurve, velocityLinearZCurve);
+	velocityLinearSpace = jComponent[JSON_TAG_VELOCITY_LINEAR_SPACE];
+	velocitySpeedModifierRM = (RandomMode)(int) jComponent[JSON_TAG_VELOCITY_SPEED_MODIFIER_RM];
+	JsonValue jVelocitySpeedModifier = jComponent[JSON_TAG_VELOCITY_SPEED_MODIFIER];
+	velocitySpeedModifier.Set(jVelocitySpeedModifier[0], jVelocitySpeedModifier[1]);
+	JsonValue jVelocitySpeedModifierCurve = jComponent[JSON_TAG_VELOCITY_SPEED_MODIFIER_CURVE];
+	LoadCurveValues(jVelocitySpeedModifierCurve, velocitySpeedModifierCurve);
+
 	// Rotation over Lifetime
 	rotationOverLifetime = jComponent[JSON_TAG_ROTATION_OVER_LIFETIME];
 	rotationFactorRM = (RandomMode)(int) jComponent[JSON_TAG_ROTATION_FACTOR_RM];
@@ -955,9 +1028,6 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 
 	// Render
 	textureID = jComponent[JSON_TAG_TEXTURE_TEXTURE_ID];
-	if (textureID != 0) {
-		App->resources->IncreaseReferenceCount(textureID);
-	}
 	JsonValue jTextureIntensity = jComponent[JSON_TAG_TEXTURE_INTENSITY];
 	textureIntensity[0] = jTextureIntensity[0];
 	textureIntensity[1] = jTextureIntensity[1];
@@ -996,9 +1066,6 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	quadLife[1] = jQuadLife[1];
 
 	textureTrailID = jComponent[JSON_TAG_TRAIL_TEXTURE_TEXTUREID];
-	if (textureTrailID != 0) {
-		App->resources->IncreaseReferenceCount(textureTrailID);
-	}
 	JsonValue jTrailFlip = jComponent[JSON_TAG_TRAIL_FLIP_TEXTURE];
 	flipTrailTexture[0] = jTrailFlip[0];
 	flipTrailTexture[1] = jTrailFlip[1];
@@ -1057,8 +1124,6 @@ void ComponentParticleSystem::Load(JsonValue jComponent) {
 	}
 
 	maxLights = jComponent[JSON_TAG_LIGHTS_MAX_LIGHTS];
-
-	AllocateParticlesMemory();
 }
 
 void ComponentParticleSystem::Save(JsonValue jComponent) const {
@@ -1148,6 +1213,32 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jComponent[JSON_TAG_RANDOM_CONE_RADIUS_UP] = randomConeRadiusUp;
 	// -- Box
 	jComponent[JSON_TAG_BOX_EMITTER_FROM] = (int) boxEmitterFrom;
+
+	// Velocity over Lifetime
+	jComponent[JSON_TAG_VELOCITY_OVER_LIFETIME] = velocityOverLifetime;
+	jComponent[JSON_TAG_VELOCITY_LINEAR_RM] = (int) velocityLinearRM;
+	JsonValue jVelocityLinearX = jComponent[JSON_TAG_VELOCITY_LINEAR_X];
+	jVelocityLinearX[0] = velocityLinearX[0];
+	jVelocityLinearX[1] = velocityLinearX[1];
+	JsonValue jVelocityLinearXCurve = jComponent[JSON_TAG_VELOCITY_LINEAR_X_CURVE];
+	SaveCurveValues(jVelocityLinearXCurve, velocityLinearXCurve);
+	JsonValue jVelocityLinearY = jComponent[JSON_TAG_VELOCITY_LINEAR_Y];
+	jVelocityLinearY[0] = velocityLinearY[0];
+	jVelocityLinearY[1] = velocityLinearY[1];
+	JsonValue jVelocityLinearYCurve = jComponent[JSON_TAG_VELOCITY_LINEAR_Y_CURVE];
+	SaveCurveValues(jVelocityLinearYCurve, velocityLinearYCurve);
+	JsonValue jVelocityLinearZ = jComponent[JSON_TAG_VELOCITY_LINEAR_Z];
+	jVelocityLinearZ[0] = velocityLinearZ[0];
+	jVelocityLinearZ[1] = velocityLinearZ[1];
+	JsonValue jVelocityLinearZCurve = jComponent[JSON_TAG_VELOCITY_LINEAR_Z_CURVE];
+	SaveCurveValues(jVelocityLinearZCurve, velocityLinearZCurve);
+	jComponent[JSON_TAG_VELOCITY_LINEAR_SPACE] = velocityLinearSpace;
+	jComponent[JSON_TAG_VELOCITY_SPEED_MODIFIER_RM] = (int) velocitySpeedModifierRM;
+	JsonValue jVelocitySpeedModifier = jComponent[JSON_TAG_VELOCITY_SPEED_MODIFIER];
+	jVelocitySpeedModifier[0] = velocitySpeedModifier[0];
+	jVelocitySpeedModifier[1] = velocitySpeedModifier[1];
+	JsonValue jVelocitySpeedModifierCurve = jComponent[JSON_TAG_VELOCITY_SPEED_MODIFIER_CURVE];
+	SaveCurveValues(jVelocitySpeedModifierCurve, velocitySpeedModifierCurve);
 
 	// Rotation over Lifetime
 	jComponent[JSON_TAG_ROTATION_OVER_LIFETIME] = rotationOverLifetime;
@@ -1337,23 +1428,13 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 		InitParticleRotation(currentParticle);
 		InitParticleScale(currentParticle);
 		InitParticleSpeed(currentParticle);
+		InitParticleGravity(currentParticle);
 		InitParticleLife(currentParticle);
 		InitParticleAnimationTexture(currentParticle);
 		if (hasTrail && IsProbably(trailRatio)) {
 			InitParticleTrail(currentParticle);
 		}
 
-		float4x4 newModel;
-		ObtainEmitterGlobalMatrix(newModel);
-		currentParticle->emitterPosition = newModel.TranslatePart();
-		newModel.Orthonormalize3();
-		currentParticle->emitterRotation = newModel.RotatePart().ToQuat();
-
-		if (App->time->HasGameStarted() && collision) {
-			currentParticle->emitter = this;
-			currentParticle->radius = radius;
-			App->physics->CreateParticleRigidbody(currentParticle);
-		}
 		InitSubEmitter(currentParticle, SubEmitterType::BIRTH);
 
 		if (hasLights && IsProbably(lightsRatio)) {
@@ -1365,10 +1446,6 @@ void ComponentParticleSystem::SpawnParticleUnit() {
 }
 
 void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
-	float4x4 newModel;
-	ObtainEmitterGlobalMatrix(newModel);
-	newModel.Orthonormalize3();
-
 	float reverseDist = ObtainRandomValueFloat(reverseDistanceRM, reverseDistance, reverseDistanceCurve, emitterTime / duration);
 
 	if (emitterType == ParticleEmitterType::BOX) {
@@ -1382,12 +1459,9 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 			int index = (int) floor(Random() * 12);
 			point = obbEmitter.PointOnEdge(index, Random());
 		}
-		point = point.Div(emitterModel.GetScale());
-		currentParticle->initialPosition = newModel.TranslatePart() + newModel.RotatePart() * float3(point.x, point.y, point.z).Div(emitterModel.GetScale());
-		//float4x4 matrix = GetOwner().GetComponent<ComponentTransform>()->GetGlobalMatrix();
-		//float3 localPos = emitterModel.TranslatePart() + emitterModel.RotatePart() * float3(point.x, point.y, point.z);
-		//currentParticle->initialPosition = matrix.TranslatePart() + matrix.RotatePart() * localPos;
-		currentParticle->direction = (newModel.RotatePart() * float3::unitY).Normalized();
+
+		currentParticle->initialPosition = float3(point.x, point.y, point.z);
+		currentParticle->direction = float3::unitY;
 
 	} else {
 		float x0 = 0, y0 = 0, z0 = 0, x1 = 0, y1 = 0, z1 = 0;
@@ -1424,11 +1498,29 @@ void ComponentParticleSystem::InitParticlePosAndDir(Particle* currentParticle) {
 			localPos = localPos + localDir * reverseDist;
 		}
 
-		currentParticle->initialPosition = newModel.TranslatePart() + newModel.RotatePart() * localPos;
-		currentParticle->direction = (newModel.RotatePart() * localDir).Normalized();
+		currentParticle->initialPosition = localPos;
+		currentParticle->direction = localDir.Normalized();
+	}
+
+	if (!attachEmitter) {
+		float4x4 newModel;
+		ObtainEmitterGlobalMatrix(newModel);
+		float3 scale = newModel.GetScale();
+		float3x3 rotateMatrix = newModel.RotatePart();
+		rotateMatrix.ScaleCol(0, scale.x);
+		rotateMatrix.ScaleCol(1, scale.y);
+		rotateMatrix.ScaleCol(2, scale.z);
+		currentParticle->initialPosition = newModel.TranslatePart() + rotateMatrix * currentParticle->initialPosition;
+		currentParticle->direction = (rotateMatrix * currentParticle->direction).Normalized();
 	}
 
 	currentParticle->position = currentParticle->initialPosition;
+
+	if (velocityOverLifetime && velocityLinearRM == RandomMode::CONST_MULT) {
+		currentParticle->velocityXOL = ObtainRandomValueFloat(velocityLinearRM, velocityLinearX, velocityLinearXCurve, ParticleLifeNormalized(currentParticle));
+		currentParticle->velocityYOL = ObtainRandomValueFloat(velocityLinearRM, velocityLinearY, velocityLinearYCurve, ParticleLifeNormalized(currentParticle));
+		currentParticle->velocityZOL = ObtainRandomValueFloat(velocityLinearRM, velocityLinearZ, velocityLinearZCurve, ParticleLifeNormalized(currentParticle));
+	}
 }
 
 void ComponentParticleSystem::InitParticleRotation(Particle* currentParticle) {
@@ -1438,14 +1530,44 @@ void ComponentParticleSystem::InitParticleRotation(Particle* currentParticle) {
 		newRotation += pi / 2;
 	}
 	currentParticle->rotation = Quat::FromEulerXYZ(0.0f, 0.0f, newRotation);
+
+	if (rotationOverLifetime && rotationFactorRM == RandomMode::CONST_MULT) {
+		currentParticle->rotationOL = ObtainRandomValueFloat(rotationFactorRM, rotationFactor, rotationFactorCurve, ParticleLifeNormalized(currentParticle));
+	}
 }
 
 void ComponentParticleSystem::InitParticleScale(Particle* currentParticle) {
+	currentParticle->emitter = this;
+	currentParticle->radius = radius;
+
 	currentParticle->scale = float3(0.1f, 0.1f, 0.1f) * ObtainRandomValueFloat(scaleRM, scale, scaleCurve, emitterTime / duration);
+
+	if (sizeOverLifetime) {
+		float newScale = ObtainRandomValueFloat(scaleFactorRM, scaleFactor, scaleFactorCurve, ParticleLifeNormalized(currentParticle));
+		if (scaleFactorRM == RandomMode::CONST_MULT) {
+			currentParticle->scaleOL = newScale;
+		} else if (scaleFactorRM == RandomMode::CURVE) {
+			currentParticle->radius = radius * newScale;
+		}
+	}
+
+	if (App->time->HasGameStarted() && collision) {
+		App->physics->CreateParticleRigidbody(currentParticle);
+	}
 }
 
 void ComponentParticleSystem::InitParticleSpeed(Particle* currentParticle) {
 	currentParticle->speed = ObtainRandomValueFloat(speedRM, speed, speedCurve, emitterTime / duration);
+
+	if (velocityOverLifetime && velocitySpeedModifierRM == RandomMode::CONST_MULT) {
+		currentParticle->speedMultiplierOL = ObtainRandomValueFloat(velocitySpeedModifierRM, velocitySpeedModifier, velocitySpeedModifierCurve, ParticleLifeNormalized(currentParticle));
+	}
+}
+
+void ComponentParticleSystem::InitParticleGravity(Particle* currentParticle) {
+	if (gravityEffect && gravityFactorRM == RandomMode::CONST_MULT) {
+		currentParticle->gravityFactorOL = ObtainRandomValueFloat(gravityFactorRM, gravityFactor, gravityFactorCurve, ParticleLifeNormalized(currentParticle));
+	}
 }
 
 void ComponentParticleSystem::InitParticleLife(Particle* currentParticle) {
@@ -1516,21 +1638,32 @@ void ComponentParticleSystem::InitSubEmitter(Particle* currentParticle, SubEmitt
 			newGameObject->id = gameObjectId;
 			newGameObject->name = "SubEmitter (Temp)";
 			newGameObject->SetParent(&parent);
+
 			ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 			float3x3 rotationMatrix = float3x3::RotateFromTo(float3::unitY, currentParticle->direction);
-			transform->SetGlobalPosition(currentParticle->position);
-			transform->SetGlobalRotation(rotationMatrix.ToEulerXYZ());
+			float4x4 particleModel = float4x4::FromTRS(currentParticle->position, rotationMatrix, float3::one);
+			if (attachEmitter) {
+				float4x4 emitterModel;
+				ObtainEmitterGlobalMatrix(emitterModel);
+				particleModel = emitterModel * particleModel;
+			}
+
+			transform->SetGlobalPosition(particleModel.TranslatePart());
+			transform->SetGlobalRotation(particleModel.RotatePart().ToQuat());
 			transform->SetGlobalScale(float3::one);
-			newGameObject->Init();
 
 			ComponentParticleSystem* newParticleSystem = newGameObject->CreateComponent<ComponentParticleSystem>();
 			rapidjson::Document resourceMetaDocument;
 			JsonValue jResourceMeta(resourceMetaDocument, resourceMetaDocument);
 			subEmitter->particleSystem->Save(jResourceMeta);
 			newParticleSystem->Load(jResourceMeta);
-			newParticleSystem->Start();
 			newParticleSystem->SetIsSubEmitter(true);
 			newParticleSystem->Play();
+
+			newGameObject->Init();
+			if (App->time->HasGameStarted()) {
+				newGameObject->Start();
+			}
 
 			subEmittersGO.push_back(newGameObject);
 		}
@@ -1548,13 +1681,18 @@ void ComponentParticleSystem::InitLight(Particle* currentParticle) {
 	newGameObject->id = gameObjectId;
 	newGameObject->name = "Light (Temp)";
 	newGameObject->SetParent(&parent);
+
 	ComponentTransform* transform = newGameObject->CreateComponent<ComponentTransform>();
 	ComponentTransform* transformPS = GetOwner().GetComponent<ComponentTransform>();
-	float3 globalOffset = transformPS->GetGlobalMatrix().RotatePart() * lightOffset;
-	transform->SetGlobalPosition(currentParticle->position + globalOffset);
+
+	if (attachEmitter) {
+		transform->SetPosition(currentParticle->position + lightOffset);
+	} else {
+		float3 globalOffset = transformPS->GetGlobalMatrix().RotatePart() * lightOffset;
+		transform->SetGlobalPosition(currentParticle->position + globalOffset);
+	}
 	transform->SetGlobalRotation(float3::zero);
 	transform->SetGlobalScale(float3::one);
-	newGameObject->Init();
 
 	ComponentLight* newLight = newGameObject->CreateComponent<ComponentLight>();
 	rapidjson::Document resourceMetaDocument;
@@ -1577,6 +1715,11 @@ void ComponentParticleSystem::InitLight(Particle* currentParticle) {
 	}
 	currentParticle->lightGO = newGameObject;
 	lightsSpawned++;
+
+	newGameObject->Init();
+	if (App->time->HasGameStarted()) {
+		newGameObject->Start();
+	}
 }
 
 void ComponentParticleSystem::Update() {
@@ -1647,55 +1790,55 @@ void ComponentParticleSystem::Update() {
 }
 
 void ComponentParticleSystem::UpdatePosition(Particle* currentParticle) {
-	if (attachEmitter) {
-		float4x4 newModel;
-		ObtainEmitterGlobalMatrix(newModel);
-		float3 position = newModel.TranslatePart();
-		newModel.Orthonormalize3();
-		Quat rotation = newModel.RotatePart().ToQuat();
-
-		if (!currentParticle->emitterRotation.Equals(rotation)) {
-			// Update Particle direction
-			float3 direction = (rotation * float3::unitY).Normalized();
-			float3 oldDirection = (currentParticle->emitterRotation * float3::unitY).Normalized();
-			float3 axisToRotate = Cross(oldDirection, direction).Normalized();
-			float angleToRotate = acos(Dot(oldDirection, direction));
-			float3x3 rotateMatrix = float3x3::RotateAxisAngle(axisToRotate, angleToRotate);
-			currentParticle->direction = rotateMatrix * currentParticle->direction;
-
-			// Update initialPoint using intersection between Plane that contains the point and axisToRotate
-			float dist = 0;
-			Plane planeInitPos = Plane(currentParticle->initialPosition, axisToRotate);
-			Line line = Line(currentParticle->emitterPosition, axisToRotate);
-			planeInitPos.Intersects(line, &dist);
-			float3 intersectPoint = line.GetPoint(dist);
-			float3 newInitialPosDirection = rotateMatrix * (currentParticle->initialPosition - intersectPoint).Normalized();
-			currentParticle->initialPosition = newInitialPosDirection * Length(currentParticle->initialPosition - intersectPoint) + intersectPoint;
-
-			currentParticle->position = currentParticle->direction * Length(currentParticle->position - currentParticle->initialPosition) + currentParticle->initialPosition;
-			currentParticle->emitterRotation = rotation;
-		}
-
-		if (!currentParticle->emitterPosition.Equals(position)) {
-			float3 directionLength = (position - currentParticle->emitterPosition).Normalized() * Length(position - currentParticle->emitterPosition);
-			currentParticle->initialPosition = directionLength + currentParticle->initialPosition;
-			currentParticle->position = directionLength + currentParticle->position;
-			currentParticle->emitterPosition = position;
-		}
-	}
-
 	if (reverseEffect) {
 		currentParticle->position -= currentParticle->direction * currentParticle->speed * App->time->GetDeltaTimeOrRealDeltaTime();
 	} else {
 		if (gravityEffect) {
 			UpdateGravityDirection(currentParticle);
 		}
-		currentParticle->position += currentParticle->direction * currentParticle->speed * App->time->GetDeltaTimeOrRealDeltaTime();
+		if (velocityOverLifetime) {
+			UpdateVelocity(currentParticle);
+		} else {
+			currentParticle->position += currentParticle->direction * currentParticle->speed * App->time->GetDeltaTimeOrRealDeltaTime();
+		}
 	}
 }
 
+void ComponentParticleSystem::UpdateVelocity(Particle* currentParticle) {
+	float linearX, linearY, linearZ;
+	if (velocityLinearRM != RandomMode::CONST_MULT) {
+		linearX = ObtainRandomValueFloat(velocityLinearRM, velocityLinearX, velocityLinearXCurve, ParticleLifeNormalized(currentParticle));
+		linearY = ObtainRandomValueFloat(velocityLinearRM, velocityLinearY, velocityLinearYCurve, ParticleLifeNormalized(currentParticle));
+		linearZ = ObtainRandomValueFloat(velocityLinearRM, velocityLinearZ, velocityLinearZCurve, ParticleLifeNormalized(currentParticle));
+	} else {
+		linearX = currentParticle->velocityXOL;
+		linearY = currentParticle->velocityYOL;
+		linearZ = currentParticle->velocityZOL;
+	}
+
+	float speed;
+	if (velocitySpeedModifierRM != RandomMode::CONST_MULT) {
+		speed = ObtainRandomValueFloat(velocitySpeedModifierRM, velocitySpeedModifier, velocitySpeedModifierCurve, ParticleLifeNormalized(currentParticle));
+	} else {
+		speed = currentParticle->speedMultiplierOL;
+	}
+
+	float3 direction;
+	if (velocityLinearSpace) {
+		direction = GetOwner().GetComponent<ComponentTransform>()->GetRotation() * float3(linearX, linearY, linearZ);
+	} else {
+		direction = float3(linearX, linearY, linearZ);
+	}
+	currentParticle->position += (currentParticle->direction + direction) * currentParticle->speed * speed * App->time->GetDeltaTimeOrRealDeltaTime();
+}
+
 void ComponentParticleSystem::UpdateRotation(Particle* currentParticle) {
-	float newRotation = ObtainRandomValueFloat(rotationFactorRM, rotationFactor, rotationFactorCurve, ParticleLifeNormalized(currentParticle));
+	float newRotation;
+	if (rotationFactorRM != RandomMode::CONST_MULT) {
+		newRotation = ObtainRandomValueFloat(rotationFactorRM, rotationFactor, rotationFactorCurve, ParticleLifeNormalized(currentParticle));
+	} else {
+		newRotation = currentParticle->rotationOL;
+	}
 	float rotation = currentParticle->rotation.ToEulerXYZ().z;
 	rotation += newRotation * App->time->GetDeltaTimeOrRealDeltaTime();
 	currentParticle->rotation = Quat::FromEulerXYZ(0.0f, 0.0f, rotation);
@@ -1705,32 +1848,27 @@ void ComponentParticleSystem::UpdateScale(Particle* currentParticle) {
 	if (scaleFactorRM == RandomMode::CURVE) {
 		float newScale = ObtainRandomValueFloat(scaleFactorRM, scaleFactor, scaleFactorCurve, ParticleLifeNormalized(currentParticle));
 
-		currentParticle->radius *= 1 + newScale / currentParticle->scale.x;
-		if (collision) App->physics->UpdateParticleRigidbody(currentParticle);
-
-		currentParticle->scale.x = newScale;
-		currentParticle->scale.y = newScale;
-		currentParticle->scale.z = newScale;
-
+		currentParticle->scale = float3(newScale);
+		currentParticle->radius = radius * newScale;
 	} else {
-		float newScale = ObtainRandomValueFloat(scaleFactorRM, scaleFactor);
+		float newScale;
+		if (scaleFactorRM == RandomMode::CONST) {
+			newScale = ObtainRandomValueFloat(scaleFactorRM, scaleFactor);
+		} else {
+			newScale = currentParticle->scaleOL;
+		}
 
+		currentParticle->scale += float3(newScale) * App->time->GetDeltaTimeOrRealDeltaTime();
 		currentParticle->radius *= 1 + newScale * App->time->GetDeltaTimeOrRealDeltaTime() / currentParticle->scale.x;
-		if (collision) App->physics->UpdateParticleRigidbody(currentParticle);
-
-		currentParticle->scale.x += newScale * App->time->GetDeltaTimeOrRealDeltaTime();
-		currentParticle->scale.y += newScale * App->time->GetDeltaTimeOrRealDeltaTime();
-		currentParticle->scale.z += newScale * App->time->GetDeltaTimeOrRealDeltaTime();
 	}
 
-	if (currentParticle->scale.x < 0) {
-		currentParticle->scale.x = 0;
+	if (currentParticle->scale.x < 0 || currentParticle->scale.y < 0 || currentParticle->scale.z < 0) {
+		currentParticle->scale = float3::zero;
+		currentParticle->radius = 0;
 	}
-	if (currentParticle->scale.y < 0) {
-		currentParticle->scale.y = 0;
-	}
-	if (currentParticle->scale.z < 0) {
-		currentParticle->scale.z = 0;
+
+	if (App->time->HasGameStarted() && collision) {
+		App->physics->UpdateParticleRigidbody(currentParticle);
 	}
 }
 
@@ -1739,16 +1877,34 @@ void ComponentParticleSystem::UpdateLife(Particle* currentParticle) {
 }
 
 void ComponentParticleSystem::UpdateTrail(Particle* currentParticle) {
-	currentParticle->trail->Update(currentParticle->position);
+	float4x4 particleModel = float4x4::FromTRS(currentParticle->position, float3x3::identity, float3::one);
+	if (attachEmitter) {
+		float4x4 emitterModel;
+		ObtainEmitterGlobalMatrix(emitterModel);
+		particleModel = emitterModel * particleModel;
+	}
+	currentParticle->trail->Update(particleModel.TranslatePart());
 }
 
 void ComponentParticleSystem::UpdateGravityDirection(Particle* currentParticle) {
-	float newGravityFactor = ObtainRandomValueFloat(gravityFactorRM, gravityFactor, gravityFactorCurve, ParticleLifeNormalized(currentParticle));
-	float x = currentParticle->direction.x;
-	float y = -(1 / newGravityFactor) * Pow(currentParticle->gravityTime, 2) + currentParticle->gravityTime;
-	float z = currentParticle->direction.z;
-	currentParticle->gravityTime += 10 * App->time->GetDeltaTimeOrRealDeltaTime();
-	currentParticle->direction = float3(x, y, z);
+	float newGravityFactor;
+	if (gravityFactorRM != RandomMode::CONST_MULT) {
+		newGravityFactor = ObtainRandomValueFloat(gravityFactorRM, gravityFactor, gravityFactorCurve, ParticleLifeNormalized(currentParticle));
+	} else {
+		newGravityFactor = currentParticle->gravityFactorOL;
+	}
+
+	float4x4 particleModel = float4x4::FromTRS(currentParticle->position, float3x3::identity, float3::one);
+	if (attachEmitter) {
+		float4x4 emitterModel;
+		ObtainEmitterGlobalMatrix(emitterModel);
+		particleModel = emitterModel * particleModel;
+	}
+
+	float time = App->time->GetDeltaTimeOrRealDeltaTime();
+	float3 gravityAxis = particleModel.RotatePart().Inverted() * float3(0.0f, newGravityFactor, 0.0f);
+	currentParticle->position += currentParticle->direction * currentParticle->speed * time + 0.5 * gravityAxis * time * time;
+	currentParticle->direction += gravityAxis * time;
 }
 
 void ComponentParticleSystem::UpdateSubEmitters() {
@@ -1783,11 +1939,15 @@ void ComponentParticleSystem::UpdateLight(Particle* currentParticle) {
 	ComponentLight* light = currentParticle->lightGO->GetComponent<ComponentLight>();
 	if (light == nullptr) return;
 
-	float3 position = currentParticle->position;
 	ComponentTransform* transform = currentParticle->lightGO->GetComponent<ComponentTransform>();
 	ComponentTransform* transformPS = GetOwner().GetComponent<ComponentTransform>();
-	float3 globalOffset = transformPS->GetGlobalMatrix().RotatePart() * lightOffset;
-	transform->SetGlobalPosition(currentParticle->position + globalOffset);
+
+	if (attachEmitter) {
+		transform->SetPosition(currentParticle->position + lightOffset);
+	} else {
+		float3 globalOffset = transformPS->GetGlobalMatrix().RotatePart() * lightOffset;
+		transform->SetGlobalPosition(currentParticle->position + globalOffset);
+	}
 
 	if (useParticleColor && colorOverLifetime) {
 		float4 color = float4::one;
@@ -1813,7 +1973,7 @@ void ComponentParticleSystem::UndertakerParticle(bool force) {
 		}
 	}
 	for (Particle* currentParticle : deadParticles) {
-		if (App->time->IsGameRunning()) App->physics->RemoveParticleRigidbody(currentParticle);
+		if (currentParticle->rigidBody) App->physics->RemoveParticleRigidbody(currentParticle);
 		if (currentParticle->motionState) {
 			RELEASE(currentParticle->motionState);
 		}
@@ -1833,18 +1993,20 @@ void ComponentParticleSystem::DrawGizmos() {
 	if (IsActive() && drawGizmo) {
 		float4x4 newModel;
 		ObtainEmitterGlobalMatrix(newModel);
+		float3x3 rotateMatrix = newModel.RotatePart();
+		float3 direction = (rotateMatrix * float3::unitY).Normalized();
 		if (emitterType == ParticleEmitterType::CONE) {
-			dd::cone(newModel.TranslatePart(), newModel.RotatePart() * float3::unitY, dd::colors::White, coneRadiusUp, shapeRadius);
-			dd::circle(newModel.TranslatePart(), newModel.RotatePart() * float3::unitY, dd::colors::White, shapeRadius * (1 - shapeRadiusThickness), 50.0f);
+			dd::cone(newModel.TranslatePart(), direction, dd::colors::White, coneRadiusUp, shapeRadius);
+			dd::circle(newModel.TranslatePart(), direction, dd::colors::White, shapeRadius * (1 - shapeRadiusThickness), 50.0f);
 		} else if (emitterType == ParticleEmitterType::SPHERE) {
 			dd::sphere(newModel.TranslatePart(), dd::colors::White, shapeRadius);
 			dd::sphere(newModel.TranslatePart(), dd::colors::White, shapeRadius * (1 - shapeRadiusThickness));
 		} else if (emitterType == ParticleEmitterType::CIRCLE) {
-			dd::circle(newModel.TranslatePart(), newModel.RotatePart() * float3::unitY, dd::colors::White, shapeRadius, 50.0f);
-			dd::circle(newModel.TranslatePart(), newModel.RotatePart() * float3::unitY, dd::colors::White, shapeRadius * (1 - shapeRadiusThickness), 50.0f);
+			dd::circle(newModel.TranslatePart(), direction, dd::colors::White, shapeRadius, 50.0f);
+			dd::circle(newModel.TranslatePart(), direction, dd::colors::White, shapeRadius * (1 - shapeRadiusThickness), 50.0f);
 		} else if (emitterType == ParticleEmitterType::BOX) {
 			float3 points[8];
-			OBB obbEmitter = OBB(newModel.TranslatePart(), emitterModel.GetScale(), newModel.RotatePart().Col3(0), newModel.RotatePart().Col3(1), newModel.RotatePart().Col3(2));
+			OBB obbEmitter = OBB(newModel.TranslatePart(), newModel.GetScale(), rotateMatrix.Col3(0), rotateMatrix.Col3(1), rotateMatrix.Col3(2));
 			obbEmitter.GetCornerPoints(points);
 			// Reorder points for drawing
 			float3 aux;
@@ -1885,6 +2047,14 @@ void ComponentParticleSystem::Draw() {
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*) (sizeof(float) * 6 * 3));
 
+			float4x4 particleModel = float4x4::FromTRS(currentParticle.position, float3x3::identity, float3::one);
+			if (attachEmitter) {
+				float4x4 emitterModel;
+				ObtainEmitterGlobalMatrix(emitterModel);
+				particleModel = emitterModel * particleModel;
+			}
+			float3 globalPosition = particleModel.TranslatePart();
+			float3 globalDirection = (particleModel.RotatePart() * currentParticle.direction).Normalized();
 			float4x4 newModelMatrix;
 			if (billboardType == BillboardType::NORMAL) {
 				if (renderAlignment == ParticleRenderAlignment::VIEW) {
@@ -1898,25 +2068,25 @@ void ComponentParticleSystem::Draw() {
 					newModelMatrix = float4x4::LookAt(float3::unitZ, -(transform->GetGlobalRotation() * float3::unitY), float3::unitY, float3::unitY);
 				} else if (renderAlignment == ParticleRenderAlignment::FACING) {
 					float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
-					newModelMatrix = float4x4::LookAt(float3::unitZ, cameraPos - currentParticle.position, float3::unitY, float3::unitY);
+					newModelMatrix = float4x4::LookAt(float3::unitZ, cameraPos - globalPosition, float3::unitY, float3::unitY);
 				} else { // Velocity
-					newModelMatrix = float4x4::LookAt(float3::unitZ, -currentParticle.direction, float3::unitY, float3::unitY);
+					newModelMatrix = float4x4::LookAt(float3::unitZ, -globalPosition, float3::unitY, float3::unitY);
 				}
 			} else if (billboardType == BillboardType::STRETCH) {
 				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
-				float3 cameraDir = (cameraPos - currentParticle.position).Normalized();
-				float3 upDir = Cross(currentParticle.direction, cameraDir);
-				float3 newCameraDir = Cross(currentParticle.direction, upDir);
+				float3 cameraDir = (cameraPos - globalPosition).Normalized();
+				float3 upDir = Cross(globalDirection, cameraDir);
+				float3 newCameraDir = Cross(globalDirection, upDir);
 
 				float3x3 newRotation;
 				newRotation.SetCol(0, upDir);
-				newRotation.SetCol(1, currentParticle.direction);
+				newRotation.SetCol(1, globalDirection);
 				newRotation.SetCol(2, newCameraDir);
 
 				newModelMatrix = float4x4::identity * newRotation;
 			} else if (billboardType == BillboardType::HORIZONTAL) {
 				if (isHorizontalOrientation) {
-					float3 right = Cross(float3::unitY, currentParticle.direction);
+					float3 right = Cross(float3::unitY, globalDirection);
 					float3 direction = Cross(right, float3::unitY);
 
 					float3x3 newRotation;
@@ -1930,11 +2100,11 @@ void ComponentParticleSystem::Draw() {
 				}
 			} else if (billboardType == BillboardType::VERTICAL) {
 				float3 cameraPos = App->camera->GetActiveCamera()->GetFrustum()->Pos();
-				float3 cameraDir = (float3(cameraPos.x, currentParticle.position.y, cameraPos.z) - currentParticle.position).Normalized();
+				float3 cameraDir = (float3(cameraPos.x, globalPosition.y, cameraPos.z) - globalPosition).Normalized();
 				newModelMatrix = float4x4::LookAt(float3::unitZ, cameraDir, float3::unitY, float3::unitY);
 			}
 
-			float4x4 modelMatrix = float4x4::FromTRS(currentParticle.position, newModelMatrix.RotatePart() * float3x3::FromQuat(currentParticle.rotation), currentParticle.scale);
+			float4x4 modelMatrix = float4x4::FromTRS(globalPosition, newModelMatrix.RotatePart() * float3x3::FromQuat(currentParticle.rotation), currentParticle.scale);
 			float4x4* view = &App->camera->GetViewMatrix();
 			float4x4* proj = &App->camera->GetProjectionMatrix();
 
@@ -1975,7 +2145,6 @@ void ComponentParticleSystem::Draw() {
 			glUniform1i(program->isSoftLocation, isSoft ? 1 : 0);
 			glUniform1f(program->softRangeLocation, softRange);
 
-			//TODO: implement drawarrays
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -1986,8 +2155,8 @@ void ComponentParticleSystem::Draw() {
 			if (currentParticle.trail != nullptr) {
 				currentParticle.trail->Draw();
 			}
-			if (App->renderer->drawColliders) {
-				dd::sphere(currentParticle.position, dd::colors::LawnGreen, currentParticle.radius);
+			if (collision && App->renderer->drawColliders) {
+				dd::sphere(modelMatrix.TranslatePart(), dd::colors::LawnGreen, currentParticle.radius);
 			}
 		}
 	}
@@ -2107,8 +2276,6 @@ float ComponentParticleSystem::ParticleLifeNormalized(Particle* currentParticle)
 
 void ComponentParticleSystem::ObtainEmitterGlobalMatrix(float4x4& matrix) {
 	float4x4 model = GetOwner().GetComponent<ComponentTransform>()->GetGlobalMatrix();
-	model.Orthogonalize3();
-	model.RemoveScale();
 	matrix = model * emitterModel;
 }
 

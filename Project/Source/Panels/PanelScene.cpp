@@ -31,7 +31,7 @@
 
 #include "Utils/Leaks.h"
 
-constexpr char* shadingMode[5] = {"Shaded", "Wireframe", "Ambient Occlusion", "Normals", "Positions"};
+constexpr char* shadingMode[6] = {"Shaded", "Wireframe", "Ambient Occlusion", "Normals", "Positions", "Light Tiles"};
 
 PanelScene::PanelScene()
 	: Panel("Scene", true) {}
@@ -213,8 +213,7 @@ void PanelScene::Update() {
 					UID prefabId = *(UID*) payload->Data;
 					ResourcePrefab* prefab = App->resources->GetResource<ResourcePrefab>(prefabId);
 					if (prefab != nullptr) {
-						UID gameObjectId = prefab->BuildPrefab(App->scene->scene->root);
-						App->editor->selectedGameObject = App->scene->scene->GetGameObject(gameObjectId);
+						App->scene->BuildPrefab(prefabId, App->scene->scene->root);
 					}
 				}
 
@@ -255,7 +254,6 @@ void PanelScene::Update() {
 						inverseParentMatrix = parentTransform->GetGlobalMatrix().Inverted();
 					}
 					float4x4 localMatrix = inverseParentMatrix * globalMatrix.Transposed();
-					localMatrix.Orthogonalize3();
 
 					float3 translation;
 					Quat rotation;

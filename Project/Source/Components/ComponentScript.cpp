@@ -24,8 +24,34 @@
 #define JSON_TAG_TYPE "Type"
 #define JSON_TAG_VALUE "Value"
 
+ComponentScript::~ComponentScript() {
+	App->resources->DecreaseReferenceCount(scriptId);
+
+	for (auto& entry : changedValues) {
+		if (entry.second.first == MemberType::PREFAB_RESOURCE_UID) {
+			UID prefabId = std::get<UID>(entry.second.second);
+			App->resources->DecreaseReferenceCount(prefabId);
+		}
+	}
+}
+
+void ComponentScript::Init() {
+	App->resources->IncreaseReferenceCount(scriptId);
+
+	for (auto& entry : changedValues) {
+		if (entry.second.first == MemberType::PREFAB_RESOURCE_UID) {
+			UID prefabId = std::get<UID>(entry.second.second);
+			App->resources->IncreaseReferenceCount(prefabId);
+		}
+	}
+
+	if (App->project->IsGameLoaded()) {
+		CreateScriptInstance();
+	}
+}
+
 void ComponentScript::Start() {
-	if (scriptInstance && App->time->HasGameStarted() && App->scene->scene->sceneLoaded) {
+	if (scriptInstance) {
 		scriptInstance->Start();
 	}
 }
@@ -341,13 +367,28 @@ void ComponentScript::Load(JsonValue jComponent) {
 	}
 }
 
+void ComponentScript::OnDisable() {
+	if (scriptInstance && App->time->HasGameStarted() && App->scene->scene->sceneLoaded) {
+		scriptInstance->OnDisable();
+	}
+}
+
+void ComponentScript::OnEnable() {
+	if (scriptInstance && App->time->HasGameStarted() && App->scene->scene->sceneLoaded) {
+		scriptInstance->OnEnable();
+	}
+}
+
 void ComponentScript::CreateScriptInstance() {
 	if (scriptInstance != nullptr) return;
 
-	ResourceScript* script = App->resources->GetResource<ResourceScript>(scriptId);
-	if (script == nullptr) return;
+	ResourceScript* scriptResource = App->resources->GetResource<ResourceScript>(scriptId);
+	if (scriptResource == nullptr) return;
 
-	scriptInstance.reset(Factory::Create(script->GetName(), &GetOwner()));
+	const char* scriptName = scriptResource->GetName().c_str();
+	if (scriptName == nullptr) return;
+
+	scriptInstance.reset(Factory::Create(scriptName, &GetOwner()));
 	if (scriptInstance == nullptr) return;
 
 	const std::vector<Member>& members = scriptInstance->GetMembers();
@@ -438,9 +479,6 @@ Script* ComponentScript::GetScriptInstance() const {
 }
 
 const char* ComponentScript::GetScriptName() const {
-	if (scriptInstance != nullptr) {
-		ResourceScript* resourceScript = App->resources->GetResource<ResourceScript>(scriptId);
-		return (resourceScript != nullptr) ? resourceScript->GetName().c_str() : nullptr;
-	}
-	return nullptr;
+	ResourceScript* scriptResource = App->resources->GetResource<ResourceScript>(scriptId);
+	return scriptResource ? scriptResource->GetName().c_str() : nullptr;
 }

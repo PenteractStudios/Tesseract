@@ -4,6 +4,7 @@
 #include "Application.h"
 #include "Modules/ModuleNavigation.h"
 #include "Modules/ModuleEditor.h"
+#include "Modules/ModuleScene.h"
 #include "Navigation/NavMesh.h"
 
 #include "Utils/Leaks.h"
@@ -30,6 +31,9 @@ void ComponentObstacle::Update() {
 		currentRotation = newRotation;
 		AddObstacle();
 	}
+
+	// Try to add the obstacle
+	if (shouldAddObstacle) AddObstacle();
 }
 
 void ComponentObstacle::OnEditorUpdate() {
@@ -99,6 +103,9 @@ void ComponentObstacle::Load(JsonValue jComponent) {
 }
 
 void ComponentObstacle::AddObstacle() {
+	shouldAddObstacle = true;
+
+	if (App->scene->scene != GetOwner().scene) return;
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	if (!navMesh.IsGenerated()) {
 		return;
@@ -124,9 +131,14 @@ void ComponentObstacle::AddObstacle() {
 		tileCache->addBoxObstacle(&position[0], &(obstacleSize / 2)[0], transform->GetGlobalRotation().ToEulerXYZ().y, obstacleReference, mustBeDrawnGizmo);
 		break;
 	}
+
+	shouldAddObstacle = false;
 }
 
 void ComponentObstacle::RemoveObstacle() {
+	shouldAddObstacle = false;
+
+	if (App->scene->scene != GetOwner().scene) return;
 	NavMesh& navMesh = App->navigation->GetNavMesh();
 	if (!navMesh.IsGenerated()) {
 		return;

@@ -2,7 +2,12 @@
 
 #include "Module.h"
 
-#define NUM_SOURCES 16
+#include "AL/alc.h"
+
+#include <vector>
+#include <string>
+
+#define NUM_SOURCES 32
 
 #if defined(TESSERACT_ENGINE_API)
 /* do nothing. */
@@ -17,7 +22,15 @@ class ModuleAudio : public Module {
 public:
 	// ------- Core Functions ------ //
 	bool Init() override;
+	UpdateStatus Update() override;
 	bool CleanUp() override;
+
+	bool OpenSoundDevice(ALCchar* device = nullptr);
+	bool CloseSoundDevice();
+
+	void GetSoundDevices(std::vector<std::string>& devicesParsed);
+	const std::string GetCurrentDevice();
+	void SetSoundDevice(int pos);
 
 	unsigned GetAvailableSource(bool reverse = false) const;
 	bool isActive(unsigned sourceId) const;
@@ -26,6 +39,8 @@ public:
 	TESSERACT_ENGINE_API void StopAllSources();
 
 private:
+	std::vector<ALCchar*> devices;
+	ALCchar* currentDevice;
 	ALCdevice* openALDevice = nullptr;
 	ALCcontext* openALContext = nullptr;
 	bool contextMadeCurrent = false;

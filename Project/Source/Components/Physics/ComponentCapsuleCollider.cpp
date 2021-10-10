@@ -4,6 +4,7 @@
 #include "GameObject.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleTime.h"
+#include "Modules/ModuleScene.h"
 #include "Components/ComponentBoundingBox.h"
 
 #include "debugdraw.h"
@@ -19,6 +20,10 @@
 #define JSON_TAG_COLLIDER_TYPE "colliderType"
 #define JSON_TAG_LAYER_TYPE "layerType"
 
+ComponentCapsuleCollider::~ComponentCapsuleCollider() {
+	if (rigidBody) App->physics->RemoveCapsuleRigidbody(this);
+}
+
 void ComponentCapsuleCollider::Init() {
 	if (!centerOffset.IsFinite()) {
 		ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();
@@ -30,7 +35,10 @@ void ComponentCapsuleCollider::Init() {
 			centerOffset = float3::zero;
 		}
 	}
-	if (App->time->HasGameStarted() && !rigidBody) App->physics->CreateCapsuleRigidbody(this);
+}
+
+void ComponentCapsuleCollider::Start() {
+	if (!rigidBody && IsActive()) App->physics->CreateCapsuleRigidbody(this);
 }
 
 void ComponentCapsuleCollider::DrawGizmos() {
@@ -228,11 +236,11 @@ void ComponentCapsuleCollider::Load(JsonValue jComponent) {
 }
 
 void ComponentCapsuleCollider::OnEnable() {
-	if (!rigidBody && App->time->HasGameStarted()) App->physics->CreateCapsuleRigidbody(this);
+	if (!rigidBody && App->time->HasGameStarted() && GetOwner().scene == GetOwner().scene) App->physics->CreateCapsuleRigidbody(this);
 }
 
 void ComponentCapsuleCollider::OnDisable() {
-	if (rigidBody && App->time->HasGameStarted()) App->physics->RemoveCapsuleRigidbody(this);
+	if (rigidBody && App->time->HasGameStarted() && GetOwner().scene == GetOwner().scene) App->physics->RemoveCapsuleRigidbody(this);
 }
 
 void ComponentCapsuleCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance, ComponentParticleSystem::Particle* p) {
