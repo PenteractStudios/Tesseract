@@ -1,5 +1,5 @@
 ${EngineName} = "Tesseract"
-${Version} = "0.17.0"
+${Version} = "0.18.0"
 
 ${ReleaseDir} = "Build/Release"
 ${GameReleaseDir} = "Build/Game"
@@ -20,7 +20,7 @@ New-Item -Path "${PackageDir}" -ItemType "Directory" -Force
 New-Item -Path "${PackageDir}/${EngineName}" -ItemType "Directory" -Force
 New-Item -Path "${PackageDir}/${EngineName}/${EngineSourceDir}" -ItemType "Directory" -Force
 Copy-Item -Path "${LicensesDir}", "LICENSE", "README.md" -Destination "${PackageDir}" -Force -Recurse
-Copy-Item -Path "${GameDir}/*", "${ReleaseDir}/${EngineName}.exe", "${ReleaseDir}/${EngineName}.lib" -Exclude "*.ini", "${AssetsDir}", "${LibraryDir}", "${GameProjectDir}" -Destination "${PackageDir}/${EngineName}" -Force -Recurse
+Copy-Item -Path "${GameDir}/*", "${ReleaseDir}/${EngineName}.exe", "${ReleaseDir}/${EngineName}.lib" -Exclude "*.ini", "*.json", "*.temp", "${AssetsDir}", "${LibraryDir}", "${GameProjectDir}" -Destination "${PackageDir}/${EngineName}" -Force -Recurse
 Copy-Item -Path "${GameDir}/${AssetsDir}/${ShadersDir}" -Destination "${PackageDir}/${EngineName}/${AssetsDir}/${ShadersDir}" -Force -Recurse
 Copy-Item -Path "${GameReleaseDir}/${EngineName}.exe" -Destination "${PackageDir}/${EngineName}/${EngineSourceDir}" -Force -Recurse
 Copy-Item -Path "${ProjectDir}/*" -Exclude "${EngineName}.user", "${EngineName}.filters", "${EngineName}.vcxproj", "${EngineName}.vcxproj.*", ".clang-format", "Debugging.props" -Destination "${PackageDir}/${EngineName}/${EngineSourceDir}" -Force -Recurse
