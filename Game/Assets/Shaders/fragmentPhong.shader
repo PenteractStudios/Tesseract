@@ -55,10 +55,10 @@ void main()
 	
 	// Lights
 	int tileIndex = GetTileIndex();
-	LightTile lightTile = lightTilesBuffer.data[tileIndex];
+	LightTile lightTile = lightTilesBufferTransparent.data[tileIndex];
 	for (uint i = 0; i < lightTile.count; i++ )
     {
-		uint lightIndex = lightIndicesBuffer.data[lightTile.offset + i];
+		uint lightIndex = lightIndicesBufferTransparent.data[lightTile.offset + i];
 		Light light = lightBuffer.data[lightIndex];
 		if (light.isSpotLight == 1)
 		{

@@ -583,6 +583,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniformMatrix4fv(standardProgram->viewLocation, 1, GL_TRUE, viewMatrix.ptr());
 	glUniformMatrix4fv(standardProgram->projLocation, 1, GL_TRUE, projMatrix.ptr());
 
+	glUniform1i(standardProgram->isOpaqueLocation, material->renderingMode == RenderingMode::OPAQUE ? 1 : 0);
+
 	// Shadows uniform settings
 	if (subsFrustumsDynamic.size() > 0) {
 		glUniformMatrix4fv(standardProgram->viewOrtoLightsDynamicLocation, viewOrtoLightsDynamic.size(), GL_TRUE, viewOrtoLightsDynamic[0].ptr());
@@ -712,8 +714,10 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform1i(standardProgram->tilesPerRowLocation, App->renderer->GetLightTilesPerRow());
 
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, App->renderer->lightsStorageBuffer);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, App->renderer->lightIndicesStorageBuffer);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, App->renderer->lightTilesStorageBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, App->renderer->lightIndicesStorageBufferOpaque);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, App->renderer->lightTilesStorageBufferOpaque);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, App->renderer->lightIndicesStorageBufferTransparent);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, App->renderer->lightTilesStorageBufferTransparent);
 
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);

@@ -87,20 +87,35 @@ layout(std430, binding = 1) readonly buffer LightBuffer
 	Light data[];
 } lightBuffer;
 
-layout(std430, binding = 2) buffer LightIndicesCountBuffer
+layout(std430, binding = 2) buffer LightIndicesCountBufferOpaque
 {
 	uint count;
-} lightIndicesCountBuffer;
+} lightIndicesCountBufferOpaque;
 
-layout(std430, binding = 3) writeonly buffer LightIndicesBuffer
+layout(std430, binding = 3) writeonly buffer LightIndicesBufferOpaque
 {
 	uint data[];
-} lightIndicesBuffer;
+} lightIndicesBufferOpaque;
 
-layout(std430, binding = 4) writeonly buffer LightTilesBuffer
+layout(std430, binding = 4) writeonly buffer LightTilesBufferOpaque
 {
 	LightTile data[];
-} lightTilesBuffer;
+} lightTilesBufferOpaque;
+
+layout(std430, binding = 5) buffer LightIndicesCountBufferTransparent
+{
+	uint count;
+} lightIndicesCountBufferTransparent;
+
+layout(std430, binding = 6) writeonly buffer LightIndicesBufferTransparent
+{
+	uint data[];
+} lightIndicesBufferTransparent;
+
+layout(std430, binding = 7) writeonly buffer LightTilesBufferTransparent
+{
+	LightTile data[];
+} lightTilesBufferTransparent;
 
 uniform mat4 invProj;
 uniform mat4 view;
@@ -113,16 +128,30 @@ uniform sampler2D depths;
 shared uint minDepthBits;
 shared uint maxDepthBits;
 shared TileFrustum tileFrustum;
-shared uint tileLightCount;
-shared uint tileIndexListOffset;
-shared uint tileLightIndices[MAX_LIGHTS_PER_TILE];
 
-void AddLightIndex(uint lightIndex)
+shared uint tileLightCountOpaque;
+shared uint tileIndexListOffsetOpaque;
+shared uint tileLightIndicesOpaque[MAX_LIGHTS_PER_TILE];
+
+shared uint tileLightCountTransparent;
+shared uint tileIndexListOffsetTransparent;
+shared uint tileLightIndicesTransparent[MAX_LIGHTS_PER_TILE];
+
+void AddLightIndexOpaque(uint lightIndex)
 {
-    uint index = atomicAdd(tileLightCount, 1);
+    uint index = atomicAdd(tileLightCountOpaque, 1);
     if (index < MAX_LIGHTS_PER_TILE)
     {
-        tileLightIndices[index] = lightIndex;
+        tileLightIndicesOpaque[index] = lightIndex;
+    }
+}
+
+void AddLightIndexTransparent(uint lightIndex)
+{
+    uint index = atomicAdd(tileLightCountTransparent, 1);
+    if (index < MAX_LIGHTS_PER_TILE)
+    {
+        tileLightIndicesTransparent[index] = lightIndex;
     }
 }
 
@@ -170,7 +199,8 @@ void main()
     {
         minDepthBits = 0xFFFFFFFF;
         maxDepthBits = 0;
-        tileLightCount = 0;
+        tileLightCountOpaque = 0;
+        tileLightCountTransparent = 0;
         uint index = gl_WorkGroupID.x + (gl_WorkGroupID.y * gl_NumWorkGroups.x);
         tileFrustum = tileFrustumsBuffer.data[index];
     }
@@ -200,12 +230,11 @@ void main()
         vec3 lightPosVS = (view * vec4(light.pos, 1.0)).xyz;
         if (SphereInsideTileFrustum(lightPosVS, light.radius, tileFrustum, nearPlaneVS, maxDepthVS))
         {
-            // TODO: Add transparent light list
-            // AddLightIndex(i);
+            AddLightIndexTransparent(i);
 
             if (!SphereInsidePlane(lightPosVS, light.radius, minPlaneNormal, minPlaneDistance))
             {
-                AddLightIndex(i);
+                AddLightIndexOpaque(i);
             }
         }
     }
@@ -215,17 +244,24 @@ void main()
     // Reserve space in the index buffer and update tile
     if (gl_LocalInvocationIndex == 0)
     {
-        tileIndexListOffset = atomicAdd(lightIndicesCountBuffer.count, tileLightCount);
+        tileIndexListOffsetOpaque = atomicAdd(lightIndicesCountBufferOpaque.count, tileLightCountOpaque);
+        tileIndexListOffsetTransparent = atomicAdd(lightIndicesCountBufferTransparent.count, tileLightCountTransparent);
         uint index = gl_WorkGroupID.x + (gl_WorkGroupID.y * gl_NumWorkGroups.x);
-        lightTilesBuffer.data[index].count = tileLightCount;
-        lightTilesBuffer.data[index].offset = tileIndexListOffset;
+        lightTilesBufferOpaque.data[index].count = tileLightCountOpaque;
+        lightTilesBufferOpaque.data[index].offset = tileIndexListOffsetOpaque;
+        lightTilesBufferTransparent.data[index].count = tileLightCountTransparent;
+        lightTilesBufferTransparent.data[index].offset = tileIndexListOffsetTransparent;
     }
 
     barrier();
 
     // Write indices to index buffer
-    for (uint i = gl_LocalInvocationIndex; i < tileLightCount; i += LIGHT_TILE_SIZE * LIGHT_TILE_SIZE)
+    for (uint i = gl_LocalInvocationIndex; i < tileLightCountOpaque; i += LIGHT_TILE_SIZE * LIGHT_TILE_SIZE)
     {
-        lightIndicesBuffer.data[tileIndexListOffset + i] = tileLightIndices[i];
+        lightIndicesBufferOpaque.data[tileIndexListOffsetOpaque + i] = tileLightIndicesOpaque[i];
+    }
+    for (uint i = gl_LocalInvocationIndex; i < tileLightCountTransparent; i += LIGHT_TILE_SIZE * LIGHT_TILE_SIZE)
+    {
+        lightIndicesBufferTransparent.data[tileIndexListOffsetTransparent + i] = tileLightIndicesTransparent[i];
     }
 }

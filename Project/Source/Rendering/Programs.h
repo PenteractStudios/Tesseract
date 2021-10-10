@@ -162,6 +162,8 @@ struct ProgramStandard : public Program {
 	int viewLocation = -1;
 	int projLocation = -1;
 
+	int isOpaqueLocation = -1;
+
 	int viewOrtoLightsStaticLocation = -1;
 	int projOrtoLightsStaticLocation = -1;
 
