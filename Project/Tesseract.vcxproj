@@ -697,6 +697,7 @@
       <AdditionalDependencies>freetype.lib;ProfilerCore32.lib;assimp-vc141-mt.lib;DeviL.lib;ILU.lib;ILUT.lib;SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)/Libs\Compressonator\lib;$(ProjectDir)/Libs\libav\lib;$(ProjectDir)/Libs\Bullet/lib;$(ProjectDir)/Libs\brofiler/lib;$(ProjectDir)/Libs\assimp/lib;$(ProjectDir)/Libs\DeviL/lib;$(ProjectDir)/Libs\SDL/lib;$(ProjectDir)/Libs\SDL2_image/lib;$(ProjectDir)/Libs\glew-2.1.0/lib;$(ProjectDir)/Libs\OpenAL-soft/lib;$(ProjectDir)/Libs\libsndfile/lib;$(ProjectDir)/Libs\freetype\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>Compressonator_MD_DLL.lib;avcodec.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;postproc.lib;swresample.lib;swscale.lib;BulletCollision_debug.lib;BulletDynamics_debug.lib;LinearMath_debug.lib;ProfilerCore32.lib;assimp-vc141-mt.lib;DeviL.lib;ILU.lib;ILUT.lib;SDL2.lib;SDL2main.lib;SDL2_image.lib;glew32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;OpenAL32.lib;sndfile.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -731,6 +732,7 @@
       <AdditionalDependencies>Compressonator_MD_DLL.lib;avcodec.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;postproc.lib;swresample.lib;swscale.lib;BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;ProfilerCore32.lib;assimp-vc141-mt.lib;DeviL.lib;ILU.lib;ILUT.lib;SDL2.lib;SDL2main.lib;SDL2_image.lib;glew32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;OpenAL32.lib;sndfile.lib</AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <PerUserRedirection>true</PerUserRedirection>
+      <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -765,6 +767,7 @@
       <AdditionalDependencies>Compressonator_MD_DLL.lib;avcodec.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;postproc.lib;swresample.lib;swscale.lib;BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;ProfilerCore32.lib;assimp-vc141-mt.lib;DeviL.lib;ILU.lib;ILUT.lib;SDL2.lib;SDL2main.lib;SDL2_image.lib;glew32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;OpenAL32.lib;sndfile.lib</AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <PerUserRedirection>true</PerUserRedirection>
+      <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <PostBuildEvent>
       <Command>
