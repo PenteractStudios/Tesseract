@@ -66,7 +66,7 @@ float PanelAudioMixer::GetGainSFXChannel() const {
 	return gainSFXChannel;
 }
 
-void PanelAudioMixer::GetGainMainChannel(float _gainMainChannel) {
+void PanelAudioMixer::SetGainMainChannel(float _gainMainChannel) {
 	gainMainChannel = _gainMainChannel;
 }
 

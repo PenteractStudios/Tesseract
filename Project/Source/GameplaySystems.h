@@ -532,7 +532,17 @@ namespace Camera {
 }; // namespace Camera
 
 namespace Audio {
+	// ModuleAudio
 	TESSERACT_ENGINE_API void StopAllSources();
+
+	TESSERACT_ENGINE_API float GetGainMainChannel();
+	TESSERACT_ENGINE_API float GetGainMusicChannel();
+	TESSERACT_ENGINE_API float GetGainSFXChannel();
+
+	// PanelAudioMixer
+	TESSERACT_ENGINE_API void SetGainMainChannel(float _gainMainChannel);
+	TESSERACT_ENGINE_API void SetGainMusicChannel(float _gainMusicChannel);
+	TESSERACT_ENGINE_API void SetGainSFXChannel(float _gainSFXChannel);
 }; // namespace Audio
 
 namespace UserInterface {
@@ -542,4 +552,4 @@ namespace UserInterface {
 namespace Navigation {
 	TESSERACT_ENGINE_API void Raycast(float3 startPosition, float3 targetPosition, bool& hitResult, float3& hitPosition);
 	TESSERACT_ENGINE_API void GetNavMeshHeightInPosition(const float3 position, float& height);
-}
+}; // namespace Navigation
