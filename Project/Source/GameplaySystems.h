@@ -538,8 +538,6 @@ namespace Audio {
 	TESSERACT_ENGINE_API float GetGainMainChannel();
 	TESSERACT_ENGINE_API float GetGainMusicChannel();
 	TESSERACT_ENGINE_API float GetGainSFXChannel();
-
-	// PanelAudioMixer
 	TESSERACT_ENGINE_API void SetGainMainChannel(float _gainMainChannel);
 	TESSERACT_ENGINE_API void SetGainMusicChannel(float _gainMusicChannel);
 	TESSERACT_ENGINE_API void SetGainSFXChannel(float _gainSFXChannel);
