@@ -12,7 +12,7 @@ public:
 	float GetGainMusicChannel() const;
 	float GetGainSFXChannel() const;
 
-	void GetGainMainChannel(float _gainMainChannel);
+	void SetGainMainChannel(float _gainMainChannel);
 	void SetGainMusicChannel(float _gainMusicChannel);
 	void SetGainSFXChannel(float _gainSFXChannel);
 

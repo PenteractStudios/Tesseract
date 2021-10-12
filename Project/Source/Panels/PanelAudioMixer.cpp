@@ -66,14 +66,27 @@ float PanelAudioMixer::GetGainSFXChannel() const {
 	return gainSFXChannel;
 }
 
-void PanelAudioMixer::GetGainMainChannel(float _gainMainChannel) {
+void PanelAudioMixer::SetGainMainChannel(float _gainMainChannel) {
 	gainMainChannel = _gainMainChannel;
+	Pool<ComponentAudioListener>::Iterator audioListener = App->scene->scene->audioListenerComponents.begin();
+	(*audioListener).SetAudioVolume(gainMainChannel);
+	
 }
 
 void PanelAudioMixer::SetGainMusicChannel(float _gainMusicChannel) {
 	gainMusicChannel = _gainMusicChannel;
+	for (ComponentAudioSource& audioSource : App->scene->scene->audioSourceComponents) {
+		if (audioSource.GetIsMusic()) {
+			audioSource.SetGainMultiplier(gainMusicChannel);
+		}
+	}
 }
 
 void PanelAudioMixer::SetGainSFXChannel(float _gainSFXChannel) {
 	gainSFXChannel = _gainSFXChannel;
+	for (ComponentAudioSource& audioSource : App->scene->scene->audioSourceComponents) {
+		if (!audioSource.GetIsMusic()) {
+			audioSource.SetGainMultiplier(gainSFXChannel);
+		}
+	}
 }
