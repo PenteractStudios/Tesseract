@@ -5,7 +5,6 @@
 #include "Components/ComponentCamera.h"
 #include "Application.h"
 #include "Panels/PanelScene.h"
-#include "Panels/PanelAudioMixer.h"
 #include "Modules/ModuleTime.h"
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleInput.h"
@@ -555,27 +554,27 @@ void Audio::StopAllSources() {
 }
 
 float Audio::GetGainMainChannel() {
-	return App->editor->panelAudioMixer.GetGainMainChannel();
+	return App->audio->GetGainMainChannel();
 }
 
 float Audio::GetGainMusicChannel() {
-	return App->editor->panelAudioMixer.GetGainMusicChannel();
+	return App->audio->GetGainMusicChannel();
 }
 
 float Audio::GetGainSFXChannel() {
-	return App->editor->panelAudioMixer.GetGainSFXChannel();
+	return App->audio->GetGainSFXChannel();
 }
 
 void Audio::SetGainMainChannel(float _gainMainChannel) {
-	return App->editor->panelAudioMixer.SetGainMainChannel(_gainMainChannel);
+	return App->audio->SetGainMainChannel(_gainMainChannel);
 }
 
 void Audio::SetGainMusicChannel(float _gainMusicChannel) {
-	return App->editor->panelAudioMixer.SetGainMusicChannel(_gainMusicChannel);
+	return App->audio->SetGainMusicChannel(_gainMusicChannel);
 }
 
 void Audio::SetGainSFXChannel(float _gainSFXChannel) {
-	return App->editor->panelAudioMixer.SetGainSFXChannel(_gainSFXChannel);
+	return App->audio->SetGainSFXChannel(_gainSFXChannel);
 }
 
 // --------- UserInterface --------- //
