@@ -42,8 +42,8 @@ public:
 	TESSERACT_ENGINE_API float GetRollOffFactor() const;
 	TESSERACT_ENGINE_API float GetReferenceDistance() const;
 	TESSERACT_ENGINE_API float GetMaxDistance() const;
-	TESSERACT_ENGINE_API float GetGainMultiplier() const;
 	TESSERACT_ENGINE_API float GetIsMusic() const;
+	float GetGainMultiplier() const;
 
 	// --- SETTERS ---
 
@@ -60,8 +60,8 @@ public:
 	TESSERACT_ENGINE_API void SetRollOffFactor(float _rollOffFactor);
 	TESSERACT_ENGINE_API void SetReferenceDistance(float _referenceDistance);
 	TESSERACT_ENGINE_API void SetMaxDistance(float _maxDistance);
-	TESSERACT_ENGINE_API void SetGainMultiplier(float _gainMultiplier);
 	TESSERACT_ENGINE_API void SetIsMusic(float _isMusic);
+	void SetGainMultiplier(float _gainMultiplier);
 
 private:
 	bool drawGizmos = true;

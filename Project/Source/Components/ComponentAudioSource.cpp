@@ -39,6 +39,11 @@ ComponentAudioSource::~ComponentAudioSource() {
 
 void ComponentAudioSource::Init() {
 	isStarted = false;
+	if (isMusic) {
+		gainMultiplier = App->audio->GetGainMusicChannel();
+	} else {
+		gainMultiplier = App->audio->GetGainSFXChannel();
+	}
 	UpdateAudioSource();
 }
 
@@ -119,7 +124,7 @@ void ComponentAudioSource::OnEditorUpdate() {
 	int channel = isMusic;
 	if (ImGui::RadioButton("Music", &channel, 1)) {
 		isMusic = true;
-		gainMultiplier = App->editor->panelAudioMixer.GetGainMusicChannel();
+		gainMultiplier = App->audio->GetGainMusicChannel();
 		if (!mute) {
 			alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
 		}
@@ -127,7 +132,7 @@ void ComponentAudioSource::OnEditorUpdate() {
 	ImGui::SameLine();
 	if (ImGui::RadioButton("SFX", &channel, 0)) {
 		isMusic = false;
-		gainMultiplier = App->editor->panelAudioMixer.GetGainSFXChannel();
+		gainMultiplier = App->audio->GetGainSFXChannel();
 		if (!mute) {
 			alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
 		}
@@ -488,9 +493,9 @@ void ComponentAudioSource::SetGainMultiplier(float _gainMultiplier) {
 void ComponentAudioSource::SetIsMusic(float _isMusic) {
 	isMusic = _isMusic;
 	if (isMusic) {
-		gainMultiplier = App->editor->panelAudioMixer.GetGainMusicChannel();
+		gainMultiplier = App->audio->GetGainMusicChannel();
 	} else {
-		gainMultiplier = App->editor->panelAudioMixer.GetGainSFXChannel();
+		gainMultiplier = App->audio->GetGainSFXChannel();
 	}
 	if (!mute) {
 		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);

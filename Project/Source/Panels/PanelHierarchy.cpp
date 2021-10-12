@@ -17,6 +17,7 @@
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleScene.h"
 #include "Modules/ModuleFiles.h"
+#include "Modules/ModuleTime.h"
 #include "Modules/ModuleUserInterface.h"
 #include "Modules/ModuleResources.h"
 #include "Resources/ResourcePrefab.h"
@@ -438,7 +439,10 @@ GameObject* PanelHierarchy::DuplicateGameObject(GameObject* gameObject) {
 	newGameObject->id = gameObjectId;
 	newGameObject->SetParent(parent);
 	newGameObject->LoadPrefab(jRoot);
-	newGameObject->Start();
+	newGameObject->Init();
+	if (App->time->HasGameStarted()) {
+		newGameObject->Start();
+	}
 
 	return newGameObject;
 }

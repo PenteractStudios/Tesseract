@@ -1,14 +1,14 @@
 #include "ComponentAudioListener.h"
 
 #include "GameObject.h"
+#include "Application.h"
+#include "Modules/ModuleAudio.h"
 #include "Modules/ModuleEditor.h"
-#include "Utils/Logging.h"
 
 #include "AL/al.h"
 
 #include "Utils/Leaks.h"
 
-#define JSON_TAG_GAIN "Gain"
 #define JSON_TAG_IS_CUSTOM_POS "IsCustomPos"
 #define JSON_TAG_MODEL_INDEX "ModelIndex"
 #define JSON_TAG_CLAMPED "Clamped"
@@ -16,6 +16,7 @@
 #define JSON_TAG_DOPPLER_FACTOR "DopplerFactor"
 
 void ComponentAudioListener::Init() {
+	float gain = App->audio->GetGainMainChannel();
 	alListenerf(AL_GAIN, gain);
 	alDopplerFactor(dopplerFactor);
 	if (!isCustomPos) UpdateAudioListener();
@@ -57,7 +58,6 @@ void ComponentAudioListener::OnEditorUpdate() {
 }
 
 void ComponentAudioListener::Load(JsonValue jComponent) {
-	gain = jComponent[JSON_TAG_GAIN];
 	isCustomPos = jComponent[JSON_TAG_IS_CUSTOM_POS];
 	JsonValue jDistanceModel = jComponent[JSON_TAG_DISTANCE_MODEL];
 	distanceModel = (DistanceModel)(int) jDistanceModel;
@@ -67,7 +67,6 @@ void ComponentAudioListener::Load(JsonValue jComponent) {
 }
 
 void ComponentAudioListener::Save(JsonValue jComponent) const {
-	jComponent[JSON_TAG_GAIN] = gain;
 	jComponent[JSON_TAG_IS_CUSTOM_POS] = isCustomPos;
 	jComponent[JSON_TAG_MODEL_INDEX] = model;
 	JsonValue jDistanceModel = jComponent[JSON_TAG_DISTANCE_MODEL];
@@ -133,13 +132,9 @@ void ComponentAudioListener::UpdateDistanceModel() {
 	}
 }
 
-float ComponentAudioListener::GetAudioVolume() const {
-	return gain;
-}
 
 void ComponentAudioListener::SetAudioVolume(float volume) {
-	gain = volume;
-	alListenerf(AL_GAIN, gain);
+	alListenerf(AL_GAIN, volume);
 }
 
 void ComponentAudioListener::SetPosition(float3 position) {

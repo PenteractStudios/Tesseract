@@ -27,13 +27,11 @@ public:
 	void UpdateAudioListener();
 	void UpdateDistanceModel();
 
-	TESSERACT_ENGINE_API float GetAudioVolume() const;
-	TESSERACT_ENGINE_API void SetAudioVolume(float volume);
+	void SetAudioVolume(float volume);
 	TESSERACT_ENGINE_API void SetPosition(float3 position);
 	TESSERACT_ENGINE_API void SetDirection(float3 front, float3 up);
 
 private:
-	float gain = 1.0f;
 	bool isCustomPos = false;
 	
 	int model = 2;

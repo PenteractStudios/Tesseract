@@ -38,6 +38,19 @@ public:
 	void Stop(unsigned sourceID) const;
 	TESSERACT_ENGINE_API void StopAllSources();
 
+	float GetGainMainChannel();
+	float GetGainMusicChannel() const;
+	float GetGainSFXChannel() const;
+
+	void SetGainMainChannel(float _gainMainChannel);
+	void SetGainMusicChannel(float _gainMusicChannel);
+	void SetGainSFXChannel(float _gainSFXChannel);
+
+	// Only to Load Audio parameters in Configuration. Don't use it
+	void SetGainMainChannelInternal(float _gainMainChannel);
+	void SetGainMusicChannelInternal(float _gainMusicChannel);
+	void SetGainSFXChannelInternal(float _gainSFXChannel);
+
 private:
 	std::vector<ALCchar*> devices;
 	ALCchar* currentDevice;
@@ -45,4 +58,8 @@ private:
 	ALCcontext* openALContext = nullptr;
 	bool contextMadeCurrent = false;
 	unsigned sources[NUM_SOURCES] = {0};
+
+	float gainMainChannel = 1.0f;
+	float gainMusicChannel = 1.0f;
+	float gainSFXChannel = 1.0f;
 };

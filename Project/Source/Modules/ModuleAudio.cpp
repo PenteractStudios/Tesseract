@@ -146,3 +146,54 @@ void ModuleAudio::StopAllSources() {
 		}
 	}
 }
+
+float ModuleAudio::GetGainMainChannel() {
+	return gainMainChannel;
+}
+
+float ModuleAudio::GetGainMusicChannel() const {
+	return gainMusicChannel;
+}
+
+float ModuleAudio::GetGainSFXChannel() const {
+	return gainSFXChannel;
+}
+
+void ModuleAudio::SetGainMainChannel(float _gainMainChannel) {
+	if (App->scene->scene->audioListenerComponents.Count() == 0) {
+		return;
+	}
+	gainMainChannel = _gainMainChannel;
+	Pool<ComponentAudioListener>::Iterator audioListener = App->scene->scene->audioListenerComponents.begin();
+	(*audioListener).SetAudioVolume(gainMainChannel);
+}
+
+void ModuleAudio::SetGainMusicChannel(float _gainMusicChannel) {
+	gainMusicChannel = _gainMusicChannel;
+	for (ComponentAudioSource& audioSource : App->scene->scene->audioSourceComponents) {
+		if (audioSource.GetIsMusic()) {
+			audioSource.SetGainMultiplier(gainMusicChannel);
+		}
+	}
+}
+
+void ModuleAudio::SetGainSFXChannel(float _gainSFXChannel) {
+	gainSFXChannel = _gainSFXChannel;
+	for (ComponentAudioSource& audioSource : App->scene->scene->audioSourceComponents) {
+		if (!audioSource.GetIsMusic()) {
+			audioSource.SetGainMultiplier(gainSFXChannel);
+		}
+	}
+}
+
+void ModuleAudio::SetGainMainChannelInternal(float _gainMainChannel) {
+	gainMainChannel = _gainMainChannel;
+}
+
+void ModuleAudio::SetGainMusicChannelInternal(float _gainMusicChannel) {
+	gainMusicChannel = _gainMusicChannel;
+}
+
+void ModuleAudio::SetGainSFXChannelInternal(float _gainSFXChannel) {
+	gainSFXChannel = _gainSFXChannel;
+}
