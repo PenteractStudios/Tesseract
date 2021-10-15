@@ -21,6 +21,7 @@ ComponentEventSystem ::~ComponentEventSystem() {
 	if (App->userInterface->GetCurrentEventSystem() == this) {
 		App->userInterface->SetCurrentEventSystem(0);
 	}
+	activeSelectableComponents.clear();
 }
 
 void ComponentEventSystem::Start() {

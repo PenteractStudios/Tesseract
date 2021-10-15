@@ -2,7 +2,7 @@
 
 #include "Components/Component.h"
 
-#include <vector>
+#include <list>
 
 class GameObject;
 class ComponentSelectable;
@@ -28,6 +28,7 @@ public:
 	TESSERACT_ENGINE_API ComponentSelectable* GetCurrentlyHovered() const;		//Returns last Selectable that was hovered over with mouse
 	void SetClickedGameObject(GameObject* clickedObj_);
 	GameObject* GetClickedGameObject();
+	std::list<ComponentSelectable*> activeSelectableComponents;
 
 private:
 	UID selectedId = 0; //Currently selected SelectableComponent*

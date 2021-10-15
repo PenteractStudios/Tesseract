@@ -4,6 +4,7 @@
 #include "GameObject.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleUserInterface.h"
+#include "Modules/ModuleTime.h"
 #include "Components/UI/ComponentTransform2D.h"
 #include "Components/UI/ComponentEventSystem.h"
 #include "Components/UI/ComponentButton.h"
@@ -53,12 +54,10 @@ ComponentSelectable* ComponentSelectable::FindSelectableOnDir(float2 dir) {
 		float3 thisPos = this->GetOwner().GetComponent<ComponentTransform2D>()->GetPosition();
 
 		// Get Gameobjects with the same parent
-		for (GameObject* brother : this->GetOwner().GetParent()->GetChildren()) {
-			ComponentSelectable* selectable = brother->GetComponent<ComponentSelectable>();
+		for (ComponentSelectable* selectable : App->userInterface->GetCurrentEventSystem()->activeSelectableComponents) {
 			if (!selectable) continue;
 
 			GameObject selectableObject = selectable->GetOwner();
-			if (selectableObject.GetParent()->GetID() != this->GetOwner().GetParent()->GetID()) continue;
 
 			// Get relative direction and distance to this Element
 			float3 direction = selectableObject.GetComponent<ComponentTransform2D>()->GetPosition() - thisPos;
@@ -122,6 +121,12 @@ void ComponentSelectable::Init() {
 	onAxisUp = 0;
 }
 
+void ComponentSelectable::Start() {
+	if (App->userInterface->GetCurrentEventSystem()) {
+		App->userInterface->GetCurrentEventSystem()->activeSelectableComponents.push_back(this);
+	}
+}
+
 void ComponentSelectable::Update() {
 }
 
@@ -170,6 +175,9 @@ void ComponentSelectable::OnEditorUpdate() {
 }
 
 void ComponentSelectable::OnEnable() {
+	if (!App->time->IsGameRunning()) return; //This line to prevent OnEnable from loading scenes
+	ComponentEventSystem* evSys = App->userInterface->GetCurrentEventSystem();
+	if (evSys) evSys->activeSelectableComponents.push_back(this);
 }
 
 void ComponentSelectable::OnDisable() {
@@ -182,6 +190,7 @@ void ComponentSelectable::OnDisable() {
 			hovered = false;
 			evSys->ExitedPointerOnSelectable(this);
 		}
+		evSys->activeSelectableComponents.remove(this);
 	}
 }
 
