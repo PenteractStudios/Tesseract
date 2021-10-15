@@ -10,6 +10,7 @@
 #include "Components/UI/ComponentButton.h"
 #include "Components/UI/ComponentToggle.h"
 #include "Components/UI/ComponentSlider.h"
+#include "Utils/ImGuiUtils.h"
 
 #include "Utils/Leaks.h"
 
@@ -150,6 +151,13 @@ void ComponentSelectable::OnEditorUpdate() {
 			}
 		}
 		ImGui::EndCombo();
+	}
+
+	if (navigationType == NavigationType::MANUAL) {
+		ImGui::GameObjectSlot("Navigation Up", &onAxisUp);
+		ImGui::GameObjectSlot("Navigation Down", &onAxisDown);
+		ImGui::GameObjectSlot("Navigation Left", &onAxisLeft);
+		ImGui::GameObjectSlot("Navigation Right", &onAxisRight);
 	}
 
 	//Transition Type combo box
