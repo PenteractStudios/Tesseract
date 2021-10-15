@@ -32,7 +32,7 @@ void ComponentEventSystem::Start() {
 	if (objectToSelect) {
 		ComponentSelectable* selectable = objectToSelect->GetComponent<ComponentSelectable>();
 
-		SetSelected(selectable->GetID());
+		if (selectable) SetSelected(selectable->GetID());
 	}
 }
 
@@ -104,7 +104,7 @@ void ComponentEventSystem::Update() {
 void ComponentEventSystem::OnEditorUpdate() {
 	ImGui::TextColored(ImVec4(1.f, 1.f, 0.f, 1.f), "Current Selected:");
 
-	if (selectedId != 0) {
+	if (GetCurrentSelected()) {
 		ImGui::SameLine();
 		ImGui::TextColored(ImVec4(1.f, 1.f, 1.f, 1.f), GetCurrentSelected()->GetOwner().name.c_str());
 	}
@@ -149,6 +149,8 @@ void ComponentEventSystem::SetSelected(ComponentSelectable* newSelectableCompone
 void ComponentEventSystem::SetSelected(UID newSelectableComponentId) {
 	ComponentSelectable* currentSel = GetCurrentSelected();
 	if (currentSel != nullptr) {
+		if (currentSel->GetID() == newSelectableComponentId) return; //Already selected, aborting
+
 		currentSel->OnDeselect();
 	}
 	selectedId = newSelectableComponentId;
