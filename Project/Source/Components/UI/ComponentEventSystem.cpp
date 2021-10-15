@@ -41,7 +41,7 @@ void ComponentEventSystem::Update() {
 		navigationTimer = Max(0.0f, navigationTimer - App->time->GetRealTimeDeltaTime());
 	}
 
-	if (GetCurrentSelected() == nullptr || !GetCurrentSelected()->IsActive()) return;
+	if (GetCurrentSelected() == nullptr) return;
 
 	bool keyPressed = false;
 	if (!App->userInterface->handlingSlider && navigationTimer == 0) {
