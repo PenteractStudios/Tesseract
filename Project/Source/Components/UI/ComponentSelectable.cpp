@@ -51,16 +51,16 @@ ComponentSelectable* ComponentSelectable::FindSelectableOnDir(float2 dir) {
 	case NavigationType::AUTOMATIC: {
 		ComponentSelectable* bestCandidate = nullptr;
 		float minDistance = FLT_MAX;
-		float3 thisPos = this->GetOwner().GetComponent<ComponentTransform2D>()->GetPosition();
+		float3 thisPos = this->GetOwner().GetComponent<ComponentTransform2D>()->GetScreenPosition();
 
 		// Get Gameobjects with the same parent
 		for (ComponentSelectable* selectable : App->userInterface->GetCurrentEventSystem()->activeSelectableComponents) {
 			if (!selectable) continue;
-
+			
 			GameObject selectableObject = selectable->GetOwner();
-
+			if (!selectableObject.IsActive()) continue;
 			// Get relative direction and distance to this Element
-			float3 direction = selectableObject.GetComponent<ComponentTransform2D>()->GetPosition() - thisPos;
+			float3 direction = selectableObject.GetComponent<ComponentTransform2D>()->GetScreenPosition() - thisPos;
 			float distance = direction.LengthSq();
 
 			// Compare best candidate
