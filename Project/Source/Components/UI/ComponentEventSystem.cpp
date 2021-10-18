@@ -21,6 +21,7 @@ ComponentEventSystem ::~ComponentEventSystem() {
 	if (App->userInterface->GetCurrentEventSystem() == this) {
 		App->userInterface->SetCurrentEventSystem(0);
 	}
+	activeSelectableComponents.clear();
 }
 
 void ComponentEventSystem::Start() {
@@ -31,7 +32,7 @@ void ComponentEventSystem::Start() {
 	if (objectToSelect) {
 		ComponentSelectable* selectable = objectToSelect->GetComponent<ComponentSelectable>();
 
-		SetSelected(selectable->GetID());
+		if (selectable) SetSelected(selectable->GetID());
 	}
 }
 
@@ -40,7 +41,7 @@ void ComponentEventSystem::Update() {
 		navigationTimer = Max(0.0f, navigationTimer - App->time->GetRealTimeDeltaTime());
 	}
 
-	if (GetCurrentSelected() == nullptr || !GetCurrentSelected()->IsActive()) return;
+	if (GetCurrentSelected() == nullptr) return;
 
 	bool keyPressed = false;
 	if (!App->userInterface->handlingSlider && navigationTimer == 0) {
@@ -103,7 +104,7 @@ void ComponentEventSystem::Update() {
 void ComponentEventSystem::OnEditorUpdate() {
 	ImGui::TextColored(ImVec4(1.f, 1.f, 0.f, 1.f), "Current Selected:");
 
-	if (selectedId != 0) {
+	if (GetCurrentSelected()) {
 		ImGui::SameLine();
 		ImGui::TextColored(ImVec4(1.f, 1.f, 1.f, 1.f), GetCurrentSelected()->GetOwner().name.c_str());
 	}
@@ -148,6 +149,8 @@ void ComponentEventSystem::SetSelected(ComponentSelectable* newSelectableCompone
 void ComponentEventSystem::SetSelected(UID newSelectableComponentId) {
 	ComponentSelectable* currentSel = GetCurrentSelected();
 	if (currentSel != nullptr) {
+		if (currentSel->GetID() == newSelectableComponentId) return; //Already selected, aborting
+
 		currentSel->OnDeselect();
 	}
 	selectedId = newSelectableComponentId;

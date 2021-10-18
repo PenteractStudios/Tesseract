@@ -17,6 +17,7 @@ public:
 	void OnEditorUpdate() override;					// Works as input of the Colors and the Selectable interface
 	void Save(JsonValue jComponent) const override; // Serializes object
 	void Load(JsonValue jComponent) override;		// Deserializes object
+	void OnDisable() override;
 
 	void OnClickedInternal() override;				   // Internal Action to perform when the button is clicked
 	void OnClicked() override;						   // Action to perform when the button is clicked

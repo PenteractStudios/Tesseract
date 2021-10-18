@@ -4,11 +4,13 @@
 #include "GameObject.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleUserInterface.h"
+#include "Modules/ModuleTime.h"
 #include "Components/UI/ComponentTransform2D.h"
 #include "Components/UI/ComponentEventSystem.h"
 #include "Components/UI/ComponentButton.h"
 #include "Components/UI/ComponentToggle.h"
 #include "Components/UI/ComponentSlider.h"
+#include "Utils/ImGuiUtils.h"
 
 #include "Utils/Leaks.h"
 
@@ -50,18 +52,16 @@ ComponentSelectable* ComponentSelectable::FindSelectableOnDir(float2 dir) {
 	case NavigationType::AUTOMATIC: {
 		ComponentSelectable* bestCandidate = nullptr;
 		float minDistance = FLT_MAX;
-		float3 thisPos = this->GetOwner().GetComponent<ComponentTransform2D>()->GetPosition();
+		float3 thisPos = this->GetOwner().GetComponent<ComponentTransform2D>()->GetScreenPosition();
 
 		// Get Gameobjects with the same parent
-		for (GameObject* brother : this->GetOwner().GetParent()->GetChildren()) {
-			ComponentSelectable* selectable = brother->GetComponent<ComponentSelectable>();
+		for (ComponentSelectable* selectable : App->userInterface->GetCurrentEventSystem()->activeSelectableComponents) {
 			if (!selectable) continue;
-
+			
 			GameObject selectableObject = selectable->GetOwner();
-			if (selectableObject.GetParent()->GetID() != this->GetOwner().GetParent()->GetID()) continue;
-
+			if (!selectableObject.IsActive()) continue;
 			// Get relative direction and distance to this Element
-			float3 direction = selectableObject.GetComponent<ComponentTransform2D>()->GetPosition() - thisPos;
+			float3 direction = selectableObject.GetComponent<ComponentTransform2D>()->GetScreenPosition() - thisPos;
 			float distance = direction.LengthSq();
 
 			// Compare best candidate
@@ -122,6 +122,12 @@ void ComponentSelectable::Init() {
 	onAxisUp = 0;
 }
 
+void ComponentSelectable::Start() {
+	if (App->userInterface->GetCurrentEventSystem()) {
+		App->userInterface->GetCurrentEventSystem()->activeSelectableComponents.push_back(this);
+	}
+}
+
 void ComponentSelectable::Update() {
 }
 
@@ -147,6 +153,13 @@ void ComponentSelectable::OnEditorUpdate() {
 		ImGui::EndCombo();
 	}
 
+	if (navigationType == NavigationType::MANUAL) {
+		ImGui::GameObjectSlot("Navigation Up", &onAxisUp);
+		ImGui::GameObjectSlot("Navigation Down", &onAxisDown);
+		ImGui::GameObjectSlot("Navigation Left", &onAxisLeft);
+		ImGui::GameObjectSlot("Navigation Right", &onAxisRight);
+	}
+
 	//Transition Type combo box
 	const char* transitionTypeItems[] = {"None", "Color Transition", "Animation"};
 	const char* transitionCurrent = transitionTypeItems[(int) transitionType];
@@ -170,6 +183,9 @@ void ComponentSelectable::OnEditorUpdate() {
 }
 
 void ComponentSelectable::OnEnable() {
+	if (!App->time->IsGameRunning()) return; //This line to prevent OnEnable from loading scenes
+	ComponentEventSystem* evSys = App->userInterface->GetCurrentEventSystem();
+	if (evSys) evSys->activeSelectableComponents.push_back(this);
 }
 
 void ComponentSelectable::OnDisable() {
@@ -182,6 +198,7 @@ void ComponentSelectable::OnDisable() {
 			hovered = false;
 			evSys->ExitedPointerOnSelectable(this);
 		}
+		evSys->activeSelectableComponents.remove(this);
 	}
 }
 

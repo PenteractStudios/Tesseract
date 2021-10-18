@@ -50,6 +50,10 @@ void ComponentButton::Load(JsonValue jComponent) {
 	colorClicked.Set(jColorClick[0], jColorClick[1], jColorClick[2], jColorClick[3]);
 }
 
+void ComponentButton::OnDisable() {
+	clicked = false;
+}
+
 void ComponentButton::OnClicked() {
 	for (ComponentScript& scriptComponent : GetOwner().GetComponents<ComponentScript>()) {
 		Script* script = scriptComponent.GetScriptInstance();
