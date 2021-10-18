@@ -70,7 +70,7 @@ void PanelScene::Update() {
 					}
 				}
 
-				for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+				for (int i = 0; i < App->renderer->lightFrustumStatic.numberCascades; ++i) {
 					std::string str = "StaticDepth " + std::to_string(i);
 					if (ImGui::Selectable(str.c_str())) {
 						currentShadingMode = "StaticDepth";
@@ -78,7 +78,7 @@ void PanelScene::Update() {
 					}
 				}
 
-				for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+				for (int i = 0; i < App->renderer->lightFrustumDynamic.numberCascades; ++i) {
 					std::string str = "DynamicDepth " + std::to_string(i);
 					if (ImGui::Selectable(str.c_str())) {
 						currentShadingMode = "DynamicDepth";
@@ -149,7 +149,7 @@ void PanelScene::Update() {
 				ImGui::TextColored(App->editor->titleColor, "Static Light Frustum");
 				ImGui::Checkbox("Ortographic##static", &App->renderer->drawStaticLightFrustumOrtographicGizmo);
 				if (App->renderer->drawStaticLightFrustumOrtographicGizmo) {
-					for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+					for (int i = 0; i < App->renderer->lightFrustumStatic.numberCascades; ++i) {
 						std::string label = "Cascade " + std::to_string(i) + "##static_orto";
 						ImGui::RadioButton(label.c_str(), &App->renderer->indexStaticOrtographic, i);
 					}
@@ -158,7 +158,7 @@ void PanelScene::Update() {
 
 				ImGui::Checkbox("Perspective##static", &App->renderer->drawStaticLightFrustumPerspectiveGizmo);
 				if (App->renderer->drawStaticLightFrustumPerspectiveGizmo) {
-					for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+					for (unsigned int i = 0; i < App->renderer->lightFrustumStatic.numberCascades; ++i) {
 						std::string label = "Cascade " + std::to_string(i) + "##static_pers";
 						ImGui::RadioButton(label.c_str(), &App->renderer->indexStaticPerspective, i);
 					}
@@ -168,7 +168,7 @@ void PanelScene::Update() {
 				ImGui::TextColored(App->editor->titleColor, "Dynamic Light Frustum");
 				ImGui::Checkbox("Ortographic##dynamic", &App->renderer->drawDynamicLightFrustumOrtographicGizmo);
 				if (App->renderer->drawDynamicLightFrustumOrtographicGizmo) {
-					for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+					for (int i = 0; i < App->renderer->lightFrustumDynamic.numberCascades; ++i) {
 						std::string label = "Cascade " + std::to_string(i) + "##dynamic_orto";
 						ImGui::RadioButton(label.c_str(), &App->renderer->indexDynamicOrtographic, i);
 					}
@@ -177,7 +177,7 @@ void PanelScene::Update() {
 
 				ImGui::Checkbox("Perspective##dynamic", &App->renderer->drawDynamicLightFrustumPerspectiveGizmo);
 				if (App->renderer->drawDynamicLightFrustumPerspectiveGizmo) {
-					for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+					for (int i = 0; i < App->renderer->lightFrustumDynamic.numberCascades; ++i) {
 						std::string label = "Cascade " + std::to_string(i) + "##dynamic_pers";
 						ImGui::RadioButton(label.c_str(), &App->renderer->indexDynamicPerspective, i);
 					}

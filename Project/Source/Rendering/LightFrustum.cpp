@@ -15,11 +15,14 @@
 
 LightFrustum::LightFrustum() {
 
-	subFrustums.resize(NUM_CASCADES_FRUSTUM);
+	subFrustums.resize(numberCascades);
 
-	for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
+	float farDistance = MINUM_FAR_DISTANCE;
+
+	for (unsigned i = 0; i < numberCascades; i++, farDistance *= 2.f) {
 		subFrustums[i].orthographicFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
 		subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
+		subFrustums[i].farDistance = farDistance;
 	}
 
 	subFrustums[0].color = float3(1, 0, 0);
@@ -41,17 +44,15 @@ void LightFrustum::UpdateFrustums() {
 
 	Frustum *gameFrustum = gameCamera->GetFrustum();
 
-	float farDistance = MINIMUM_FAR_DISTANE; //*0.3f;
-
 	if (mode == CascadeMode::FitToScene) {
 		
-		for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; i++, farDistance *= 2.f) {
+		for (unsigned int i = 0; i < numberCascades; i++) {
 			subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
 			subFrustums[i].perspectiveFrustum.SetHorizontalFovAndAspectRatio(gameFrustum->HorizontalFov(), gameFrustum->AspectRatio());
 			subFrustums[i].perspectiveFrustum.SetPos(gameFrustum->Pos());
 			subFrustums[i].perspectiveFrustum.SetUp(gameFrustum->Up());
 			subFrustums[i].perspectiveFrustum.SetFront(gameFrustum->Front());
-			subFrustums[i].perspectiveFrustum.SetViewPlaneDistances(gameFrustum->NearPlaneDistance(), farDistance);
+			subFrustums[i].perspectiveFrustum.SetViewPlaneDistances(gameFrustum->NearPlaneDistance(), subFrustums[i].farDistance);
 			subFrustums[i].planes.CalculateFrustumPlanes(subFrustums[i].perspectiveFrustum);
 		}
 
@@ -59,13 +60,13 @@ void LightFrustum::UpdateFrustums() {
 
 		float nearDistance = 0.0f;
 
-		for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; i++, nearDistance = farDistance, farDistance *= 2.f) {
+		for (unsigned int i = 0; i < numberCascades; i++, nearDistance = subFrustums[i].farDistance) {
 			subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
 			subFrustums[i].perspectiveFrustum.SetHorizontalFovAndAspectRatio(gameFrustum->HorizontalFov(), gameFrustum->AspectRatio());
 			subFrustums[i].perspectiveFrustum.SetPos(gameFrustum->Pos());
 			subFrustums[i].perspectiveFrustum.SetUp(gameFrustum->Up());
 			subFrustums[i].perspectiveFrustum.SetFront(gameFrustum->Front());
-			subFrustums[i].perspectiveFrustum.SetViewPlaneDistances(nearDistance, farDistance);
+			subFrustums[i].perspectiveFrustum.SetViewPlaneDistances(nearDistance, subFrustums[i].farDistance);
 			subFrustums[i].planes.CalculateFrustumPlanes(subFrustums[i].perspectiveFrustum);
 		}
 	}
@@ -83,7 +84,7 @@ void LightFrustum::ReconstructFrustum(ShadowCasterType shadowCasterType) {
 	ComponentTransform* transform = light->GetComponent<ComponentTransform>();
 	assert(transform);
 
-	for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
+	for (unsigned int i = 0; i < numberCascades; i++) {
 		float4x4 lightOrientation = transform->GetGlobalMatrix();
 		lightOrientation.SetTranslatePart(float3::zero);
 		
@@ -118,20 +119,20 @@ void LightFrustum::ReconstructFrustum(ShadowCasterType shadowCasterType) {
 void LightFrustum::DrawOrthographicGizmos(int idx) {
 	
 	if (idx == INT_MAX) {
-		for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
+		for (unsigned i = 0; i < numberCascades; i++) {
 			dd::frustum(subFrustums[i].orthographicFrustum.ViewProjMatrix().Inverted(), subFrustums[i].color);
 		}
-	} else if (idx >= 0 && idx < NUM_CASCADES_FRUSTUM) {
+	} else if (idx >= 0 && idx < numberCascades) {
 		dd::frustum(subFrustums[idx].orthographicFrustum.ViewProjMatrix().Inverted(), subFrustums[idx].color);
 	}
 }
 
 void LightFrustum::DrawPerspectiveGizmos(int idx) {
 	if (idx == INT_MAX) {
-		for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
+		for (unsigned i = 0; i < numberCascades; i++) {
 			dd::frustum(subFrustums[i].perspectiveFrustum.ViewProjMatrix().Inverted(), subFrustums[i].color);
 		}
-	} else if (idx >= 0 && idx < NUM_CASCADES_FRUSTUM) {
+	} else if (idx >= 0 && idx < numberCascades) {
 		dd::frustum(subFrustums[idx].perspectiveFrustum.ViewProjMatrix().Inverted(), subFrustums[idx].color);
 	}
 }
@@ -150,7 +151,7 @@ const std::vector<LightFrustum::FrustumInformation>& LightFrustum::GetSubFrustum
 
 LightFrustum::FrustumInformation& LightFrustum::operator[](int i) {
 	
-	assert(i < 0 || i > NUM_CASCADES_FRUSTUM && "Out of range");
+	assert(i < 0 || i > numberCascades && "Out of range");
 
 	return subFrustums[i];
 

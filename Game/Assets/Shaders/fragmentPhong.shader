@@ -49,7 +49,7 @@ void main()
         
         float shadow = max(min(shadowD, 1), shadowS);
 
-        colorAccumulative += (1.0 - shadow) * directionalColor;
+        colorAccumulative += shadow * directionalColor;
     }
 
 	

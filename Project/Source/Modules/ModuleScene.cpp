@@ -259,6 +259,9 @@ void ModuleScene::SaveScene(const char* filePath) {
 void ModuleScene::DestroyGameObjectDeferred(GameObject* gameObject) {
 	if (gameObject == nullptr) return;
 
+	scene->RemoveStaticShadowCaster(gameObject);
+	scene->RemoveDynamicShadowCaster(gameObject);
+
 	const std::vector<GameObject*>& children = gameObject->GetChildren();
 	for (GameObject* child : children) {
 		DestroyGameObjectDeferred(child);

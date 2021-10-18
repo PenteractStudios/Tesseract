@@ -117,7 +117,7 @@ struct LinearAllocator : public dtTileCacheAlloc {
 	virtual void* alloc(const size_t size) override {
 		if (!buffer)
 			return 0;
-		if (top + size > capacity)
+		if (top + static_cast<int>(size) > capacity)
 			return 0;
 		unsigned char* mem = &buffer[top];
 		top += size;

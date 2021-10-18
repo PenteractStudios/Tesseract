@@ -14,9 +14,9 @@
         0.25
     ],
     "NavMesh": 0,
-    "Cursor": 0,
     "CursorHeight": 0,
     "CursorWidth": 0,
+    "Cursor": 0,
     "Root": {
         "Id": 1332519969056995158,
         "Name": "Scene",
@@ -166,7 +166,7 @@
                             ],
                             "NearPlaneDistance": 0.10000000149011612,
                             "FarPlaneDistance": 2000.0,
-                            "HorizontalFov": 1.75328528881073,
+                            "HorizontalFov": 1.898073434829712,
                             "VerticalFov": 1.3113912343978882
                         }
                     },
@@ -2645,9 +2645,9 @@
                                         "Id": 2312250833675679721,
                                         "Active": true,
                                         "Position": [
-                                            275.00555419921877,
-                                            0.0,
-                                            -9.391082763671875
+                                            275.0055847167969,
+                                            46.91178894042969,
+                                            -283.69512939453127
                                         ],
                                         "Rotation": [
                                             0.0,
@@ -2672,13 +2672,6 @@
                                         "Active": true,
                                         "MeshID": 9218848821787111831,
                                         "MaterialID": 16700917984989060701
-                                    },
-                                    {
-                                        "Type": "MeshRenderer",
-                                        "Id": 18406889753229523755,
-                                        "Active": true,
-                                        "MeshID": 9027867366580633265,
-                                        "MaterialID": 8079755573114365741
                                     },
                                     {
                                         "Type": "BoundingBox",
@@ -4149,9 +4142,9 @@
                                         "Id": 6470668669944279259,
                                         "Active": true,
                                         "Position": [
-                                            338.2071228027344,
-                                            0.0,
-                                            41.0793571472168
+                                            338.20745849609377,
+                                            123.10475158691406,
+                                            465.3749084472656
                                         ],
                                         "Rotation": [
                                             0.0,
@@ -4176,13 +4169,6 @@
                                         "Active": true,
                                         "MeshID": 9218848821787111831,
                                         "MaterialID": 16700917984989060701
-                                    },
-                                    {
-                                        "Type": "MeshRenderer",
-                                        "Id": 12700688958069922540,
-                                        "Active": true,
-                                        "MeshID": 9027867366580633265,
-                                        "MaterialID": 17318196546969160397
                                     },
                                     {
                                         "Type": "BoundingBox",
@@ -8688,13 +8674,6 @@
                                         "Active": true,
                                         "MeshID": 9218848821787111831,
                                         "MaterialID": 16700917984989060701
-                                    },
-                                    {
-                                        "Type": "MeshRenderer",
-                                        "Id": 4316079603574043301,
-                                        "Active": true,
-                                        "MeshID": 9027867366580633265,
-                                        "MaterialID": 8079755573114365741
                                     },
                                     {
                                         "Type": "BoundingBox",

@@ -136,22 +136,24 @@ vec3 GetNormal(vec2 tiledUV)
 }
 
 unsigned int DepthMapIndexStatic(){
-
-	for(unsigned int i = 0; i < cascadesCount; ++i){
-		if(viewFragPosStatic[i].z < farPlaneDistancesStatic[i]) return i;
-	}
-
-	return cascadesCount - 1;
+	return 0;
+	//for(unsigned int i = 0; i < cascadesCount; ++i){
+	//	if(viewFragPosStatic[i].z < farPlaneDistancesStatic[i]) return i;
+	//}
+//
+	//return cascadesCount - 1;
 
 }
 
 unsigned int DepthMapIndexDynamic(){
 
-	for(unsigned int i = 0; i < cascadesCount; ++i){
-		if(viewFragPosDynamic[i].z < farPlaneDistancesDynamic[i]) return i;
-	}
+	return 0;
 
-	return cascadesCount - 1;
+	//for(unsigned int i = 0; i < cascadesCount; ++i){
+	//	if(viewFragPosDynamic[i].z < farPlaneDistancesDynamic[i]) return i;
+	//}
+//
+	//return cascadesCount - 1;
 
 }
 
@@ -369,11 +371,11 @@ void main()
 		Light light = lightBuffer.data[lightIndex];
 		if (light.isSpotLight == 1)
 		{
-    		colorAccumulative += ProcessSpotLight(light, normal, viewDir, Cd, F0, roughness);
+    		colorAccumulative += shadowFake * ProcessSpotLight(light, normal, viewDir, Cd, F0, roughness);
 		}
 		else
 		{
-    		colorAccumulative += ProcessPointLight(light, normal, viewDir, Cd, F0, roughness);
+    		colorAccumulative += shadowFake *  ProcessPointLight(light, normal, viewDir, Cd, F0, roughness);
 		}
 	}
 
@@ -434,11 +436,11 @@ void main()
 		Light light = lightBuffer.data[lightIndex];
 		if (light.isSpotLight == 1)
 		{
-    		colorAccumulative += ProcessSpotLight(light, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+    		colorAccumulative +=  shadowFake * ProcessSpotLight(light, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
 		}
 		else
 		{
-    		colorAccumulative += ProcessPointLight(light, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+    		colorAccumulative +=  shadowFake * ProcessPointLight(light, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
 		}
 	}
 
