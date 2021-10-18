@@ -691,8 +691,6 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 		glActiveTexture(GL_TEXTURE0 + total);
 		glBindTexture(GL_TEXTURE_2D, gldepthMapTexture);
 
-		gldepthMapTexture = App->renderer->depthMapDynamicTextures[i];
-
 	}
 
 	for (unsigned int i = 0; i < subsFrustumsDynamic.size() && total < 32; ++i, ++total) {

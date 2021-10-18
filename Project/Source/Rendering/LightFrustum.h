@@ -3,7 +3,7 @@
 #include "FrustumPlanes.h"
 
 constexpr int MAX_NUM_CASCADES = 5;
-constexpr float MINUM_FAR_DISTANCE = 50.f;
+constexpr float MINIMUM_FAR_DISTANE = 50.f;
 
 enum class CascadeMode {
 	FitToScene = 0,

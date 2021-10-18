@@ -17,7 +17,7 @@ LightFrustum::LightFrustum() {
 
 	subFrustums.resize(numberCascades);
 
-	float farDistance = MINUM_FAR_DISTANCE;
+	float farDistance = MINIMUM_FAR_DISTANE;
 
 	for (unsigned i = 0; i < numberCascades; i++, farDistance *= 2.f) {
 		subFrustums[i].orthographicFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
