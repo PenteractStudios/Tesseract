@@ -19,7 +19,7 @@ ComponentObstacle::~ComponentObstacle() {
 
 void ComponentObstacle::Init() {
 	currentPosition = GetOwner().GetComponent<ComponentTransform>()->GetGlobalPosition();
-	AddObstacle();
+	if (IsActive()) AddObstacle();
 }
 
 void ComponentObstacle::Update() {
@@ -29,7 +29,7 @@ void ComponentObstacle::Update() {
 	if (!newPosition.Equals(currentPosition) || !newRotation.Equals(currentRotation)) {
 		currentPosition = newPosition;
 		currentRotation = newRotation;
-		AddObstacle();
+		if (IsActive()) AddObstacle();
 	}
 
 	// Try to add the obstacle
