@@ -558,6 +558,9 @@ UpdateStatus ModuleRender::Update() {
 
 	// Shadow Pass Static
 	for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+		
+		glViewport(0, 0, static_cast<int>(viewportSize.x * lightFrustumStatic.GetSubFrustums()[i].multiplier), static_cast<int>(viewportSize.y * lightFrustumStatic.GetSubFrustums()[i].multiplier));
+
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapStaticTextureBuffers[i]);
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glEnable(GL_DEPTH_TEST);
@@ -573,6 +576,9 @@ UpdateStatus ModuleRender::Update() {
 	
 	// Shadow Pass Dynamic
 	for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+		
+		glViewport(0, 0, static_cast<int>(viewportSize.x * lightFrustumDynamic.GetSubFrustums()[i].multiplier), static_cast<int>(viewportSize.y * lightFrustumDynamic.GetSubFrustums()[i].multiplier));
+
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapDynamicTextureBuffers[i]);
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glEnable(GL_DEPTH_TEST);
@@ -586,6 +592,10 @@ UpdateStatus ModuleRender::Update() {
 
 	}
 	
+#if GAME
+	App->camera->ViewportResized(App->window->GetWidth(), App->window->GetHeight());
+#endif
+	glViewport(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
 
 	// Depth Prepass
 	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassBuffer);

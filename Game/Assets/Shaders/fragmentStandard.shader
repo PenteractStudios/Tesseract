@@ -2,7 +2,7 @@
 
 #define PI 3.1415926538
 #define EPSILON 1e-5
-#define MAX_CASCADES 10
+#define MAX_CASCADES 4
 
 in vec3 fragNormal;
 in mat3 TBN;
@@ -12,6 +12,10 @@ in vec2 uv;
 // Cascade Shadow Mapping
 in vec4 fragPosLightStatic[MAX_CASCADES];
 in vec4 fragPosLightDynamic[MAX_CASCADES];
+
+in vec3 viewFragPosStatic[MAX_CASCADES];
+in vec3 viewFragPosDynamic[MAX_CASCADES];
+
 flat in unsigned int cascadesCount;
 
 out vec4 outColor;
@@ -135,7 +139,7 @@ unsigned int DepthMapIndexStatic(){
 
 	for(unsigned int i = 0; i < cascadesCount; ++i){
 
-		if(fragPosLightStatic[i].z < farPlaneDistancesStatic[i]) return i;
+		if(-viewFragPosStatic[i].z < farPlaneDistancesStatic[i]) return i;
 
 	}
 
@@ -147,7 +151,7 @@ unsigned int DepthMapIndexDynamic(){
 
 	for(unsigned int i = 0; i < cascadesCount; ++i){
 
-		if(fragPosLightDynamic[i].z < farPlaneDistancesDynamic[i]) return i;
+		if(-viewFragPosDynamic[i].z < farPlaneDistancesDynamic[i]) return i;
 
 	}
 
@@ -157,29 +161,23 @@ unsigned int DepthMapIndexDynamic(){
 
 float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMap) {
 
-	vec3 projCoords;
-	//projCoords = lightPos.xyz / lightPos.w; // If perspective, we need to apply perspective division
-	projCoords = lightPos.xyz;
-	projCoords = projCoords * 0.5 + 0.5;
+	float closestDepth = texture(shadowMap, lightPos.xy).r;
 
-	float closestDepth = texture(shadowMap, projCoords.xy).r;
-
-	if(	projCoords.x < 0.0 || projCoords.x > 1.0 ||
-		projCoords.y < 0.0 || projCoords.y > 1.0 ||
+	if(	lightPos.x < 0.0 || lightPos.x > 1.0 ||
+		lightPos.y < 0.0 || lightPos.y > 1.0 ||
 		closestDepth == 1.0
 	) {
-		return 0.0;
+		return 1.0;
 	}
 
-    float currentDepth = projCoords.z;
 	float bias = min(0.05 * (1 - dot(normal, lightDirection)), 0.005);
 
 	float shadow = 0.0;
-
+	float currentDepth = lightPos.z;
 	vec2 texelSize = 1.0/textureSize(shadowMap, 0);
 	for(int x = -1; x <= 1; ++x){
 		for(int y = -1; y <= 1; ++y){
-			float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x,y) * texelSize).r;
+			float pcfDepth = texture(shadowMap, lightPos.xy + vec2(x,y) * texelSize).r;
 			shadow += currentDepth > pcfDepth + bias ? 1.0 : 0.0;
 		}
 	}
@@ -353,9 +351,15 @@ void main()
 	// Directional Light
 	if (dirLight.isActive == 1)
 	{
-		colorAccumulative += (1 - shadow) * ProcessDirectionalLight(dirLight, normal, viewDir, Cd, F0, roughness);
+		colorAccumulative += shadow * ProcessDirectionalLight(dirLight, normal, viewDir, Cd, F0, roughness);
 	}
 	
+	float shadowFake = 1.0;
+
+	if(shadow < 1.0){
+		shadowFake = shadow + (1.0 - shadow) * 0.35;
+	}
+
 	// Lights
 	int tileIndex = GetTileIndex();
 	if (isOpaque == 1)
@@ -365,7 +369,7 @@ void main()
 		{
 			uint lightIndex = lightIndicesBufferOpaque.data[lightTile.offset + i];
 			Light light = lightBuffer.data[lightIndex];
-			colorAccumulative += ProcessLight(light, normal, viewDir, Cd, F0, roughness);
+			colorAccumulative += shadowFake * ProcessLight(light, normal, viewDir, Cd, F0, roughness);
 		}
 	}
 	else
@@ -375,7 +379,7 @@ void main()
 		{
 			uint lightIndex = lightIndicesBufferTransparent.data[lightTile.offset + i];
 			Light light = lightBuffer.data[lightIndex];
-			colorAccumulative += ProcessLight(light, normal, viewDir, Cd, F0, roughness);
+			colorAccumulative += shadowFake * ProcessLight(light, normal, viewDir, Cd, F0, roughness);
 		}
 	}
 
@@ -418,9 +422,15 @@ void main()
     // Directional Light
     if (dirLight.isActive == 1)
     {
-        colorAccumulative += (1 - shadow) * ProcessDirectionalLight(dirLight, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+        colorAccumulative += shadow * ProcessDirectionalLight(dirLight, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
     }
 	
+	float shadowFake = 1.0;
+
+	if(shadow < 1.0){
+		shadowFake = shadow + (1.0 - shadow) * 0.35;
+	}
+
 	// Lights
 	int tileIndex = GetTileIndex();
 	if (isOpaque == 1)
@@ -430,7 +440,7 @@ void main()
 		{
 			uint lightIndex = lightIndicesBufferOpaque.data[lightTile.offset + i];
 			Light light = lightBuffer.data[lightIndex];
-			colorAccumulative += ProcessLight(light, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+			colorAccumulative += shadowFake * ProcessLight(light, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
 		}
 	}
 	else
@@ -440,7 +450,7 @@ void main()
 		{
 			uint lightIndex = lightIndicesBufferTransparent.data[lightTile.offset + i];
 			Light light = lightBuffer.data[lightIndex];
-			colorAccumulative += ProcessLight(light, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+			colorAccumulative += shadowFake * ProcessLight(light, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
 		}
 	}
 
