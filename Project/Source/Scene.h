@@ -41,10 +41,17 @@ class GameObject;
 class Scene {
 public:
 	Scene(unsigned numGameObjects);
+	~Scene();
 
 	void ClearScene();		// Removes and clears every GameObject from the scene.
 	void RebuildQuadtree(); // Recalculates the Quadtree hierarchy with all the GameObjects in the scene.
 	void ClearQuadtree();	// Resets the Quadrtee as empty, and removes all GameObjects from it.
+
+	void Init();
+	void Start();
+
+	void Load(JsonValue jScene);
+	void Save(JsonValue jScene) const;
 
 	// --- GameObject Management --- //
 	GameObject* CreateGameObject(GameObject* parent, UID id, const char* name);
@@ -68,16 +75,13 @@ public:
 	std::vector<GameObject*> GetStaticCulledShadowCasters(const FrustumPlanes& planes); // Gets all the shadow casters game objects inside the given frustum
 	std::vector<GameObject*> GetDynamicCulledShadowCasters(const FrustumPlanes& planes);	   // Gets all the shadow casters game objects inside the given frustum
 
-	void SetNavMesh(UID navMesh);
-	UID GetNavMesh();
-
 	void RemoveStaticShadowCaster(const GameObject* go);
 	void AddStaticShadowCaster(GameObject* go);
 
 	void RemoveDynamicShadowCaster(const GameObject* go);
 	void AddDynamicShadowCaster(GameObject* go);
-	
-	const std::vector<GameObject*>& GetStaticShadowCasters() const; 
+
+	const std::vector<GameObject*>& GetStaticShadowCasters() const;
 	const std::vector<GameObject*>& GetDynamicShadowCasters() const;
 
 	void SetCursor(UID cursor);
@@ -137,6 +141,12 @@ public:
 	unsigned quadtreeMaxDepth = 4;
 	unsigned quadtreeElementsPerNode = 200;
 
+	// ---- Game Camera Parameters ---- //
+	UID gameCameraId = 0;
+
+	// ---- Ambient Light Parameters ---- //
+	float3 ambientColor = {0.25f, 0.25f, 0.25f};
+
 	// ---- Nav Mesh ID parameters ---- //
 	UID navMeshId = 0;
 
@@ -146,7 +156,7 @@ public:
 	int heightCursor = 30;
 
 private:
-	bool InsideFrustumPlanes(const FrustumPlanes& planes, const GameObject* go); 
+	bool InsideFrustumPlanes(const FrustumPlanes& planes, const GameObject* go);
 
 private:
 	std::vector<GameObject*> staticShadowCasters;

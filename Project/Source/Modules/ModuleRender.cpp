@@ -219,6 +219,9 @@ bool ModuleRender::Init() {
 	glGenBuffers(1, &lightIndicesStorageBuffer);
 	glGenBuffers(1, &lightTilesStorageBuffer);
 
+	depthMapStaticTextures.resize(lightFrustumStatic.numberCascades);
+	depthMapDynamicTextures.resize(lightFrustumDynamic.numberCascades);
+
 	glGenTextures(1, &renderTexture);
 	glGenTextures(1, &outputTexture);
 	glGenTextures(1, &depthsMSTexture);
@@ -227,19 +230,22 @@ bool ModuleRender::Init() {
 	glGenTextures(1, &depthsTexture);
 	glGenTextures(1, &positionsTexture);
 	glGenTextures(1, &normalsTexture);
-	glGenTextures(NUM_CASCADES_FRUSTUM, depthMapStaticTextures);
-	glGenTextures(NUM_CASCADES_FRUSTUM, depthMapDynamicTextures);
+	glGenTextures(lightFrustumStatic.numberCascades, &depthMapStaticTextures[0]);
+	glGenTextures(lightFrustumDynamic.numberCascades, &depthMapDynamicTextures[0]);
 	glGenTextures(1, &ssaoTexture);
 	glGenTextures(1, &auxBlurTexture);
 	glGenTextures(2, colorTextures);
 	glGenTextures(2, bloomBlurTextures);
 	glGenTextures(1, &bloomCombineTexture);
 
+	depthMapStaticTextureBuffers.resize(lightFrustumStatic.numberCascades);
+	depthMapDynamicTextureBuffers.resize(lightFrustumDynamic.numberCascades);
+
 	glGenFramebuffers(1, &renderPassBuffer);
 	glGenFramebuffers(1, &depthPrepassBuffer);
 	glGenFramebuffers(1, &depthPrepassTextureConversionBuffer);
-	glGenFramebuffers(NUM_CASCADES_FRUSTUM, depthMapStaticTextureBuffers);
-	glGenFramebuffers(NUM_CASCADES_FRUSTUM, depthMapDynamicTextureBuffers);
+	glGenFramebuffers(lightFrustumStatic.numberCascades, &depthMapStaticTextureBuffers[0]);
+	glGenFramebuffers(lightFrustumDynamic.numberCascades, &depthMapDynamicTextureBuffers[0]);
 	glGenFramebuffers(1, &ssaoTextureBuffer);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferH);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferV);
@@ -527,10 +533,7 @@ UpdateStatus ModuleRender::PreUpdate() {
 		UpdateFramebuffers();
 	}
 		
-	lightFrustumStatic.UpdateFrustums();
 	lightFrustumStatic.ReconstructFrustum(ShadowCasterType::STATIC);
-
-	lightFrustumDynamic.UpdateFrustums();
 	lightFrustumDynamic.ReconstructFrustum(ShadowCasterType::DYNAMIC);
 
 #if GAME
@@ -551,7 +554,7 @@ UpdateStatus ModuleRender::Update() {
 	ClassifyGameObjects();
 
 	// Shadow Pass Static
-	for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+	for (int i = 0; i < lightFrustumStatic.numberCascades; ++i) {
 		
 		glViewport(0, 0, static_cast<int>(viewportSize.x * lightFrustumStatic.GetSubFrustums()[i].multiplier), static_cast<int>(viewportSize.y * lightFrustumStatic.GetSubFrustums()[i].multiplier));
 		
@@ -570,7 +573,7 @@ UpdateStatus ModuleRender::Update() {
 	}
 	
 	// Shadow Pass Dynamic
-	for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+	for (int i = 0; i < lightFrustumDynamic.numberCascades; ++i) {
 		
 		glViewport(0, 0, static_cast<int>(viewportSize.x * lightFrustumDynamic.GetSubFrustums()[i].multiplier), static_cast<int>(viewportSize.y * lightFrustumDynamic.GetSubFrustums()[i].multiplier));
 
@@ -689,7 +692,7 @@ UpdateStatus ModuleRender::Update() {
 		return UpdateStatus::CONTINUE;
 	}
 	if (drawDepthMapTexture) {
-		assert(drawDepthMapTexture && indexDepthMapTexture < NUM_CASCADES_FRUSTUM);
+		assert(drawDepthMapTexture && indexDepthMapTexture < MAX_NUM_CASCADES);
 
 		if (shadowCasterType == ShadowCasterType::STATIC) DrawTexture(depthMapStaticTextures[indexDepthMapTexture]);
 		else DrawTexture(depthMapDynamicTextures[indexDepthMapTexture]);
@@ -989,19 +992,22 @@ bool ModuleRender::CleanUp() {
 	glDeleteTextures(1, &depthsTexture);
 	glDeleteTextures(1, &positionsTexture);
 	glDeleteTextures(1, &normalsTexture);
-	glDeleteTextures(NUM_CASCADES_FRUSTUM, depthMapStaticTextures);
-	glDeleteTextures(NUM_CASCADES_FRUSTUM, depthMapDynamicTextures);
+	glDeleteTextures(lightFrustumStatic.numberCascades, &depthMapStaticTextures[0]);
+	glDeleteTextures(lightFrustumDynamic.numberCascades, &depthMapDynamicTextures[0]);
 	glDeleteTextures(1, &ssaoTexture);
 	glDeleteTextures(1, &auxBlurTexture);
 	glDeleteTextures(2, colorTextures);
 	glDeleteTextures(2, bloomBlurTextures);
 	glDeleteTextures(1, &bloomCombineTexture);
 
+	depthMapStaticTextures.clear();
+	depthMapDynamicTextures.clear();
+
 	glDeleteFramebuffers(1, &renderPassBuffer);
 	glDeleteFramebuffers(1, &depthPrepassBuffer);
 	glDeleteFramebuffers(1, &depthPrepassTextureConversionBuffer);
-	glDeleteFramebuffers(NUM_CASCADES_FRUSTUM, depthMapStaticTextureBuffers);
-	glDeleteFramebuffers(NUM_CASCADES_FRUSTUM, depthMapDynamicTextureBuffers);
+	glDeleteFramebuffers(lightFrustumStatic.numberCascades, &depthMapStaticTextureBuffers[0]);
+	glDeleteFramebuffers(lightFrustumDynamic.numberCascades, &depthMapDynamicTextureBuffers[0]);
 	glDeleteFramebuffers(1, &ssaoTextureBuffer);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferH);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferV);
@@ -1009,6 +1015,9 @@ bool ModuleRender::CleanUp() {
 	glDeleteFramebuffers(1, &hdrFramebuffer);
 	glDeleteFramebuffers(12, bloomBlurFramebuffers);
 	glDeleteFramebuffers(5, bloomCombineFramebuffers);
+
+	depthMapStaticTextureBuffers.clear();
+	depthMapDynamicTextureBuffers.clear();
 
 	return true;
 }
@@ -1085,10 +1094,9 @@ void ModuleRender::UpdateFramebuffers() {
 
 	// Shadow buffer
 
-	for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
-
+	for (unsigned int i = 0; i < lightFrustumStatic.numberCascades; ++i) {
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapStaticTextureBuffers[i]);
-		
+
 		glBindTexture(GL_TEXTURE_2D, depthMapStaticTextures[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, static_cast<int>(viewportSize.x * lightFrustumStatic.GetSubFrustums()[i].multiplier), static_cast<int>(viewportSize.y * lightFrustumStatic.GetSubFrustums()[i].multiplier), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
@@ -1097,7 +1105,9 @@ void ModuleRender::UpdateFramebuffers() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapStaticTextures[i], 0);
+	}
 
+	for (int i = 0; i < lightFrustumDynamic.numberCascades; ++i) {
 
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapDynamicTextureBuffers[i]);
 
@@ -1382,7 +1392,7 @@ void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 	} else if (strcmp(shadingMode, "Light Tiles") == 0) {
 		drawLightTiles = true;
 	} else if (strShadingMode.find("StaticDepth") != std::string::npos) {
-		for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+		for (unsigned int i = 0; i < lightFrustumStatic.numberCascades; ++i) {
 			std::string str = "StaticDepth " + std::to_string(i);
 			if (strcmp(shadingMode, str.c_str()) == 0) {
 				drawDepthMapTexture = true;
@@ -1391,7 +1401,7 @@ void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 			}
 		}
 	} else if (strShadingMode.find("DynamicDepth") != std::string::npos) {
-		for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; ++i) {
+		for (int i = 0; i < lightFrustumDynamic.numberCascades; ++i) {
 			std::string str = "DynamicDepth " + std::to_string(i);
 			if (strcmp(shadingMode, str.c_str()) == 0) {
 				drawDepthMapTexture = true;
@@ -1514,7 +1524,7 @@ void ModuleRender::DrawGameObject(GameObject* gameObject) {
 	for (ComponentMeshRenderer& mesh : meshes) {
 		mesh.Draw(transform->GetGlobalMatrix());
 
-		ResourceMesh* resourceMesh = App->resources->GetResource<ResourceMesh>(mesh.meshId);
+		ResourceMesh* resourceMesh = App->resources->GetResource<ResourceMesh>(mesh.GetMesh());
 		if (resourceMesh != nullptr) {
 			culledTriangles += resourceMesh->indices.size() / 3;
 		}

@@ -29,10 +29,15 @@
 #define JSON_TAG_COLOR "Color"
 
 ComponentText::~ComponentText() {
-	//TODO DECREASE REFERENCE COUNT OF SHADER AND FONT, MAYBE IN A NEW COMPONENT::CLEANUP?
+	App->resources->DecreaseReferenceCount(fontID);
+
+	glDeleteVertexArrays(1, &vao);
+	glDeleteBuffers(1, &vbo);
 }
 
 void ComponentText::Init() {
+	App->resources->IncreaseReferenceCount(fontID);
+
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
 	glBindVertexArray(vao);
@@ -111,7 +116,6 @@ void ComponentText::Save(JsonValue jComponent) const {
 
 void ComponentText::Load(JsonValue jComponent) {
 	fontID = jComponent[JSON_TAG_TEXT_FONTID];
-	App->resources->IncreaseReferenceCount(fontID);
 
 	fontSize = jComponent[JSON_TAG_TEXT_FONTSIZE];
 

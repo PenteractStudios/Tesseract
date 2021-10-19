@@ -19,7 +19,7 @@ public:
 
 	// ------- Core Functions ------ //
 	virtual void Init();								// Called after instantiating the objects. Children may not be loaded yet.
-	virtual void Start();								// Called after all children have been initialized.
+	virtual void Start();								// Called after init when playing the game. Also called when starting the game.
 	virtual void Update();								// Updates the Component at each frame. Called on owner->Update()
 	virtual void DrawGizmos();							// Draws the visual representation of the component in the screen (if exists, I.E. Light direction or camera frustum).
 	virtual void OnEditorUpdate();						// Draw the ImGui elements & info of the Component in the Inspector. Called from PanelInspector->Update()

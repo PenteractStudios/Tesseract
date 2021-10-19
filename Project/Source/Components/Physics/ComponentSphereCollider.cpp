@@ -4,6 +4,7 @@
 #include "GameObject.h"
 #include "Modules/ModuleEditor.h"
 #include "Modules/ModuleTime.h"
+#include "Modules/ModuleScene.h"
 #include "Components/ComponentBoundingBox.h"
 
 #include "debugdraw.h"
@@ -17,6 +18,10 @@
 #define JSON_TAG_COLLIDER_TYPE "colliderType"
 #define JSON_TAG_LAYER_TYPE "layerType"
 
+ComponentSphereCollider::~ComponentSphereCollider() {
+	if (rigidBody) App->physics->RemoveSphereRigidbody(this);
+}
+
 void ComponentSphereCollider::Init() {
 	if (!centerOffset.IsFinite()) {
 		ComponentBoundingBox* boundingBox = GetOwner().GetComponent<ComponentBoundingBox>();
@@ -27,7 +32,10 @@ void ComponentSphereCollider::Init() {
 			centerOffset = float3::zero;
 		}
 	}
-	if (App->time->HasGameStarted() && !rigidBody) App->physics->CreateSphereRigidbody(this);
+}
+
+void ComponentSphereCollider::Start() {
+	if (!rigidBody && IsActive()) App->physics->CreateSphereRigidbody(this);
 }
 
 void ComponentSphereCollider::DrawGizmos() {
@@ -153,11 +161,11 @@ void ComponentSphereCollider::Load(JsonValue jComponent) {
 }
 
 void ComponentSphereCollider::OnEnable() {
-	if (!rigidBody && App->time->HasGameStarted()) App->physics->CreateSphereRigidbody(this);
+	if (!rigidBody && App->time->HasGameStarted() && GetOwner().scene == GetOwner().scene) App->physics->CreateSphereRigidbody(this);
 }
 
 void ComponentSphereCollider::OnDisable() {
-	if (rigidBody && App->time->HasGameStarted()) App->physics->RemoveSphereRigidbody(this);
+	if (rigidBody && App->time->HasGameStarted() && GetOwner().scene == GetOwner().scene) App->physics->RemoveSphereRigidbody(this);
 }
 
 void ComponentSphereCollider::OnCollision(GameObject& collidedWith, float3 collisionNormal, float3 penetrationDistance, ComponentParticleSystem::Particle* p) {

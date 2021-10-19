@@ -89,10 +89,15 @@ public:
 		float initialLife = 0.0f;
 		float currentFrame = 0.0f;
 		float animationSpeed = 1.0f;
-		float gravityTime = 0.0f;
 
-		float3 emitterPosition = float3::zero;
-		Quat emitterRotation = Quat::identity;
+		// Random Overlifetime variables
+		float rotationOL = 0.0f;
+		float scaleOL = 0.0f;
+		float velocityXOL = 0.0f;
+		float velocityYOL = 0.0f;
+		float velocityZOL = 0.0f;
+		float speedMultiplierOL = 0.0f;
+		float gravityFactorOL = 0.0f;
 
 		// Collider
 		bool hasCollided = false;
@@ -123,7 +128,6 @@ public:
 	~ComponentParticleSystem();
 
 	void Init() override;
-	void Start() override;
 	void Update() override;
 	void DrawGizmos() override;
 	void OnEditorUpdate() override;
@@ -138,6 +142,7 @@ public:
 	void InitParticleRotation(Particle* currentParticle);
 	void InitParticleScale(Particle* currentParticle);
 	void InitParticleSpeed(Particle* currentParticle);
+	void InitParticleGravity(Particle* currentParticle);
 	void InitParticleLife(Particle* currentParticle);
 	void InitParticleAnimationTexture(Particle* currentParticle);
 	void InitParticleTrail(Particle* currentParticle);
@@ -147,6 +152,7 @@ public:
 	void InitLight(Particle* currentParticle);
 
 	TESSERACT_ENGINE_API void UpdatePosition(Particle* currentParticle);
+	void UpdateVelocity(Particle* currentParticle);
 	void UpdateRotation(Particle* currentParticle);
 	void UpdateScale(Particle* currentParticle);
 	void UpdateLife(Particle* currentParticle);
@@ -382,6 +388,20 @@ private:
 	bool randomConeRadiusUp = false;
 	// -- Box
 	BoxEmitterFrom boxEmitterFrom = BoxEmitterFrom::VOLUME;
+
+	// Velocity over Lifetime
+	bool velocityOverLifetime = false;
+	RandomMode velocityLinearRM = RandomMode::CONST;
+	float2 velocityLinearX = {0.0f, 0.0f};
+	ImVec2 velocityLinearXCurve[CURVE_SIZE];
+	float2 velocityLinearY = {0.0f, 0.0f};
+	ImVec2 velocityLinearYCurve[CURVE_SIZE];
+	float2 velocityLinearZ = {0.0f, 0.0f};
+	ImVec2 velocityLinearZCurve[CURVE_SIZE];
+	bool velocityLinearSpace = false; // False: world, true: local
+	RandomMode velocitySpeedModifierRM = RandomMode::CONST;
+	float2 velocitySpeedModifier = {1.0f, 1.0f};
+	ImVec2 velocitySpeedModifierCurve[CURVE_SIZE];
 
 	// Rotation over Lifetime
 	bool rotationOverLifetime = false;

@@ -21,6 +21,7 @@ void ResourceNavMesh::Load() {
 
 	Buffer<char> buffer = App->files->Load(filePath.c_str());
 	App->navigation->GetNavMesh().Load(buffer);
+	App->navigation->navMeshId = GetId();
 
 	unsigned timeMs = timer.Stop();
 	LOG("Mesh loaded in %ums", timeMs);

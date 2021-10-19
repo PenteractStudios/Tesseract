@@ -17,6 +17,7 @@
 #include "Resources/ResourceTexture.h"
 #include "Scene.h"
 #include "Utils/ImGuiUtils.h"
+#include "Rendering/LightFrustum.h"
 
 
 #include "GL/glew.h"
@@ -274,14 +275,37 @@ void PanelConfiguration::Update() {
 			ImGui::Separator();
 			ImGui::Checkbox("Activate Chromatic Aberration", &App->renderer->chromaticAberrationActive);
 			ImGui::DragFloat("Chromatic Aberration Strength", &App->renderer->chromaticAberrationStrength, 0.1f);
+
+			ImGui::Separator();
+
+			ImGui::TextColored(App->editor->titleColor, "Cascade Shadow Mapping Settings");
+			ImGui::TextColored(App->editor->titleColor, "Static");
+			if (ImGui::SliderInt("Number of cascades", &App->renderer->lightFrustumStatic.numberCascades, 0, 5)) {
+				App->renderer->UpdateFramebuffers();
+				App->renderer->lightFrustumStatic.Invalidate();
+			}
+
+
+
+			ImGui::Separator();
+
+			ImGui::TextColored(App->editor->titleColor, "Dynamic");
+			if (ImGui::SliderInt("Number of cascades", &App->renderer->lightFrustumDynamic.numberCascades, 0, MAX_NUM_CASCADES)) {
+				App->renderer->UpdateFramebuffers();
+				App->renderer->lightFrustumDynamic.Invalidate();
+			}
+			ImGui::Separator();
+			ImGui::TextColored(App->editor->titleColor, "Dynamic");
+
 		}
 
 		// Scene
 		if (ImGui::CollapsingHeader("Scene")) {
-			ImGui::TextColored(App->editor->titleColor, "Ambient color");
-			ImGui::ColorEdit3("Ambient Color", App->renderer->ambientColor.ptr());
-
 			Scene* scene = App->scene->scene;
+
+			ImGui::TextColored(App->editor->titleColor, "Ambient color");
+			ImGui::ColorEdit3("Ambient Color", scene->ambientColor.ptr());
+
 			ImGui::TextColored(App->editor->titleColor, "Quadtree");
 			ImGui::InputFloat2("Min Point", scene->quadtreeBounds.minPoint.ptr());
 			ImGui::InputFloat2("Max Point", scene->quadtreeBounds.maxPoint.ptr());
