@@ -21,8 +21,8 @@ flat in unsigned int cascadesCount;
 out vec4 outColor;
 
 // Depth Map
-uniform sampler2D depthMapTexturesStatic[MAX_CASCADES];
-uniform sampler2D depthMapTexturesDynamic[MAX_CASCADES];
+uniform sampler2DShadow depthMapTexturesStatic[MAX_CASCADES];
+uniform sampler2DShadow depthMapTexturesDynamic[MAX_CASCADES];
 uniform float farPlaneDistancesStatic[MAX_CASCADES];
 uniform float farPlaneDistancesDynamic[MAX_CASCADES];
 
@@ -159,13 +159,10 @@ unsigned int DepthMapIndexDynamic(){
 
 }
 
-float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMap) {
-
-	float closestDepth = texture(shadowMap, lightPos.xy).r;
+float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2DShadow shadowMap) {
 
 	if(	lightPos.x < 0.0 || lightPos.x > 1.0 ||
-		lightPos.y < 0.0 || lightPos.y > 1.0 ||
-		closestDepth == 1.0
+		lightPos.y < 0.0 || lightPos.y > 1.0
 	) {
 		return 1.0;
 	}
@@ -173,12 +170,11 @@ float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMa
 	float bias = min(0.05 * (1 - dot(normal, lightDirection)), 0.005);
 
 	float shadow = 0.0;
-	float currentDepth = lightPos.z;
 	vec2 texelSize = 1.0/textureSize(shadowMap, 0);
 	for(int x = -1; x <= 1; ++x){
 		for(int y = -1; y <= 1; ++y){
-			float pcfDepth = texture(shadowMap, lightPos.xy + vec2(x,y) * texelSize).r;
-			shadow += currentDepth > pcfDepth + bias ? 1.0 : 0.0;
+			vec3 coord = vec3(lightPos.xy + vec2(x, y) * texelSize, lightPos.z - bias);
+			shadow += texture(shadowMap, coord);
 		}
 	}
 
