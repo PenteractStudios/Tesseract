@@ -533,10 +533,7 @@ UpdateStatus ModuleRender::PreUpdate() {
 		UpdateFramebuffers();
 	}
 		
-	lightFrustumStatic.UpdateFrustums();
 	lightFrustumStatic.ReconstructFrustum(ShadowCasterType::STATIC);
-
-	lightFrustumDynamic.UpdateFrustums();
 	lightFrustumDynamic.ReconstructFrustum(ShadowCasterType::DYNAMIC);
 
 #if GAME
@@ -817,7 +814,7 @@ UpdateStatus ModuleRender::Update() {
 
 		// Draw debug draw Light Frustum
 		if (drawLightFrustumGizmo) {
-			lightFrustumStatic.DrawGizmos();
+			lightFrustumDynamic.DrawGizmos();
 		}
 	}
 
