@@ -14,6 +14,9 @@
         0.25
     ],
     "NavMesh": 0,
+    "CursorHeight": 0,
+    "CursorWidth": 0,
+    "Cursor": 0,
     "Root": {
         "Id": 1332519969056995158,
         "Name": "Scene",
@@ -97,8 +100,9 @@
                             1.0
                         ],
                         "Intensity": 1.0,
-                        "Kl": 0.04500000178813934,
-                        "Kq": 0.007499999832361937,
+                        "Radius": 0.0,
+                        "UseCustomFalloff": false,
+                        "FalloffExponent": 0.0,
                         "InnerAngle": 0.2617993950843811,
                         "OuterAngle": 0.5235987901687622
                     }
@@ -162,7 +166,7 @@
                             ],
                             "NearPlaneDistance": 0.10000000149011612,
                             "FarPlaneDistance": 2000.0,
-                            "HorizontalFov": 2.0527150630950929,
+                            "HorizontalFov": 1.9323420524597169,
                             "VerticalFov": 1.3113912343978882
                         }
                     },
@@ -171,16 +175,18 @@
                         "Id": 9713332219093642423,
                         "Active": true,
                         "Shader": 0,
-                        "Skybox": 17754930081670969392
+                        "Skybox": 17754930081670969392,
+                        "Strength": 0.0
                     },
                     {
                         "Type": "AudioListener",
                         "Id": 891355844296512774,
                         "Active": true,
-                        "Gain": 1.0,
+                        "IsCustomPos": false,
                         "ModelIndex": 0,
                         "DistanceModel": 0,
-                        "Clamped": false
+                        "Clamped": false,
+                        "DopplerFactor": 0.0
                     }
                 ],
                 "Children": null
@@ -2640,9 +2646,9 @@
                                         "Id": 2312250833675679721,
                                         "Active": true,
                                         "Position": [
-                                            275.00555419921877,
-                                            0.0,
-                                            -9.391082763671875
+                                            352.0731201171875,
+                                            97.26834106445313,
+                                            -514.139404296875
                                         ],
                                         "Rotation": [
                                             0.0,
@@ -2666,7 +2672,7 @@
                                         "Id": 22325328576033417,
                                         "Active": true,
                                         "MeshID": 9218848821787111831,
-                                        "MaterialID": 9964757237344865990
+                                        "MaterialID": 16700917984989060701
                                     },
                                     {
                                         "Type": "MeshRenderer",
@@ -4170,7 +4176,7 @@
                                         "Id": 2361795195527686482,
                                         "Active": true,
                                         "MeshID": 9218848821787111831,
-                                        "MaterialID": 9964757237344865990
+                                        "MaterialID": 16700917984989060701
                                     },
                                     {
                                         "Type": "MeshRenderer",
