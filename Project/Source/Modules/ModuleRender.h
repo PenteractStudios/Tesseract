@@ -73,7 +73,6 @@ public:
 	void ToggleDrawAnimationBones();
 	void ToggleDrawCameraFrustums();
 	void ToggleDrawLightGizmos();
-	void ToggleDrawLightFrustumGizmo();
 	void ToggleDrawParticleGizmos();
 
 	void UpdateShadingMode(const char* shadingMode);
@@ -142,11 +141,19 @@ public:
 	bool drawAllBones = false;
 	bool drawCameraFrustums = false;
 	bool drawLightGizmos = false;
-	bool drawLightFrustumGizmo = false;
+	bool drawStaticLightFrustumOrtographicGizmo = false;
+	bool drawStaticLightFrustumPerspectiveGizmo = false;
+	bool drawDynamicLightFrustumOrtographicGizmo = false;
+	bool drawDynamicLightFrustumPerspectiveGizmo = false;
 	bool drawNavMesh = false;
 	bool drawParticleGizmos = false;
 	bool drawColliders = false;
 	int culledTriangles = 0;
+
+	int indexStaticOrtographic = INT_MAX;
+	int indexStaticPerspective = INT_MAX;
+	int indexDynamicOrtographic = INT_MAX;
+	int indexDynamicPerspective = INT_MAX;
 
 	float3 clearColor = {0.1f, 0.1f, 0.1f};		 // Color of the viewport between frames
 

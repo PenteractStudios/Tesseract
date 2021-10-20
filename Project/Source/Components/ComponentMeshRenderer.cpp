@@ -89,7 +89,7 @@ void ComponentMeshRenderer::OnEditorUpdate() {
 		"Material",
 		&materialId,
 		[this]() { DeleteRenderingModeMask(); },
-		[this]() { AddRenderingModeMask(); });
+		[this]() { UpdateMasks(); });
 
 	if (ImGui::Button("Remove##material")) {
 		if (materialId != 0) {
@@ -130,7 +130,7 @@ void ComponentMeshRenderer::Init() {
 	App->resources->IncreaseReferenceCount(meshId);
 	App->resources->IncreaseReferenceCount(materialId);
 
-	AddRenderingModeMask();
+	UpdateMasks();
 
 	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
 	if (mesh == nullptr) return;
@@ -138,18 +138,6 @@ void ComponentMeshRenderer::Init() {
 	palette.resize(mesh->bones.size());
 	for (unsigned i = 0; i < mesh->bones.size(); ++i) {
 		palette[i] = float4x4::identity;
-	}
-
-	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
-	if (material == nullptr) return;
-
-	if (material->castShadows) {
-		GameObject* owner = &GetOwner();
-		if (material->shadowCasterType == ShadowCasterType::STATIC) {
-			GetOwner().scene->AddStaticShadowCaster(owner);
-		} else {
-			GetOwner().scene->AddDynamicShadowCaster(owner);
-		}
 	}
 }
 
@@ -843,6 +831,27 @@ void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix, unsigned int
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
+}
+
+void ComponentMeshRenderer::UpdateMasks() {
+	AddRenderingModeMask();
+	AddShadowCaster();
+}
+
+void ComponentMeshRenderer::AddShadowCaster() {
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+	if (material == nullptr) return;
+
+	if (material->castShadows) {
+		GameObject* owner = &GetOwner();
+		if (material->shadowCasterType == ShadowCasterType::STATIC) {
+			GetOwner().scene->RemoveDynamicShadowCaster(owner);
+			GetOwner().scene->AddStaticShadowCaster(owner);
+		} else {
+			GetOwner().scene->RemoveStaticShadowCaster(owner);
+			GetOwner().scene->AddDynamicShadowCaster(owner);
+		}
+	}
 }
 
 void ComponentMeshRenderer::AddRenderingModeMask() {

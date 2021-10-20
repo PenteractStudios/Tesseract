@@ -813,8 +813,20 @@ UpdateStatus ModuleRender::Update() {
 		}
 
 		// Draw debug draw Light Frustum
-		if (drawLightFrustumGizmo) {
-			lightFrustumDynamic.DrawGizmos();
+		if (drawStaticLightFrustumOrtographicGizmo) {
+			lightFrustumStatic.DrawOrthographicGizmos(indexStaticOrtographic);
+		}
+
+		if (drawDynamicLightFrustumOrtographicGizmo) {
+			lightFrustumDynamic.DrawOrthographicGizmos(indexDynamicOrtographic);
+		}
+
+		if (drawStaticLightFrustumPerspectiveGizmo) {
+			lightFrustumStatic.DrawPerspectiveGizmos(indexStaticPerspective);
+		}
+
+		if (drawDynamicLightFrustumPerspectiveGizmo) {
+			lightFrustumStatic.DrawPerspectiveGizmos(indexDynamicPerspective);
 		}
 	}
 
@@ -1362,10 +1374,6 @@ void ModuleRender::ToggleDrawLightGizmos() {
 
 void ModuleRender::ToggleDrawParticleGizmos() {
 	drawParticleGizmos = !drawParticleGizmos;
-}
-
-void ModuleRender::ToggleDrawLightFrustumGizmo() {
-	drawLightFrustumGizmo = !drawLightFrustumGizmo;
 }
 
 void ModuleRender::UpdateShadingMode(const char* shadingMode) {
