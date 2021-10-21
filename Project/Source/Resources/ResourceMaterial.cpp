@@ -264,7 +264,6 @@ void ResourceMaterial::UpdateMask(MaskToChange maskToChange, bool forceDeleteSha
 				case MaskToChange::SHADOW:
 
 					if (!forceDeleteShadows) {
-						gameObject.AddMask(MaskType::CAST_SHADOWS);
 
 						if (shadowCasterType == ShadowCasterType::STATIC) {
 							App->scene->scene->RemoveDynamicShadowCaster(&gameObject);
@@ -274,7 +273,6 @@ void ResourceMaterial::UpdateMask(MaskToChange maskToChange, bool forceDeleteSha
 							App->scene->scene->AddDynamicShadowCaster(&gameObject);
 						}
 					} else {
-						gameObject.DeleteMask(MaskType::CAST_SHADOWS);
 						App->scene->scene->RemoveDynamicShadowCaster(&gameObject);
 						App->scene->scene->RemoveStaticShadowCaster(&gameObject);
 					}
