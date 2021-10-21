@@ -139,6 +139,13 @@ void ComponentMeshRenderer::Init() {
 	for (unsigned i = 0; i < mesh->bones.size(); ++i) {
 		palette[i] = float4x4::identity;
 	}
+
+	viewOrtoLightsStatic.resize(NUM_CASCADES_FRUSTUM);
+	viewOrtoLightsDynamic.resize(NUM_CASCADES_FRUSTUM);
+	projOrtoLightsStatic.resize(NUM_CASCADES_FRUSTUM);
+	projOrtoLightsDynamic.resize(NUM_CASCADES_FRUSTUM);
+	farPlaneDistancesStatic.resize(NUM_CASCADES_FRUSTUM);
+	farPlaneDistancesDynamic.resize(NUM_CASCADES_FRUSTUM);
 }
 
 void ComponentMeshRenderer::Update() {
@@ -184,7 +191,7 @@ void ComponentMeshRenderer::Start() {
 	ResetDissolveValues();
 }
 
-void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
+void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) {
 	if (!IsActive()) return;
 
 	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
@@ -528,25 +535,18 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	const std::vector<LightFrustum::FrustumInformation>& subsFrustumsStatic = App->renderer->lightFrustumStatic.GetSubFrustums();
 	const std::vector<LightFrustum::FrustumInformation>& subsFrustumsDynamic = App->renderer->lightFrustumDynamic.GetSubFrustums();
 
-	std::vector<float4x4> viewOrtoLightsStatic;
-	std::vector<float4x4> viewOrtoLightsDynamic;
-	std::vector<float4x4> projOrtoLightsStatic;
-	std::vector<float4x4> projOrtoLightsDynamic;
-	std::vector<float> farPlaneDistancesStatic;
-	std::vector<float> farPlaneDistancesDynamic;
-
 	// Static shadow casters
 	for (unsigned int i = 0; i < subsFrustumsStatic.size(); ++i) {
-		viewOrtoLightsStatic.push_back(subsFrustumsStatic[i].orthographicFrustum.ViewMatrix());
-		projOrtoLightsStatic.push_back(subsFrustumsStatic[i].orthographicFrustum.ProjectionMatrix());
-		farPlaneDistancesStatic.push_back(subsFrustumsStatic[i].perspectiveFrustum.FarPlaneDistance());
+		viewOrtoLightsStatic[i] = subsFrustumsStatic[i].orthographicFrustum.ViewMatrix();
+		projOrtoLightsStatic[i] = subsFrustumsStatic[i].orthographicFrustum.ProjectionMatrix();
+		farPlaneDistancesStatic[i] = subsFrustumsStatic[i].perspectiveFrustum.FarPlaneDistance();
 	}
 
 	// Dynamic shadow casters
 	for (unsigned int i = 0; i < subsFrustumsDynamic.size(); ++i) {
-		viewOrtoLightsDynamic.push_back(subsFrustumsDynamic[i].orthographicFrustum.ViewMatrix());
-		projOrtoLightsDynamic.push_back(subsFrustumsDynamic[i].orthographicFrustum.ProjectionMatrix());
-		farPlaneDistancesDynamic.push_back(subsFrustumsDynamic[i].perspectiveFrustum.FarPlaneDistance());
+		viewOrtoLightsDynamic[i] = subsFrustumsDynamic[i].orthographicFrustum.ViewMatrix();
+		projOrtoLightsDynamic[i] = subsFrustumsDynamic[i].orthographicFrustum.ProjectionMatrix();
+		farPlaneDistancesDynamic[i] = subsFrustumsDynamic[i].perspectiveFrustum.FarPlaneDistance();
 	}
 
 	unsigned glTextureDiffuse = 0;
