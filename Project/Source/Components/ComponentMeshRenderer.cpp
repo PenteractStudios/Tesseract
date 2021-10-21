@@ -539,14 +539,14 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	for (unsigned int i = 0; i < subsFrustumsStatic.size(); ++i) {
 		viewOrtoLightsStatic.push_back(subsFrustumsStatic[i].orthographicFrustum.ViewMatrix());
 		projOrtoLightsStatic.push_back(subsFrustumsStatic[i].orthographicFrustum.ProjectionMatrix());
-		farPlaneDistancesStatic.push_back(subsFrustumsStatic[i].orthographicFrustum.FarPlaneDistance());
+		farPlaneDistancesStatic.push_back(subsFrustumsStatic[i].perspectiveFrustum.FarPlaneDistance());
 	}
 
 	// Dynamic shadow casters
 	for (unsigned int i = 0; i < subsFrustumsDynamic.size(); ++i) {
 		viewOrtoLightsDynamic.push_back(subsFrustumsDynamic[i].orthographicFrustum.ViewMatrix());
 		projOrtoLightsDynamic.push_back(subsFrustumsDynamic[i].orthographicFrustum.ProjectionMatrix());
-		farPlaneDistancesDynamic.push_back(subsFrustumsDynamic[i].orthographicFrustum.FarPlaneDistance());
+		farPlaneDistancesDynamic.push_back(subsFrustumsDynamic[i].perspectiveFrustum.FarPlaneDistance());
 	}
 
 	unsigned glTextureDiffuse = 0;

@@ -140,8 +140,7 @@ unsigned int DepthMapIndexStatic(){
 
 	for(unsigned int i = 0; i < cascadesCount; ++i){
 	
-		//if(-viewFragPosStatic[i].z < farPlaneDistancesStatic[i]) return i;
-		if(fragPosLightStatic[i].z < farPlaneDistancesStatic[i]) return i;
+		if(-viewFragPosStatic[i].z < farPlaneDistancesStatic[i]) return i;
 	
 	}
 	
@@ -152,8 +151,7 @@ unsigned int DepthMapIndexDynamic(){
 
 	for(unsigned int i = 0; i < cascadesCount; ++i){
 	
-		//if(-viewFragPosDynamic[i].z < farPlaneDistancesDynamic[i]) return i; fragPosLightDynamic
-		if(fragPosLightDynamic[i].z < farPlaneDistancesDynamic[i]) return i;
+		if(-viewFragPosDynamic[i].z < farPlaneDistancesDynamic[i]) return i;
 	
 	}
 	
