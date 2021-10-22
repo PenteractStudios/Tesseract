@@ -346,7 +346,7 @@ void main()
 	float shadowS = Shadow(fragPosLightStatic[indexS], normal,  normalize(dirLight.direction), depthMapTexturesStatic[indexS]);
 	float shadowD = Shadow(fragPosLightDynamic[indexD], normal,  normalize(dirLight.direction), depthMapTexturesDynamic[indexD]);
 
-	float shadow = (shadowS == 1 || shadowD == 1) ? min(shadowS, shadowD) : mix(shadowD, shadowS, 0.5);
+	float shadow = (shadowS == 1 || shadowD == 1) ? min(shadowS, shadowD) : shadowD * shadowS; //mix(shadowD, shadowS, 0.5);
 
 	// Directional Light
 	if (dirLight.isActive == 1)
@@ -417,7 +417,7 @@ void main()
 	float shadowS = Shadow(fragPosLightStatic[indexS], normal,  normalize(dirLight.direction), depthMapTexturesStatic[indexS]);
 	float shadowD = Shadow(fragPosLightDynamic[indexD], normal,  normalize(dirLight.direction), depthMapTexturesDynamic[indexD]);
 
-	float shadow = (shadowS == 1 || shadowD == 1) ? min(shadowS, shadowD) : mix(shadowD, shadowS, 0.5);
+	float shadow = (shadowS == 1 || shadowD == 1) ? min(shadowS, shadowD) : shadowD * shadowS; //mix(shadowD, shadowS, 0.5);
 
     // Directional Light
     if (dirLight.isActive == 1)
