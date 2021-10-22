@@ -1198,16 +1198,17 @@ void ComponentParticleSystem::Save(JsonValue jComponent) const {
 	jEmitterPosition[0] = position[0];
 	jEmitterPosition[1] = position[1];
 	jEmitterPosition[2] = position[2];
-	float3 rotation = emitterModel.RotatePart().ToEulerXYZ();
-	JsonValue jEmitterRotation = jComponent[JSON_TAG_EMITTER_ROTATION];
-	jEmitterRotation[0] = rotation[0];
-	jEmitterRotation[1] = rotation[1];
-	jEmitterRotation[2] = rotation[2];
 	float3 scale = emitterModel.GetScale();
 	JsonValue jEmitterScale = jComponent[JSON_TAG_EMITTER_SCALE];
 	jEmitterScale[0] = scale[0];
 	jEmitterScale[1] = scale[1];
 	jEmitterScale[2] = scale[2];
+	float3 rotation = emitterModel.RotatePart().ToEulerXYZ();
+	JsonValue jEmitterRotation = jComponent[JSON_TAG_EMITTER_ROTATION];
+	jEmitterRotation[0] = rotation[0];
+	jEmitterRotation[1] = rotation[1];
+	jEmitterRotation[2] = rotation[2];
+
 	// -- Cone
 	jComponent[JSON_TAG_CONE_RADIUS_UP] = coneRadiusUp;
 	jComponent[JSON_TAG_RANDOM_CONE_RADIUS_UP] = randomConeRadiusUp;
