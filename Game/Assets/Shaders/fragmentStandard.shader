@@ -158,7 +158,6 @@ unsigned int DepthMapIndexDynamic(){
 	return cascadesCount - 1;
 }
 
-
 float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2DShadow shadowMap) {
 
 	if(	lightPos.x < 0.0 || lightPos.x > 1.0 ||
@@ -171,14 +170,19 @@ float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2DShadow sh
 
 	float shadow = 0.0;
 	vec2 texelSize = 1.0/textureSize(shadowMap, 0);
-	for(int x = -1; x <= 1; ++x){
-		for(int y = -1; y <= 1; ++y){
-			vec3 coord = vec3(lightPos.xy + vec2(x, y) * texelSize, lightPos.z - bias);
-			shadow += texture(shadowMap, coord);
+
+	int count = 0;
+	
+	//https://developer.nvidia.com/gpugems/gpugems/part-ii-lighting-and-shadows/chapter-11-shadow-map-antialiasing
+	for (float y = -1.5; y <= 1.5; ++y) {
+		for (float x = -1.5; x <= 1.5; ++x) {
+			vec2 offset = vec2(x, y);
+			shadow += textureProj(shadowMap, vec4( lightPos.xy + offset * texelSize, lightPos.z - bias, lightPos.w));
+			++count;
 		}
 	}
 
-	shadow /= 9.0;
+	shadow /= count;
 
 	return shadow;
 
