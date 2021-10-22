@@ -673,18 +673,24 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) {
 	glUniform1i(standardProgram->hasIBLLocation, hasIBL ? 1 : 0);
 
 	unsigned int total = 9;
-	for (unsigned int i = 0; i < subsFrustumsStatic.size() * 2 && total < 32; i += 2, total += 2) {
+	for (unsigned int i = 0; i < subsFrustumsStatic.size() * 2 && total < 32; ++i, ++total) {
 		
 		unsigned int gldepthMapTexture = App->renderer->depthMapStaticTextures[i];
 
 		glUniform1i(standardProgram->depthMaps[i].depthMapLocationStatic, total);
-		glActiveTexture(GL_TEXTURE9 + i);
+		glActiveTexture(GL_TEXTURE0 + total);
 		glBindTexture(GL_TEXTURE_2D, gldepthMapTexture);
 
-		gldepthMapTexture = App->renderer->depthMapDynamicTextures[i];
+		
 
-		glUniform1i(standardProgram->depthMaps[i].depthMapLocationDynamic, total + 1);
-		glActiveTexture(GL_TEXTURE9 + i + 1);
+	}
+
+	for (unsigned int i = 0; i < subsFrustumsDynamic.size() && total < 32; ++i, ++total) {
+
+		unsigned int gldepthMapTexture = App->renderer->depthMapDynamicTextures[i];
+
+		glUniform1i(standardProgram->depthMaps[i].depthMapLocationDynamic, total);
+		glActiveTexture(GL_TEXTURE0 + total);
 		glBindTexture(GL_TEXTURE_2D, gldepthMapTexture);
 
 	}
