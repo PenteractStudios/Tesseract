@@ -41,7 +41,7 @@ void LightFrustum::UpdateFrustums() {
 
 	Frustum *gameFrustum = gameCamera->GetFrustum();
 
-	float farDistance = MINIMUM_FAR_DISTANE; //*0.3f;
+	float farDistance = MINIMUM_FAR_DISTANCE; //*0.3f;
 
 	if (mode == CascadeMode::FitToScene) {
 		

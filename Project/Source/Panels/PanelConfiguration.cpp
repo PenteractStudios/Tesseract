@@ -274,6 +274,10 @@ void PanelConfiguration::Update() {
 			ImGui::Separator();
 			ImGui::Checkbox("Activate Chromatic Aberration", &App->renderer->chromaticAberrationActive);
 			ImGui::DragFloat("Chromatic Aberration Strength", &App->renderer->chromaticAberrationStrength, 0.1f);
+
+			ImGui::Separator();
+			ImGui::TextColored(App->editor->titleColor, "Cascade Shadow Mapping");
+			
 		}
 
 		// Scene
@@ -320,7 +324,7 @@ void PanelConfiguration::Update() {
 			if (ImGui::BeginCombo("Output Device", currentDevice.c_str())) {
 				std::vector<std::string> devices;
 				App->audio->GetSoundDevices(devices);
-				for (int n = 0; n < devices.size(); ++n) {
+				for (unsigned int n = 0; n < devices.size(); ++n) {
 					bool isSelected = (currentDevice.c_str() == devices[n].c_str());
 					if (ImGui::Selectable(devices[n].c_str(), isSelected)) {
 						App->audio->SetSoundDevice(n);

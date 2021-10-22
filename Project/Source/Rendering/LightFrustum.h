@@ -2,8 +2,8 @@
 
 #include "FrustumPlanes.h"
 
-constexpr unsigned int NUM_CASCADES_FRUSTUM = 4;
-constexpr float MINIMUM_FAR_DISTANE = 50.f;
+constexpr unsigned int NUM_CASCADES_FRUSTUM = 1;
+constexpr float MINIMUM_FAR_DISTANCE = 50.f;
 
 
 enum class CascadeMode {
@@ -24,6 +24,8 @@ public:
 		FrustumPlanes planes = FrustumPlanes();
 		float3 color = float3(0.0f, 0.0f, 0.0f);
 		float multiplier = 1.0f;
+		float nearPlane = 0.0;
+		float farPlane = MINIMUM_FAR_DISTANCE;
 	};
 
 	LightFrustum();
