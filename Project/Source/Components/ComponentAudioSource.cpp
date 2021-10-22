@@ -54,7 +54,7 @@ void ComponentAudioSource::Update() {
 	}
 
 	UpdateAudioSource();
-	if (sourceId != 0 && IsStopped()) {
+	if (sourceId != 0 && (!IsPlaying() && !IsPaused())) {
 		Stop();
 	}
 }
@@ -230,12 +230,12 @@ void ComponentAudioSource::OnEditorUpdate() {
 bool ComponentAudioSource::UpdateSourceParameters() {
 	ResourceAudioClip* audioResource = App->resources->GetResource<ResourceAudioClip>(audioClipId);
 	if (audioResource == nullptr) return false;
-
-	// EDIT HERE - check if resource exists, else get buffer
+	if (audioResource->ALbuffer == 0) return false;
 
 	alSourcef(sourceId, AL_PITCH, pitch);
 	alSourcei(sourceId, AL_LOOPING, loop);
-	alSourcei(sourceId, AL_BUFFER, audioResource->ALbuffer); // buffer here
+	alSourcei(sourceId, AL_BUFFER, NULL);
+	alSourcei(sourceId, AL_BUFFER, audioResource->ALbuffer);
 
 	if (!spatialBlend) {
 		alSourcei(sourceId, AL_SOURCE_RELATIVE, AL_TRUE);
@@ -272,7 +272,7 @@ void ComponentAudioSource::Play() {
 		if (!IsPlaying() && !IsPaused()) {
 			sourceId = App->audio->GetAvailableSource();
 		}
-		if (UpdateSourceParameters()) alSourcePlay(sourceId);
+		if (sourceId && UpdateSourceParameters()) alSourcePlay(sourceId);
 	}
 }
 
@@ -308,7 +308,7 @@ bool ComponentAudioSource::IsStopped() const {
 	if (!sourceId) return true;
 	ALint state;
 	alGetSourcei(sourceId, AL_SOURCE_STATE, &state);
-	return (state == AL_STOPPED || state == AL_INITIAL);
+	return (state == AL_STOPPED);
 }
 
 void ComponentAudioSource::Save(JsonValue jComponent) const {
