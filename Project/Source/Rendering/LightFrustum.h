@@ -2,6 +2,7 @@
 
 #include "FrustumPlanes.h"
 
+//MAX_NUMBER_OF_CASCADES_
 constexpr unsigned int NUM_CASCADES_FRUSTUM = 1;
 constexpr float MINIMUM_FAR_DISTANCE = 50.f;
 
@@ -37,6 +38,8 @@ public:
 	void DrawOrthographicGizmos(int idx);
 	void DrawPerspectiveGizmos(int idx);
 
+	void SetNumberOfCascades(unsigned int value);
+	unsigned int GetNumberOfCascades();
 	Frustum GetOrthographicFrustum(unsigned int i) const;
 	Frustum GetPersepectiveFrustum(unsigned int i) const;
 	const std::vector<LightFrustum::FrustumInformation>& GetSubFrustums() const;
@@ -47,6 +50,7 @@ public:
 
 private:
 	bool dirty = true;
+	unsigned int numberOfCascades = 1;
 	CascadeMode mode = CascadeMode::FitToScene;
 	std::vector<FrustumInformation> subFrustums;
 };

@@ -135,6 +135,15 @@ void LightFrustum::DrawPerspectiveGizmos(int idx) {
 	}
 }
 
+void LightFrustum::SetNumberOfCascades(unsigned int value) {
+	if (value < 0 || value > NUM_CASCADES_FRUSTUM) return;
+	numberOfCascades = value;
+}
+
+unsigned int LightFrustum::GetNumberOfCascades() {
+	return numberOfCascades;
+}
+
 Frustum LightFrustum::GetOrthographicFrustum(unsigned int i) const {
 	return subFrustums[i].orthographicFrustum;
 }
