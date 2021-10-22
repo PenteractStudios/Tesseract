@@ -166,7 +166,7 @@ float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2DShadow sh
 		return 1.0;
 	}
 
-	float bias = 0.001;//min(0.05 * (1 - dot(normal, lightDirection)), 0.005);
+	float bias = min(0.05 * (1 - dot(normal, lightDirection)), 0.005);
 
 	float shadow = 0.0;
 	vec2 texelSize = 1.0/textureSize(shadowMap, 0);
