@@ -15,6 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource1.h" />
     <ClInclude Include="Source\Utils\FileUtils.h" />
     <ClInclude Include="Source\Rendering\FrustumPlanes.h" />
     <ClInclude Include="Libs\imgui\curve_editor.h" />
@@ -619,6 +620,12 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Shutdown.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{746CC4C3-787F-4B0E-AA66-E388FE3FF4F6}</ProjectGuid>
