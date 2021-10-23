@@ -114,14 +114,6 @@ void ComponentSelectable::OnDeselect() {
 	selected = false;
 }
 
-void ComponentSelectable::Init() {
-	selected = false;
-	onAxisDown = 0;
-	onAxisLeft = 0;
-	onAxisRight = 0;
-	onAxisUp = 0;
-}
-
 void ComponentSelectable::Start() {
 	if (App->userInterface->GetCurrentEventSystem()) {
 		App->userInterface->GetCurrentEventSystem()->activeSelectableComponents.push_back(this);

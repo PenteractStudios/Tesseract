@@ -37,7 +37,6 @@ public:
 	virtual void OnSelect();
 	virtual void OnDeselect();
 
-	void Init() override;
 	void Start() override;
 	void Update() override;
 	void OnEditorUpdate() override;
