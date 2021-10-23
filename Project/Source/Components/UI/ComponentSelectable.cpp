@@ -114,10 +114,6 @@ void ComponentSelectable::OnDeselect() {
 	selected = false;
 }
 
-void ComponentSelectable::Init() {
-
-}
-
 void ComponentSelectable::Start() {
 	if (App->userInterface->GetCurrentEventSystem()) {
 		App->userInterface->GetCurrentEventSystem()->activeSelectableComponents.push_back(this);
