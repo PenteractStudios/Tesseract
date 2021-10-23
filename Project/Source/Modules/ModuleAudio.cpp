@@ -101,22 +101,22 @@ void ModuleAudio::SetSoundDevice(int pos) {
 	OpenSoundDevice(devices[pos]);
 }
 
-ALuint ModuleAudio::GetAvailableSource(bool reverse) const {
+unsigned ModuleAudio::GetAvailableSource(bool reverse) const {
 	if (reverse) {
 		for (int i = NUM_SOURCES - 1; i >= 0; --i) {
-			if (isAvailable(sources[i])) {
+			if (!isActive(sources[i])) {
 				return sources[i];
 			}
 		}
-		return false;
+		return 0;
 
 	} else {
 		for (int i = 0; i < NUM_SOURCES; ++i) {
-			if (isAvailable(sources[i])) {
+			if (!isActive(sources[i])) {
 				return sources[i];
 			}
 		}
-		return false;
+		return 0;
 	}
 }
 
@@ -136,6 +136,7 @@ void ModuleAudio::Stop(unsigned sourceId) const {
 	if (sourceId) {
 		alSourceStop(sourceId);
 		alSourcei(sourceId, AL_BUFFER, NULL);
+		sourceId = 0;
 	}
 }
 

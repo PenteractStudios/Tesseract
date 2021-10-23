@@ -745,6 +745,7 @@
     <ClInclude Include="Source\Utils\MSTimer.h" />
     <ClInclude Include="Source\Scripting\PropertyMap.h" />
     <ClInclude Include="Source\Utils\FileUtils.h" />
+    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libs\freetype\lib\freetype.lib" />
@@ -765,5 +766,11 @@
     <None Include="Libs\MathGeoLib\Math\float2.inl" />
     <None Include="Libs\MathGeoLib\Math\Matrix.inl" />
     <None Include="Source\Utils\dte80a.tlh" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Shutdown.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
 </Project>
