@@ -115,11 +115,7 @@ void ComponentSelectable::OnDeselect() {
 }
 
 void ComponentSelectable::Init() {
-	selected = false;
-	onAxisDown = 0;
-	onAxisLeft = 0;
-	onAxisRight = 0;
-	onAxisUp = 0;
+
 }
 
 void ComponentSelectable::Start() {
