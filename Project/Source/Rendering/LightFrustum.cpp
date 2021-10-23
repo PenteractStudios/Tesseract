@@ -13,25 +13,18 @@
 
 #include "Utils/Leaks.h"
 
+const float3 colors[MAX_NUMBER_OF_CASCADES] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {1, 0, 1}};
+
 LightFrustum::LightFrustum() {
 
-	subFrustums.resize(NUM_CASCADES_FRUSTUM);
+	subFrustums.resize(numberOfCascades);
 
-	for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
+	for (unsigned i = 0; i < numberOfCascades; i++) {
 		subFrustums[i].orthographicFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
 		subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
+		subFrustums[i].color = colors[i];
+		subFrustums[i].multiplier = 1.0f;
 	}
-
-	subFrustums[0].color = float3(1, 0, 0);
-	subFrustums[1].color = float3(0, 1, 0);
-	subFrustums[2].color = float3(0, 0, 1);
-	subFrustums[3].color = float3(1, 0, 1);
-
-	subFrustums[0].multiplier = 1.0f;
-	subFrustums[1].multiplier = 1.0f;
-	subFrustums[2].multiplier = 1.0f;
-	subFrustums[3].multiplier = 1.0f;
-
 }
 
 void LightFrustum::UpdateFrustums() {
@@ -45,7 +38,7 @@ void LightFrustum::UpdateFrustums() {
 
 	if (mode == CascadeMode::FitToScene) {
 		
-		for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; i++, farDistance *= 2.f) {
+		for (unsigned int i = 0; i < numberOfCascades; i++, farDistance *= 2.f) {
 			subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
 			subFrustums[i].perspectiveFrustum.SetHorizontalFovAndAspectRatio(gameFrustum->HorizontalFov(), gameFrustum->AspectRatio());
 			subFrustums[i].perspectiveFrustum.SetPos(gameFrustum->Pos());
@@ -59,7 +52,7 @@ void LightFrustum::UpdateFrustums() {
 
 		float nearDistance = 0.0f;
 
-		for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; i++, nearDistance = farDistance, farDistance *= 2.f) {
+		for (unsigned int i = 0; i < numberOfCascades; i++, nearDistance = farDistance, farDistance *= 2.f) {
 			subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
 			subFrustums[i].perspectiveFrustum.SetHorizontalFovAndAspectRatio(gameFrustum->HorizontalFov(), gameFrustum->AspectRatio());
 			subFrustums[i].perspectiveFrustum.SetPos(gameFrustum->Pos());
@@ -83,7 +76,7 @@ void LightFrustum::ReconstructFrustum(ShadowCasterType shadowCasterType) {
 	ComponentTransform* transform = light->GetComponent<ComponentTransform>();
 	assert(transform);
 
-	for (unsigned int i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
+	for (unsigned int i = 0; i < numberOfCascades; i++) {
 		float4x4 lightOrientation = transform->GetGlobalMatrix();
 		lightOrientation.SetTranslatePart(float3::zero);
 		
@@ -115,28 +108,28 @@ void LightFrustum::ReconstructFrustum(ShadowCasterType shadowCasterType) {
 	dirty = false;
 }
 
-void LightFrustum::DrawOrthographicGizmos(int idx) {
+void LightFrustum::DrawOrthographicGizmos(unsigned int idx) {
 	if (idx == INT_MAX) {
-		for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
+		for (unsigned i = 0; i < numberOfCascades; i++) {
 			dd::frustum(subFrustums[i].orthographicFrustum.ViewProjMatrix().Inverted(), subFrustums[i].color);
 		}
-	} else if (idx >= 0 && idx < NUM_CASCADES_FRUSTUM) {
+	} else if (idx >= 0 && idx < numberOfCascades) {
 		dd::frustum(subFrustums[idx].orthographicFrustum.ViewProjMatrix().Inverted(), subFrustums[idx].color);
 	}
 }
 
-void LightFrustum::DrawPerspectiveGizmos(int idx) {
+void LightFrustum::DrawPerspectiveGizmos(unsigned int idx) {
 	if (idx == INT_MAX) {
-		for (unsigned i = 0; i < NUM_CASCADES_FRUSTUM; i++) {
+		for (unsigned i = 0; i < numberOfCascades; i++) {
 			dd::frustum(subFrustums[i].perspectiveFrustum.ViewProjMatrix().Inverted(), subFrustums[i].color);
 		}
-	} else if (idx >= 0 && idx < NUM_CASCADES_FRUSTUM) {
+	} else if (idx >= 0 && idx < numberOfCascades) {
 		dd::frustum(subFrustums[idx].perspectiveFrustum.ViewProjMatrix().Inverted(), subFrustums[idx].color);
 	}
 }
 
 void LightFrustum::SetNumberOfCascades(unsigned int value) {
-	if (value < 0 || value > NUM_CASCADES_FRUSTUM) return;
+	if (value < 0 || value > numberOfCascades) return;
 	numberOfCascades = value;
 }
 
@@ -156,9 +149,9 @@ const std::vector<LightFrustum::FrustumInformation>& LightFrustum::GetSubFrustum
 	return subFrustums;
 }
 
-LightFrustum::FrustumInformation& LightFrustum::operator[](int i) {
+LightFrustum::FrustumInformation& LightFrustum::operator[](unsigned int i) {
 	
-	assert(i < 0 || i > NUM_CASCADES_FRUSTUM && "Out of range");
+	assert(i < 0 || i > numberOfCascades && "Out of range");
 
 	return subFrustums[i];
 

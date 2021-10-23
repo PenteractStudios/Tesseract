@@ -140,12 +140,12 @@ void ComponentMeshRenderer::Init() {
 		palette[i] = float4x4::identity;
 	}
 
-	viewOrtoLightsStatic.resize(NUM_CASCADES_FRUSTUM);
-	viewOrtoLightsDynamic.resize(NUM_CASCADES_FRUSTUM);
-	projOrtoLightsStatic.resize(NUM_CASCADES_FRUSTUM);
-	projOrtoLightsDynamic.resize(NUM_CASCADES_FRUSTUM);
-	farPlaneDistancesStatic.resize(NUM_CASCADES_FRUSTUM);
-	farPlaneDistancesDynamic.resize(NUM_CASCADES_FRUSTUM);
+	viewOrtoLightsStatic.resize(MAX_NUMBER_OF_CASCADES);
+	viewOrtoLightsDynamic.resize(MAX_NUMBER_OF_CASCADES);
+	projOrtoLightsStatic.resize(MAX_NUMBER_OF_CASCADES);
+	projOrtoLightsDynamic.resize(MAX_NUMBER_OF_CASCADES);
+	farPlaneDistancesStatic.resize(MAX_NUMBER_OF_CASCADES);
+	farPlaneDistancesDynamic.resize(MAX_NUMBER_OF_CASCADES);
 }
 
 void ComponentMeshRenderer::Update() {
