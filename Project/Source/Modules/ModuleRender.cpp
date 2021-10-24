@@ -585,7 +585,6 @@ UpdateStatus ModuleRender::Update() {
 		}
 
 	}
-	
 
 	// Depth Prepass
 	glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassBuffer);
@@ -595,8 +594,16 @@ UpdateStatus ModuleRender::Update() {
 	glDepthFunc(GL_LESS);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	if (drawWireframe) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+
 	for (GameObject* gameObject : opaqueGameObjects) {
 		DrawGameObjectDepthPrepass(gameObject);
+	}
+
+	if (drawWireframe) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
 	// Depth Prepass texture conversion
@@ -710,6 +717,10 @@ UpdateStatus ModuleRender::Update() {
 		glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	}
 
+	if (drawWireframe) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+
 	// Draw SkyBox (Always first element)
 	for (ComponentSkyBox& skybox : scene->skyboxComponents) {
 		if (skybox.IsActive()) skybox.Draw();
@@ -813,6 +824,10 @@ UpdateStatus ModuleRender::Update() {
 
 	// Render UI
 	RenderUI();
+
+	if (drawWireframe) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
 
 	// Apply MSAA and bloom threshold
 	glBindFramebuffer(GL_FRAMEBUFFER, hdrFramebuffer);
@@ -1360,6 +1375,7 @@ void ModuleRender::ToggleDrawLightFrustumGizmo() {
 }
 
 void ModuleRender::UpdateShadingMode(const char* shadingMode) {
+	drawWireframe = false;
 	drawDepthMapTexture = false;
 	drawSSAOTexture = false;
 	drawNormalsTexture = false;
@@ -1370,9 +1386,9 @@ void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 	std::string strShadingMode = shadingMode;
 
 	if (strcmp(shadingMode, "Shaded") == 0) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		drawWireframe = false;
 	} else if (strcmp(shadingMode, "Wireframe") == 0) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		drawWireframe = true;
 	} else if (strcmp(shadingMode, "Ambient Occlusion") == 0) {
 		drawSSAOTexture = true;
 	} else if (strcmp(shadingMode, "Normals") == 0) {
