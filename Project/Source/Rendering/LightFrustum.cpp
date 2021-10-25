@@ -109,6 +109,12 @@ void LightFrustum::ReconstructFrustum(ShadowCasterType shadowCasterType) {
 }
 
 void LightFrustum::ConfigureFrustums(unsigned int value) {
+	for (unsigned i = 0; i < numberOfCascades; i++) {
+		subFrustums[i].orthographicFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
+		subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
+		subFrustums[i].color = colors[i];
+		subFrustums[i].multiplier = 1.0f;
+	}
 }
 
 void LightFrustum::DrawOrthographicGizmos(unsigned int idx) {
@@ -132,7 +138,7 @@ void LightFrustum::DrawPerspectiveGizmos(unsigned int idx) {
 }
 
 void LightFrustum::SetNumberOfCascades(unsigned int value) {
-	if (value < 0 || value > numberOfCascades) return;
+	if (value <= 0 || value > MAX_NUMBER_OF_CASCADES) return;
 	numberOfCascades = value;
 }
 
