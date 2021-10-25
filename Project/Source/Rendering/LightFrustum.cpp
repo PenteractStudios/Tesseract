@@ -17,7 +17,7 @@ const float3 colors[MAX_NUMBER_OF_CASCADES] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, 
 
 LightFrustum::LightFrustum() {
 
-	subFrustums.resize(numberOfCascades);
+	subFrustums.resize(MAX_NUMBER_OF_CASCADES);
 
 	for (unsigned i = 0; i < numberOfCascades; i++) {
 		subFrustums[i].orthographicFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
@@ -106,6 +106,9 @@ void LightFrustum::ReconstructFrustum(ShadowCasterType shadowCasterType) {
 	}
 
 	dirty = false;
+}
+
+void LightFrustum::ConfigureFrustums(unsigned int value) {
 }
 
 void LightFrustum::DrawOrthographicGizmos(unsigned int idx) {

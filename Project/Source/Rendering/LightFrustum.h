@@ -33,6 +33,7 @@ public:
 
 	void UpdateFrustums();
 	void ReconstructFrustum(ShadowCasterType shadowCasterType);
+	void ConfigureFrustums(unsigned int value);
 
 	void DrawOrthographicGizmos(unsigned int idx);
 	void DrawPerspectiveGizmos(unsigned int idx);

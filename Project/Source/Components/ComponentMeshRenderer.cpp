@@ -589,7 +589,7 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) {
 		glUniform1f(standardProgram->depthMaps[i].farPlaneLocationDynamic, farPlaneDistancesDynamic[i]);
 	}
 
-	glUniform1ui(standardProgram->shadowCascadesCounterLocation, subsFrustumsDynamic.size());
+	glUniform1ui(standardProgram->shadowCascadesCounterLocation, App->renderer->lightFrustumStatic.GetNumberOfCascades());
 
 	// Skinning uniform settings
 
