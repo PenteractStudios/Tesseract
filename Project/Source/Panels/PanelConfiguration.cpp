@@ -289,6 +289,9 @@ void PanelConfiguration::Update() {
 				App->renderer->lightFrustumStatic.Invalidate();
 			}
 
+			for (unsigned int i = 0; i < App->renderer->lightFrustumStatic.GetNumberOfCascades(); ++i) {
+			}
+
 			ImGui::TextColored(App->editor->textColor, "Dynamic Shadows");
 			int dynamicCascades = App->renderer->lightFrustumDynamic.GetNumberOfCascades();
 			if (ImGui::SliderInt("Number of cascades##dynamic_cascades", &dynamicCascades, 1, MAX_NUMBER_OF_CASCADES)) {
