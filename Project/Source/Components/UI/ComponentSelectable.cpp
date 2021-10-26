@@ -343,6 +343,7 @@ bool ComponentSelectable::IsClicked() const {
 }
 
 void ComponentSelectable::TryToClickOn(bool internalClick) const {
+	if (!IsActive() || !IsInteractable()) return; //Cannot be clicked on if not active/not interactable
 	UID toBeClicked = 0;
 	ComponentType typeToPress = ComponentType::UNKNOWN;
 
