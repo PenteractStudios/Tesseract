@@ -24,7 +24,7 @@ public:
 		FrustumPlanes planes = FrustumPlanes();
 		float3 color = float3(0.0f, 0.0f, 0.0f);
 		float multiplier = 1.0f;
-		float nearPlane = 0.0;
+		float nearPlane = 0.001f;
 		float farPlane = MINIMUM_FAR_DISTANCE;
 	};
 

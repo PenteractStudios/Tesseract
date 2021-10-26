@@ -834,7 +834,7 @@ UpdateStatus ModuleRender::Update() {
 		}
 
 		if (drawDynamicLightFrustumPerspectiveGizmo) {
-			lightFrustumStatic.DrawPerspectiveGizmos(indexDynamicPerspective);
+			lightFrustumDynamic.DrawPerspectiveGizmos(indexDynamicPerspective);
 		}
 	}
 

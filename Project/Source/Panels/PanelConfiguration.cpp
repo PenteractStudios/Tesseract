@@ -22,6 +22,7 @@
 
 #include "GL/glew.h"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "IconsForkAwesome.h"
 
 #include "Utils/Leaks.h"
@@ -280,8 +281,40 @@ void PanelConfiguration::Update() {
 			ImGui::TextColored(App->editor->titleColor, "Cascade Shadow Mapping");
 			ImGui::TextColored(App->editor->textColor, "Static Shadows Frustums");
 			
+			bool recalculateStatic = false;
+			bool recalculateDynamic = false;
+
 			int staticCascades = App->renderer->lightFrustumStatic.GetNumberOfCascades();
 			if (ImGui::SliderInt("Number of cascades##static_cascades", &staticCascades, 1, MAX_NUMBER_OF_CASCADES)) {
+				recalculateStatic = true;
+			}
+
+			float nearPlane;
+			for (unsigned int i = 0; i < App->renderer->lightFrustumStatic.GetNumberOfCascades(); ++i) {
+				std::string label = "Cascade " + std::to_string(i);
+				ImGui::TextColored(App->editor->titleColor, label.c_str());
+				LightFrustum::FrustumInformation *information = &App->renderer->lightFrustumStatic.GetSubFrustums()[i];
+				ImGui::PushItemWidth(128);
+				label = "Color cascade##static_color_cascade_" + std::to_string(i);
+				ImGui::ColorPicker3(label.c_str(), &information->color[0], ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+				ImGui::PopItemWidth();
+
+				if (i == 0) {
+					nearPlane = information->nearPlane;
+					if (ImGui::DragFloat("Near plane", &information->nearPlane, 0.05f, 0.001f, information->farPlane - 10.f)) {
+						recalculateStatic = true;
+					}
+				} else {
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::PushStyleColor(0, App->editor->textColor);
+					ImGui::DragFloat("Near plane", &nearPlane, 0.05f, 0.001f, information->nearPlane + 10.f);
+					ImGui::PopStyleColor();
+					ImGui::PopItemFlag();
+				}
+
+			}
+
+			if (recalculateStatic) {
 				App->renderer->lightFrustumStatic.SetNumberOfCascades(static_cast<unsigned int>(staticCascades));
 				App->renderer->UpdateFramebuffers();
 				App->renderer->indexStaticOrtographic = INT_MAX;
@@ -290,20 +323,11 @@ void PanelConfiguration::Update() {
 				App->renderer->lightFrustumStatic.Invalidate();
 			}
 
-
-
-			for (unsigned int i = 0; i < App->renderer->lightFrustumStatic.GetNumberOfCascades(); ++i) {
-				LightFrustum::FrustumInformation *information = &App->renderer->lightFrustumStatic.GetSubFrustums()[i];
-				std::string label = "Color cascade " + std::to_string(i) + "##static_color_cascade";
-				ImGui::PushItemWidth(128);
-				ImGui::ColorPicker3(label.c_str(), &information->color[0], ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
-				ImGui::PopItemWidth();
-
-			}
-
 			ImGui::TextColored(App->editor->textColor, "Dynamic Shadows Frustums");
+
 			int dynamicCascades = App->renderer->lightFrustumDynamic.GetNumberOfCascades();
 			if (ImGui::SliderInt("Number of cascades##dynamic_cascades", &dynamicCascades, 1, MAX_NUMBER_OF_CASCADES)) {
+				recalculateDynamic = true;
 				App->renderer->lightFrustumDynamic.SetNumberOfCascades(static_cast<unsigned int>(dynamicCascades));
 				App->renderer->UpdateFramebuffers();
 				App->renderer->indexDynamicOrtographic = INT_MAX;
@@ -313,11 +337,30 @@ void PanelConfiguration::Update() {
 			}
 
 			for (unsigned int i = 0; i < App->renderer->lightFrustumDynamic.GetNumberOfCascades(); ++i) {
+				std::string label = "Cascade " + std::to_string(i);
+				ImGui::TextColored(App->editor->titleColor, label.c_str());
 				LightFrustum::FrustumInformation *information = &App->renderer->lightFrustumDynamic.GetSubFrustums()[i];
-				std::string label = "Color cascade " + std::to_string(i) + "##dynamic_color_cascade";
+				
 				ImGui::PushItemWidth(128);
+				label = "Color cascade##dynamic_color_cascade_" + std::to_string(i);
 				ImGui::ColorPicker3(label.c_str(), &information->color[0], ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 				ImGui::PopItemWidth();
+
+				label = "Near plane##dynamic_near_plane_" + std::to_string(i);
+
+				if (i == 0) {
+					nearPlane = information->nearPlane;
+					if (ImGui::DragFloat(label.c_str(), &information->nearPlane, 0.05f, 0.001f, information->farPlane - 10.f)) {
+						recalculateStatic = true;
+					}
+				} else {
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::PushStyleColor(0, App->editor->textColor);
+					ImGui::DragFloat(label.c_str(), &nearPlane, 0.05f, 0.001f, information->nearPlane + 10.f);
+					ImGui::PopStyleColor();
+					ImGui::PopItemFlag();
+				}
+
 			}
 			
 		}
