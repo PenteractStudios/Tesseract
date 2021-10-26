@@ -14,7 +14,8 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
 
-uniform unsigned int shadowCascadesCounter;
+uniform unsigned int shadowStaticCascadesCounter;
+uniform unsigned int shadowDynamicCascadesCounter;
 uniform mat4 viewOrtoLightsStatic[MAX_CASCADES];
 uniform mat4 projOrtoLightsStatic[MAX_CASCADES];
 
@@ -26,7 +27,9 @@ out mat3 TBN;
 out vec3 fragPos;
 out vec2 uv;
 
-out unsigned int cascadesCount;
+out unsigned int staticCascadesCount;
+out unsigned int dynamicCascadesCount;
+
 out vec4 fragPosLightStatic[MAX_CASCADES];
 out vec4 fragPosLightDynamic[MAX_CASCADES];
 
@@ -57,14 +60,16 @@ void main()
     fragNormal = normalize(transpose(inverse(mat3(model))) * normal.xyz);
     uv = uvs;
     
-    for(unsigned int i = 0; i < shadowCascadesCounter; ++i){
+    for (unsigned int i = 0; i < shadowStaticCascadesCounter; ++i) {
         // Static 
         viewFragPosStatic[i] = (viewOrtoLightsStatic[i] * model * position).xyz;
 
         fragPosLightStatic[i] = projOrtoLightsStatic[i] * viewOrtoLightsStatic[i] * model * position;
         fragPosLightStatic[i] /= fragPosLightStatic[i].w;
         fragPosLightStatic[i].xyz = fragPosLightStatic[i].xyz * 0.5 + 0.5;
+    }
 
+    for (unsigned int i = 0; i < shadowDynamicCascadesCounter; ++i) {
         // Dynamic
         viewFragPosDynamic[i] = (viewOrtoLightsDynamic[i] * model * position).xyz;
 
@@ -73,7 +78,8 @@ void main()
         fragPosLightDynamic[i].xyz = fragPosLightDynamic[i].xyz * 0.5 + 0.5;
     }
 
-    cascadesCount = shadowCascadesCounter;
+    staticCascadesCount = shadowStaticCascadesCounter;
+    dynamicCascadesCount = shadowDynamicCascadesCounter;
 
 }
 
@@ -104,14 +110,16 @@ void main()
     TBN = mat3(T, B, N);
     uv = uvs;
 
-    for(unsigned int i = 0; i < shadowCascadesCounter; ++i){
+    for (unsigned int i = 0; i < shadowStaticCascadesCounter; ++i) {
         // Static 
         viewFragPosStatic[i] = (viewOrtoLightsStatic[i] * model * position).xyz;
 
         fragPosLightStatic[i] = projOrtoLightsStatic[i] * viewOrtoLightsStatic[i] * model * position;
         fragPosLightStatic[i] /= fragPosLightStatic[i].w;
         fragPosLightStatic[i].xyz = fragPosLightStatic[i].xyz * 0.5 + 0.5;
+    }
 
+    for (unsigned int i = 0; i < shadowDynamicCascadesCounter; ++i) {
         // Dynamic
         viewFragPosDynamic[i] = (viewOrtoLightsDynamic[i] * model * position).xyz;
 
@@ -120,5 +128,6 @@ void main()
         fragPosLightDynamic[i].xyz = fragPosLightDynamic[i].xyz * 0.5 + 0.5;
     }
 
-    cascadesCount = shadowCascadesCounter;
+    staticCascadesCount = shadowStaticCascadesCounter;
+    dynamicCascadesCount = shadowDynamicCascadesCounter;
 }

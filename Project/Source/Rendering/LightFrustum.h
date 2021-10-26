@@ -42,7 +42,7 @@ public:
 	unsigned int GetNumberOfCascades();
 	Frustum GetOrthographicFrustum(unsigned int i) const;
 	Frustum GetPersepectiveFrustum(unsigned int i) const;
-	const std::vector<LightFrustum::FrustumInformation>& GetSubFrustums() const;
+	std::vector<LightFrustum::FrustumInformation>& GetSubFrustums();
 
 	FrustumInformation& operator[](unsigned int i);
 

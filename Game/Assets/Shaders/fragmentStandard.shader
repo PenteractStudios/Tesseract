@@ -16,7 +16,8 @@ in vec4 fragPosLightDynamic[MAX_CASCADES];
 in vec3 viewFragPosStatic[MAX_CASCADES];
 in vec3 viewFragPosDynamic[MAX_CASCADES];
 
-flat in unsigned int cascadesCount;
+flat in unsigned int staticCascadesCount;
+flat in unsigned int dynamicCascadesCount;
 
 out vec4 outColor;
 
@@ -138,24 +139,24 @@ vec3 GetNormal(vec2 tiledUV)
 
 unsigned int DepthMapIndexStatic(){
 
-	for(unsigned int i = 0; i < cascadesCount; ++i){
+	for(unsigned int i = 0; i < staticCascadesCount; ++i){
 	
 		if(-viewFragPosStatic[i].z < farPlaneDistancesStatic[i]) return i;
 	
 	}
 	
-	return cascadesCount - 1;
+	return staticCascadesCount - 1;
 }
 
 unsigned int DepthMapIndexDynamic(){
 
-	for(unsigned int i = 0; i < cascadesCount; ++i){
+	for(unsigned int i = 0; i < dynamicCascadesCount; ++i){
 	
 		if(-viewFragPosDynamic[i].z < farPlaneDistancesDynamic[i]) return i;
 	
 	}
 	
-	return cascadesCount - 1;
+	return dynamicCascadesCount - 1;
 }
 
 float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2DShadow shadowMap) {

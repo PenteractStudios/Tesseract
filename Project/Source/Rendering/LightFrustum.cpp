@@ -154,7 +154,7 @@ Frustum LightFrustum::GetPersepectiveFrustum(unsigned int i) const {
 	return subFrustums[i].perspectiveFrustum;
 }
 
-const std::vector<LightFrustum::FrustumInformation>& LightFrustum::GetSubFrustums() const {
+std::vector<LightFrustum::FrustumInformation>& LightFrustum::GetSubFrustums() {
 	return subFrustums;
 }
 

@@ -170,7 +170,8 @@ struct ProgramStandard : public Program {
 	int viewOrtoLightsDynamicLocation = -1;
 	int projOrtoLightsDynamicLocation = -1;
 
-	int shadowCascadesCounterLocation = -1;
+	int shadowStaticCascadesCounterLocation = -1;
+	int shadowDynamicCascadesCounterLocation = -1;
 	DepthMapsUniforms depthMaps[CASCADE_FRUSTUMS];
 
 	int paletteLocation = -1;

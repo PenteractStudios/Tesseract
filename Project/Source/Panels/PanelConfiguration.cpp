@@ -278,7 +278,8 @@ void PanelConfiguration::Update() {
 
 			ImGui::Separator();
 			ImGui::TextColored(App->editor->titleColor, "Cascade Shadow Mapping");
-			ImGui::TextColored(App->editor->textColor, "Static Shadows");
+			ImGui::TextColored(App->editor->textColor, "Static Shadows Frustums");
+			
 			int staticCascades = App->renderer->lightFrustumStatic.GetNumberOfCascades();
 			if (ImGui::SliderInt("Number of cascades##static_cascades", &staticCascades, 1, MAX_NUMBER_OF_CASCADES)) {
 				App->renderer->lightFrustumStatic.SetNumberOfCascades(static_cast<unsigned int>(staticCascades));
@@ -289,10 +290,18 @@ void PanelConfiguration::Update() {
 				App->renderer->lightFrustumStatic.Invalidate();
 			}
 
+
+
 			for (unsigned int i = 0; i < App->renderer->lightFrustumStatic.GetNumberOfCascades(); ++i) {
+				LightFrustum::FrustumInformation *information = &App->renderer->lightFrustumStatic.GetSubFrustums()[i];
+				std::string label = "Color cascade " + std::to_string(i) + "##static_color_cascade";
+				ImGui::PushItemWidth(128);
+				ImGui::ColorPicker3(label.c_str(), &information->color[0], ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+				ImGui::PopItemWidth();
+
 			}
 
-			ImGui::TextColored(App->editor->textColor, "Dynamic Shadows");
+			ImGui::TextColored(App->editor->textColor, "Dynamic Shadows Frustums");
 			int dynamicCascades = App->renderer->lightFrustumDynamic.GetNumberOfCascades();
 			if (ImGui::SliderInt("Number of cascades##dynamic_cascades", &dynamicCascades, 1, MAX_NUMBER_OF_CASCADES)) {
 				App->renderer->lightFrustumDynamic.SetNumberOfCascades(static_cast<unsigned int>(dynamicCascades));
@@ -301,6 +310,14 @@ void PanelConfiguration::Update() {
 				App->renderer->indexDynamicPerspective = INT_MAX;
 				App->renderer->lightFrustumDynamic.ConfigureFrustums(dynamicCascades);
 				App->renderer->lightFrustumDynamic.Invalidate();
+			}
+
+			for (unsigned int i = 0; i < App->renderer->lightFrustumDynamic.GetNumberOfCascades(); ++i) {
+				LightFrustum::FrustumInformation *information = &App->renderer->lightFrustumDynamic.GetSubFrustums()[i];
+				std::string label = "Color cascade " + std::to_string(i) + "##dynamic_color_cascade";
+				ImGui::PushItemWidth(128);
+				ImGui::ColorPicker3(label.c_str(), &information->color[0], ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+				ImGui::PopItemWidth();
 			}
 			
 		}

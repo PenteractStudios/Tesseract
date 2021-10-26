@@ -126,7 +126,8 @@ ProgramStandard::ProgramStandard(unsigned program_)
 	viewOrtoLightsDynamicLocation = glGetUniformLocation(program, "viewOrtoLightsDynamic");
 	projOrtoLightsDynamicLocation = glGetUniformLocation(program, "projOrtoLightsDynamic");
 
-	shadowCascadesCounterLocation = glGetUniformLocation(program, "shadowCascadesCounter");
+	shadowStaticCascadesCounterLocation = glGetUniformLocation(program, "shadowStaticCascadesCounter");
+	shadowDynamicCascadesCounterLocation = glGetUniformLocation(program, "shadowDynamicCascadesCounter");
 
 	for (unsigned int i = 0; i < CASCADE_FRUSTUMS; ++i) {
 		depthMaps[i] = DepthMapsUniforms(program, i);
