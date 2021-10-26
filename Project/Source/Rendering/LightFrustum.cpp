@@ -34,31 +34,27 @@ void LightFrustum::UpdateFrustums() {
 
 	Frustum *gameFrustum = gameCamera->GetFrustum();
 
-	float farDistance = MINIMUM_FAR_DISTANCE; //*0.3f;
-
 	if (mode == CascadeMode::FitToScene) {
 		
-		for (unsigned int i = 0; i < numberOfCascades; i++, farDistance *= 2.f) {
+		for (unsigned int i = 0; i < numberOfCascades; i++) {
 			subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
 			subFrustums[i].perspectiveFrustum.SetHorizontalFovAndAspectRatio(gameFrustum->HorizontalFov(), gameFrustum->AspectRatio());
 			subFrustums[i].perspectiveFrustum.SetPos(gameFrustum->Pos());
 			subFrustums[i].perspectiveFrustum.SetUp(gameFrustum->Up());
 			subFrustums[i].perspectiveFrustum.SetFront(gameFrustum->Front());
-			subFrustums[i].perspectiveFrustum.SetViewPlaneDistances(gameFrustum->NearPlaneDistance(), farDistance);
+			subFrustums[i].perspectiveFrustum.SetViewPlaneDistances(subFrustums[i].nearPlane, subFrustums[i].farPlane);
 			subFrustums[i].planes.CalculateFrustumPlanes(subFrustums[i].perspectiveFrustum);
 		}
 
 	} else {
 
-		float nearDistance = 0.0f;
-
-		for (unsigned int i = 0; i < numberOfCascades; i++, nearDistance = farDistance, farDistance *= 2.f) {
+		for (unsigned int i = 0; i < numberOfCascades; i++) {
 			subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
 			subFrustums[i].perspectiveFrustum.SetHorizontalFovAndAspectRatio(gameFrustum->HorizontalFov(), gameFrustum->AspectRatio());
 			subFrustums[i].perspectiveFrustum.SetPos(gameFrustum->Pos());
 			subFrustums[i].perspectiveFrustum.SetUp(gameFrustum->Up());
 			subFrustums[i].perspectiveFrustum.SetFront(gameFrustum->Front());
-			subFrustums[i].perspectiveFrustum.SetViewPlaneDistances(nearDistance, farDistance);
+			subFrustums[i].perspectiveFrustum.SetViewPlaneDistances(subFrustums[i].nearPlane, subFrustums[i].farPlane);
 			subFrustums[i].planes.CalculateFrustumPlanes(subFrustums[i].perspectiveFrustum);
 		}
 	}
