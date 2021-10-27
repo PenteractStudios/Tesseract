@@ -52,20 +52,7 @@ void main()
         float shadowD = Shadow(fragPosLightDynamic[indexD], normal, normalize(dirLight.direction), depthMapTexturesDynamic[indexD]);
         float shadowME = Shadow(fragPosLightMainEntities[indexME], normal, normalize(dirLight.direction), depthMapTexturesMainEntities[indexME]);
 
-        
-
-        if (shadowS == 1) {
-            shadow = (shadowD == 1 || shadowME == 1) ? min(shadowD, shadowME) : shadowD * shadowME;
-        }
-        else if (shadowD == 1) {
-            shadow = (shadowS == 1 || shadowME == 1) ? min(shadowS, shadowME) : shadowS * shadowME;
-        }
-        else if (shadowME == 1) {
-            shadow = (shadowS == 1 || shadowD == 1) ? min(shadowS, shadowD) : shadowS * shadowD;
-        }
-        else {
-            shadow = shadowS * shadowD * shadowME;
-        }
+        shadow = shadowS * shadowD * shadowME;
 
         colorAccumulative += shadow * directionalColor;
     }
