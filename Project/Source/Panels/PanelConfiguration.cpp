@@ -280,6 +280,8 @@ void PanelConfiguration::Update() {
 			ImGui::Separator();
 			ImGui::TextColored(App->editor->titleColor, "Cascade Shadow Mapping");
 
+			ImGui::DragFloat("Shadow Attenuation factor", &App->renderer->shadowAttenuation, 0.01f, 0.0f, 1.0f);
+
 			if (ImGui::CollapsingHeader("Static Shadows Frustums")) {
 				bool recalculateStatic = false;
 
@@ -405,7 +407,6 @@ void PanelConfiguration::Update() {
 
 			if (ImGui::CollapsingHeader("Main Entities Frustums")) {
 				bool recalculateMainEntities = false;
-				ImGui::TextColored(App->editor->textColor, "Main Entities Shadows Frustums");
 
 				int mainEntitiesCascades = App->renderer->lightFrustumMainEntities.GetNumberOfCascades();
 				if (ImGui::SliderInt("Number of cascades##mainentities_cascades", &mainEntitiesCascades, 1, MAX_NUMBER_OF_CASCADES)) {

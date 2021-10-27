@@ -151,6 +151,9 @@ struct ProgramStandard : public Program {
 	int shadowStaticCascadesCounterLocation = -1;
 	int shadowDynamicCascadesCounterLocation = -1;
 	int shadowMainEntitiesCascadesCounterLocation = -1;
+
+	int shadowAttenuationLocation = -1;
+
 	DepthMapsUniforms depthMaps[CASCADE_FRUSTUMS];
 
 	int paletteLocation = -1;

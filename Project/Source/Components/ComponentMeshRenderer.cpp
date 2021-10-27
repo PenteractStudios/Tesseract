@@ -541,6 +541,8 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) {
 	const std::vector<LightFrustum::FrustumInformation>& subsFrustumsDynamic = App->renderer->lightFrustumDynamic.GetSubFrustums();
 	const std::vector<LightFrustum::FrustumInformation>& subsFrustumsMainEntities = App->renderer->lightFrustumMainEntities.GetSubFrustums();
 
+	glUniform1f(standardProgram->shadowAttenuationLocation, App->renderer->shadowAttenuation);
+
 	// Static shadow casters
 	for (unsigned int i = 0; i < subsFrustumsStatic.size(); ++i) {
 		viewOrtoLightsStatic[i] = subsFrustumsStatic[i].orthographicFrustum.ViewMatrix();

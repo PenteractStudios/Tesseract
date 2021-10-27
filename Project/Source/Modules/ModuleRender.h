@@ -198,6 +198,10 @@ public:
 	bool chromaticAberrationActive = false;
 	float chromaticAberrationStrength = 1.0f;
 
+	// Shadows
+
+	float shadowAttenuation = 0.35f;
+
 	LightFrustum lightFrustumStatic;
 	LightFrustum lightFrustumDynamic;
 	LightFrustum lightFrustumMainEntities;

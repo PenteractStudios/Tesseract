@@ -22,6 +22,8 @@ uniform unsigned int shadowStaticCascadesCounter;
 uniform unsigned int shadowDynamicCascadesCounter;
 uniform unsigned int shadowMainEntitiesCascadesCounter;
 
+uniform float shadowAttenuation;
+
 out vec4 outColor;
 
 // Depth Map
@@ -383,7 +385,7 @@ void main()
 	float shadowFake = 1.0;
 
 	if(shadow < 1.0){
-		shadowFake = shadow + (1.0 - shadow) * 0.35;
+		shadowFake = shadow + (1.0 - shadow) * shadowAttenuation;
 	}
 
 	// Lights
@@ -469,7 +471,7 @@ void main()
 	float shadowFake = 1.0;
 
 	if(shadow < 1.0){
-		shadowFake = shadow + (1.0 - shadow) * 0.35;
+		shadowFake = shadow + (1.0 - shadow) * shadowAttenuation;
 	}
 
 	// Lights

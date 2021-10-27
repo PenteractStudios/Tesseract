@@ -133,6 +133,8 @@ ProgramStandard::ProgramStandard(unsigned program_)
 	shadowDynamicCascadesCounterLocation = glGetUniformLocation(program, "shadowDynamicCascadesCounter");
 	shadowMainEntitiesCascadesCounterLocation = glGetUniformLocation(program, "shadowMainEntitiesCascadesCounter");
 
+	shadowAttenuationLocation = glGetUniformLocation(program, "shadowAttenuation");
+
 	for (unsigned int i = 0; i < CASCADE_FRUSTUMS; ++i) {
 		depthMaps[i] = DepthMapsUniforms(program, i);
 	}

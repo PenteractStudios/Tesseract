@@ -30,6 +30,9 @@ void main()
     vec3 R = reflect(-viewDir, normal);
     vec3 colorAccumulative = GetOccludedAmbientLight(R, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness, tiledUV);
 
+    float shadow;
+    float shadowFake = 1.0;
+
     // Directional Light
     if (dirLight.isActive == 1) {
         vec3 directionalDir = normalize(dirLight.direction);
@@ -49,7 +52,7 @@ void main()
         float shadowD = Shadow(fragPosLightDynamic[indexD], normal, normalize(dirLight.direction), depthMapTexturesDynamic[indexD]);
         float shadowME = Shadow(fragPosLightMainEntities[indexME], normal, normalize(dirLight.direction), depthMapTexturesMainEntities[indexME]);
 
-        float shadow;
+        
 
         if (shadowS == 1) {
             shadow = (shadowD == 1 || shadowME == 1) ? min(shadowD, shadowME) : shadowD * shadowME;
@@ -65,6 +68,12 @@ void main()
         }
 
         colorAccumulative += shadow * directionalColor;
+    }
+
+    shadowFake = 1.0;
+
+    if (shadow < 1.0) {
+        shadowFake = shadow + (1.0 - shadow) * shadowAttenuation;
     }
 
 	
@@ -104,7 +113,7 @@ void main()
 
             vec3 spotColor = (colorDiffuse.rgb * (1 - Rf0) + (shininess + 2) / 2 * Rf * VRn) * light.color * light.intensity * distAttenuation * cAttenuation * NL;
 
-            colorAccumulative += spotColor;
+            colorAccumulative += shadowFake * spotColor;
 		}
 		else
 		{
@@ -123,7 +132,7 @@ void main()
 
             vec3 pointColor = (colorDiffuse.rgb * (1 - Rf0) + (shininess + 2) / 2 * Rf * VRn) * light.color * light.intensity * distAttenuation * NL;
 
-            colorAccumulative += pointColor;
+            colorAccumulative += shadowFake * pointColor;
 		}
 	}
 
