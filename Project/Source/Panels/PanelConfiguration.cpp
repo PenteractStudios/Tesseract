@@ -290,6 +290,7 @@ void PanelConfiguration::Update() {
 			}
 
 			float nearPlane;
+			float previousFarPlane;
 			for (unsigned int i = 0; i < App->renderer->lightFrustumStatic.GetNumberOfCascades(); ++i) {
 				std::string label = "Cascade " + std::to_string(i);
 				ImGui::TextColored(App->editor->titleColor, label.c_str());
@@ -328,12 +329,6 @@ void PanelConfiguration::Update() {
 			int dynamicCascades = App->renderer->lightFrustumDynamic.GetNumberOfCascades();
 			if (ImGui::SliderInt("Number of cascades##dynamic_cascades", &dynamicCascades, 1, MAX_NUMBER_OF_CASCADES)) {
 				recalculateDynamic = true;
-				App->renderer->lightFrustumDynamic.SetNumberOfCascades(static_cast<unsigned int>(dynamicCascades));
-				App->renderer->UpdateFramebuffers();
-				App->renderer->indexDynamicOrtographic = INT_MAX;
-				App->renderer->indexDynamicPerspective = INT_MAX;
-				App->renderer->lightFrustumDynamic.ConfigureFrustums(dynamicCascades);
-				App->renderer->lightFrustumDynamic.Invalidate();
 			}
 
 			for (unsigned int i = 0; i < App->renderer->lightFrustumDynamic.GetNumberOfCascades(); ++i) {
@@ -348,19 +343,43 @@ void PanelConfiguration::Update() {
 
 				label = "Near plane##dynamic_near_plane_" + std::to_string(i);
 
+
 				if (i == 0) {
 					nearPlane = information->nearPlane;
-					if (ImGui::DragFloat(label.c_str(), &information->nearPlane, 0.05f, 0.001f, information->farPlane - 10.f)) {
-						recalculateStatic = true;
+
+					if (ImGui::DragFloat(label.c_str(), &information->nearPlane, 0.001f, 0.001f, information->farPlane - 10.f)) {
+						recalculateDynamic = true;
+					}
+					label = "Far plane##dynamic_near_plane_" + std::to_string(i);
+					if (ImGui::DragFloat("Far Plane", &information->farPlane, 0.001f, information->nearPlane + 10.f, FLT_MAX)) {
+						recalculateDynamic = true;
 					}
 				} else {
+					// Near Plane always the same (fit to scene)
 					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 					ImGui::PushStyleColor(0, App->editor->textColor);
-					ImGui::DragFloat(label.c_str(), &nearPlane, 0.05f, 0.001f, information->nearPlane + 10.f);
+					ImGui::DragFloat(label.c_str(), &nearPlane, 0.001f, nearPlane, information->nearPlane + 10.f);
 					ImGui::PopStyleColor();
 					ImGui::PopItemFlag();
+
+					label = "Far plane##dynamic_near_plane_" + std::to_string(i);
+					if (ImGui::DragFloat(label.c_str(), &information->farPlane, 0.05f, previousFarPlane + 5, FLT_MAX)) {
+						recalculateDynamic = true;
+					}
+
 				}
 
+				previousFarPlane = information->farPlane;
+
+			}
+
+			if (recalculateDynamic) {
+				App->renderer->lightFrustumDynamic.SetNumberOfCascades(static_cast<unsigned int>(dynamicCascades));
+				App->renderer->UpdateFramebuffers();
+				App->renderer->indexDynamicOrtographic = INT_MAX;
+				App->renderer->indexDynamicPerspective = INT_MAX;
+				App->renderer->lightFrustumDynamic.ConfigureFrustums(dynamicCascades);
+				App->renderer->lightFrustumDynamic.Invalidate();
 			}
 			
 		}

@@ -36,7 +36,14 @@ void LightFrustum::UpdateFrustums() {
 
 	if (mode == CascadeMode::FitToScene) {
 		
+		float previousFarPlane = subFrustums[0].farPlane;
 		for (unsigned int i = 0; i < numberOfCascades; i++) {
+
+			
+			if (subFrustums[i].farPlane < previousFarPlane) {
+				subFrustums[i].farPlane = previousFarPlane + 5.0f;
+			}
+
 			subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
 			subFrustums[i].perspectiveFrustum.SetHorizontalFovAndAspectRatio(gameFrustum->HorizontalFov(), gameFrustum->AspectRatio());
 			subFrustums[i].perspectiveFrustum.SetPos(gameFrustum->Pos());
@@ -44,6 +51,8 @@ void LightFrustum::UpdateFrustums() {
 			subFrustums[i].perspectiveFrustum.SetFront(gameFrustum->Front());
 			subFrustums[i].perspectiveFrustum.SetViewPlaneDistances(subFrustums[i].nearPlane, subFrustums[i].farPlane);
 			subFrustums[i].planes.CalculateFrustumPlanes(subFrustums[i].perspectiveFrustum);
+
+			previousFarPlane = subFrustums[i].farPlane;
 		}
 
 	} else {
