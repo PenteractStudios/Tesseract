@@ -92,6 +92,7 @@ void ComponentBoundingBox::Invalidate() {
 		if (material->castShadows) {
 			App->renderer->lightFrustumStatic.Invalidate();
 			App->renderer->lightFrustumDynamic.Invalidate();
+			App->renderer->lightFrustumMainEntities.Invalidate();
 		}
 	}
 

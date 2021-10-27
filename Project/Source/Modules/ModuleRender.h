@@ -113,6 +113,7 @@ public:
 	unsigned normalsTexture = 0;
 	std::vector<unsigned> depthMapStaticTextures;
 	std::vector<unsigned> depthMapDynamicTextures;
+	std::vector<unsigned> depthMapMainEntitiesTextures;
 	unsigned ssaoTexture = 0;
 	unsigned auxBlurTexture = 0;
 	unsigned colorTextures[2] = {0, 0}; // position 0: scene render texture; position 1: bloom texture to be blurred
@@ -124,6 +125,7 @@ public:
 	unsigned depthPrepassTextureConversionBuffer = 0;
 	std::vector<unsigned> depthMapStaticTextureBuffers;
 	std::vector<unsigned> depthMapDynamicTextureBuffers;
+	std::vector<unsigned> depthMapMainEntitiesTextureBuffers;
 	unsigned ssaoTextureBuffer = 0;
 	unsigned ssaoBlurTextureBufferH = 0;
 	unsigned ssaoBlurTextureBufferV = 0;
@@ -145,6 +147,8 @@ public:
 	bool drawStaticLightFrustumPerspectiveGizmo = false;
 	bool drawDynamicLightFrustumOrtographicGizmo = false;
 	bool drawDynamicLightFrustumPerspectiveGizmo = false;
+	bool drawMainEntitiesLightFrustumOrtographicGizmo = false;
+	bool drawMainEntitiesLightFrustumPerspectiveGizmo = false;
 	bool drawNavMesh = false;
 	bool drawParticleGizmos = false;
 	bool drawColliders = false;
@@ -154,6 +158,8 @@ public:
 	int indexStaticPerspective = INT_MAX;
 	int indexDynamicOrtographic = INT_MAX;
 	int indexDynamicPerspective = INT_MAX;
+	int indexMainEntitiesOrtographic = INT_MAX;
+	int indexMainEntitiesPerspective = INT_MAX;
 
 	float3 clearColor = {0.1f, 0.1f, 0.1f};		 // Color of the viewport between frames
 
@@ -194,6 +200,7 @@ public:
 
 	LightFrustum lightFrustumStatic;
 	LightFrustum lightFrustumDynamic;
+	LightFrustum lightFrustumMainEntities;
 
 private:
 	void DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb);			  // Draws the quadrtee nodes if 'drawQuadtree' is set to true.

@@ -2,33 +2,6 @@
 
 #include "Globals.h"
 
-struct PointLightUniforms {
-	PointLightUniforms();
-	PointLightUniforms(unsigned program, unsigned number);
-
-	int posLocation = -1;
-	int colorLocation = -1;
-	int intensityLocation = -1;
-	int radiusLocation = -1;
-	int useCustomFalloffLocation = -1;
-	int falloffExponentLocation = -1;
-};
-
-struct SpotLightUniforms {
-	SpotLightUniforms();
-	SpotLightUniforms(unsigned program, unsigned number);
-
-	int posLocation = -1;
-	int directionLocation = -1;
-	int colorLocation = -1;
-	int intensityLocation = -1;
-	int radiusLocation = -1;
-	int useCustomFalloffLocation = -1;
-	int falloffExponentLocation = -1;
-	int innerAngleLocation = -1;
-	int outerAngleLocation = -1;
-};
-
 struct DepthMapsUniforms {
 	DepthMapsUniforms();
 	DepthMapsUniforms(unsigned program, unsigned number);
@@ -37,6 +10,8 @@ struct DepthMapsUniforms {
 	int farPlaneLocationStatic = -1;
 	int depthMapLocationDynamic = -1;
 	int farPlaneLocationDynamic = -1;
+	int depthMapLocationMainEntities = -1;
+	int farPlaneLocationMainEntities = -1;
 };
 
 struct Program {
@@ -170,8 +145,12 @@ struct ProgramStandard : public Program {
 	int viewOrtoLightsDynamicLocation = -1;
 	int projOrtoLightsDynamicLocation = -1;
 
+	int viewOrtoLightsMainEntitiesLocation = -1;
+	int projOrtoLightsMainEntitiesLocation = -1;
+
 	int shadowStaticCascadesCounterLocation = -1;
 	int shadowDynamicCascadesCounterLocation = -1;
+	int shadowMainEntitiesCascadesCounterLocation = -1;
 	DepthMapsUniforms depthMaps[CASCADE_FRUSTUMS];
 
 	int paletteLocation = -1;

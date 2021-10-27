@@ -18,13 +18,6 @@ const float3 colors[MAX_NUMBER_OF_CASCADES] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, 
 LightFrustum::LightFrustum() {
 
 	subFrustums.resize(MAX_NUMBER_OF_CASCADES);
-
-	for (unsigned i = 0; i < numberOfCascades; i++) {
-		subFrustums[i].orthographicFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
-		subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
-		subFrustums[i].color = colors[i];
-		subFrustums[i].multiplier = 1.0f;
-	}
 }
 
 void LightFrustum::UpdateFrustums() {
@@ -88,7 +81,15 @@ void LightFrustum::ReconstructFrustum(ShadowCasterType shadowCasterType) {
 		AABB lightAABB;
 		lightAABB.SetNegativeInfinity();
 
-		std::vector<GameObject*> gameObjects = (shadowCasterType == ShadowCasterType::STATIC) ? App->scene->scene->GetStaticCulledShadowCasters(subFrustums[i].planes) : App->scene->scene->GetDynamicCulledShadowCasters(subFrustums[i].planes);
+		std::vector<GameObject*> gameObjects;
+		
+		if (shadowCasterType == ShadowCasterType::STATIC) {
+			gameObjects = App->scene->scene->GetStaticCulledShadowCasters(subFrustums[i].planes);
+		} else if (shadowCasterType == ShadowCasterType::DYNAMIC) {
+			gameObjects = App->scene->scene->GetDynamicCulledShadowCasters(subFrustums[i].planes);
+		} else {
+			gameObjects = App->scene->scene->GetMainEntitiesCulledShadowCasters(subFrustums[i].planes);
+		}
 
 		for (GameObject* go : gameObjects) {
 			ComponentBoundingBox* componentBBox = go->GetComponent<ComponentBoundingBox>();
@@ -117,8 +118,6 @@ void LightFrustum::ConfigureFrustums(unsigned int value) {
 	for (unsigned i = 0; i < numberOfCascades; i++) {
 		subFrustums[i].orthographicFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
 		subFrustums[i].perspectiveFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
-		subFrustums[i].color = colors[i];
-		subFrustums[i].multiplier = 1.0f;
 	}
 }
 

@@ -86,6 +86,14 @@ void PanelScene::Update() {
 					}
 				}
 
+				for (unsigned int i = 0; i < App->renderer->lightFrustumMainEntities.GetNumberOfCascades(); ++i) {
+					std::string str = "MainEntitiesDepth " + std::to_string(i);
+					if (ImGui::Selectable(str.c_str())) {
+						currentShadingMode = "MainEntitiesDepth";
+						App->renderer->UpdateShadingMode(str.c_str());
+					}
+				}
+
 				ImGui::EndPopup();
 			}
 

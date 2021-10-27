@@ -47,6 +47,20 @@
 #define JSON_TAG_GAIN_MUSIC_CHANNEL "GainMusicChannel"
 #define JSON_TAG_GAIN_SFX_CHANNEL "GainSFXChannel"
 
+#define JSON_TAG_STATIC_FRUSTUM "StaticFrustum"
+#define JSON_TAG_DYNAMIC_FRUSTUM "DynamicFrustum"
+#define JSON_TAG_MAINENTITY_FRUSTUM "MainEntityFrustum"
+
+#define JSON_TAG_STATIC_FRUSTUMS_COUNT "StaticFrustumsCount"
+#define JSON_TAG_DYNAMIC_FRUSTUMS_COUNT "DynamicFrustumsCount"
+#define JSON_TAG_MAINENTITIES_FRUSTUMS_COUNT "MainEntitiesFrustumsCount"
+
+#define JSON_TAG_FRUSTUM_COLOR "Color"
+#define JSON_TAG_FRUSTUM_NEAR_PLANE "NearPlane"
+#define JSON_TAG_FRUSTUM_FAR_PLANE "FarPlane"
+#define JSON_TAG_FRUSTUM_MULTIPLIER "Multiplier"
+
+
 bool ModuleConfiguration::Init() {
 	LoadConfiguration();
 	return true;
@@ -113,6 +127,55 @@ void ModuleConfiguration::LoadConfiguration() {
 	App->audio->SetGainMusicChannelInternal(jConfig[JSON_TAG_GAIN_MUSIC_CHANNEL]);
 	App->audio->SetGainSFXChannelInternal(jConfig[JSON_TAG_GAIN_SFX_CHANNEL]);
 
+	unsigned int staticFrustums = static_cast<unsigned int>(jConfig[JSON_TAG_STATIC_FRUSTUMS_COUNT]);
+	unsigned int dynamicFrustums = static_cast<unsigned int>(jConfig[JSON_TAG_DYNAMIC_FRUSTUMS_COUNT]);
+	unsigned int mainEntitiesFrustums = static_cast<unsigned int>(jConfig[JSON_TAG_MAINENTITIES_FRUSTUMS_COUNT]);
+
+	JsonValue jStaticFrustum = jConfig[JSON_TAG_STATIC_FRUSTUM];
+	for (unsigned int i = 0; i < staticFrustums; i++) {
+		LightFrustum::FrustumInformation* information = &App->renderer->lightFrustumStatic.GetSubFrustums()[i];
+		JsonValue jfrustum = jStaticFrustum[i];
+		information->farPlane = static_cast<float>(jfrustum[JSON_TAG_FRUSTUM_FAR_PLANE]);
+		information->nearPlane = static_cast<float>(jfrustum[JSON_TAG_FRUSTUM_NEAR_PLANE]);
+		information->multiplier = static_cast<float>(jfrustum[JSON_TAG_FRUSTUM_MULTIPLIER]);
+		JsonValue jColor = jfrustum[JSON_TAG_FRUSTUM_COLOR];
+		information->color.Set(jColor[0], jColor[1], jColor[2]);
+	}
+
+	App->renderer->lightFrustumStatic.SetNumberOfCascades(staticFrustums);
+	App->renderer->lightFrustumStatic.ConfigureFrustums(staticFrustums);
+	App->renderer->lightFrustumStatic.Invalidate();
+
+	JsonValue jDynamicFrustum = jConfig[JSON_TAG_DYNAMIC_FRUSTUM];
+	for (unsigned int i = 0; i < dynamicFrustums; i++) {
+		LightFrustum::FrustumInformation* information = &App->renderer->lightFrustumDynamic.GetSubFrustums()[i];
+		JsonValue jfrustum = jDynamicFrustum[i];
+		information->farPlane = static_cast<float>(jfrustum[JSON_TAG_FRUSTUM_FAR_PLANE]);
+		information->nearPlane = static_cast<float>(jfrustum[JSON_TAG_FRUSTUM_NEAR_PLANE]);
+		information->multiplier = static_cast<float>(jfrustum[JSON_TAG_FRUSTUM_MULTIPLIER]);
+		JsonValue jColor = jfrustum[JSON_TAG_FRUSTUM_COLOR];
+		information->color.Set(jColor[0], jColor[1], jColor[2]);
+	}
+
+	App->renderer->lightFrustumDynamic.SetNumberOfCascades(dynamicFrustums);
+	App->renderer->lightFrustumDynamic.ConfigureFrustums(dynamicFrustums);
+	App->renderer->lightFrustumDynamic.Invalidate();
+
+	JsonValue jMainEntityFrustum = jConfig[JSON_TAG_MAINENTITY_FRUSTUM];
+	for (unsigned int i = 0; i < mainEntitiesFrustums; i++) {
+		LightFrustum::FrustumInformation* information = &App->renderer->lightFrustumMainEntities.GetSubFrustums()[i];
+		JsonValue jfrustum = jMainEntityFrustum[i];
+		information->farPlane = static_cast<float>(jfrustum[JSON_TAG_FRUSTUM_FAR_PLANE]);
+		information->nearPlane = static_cast<float>(jfrustum[JSON_TAG_FRUSTUM_NEAR_PLANE]);
+		information->multiplier = static_cast<float>(jfrustum[JSON_TAG_FRUSTUM_MULTIPLIER]);
+		JsonValue jColor = jfrustum[JSON_TAG_FRUSTUM_COLOR];
+		information->color.Set(jColor[0], jColor[1], jColor[2]);
+	}
+
+	App->renderer->lightFrustumMainEntities.SetNumberOfCascades(jMainEntityFrustum);
+	App->renderer->lightFrustumMainEntities.ConfigureFrustums(jMainEntityFrustum);
+	App->renderer->lightFrustumMainEntities.Invalidate();
+
 	unsigned timeMs = timer.Stop();
 	LOG("Configuration loaded in %ums.", timeMs);
 }
@@ -166,6 +229,59 @@ void ModuleConfiguration::SaveConfiguration() {
 	jConfig[JSON_TAG_GAIN_MAIN_CHANNEL] = App->audio->GetGainMainChannel();
 	jConfig[JSON_TAG_GAIN_MUSIC_CHANNEL] = App->audio->GetGainMusicChannel();
 	jConfig[JSON_TAG_GAIN_SFX_CHANNEL] = App->audio->GetGainSFXChannel();
+
+	jConfig[JSON_TAG_STATIC_FRUSTUMS_COUNT] = App->renderer->lightFrustumStatic.GetNumberOfCascades();
+	jConfig[JSON_TAG_DYNAMIC_FRUSTUMS_COUNT] = App->renderer->lightFrustumDynamic.GetNumberOfCascades();
+	jConfig[JSON_TAG_MAINENTITIES_FRUSTUMS_COUNT] = App->renderer->lightFrustumMainEntities.GetNumberOfCascades();
+
+	JsonValue jStaticFrustums = jConfig[JSON_TAG_STATIC_FRUSTUM];
+	for (unsigned int i = 0; i < App->renderer->lightFrustumStatic.GetNumberOfCascades(); ++i) {
+		
+		JsonValue jFrustum = jStaticFrustums[i];
+
+		LightFrustum::FrustumInformation* information = &App->renderer->lightFrustumStatic.GetSubFrustums()[i];
+		
+		jFrustum[JSON_TAG_FRUSTUM_FAR_PLANE] = information->farPlane;
+		jFrustum[JSON_TAG_FRUSTUM_NEAR_PLANE] = information->nearPlane;
+		jFrustum[JSON_TAG_FRUSTUM_MULTIPLIER] = information->multiplier;
+
+		JsonValue jColor = jFrustum[JSON_TAG_FRUSTUM_COLOR];
+		jColor[0] = information->color.x;
+		jColor[1] = information->color.y;
+		jColor[2] = information->color.z;
+	}
+
+	JsonValue jDynamicFrustums = jConfig[JSON_TAG_DYNAMIC_FRUSTUM];
+	for (unsigned int i = 0; i < App->renderer->lightFrustumDynamic.GetNumberOfCascades(); ++i) {
+		JsonValue jFrustum = jDynamicFrustums[i];
+
+		LightFrustum::FrustumInformation* information = &App->renderer->lightFrustumDynamic.GetSubFrustums()[i];
+
+		jFrustum[JSON_TAG_FRUSTUM_FAR_PLANE] = information->farPlane;
+		jFrustum[JSON_TAG_FRUSTUM_NEAR_PLANE] = information->nearPlane;
+		jFrustum[JSON_TAG_FRUSTUM_MULTIPLIER] = information->multiplier;
+
+		JsonValue jColor = jFrustum[JSON_TAG_FRUSTUM_COLOR];
+		jColor[0] = information->color.x;
+		jColor[1] = information->color.y;
+		jColor[2] = information->color.z;
+	}
+
+	JsonValue jMainEntityFrustums = jConfig[JSON_TAG_MAINENTITY_FRUSTUM];
+	for (unsigned int i = 0; i < App->renderer->lightFrustumMainEntities.GetNumberOfCascades(); ++i) {
+		JsonValue jFrustum = jMainEntityFrustums[i];
+
+		LightFrustum::FrustumInformation* information = &App->renderer->lightFrustumMainEntities.GetSubFrustums()[i];
+
+		jFrustum[JSON_TAG_FRUSTUM_FAR_PLANE] = information->farPlane;
+		jFrustum[JSON_TAG_FRUSTUM_NEAR_PLANE] = information->nearPlane;
+		jFrustum[JSON_TAG_FRUSTUM_MULTIPLIER] = information->multiplier;
+
+		JsonValue jColor = jFrustum[JSON_TAG_FRUSTUM_COLOR];
+		jColor[0] = information->color.x;
+		jColor[1] = information->color.y;
+		jColor[2] = information->color.z;
+	}
 
 	// Write document to buffer
 	rapidjson::StringBuffer stringBuffer;

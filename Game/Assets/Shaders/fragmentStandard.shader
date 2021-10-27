@@ -12,21 +12,26 @@ in vec2 uv;
 // Cascade Shadow Mapping
 in vec4 fragPosLightStatic[MAX_CASCADES];
 in vec4 fragPosLightDynamic[MAX_CASCADES];
+in vec4 fragPosLightMainEntities[MAX_CASCADES];
 
 in vec3 viewFragPosStatic[MAX_CASCADES];
 in vec3 viewFragPosDynamic[MAX_CASCADES];
+in vec3 viewFragPosMainEntities[MAX_CASCADES];
 
-flat in unsigned int staticCascadesCount;
-flat in unsigned int dynamicCascadesCount;
+uniform unsigned int shadowStaticCascadesCounter;
+uniform unsigned int shadowDynamicCascadesCounter;
+uniform unsigned int shadowMainEntitiesCascadesCounter;
 
 out vec4 outColor;
 
 // Depth Map
 uniform sampler2DShadow depthMapTexturesStatic[MAX_CASCADES];
 uniform sampler2DShadow depthMapTexturesDynamic[MAX_CASCADES];
+uniform sampler2DShadow depthMapTexturesMainEntities[MAX_CASCADES];
 
 uniform float farPlaneDistancesStatic[MAX_CASCADES];
 uniform float farPlaneDistancesDynamic[MAX_CASCADES];
+uniform float farPlaneDistancesMainEntities[MAX_CASCADES];
 
 // SSAO texture
 uniform sampler2D ssaoTexture;
@@ -139,24 +144,29 @@ vec3 GetNormal(vec2 tiledUV)
 
 unsigned int DepthMapIndexStatic(){
 
-	for(unsigned int i = 0; i < staticCascadesCount; ++i){
-	
+	for(unsigned int i = 0; i < shadowStaticCascadesCounter; ++i){
 		if(-viewFragPosStatic[i].z < farPlaneDistancesStatic[i]) return i;
-	
 	}
 	
-	return staticCascadesCount - 1;
+	return shadowStaticCascadesCounter - 1;
 }
 
 unsigned int DepthMapIndexDynamic(){
 
-	for(unsigned int i = 0; i < dynamicCascadesCount; ++i){
-	
+	for(unsigned int i = 0; i < shadowDynamicCascadesCounter; ++i){
 		if(-viewFragPosDynamic[i].z < farPlaneDistancesDynamic[i]) return i;
-	
 	}
 	
-	return dynamicCascadesCount - 1;
+	return shadowDynamicCascadesCounter - 1;
+}
+
+unsigned int DepthMapIndexMainEntities() {
+
+	for (unsigned int i = 0; i < shadowMainEntitiesCascadesCounter; ++i) {
+		if (-viewFragPosMainEntities[i].z < farPlaneDistancesMainEntities[i]) return i;
+	}
+
+	return shadowMainEntitiesCascadesCounter - 1;
 }
 
 float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2DShadow shadowMap) {
@@ -344,10 +354,25 @@ void main()
 
 	unsigned int indexS = DepthMapIndexStatic();
 	unsigned int indexD = DepthMapIndexDynamic();
+	unsigned int indexME = DepthMapIndexMainEntities();
 	float shadowS = Shadow(fragPosLightStatic[indexS], normal,  normalize(dirLight.direction), depthMapTexturesStatic[indexS]);
 	float shadowD = Shadow(fragPosLightDynamic[indexD], normal,  normalize(dirLight.direction), depthMapTexturesDynamic[indexD]);
+	float shadowME = Shadow(fragPosLightMainEntities[indexME], normal, normalize(dirLight.direction), depthMapTexturesMainEntities[indexME]);
 
-	float shadow = (shadowS == 1 || shadowD == 1) ? min(shadowS, shadowD) : shadowD * shadowS; //mix(shadowD, shadowS, 0.5);
+	float shadow;
+
+	if (shadowS == 1) {
+		shadow = (shadowD == 1 || shadowME == 1) ? min(shadowD, shadowME) : shadowD * shadowME;
+	}
+	else if (shadowD == 1) {
+		shadow = (shadowS == 1 || shadowME == 1) ? min(shadowS, shadowME) : shadowS * shadowME;
+	}
+	else if (shadowME == 1) {
+		shadow = (shadowS == 1 || shadowD == 1) ? min(shadowS, shadowD) : shadowS * shadowD;
+	}
+	else {
+		shadow = shadowS * shadowD * shadowME;
+	}
 
 	// Directional Light
 	if (dirLight.isActive == 1)
@@ -415,10 +440,25 @@ void main()
 
 	unsigned int indexS = DepthMapIndexStatic();
 	unsigned int indexD = DepthMapIndexDynamic();
-	float shadowS = Shadow(fragPosLightStatic[indexS], normal,  normalize(dirLight.direction), depthMapTexturesStatic[indexS]);
-	float shadowD = Shadow(fragPosLightDynamic[indexD], normal,  normalize(dirLight.direction), depthMapTexturesDynamic[indexD]);
+	unsigned int indexME = DepthMapIndexMainEntities();
+	float shadowS = Shadow(fragPosLightStatic[indexS], normal, normalize(dirLight.direction), depthMapTexturesStatic[indexS]);
+	float shadowD = Shadow(fragPosLightDynamic[indexD], normal, normalize(dirLight.direction), depthMapTexturesDynamic[indexD]);
+	float shadowME = Shadow(fragPosLightMainEntities[indexME], normal, normalize(dirLight.direction), depthMapTexturesMainEntities[indexME]);
 
-	float shadow = (shadowS == 1 || shadowD == 1) ? min(shadowS, shadowD) : shadowD * shadowS; //mix(shadowD, shadowS, 0.5);
+	float shadow;
+
+	if (shadowS == 1) {
+		shadow = (shadowD == 1 || shadowME == 1) ? min(shadowD, shadowME) : shadowD * shadowME;
+	}
+	else if (shadowD == 1) {
+		shadow = (shadowS == 1 || shadowME == 1) ? min(shadowS, shadowME) : shadowS * shadowME;
+	}
+	else if (shadowME == 1) {
+		shadow = (shadowS == 1 || shadowD == 1) ? min(shadowS, shadowD) : shadowS * shadowD;
+	}
+	else {
+		shadow = shadowS * shadowD * shadowME;
+	}
 
     // Directional Light
     if (dirLight.isActive == 1)

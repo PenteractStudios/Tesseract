@@ -224,6 +224,7 @@ bool ModuleRender::Init() {
 
 	depthMapStaticTextures.resize(MAX_NUMBER_OF_CASCADES);
 	depthMapDynamicTextures.resize(MAX_NUMBER_OF_CASCADES);
+	depthMapMainEntitiesTextures.resize(MAX_NUMBER_OF_CASCADES);
 
 	glGenTextures(1, &renderTexture);
 	glGenTextures(1, &outputTexture);
@@ -235,6 +236,7 @@ bool ModuleRender::Init() {
 	glGenTextures(1, &normalsTexture);
 	glGenTextures(MAX_NUMBER_OF_CASCADES, &depthMapStaticTextures[0]);
 	glGenTextures(MAX_NUMBER_OF_CASCADES, &depthMapDynamicTextures[0]);
+	glGenTextures(MAX_NUMBER_OF_CASCADES, &depthMapMainEntitiesTextures[0]);
 	glGenTextures(1, &ssaoTexture);
 	glGenTextures(1, &auxBlurTexture);
 	glGenTextures(2, colorTextures);
@@ -243,12 +245,14 @@ bool ModuleRender::Init() {
 
 	depthMapStaticTextureBuffers.resize(MAX_NUMBER_OF_CASCADES);
 	depthMapDynamicTextureBuffers.resize(MAX_NUMBER_OF_CASCADES);
+	depthMapMainEntitiesTextureBuffers.resize(MAX_NUMBER_OF_CASCADES);
 
 	glGenFramebuffers(1, &renderPassBuffer);
 	glGenFramebuffers(1, &depthPrepassBuffer);
 	glGenFramebuffers(1, &depthPrepassTextureConversionBuffer);
 	glGenFramebuffers(MAX_NUMBER_OF_CASCADES, &depthMapStaticTextureBuffers[0]);
 	glGenFramebuffers(MAX_NUMBER_OF_CASCADES, &depthMapDynamicTextureBuffers[0]);
+	glGenFramebuffers(MAX_NUMBER_OF_CASCADES, &depthMapMainEntitiesTextureBuffers[0]);
 	glGenFramebuffers(1, &ssaoTextureBuffer);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferH);
 	glGenFramebuffers(1, &ssaoBlurTextureBufferV);
@@ -541,6 +545,7 @@ UpdateStatus ModuleRender::PreUpdate() {
 		
 	lightFrustumStatic.ReconstructFrustum(ShadowCasterType::STATIC);
 	lightFrustumDynamic.ReconstructFrustum(ShadowCasterType::DYNAMIC);
+	lightFrustumMainEntities.ReconstructFrustum(ShadowCasterType::MAINENTITY);
 
 #if GAME
 	App->camera->ViewportResized(App->window->GetWidth(), App->window->GetHeight());
@@ -593,6 +598,22 @@ UpdateStatus ModuleRender::Update() {
 			DrawGameObjectShadowPass(gameObject, i, ShadowCasterType::DYNAMIC);
 		}
 
+	}
+
+	// Shadow Pass MainEntity
+	for (unsigned int i = 0; i < lightFrustumMainEntities.GetNumberOfCascades(); ++i) {
+		glViewport(0, 0, static_cast<int>(viewportSize.x * lightFrustumMainEntities.GetSubFrustums()[i].multiplier), static_cast<int>(viewportSize.y * lightFrustumMainEntities.GetSubFrustums()[i].multiplier));
+
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapMainEntitiesTextureBuffers[i]);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+		glDepthFunc(GL_LESS);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		for (GameObject* gameObject : App->scene->scene->GetMainEntitiesShadowCasters()) {
+			DrawGameObjectShadowPass(gameObject, i, ShadowCasterType::MAINENTITY);
+		}
 	}
 	
 #if GAME
@@ -694,12 +715,15 @@ UpdateStatus ModuleRender::Update() {
 		glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		return UpdateStatus::CONTINUE;
 	}
+	
 	if (drawDepthMapTexture) {
 
 		if (shadowCasterType == ShadowCasterType::STATIC && indexDepthMapTexture >= 0 && indexDepthMapTexture < lightFrustumStatic.GetNumberOfCascades()) {
 			DrawTexture(depthMapStaticTextures[indexDepthMapTexture]);
-		} else if (indexDepthMapTexture >= 0 && indexDepthMapTexture < lightFrustumDynamic.GetNumberOfCascades()) {
+		} else if (shadowCasterType == ShadowCasterType::DYNAMIC && indexDepthMapTexture >= 0 && indexDepthMapTexture < lightFrustumDynamic.GetNumberOfCascades()) {
 			DrawTexture(depthMapDynamicTextures[indexDepthMapTexture]);
+		} else if (indexDepthMapTexture >= 0 && indexDepthMapTexture < lightFrustumMainEntities.GetNumberOfCascades()) {
+			DrawTexture(depthMapMainEntitiesTextures[indexDepthMapTexture]);
 		}
 
 		// Render to screen
@@ -708,6 +732,7 @@ UpdateStatus ModuleRender::Update() {
 		glBlitFramebuffer(0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), 0, 0, static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		return UpdateStatus::CONTINUE;
 	}
+
 	if (drawLightTilesOpaque) {
 		DrawLightTiles(true);
 
@@ -829,12 +854,20 @@ UpdateStatus ModuleRender::Update() {
 			lightFrustumDynamic.DrawOrthographicGizmos(indexDynamicOrtographic);
 		}
 
+		if (drawMainEntitiesLightFrustumOrtographicGizmo) {
+			lightFrustumMainEntities.DrawOrthographicGizmos(indexMainEntitiesOrtographic);
+		}
+
 		if (drawStaticLightFrustumPerspectiveGizmo) {
 			lightFrustumStatic.DrawPerspectiveGizmos(indexStaticPerspective);
 		}
 
 		if (drawDynamicLightFrustumPerspectiveGizmo) {
 			lightFrustumDynamic.DrawPerspectiveGizmos(indexDynamicPerspective);
+		}
+
+		if (drawMainEntitiesLightFrustumPerspectiveGizmo) {
+			lightFrustumMainEntities.DrawPerspectiveGizmos(indexMainEntitiesPerspective);
 		}
 	}
 
@@ -1009,6 +1042,7 @@ bool ModuleRender::CleanUp() {
 	glDeleteTextures(1, &normalsTexture);
 	glDeleteTextures(MAX_NUMBER_OF_CASCADES, &depthMapStaticTextures[0]);
 	glDeleteTextures(MAX_NUMBER_OF_CASCADES, &depthMapDynamicTextures[0]);
+	glDeleteTextures(MAX_NUMBER_OF_CASCADES, &depthMapMainEntitiesTextures[0]);
 	glDeleteTextures(1, &ssaoTexture);
 	glDeleteTextures(1, &auxBlurTexture);
 	glDeleteTextures(2, colorTextures);
@@ -1020,6 +1054,7 @@ bool ModuleRender::CleanUp() {
 	glDeleteFramebuffers(1, &depthPrepassTextureConversionBuffer);
 	glDeleteFramebuffers(MAX_NUMBER_OF_CASCADES, &depthMapStaticTextureBuffers[0]);
 	glDeleteFramebuffers(MAX_NUMBER_OF_CASCADES, &depthMapDynamicTextureBuffers[0]);
+	glDeleteFramebuffers(MAX_NUMBER_OF_CASCADES, &depthMapMainEntitiesTextureBuffers[0]);
 	glDeleteFramebuffers(1, &ssaoTextureBuffer);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferH);
 	glDeleteFramebuffers(1, &ssaoBlurTextureBufferV);
@@ -1128,6 +1163,19 @@ void ModuleRender::UpdateFramebuffers() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapDynamicTextures[i], 0);
 
+	}
+
+	for (unsigned int i = 0; i < lightFrustumMainEntities.GetNumberOfCascades(); ++i) {
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapMainEntitiesTextureBuffers[i]);
+
+		glBindTexture(GL_TEXTURE_2D, depthMapMainEntitiesTextures[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, static_cast<int>(viewportSize.x * lightFrustumMainEntities.GetSubFrustums()[i].multiplier), static_cast<int>(viewportSize.y * lightFrustumMainEntities.GetSubFrustums()[i].multiplier), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapMainEntitiesTextures[i], 0);
 	}
 
 	glDrawBuffer(GL_NONE);
@@ -1426,15 +1474,39 @@ void ModuleRender::UpdateShadingMode(const char* shadingMode) {
 				shadowCasterType = ShadowCasterType::DYNAMIC;
 			}
 		}
+	} else if (strShadingMode.find("MainEntitiesDepth") != std::string::npos) {
+		for (unsigned int i = 0; i < lightFrustumMainEntities.GetNumberOfCascades(); ++i) {
+			std::string str = "MainEntitiesDepth " + std::to_string(i);
+			if (strcmp(shadingMode, str.c_str()) == 0) {
+				drawDepthMapTexture = true;
+				indexDepthMapTexture = i;
+				shadowCasterType = ShadowCasterType::MAINENTITY;
+			}
+		}
 	}
 }
 
 float4x4 ModuleRender::GetLightViewMatrix(unsigned int i, ShadowCasterType lightFrustumType) const {
-	return (lightFrustumType == ShadowCasterType::STATIC) ? lightFrustumStatic.GetOrthographicFrustum(i).ViewMatrix() : lightFrustumDynamic.GetOrthographicFrustum(i).ViewMatrix();
+	if (lightFrustumType == ShadowCasterType::STATIC) {
+		return lightFrustumStatic.GetOrthographicFrustum(i).ViewMatrix();
+	}
+	else if (lightFrustumType == ShadowCasterType::DYNAMIC) {
+		return lightFrustumDynamic.GetOrthographicFrustum(i).ViewMatrix();
+	}
+	else {
+		return lightFrustumMainEntities.GetOrthographicFrustum(i).ViewMatrix();
+	}
 }
 
 float4x4 ModuleRender::GetLightProjectionMatrix(unsigned int i, ShadowCasterType lightFrustumType) const {
-	return (lightFrustumType == ShadowCasterType::STATIC) ? lightFrustumStatic.GetOrthographicFrustum(i).ProjectionMatrix() : lightFrustumDynamic.GetOrthographicFrustum(i).ProjectionMatrix();
+
+	if (lightFrustumType == ShadowCasterType::STATIC) {
+		return lightFrustumStatic.GetOrthographicFrustum(i).ProjectionMatrix();
+	} else if (lightFrustumType == ShadowCasterType::DYNAMIC) {
+		return lightFrustumDynamic.GetOrthographicFrustum(i).ProjectionMatrix();
+	} else {
+		return lightFrustumMainEntities.GetOrthographicFrustum(i).ProjectionMatrix();
+	}
 }
 
 int ModuleRender::GetLightTilesPerRow() const {

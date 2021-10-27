@@ -84,8 +84,13 @@ private:
 
 	std::vector<float4x4> viewOrtoLightsStatic;
 	std::vector<float4x4> viewOrtoLightsDynamic;
+	std::vector<float4x4> viewOrtoLightsMainEntitites;
+
 	std::vector<float4x4> projOrtoLightsStatic;
 	std::vector<float4x4> projOrtoLightsDynamic;
+	std::vector<float4x4> projOrtoLightsMainEntities;
+	
 	std::vector<float> farPlaneDistancesStatic;
 	std::vector<float> farPlaneDistancesDynamic;
+	std::vector<float> farPlaneDistancesMainEntities;
 };

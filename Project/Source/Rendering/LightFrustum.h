@@ -13,7 +13,8 @@ enum class CascadeMode {
 
 enum class ShadowCasterType {
 	STATIC,
-	DYNAMIC
+	DYNAMIC,
+	MAINENTITY
 };
 
 class LightFrustum {

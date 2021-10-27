@@ -44,10 +44,25 @@ void main()
 
         unsigned int indexS = DepthMapIndexStatic();
         unsigned int indexD = DepthMapIndexDynamic();
+        unsigned int indexME = DepthMapIndexMainEntities();
         float shadowS = Shadow(fragPosLightStatic[indexS], normal, normalize(dirLight.direction), depthMapTexturesStatic[indexS]);
         float shadowD = Shadow(fragPosLightDynamic[indexD], normal, normalize(dirLight.direction), depthMapTexturesDynamic[indexD]);
-        
-        float shadow = (shadowS == 1 || shadowD == 1) ? min(shadowS, shadowD) : shadowD * shadowS; //mix(shadowD, shadowS, 0.5);
+        float shadowME = Shadow(fragPosLightMainEntities[indexME], normal, normalize(dirLight.direction), depthMapTexturesMainEntities[indexME]);
+
+        float shadow;
+
+        if (shadowS == 1) {
+            shadow = (shadowD == 1 || shadowME == 1) ? min(shadowD, shadowME) : shadowD * shadowME;
+        }
+        else if (shadowD == 1) {
+            shadow = (shadowS == 1 || shadowME == 1) ? min(shadowS, shadowME) : shadowS * shadowME;
+        }
+        else if (shadowME == 1) {
+            shadow = (shadowS == 1 || shadowD == 1) ? min(shadowS, shadowD) : shadowS * shadowD;
+        }
+        else {
+            shadow = shadowS * shadowD * shadowME;
+        }
 
         colorAccumulative += shadow * directionalColor;
     }
