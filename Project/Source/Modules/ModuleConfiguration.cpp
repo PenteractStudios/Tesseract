@@ -46,15 +46,13 @@
 #define JSON_TAG_GAIN_MAIN_CHANNEL "GainMainChannel"
 #define JSON_TAG_GAIN_MUSIC_CHANNEL "GainMusicChannel"
 #define JSON_TAG_GAIN_SFX_CHANNEL "GainSFXChannel"
-
+#define JSON_TAG_SHADOWS_ATTENUATION "ShadowsAttenuation"
 #define JSON_TAG_STATIC_FRUSTUM "StaticFrustum"
 #define JSON_TAG_DYNAMIC_FRUSTUM "DynamicFrustum"
 #define JSON_TAG_MAINENTITY_FRUSTUM "MainEntityFrustum"
-
 #define JSON_TAG_STATIC_FRUSTUMS_COUNT "StaticFrustumsCount"
 #define JSON_TAG_DYNAMIC_FRUSTUMS_COUNT "DynamicFrustumsCount"
 #define JSON_TAG_MAINENTITIES_FRUSTUMS_COUNT "MainEntitiesFrustumsCount"
-
 #define JSON_TAG_FRUSTUM_COLOR "Color"
 #define JSON_TAG_FRUSTUM_NEAR_PLANE "NearPlane"
 #define JSON_TAG_FRUSTUM_FAR_PLANE "FarPlane"
@@ -126,6 +124,8 @@ void ModuleConfiguration::LoadConfiguration() {
 	App->audio->SetGainMainChannelInternal(jConfig[JSON_TAG_GAIN_MAIN_CHANNEL]);
 	App->audio->SetGainMusicChannelInternal(jConfig[JSON_TAG_GAIN_MUSIC_CHANNEL]);
 	App->audio->SetGainSFXChannelInternal(jConfig[JSON_TAG_GAIN_SFX_CHANNEL]);
+
+	App->renderer->shadowAttenuation = jConfig[JSON_TAG_SHADOWS_ATTENUATION];
 
 	unsigned int staticFrustums = static_cast<unsigned int>(jConfig[JSON_TAG_STATIC_FRUSTUMS_COUNT]);
 	unsigned int dynamicFrustums = static_cast<unsigned int>(jConfig[JSON_TAG_DYNAMIC_FRUSTUMS_COUNT]);
@@ -230,6 +230,8 @@ void ModuleConfiguration::SaveConfiguration() {
 	jConfig[JSON_TAG_GAIN_MUSIC_CHANNEL] = App->audio->GetGainMusicChannel();
 	jConfig[JSON_TAG_GAIN_SFX_CHANNEL] = App->audio->GetGainSFXChannel();
 
+	jConfig[JSON_TAG_SHADOWS_ATTENUATION] = App->renderer->shadowAttenuation;
+	
 	jConfig[JSON_TAG_STATIC_FRUSTUMS_COUNT] = App->renderer->lightFrustumStatic.GetNumberOfCascades();
 	jConfig[JSON_TAG_DYNAMIC_FRUSTUMS_COUNT] = App->renderer->lightFrustumDynamic.GetNumberOfCascades();
 	jConfig[JSON_TAG_MAINENTITIES_FRUSTUMS_COUNT] = App->renderer->lightFrustumMainEntities.GetNumberOfCascades();
