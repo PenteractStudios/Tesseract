@@ -298,12 +298,12 @@ void ModuleCamera::LookAt(float x, float y, float z) {
 }
 
 void ModuleCamera::Focus(const GameObject* gameObject) {
-	if (!gameObject->GetComponent<ComponentTransform>()) return;
 	if (gameObject == nullptr) {
 		// Focus origin
 		SetPosition(float3::zero - GetFront() * 30.f);
 	} else {
 		// Focus a GameObject
+		if (!gameObject->GetComponent<ComponentTransform>()) return;
 		if (gameObject->HasComponent<ComponentMeshRenderer>()) {
 			// If the GO has Mesh, focus on that mesh
 			ComponentBoundingBox* boundingBox = gameObject->GetComponent<ComponentBoundingBox>();
