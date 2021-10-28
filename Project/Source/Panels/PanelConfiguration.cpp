@@ -280,6 +280,8 @@ void PanelConfiguration::Update() {
 			ImGui::Separator();
 			ImGui::TextColored(App->editor->titleColor, "Cascade Shadow Mapping");
 
+			ImGui::Indent();
+
 			ImGui::DragFloat("Shadow Attenuation factor", &App->renderer->shadowAttenuation, 0.01f, 0.0f, 1.0f);
 
 			if (ImGui::CollapsingHeader("Static Shadows Frustums")) {
@@ -466,6 +468,8 @@ void PanelConfiguration::Update() {
 					App->renderer->lightFrustumMainEntities.Invalidate();
 				}
 			}
+			
+			ImGui::Unindent();
 		}
 
 		// Scene
