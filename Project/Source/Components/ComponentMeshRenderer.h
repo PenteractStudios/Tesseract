@@ -22,10 +22,12 @@ public:
 	void Load(JsonValue jComponent) override;
 	void Start() override;
 
-	void Draw(const float4x4& modelMatrix) const;
+	void Draw(const float4x4& modelMatrix);
 	void DrawDepthPrepass(const float4x4& modelMatrix) const;
 	void DrawShadow(const float4x4& modelMatrix, unsigned int i, ShadowCasterType lightFrustumType) const;
 
+	void UpdateMasks();
+	void AddShadowCaster();
 	void AddRenderingModeMask();
 	void DeleteRenderingModeMask();
 
@@ -79,4 +81,16 @@ private:
 	// Tiling variable
 	float2 textureTiling = {1.0f, 1.0f};
 	float2 textureOffset = {0.0f, 0.0f};
+
+	std::vector<float4x4> viewOrtoLightsStatic;
+	std::vector<float4x4> viewOrtoLightsDynamic;
+	std::vector<float4x4> viewOrtoLightsMainEntitites;
+
+	std::vector<float4x4> projOrtoLightsStatic;
+	std::vector<float4x4> projOrtoLightsDynamic;
+	std::vector<float4x4> projOrtoLightsMainEntities;
+	
+	std::vector<float> farPlaneDistancesStatic;
+	std::vector<float> farPlaneDistancesDynamic;
+	std::vector<float> farPlaneDistancesMainEntities;
 };

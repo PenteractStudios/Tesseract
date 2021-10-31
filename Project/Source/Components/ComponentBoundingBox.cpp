@@ -6,6 +6,7 @@
 #include "GameObject.h"
 #include "Modules/ModuleEditor.h"
 #include "Components/ComponentTransform.h"
+#include "Resources/ResourceMaterial.h"
 
 #include "debugdraw.h"
 
@@ -83,6 +84,18 @@ void ComponentBoundingBox::DrawBoundingBox() {
 
 void ComponentBoundingBox::Invalidate() {
 	dirty = true;
+
+	ComponentMeshRenderer* meshRenderer = GetOwner().GetComponent<ComponentMeshRenderer>();
+	if (meshRenderer) {
+		UID materialUID = meshRenderer->GetMaterial();
+		ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialUID);
+		if (material->castShadows) {
+			App->renderer->lightFrustumStatic.Invalidate();
+			App->renderer->lightFrustumDynamic.Invalidate();
+			App->renderer->lightFrustumMainEntities.Invalidate();
+		}
+	}
+
 }
 
 const OBB& ComponentBoundingBox::GetWorldOBB() {

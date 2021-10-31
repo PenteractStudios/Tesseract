@@ -81,6 +81,7 @@ void Scene::ClearScene() {
 
 	staticShadowCasters.clear();
 	dynamicShadowCasters.clear();
+	mainEntitiesShadowCasters.clear();
 }
 
 void Scene::RebuildQuadtree() {
@@ -571,6 +572,10 @@ const std::vector<GameObject*>& Scene::GetDynamicShadowCasters() const {
 	return dynamicShadowCasters;
 }
 
+const std::vector<GameObject*>& Scene::GetMainEntitiesShadowCasters() const {
+	return mainEntitiesShadowCasters;
+}
+
 bool Scene::InsideFrustumPlanes(const FrustumPlanes& planes, const GameObject* go) {
 	ComponentBoundingBox* boundingBox = go->GetComponent<ComponentBoundingBox>();
 	if (boundingBox && planes.CheckIfInsideFrustumPlanes(boundingBox->GetWorldAABB(), boundingBox->GetWorldOBB())) {
@@ -621,6 +626,18 @@ std::vector<GameObject*> Scene::GetDynamicCulledShadowCasters(const FrustumPlane
 	return meshes;
 }
 
+std::vector<GameObject*> Scene::GetMainEntitiesCulledShadowCasters(const FrustumPlanes& planes) {
+	std::vector<GameObject*> meshes;
+
+	for (GameObject* go : mainEntitiesShadowCasters) {
+		if (InsideFrustumPlanes(planes, go)) {
+			meshes.push_back(go);
+		}
+	}
+
+	return meshes;
+}
+
 void Scene::RemoveStaticShadowCaster(const GameObject* go) {
 	auto it = std::find(staticShadowCasters.begin(), staticShadowCasters.end(), go);
 
@@ -659,6 +676,26 @@ void Scene::AddDynamicShadowCaster(GameObject* go) {
 	dynamicShadowCasters.push_back(go);
 
 	App->renderer->lightFrustumDynamic.Invalidate();
+}
+
+void Scene::RemoveMainEntityShadowCaster(const GameObject* go) {
+	auto it = std::find(mainEntitiesShadowCasters.begin(), mainEntitiesShadowCasters.end(), go);
+
+	if (it == mainEntitiesShadowCasters.end()) return;
+
+	mainEntitiesShadowCasters.erase(it);
+
+	App->renderer->lightFrustumMainEntities.Invalidate();
+}
+
+void Scene::AddMainEntityShadowCaster(GameObject* go) {
+	auto it = std::find(mainEntitiesShadowCasters.begin(), mainEntitiesShadowCasters.end(), go);
+
+	if (it != mainEntitiesShadowCasters.end()) return;
+
+	mainEntitiesShadowCasters.push_back(go);
+
+	App->renderer->lightFrustumMainEntities.Invalidate();
 }
 
 void Scene::SetCursor(UID cursor) {

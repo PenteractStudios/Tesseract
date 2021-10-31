@@ -2,8 +2,8 @@
 
 #include "FrustumPlanes.h"
 
-constexpr unsigned int NUM_CASCADES_FRUSTUM = 4;
-constexpr float MINIMUM_FAR_DISTANE = 50.f;
+constexpr unsigned int MAX_NUMBER_OF_CASCADES = 4;
+constexpr float MINIMUM_FAR_DISTANCE = 50.f;
 
 
 enum class CascadeMode {
@@ -13,7 +13,8 @@ enum class CascadeMode {
 
 enum class ShadowCasterType {
 	STATIC,
-	DYNAMIC
+	DYNAMIC,
+	MAINENTITY
 };
 
 class LightFrustum {
@@ -24,6 +25,8 @@ public:
 		FrustumPlanes planes = FrustumPlanes();
 		float3 color = float3(0.0f, 0.0f, 0.0f);
 		float multiplier = 1.0f;
+		float nearPlane = 0.001f;
+		float farPlane = MINIMUM_FAR_DISTANCE;
 	};
 
 	LightFrustum();
@@ -31,19 +34,24 @@ public:
 
 	void UpdateFrustums();
 	void ReconstructFrustum(ShadowCasterType shadowCasterType);
+	void ConfigureFrustums(unsigned int value);
 
-	void DrawGizmos();
+	void DrawOrthographicGizmos(unsigned int idx);
+	void DrawPerspectiveGizmos(unsigned int idx);
 
+	void SetNumberOfCascades(unsigned int value);
+	unsigned int GetNumberOfCascades();
 	Frustum GetOrthographicFrustum(unsigned int i) const;
 	Frustum GetPersepectiveFrustum(unsigned int i) const;
-	const std::vector<LightFrustum::FrustumInformation>& GetSubFrustums() const;
+	std::vector<LightFrustum::FrustumInformation>& GetSubFrustums();
 
-	FrustumInformation& operator[](int i);
+	FrustumInformation& operator[](unsigned int i);
 
 	void Invalidate();
 
 private:
 	bool dirty = true;
+	unsigned int numberOfCascades = 1;
 	CascadeMode mode = CascadeMode::FitToScene;
 	std::vector<FrustumInformation> subFrustums;
 };

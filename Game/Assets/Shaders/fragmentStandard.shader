@@ -2,7 +2,7 @@
 
 #define PI 3.1415926538
 #define EPSILON 1e-5
-#define MAX_CASCADES 10
+#define MAX_CASCADES 4
 
 in vec3 fragNormal;
 in mat3 TBN;
@@ -12,15 +12,28 @@ in vec2 uv;
 // Cascade Shadow Mapping
 in vec4 fragPosLightStatic[MAX_CASCADES];
 in vec4 fragPosLightDynamic[MAX_CASCADES];
-flat in unsigned int cascadesCount;
+in vec4 fragPosLightMainEntities[MAX_CASCADES];
+
+in vec3 viewFragPosStatic[MAX_CASCADES];
+in vec3 viewFragPosDynamic[MAX_CASCADES];
+in vec3 viewFragPosMainEntities[MAX_CASCADES];
+
+uniform unsigned int shadowStaticCascadesCounter;
+uniform unsigned int shadowDynamicCascadesCounter;
+uniform unsigned int shadowMainEntitiesCascadesCounter;
+
+uniform float shadowAttenuation;
 
 out vec4 outColor;
 
 // Depth Map
-uniform sampler2D depthMapTexturesStatic[MAX_CASCADES];
-uniform sampler2D depthMapTexturesDynamic[MAX_CASCADES];
+uniform sampler2DShadow depthMapTexturesStatic[MAX_CASCADES];
+uniform sampler2DShadow depthMapTexturesDynamic[MAX_CASCADES];
+uniform sampler2DShadow depthMapTexturesMainEntities[MAX_CASCADES];
+
 uniform float farPlaneDistancesStatic[MAX_CASCADES];
 uniform float farPlaneDistancesDynamic[MAX_CASCADES];
+uniform float farPlaneDistancesMainEntities[MAX_CASCADES];
 
 // SSAO texture
 uniform sampler2D ssaoTexture;
@@ -133,58 +146,56 @@ vec3 GetNormal(vec2 tiledUV)
 
 unsigned int DepthMapIndexStatic(){
 
-	for(unsigned int i = 0; i < cascadesCount; ++i){
-
-		if(fragPosLightStatic[i].z < farPlaneDistancesStatic[i]) return i;
-
+	for(unsigned int i = 0; i < shadowStaticCascadesCounter; ++i){
+		if(-viewFragPosStatic[i].z < farPlaneDistancesStatic[i]) return i;
 	}
-
-	return cascadesCount - 1;
-
+	
+	return shadowStaticCascadesCounter - 1;
 }
 
 unsigned int DepthMapIndexDynamic(){
 
-	for(unsigned int i = 0; i < cascadesCount; ++i){
-
-		if(fragPosLightDynamic[i].z < farPlaneDistancesDynamic[i]) return i;
-
+	for(unsigned int i = 0; i < shadowDynamicCascadesCounter; ++i){
+		if(-viewFragPosDynamic[i].z < farPlaneDistancesDynamic[i]) return i;
 	}
-
-	return cascadesCount - 1;
-
+	
+	return shadowDynamicCascadesCounter - 1;
 }
 
-float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2D shadowMap) {
+unsigned int DepthMapIndexMainEntities() {
 
-	vec3 projCoords;
-	//projCoords = lightPos.xyz / lightPos.w; // If perspective, we need to apply perspective division
-	projCoords = lightPos.xyz;
-	projCoords = projCoords * 0.5 + 0.5;
-
-	float closestDepth = texture(shadowMap, projCoords.xy).r;
-
-	if(	projCoords.x < 0.0 || projCoords.x > 1.0 ||
-		projCoords.y < 0.0 || projCoords.y > 1.0 ||
-		closestDepth == 1.0
-	) {
-		return 0.0;
+	for (unsigned int i = 0; i < shadowMainEntitiesCascadesCounter; ++i) {
+		if (-viewFragPosMainEntities[i].z < farPlaneDistancesMainEntities[i]) return i;
 	}
 
-    float currentDepth = projCoords.z;
+	return shadowMainEntitiesCascadesCounter - 1;
+}
+
+float Shadow(vec4 lightPos, vec3 normal, vec3 lightDirection, sampler2DShadow shadowMap) {
+
+	if(	lightPos.x < 0.0 || lightPos.x > 1.0 ||
+		lightPos.y < 0.0 || lightPos.y > 1.0
+	) {
+		return 1.0;
+	}
+
 	float bias = min(0.05 * (1 - dot(normal, lightDirection)), 0.005);
 
 	float shadow = 0.0;
-
 	vec2 texelSize = 1.0/textureSize(shadowMap, 0);
-	for(int x = -1; x <= 1; ++x){
-		for(int y = -1; y <= 1; ++y){
-			float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x,y) * texelSize).r;
-			shadow += currentDepth > pcfDepth + bias ? 1.0 : 0.0;
+
+	int count = 0;
+	
+	//https://developer.nvidia.com/gpugems/gpugems/part-ii-lighting-and-shadows/chapter-11-shadow-map-antialiasing
+	for (float y = -1.5; y <= 1.5; ++y) {
+		for (float x = -1.5; x <= 1.5; ++x) {
+			vec2 offset = vec2(x, y);
+			shadow += textureProj(shadowMap, vec4( lightPos.xy + offset * texelSize, lightPos.z - bias, lightPos.w));
+			++count;
 		}
 	}
 
-	shadow /= 9.0;
+	shadow /= count;
 
 	return shadow;
 
@@ -345,17 +356,25 @@ void main()
 
 	unsigned int indexS = DepthMapIndexStatic();
 	unsigned int indexD = DepthMapIndexDynamic();
+	unsigned int indexME = DepthMapIndexMainEntities();
 	float shadowS = Shadow(fragPosLightStatic[indexS], normal,  normalize(dirLight.direction), depthMapTexturesStatic[indexS]);
 	float shadowD = Shadow(fragPosLightDynamic[indexD], normal,  normalize(dirLight.direction), depthMapTexturesDynamic[indexD]);
+	float shadowME = Shadow(fragPosLightMainEntities[indexME], normal, normalize(dirLight.direction), depthMapTexturesMainEntities[indexME]);
 
-	float shadow = max(min(shadowD, 1), shadowS);
+	float shadow = shadowS * shadowD * shadowME;
 
 	// Directional Light
 	if (dirLight.isActive == 1)
 	{
-		colorAccumulative += (1 - shadow) * ProcessDirectionalLight(dirLight, normal, viewDir, Cd, F0, roughness);
+		colorAccumulative += shadow * ProcessDirectionalLight(dirLight, normal, viewDir, Cd, F0, roughness);
 	}
 	
+	float shadowFake = 1.0;
+
+	if(shadow < 1.0){
+		shadowFake = shadow + (1.0 - shadow) * shadowAttenuation;
+	}
+
 	// Lights
 	int tileIndex = GetTileIndex();
 	if (isOpaque == 1)
@@ -365,7 +384,7 @@ void main()
 		{
 			uint lightIndex = lightIndicesBufferOpaque.data[lightTile.offset + i];
 			Light light = lightBuffer.data[lightIndex];
-			colorAccumulative += ProcessLight(light, normal, viewDir, Cd, F0, roughness);
+			colorAccumulative += shadowFake * ProcessLight(light, normal, viewDir, Cd, F0, roughness);
 		}
 	}
 	else
@@ -375,7 +394,7 @@ void main()
 		{
 			uint lightIndex = lightIndicesBufferTransparent.data[lightTile.offset + i];
 			Light light = lightBuffer.data[lightIndex];
-			colorAccumulative += ProcessLight(light, normal, viewDir, Cd, F0, roughness);
+			colorAccumulative += shadowFake * ProcessLight(light, normal, viewDir, Cd, F0, roughness);
 		}
 	}
 
@@ -410,17 +429,25 @@ void main()
 
 	unsigned int indexS = DepthMapIndexStatic();
 	unsigned int indexD = DepthMapIndexDynamic();
-	float shadowS = Shadow(fragPosLightStatic[indexS], normal,  normalize(dirLight.direction), depthMapTexturesStatic[indexS]);
-	float shadowD = Shadow(fragPosLightDynamic[indexD], normal,  normalize(dirLight.direction), depthMapTexturesDynamic[indexD]);
+	unsigned int indexME = DepthMapIndexMainEntities();
+	float shadowS = Shadow(fragPosLightStatic[indexS], normal, normalize(dirLight.direction), depthMapTexturesStatic[indexS]);
+	float shadowD = Shadow(fragPosLightDynamic[indexD], normal, normalize(dirLight.direction), depthMapTexturesDynamic[indexD]);
+	float shadowME = Shadow(fragPosLightMainEntities[indexME], normal, normalize(dirLight.direction), depthMapTexturesMainEntities[indexME]);
 
-	float shadow = max(min(shadowD, 1), shadowS);
+	float shadow = shadowS * shadowD * shadowME;
 
     // Directional Light
     if (dirLight.isActive == 1)
     {
-        colorAccumulative += (1 - shadow) * ProcessDirectionalLight(dirLight, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+        colorAccumulative += shadow * ProcessDirectionalLight(dirLight, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
     }
 	
+	float shadowFake = 1.0;
+
+	if(shadow < 1.0){
+		shadowFake = shadow + (1.0 - shadow) * shadowAttenuation;
+	}
+
 	// Lights
 	int tileIndex = GetTileIndex();
 	if (isOpaque == 1)
@@ -430,7 +457,7 @@ void main()
 		{
 			uint lightIndex = lightIndicesBufferOpaque.data[lightTile.offset + i];
 			Light light = lightBuffer.data[lightIndex];
-			colorAccumulative += ProcessLight(light, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+			colorAccumulative += shadowFake * ProcessLight(light, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
 		}
 	}
 	else
@@ -440,7 +467,7 @@ void main()
 		{
 			uint lightIndex = lightIndicesBufferTransparent.data[lightTile.offset + i];
 			Light light = lightBuffer.data[lightIndex];
-			colorAccumulative += ProcessLight(light, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
+			colorAccumulative += shadowFake * ProcessLight(light, normal, viewDir, colorDiffuse.rgb, colorSpecular.rgb, roughness);
 		}
 	}
 

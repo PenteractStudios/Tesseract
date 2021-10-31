@@ -73,7 +73,6 @@ public:
 	void ToggleDrawAnimationBones();
 	void ToggleDrawCameraFrustums();
 	void ToggleDrawLightGizmos();
-	void ToggleDrawLightFrustumGizmo();
 	void ToggleDrawParticleGizmos();
 
 	void UpdateShadingMode(const char* shadingMode);
@@ -112,8 +111,9 @@ public:
 	unsigned depthsTexture = 0;
 	unsigned positionsTexture = 0;
 	unsigned normalsTexture = 0;
-	unsigned depthMapStaticTextures[NUM_CASCADES_FRUSTUM] = {0, 0, 0, 0};
-	unsigned depthMapDynamicTextures[NUM_CASCADES_FRUSTUM] = {0, 0, 0, 0};
+	std::vector<unsigned> depthMapStaticTextures;
+	std::vector<unsigned> depthMapDynamicTextures;
+	std::vector<unsigned> depthMapMainEntitiesTextures;
 	unsigned ssaoTexture = 0;
 	unsigned auxBlurTexture = 0;
 	unsigned colorTextures[2] = {0, 0}; // position 0: scene render texture; position 1: bloom texture to be blurred
@@ -123,8 +123,9 @@ public:
 	unsigned renderPassBuffer = 0;
 	unsigned depthPrepassBuffer = 0;
 	unsigned depthPrepassTextureConversionBuffer = 0;
-	unsigned depthMapStaticTextureBuffers[NUM_CASCADES_FRUSTUM] = {0, 0, 0, 0};
-	unsigned depthMapDynamicTextureBuffers[NUM_CASCADES_FRUSTUM] = {0, 0, 0, 0};
+	std::vector<unsigned> depthMapStaticTextureBuffers;
+	std::vector<unsigned> depthMapDynamicTextureBuffers;
+	std::vector<unsigned> depthMapMainEntitiesTextureBuffers;
 	unsigned ssaoTextureBuffer = 0;
 	unsigned ssaoBlurTextureBufferH = 0;
 	unsigned ssaoBlurTextureBufferV = 0;
@@ -142,11 +143,23 @@ public:
 	bool drawAllBones = false;
 	bool drawCameraFrustums = false;
 	bool drawLightGizmos = false;
-	bool drawLightFrustumGizmo = false;
+	bool drawStaticLightFrustumOrtographicGizmo = false;
+	bool drawStaticLightFrustumPerspectiveGizmo = false;
+	bool drawDynamicLightFrustumOrtographicGizmo = false;
+	bool drawDynamicLightFrustumPerspectiveGizmo = false;
+	bool drawMainEntitiesLightFrustumOrtographicGizmo = false;
+	bool drawMainEntitiesLightFrustumPerspectiveGizmo = false;
 	bool drawNavMesh = false;
 	bool drawParticleGizmos = false;
 	bool drawColliders = false;
 	int culledTriangles = 0;
+
+	int indexStaticOrtographic = INT_MAX;
+	int indexStaticPerspective = INT_MAX;
+	int indexDynamicOrtographic = INT_MAX;
+	int indexDynamicPerspective = INT_MAX;
+	int indexMainEntitiesOrtographic = INT_MAX;
+	int indexMainEntitiesPerspective = INT_MAX;
 
 	float3 clearColor = {0.1f, 0.1f, 0.1f};		 // Color of the viewport between frames
 
@@ -185,8 +198,13 @@ public:
 	bool chromaticAberrationActive = false;
 	float chromaticAberrationStrength = 1.0f;
 
+	// Shadows
+
+	float shadowAttenuation = 0.35f;
+
 	LightFrustum lightFrustumStatic;
 	LightFrustum lightFrustumDynamic;
+	LightFrustum lightFrustumMainEntities;
 
 private:
 	void DrawQuadtreeRecursive(const Quadtree<GameObject>::Node& node, const AABB2D& aabb);			  // Draws the quadrtee nodes if 'drawQuadtree' is set to true.

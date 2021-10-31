@@ -264,19 +264,24 @@ void ResourceMaterial::UpdateMask(MaskToChange maskToChange, bool forceDeleteSha
 				case MaskToChange::SHADOW:
 
 					if (!forceDeleteShadows) {
-						gameObject.AddMask(MaskType::CAST_SHADOWS);
 
 						if (shadowCasterType == ShadowCasterType::STATIC) {
 							App->scene->scene->RemoveDynamicShadowCaster(&gameObject);
+							App->scene->scene->RemoveMainEntityShadowCaster(&gameObject);
 							App->scene->scene->AddStaticShadowCaster(&gameObject);
+						} else if (shadowCasterType == ShadowCasterType::DYNAMIC) {
+							App->scene->scene->RemoveStaticShadowCaster(&gameObject);
+							App->scene->scene->RemoveMainEntityShadowCaster(&gameObject);
+							App->scene->scene->AddDynamicShadowCaster(&gameObject);
 						} else {
 							App->scene->scene->RemoveStaticShadowCaster(&gameObject);
-							App->scene->scene->AddDynamicShadowCaster(&gameObject);
+							App->scene->scene->RemoveDynamicShadowCaster(&gameObject);
+							App->scene->scene->AddMainEntityShadowCaster(&gameObject);
 						}
 					} else {
-						gameObject.DeleteMask(MaskType::CAST_SHADOWS);
 						App->scene->scene->RemoveDynamicShadowCaster(&gameObject);
 						App->scene->scene->RemoveStaticShadowCaster(&gameObject);
+						App->scene->scene->RemoveMainEntityShadowCaster(&gameObject);
 					}
 					break;
 			}
@@ -334,7 +339,7 @@ void ResourceMaterial::OnEditorUpdate() {
 
 	bool checkboxClicked = ImGui::Checkbox("CastShadows", &castShadows);
 
-	const char* shadowCasterTypes[] = {"Static", "Dynamic"};
+	const char* shadowCasterTypes[] = {"Static", "Dynamic", "Main Entity"};
 	const char* shadowCasterTypeCurrent = shadowCasterTypes[static_cast<int>(shadowCasterType)];
 
 	if (castShadows) {

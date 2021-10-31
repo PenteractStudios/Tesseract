@@ -89,7 +89,7 @@ void ComponentMeshRenderer::OnEditorUpdate() {
 		"Material",
 		&materialId,
 		[this]() { DeleteRenderingModeMask(); },
-		[this]() { AddRenderingModeMask(); });
+		[this]() { UpdateMasks(); });
 
 	if (ImGui::Button("Remove##material")) {
 		if (materialId != 0) {
@@ -130,7 +130,7 @@ void ComponentMeshRenderer::Init() {
 	App->resources->IncreaseReferenceCount(meshId);
 	App->resources->IncreaseReferenceCount(materialId);
 
-	AddRenderingModeMask();
+	UpdateMasks();
 
 	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
 	if (mesh == nullptr) return;
@@ -140,17 +140,17 @@ void ComponentMeshRenderer::Init() {
 		palette[i] = float4x4::identity;
 	}
 
-	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
-	if (material == nullptr) return;
+	viewOrtoLightsStatic.resize(MAX_NUMBER_OF_CASCADES);
+	viewOrtoLightsDynamic.resize(MAX_NUMBER_OF_CASCADES);
+	viewOrtoLightsMainEntitites.resize(MAX_NUMBER_OF_CASCADES);
 
-	if (material->castShadows) {
-		GameObject* owner = &GetOwner();
-		if (material->shadowCasterType == ShadowCasterType::STATIC) {
-			GetOwner().scene->AddStaticShadowCaster(owner);
-		} else {
-			GetOwner().scene->AddDynamicShadowCaster(owner);
-		}
-	}
+	projOrtoLightsStatic.resize(MAX_NUMBER_OF_CASCADES);
+	projOrtoLightsDynamic.resize(MAX_NUMBER_OF_CASCADES);
+	projOrtoLightsMainEntities.resize(MAX_NUMBER_OF_CASCADES);
+	
+	farPlaneDistancesStatic.resize(MAX_NUMBER_OF_CASCADES);
+	farPlaneDistancesDynamic.resize(MAX_NUMBER_OF_CASCADES);
+	farPlaneDistancesMainEntities.resize(MAX_NUMBER_OF_CASCADES);
 }
 
 void ComponentMeshRenderer::Update() {
@@ -196,7 +196,7 @@ void ComponentMeshRenderer::Start() {
 	ResetDissolveValues();
 }
 
-void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
+void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) {
 	if (!IsActive()) return;
 
 	ResourceMesh* mesh = App->resources->GetResource<ResourceMesh>(meshId);
@@ -539,26 +539,29 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 
 	const std::vector<LightFrustum::FrustumInformation>& subsFrustumsStatic = App->renderer->lightFrustumStatic.GetSubFrustums();
 	const std::vector<LightFrustum::FrustumInformation>& subsFrustumsDynamic = App->renderer->lightFrustumDynamic.GetSubFrustums();
+	const std::vector<LightFrustum::FrustumInformation>& subsFrustumsMainEntities = App->renderer->lightFrustumMainEntities.GetSubFrustums();
 
-	std::vector<float4x4> viewOrtoLightsStatic;
-	std::vector<float4x4> viewOrtoLightsDynamic;
-	std::vector<float4x4> projOrtoLightsStatic;
-	std::vector<float4x4> projOrtoLightsDynamic;
-	std::vector<float> farPlaneDistancesStatic;
-	std::vector<float> farPlaneDistancesDynamic;
+	glUniform1f(standardProgram->shadowAttenuationLocation, App->renderer->shadowAttenuation);
 
 	// Static shadow casters
 	for (unsigned int i = 0; i < subsFrustumsStatic.size(); ++i) {
-		viewOrtoLightsStatic.push_back(subsFrustumsStatic[i].orthographicFrustum.ViewMatrix());
-		projOrtoLightsStatic.push_back(subsFrustumsStatic[i].orthographicFrustum.ProjectionMatrix());
-		farPlaneDistancesStatic.push_back(subsFrustumsStatic[i].orthographicFrustum.FarPlaneDistance());
+		viewOrtoLightsStatic[i] = subsFrustumsStatic[i].orthographicFrustum.ViewMatrix();
+		projOrtoLightsStatic[i] = subsFrustumsStatic[i].orthographicFrustum.ProjectionMatrix();
+		farPlaneDistancesStatic[i] = subsFrustumsStatic[i].perspectiveFrustum.FarPlaneDistance();
 	}
 
 	// Dynamic shadow casters
 	for (unsigned int i = 0; i < subsFrustumsDynamic.size(); ++i) {
-		viewOrtoLightsDynamic.push_back(subsFrustumsDynamic[i].orthographicFrustum.ViewMatrix());
-		projOrtoLightsDynamic.push_back(subsFrustumsDynamic[i].orthographicFrustum.ProjectionMatrix());
-		farPlaneDistancesDynamic.push_back(subsFrustumsDynamic[i].orthographicFrustum.FarPlaneDistance());
+		viewOrtoLightsDynamic[i] = subsFrustumsDynamic[i].orthographicFrustum.ViewMatrix();
+		projOrtoLightsDynamic[i] = subsFrustumsDynamic[i].orthographicFrustum.ProjectionMatrix();
+		farPlaneDistancesDynamic[i] = subsFrustumsDynamic[i].perspectiveFrustum.FarPlaneDistance();
+	}
+
+	// Main Entities shadow casters
+	for (unsigned int i = 0; i < subsFrustumsMainEntities.size(); ++i) {
+		viewOrtoLightsMainEntitites[i] = subsFrustumsMainEntities[i].orthographicFrustum.ViewMatrix();
+		projOrtoLightsMainEntities[i] = subsFrustumsMainEntities[i].orthographicFrustum.ProjectionMatrix();
+		farPlaneDistancesMainEntities[i] = subsFrustumsMainEntities[i].perspectiveFrustum.FarPlaneDistance();
 	}
 
 	unsigned glTextureDiffuse = 0;
@@ -586,22 +589,38 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform1i(standardProgram->isOpaqueLocation, material->renderingMode == RenderingMode::OPAQUE ? 1 : 0);
 
 	// Shadows uniform settings
+	if (subsFrustumsStatic.size() > 0) {
+		glUniformMatrix4fv(standardProgram->viewOrtoLightsStaticLocation, viewOrtoLightsStatic.size(), GL_TRUE, viewOrtoLightsStatic[0].ptr());
+		glUniformMatrix4fv(standardProgram->projOrtoLightsStaticLocation, projOrtoLightsStatic.size(), GL_TRUE, projOrtoLightsStatic[0].ptr());
+	}
+	
 	if (subsFrustumsDynamic.size() > 0) {
 		glUniformMatrix4fv(standardProgram->viewOrtoLightsDynamicLocation, viewOrtoLightsDynamic.size(), GL_TRUE, viewOrtoLightsDynamic[0].ptr());
 		glUniformMatrix4fv(standardProgram->projOrtoLightsDynamicLocation, projOrtoLightsDynamic.size(), GL_TRUE, projOrtoLightsDynamic[0].ptr());
 	}
 
-	if (subsFrustumsStatic.size() > 0) {
-		glUniformMatrix4fv(standardProgram->viewOrtoLightsStaticLocation, viewOrtoLightsStatic.size(), GL_TRUE, viewOrtoLightsStatic[0].ptr());
-		glUniformMatrix4fv(standardProgram->projOrtoLightsStaticLocation, projOrtoLightsStatic.size(), GL_TRUE, projOrtoLightsStatic[0].ptr());
+	if (subsFrustumsMainEntities.size() > 0) {
+		glUniformMatrix4fv(standardProgram->viewOrtoLightsMainEntitiesLocation, viewOrtoLightsMainEntitites.size(), GL_TRUE, viewOrtoLightsMainEntitites[0].ptr());
+		glUniformMatrix4fv(standardProgram->projOrtoLightsMainEntitiesLocation, projOrtoLightsMainEntities.size(), GL_TRUE, projOrtoLightsMainEntities[0].ptr());
+
 	}
+	
 
 	for (unsigned int i = 0; i < farPlaneDistancesStatic.size(); ++i) {
 		glUniform1f(standardProgram->depthMaps[i].farPlaneLocationStatic, farPlaneDistancesStatic[i]);
+	}
+
+	for (unsigned int i = 0; i < farPlaneDistancesDynamic.size(); ++i) {
 		glUniform1f(standardProgram->depthMaps[i].farPlaneLocationDynamic, farPlaneDistancesDynamic[i]);
 	}
 
-	glUniform1ui(standardProgram->shadowCascadesCounterLocation, subsFrustumsDynamic.size());
+	for (unsigned int i = 0; i < farPlaneDistancesMainEntities.size(); ++i) {
+		glUniform1f(standardProgram->depthMaps[i].farPlaneLocationMainEntities, farPlaneDistancesMainEntities[i]);
+	}
+
+	glUniform1ui(standardProgram->shadowStaticCascadesCounterLocation, App->renderer->lightFrustumStatic.GetNumberOfCascades());
+	glUniform1ui(standardProgram->shadowDynamicCascadesCounterLocation, App->renderer->lightFrustumDynamic.GetNumberOfCascades());
+	glUniform1ui(standardProgram->shadowMainEntitiesCascadesCounterLocation, App->renderer->lightFrustumMainEntities.GetNumberOfCascades());
 
 	// Skinning uniform settings
 
@@ -685,20 +704,32 @@ void ComponentMeshRenderer::Draw(const float4x4& modelMatrix) const {
 	glUniform1i(standardProgram->hasIBLLocation, hasIBL ? 1 : 0);
 
 	unsigned int total = 9;
-	for (unsigned int i = 0; i < subsFrustumsStatic.size() * 2 && total < 32; i += 2, total += 2) {
+	for (unsigned int i = 0; i < subsFrustumsStatic.size() && total < 32; ++i, ++total) {
 		
 		unsigned int gldepthMapTexture = App->renderer->depthMapStaticTextures[i];
 
 		glUniform1i(standardProgram->depthMaps[i].depthMapLocationStatic, total);
-		glActiveTexture(GL_TEXTURE9 + i);
+		glActiveTexture(GL_TEXTURE0 + total);
 		glBindTexture(GL_TEXTURE_2D, gldepthMapTexture);
 
-		gldepthMapTexture = App->renderer->depthMapDynamicTextures[i];
+	}
 
-		glUniform1i(standardProgram->depthMaps[i].depthMapLocationDynamic, total + 1);
-		glActiveTexture(GL_TEXTURE9 + i + 1);
+	for (unsigned int i = 0; i < subsFrustumsDynamic.size() && total < 32; ++i, ++total) {
+
+		unsigned int gldepthMapTexture = App->renderer->depthMapDynamicTextures[i];
+
+		glUniform1i(standardProgram->depthMaps[i].depthMapLocationDynamic, total);
+		glActiveTexture(GL_TEXTURE0 + total);
 		glBindTexture(GL_TEXTURE_2D, gldepthMapTexture);
 
+	}
+
+	for (unsigned int i = 0; i < subsFrustumsMainEntities.size() && total < 32; ++i, ++total) {
+		unsigned int gldepthMapTexture = App->renderer->depthMapMainEntitiesTextures[i];
+
+		glUniform1i(standardProgram->depthMaps[i].depthMapLocationMainEntities, total);
+		glActiveTexture(GL_TEXTURE0 + total);
+		glBindTexture(GL_TEXTURE_2D, gldepthMapTexture);
 	}
 
 	// Lights uniforms settings
@@ -843,6 +874,33 @@ void ComponentMeshRenderer::DrawShadow(const float4x4& modelMatrix, unsigned int
 	glBindVertexArray(mesh->vao);
 	glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
+}
+
+void ComponentMeshRenderer::UpdateMasks() {
+	AddRenderingModeMask();
+	AddShadowCaster();
+}
+
+void ComponentMeshRenderer::AddShadowCaster() {
+	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
+	if (material == nullptr) return;
+
+	if (material->castShadows) {
+		GameObject* owner = &GetOwner();
+		if (material->shadowCasterType == ShadowCasterType::STATIC) {
+			GetOwner().scene->RemoveDynamicShadowCaster(owner);
+			GetOwner().scene->RemoveMainEntityShadowCaster(owner);
+			GetOwner().scene->AddStaticShadowCaster(owner);
+		} else if(material->shadowCasterType == ShadowCasterType::DYNAMIC) {
+			GetOwner().scene->RemoveStaticShadowCaster(owner);
+			GetOwner().scene->RemoveMainEntityShadowCaster(owner);
+			GetOwner().scene->AddDynamicShadowCaster(owner);
+		} else {
+			GetOwner().scene->RemoveStaticShadowCaster(owner);
+			GetOwner().scene->RemoveDynamicShadowCaster(owner);
+			GetOwner().scene->AddMainEntityShadowCaster(owner);
+		}
+	}
 }
 
 void ComponentMeshRenderer::AddRenderingModeMask() {

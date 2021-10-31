@@ -71,9 +71,11 @@ public:
 	std::vector<int> GetTriangles();  // Gets all the triangles from the MeshRenderer Components only if the ResourceMesh is found and the GameObject is Static
 	std::vector<float> GetNormals();
 
-	std::vector<GameObject*> GetCulledMeshes(const FrustumPlanes& planes, const int mask); // Gets all the game objects inside the given frustum
-	std::vector<GameObject*> GetStaticCulledShadowCasters(const FrustumPlanes& planes); // Gets all the shadow casters game objects inside the given frustum
-	std::vector<GameObject*> GetDynamicCulledShadowCasters(const FrustumPlanes& planes);	   // Gets all the shadow casters game objects inside the given frustum
+	std::vector<GameObject*> GetCulledMeshes(const FrustumPlanes& planes, const int mask);	// Gets all the game objects inside the given frustum
+	std::vector<GameObject*> GetStaticCulledShadowCasters(const FrustumPlanes& planes);		// Gets all the shadow casters game objects inside the given frustum
+	std::vector<GameObject*> GetDynamicCulledShadowCasters(const FrustumPlanes& planes);	// Gets all the shadow casters game objects inside the given frustum
+	std::vector<GameObject*> GetMainEntitiesCulledShadowCasters(const FrustumPlanes& planes);	// Gets all the shadow casters game objects inside the given frustum
+
 
 	void RemoveStaticShadowCaster(const GameObject* go);
 	void AddStaticShadowCaster(GameObject* go);
@@ -81,8 +83,12 @@ public:
 	void RemoveDynamicShadowCaster(const GameObject* go);
 	void AddDynamicShadowCaster(GameObject* go);
 
+	void RemoveMainEntityShadowCaster(const GameObject* go);
+	void AddMainEntityShadowCaster(GameObject* go);
+
 	const std::vector<GameObject*>& GetStaticShadowCasters() const;
 	const std::vector<GameObject*>& GetDynamicShadowCasters() const;
+	const std::vector<GameObject*>& GetMainEntitiesShadowCasters() const;
 
 	void SetCursor(UID cursor);
 	UID GetCursor();
@@ -161,6 +167,7 @@ private:
 private:
 	std::vector<GameObject*> staticShadowCasters;
 	std::vector<GameObject*> dynamicShadowCasters;
+	std::vector<GameObject*> mainEntitiesShadowCasters;
 };
 
 template<class T>
