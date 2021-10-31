@@ -244,6 +244,7 @@ private:
 
 	unsigned int indexDepthMapTexture = UINT_MAX;
 	ShadowCasterType shadowCasterType;
+	bool drawWireframe = false;
 	bool drawDepthMapTexture = false;
 	bool drawSSAOTexture = false;
 	bool drawNormalsTexture = false;

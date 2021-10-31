@@ -147,6 +147,11 @@ void ComponentSlider::OnEditorUpdate() {
 	ImGui::ColorEdit4("Manual Input Color##", colorManualInput.ptr());
 }
 
+void ComponentSlider::OnDisable() {
+	beingHandled = false;
+	App->userInterface->handlingSlider = false;
+}
+
 void ComponentSlider::OnClicked() {
 	//Does nothing, as the functionaliy happens onClickDown (OnClickedInternal method)
 }
