@@ -23,6 +23,7 @@ public:
 	void Init() override; // Component Initialization
 	void Update() override;
 	void OnEditorUpdate() override; // Input for class variables
+	void OnDisable() override;
 
 	void OnClicked() override;
 	void OnClickedInternal() override;
