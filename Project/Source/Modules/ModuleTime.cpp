@@ -111,6 +111,19 @@ void ModuleTime::SetVSync(bool value) {
 	App->renderer->SetVSync(value);
 }
 
+void ModuleTime::ResetDeltaTime() {
+	unsigned int realTime = timer.Read();
+	realTimeDeltaMs = realTime - realTimeLastMs;
+	realTimeLastMs = realTime;
+
+	if (gameRunning) {
+		timeDeltaMs = lroundf(realTimeDeltaMs * timeScale);
+		timeLastMs += timeDeltaMs;
+	} else {
+		timeDeltaMs = 0;
+	}
+}
+
 bool ModuleTime::HasGameStarted() const {
 	return gameStarted;
 }

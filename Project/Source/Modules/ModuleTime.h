@@ -43,6 +43,7 @@ public:
 	void StepGame();
 	UpdateStatus ExitGame();
 	void SetVSync(bool value);
+	void ResetDeltaTime();
 
 public:
 	int maxFps = 60;			// Maximum FPS when the framerate is limited.
