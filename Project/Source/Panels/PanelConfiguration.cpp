@@ -293,7 +293,7 @@ void PanelConfiguration::Update() {
 				}
 
 				float nearPlane;
-				float previousFarPlane = 0.001;
+				float previousFarPlane = 0.001f;
 				for (unsigned int i = 0; i < App->renderer->lightFrustumStatic.GetNumberOfCascades(); ++i) {
 					std::string label = "Cascade " + std::to_string(i);
 					ImGui::TextColored(App->editor->titleColor, label.c_str());
@@ -354,7 +354,7 @@ void PanelConfiguration::Update() {
 				}
 
 				float nearPlane;
-				float previousFarPlane = 0.001;
+				float previousFarPlane = 0.001f;
 				for (unsigned int i = 0; i < App->renderer->lightFrustumDynamic.GetNumberOfCascades(); ++i) {
 					std::string label = "Cascade " + std::to_string(i);
 					ImGui::TextColored(App->editor->titleColor, label.c_str());
@@ -416,7 +416,7 @@ void PanelConfiguration::Update() {
 				}
 
 				float nearPlane;
-				float previousFarPlane = 0.001;
+				float previousFarPlane = 0.001f;
 				for (unsigned int i = 0; i < App->renderer->lightFrustumMainEntities.GetNumberOfCascades(); ++i) {
 					std::string label = "Cascade " + std::to_string(i);
 					ImGui::TextColored(App->editor->titleColor, label.c_str());

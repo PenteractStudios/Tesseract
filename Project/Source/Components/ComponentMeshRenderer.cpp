@@ -94,6 +94,7 @@ void ComponentMeshRenderer::OnEditorUpdate() {
 	if (ImGui::Button("Remove##material")) {
 		if (materialId != 0) {
 			DeleteRenderingModeMask();
+			AddShadowCaster();
 			App->resources->DecreaseReferenceCount(materialId);
 			materialId = 0;
 		}
@@ -884,9 +885,10 @@ void ComponentMeshRenderer::UpdateMasks() {
 void ComponentMeshRenderer::AddShadowCaster() {
 	ResourceMaterial* material = App->resources->GetResource<ResourceMaterial>(materialId);
 	if (material == nullptr) return;
+	
+	GameObject* owner = &GetOwner();
 
 	if (material->castShadows) {
-		GameObject* owner = &GetOwner();
 		if (material->shadowCasterType == ShadowCasterType::STATIC) {
 			GetOwner().scene->RemoveDynamicShadowCaster(owner);
 			GetOwner().scene->RemoveMainEntityShadowCaster(owner);
@@ -900,6 +902,10 @@ void ComponentMeshRenderer::AddShadowCaster() {
 			GetOwner().scene->RemoveDynamicShadowCaster(owner);
 			GetOwner().scene->AddMainEntityShadowCaster(owner);
 		}
+	} else  {
+		GetOwner().scene->RemoveStaticShadowCaster(owner);
+		GetOwner().scene->RemoveDynamicShadowCaster(owner);
+		GetOwner().scene->RemoveMainEntityShadowCaster(owner);
 	}
 }
 
@@ -929,6 +935,7 @@ void ComponentMeshRenderer::SetMeshInternal(UID meshId_) {
 
 void ComponentMeshRenderer::SetMaterialInternal(UID materialId_) {
 	materialId = materialId_;
+	AddShadowCaster();
 }
 
 UID ComponentMeshRenderer::GetMesh() const {
@@ -948,6 +955,7 @@ UID ComponentMeshRenderer::GetMaterial() const {
 void ComponentMeshRenderer::SetMaterial(UID materialId_) {
 	App->resources->DecreaseReferenceCount(materialId);
 	materialId = materialId_;
+	AddShadowCaster();
 	App->resources->IncreaseReferenceCount(materialId);
 }
 
