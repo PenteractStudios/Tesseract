@@ -67,10 +67,10 @@ void ComponentVideo::Start() {
 void ComponentVideo::Update() {
 	if (videoID != 0) {
 		if (isPlaying) {
-			elapsedVideoTime += App->time->GetDeltaTime();
-			if (elapsedVideoTime > videoFrameTime) {
+			while (elapsedVideoTime > videoFrameTime) {
 				ReadVideoFrame();
 			}
+			elapsedVideoTime += App->time->GetRealTimeDeltaTime();
 		}
 		/* if (elapsedVideoTime > audioFrameTime) {
 			ReadAudioFrame(); //each packet contains complete frames, or multiple frames in the case of audio.
