@@ -1409,10 +1409,10 @@ void ComponentParticleSystem::SpawnParticles() {
 	if (!IsActive()) return;
 	if (isPlaying && ((emitterTime < duration) || looping)) {
 		if (restParticlesPerSecond <= 0) {
+			InitStartRate();
 			for (int i = 0; i < particlesCurrentFrame; i++) {
 				if (maxParticles > particles.Count()) SpawnParticleUnit();
 			}
-			InitStartRate();
 		} else {
 			restParticlesPerSecond -= App->time->GetDeltaTimeOrRealDeltaTime();
 		}
@@ -1744,8 +1744,6 @@ void ComponentParticleSystem::Update() {
 
 	if (restDelayTime <= 0) {
 		if (isPlaying) {
-			emitterTime += App->time->GetDeltaTimeOrRealDeltaTime();
-
 			for (Particle& currentParticle : particles) {
 				UpdatePosition(&currentParticle);
 
@@ -1784,6 +1782,10 @@ void ComponentParticleSystem::Update() {
 		UndertakerParticle();
 		UpdateSubEmitters();
 		SpawnParticles();
+
+		if (isPlaying) {
+			emitterTime += App->time->GetDeltaTimeOrRealDeltaTime();
+		}
 	} else {
 		if (!isPlaying) return;
 		restDelayTime -= App->time->GetDeltaTimeOrRealDeltaTime();
@@ -2285,6 +2287,7 @@ void ComponentParticleSystem::Play() {
 		isPlaying = true;
 		InitStartDelay();
 		emitterTime = 0.0f;
+		restParticlesPerSecond = 0.0f;
 	}
 }
 
