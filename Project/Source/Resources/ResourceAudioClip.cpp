@@ -5,6 +5,7 @@
 #include "Modules/ModuleAudio.h"
 #include "Utils/MSTimer.h"
 #include "Utils/Logging.h"
+#include "Utils/alErrors.h"
 
 #include "AL/alext.h"
 #include <inttypes.h>
@@ -72,15 +73,15 @@ void ResourceAudioClip::Load() {
 	size = (ALsizei)(numFrames * sfinfo.channels) * (ALsizei) sizeof(short);
 
 	ALbuffer = 0;
-	alGenBuffers(1, &ALbuffer);
-	alBufferData(ALbuffer, format, audioData, size, sfinfo.samplerate);
+	alCall(alGenBuffers, 1, &ALbuffer);
+	alCall(alBufferData, ALbuffer, format, audioData, size, sfinfo.samplerate);
 
 	// Check if an error occured, and clean up if so.
 	err = alGetError();
 	if (err != AL_NO_ERROR) {
 		LOG("OpenAL Error: %s", alGetString(err));
 		if (ALbuffer && alIsBuffer(ALbuffer)) {
-			alDeleteBuffers(1, &ALbuffer);
+			alCall(alDeleteBuffers, 1, &ALbuffer);
 		}
 		return;
 	}
@@ -88,7 +89,8 @@ void ResourceAudioClip::Load() {
 
 void ResourceAudioClip::Unload() {
 	if (ALbuffer) {
-		alDeleteBuffers(1, &ALbuffer);
+		App->audio->DeleteRelatedBuffer(ALbuffer);
+		alCall(alDeleteBuffers, 1, &ALbuffer);
 		ALbuffer = 0;
 	}
 }

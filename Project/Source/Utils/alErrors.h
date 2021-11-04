@@ -7,7 +7,7 @@
 
 #define alCall(function, ...) alCallImpl(__FILE__, __LINE__, function, __VA_ARGS__)
 
-bool check_al_errors(const std::string& filename, const std::uint_fast32_t line) {
+static bool check_al_errors(const std::string& filename, const std::uint_fast32_t line) {
 	ALenum error = alGetError();
 	if (error != AL_NO_ERROR) {
 		std::string errorText;

@@ -33,11 +33,12 @@ public:
 	void SetSoundDevice(int pos);
 
 	unsigned GetAvailableSource(bool reverse = false) const;
+	void DeleteRelatedBuffer(unsigned int bufferId);
 	bool isActive(unsigned sourceId) const;
 	bool isAvailable(unsigned sourceId) const;
 	void Stop(unsigned sourceID) const;
 	TESSERACT_ENGINE_API void StopAllSources();
-
+	
 	float GetGainMainChannel();
 	float GetGainMusicChannel() const;
 	float GetGainSFXChannel() const;
