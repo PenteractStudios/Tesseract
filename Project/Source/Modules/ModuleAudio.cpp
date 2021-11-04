@@ -120,6 +120,16 @@ unsigned ModuleAudio::GetAvailableSource(bool reverse) const {
 	}
 }
 
+void ModuleAudio::DeleteRelatedBuffer(unsigned int bufferId) {
+	for (int i = 0; i < NUM_SOURCES; ++i) {
+		ALint currentBuffer = 0;
+		alGetSourcei(sources[i], AL_BUFFER, &currentBuffer);
+		if (bufferId == currentBuffer) {
+			alSourcei(sources[i], AL_BUFFER, NULL);
+		}
+	}
+}
+
 bool ModuleAudio::isActive(unsigned sourceId) const {
 	ALint state;
 	alGetSourcei(sourceId, AL_SOURCE_STATE, &state);
@@ -135,7 +145,6 @@ bool ModuleAudio::isAvailable(unsigned sourceId) const {
 void ModuleAudio::Stop(unsigned sourceId) const {
 	if (sourceId) {
 		alSourceStop(sourceId);
-		alSourcei(sourceId, AL_BUFFER, NULL);
 		sourceId = 0;
 	}
 }

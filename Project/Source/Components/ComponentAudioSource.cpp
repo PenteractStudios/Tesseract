@@ -125,7 +125,7 @@ void ComponentAudioSource::OnEditorUpdate() {
 	if (ImGui::RadioButton("Music", &channel, 1)) {
 		isMusic = true;
 		gainMultiplier = App->audio->GetGainMusicChannel();
-		if (!mute) {
+		if (!mute && sourceId) {
 			alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
 		}
 	}
@@ -133,7 +133,7 @@ void ComponentAudioSource::OnEditorUpdate() {
 	if (ImGui::RadioButton("SFX", &channel, 0)) {
 		isMusic = false;
 		gainMultiplier = App->audio->GetGainSFXChannel();
-		if (!mute) {
+		if (!mute && sourceId) {
 			alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
 		}
 	}
@@ -143,22 +143,24 @@ void ComponentAudioSource::OnEditorUpdate() {
 	ImGui::ResourceSlot<ResourceAudioClip>("AudioClip", &audioClipId, [this]() { Stop(); });
 
 	if (ImGui::Checkbox("Mute", &mute)) {
-		if (mute) {
-			alSourcef(sourceId, AL_GAIN, 0.0f);
-		} else {
-			alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+		if (sourceId) {
+			if (mute) {
+				alSourcef(sourceId, AL_GAIN, 0.0f);
+			} else {
+				alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+			}
 		}
 	}
 	if (ImGui::Checkbox("Loop", &loop)) {
-		alSourcef(sourceId, AL_LOOPING, loop);
+		if (sourceId) alSourcef(sourceId, AL_LOOPING, loop);
 	}
 	if (ImGui::DragFloat("Gain", &gain, App->editor->dragSpeed3f, 0, 1)) {
-		if (!mute) {
+		if (!mute && sourceId) {
 			alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
 		}
 	}
 	if (ImGui::DragFloat("Pitch", &pitch, App->editor->dragSpeed3f, 0.5, 2)) {
-		alSourcef(sourceId, AL_PITCH, pitch);
+		if (sourceId) alSourcef(sourceId, AL_PITCH, pitch);
 	}
 	ImGui::Checkbox("Play On Awake", &playOnAwake);
 	ImGui::NewLine();
@@ -167,14 +169,18 @@ void ComponentAudioSource::OnEditorUpdate() {
 	ImGui::Text("Spatial Blend");
 	ImGui::SameLine();
 	if (ImGui::RadioButton("2D", &spatialBlend, 0)) {
-		alSourcei(sourceId, AL_SOURCE_RELATIVE, AL_TRUE);
-		alSource3f(sourceId, AL_POSITION, 0.0f, 0.0f, 0.0f);
-		alSource3f(sourceId, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
+		if (sourceId) {
+			alSourcei(sourceId, AL_SOURCE_RELATIVE, AL_TRUE);
+			alSource3f(sourceId, AL_POSITION, 0.0f, 0.0f, 0.0f);
+			alSource3f(sourceId, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
+		}
 	}
 	ImGui::SameLine();
 	if (ImGui::RadioButton("3D", &spatialBlend, 1)) {
-		alSourcei(sourceId, AL_SOURCE_RELATIVE, AL_FALSE);
-		alSourcefv(sourceId, AL_POSITION, position.ptr());
+		if (sourceId) {
+			alSourcei(sourceId, AL_SOURCE_RELATIVE, AL_FALSE);
+			alSourcefv(sourceId, AL_POSITION, position.ptr());
+		}
 	}
 	if (spatialBlend) { // 3D
 		const char* sourceTypes[] = {"Omnidirectional", "Directional"};
@@ -184,11 +190,13 @@ void ComponentAudioSource::OnEditorUpdate() {
 				bool isSelected = (sourceTypesCurrent == sourceTypes[n]);
 				if (ImGui::Selectable(sourceTypes[n], isSelected)) {
 					sourceType = n;
-					if (sourceType) {
-						alSourcefv(sourceId, AL_DIRECTION, direction.ptr());
-					} else {
-						alSourcef(sourceId, AL_CONE_INNER_ANGLE, 360);
-						alSource3f(sourceId, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
+					if (sourceId) {
+						if (sourceType) {
+							alSourcefv(sourceId, AL_DIRECTION, direction.ptr());
+						} else {
+							alSourcef(sourceId, AL_CONE_INNER_ANGLE, 360);
+							alSource3f(sourceId, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
+						}
 					}
 				}
 				if (isSelected) {
@@ -201,25 +209,25 @@ void ComponentAudioSource::OnEditorUpdate() {
 		if (sourceType) { // Directional
 			ImGui::Indent();
 			if (ImGui::DragFloat("Inner Angle", &innerAngle, 1.f, 0.0f, outerAngle)) {
-				alSourcef(sourceId, AL_CONE_INNER_ANGLE, innerAngle);
+				if (sourceId) alSourcef(sourceId, AL_CONE_INNER_ANGLE, innerAngle);
 			}
 			if (ImGui::DragFloat("Outer Angle", &outerAngle, 1.f, 0.0f, 360.f)) {
-				alSourcef(sourceId, AL_CONE_OUTER_ANGLE, outerAngle);
+				if (sourceId) alSourcef(sourceId, AL_CONE_OUTER_ANGLE, outerAngle);
 			}
 			if (ImGui::DragFloat("Outer Gain", &outerGain, App->editor->dragSpeed2f, 0.f, 1.f)) {
-				alSourcef(sourceId, AL_CONE_OUTER_GAIN, outerGain);
+				if (sourceId) alSourcef(sourceId, AL_CONE_OUTER_GAIN, outerGain);
 			}
 			ImGui::Unindent();
 		}
 
 		if (ImGui::DragFloat("Roll Off Factor", &rollOffFactor, 1.f, 0.0f, inf)) {
-			alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFactor);
+			if (sourceId) alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFactor);
 		}
 		if (ImGui::DragFloat("Reference Distance", &referenceDistance, 1.f, 0.0f, inf)) {
-			alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
+			if (sourceId) alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
 		}
 		if (ImGui::DragFloat("Max Distance", &maxDistance, 1.f, 0.0f, inf)) {
-			alSourcef(sourceId, AL_MAX_DISTANCE, maxDistance);
+			if (sourceId) alSourcef(sourceId, AL_MAX_DISTANCE, maxDistance);
 		}
 	}
 
@@ -232,9 +240,10 @@ bool ComponentAudioSource::UpdateSourceParameters() {
 	if (audioResource == nullptr) return false;
 	if (audioResource->ALbuffer == 0) return false;
 
+	if (!sourceId) return false;
+
 	alSourcef(sourceId, AL_PITCH, pitch);
 	alSourcei(sourceId, AL_LOOPING, loop);
-	alSourcei(sourceId, AL_BUFFER, NULL);
 	alSourcei(sourceId, AL_BUFFER, audioResource->ALbuffer);
 
 	if (!spatialBlend) {
@@ -270,16 +279,17 @@ bool ComponentAudioSource::UpdateSourceParameters() {
 void ComponentAudioSource::Play() {
 	if (IsActive()) {
 		if (!IsPlaying() && !IsPaused()) {
+			Stop();
 			sourceId = App->audio->GetAvailableSource();
+			if (sourceId) UpdateSourceParameters();
 		}
-		if (sourceId && UpdateSourceParameters()) alSourcePlay(sourceId);
+		if (sourceId) alSourcePlay(sourceId);
 	}
 }
 
 void ComponentAudioSource::Stop() {
 	if (sourceId) {
 		alSourceStop(sourceId);
-		alSourcei(sourceId, AL_BUFFER, NULL);
 		sourceId = 0;
 	}
 }
@@ -417,28 +427,30 @@ float ComponentAudioSource::GetIsMusic() const {
 
 void ComponentAudioSource::SetMute(bool _mute) {
 	mute = _mute;
-	if (mute) {
-		alSourcef(sourceId, AL_GAIN, 0.0f);
-	} else {
-		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+	if (sourceId) {
+		if (mute) {
+			alSourcef(sourceId, AL_GAIN, 0.0f);
+		} else {
+			alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
+		}
 	}
 }
 
 void ComponentAudioSource::SetLoop(bool _loop) {
 	loop = _loop;
-	alSourcei(sourceId, AL_LOOPING, loop);
+	if (sourceId) alSourcei(sourceId, AL_LOOPING, loop);
 }
 
 void ComponentAudioSource::SetGain(float _gain) {
 	gain = _gain;
-	if (!mute) {
+	if (!mute && sourceId) {
 		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
 	}
 }
 
 void ComponentAudioSource::SetPitch(float _pitch) {
 	pitch = _pitch;
-	alSourcef(sourceId, AL_PITCH, pitch);
+	if (sourceId) alSourcef(sourceId, AL_PITCH, pitch);
 }
 
 void ComponentAudioSource::SetPlayOnAwake(bool _playOnAwake) {
@@ -455,37 +467,37 @@ void ComponentAudioSource::SetSourceType(int _sourceType) {
 
 void ComponentAudioSource::SetInnerAngle(float _innerAngle) {
 	innerAngle = _innerAngle;
-	alSourcef(sourceId, AL_CONE_INNER_ANGLE, innerAngle);
+	if (sourceId) alSourcef(sourceId, AL_CONE_INNER_ANGLE, innerAngle);
 }
 
 void ComponentAudioSource::SetOuterAngle(float _outerAngle) {
 	outerAngle = _outerAngle;
-	alSourcef(sourceId, AL_CONE_OUTER_ANGLE, outerAngle);
+	if (sourceId) alSourcef(sourceId, AL_CONE_OUTER_ANGLE, outerAngle);
 }
 
 void ComponentAudioSource::SetOuterGain(float _outerGain) {
 	outerGain = _outerGain;
-	alSourcef(sourceId, AL_CONE_OUTER_GAIN, outerGain);
+	if (sourceId) alSourcef(sourceId, AL_CONE_OUTER_GAIN, outerGain);
 }
 
 void ComponentAudioSource::SetRollOffFactor(float _rollOffFactor) {
 	rollOffFactor = _rollOffFactor;
-	alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFactor);
+	if (sourceId) alSourcef(sourceId, AL_ROLLOFF_FACTOR, rollOffFactor);
 }
 
 void ComponentAudioSource::SetReferenceDistance(float _referenceDistance) {
 	referenceDistance = _referenceDistance;
-	alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
+	if (sourceId) alSourcef(sourceId, AL_REFERENCE_DISTANCE, referenceDistance);
 }
 
 void ComponentAudioSource::SetMaxDistance(float _maxDistance) {
 	maxDistance = _maxDistance;
-	alSourcef(sourceId, AL_MAX_DISTANCE, maxDistance);
+	if (sourceId) alSourcef(sourceId, AL_MAX_DISTANCE, maxDistance);
 }
 
 void ComponentAudioSource::SetGainMultiplier(float _gainMultiplier) {
 	gainMultiplier = _gainMultiplier;
-	if (!mute) {
+	if (!mute && sourceId) {
 		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
 	}
 }
@@ -497,7 +509,7 @@ void ComponentAudioSource::SetIsMusic(float _isMusic) {
 	} else {
 		gainMultiplier = App->audio->GetGainSFXChannel();
 	}
-	if (!mute) {
+	if (!mute && sourceId) {
 		alSourcef(sourceId, AL_GAIN, gain * gainMultiplier);
 	}
 }
