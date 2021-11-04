@@ -145,7 +145,6 @@ bool ModuleAudio::isAvailable(unsigned sourceId) const {
 void ModuleAudio::Stop(unsigned sourceId) const {
 	if (sourceId) {
 		alSourceStop(sourceId);
-		alSourcei(sourceId, AL_BUFFER, NULL);
 		sourceId = 0;
 	}
 }
