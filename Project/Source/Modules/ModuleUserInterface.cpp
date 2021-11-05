@@ -83,24 +83,23 @@ void ModuleUserInterface::ManageInputsOnSelected(ComponentSelectable* currentlyS
 
 	if (!slider) {
 		if (pressingOnSelected) {
-			if (currentlySelected->IsClicked()) {
+			if (!currentlySelected->IsClicked()) {
 				if (!wasPressConfirmed) {
-					currentlySelected->TryToClickOn(false);
+					//SETCLICKEDINTERNAL
+					currentlySelected->TryToClickOn(true);
 					wasPressConfirmed = true;
-					//CONFIRM PRESS
 				}
-			} else {
-				currentlySelected->TryToClickOn(true);
-				//SETCLICKEDINTERNAL
 			}
 		} else {
+			if (wasPressConfirmed) {
+				currentlySelected->TryToClickOn(false);
+				//CONFIRM PRESS
+			}
 			wasPressConfirmed = false;
 		}
 
 		//Sliders are handled separately, all other UI components can be managed through this code
 	} else {
-		//TODO MANAGE BEING HANDLED BOOl
-
 		if (pressingOnSelected) {
 			if (!wasPressConfirmed) {
 				wasPressConfirmed = true;
