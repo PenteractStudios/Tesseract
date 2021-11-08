@@ -32,6 +32,15 @@ Developed for the Master's Degree in Advanced Programming for AAA Video Games.
   - ACES tone mapping
   - Chromatic aberration
 - Particles
+  - Box / Cone / Sphere emitters
+  - Behavior curves and randomness
+  - Veolcity / Color / Rotation / Size over lifetime
+  - Gravity
+  - Trails
+  - Lights
+  - Collision
+  - Sheet animations
+  - Subemitters
 - Animations
   - GPU skinning
   - Double animation state machine support
